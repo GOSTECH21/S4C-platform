@@ -14,7 +14,7 @@ export default function RegisterPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -24,9 +24,22 @@ export default function RegisterPage() {
       return;
     }
 
+if (data.user) {
+  const { error: profileError } = await supabase
+  .from("profiles")
+  .insert({
+    id: data.user.id,
+    email: data.user.email,
+    role: "supporter",
+  });
+
+if (profileError) {
+  console.log(profileError);
+  alert(profileError.message);
+}
     alert("Registration successful. Check your email to confirm your account.");
   }
-
+  }
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
       <div className="w-full max-w-md rounded-xl bg-slate-900 p-8 shadow-lg">

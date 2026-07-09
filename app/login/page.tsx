@@ -19,8 +19,39 @@ export default function LoginPage() {
       return;
     }
 
-    alert("Login successful");
-    window.location.href = "/admin/match-centre";
+    const { data: profile, error: profileError } = await supabase
+  .from("profiles")
+  .select("role")
+  .single();
+
+if (profileError) {
+  alert(profileError.message);
+  return;
+}
+
+if (profile.role === "admin") {
+  window.location.href = "/admin/match-centre";
+} else if (profile.role === "club") {
+  window.location.href = "/dashboard/club";
+} else if (profile.role === "sponsor") {
+  window.location.href = "/dashboard/sponsor";
+} else {
+  const { data: preferences, error: preferencesError } = await supabase
+  .from("supporter_preferences")
+  .select("id")
+  .limit(1);
+
+if (preferencesError) {
+  alert(preferencesError.message);
+  return;
+}
+
+if (preferences && preferences.length > 0) {
+  window.location.href = "/dashboard/supporter/calendar";
+} else {
+  window.location.href = "/dashboard/supporter/preferences";
+}
+}
   }
 
   return (
