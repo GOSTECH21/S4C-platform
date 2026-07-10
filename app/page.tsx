@@ -58,8 +58,8 @@ export default function HomePage() {
         <div className="mt-10 grid gap-6 md:grid-cols-5">
           {[            
   "Follow your favourite club",
-  "Your team scores. Brands sponsor the score.",
-  "You receive Climate Credits from those sponsors.",
+  "When your team score a Goal; Brands sponsor that Goal.",
+  "When Brands sponsors a Goal; you receive Climate Credits from them.",
   "Allocate your Climate Credits to verified climate projects.",
   "Verified climate projects help your club climb the Climate Impact Table.",
           ].map((step, index) => (
