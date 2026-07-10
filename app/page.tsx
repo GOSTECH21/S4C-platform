@@ -24,8 +24,7 @@ export default function HomePage() {
         </h1>
 
         <p className="mt-6 max-w-3xl text-lg text-slate-300 md:text-xl">
-          Welcome to Score-4-Climate, the platform that enables sports fans and
-          supporters to help their favourite club or team fight climate change.
+          Welcome to Score-4-Climate, the platform that enables sports fans & supporters help their clubs & teams fight climate change by turning every sporting moment into measurable climate action.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
