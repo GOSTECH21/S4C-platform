@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 const projects = [
   {
@@ -22,9 +19,17 @@ const projects = [
   },
 ];
 
-export default function ProjectsPage() {
-  const searchParams = useSearchParams();
-  const amount = searchParams.get("amount") || "1";
+type PageProps = {
+  searchParams: Promise<{
+    amount?: string;
+  }>;
+};
+
+export default async function ProjectsPage({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
+  const amount = params.amount ?? "1";
 
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -34,7 +39,8 @@ export default function ProjectsPage() {
         </h1>
 
         <p className="mt-3 text-slate-300">
-          Allocate your £{amount} Climate Credit to one of these verified projects.
+          Allocate your £{amount} Climate Credit to one of these verified
+          projects.
         </p>
 
         <div className="mt-10 space-y-6">
@@ -45,7 +51,9 @@ export default function ProjectsPage() {
             >
               <h2 className="text-2xl font-bold">{project.name}</h2>
 
-              <p className="mt-2 text-slate-400">{project.description}</p>
+              <p className="mt-2 text-slate-400">
+                {project.description}
+              </p>
 
               <Link
                 href={`/dashboard/supporter/success?amount=${amount}`}

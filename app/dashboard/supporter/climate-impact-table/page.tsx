@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 const baseTable = [
   { position: 1, club: "Arsenal", impact: 82351, co2: 18240 },
@@ -10,9 +7,18 @@ const baseTable = [
   { position: 4, club: "Manchester United", impact: 74800, co2: 13900 },
 ];
 
-export default function ClimateImpactTablePage() {
-  const searchParams = useSearchParams();
-  const amount = Number(searchParams.get("amount") || "0");
+type PageProps = {
+  searchParams: Promise<{
+    amount?: string;
+  }>;
+};
+
+export default async function ClimateImpactTablePage({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
+  const parsedAmount = Number(params.amount ?? "0");
+  const amount = Number.isFinite(parsedAmount) ? parsedAmount : 0;
 
   const table = baseTable.map((row) =>
     row.club === "Arsenal"
@@ -35,7 +41,8 @@ export default function ClimateImpactTablePage() {
         </h1>
 
         <p className="mt-3 text-slate-300">
-          Your £{amount} credit has contributed to your club&apos;s climate impact.
+          Your £{amount} credit has contributed to your club&apos;s climate
+          impact.
         </p>
 
         <div className="mt-10 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
@@ -43,7 +50,9 @@ export default function ClimateImpactTablePage() {
             <div
               key={row.club}
               className={`grid grid-cols-4 gap-4 border-b border-slate-800 p-5 ${
-                row.club === "Arsenal" ? "bg-green-400 text-slate-950" : ""
+                row.club === "Arsenal"
+                  ? "bg-green-400 text-slate-950"
+                  : ""
               }`}
             >
               <strong>#{row.position}</strong>
