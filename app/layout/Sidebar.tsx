@@ -8,7 +8,7 @@ const navItems = [
   { label: "Fixtures", href: "/admin/fixtures" },
   { label: "Impact Opportunities", href: "/admin/impact-opportunities" },
   { label: "Climate Assets", href: "/admin/climate-assets" },
-  { label: "Carbon Impact Table", href: "/carbon-impact-table" },
+  { label: "Carbon Impact League Table", href: "/carbon-impact-league-table" },
   { label: "Sponsors", href: "/admin/sponsors" },
   { label: "Sponsor Campaigns", href: "/admin/sponsor-campaigns" },
   { label: "Match Centre", href: "/admin/match-centre" },

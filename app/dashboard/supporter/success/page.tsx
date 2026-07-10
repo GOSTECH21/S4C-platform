@@ -34,7 +34,7 @@ export default async function SuccessPage({
           href={`/dashboard/supporter/climate-impact-table?amount=${amount}`}
           className="mt-8 inline-block rounded-lg bg-green-400 px-6 py-3 font-bold text-slate-950"
         >
-          View Climate Impact Table
+          View Climate Impact League Table
         </Link>
       </div>
     </main>
