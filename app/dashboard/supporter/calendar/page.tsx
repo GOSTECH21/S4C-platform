@@ -192,7 +192,12 @@ export default function SupporterCalendarPage() {
                     </ul>
 
                     <Link
-  href={`/dashboard/supporter/goal-alert?sport=${fixture.sport}&team=${fixture.team}&score=${fixture.team}%201%20-%200%20${fixture.opponent}`}
+  
+  href={`/dashboard/supporter/goal-alert?sport=${fixture.sport}&team=${fixture.team}&score=${
+    fixture.sport === "Rugby"
+      ? `${fixture.team}%205%20-%200%20${fixture.opponent}`
+      : `${fixture.team}%201%20-%200%20${fixture.opponent}`
+  }`}
   className="mt-5 inline-block rounded-lg bg-green-400 px-5 py-3 font-bold text-slate-950"
 >
   Claim Credit
