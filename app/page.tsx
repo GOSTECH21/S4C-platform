@@ -52,16 +52,16 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-6xl px-6 py-10">
         <h2 className="text-center text-4xl font-black text-green-400">
-          How It Works
+          How Score-4-Climate Works
         </h2>
 
         <div className="mt-10 grid gap-6 md:grid-cols-5">
-          {[
-            "Follow your favourite club",
-            "Your team scores",
-            "Sponsors release Climate Credits",
-            "Choose a verified project",
-            "Your club climbs the Climate Impact Table",
+          {[            
+  "Follow your favourite club",
+  "Your team scores. Brands sponsor the score.",
+  "You receive Climate Credits from those sponsors.",
+  "Allocate your Climate Credits to verified climate projects.",
+  "Verified climate projects help your club climb the Climate Impact Table.",
           ].map((step, index) => (
             <div
               key={step}
