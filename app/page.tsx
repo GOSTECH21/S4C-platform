@@ -16,15 +16,23 @@ export default function HomePage() {
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto flex max-w-6xl flex-col items-center justify-center px-6 pt-20 pb-12 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.35em] text-green-400">
-          Score-4-Climate
+          <div className="text-green-400 tracking-[0.4em] font-bold uppercase">
+  S4P
+</div>
+
+<div className="text-sm text-gray-400 mt-2">
+  Score-4-our-Planet
+</div>
         </p>
 
         <h1 className="mt-6 max-w-5xl text-5xl font-black tracking-tight text-green-400 md:text-7xl">
-          Where every score creates climate action
+         Where Every Score Helps Our Planet Win
         </h1>
 
         <p className="mt-6 max-w-3xl text-lg text-slate-300 md:text-xl">
-          Welcome to Score-4-Climate, the platform that enables sports fans & supporters help their clubs & teams fight climate change by turning every sporting moment into measurable climate action.
+          Welcome to <strong>S4P (Score-4-our-Planet)</strong>, where every goal,
+try, basket, wicket and finish line becomes an opportunity for fans,
+clubs and sponsors to create measurable climate action.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -51,16 +59,16 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-6xl px-6 py-10">
         <h2 className="text-center text-4xl font-black text-green-400">
-          How Score-4-Climate Works
+          How S4P Works
         </h2>
 
         <div className="mt-10 grid gap-6 md:grid-cols-5">
           {[            
   "Follow your favourite club",
-  "When your team score a Goal; Brands sponsor that Goal.",
-  "When Brands sponsors a Goal; you receive Climate Credits from them.",
-  "Allocate your Climate Credits to verified climate projects.",
-  "Each verified project pushes your club up our Climate Impact League Table.",
+  "Your team scores Brands sponsor the score",
+ "Sponsorships are given to you as Climate Credits",
+  "Put your Climate Credits into Verified Climate Projects",
+  "Verified Projects help your club climb the Climate Impact League Table",
           ].map((step, index) => (
             <div
               key={step}
