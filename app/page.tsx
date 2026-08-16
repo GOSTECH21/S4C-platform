@@ -7,7 +7,44 @@ const stats = [
   ["420", "Climate Projects"],
 ];
 
-const sports = ["⚽ Football", "🏉 Rugby", "🏏 Cricket", "🏎 Formula 1", "🏀 Basketball", "🎾 Tennis"];
+const tier1Sports = [
+  {
+    icon: "⚽",
+    name: "Football",
+    event: "Goal",
+    status: "Live",
+  },
+  {
+    icon: "🏉",
+    name: "Rugby Union",
+    event: "Try",
+    status: "Live",
+  },
+  {
+    icon: "🏈",
+    name: "NFL",
+    event: "Touchdown",
+    status: "Live",
+  },
+  {
+    icon: "🏏",
+    name: "Cricket",
+    event: "Wicket",
+    status: "Live",
+  },
+  {
+    icon: "🎾",
+    name: "Tennis",
+    event: "Match Point",
+    status: "Live",
+  },
+  {
+    icon: "🏀",
+    name: "Basketball",
+    event: "Basket",
+    status: "Live",
+  },
+];
 
 const partners = ["Budweiser", "Coca-Cola", "Guinness", "Gillette", "ScottishPower", "RBS"];
 
@@ -15,23 +52,27 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto flex max-w-6xl flex-col items-center justify-center px-6 pt-20 pb-12 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.35em] text-green-400">
-          <div className="text-green-400 tracking-[0.4em] font-bold uppercase">
-  S4P
-</div>
+        <div className="text-center">
+  <h2 className="text-5xl font-black tracking-[0.3em] text-green-400">
+    S4P
+  </h2>
 
-<div className="text-sm text-gray-400 mt-2">
-  Score-4-our-Planet
+  <p className="mt-2 text-sm uppercase tracking-[0.25em] text-slate-400">
+    Score-For-Our-Planet
+  </p>
+
+  <p className="mt-4 text-lg font-semibold text-green-300">
+    Where Sport Creates Climate Action
+  </p>
 </div>
-        </p>
 
         <h1 className="mt-6 max-w-5xl text-5xl font-black tracking-tight text-green-400 md:text-7xl">
-         Where Every Score Helps Our Planet Win
+         Every Score = A better Planet
         </h1>
 
         <p className="mt-6 max-w-3xl text-lg text-slate-300 md:text-xl">
-          Welcome to <strong>S4P (Score-4-our-Planet)</strong>, where every goal,
-try, basket, wicket and finish line becomes an opportunity for fans,
+          Welcome to <strong>S4P (Score-4-Our-Planet)</strong>, where every goal,
+try, basket, wicket, touchdown and finish line becomes an opportunity for fans,
 clubs and sponsors to create measurable climate action.
         </p>
 
@@ -102,22 +143,35 @@ clubs and sponsors to create measurable climate action.
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-center text-4xl font-black text-green-400">
-          Supported Sports
-        </h2>
+  <h2 className="text-center text-4xl font-black text-green-400">
+    Supported Sports
+  </h2>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {sports.map((sport) => (
-            <div
-              key={sport}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-6 text-center text-xl font-bold"
-            >
-              {sport}
-            </div>
-          ))}
+  <div className="mt-10 grid gap-6 md:grid-cols-3">
+    {tier1Sports.map((sport) => (
+      <div
+        key={sport.name}
+        className="rounded-xl border border-slate-800 bg-slate-900 p-6 text-center"
+      >
+        <div className="text-5xl">
+          {sport.icon}
         </div>
-      </section>
 
+        <h3 className="mt-4 text-2xl font-bold">
+          {sport.name}
+        </h3>
+
+        <p className="mt-2 text-slate-300">
+          {sport.event}
+        </p>
+
+        <span className="mt-4 inline-block rounded-full bg-green-500/20 px-3 py-1 text-sm font-semibold text-green-400">
+          {sport.status}
+        </span>
+      </div>
+    ))}
+  </div>
+</section>
       <section className="mx-auto max-w-6xl px-6 py-10">
         <h2 className="text-center text-4xl font-black text-green-400">
           Partner Brands

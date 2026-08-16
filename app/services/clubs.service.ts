@@ -14,6 +14,18 @@ export async function getClubs() {
   return data;
 }
 
+export async function getClubByName(name: string) {
+  const { data, error } = await supabase
+    .from("clubs")
+    .select("*")
+    .ilike("name", name)
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
 export async function createClub({
   competitionId,
   name,
