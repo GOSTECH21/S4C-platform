@@ -1,4 +1,5 @@
 "use client";
+import { generateFixtures } from "../../services/fixture-generator.service";
 import { createImpactOpportunity } from "../../services/impact-opportunities.service";
 import { createScoreEvent } from "../../services/score-event.service";
 import { useEffect, useState } from "react";
@@ -10,6 +11,7 @@ import {
   createFixture,
   getFixtures,
   updateFixtureScore,
+  deleteFixtures,
 } from "../../services/fixtures.service";
 
 type Competition = {
@@ -48,6 +50,7 @@ export default function FixturesAdminPage() {
   const [fixtureDate, setFixtureDate] = useState("");
   const [kickoffTime, setKickoffTime] = useState("");
   const [venue, setVenue] = useState("");
+  
 async function handleRecordScore(
   fixture: Fixture,
   clubId: string
@@ -105,6 +108,7 @@ async function loadData() {
   setClubs(clubsData || []);
   setFixtures(fixturesData || []);
 }
+
   async function handleCreateFixture() {
     if (!competitionId || !homeClubId || !awayClubId || !fixtureDate) return;
 
@@ -130,7 +134,44 @@ async function loadData() {
   useEffect(() => {
     loadData();
   }, []);
+  const handleDeleteFixtures = async () => {
+  if (!competitionId) {
+    alert("Please select a competition.");
+    return;
+  }
 
+  if (!confirm("Delete all fixtures for this competition?")) {
+    return;
+  }
+
+  try {
+    await deleteFixtures(competitionId);
+
+    alert("Fixtures deleted.");
+
+    const refreshed = await getFixtures();
+    setFixtures(refreshed);
+  } catch (error: any) {
+    console.error(error);
+    alert(error.message);
+  }
+};
+const handleGenerateFixtures = async () => {
+  try {
+    const clubs = await generateFixtures({
+      competitionId,
+      season: "2026/27",
+      startDate: "2026-08-02",
+      kickoffTime: "15:00",
+    });
+
+    console.log(clubs);
+    alert(`Loaded ${clubs.length} clubs`);
+  } catch (error: any) {
+    console.error(error);
+    alert(error.message);
+  }
+};
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -140,7 +181,12 @@ async function loadData() {
             Create and manage fixtures that can generate S4C impact opportunities.
           </p>
         </div>
-
+<button
+      onClick={handleGenerateFixtures}
+      className="rounded bg-green-600 px-4 py-2 text-white"
+    >
+      Test Fixture Generator
+    </button>
         <div className="grid gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 md:grid-cols-3">
           <select className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white" value={competitionId} onChange={(e) => setCompetitionId(e.target.value)}>
             <option value="">Select competition</option>
@@ -150,7 +196,12 @@ async function loadData() {
               </option>
             ))}
           </select>
-
+<button
+  onClick={handleDeleteFixtures}
+  className="ml-3 rounded bg-red-600 px-4 py-2 text-white"
+>
+  Delete Fixtures
+</button>
           <select className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white" value={homeClubId} onChange={(e) => setHomeClubId(e.target.value)}>
             <option value="">Home club</option>
             {clubs.map((club) => (

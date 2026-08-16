@@ -78,3 +78,13 @@ export async function updateFixtureScore({
 
   return data;
 }
+export async function deleteFixtures(competitionId: string) {
+  const { error } = await supabase
+    .from("fixtures")
+    .delete()
+    .eq("competition_id", competitionId);
+
+  if (error) throw error;
+
+  return true;
+}
