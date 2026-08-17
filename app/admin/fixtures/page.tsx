@@ -158,15 +158,19 @@ async function loadData() {
 };
 const handleGenerateFixtures = async () => {
   try {
-    const clubs = await generateFixtures({
-      competitionId,
-      season: "2026/27",
-      startDate: "2026-08-02",
-      kickoffTime: "15:00",
-    });
+    const fixtures = await generateFixtures({
+  competitionId,
+  season: "2026/27",
+  startDate: "2026-08-02",
+  kickoffTime: "15:00",
+});
 
-    console.log(clubs);
-    alert(`Loaded ${clubs.length} clubs`);
+console.log(fixtures);
+
+alert(`${fixtures.length} fixtures generated successfully.`);
+
+const refreshed = await getFixtures();
+setFixtures(refreshed);
   } catch (error: any) {
     console.error(error);
     alert(error.message);

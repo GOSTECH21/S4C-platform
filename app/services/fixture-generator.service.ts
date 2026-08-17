@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-
+import { initializeLeagueTable } from "./league-table.service";
 type Club = {
   id: string;
   name: string;
@@ -133,7 +133,6 @@ export async function generateFixtures({
 
         venue: match.home.stadium,
 
-        season,
       });
     }
   }
@@ -162,7 +161,6 @@ export async function generateFixtures({
 
         venue: match.away.stadium,
 
-        season,
       });
     }
   }
@@ -173,11 +171,16 @@ export async function generateFixtures({
     .from("fixtures")
     .insert(fixtures);
 
-  if (insertError) throw insertError;
+if (insertError) throw insertError;
 
-  console.log(`${fixtures.length} fixtures saved.`);
+console.log(`${fixtures.length} fixtures saved.`);
 
-  return fixtures;
+// Initialize the league table
+await initializeLeagueTable(competitionId);
+
+console.log("League table initialized.");
+
+return fixtures;
 }
 
 /*

@@ -1,6 +1,6 @@
 import { processSponsorTrigger } from "./sponsor-trigger.service";
 import { supabase } from "../lib/supabase";
-
+import { updateLeagueTable } from "./league-table-update.service";
 export async function getFixtures() {
   const { data, error } = await supabase
     .from("fixtures")
@@ -75,7 +75,7 @@ export async function updateFixtureScore({
     fixtureId: fixtureId,
     clubId: clubId,
   });
-
+await updateLeagueTable(fixtureId);
   return data;
 }
 export async function deleteFixtures(competitionId: string) {
