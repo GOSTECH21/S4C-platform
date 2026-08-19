@@ -19,7 +19,49 @@ async function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
 
   setLoading(true);
+const competitions: Record<string, string[]> = {
+  Football: [
+    "Premier League",
+    "Championship",
+    "FA Cup",
+    "Champions League",
+    "Europa League",
+    "Women's Super League",
+  ],
 
+  Rugby: [
+    "Six Nations",
+    "Premiership Rugby",
+    "United Rugby Championship",
+    "Rugby Championship",
+    "Rugby World Cup",
+  ],
+
+  "NFL (American Football)": [
+    "NFL Regular Season",
+    "NFL Playoffs",
+    "Super Bowl",
+  ],
+
+  Basketball: [
+    "NBA",
+    "EuroLeague",
+    "NCAA",
+  ],
+
+  Hockey: [
+    "NHL",
+    "IIHF World Championship",
+  ],
+
+  Golf: [
+    "PGA Tour",
+    "DP World Tour",
+    "Masters",
+    "The Open",
+    "Ryder Cup",
+  ],
+};
   try {
     await createDashboardCampaign({
       campaignName,
@@ -38,7 +80,7 @@ async function handleSubmit(e: React.FormEvent) {
   } finally {
     setLoading(false);
   }
-}
+  }
   return (
 
     <div className="mx-auto max-w-3xl py-16">
@@ -54,9 +96,58 @@ async function handleSubmit(e: React.FormEvent) {
       <form
   onSubmit={handleSubmit}
   className="mt-10 space-y-6"
->
-
+>      
         <div>
+
+  <label className="mb-2 block font-medium">
+    Sport
+  </label>
+
+  <select
+    value={sport}
+    onChange={(e) => setSport(e.target.value)}
+    className="w-full rounded-lg border p-3"
+  >
+    <option>Football</option>
+    <option>Rugby</option>
+    <option>NFL (American Football)</option>
+    <option>Basketball</option>
+    <option>Hockey</option>
+    <option>Golf</option>
+  </select>
+
+</div>
+        <div>
+
+  <label className="mb-2 block font-medium">
+    Competition
+  </label>
+
+  <select
+    value={competition}
+    onChange={(e) => setCompetition(e.target.value)}
+    className="w-full rounded-lg border p-3"
+  >
+
+    <option value="">
+      Select Competition
+    </option>
+
+    {(competitions[sport] || []).map((competition) => (
+
+      <option
+        key={competition}
+        value={competition}
+      >
+        {competition}
+      </option>
+
+    ))}
+
+  </select>
+
+</div>
+<div>
 
           <label className="mb-2 block font-medium">
             Campaign Name
@@ -69,44 +160,6 @@ async function handleSubmit(e: React.FormEvent) {
           />
 
         </div>
-
-        <div>
-
-          <label className="mb-2 block font-medium">
-            Sport
-          </label>
-
-          <select
-            value={sport}
-            onChange={(e)=>setSport(e.target.value)}
-            className="w-full rounded-lg border p-3"
-          >
-            <option>Football</option>
-            <option>Rugby</option>
-            <option>Cricket</option>
-            <option>Basketball</option>
-            <option>Tennis</option>
-            <option>Formula 1</option>
-            <option>Golf</option>
-            <option>Athletics</option>
-          </select>
-
-        </div>
-
-        <div>
-
-          <label className="mb-2 block font-medium">
-            Competition
-          </label>
-
-          <input
-            value={competition}
-            onChange={(e)=>setCompetition(e.target.value)}
-            className="w-full rounded-lg border p-3"
-          />
-
-        </div>
-
         <div>
 
           <label className="mb-2 block font-medium">
