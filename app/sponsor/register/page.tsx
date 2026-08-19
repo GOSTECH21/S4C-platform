@@ -28,7 +28,7 @@ export default function SponsorRegisterPage() {
 
       alert("Account created successfully!");
 
-      router.push("/sponsor/dashboard");
+      router.replace("/sponsor/dashboard");
     } catch (err: any) {
       alert(err.message);
     } finally {

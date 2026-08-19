@@ -11,21 +11,31 @@ export async function registerSponsor({
   email: string;
   password: string;
 }) {
-  const { data, error } = await supabase.auth.signUp({
+  // Create authentication account
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      data: {
-        company_name: companyName,
-        contact_name: contactName,
-        role: "sponsor",
-      },
-    },
   });
 
-  if (error) throw error;
+  if (authError) throw authError;
 
-  return data;
+  if (!authData.user) {
+    throw new Error("Registration failed.");
+  }
+
+  // Create sponsor profile
+  const { error: sponsorError } = await supabase
+    .from("sponsors")
+    .insert({
+      user_id: authData.user.id,
+      name: companyName,
+      industry: "",
+      website: "",
+    });
+
+  if (sponsorError) throw sponsorError;
+
+  return authData.user;
 }
 
 export async function loginSponsor({
@@ -42,5 +52,22 @@ export async function loginSponsor({
 
   if (error) throw error;
 
-  return data;
+  return data.user;
+}
+
+export async function logoutSponsor() {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) throw error;
+}
+
+export async function getCurrentUser() {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) throw error;
+
+  return user;
 }

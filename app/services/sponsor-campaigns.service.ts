@@ -1,63 +1,82 @@
 import { supabase } from "../lib/supabase";
+import { getCurrentSponsor } from "./current-sponsor.service";
 
-export async function getSponsorCampaigns() {
+export type Campaign = {
+  id: string;
+  sponsor_id: string;
+  fixture_id: string | null;
+  campaign_name: string;
+  trigger_type: string;
+  funding_per_trigger: number;
+  credit_name: string;
+  credit_code: string;
+  credit_value: number;
+  max_budget: number;
+  amount_committed: number;
+  status: string;
+  created_at: string;
+};
+
+export async function getSponsorCampaigns(): Promise<Campaign[]> {
+  const sponsor = await getCurrentSponsor();
+
   const { data, error } = await supabase
     .from("sponsor_campaigns")
-    .select(`
-      *,
-      sponsors(name),
-      fixtures(
-        fixture_date,
-        home_club:clubs!fixtures_home_club_id_fkey(name),
-        away_club:clubs!fixtures_away_club_id_fkey(name)
-      )
-    `)
+    .select("*")
+    .eq("sponsor_id", sponsor.id)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
 
-  return data;
+  return (data ?? []) as Campaign[];
 }
 
-export async function createSponsorCampaign({
-  sponsorId,
-  fixtureId,
+export async function createDashboardCampaign({
   campaignName,
-  triggerType,
-  fundingPerTrigger,
-  creditName,
-  creditCode,
-  creditValue,
-  maxBudget,
+  triggerEvent,
+  supporterReward,
+  contribution,
+  budget,
 }: {
-  sponsorId: string;
-  fixtureId: string;
   campaignName: string;
-  triggerType: string;
-  fundingPerTrigger: number;
-  creditName: string;
-  creditCode: string;
-  creditValue: number;
-  maxBudget: number;
+  triggerEvent: string;
+  supporterReward: string;
+  contribution: number;
+  budget: number;
 }) {
-  const { data, error } = await supabase
+  const sponsor = await getCurrentSponsor();
+
+   const campaign = {
+    sponsor_id: sponsor.id,
+    fixture_id: null,
+    campaign_name: campaignName,
+    trigger_type: triggerEvent,
+    funding_per_trigger: contribution,
+    credit_name: supporterReward,
+    credit_code: "GBP",
+    credit_value: contribution,
+    max_budget: budget,
+    amount_committed: 0,
+    status: "active",
+  };
+
+   const { data, error } = await supabase
     .from("sponsor_campaigns")
-    .insert([
-      {
-        sponsor_id: sponsorId,
-        fixture_id: fixtureId,
-        campaign_name: campaignName,
-        trigger_type: triggerType,
-        funding_per_trigger: fundingPerTrigger,
-        credit_name: creditName,
-        credit_code: creditCode,
-        credit_value: creditValue,
-        max_budget: maxBudget,
-      },
-    ])
-    .select();
+    .insert(campaign)
+    .select()
+    .single();
+
+    return data;
+}
+
+export async function deleteCampaign(id: string) {
+  const sponsor = await getCurrentSponsor();
+
+  const { error } = await supabase
+    .from("sponsor_campaigns")
+    .delete()
+    .eq("id", id)
+    .eq("sponsor_id", sponsor.id);
 
   if (error) throw error;
-
-  return data;
 }

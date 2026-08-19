@@ -5,7 +5,7 @@ import AppLayout from "../../layout/AppLayout";
 import { getSponsors } from "../../services/sponsors.service";
 import { getFixtures } from "../../services/fixtures.service";
 import {
-  createSponsorCampaign,
+  createDashboardCampaign,
   getSponsorCampaigns,
 } from "../../services/sponsor-campaigns.service";
 
@@ -58,7 +58,7 @@ export default function SponsorCampaignsPage() {
   async function handleCreateCampaign() {
     if (!sponsorId || !fixtureId || !campaignName.trim()) return;
 
-    await createSponsorCampaign({
+    await createDashboardCampaign({
       sponsorId,
       fixtureId,
       campaignName,
