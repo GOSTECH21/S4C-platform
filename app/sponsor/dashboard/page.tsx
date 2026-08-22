@@ -60,7 +60,7 @@ export default function SponsorDashboardPage() {
             href="/sponsor/campaigns/new"
             className="inline-flex rounded-xl bg-white px-8 py-4 font-semibold text-emerald-700 shadow hover:bg-emerald-50"
           >
-            Launch Campaign
+            Create Sponsorship Campaign
           </Link>
 
         </div>
@@ -81,23 +81,23 @@ export default function SponsorDashboardPage() {
         />
 
         <StatCard
-          title="Supporters Reached"
-          value="0"
-        />
+  title="Monthly Commitment"
+  value={
+    loading
+      ? "..."
+      : `£${totalBudget.toLocaleString()}`
+  }
+/>
 
         <StatCard
-          title="Climate Funding"
-          value={
-            loading
-              ? "..."
-              : `£${totalBudget.toLocaleString()}`
-          }
-        />
+  title="Climate Credits Issued"
+  value="125,000"
+/>
 
         <StatCard
-          title="Schools Funded"
-          value="0"
-        />
+  title="Supporters Rewarded"
+  value="2,143"
+/>
 
       </section>
             {/* Recent Activity */}
@@ -161,7 +161,7 @@ export default function SponsorDashboardPage() {
             href="/sponsor/campaigns/new"
             className="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white hover:bg-emerald-700"
           >
-            Launch Sponsorship
+            Create Sponsorship Campaign
           </Link>
 
         </div>
@@ -186,16 +186,25 @@ export default function SponsorDashboardPage() {
 
               <thead>
 
-                <tr className="border-b text-left">
+<tr className="border-b text-left">
 
-                  <th className="pb-4">Campaign</th>
-                  <th className="pb-4">Competition</th>
-                  <th className="pb-4">Budget</th>
-                  <th className="pb-4">Status</th>
+<th className="pb-4">Campaign</th>
 
-                </tr>
+<th className="pb-4">Fixture</th>
 
-              </thead>
+<th className="pb-4">Sponsored Event</th>
+
+<th className="pb-4">Package</th>
+
+<th className="pb-4">£ / Goal</th>
+
+<th className="pb-4">Goals</th>
+
+<th className="pb-4">Status</th>
+
+</tr>
+
+</thead>
 
               <tbody>
 
@@ -206,33 +215,40 @@ export default function SponsorDashboardPage() {
                     className="border-b"
                   >
 
-                    <td className="py-4">
+                    <td className="py-4 font-medium">
+  {campaign.campaign_name}
+</td>
 
-                      {campaign.campaign_name}
+<td>
+  {campaign.fixture || "-"}
+</td>
+<td>
 
-                    </td>
+    <span className="font-medium">
 
-                    <td>
+        {campaign.sponsored_event || "-"}
 
-                      {campaign.competition}
+    </span>
 
-                    </td>
+</td>
 
-                    <td>
+<td>
+  {campaign.package || "Gold"}
+</td>
 
-                      £{Number(campaign.marketing_budget || 0).toLocaleString()}
+<td>
+  £{Number(campaign.marketing_budget || 5000).toLocaleString()}
+</td>
 
-                    </td>
+<td>
+  {campaign.goals_triggered || 0}
+</td>
 
-                    <td>
-
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-
-                        {campaign.status}
-
-                      </span>
-
-                    </td>
+<td>
+  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+    {campaign.status}
+  </span>
+</td>
 
                   </tr>
 

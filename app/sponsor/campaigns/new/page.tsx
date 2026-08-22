@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createSponsorshipCampaign } from "@/app/services/sponsorship-campaigns.service";
 
 export default function CampaignBuilderPage() {
 
@@ -206,6 +207,41 @@ const generatedCampaignName =
   selectedOutcome && opponent
     ? `${selectedOutcome} Goal Sponsorship vs ${opponent}`
     : "";
+    async function handleCreateCampaign() {
+  try {
+    await createSponsorshipCampaign({
+      campaign_name: `${selectedOutcome} Goals Scored vs ${selectedFixture
+        .replace(`${selectedOutcome} vs `, "")
+        .replace(` vs ${selectedOutcome}`, "")} Sponsorship`,
+
+      sport: selectedSport,
+      competition: selectedCompetition,
+      fixture: selectedFixture,
+
+      sponsored_event: `${selectedOutcome} Goals Scored`,
+
+      package: selectedPackage,
+
+      amount_per_goal:
+        selectedPackage === "Bronze"
+          ? 500
+          : selectedPackage === "Silver"
+          ? 2000
+          : selectedPackage === "Gold"
+          ? 5000
+          : 10000,
+
+      status: "Active",
+    });
+
+    alert("Campaign Created Successfully!");
+
+    window.location.href = "/sponsor/dashboard";
+  } catch (error) {
+    console.error(error);
+    alert("Failed to create campaign.");
+  }
+}
 return (
   <div className="mx-auto max-w-6xl px-6 py-12">
 
@@ -588,7 +624,7 @@ return (
 
     <button
 
-      onClick={()=>alert("Campaign Created Successfully!")}
+      onClick={handleCreateCampaign}
 
       className="rounded-lg bg-emerald-600 px-8 py-3 text-white hover:bg-emerald-700"
 
