@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "app/climate-impact-league"  ],
   "exclude": ["node_modules"]
 }

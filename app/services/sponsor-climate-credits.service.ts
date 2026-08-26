@@ -22,3 +22,43 @@ export async function getSponsorClimateCredits() {
 
   return data;
 }
+export async function issueClimateCredits(
+  campaign: any,
+  payment: number
+) {
+  const credits = payment;
+  const { data, error } = await supabase
+  .from("sponsor_climate_credits")
+  .insert([
+   {
+    sponsor_campaign_id: campaign.id,
+
+    fixture_id: null,
+    club_id: null,
+    score_event_id: null,
+
+    credit_name: `${campaign.campaign_name} Climate Credits`,
+    credit_code: `CC-${campaign.id.replace(/-/g, "").substring(0, 8).toUpperCase()}`,
+
+    credit_value: 1,
+    credits_issued: credits,
+    credits_claimed: 0,
+    total_value: credits,
+
+    status: "available",
+  },
+])
+
+  .select()
+  .single();
+
+if (error) {
+  console.error("❌ Climate Credit Insert Error:", error);
+  throw error;
+}
+
+console.log("✅ Climate Credit Record Created:", data);
+
+return data;
+
+}

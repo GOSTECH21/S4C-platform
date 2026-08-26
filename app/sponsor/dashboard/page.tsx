@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-import { getSponsorCampaigns } from "@/app/services/sponsor-campaigns.service";
-
+import { processSportingEvent } from "@/app/services/sponsor-trigger-engine.service";
+import { getSponsorCampaigns } from "@/app/services/sponsorship-campaigns.service";
+console.log("processSportingEvent =", processSportingEvent);
 export default function SponsorDashboardPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,19 @@ export default function SponsorDashboardPage() {
     (sum, c) => sum + Number(c.marketing_budget || 0),
     0
   );
-
+  const latestCampaign = campaigns[0];
+const simulatedTeam =
+  latestCampaign?.sport === "Rugby"
+    ? (latestCampaign?.sponsored_event ?? "")
+        .replace(" TRY Scored", "")
+        .replace(" TRY", "")
+    : (latestCampaign?.sponsored_event ?? "")
+        .replace(" Goal Scored", "")
+        .replace(" Goals Scored", "");
+   const simulationLabel =
+    latestCampaign?.sport === "Rugby"
+        ? "TRY"
+        : "Goal"; 
   return (
     <div className="space-y-10">
 
@@ -62,7 +74,46 @@ export default function SponsorDashboardPage() {
           >
             Create Sponsorship Campaign
           </Link>
+<button
+  onClick={async () => {
+    console.log("========== SIMULATING GOAL ==========");
+console.log("Campaign:", latestCampaign);
+console.log("Sport:", latestCampaign?.sport);
+console.log("Competition:", latestCampaign?.competition);
+console.log("Fixture:", latestCampaign?.fixture);
+console.log("Sponsored Event:", latestCampaign?.sponsored_event);
+console.log("Team:", simulatedTeam);
 
+alert("Button clicked");
+
+try {
+  console.log("Calling processSportingEvent...");
+
+  const result = await processSportingEvent({
+    sport: latestCampaign?.sport,
+    competition: latestCampaign?.competition,
+    fixture: latestCampaign?.fixture,
+    team: simulatedTeam,
+    event:
+      latestCampaign?.sport === "Rugby"
+        ? "TRY"
+        : "Goal",
+    minute: 64,
+  });
+
+  console.log("Returned:", result);
+
+} catch (err) {
+  console.error("ERROR:", err);
+}
+
+console.log("Finished");
+  }}
+  
+  className="rounded-xl border border-white px-6 py-3 text-white hover:bg-white hover:text-emerald-700"
+>
+     {`Simulate ${simulationLabel}`}
+</button>
         </div>
 
       </section>
@@ -119,22 +170,22 @@ export default function SponsorDashboardPage() {
         <div className="mt-8 space-y-5">
 
           <ActivityItem
-            title="Goals-Scored Sponsorship launched"
-            description="Arsenal v Chelsea • Premier League"
-            time="Just now"
-          />
+    title={`${latestCampaign?.campaign_name ?? "Campaign"} launched`}
+    description={`${latestCampaign?.fixture ?? "-"} • ${latestCampaign?.competition ?? "-"}`}
+    time="Just now"
+/>
 
           <ActivityItem
-            title="Climate funding committed"
-            description="£3 will be unlocked for every Arsenal goal."
-            time="Just now"
-          />
+    title="Climate funding committed"
+    description={`£${latestCampaign?.amount_per_goal ?? 0} will be unlocked for every ${latestCampaign?.sponsored_event ?? "goal"}.`}
+    time="Just now"
+/>
 
           <ActivityItem
-            title="Campaign is now Active"
-            description="Waiting for first qualifying sporting event."
-            time="Just now"
-          />
+    title="Campaign is now Active"
+    description={latestCampaign?.campaign_name ?? "Waiting for first qualifying sporting event."}
+    time="Just now"
+/>
 
         </div>
 
@@ -182,25 +233,25 @@ export default function SponsorDashboardPage() {
 
           <div className="overflow-x-auto">
 
-            <table className="w-full">
+            <table className="w-full table-fixed">
 
               <thead>
 
 <tr className="border-b text-left">
 
-<th className="pb-4">Campaign</th>
+<th className="w-[34%]">Campaign</th>
 
-<th className="pb-4">Fixture</th>
+<th className="w-[18%]">Fixture</th>
 
-<th className="pb-4">Sponsored Event</th>
+<th className="w-[18%]">Sponsor Event</th>
 
-<th className="pb-4">Package</th>
+<th className="w-[8%] text-center">Package</th>
 
-<th className="pb-4">£ / Goal</th>
+<th className="w-[12%] text-center">£ / Score</th>
 
-<th className="pb-4">Goals</th>
+<th className="w-[5%] text-center">Scores</th>
 
-<th className="pb-4">Status</th>
+<th className="w-[5%] text-center">Status</th>
 
 </tr>
 
@@ -232,18 +283,17 @@ export default function SponsorDashboardPage() {
 
 </td>
 
-<td>
-  {campaign.package || "Gold"}
+<td className="text-center pr-2">
+  {campaign.package}
 </td>
 
-<td>
-  £{Number(campaign.marketing_budget || 5000).toLocaleString()}
+<td className="text-center pl-2">
+  £{Number(campaign.amount_per_goal).toLocaleString()}
 </td>
 
-<td>
-  {campaign.goals_triggered || 0}
+<td className="text-center w-14">
+  {campaign.goals_triggered ?? 0}
 </td>
-
 <td>
   <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
     {campaign.status}

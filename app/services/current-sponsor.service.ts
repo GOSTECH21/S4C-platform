@@ -29,6 +29,7 @@ if (authError) {
   if (!sponsor) {
     throw new Error("Sponsor profile not found.");
   }
-
+console.log("Authenticated User:", user.id);
+console.log("Sponsor Record:", sponsor);
     return sponsor;
 }

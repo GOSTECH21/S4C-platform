@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createSponsorshipCampaign } from "@/app/services/sponsorship-campaigns.service";
+import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 
 export default function CampaignBuilderPage() {
 
@@ -207,33 +208,64 @@ const generatedCampaignName =
   selectedOutcome && opponent
     ? `${selectedOutcome} Goal Sponsorship vs ${opponent}`
     : "";
+    const sponsoredEvent =
+  selectedSport === "Rugby"
+    ? `${selectedOutcome} TRY Scored`
+    : `${selectedOutcome} Goal Scored`;
     async function handleCreateCampaign() {
+  alert("handleCreateCampaign called");
+
+  console.log("Creating campaign:", {
+    campaign_name: `${selectedOutcome} Goals Scored vs ${selectedFixture}`,
+    fixture: selectedFixture,
+    sponsored_event: sponsoredEvent,
+    sport: selectedSport,
+    competition: selectedCompetition,
+  });
+
+  
   try {
+    console.log("Creating campaign:", {
+  campaign_name:
+  selectedSport === "Rugby"
+    ? `${selectedOutcome} TRY Scored vs ${selectedFixture} Sponsorship`
+    : `${selectedOutcome} Goals Scored vs ${selectedFixture} Sponsorship`,
+  fixture: selectedFixture,
+  sponsored_event: sponsoredEvent,
+  sport: selectedSport,
+  competition: selectedCompetition,
+});
+const sponsor = await getCurrentSponsor();
     await createSponsorshipCampaign({
-      campaign_name: `${selectedOutcome} Goals Scored vs ${selectedFixture
-        .replace(`${selectedOutcome} vs `, "")
-        .replace(` vs ${selectedOutcome}`, "")} Sponsorship`,
+    sponsor_id: sponsor.id,
+campaign_name:
+  selectedSport === "Rugby"
+    ? `${selectedOutcome} TRY vs ${selectedFixture} Sponsorship`
+    : `${selectedOutcome} Goals Scored vs ${selectedFixture} Sponsorship`,
+    
+    sport: selectedSport,
+    competition: selectedCompetition,
+    fixture: selectedFixture,
 
-      sport: selectedSport,
-      competition: selectedCompetition,
-      fixture: selectedFixture,
+    sponsored_event: sponsoredEvent,
 
-      sponsored_event: `${selectedOutcome} Goals Scored`,
+    package: selectedPackage,
 
-      package: selectedPackage,
+    amount_per_goal:
+  selectedPackage === "Bronze"
+    ? 500
+    : selectedPackage === "Silver"
+    ? 2000
+    : selectedPackage === "Gold"
+    ? 5000
+    : selectedPackage === "Platinum"
+    ? 10000
+    : 500,
 
-      amount_per_goal:
-        selectedPackage === "Bronze"
-          ? 500
-          : selectedPackage === "Silver"
-          ? 2000
-          : selectedPackage === "Gold"
-          ? 5000
-          : 10000,
-
-      status: "Active",
-    });
-
+    status: "Active",
+    
+});
+      
     alert("Campaign Created Successfully!");
 
     window.location.href = "/sponsor/dashboard";
@@ -472,11 +504,11 @@ return (
 <div className="flex justify-between">
   <span>Sponsored Event</span>
 
-  <span className="font-medium">
-    {selectedOutcome
-      ? `${selectedOutcome} Goals Scored`
-      : "-"}
-  </span>
+  <span>
+    {selectedSport === "Rugby"
+        ? `${selectedOutcome} TRY`
+        : `${selectedOutcome} Scored`}
+</span>
 </div>
   </div>
 {/* Sponsorship Type */}

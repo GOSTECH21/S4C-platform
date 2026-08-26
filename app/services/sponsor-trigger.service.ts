@@ -11,7 +11,7 @@ export async function processSponsorTrigger({
   scoreEventId?: string;
 }) {
   const { data: campaigns, error: campaignError } = await supabase
-    .from("sponsor_campaigns")
+    .from("sponsorship_campaigns")
     .select("*")
     .eq("fixture_id", fixtureId)
     .eq("trigger_type", "Goal")

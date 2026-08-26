@@ -21,7 +21,7 @@ export async function getSponsorCampaigns(): Promise<Campaign[]> {
   const sponsor = await getCurrentSponsor();
 
   const { data, error } = await supabase
-    .from("sponsor_campaigns")
+    .from("sponsorship_campaigns")
     .select("*")
     .eq("sponsor_id", sponsor.id)
     .order("created_at", { ascending: false });
@@ -61,7 +61,7 @@ export async function createDashboardCampaign({
   };
 
    const { data, error } = await supabase
-    .from("sponsor_campaigns")
+    .from("sponsorship_campaigns")
     .insert(campaign)
     .select()
     .single();
@@ -73,7 +73,7 @@ export async function deleteCampaign(id: string) {
   const sponsor = await getCurrentSponsor();
 
   const { error } = await supabase
-    .from("sponsor_campaigns")
+    .from("sponsorship_campaigns")
     .delete()
     .eq("id", id)
     .eq("sponsor_id", sponsor.id);
