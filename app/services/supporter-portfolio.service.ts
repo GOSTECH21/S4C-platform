@@ -1,21 +1,4 @@
-import { supabase } from "../lib/supabase";
-
-export async function getSupporterPortfolio(supporterId: string) {
-  const { data, error } = await supabase
-    .from("supporter_claims")
-    .select(`
-      *,
-      sponsor_climate_credits(
-        credit_name,
-        credit_value
-      )
-    `)
-    .eq("supporter_id", supporterId);
-
-  if (error) throw error;
-
-  return data;
-}
+import { supabase } from "@/app/lib/supabase";
 
 export async function getSupporterAllocations(supporterId: string) {
   const { data, error } = await supabase

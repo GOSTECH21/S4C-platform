@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import UserTypeCards from "@/app/components/home/UserTypeCards";
 const stats = [
   ["£2.45M", "Climate Credits Released"],
   ["148k", "Fans Registered"],
@@ -97,6 +97,8 @@ clubs and sponsors to create measurable climate action.
           </Link>
         </div>
       </section>
+      
+<UserTypeCards />
 
       <section className="mx-auto max-w-6xl px-6 py-10">
         <h2 className="text-center text-4xl font-black text-green-400">

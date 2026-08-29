@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import AppLayout from "../../layout/AppLayout";
 import {
-  getSupporterPortfolio,
-  getSupporterAllocations,
+    getSupporterAllocations,
 } from "../../services/supporter-portfolio.service";
 
 export default function SupporterPortfolioPage() {
@@ -20,9 +19,9 @@ export default function SupporterPortfolioPage() {
                 "2f1039c7-dea5-4146-8ced-1822716a5723";
 const allocationData = await getSupporterAllocations(supporterId);
 setAllocations(allocationData || []);
-            const data = await getSupporterPortfolio(supporterId);
+            
 
-            setPortfolio(data || []);
+            setPortfolio([]);
         }
 
         load();

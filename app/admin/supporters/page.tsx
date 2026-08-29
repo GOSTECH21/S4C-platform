@@ -7,7 +7,13 @@ import {
   createSupporter,
   getSupporters,
 } from "../../services/supporters.service";
+import {
+  getAvailableClimateCredits,
+} from "../../services/sponsor-climate-credits.service";
 
+import { claimSponsorCredit } from "../../services/supporter-claims.service";
+const [supporters, setSupporters] = useState<Supporter[]>([]);
+const [credits, setCredits] = useState<any[]>([]);
 type Club = {
   id: string;
   name: string;
@@ -38,6 +44,11 @@ export default function SupportersPage() {
   async function loadData() {
     setClubs((await getClubs()) || []);
     setSupporters((await getSupporters()) || []);
+    async function loadData() {
+  setClubs((await getClubs()) || []);
+  setSupporters((await getSupporters()) || []);
+  setCredits((await getAvailableClimateCredits()) || []);
+}
   }
 
   async function handleCreateSupporter() {

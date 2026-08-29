@@ -69,4 +69,28 @@ export async function claimSponsorCredit({
     message: "Credit claimed successfully.",
     claim,
   };
+  
+}
+export async function getSupporterClaims(
+  supporterId: string
+) {
+  const { data, error } = await supabase
+    .from("supporter_claims")
+   .select(`
+  *,
+  sponsor_climate_credits(
+    credit_name,
+    total_value,
+    status
+  )
+`)
+    .eq("supporter_id", supporterId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+     console.error("getSupporterClaims:", error);
+     throw new
+     Error(JSON.stringify(error, null, 2)); 
+    } 
+    return data ?? [];
 }
