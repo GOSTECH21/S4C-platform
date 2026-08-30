@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
+import { supabase } from "../../lib/supabase";
 export default function ClubRegistrationPage() {
 
   const [step, setStep] = useState(1);
@@ -22,6 +22,8 @@ export default function ClubRegistrationPage() {
     jobTitle: "",
     email: "",
     phone: "",
+password: "",
+confirmPassword: "",
 
     // STEP 3
     stadium: "",
@@ -74,18 +76,98 @@ export default function ClubRegistrationPage() {
     }));
 
   };
+const submitRegistration = async () => {
+    if (formData.password !== formData.confirmPassword) {
+  alert("Passwords do not match.");
+  return;
+}
 
-  const submitRegistration = () => {
+if (formData.password.length < 8) {
+  alert("Password must be at least 8 characters long.");
+  return;
+}
+  try {
+    const { data: authData, error: authError } =
+  await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+  });
 
-    console.log("Club Registration");
+if (authError) {
+  throw authError;
+}
 
-    console.log(formData);
+if (!authData.user) {
+  throw new Error("Failed to create authentication user.");
+}
+    // STEP 1: Create the club
+    const { data: club, error: clubError } = await supabase
+      .from("clubs")
+      .insert([
+        {
+          name: formData.clubName,
+          short_name: formData.clubName,
+          country: formData.country,
+          city: "",
+          stadium: formData.stadium,
+          logo_url: "",
+          primary_colour: "",
+          secondary_colour: "",
+          competition_id: null,
+        },
+      ])
+      .select()
+      .single();
 
-    alert(
-      "Club registration complete. Next we will save this to Supabase."
-    );
+    if (clubError) {
+      alert(clubError.message);
+      return;
+    }
 
-  };
+    // STEP 2: Create the club account
+    const { data: account, error: accountError } = await supabase
+      .from("club_accounts")
+      .insert([
+        {
+          club_id: club.id,
+auth_user_id: authData.user.id,
+
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          job_title: formData.jobTitle,
+          email: formData.email,
+          phone: formData.phone,
+          website: formData.website,
+
+          supporter_base: formData.supporterBase,
+          average_attendance: formData.attendance,
+          sustainability_notes: formData.sustainability,
+
+          climate_sponsorship: formData.climateSponsorship,
+          climate_league: formData.climateLeague,
+          fan_climate_credits: formData.climateCredits,
+          impact_dashboard: formData.globalSchoolsSolar,
+
+          status: "pending",
+        },
+      ])
+      .select();
+
+    if (accountError) {
+      alert(accountError.message);
+      return;
+    }
+
+    alert("🎉 Club registered successfully!");
+
+    console.log("Club:", club);
+    console.log("Account:", account);
+  } catch (error: any) {
+    console.error(error);
+    alert(error.message ?? "Unknown error");
+  }
+
+    };
 
   return (
 
@@ -398,7 +480,34 @@ export default function ClubRegistrationPage() {
           onChange={handleChange}
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
         />
+<div>
+  <label className="mb-2 block text-sm font-semibold text-slate-300">
+    Password
+  </label>
 
+  <input
+    type="password"
+    name="password"
+    value={formData.password}
+    onChange={handleChange}
+    className="w-full rounded-xl border border-slate-700 bg-slate-800 p-3 text-white"
+    required
+  />
+  <div>
+  <label className="mb-2 block text-sm font-semibold text-slate-300">
+    Confirm Password
+  </label>
+
+  <input
+    type="password"
+    name="confirmPassword"
+    value={formData.confirmPassword}
+    onChange={handleChange}
+    className="w-full rounded-xl border border-slate-700 bg-slate-800 p-3 text-white"
+    required
+  />
+</div>
+</div>
       </div>
 
     </div>
