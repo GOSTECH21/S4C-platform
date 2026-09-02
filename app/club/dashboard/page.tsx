@@ -6,7 +6,43 @@ import { supabase } from "../../lib/supabase";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
+async function addProjectToPortfolio() {
+  const clubId = account.club_id; // your logged-in club
 
+  // We'll fetch the Global Schools Solar project
+  const { data: projects, error: projectError } = await supabase
+  .from("climate_projects")
+  .select("id")
+  .eq("name", "Global Schools Solar")
+  .limit(1);
+
+const project = projects?.[0];
+
+  if (projectError || !project) {
+  console.log("PROJECT ERROR:", projectError);
+  alert("Couldn't find project.");
+  return;
+}
+
+  const { error } = await supabase
+    .from("club_match_portfolio")
+    .insert({
+      club_id: clubId,
+      project_id: project.id,
+      status: "selected",
+    });
+
+  if (error) {
+  console.log("INSERT ERROR:", error);
+  alert("Project could not be added.");
+  return;
+}
+
+console.log("SUCCESS!");
+alert("Project added successfully.");
+
+  alert("✅ Global Schools Solar added to Match Day Portfolio");
+}
   const [loading, setLoading] = useState(true);
   const [club, setClub] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
@@ -191,7 +227,7 @@ if (!projectError && projectData) {
 </div>
 
       <button
-  onClick={() => router.push("/club/projects/global-schools-solar")}
+  onClick={addProjectToPortfolio}
   className="mt-10 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-black hover:bg-green-400"
 >
   ➕ Add to Match Day Portfolio
