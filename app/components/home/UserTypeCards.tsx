@@ -1,90 +1,79 @@
-"use client";
-
 import Link from "next/link";
 
-const users = [
+const userTypes = [
   {
-    title: "Fans",
-    icon: "⚽",
+    emoji: "👤",
+    title: "A Fan",
     description:
-      "Support your favourite club, earn Climate Credits and fund verified climate projects.",
-    button: "Join as a Fan",
-    href: "/register",
+      "Support your favourite club, earn Climate Credits and help fund verified climate projects.",
+    register: "/fan/register",
+    login: "/fan/login",
+    registerText: "Join as a Fan",
   },
   {
-    title: "Football Clubs",
-    icon: "🏟️",
+    emoji: "🏟️",
+    title: "A Sports Club",
     description:
-      "Turn every sporting moment into measurable climate action for your supporters.",
-    button: "Register Your Club",
-    href: "/club/register",
+      "Create Climate Sponsorship Projects, engage your supporters and compete in the Climate Impact League.",
+    register: "/club/register",
+    login: "/club/login",
+    registerText: "Register Your Club",
   },
   {
-    title: "Sponsors",
-    icon: "🤝",
+    emoji: "🏢",
+    title: "A Climate Sponsor",
     description:
-      "Sponsor sporting moments and create measurable environmental impact.",
-    button: "Become a Sponsor",
-    href: "/sponsor/register",
+      "Sponsor sporting moments and create measurable environmental impact through verified climate action.",
+    register: "/sponsor/register",
+    login: "/sponsor/login",
+    registerText: "Become a Climate Sponsor",
   },
   {
-    title: "Climate Projects",
-    icon: "🌱",
+    emoji: "🌍",
+    title: "A Climate Partner",
     description:
-      "Register your organisation and receive Climate Credits from supporters.",
-    button: "Register Climate Project",
-    href: "/projects/register",
+      "Register your climate programme and receive Climate Credits from fans, clubs and sponsors.",
+    register: "/partner/register",
+    login: "/partner/login",
+    registerText: "Register as a Climate Partner",
   },
 ];
 
 export default function UserTypeCards() {
   return (
-    <section className="mt-24">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-black text-white">
-          Who Uses S4P?
-        </h2>
+    <div className="grid grid-cols-1 gap-12 md:grid-cols-2 xl:grid-cols-4">
+      {userTypes.map((type) => (
+        <div
+          key={type.title}
+          className="flex h-full flex-col rounded-2xl border border-slate-700 bg-slate-900 p-10 shadow-lg transition hover:border-green-500"
+        >
+          <div className="text-5xl">{type.emoji}</div>
 
-        <p className="mt-4 text-slate-400 max-w-3xl mx-auto">
-          Score-4-Our-Planet connects supporters, clubs, sponsors and
-          verified climate projects into one ecosystem where every sporting
-          moment creates measurable environmental impact.
-        </p>
-      </div>
+          <h3 className="mt-6 text-2xl font-bold text-white">
+            {type.title}
+          </h3>
 
-      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+          <p className="mt-4 flex-1 leading-7 text-slate-400">
+            {type.description}
+          </p>
 
-        {users.map((user) => (
-
-          <div
-            key={user.title}
-            className="rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl transition hover:-translate-y-2 hover:border-green-500"
-          >
-
-            <div className="text-5xl">
-              {user.icon}
-            </div>
-
-            <h3 className="mt-6 text-2xl font-bold text-white">
-              {user.title}
-            </h3>
-
-            <p className="mt-4 text-slate-400 leading-7">
-              {user.description}
-            </p>
-
+          <div className="mt-8 space-y-3">
             <Link
-              href={user.href}
-              className="mt-8 block rounded-xl bg-green-500 py-3 text-center font-bold text-black transition hover:bg-green-400"
+              href={type.register}
+              className="block rounded-xl bg-green-500 py-3 text-center font-semibold text-black transition hover:bg-green-400"
             >
-              {user.button}
+              {type.registerText}
             </Link>
 
+            <Link
+              href={type.login}
+              className="block rounded-xl border border-slate-600 py-3 text-center text-white transition hover:bg-slate-800"
+            >
+              Already registered? Login
+            </Link>
           </div>
-
-        ))}
-
-      </div>
-    </section>
+        </div>
+      ))}
+    </div>
   );
 }
