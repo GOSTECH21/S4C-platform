@@ -6,51 +6,76 @@ import { supabase } from "../../lib/supabase";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
+  const [portfolioProjects, setPortfolioProjects] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
+const [club, setClub] = useState<any>(null);
+const [account, setAccount] = useState<any>(null);
+const [projects, setProjects] = useState<any[]>([]);
+
+async function loadPortfolio(clubId: string) {
+  const { data, error } = await supabase
+    .from("club_match_portfolio")
+    .select(
+      `
+      id,
+      climate_projects (
+        id,
+        name,
+        description
+      )
+    `
+    )
+    .eq("club_id", clubId);
+
+  if (!error) {
+    setPortfolioProjects(data || []);
+  }
+}
+
 async function addProjectToPortfolio() {
-  const clubId = account.club_id; // your logged-in club
+  if (!account) return;
 
-  // We'll fetch the Global Schools Solar project
   const { data: projects, error: projectError } = await supabase
-  .from("climate_projects")
-  .select("id")
-  .eq("name", "Global Schools Solar")
-  .limit(1);
+    .from("climate_projects")
+    .select("id")
+    .eq("name", "Global Schools Solar")
+    .limit(1);
 
-const project = projects?.[0];
+  const project = projects?.[0];
 
   if (projectError || !project) {
-  console.log("PROJECT ERROR:", projectError);
-  alert("Couldn't find project.");
-  return;
-}
+    console.error(projectError);
+    alert("Couldn't find project.");
+    return;
+  }
 
   const { error } = await supabase
     .from("club_match_portfolio")
     .insert({
-      club_id: clubId,
+      club_id: account.club_id,
       project_id: project.id,
       status: "selected",
     });
 
   if (error) {
-  console.log("INSERT ERROR:", error);
-  alert("Project could not be added.");
-  return;
-}
+    console.error(error);
+    alert("Project could not be added.");
+    return;
+  }
 
-console.log("SUCCESS!");
-alert("Project added successfully.");
+  await loadPortfolio(account.club_id);
 
   alert("✅ Global Schools Solar added to Match Day Portfolio");
 }
-  const [loading, setLoading] = useState(true);
-  const [club, setClub] = useState<any>(null);
-  const [account, setAccount] = useState<any>(null);
-  const [projects, setProjects] = useState<any[]>([]);
+   useEffect(() => {
+  loadDashboard();
+}, []);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+useEffect(() => {
+  if (account?.club_id) {
+    loadPortfolio(account.club_id);
+  }
+}, [account]);
 
   async function loadDashboard() {
     const {
@@ -87,6 +112,7 @@ alert("Project added successfully.");
     setAccount(clubAccount);
     setClub(clubData);
     setLoading(false);
+    await loadPortfolio(clubAccount.club_id);
     const { data: projectData, error: projectError } = await supabase
   .from("climate_projects")
   .select("*")
@@ -263,7 +289,46 @@ if (!projectError && projectData) {
   </div>
 
 </div>
+<div className="mt-10 rounded-2xl border border-slate-700 bg-slate-800 p-8">
 
+    <h3 className="text-3xl font-bold text-white">
+        Your Match Day Portfolio
+    </h3>
+
+    {portfolioProjects.length === 0 ? (
+
+        <p className="mt-6 text-slate-400">
+            No projects selected yet.
+        </p>
+
+    ) : (
+
+        <div className="mt-6 space-y-4">
+
+            {portfolioProjects.map((item: any) => (
+
+                <div
+                    key={item.id}
+                    className="rounded-xl bg-slate-700 p-5"
+                >
+
+                    <h4 className="text-xl font-bold text-green-400">
+                        {item.climate_projects.name}
+                    </h4>
+
+                    <p className="mt-2 text-slate-300">
+                        {item.climate_projects.description}
+                    </p>
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
+
+</div>
 </section>
 </div>
      
