@@ -11,6 +11,7 @@ const [loading, setLoading] = useState(true);
 const [club, setClub] = useState<any>(null);
 const [account, setAccount] = useState<any>(null);
 const [projects, setProjects] = useState<any[]>([]);
+const [featuredProjects, setFeaturedProjects] = useState<any[]>([]);
 
 async function loadPortfolio(clubId: string) {
   const { data, error } = await supabase
@@ -31,21 +32,16 @@ async function loadPortfolio(clubId: string) {
     setPortfolioProjects(data || []);
   }
 }
-
-async function addProjectToPortfolio() {
+function isProjectSelected(projectId: string) {
+  return portfolioProjects.some(
+    (item: any) => item.project_id === projectId
+  );
+}
+async function addProjectToPortfolio(projectId: string) {
   if (!account) return;
 
-  const { data: projects, error: projectError } = await supabase
-    .from("climate_projects")
-    .select("id")
-    .eq("name", "Global Schools Solar")
-    .limit(1);
-
-  const project = projects?.[0];
-
-  if (projectError || !project) {
-    console.error(projectError);
-    alert("Couldn't find project.");
+  if (isProjectSelected(projectId)) {
+    alert("This project is already in your Match Day Portfolio.");
     return;
   }
 
@@ -53,7 +49,7 @@ async function addProjectToPortfolio() {
     .from("club_match_portfolio")
     .insert({
       club_id: account.club_id,
-      project_id: project.id,
+      project_id: projectId,
       status: "selected",
     });
 
@@ -65,8 +61,24 @@ async function addProjectToPortfolio() {
 
   await loadPortfolio(account.club_id);
 
-  alert("✅ Global Schools Solar added to Match Day Portfolio");
+  alert("✅ Project added to Match Day Portfolio");
 }
+
+async function removeProjectFromPortfolio(portfolioId: string) {
+  const { error } = await supabase
+    .from("club_match_portfolio")
+    .delete()
+    .eq("id", portfolioId);
+
+  if (error) {
+    console.error(error);
+    alert("Couldn't remove project.");
+    return;
+  }
+
+  await loadPortfolio(account.club_id);
+}
+
    useEffect(() => {
   loadDashboard();
 }, []);
@@ -122,6 +134,14 @@ useEffect(() => {
 if (!projectError && projectData) {
   setProjects(projectData);
 }
+const { data: featured } = await supabase
+  .from("climate_projects")
+  .select("*")
+  .eq("featured", true)
+  .eq("status", "active")
+  .limit(1);
+
+setFeaturedProjects(featured || []);
   }
 
   async function logout() {
@@ -229,40 +249,56 @@ if (!projectError && projectData) {
 </p>
 
   </div>
+<div className="mt-12 grid gap-8 lg:grid-cols-2">
 
-     {/* GLOBAL SCHOOLS SOLAR */}
+  {featuredProjects.map((project) => {
 
-    <div className="rounded-2xl border-2 border-green-500 bg-slate-800 p-8 flex flex-col h-full">
+    const selected = portfolioProjects.some(
+      (item: any) => item.project_id === project.id
+    );
+ 
+    return (
 
-      <span className="inline-flex rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
-        ⭐ FEATURED CLIMATE PROJECT
-      </span>
+      <div
+        key={project.id}
+        className="rounded-2xl border-2 border-green-500 bg-slate-800 p-8 flex flex-col h-full"
+      >
 
-      <h3 className="mt-6 text-3xl font-bold text-white">
-        Global Schools Solar
-      </h3>
+        <span className="inline-flex rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
+          ⭐ FEATURED CLIMATE PROJECT
+        </span>
 
-      <p className="mt-5 text-lg leading-8 text-slate-300">
-        Support school rooftop solar installations through
-        Score-For-Our-Planet.
-      </p>
-      <div className="mt-5 space-y-2 text-sm text-slate-400">
-  <p>📍 Kenya</p>
-  <p>🌳 Estimated CO₂ Offset: 180 tonnes</p>
-  <p>🎯 Funding Goal: £25,000</p>
-</div>
+        <h3 className="mt-6 text-3xl font-bold text-white">
+          {project.name}
+        </h3>
 
-      <button
-  onClick={addProjectToPortfolio}
-  className="mt-10 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-black hover:bg-green-400"
->
-  ➕ Add to Match Day Portfolio
-</button>
+        <p className="mt-5 text-lg leading-8 text-slate-300">
+          {project.description}
+        </p>
 
-    </div>
+        <button
+          disabled={selected}
+          onClick={() =>
+ addProjectToPortfolio(project.id)}
+          
+          className={`mt-10 w-full rounded-xl py-4 text-lg font-bold ${
+            selected
+              ? "bg-slate-600 text-slate-300 cursor-not-allowed"
+              : "bg-green-500 text-black hover:bg-green-400"
+          }`}
+      
+        >
+          {selected
+            ? "✓ Added to Match Day Portfolio"
+            : "➕ Add to Match Day Portfolio"}
+        </button>
 
-   {/* CLUB PROJECT */}
+      </div>
 
+    );
+
+  })}
+ 
 <div className="rounded-2xl border border-slate-700 bg-slate-800 p-8 flex flex-col justify-between h-full">
 
   <div>
@@ -277,8 +313,8 @@ if (!projectError && projectData) {
     <p className="mt-4 leading-7 text-slate-400">
       Create a unique climate project for your club and offer it to supporters as part of your Match Day Climate Portfolio.
     </p>
-  </div>
-
+  
+ </div>
   <div className="mt-10">
     <button
       className="w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
@@ -287,7 +323,7 @@ if (!projectError && projectData) {
       + Create New Climate Project
     </button>
   </div>
-
+</div>
 </div>
 <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-800 p-8">
 
@@ -307,22 +343,31 @@ if (!projectError && projectData) {
 
             {portfolioProjects.map((item: any) => (
 
-                <div
-                    key={item.id}
-                    className="rounded-xl bg-slate-700 p-5"
-                >
+  <div
+    key={item.id}
+    className="rounded-xl bg-slate-700 p-5 flex items-center justify-between"
+  >
 
-                    <h4 className="text-xl font-bold text-green-400">
-                        {item.climate_projects.name}
-                    </h4>
+    <div>
+      <h4 className="text-xl font-bold text-green-400">
+        {item.climate_projects.name}
+      </h4>
 
-                    <p className="mt-2 text-slate-300">
-                        {item.climate_projects.description}
-                    </p>
+      <p className="mt-2 text-slate-300">
+        {item.climate_projects.description}
+      </p>
+    </div>
 
-                </div>
+    <button
+      onClick={() => removeProjectFromPortfolio(item.id)}
+      className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-500"
+    >
+      Remove
+    </button>
 
-            ))}
+  </div>
+
+))}
 
         </div>
 
