@@ -74,7 +74,7 @@ export default function SupporterRegisterPage() {
       return;
     }
 
-    alert("✅ Supporter account created!");
+    alert("✅ Fan account created!");
 
     router.push("/supporter/login");
   }
@@ -84,7 +84,7 @@ export default function SupporterRegisterPage() {
     <div className="w-full max-w-2xl rounded-2xl bg-slate-900 p-10">
 
       <h1 className="text-4xl font-bold text-white">
-        Supporter Registration
+        Fan Registration
       </h1>
 
       <div className="mt-8 space-y-5">
@@ -154,7 +154,7 @@ export default function SupporterRegisterPage() {
           disabled={loading}
           className="w-full rounded-xl bg-green-600 py-4 text-xl font-bold text-white hover:bg-green-500"
         >
-          {loading ? "Creating Account..." : "Create Supporter Account"}
+          {loading ? "Creating Account..." : "Create Fan Account"}
         </button>
 
       </div>

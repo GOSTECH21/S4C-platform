@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
+import Image from "next/image";
 
 export default function SupporterDashboardPage() {
 
@@ -137,6 +138,7 @@ if (loading) {
             Loading Match Campaign...
         </main>
     );
+
 }
 return (
   <main className="min-h-screen bg-slate-950 text-white">
@@ -208,44 +210,65 @@ return (
           );
 
         })}
-
+ </div>
       </div>
 
       <div className="mt-12 rounded-2xl bg-slate-900 p-8">
 
-        <div className="flex items-center justify-between">
+  
+  {/* Vote Summary */}
+<div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-10">
 
-          <div>
+    <div className="flex flex-col">
 
-            <h3 className="text-2xl font-bold">
-              Your Vote
-            </h3>
+  <h3 className="text-3xl font-bold text-white">
+    Your Vote
+  </h3>
 
-            <p className="mt-2 text-slate-400">
-              {selectedProjects.length} of 3 projects selected
-            </p>
+  <p className="mt-2 text-slate-400">
+    {selectedProjects.length} of 3 projects selected
+  </p>
 
-          </div>
+  <p className="mt-6 text-xs uppercase tracking-[0.25em] text-slate-500">
+    Presented by
+  </p>
 
-          <button
-            onClick={submitVotes}
-            disabled={selectedProjects.length !== 3}
-            className={`rounded-xl px-10 py-4 text-lg font-bold ${
-              selectedProjects.length === 3
-                ? "bg-green-500 text-black hover:bg-green-400"
-                : "cursor-not-allowed bg-slate-700 text-slate-400"
-            }`}
-          >
-            Submit My Votes
-          </button>
+  <div className="mt-4 flex items-center gap-8">
 
-        </div>
+  <Image
+    src="/sponsors/budweiser-logo.png"
+    alt="Budweiser"
+    width={220}
+    height={90}
+    className="rounded-md bg-white p-3"
+  />
 
-      </div>
+  <button
+    onClick={submitVotes}
+    disabled={selectedProjects.length !== 3}
+    className={`rounded-xl px-10 py-4 text-lg font-bold transition ${
+      selectedProjects.length === 3
+        ? "bg-green-500 text-black hover:bg-green-400"
+        : "cursor-not-allowed bg-slate-700 text-slate-400"
+    }`}
+  >
+    Submit My Votes
+  </button>
 
-    </div>
+</div>
 
-  </main>
+<p className="mt-5 max-w-md text-base text-slate-300">
+  Your vote helps decide where
+  <span className="font-semibold text-white">
+    {" "}Budweiser's climate funding goes.
+  </span>
+</p>
+</div>
+    
+  </div>
+
+</div>
+
+</main>
 );
-
 }

@@ -41,7 +41,7 @@ export default function SupporterLoginPage() {
     <div className="w-full max-w-lg rounded-2xl bg-slate-900 p-10">
 
       <h1 className="text-4xl font-bold text-white">
-        Supporter Login
+        Fan Login
       </h1>
 
       <p className="mt-3 text-slate-400">

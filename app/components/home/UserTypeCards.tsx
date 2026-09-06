@@ -6,8 +6,8 @@ const userTypes = [
     title: "A Fan",
     description:
       "Support your favourite club, earn Climate Credits and help fund verified climate projects.",
-    register: "/fan/register",
-    login: "/fan/login",
+    register: "/supporter/register",
+    login: "/supporter/login",
     registerText: "Join as a Fan",
   },
   {

@@ -43,7 +43,7 @@ export default function Footer() {
                 Sports Clubs
               </Link>
 
-              <Link href="/fan/register" className="block text-slate-400 hover:text-white">
+              <Link href="/supporter/register" className="block text-slate-400 hover:text-white">
                 Fans
               </Link>
 
