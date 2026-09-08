@@ -3,34 +3,59 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import FeaturedProject from "@/app/components/dashboard/FeaturedProject";
 
 export default function ClubDashboardPage() {
-  const router = useRouter();
+      const router = useRouter();
   const [portfolioProjects, setPortfolioProjects] = useState<any[]>([]);
 const [loading, setLoading] = useState(true);
 const [club, setClub] = useState<any>(null);
 const [account, setAccount] = useState<any>(null);
 const [projects, setProjects] = useState<any[]>([]);
+const [currentPage, setCurrentPage] = useState(1);
 const [featuredProjects, setFeaturedProjects] = useState<any[]>([]);
+const [libraryProjects, setLibraryProjects] = useState<any[]>([]);
+const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
+function toggleProject(id: string) {
+
+    if (portfolioProjects.includes(id)) {
+
+        setSelectedProjects(
+           portfolioProjects .filter(projectId => projectId !== id)
+        );
+
+        return;
+    }
+
+    if (portfolioProjects.length >= 5) return;
+
+    setSelectedProjects([...portfolioProjects, id]);
+
+}
 async function loadPortfolio(clubId: string) {
   const { data, error } = await supabase
     .from("club_match_portfolio")
-    .select(
-      `
-      id,
-      climate_projects (
+    .select(`
+      *,
+      climate_projects!club_match_portfolio_project_id_fkey (
         id,
         name,
         description
       )
-    `
-    )
+    `)
     .eq("club_id", clubId);
 
-  if (!error) {
-    setPortfolioProjects(data || []);
+  console.log(
+  JSON.stringify(data, null, 2)
+);
+
+  if (error) {
+    console.error(error);
+    return;
   }
+
+  setPortfolioProjects(data || []);
 }
 function isProjectSelected(projectId: string) {
   return portfolioProjects.some(
@@ -39,6 +64,11 @@ function isProjectSelected(projectId: string) {
 }
 async function addProjectToPortfolio(projectId: string) {
   if (!account) return;
+  console.log("Portfolio length:", portfolioProjects.length);
+if (portfolioProjects.length >= 5) {
+  alert("You can only select FIVE climate projects.");
+  return;
+}
 
   if (isProjectSelected(projectId)) {
     alert("This project is already in your Match Day Portfolio.");
@@ -78,7 +108,16 @@ async function removeProjectFromPortfolio(portfolioId: string) {
 
   await loadPortfolio(account.club_id);
 }
+async function submitPortfolio() {
+  if (portfolioProjects.length !== 5) {
+    alert("Please select exactly FIVE climate projects.");
+    return;
+  }
 
+  alert("✅ Match Day Portfolio submitted successfully.");
+
+  // We'll wire the Match Campaign creation here next.
+}
    useEffect(() => {
   loadDashboard();
 }, []);
@@ -120,7 +159,14 @@ useEffect(() => {
       alert("Club not found.");
       return;
     }
+const { data: climateProjects, error: projectsError } = await supabase
+  .from("climate_projects")
+  .select("*")
+  .order("name");
 
+if (!projectsError) {
+  setLibraryProjects(climateProjects || []);
+}
     setAccount(clubAccount);
     setClub(clubData);
     setLoading(false);
@@ -137,8 +183,6 @@ if (!projectError && projectData) {
 const { data: featured } = await supabase
   .from("climate_projects")
   .select("*")
-  .eq("featured", true)
-  .eq("status", "active")
   .limit(1);
 
 setFeaturedProjects(featured || []);
@@ -148,17 +192,27 @@ setFeaturedProjects(featured || []);
     await supabase.auth.signOut();
     router.push("/club/login");
   }
+    const PROJECTS_PER_PAGE = 10;
+const totalPages = Math.ceil(
+  libraryProjects.length / PROJECTS_PER_PAGE
+);
 
+const displayedProjects = libraryProjects.slice(
+  (currentPage - 1) * PROJECTS_PER_PAGE,
+  currentPage * PROJECTS_PER_PAGE
+);
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
         Loading Dashboard...
       </main>
+      
     );
   }
+const selectedPortfolioProjects = portfolioProjects;
 
-  return (
-    <main className="min-h-screen bg-slate-950 p-10 text-white">
+return (
+  <main className="min-h-screen bg-slate-950 p-10 text-white">
 
       <div className="mx-auto max-w-7xl">
 
@@ -180,10 +234,10 @@ setFeaturedProjects(featured || []);
           >
             Logout
           </button>
-
+</div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-4 xl:grid-cols-4">
 
           <DashboardCard
             title="Status"
@@ -213,7 +267,7 @@ setFeaturedProjects(featured || []);
             Club Representative
           </h2>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-4">
 
             <Info label="Name">
               {account.first_name} {account.last_name}
@@ -249,138 +303,194 @@ setFeaturedProjects(featured || []);
 </p>
 
   </div>
-<div className="mt-12 grid gap-8 lg:grid-cols-2">
+<div className="mt-12 mb-12">
 
-  {featuredProjects.map((project) => {
-
-    const selected = portfolioProjects.some(
+  {featuredProjects.map((project: any) => (
+  <FeaturedProject
+    key={project.id}
+    project={project}
+    selected={portfolioProjects.some(
       (item: any) => item.project_id === project.id
-    );
- 
-    return (
-
-      <div
-        key={project.id}
-        className="rounded-2xl border-2 border-green-500 bg-slate-800 p-8 flex flex-col h-full"
-      >
-
-        <span className="inline-flex rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
-          ⭐ FEATURED CLIMATE PROJECT
-        </span>
-
-        <h3 className="mt-6 text-3xl font-bold text-white">
-          {project.name}
-        </h3>
-
-        <p className="mt-5 text-lg leading-8 text-slate-300">
-          {project.description}
-        </p>
-
-        <button
-          disabled={selected}
-          onClick={() =>
- addProjectToPortfolio(project.id)}
-          
-          className={`mt-10 w-full rounded-xl py-4 text-lg font-bold ${
-            selected
-              ? "bg-slate-600 text-slate-300 cursor-not-allowed"
-              : "bg-green-500 text-black hover:bg-green-400"
-          }`}
-      
-        >
-          {selected
-            ? "✓ Added to Match Day Portfolio"
-            : "➕ Add to Match Day Portfolio"}
-        </button>
-
-      </div>
-
-    );
-
-  })}
- 
-<div className="rounded-2xl border border-slate-700 bg-slate-800 p-8 flex flex-col justify-between h-full">
-
-  <div>
-    <h3 className="text-3xl font-bold text-white">
-      Create Your Club's Own Climate Project
-    </h3>
-
-    <p className="mt-5 text-lg text-slate-300">
-      Can't find a suitable climate project?
-    </p>
-
-    <p className="mt-4 leading-7 text-slate-400">
-      Create a unique climate project for your club and offer it to supporters as part of your Match Day Climate Portfolio.
-    </p>
-  
- </div>
-  <div className="mt-10">
-    <button
-      className="w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
-      onClick={() => router.push("/club/projects/new")}
-    >
-      + Create New Climate Project
-    </button>
-  </div>
+    )}
+    addProjectToPortfolio={addProjectToPortfolio}
+  />
+))}
 </div>
+<h3 className="text-3xl font-bold text-white">
+  Climate Project Library
+</h3>
+
+<p className="mt-2 text-slate-300">
+  Select FIVE approved climate projects for supporters to vote on.
+</p>
+
+<p className="mt-4 font-semibold text-green-400">
+  Selected: {portfolioProjects.length} / 5
+</p>
+ <div className="mt-6 flex items-center justify-between">
+
+  <button
+    onClick={() => setCurrentPage(currentPage - 1)}
+    disabled={currentPage === 1}
+    className="rounded-lg border border-slate-600 px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-700"
+  >
+    ← Previous
+  </button>
+
+  <div className="text-center">
+
+    <p className="text-sm text-slate-400">
+      Showing {(currentPage - 1) * PROJECTS_PER_PAGE + 1}
+      {" - "}
+      {Math.min(currentPage * PROJECTS_PER_PAGE, libraryProjects.length)}
+      {" of "}
+      {libraryProjects.length}
+      {" projects"}
+    </p>
+
+    <p className="mt-1 font-semibold text-green-400">
+      Page {currentPage} of {totalPages}
+    </p>
+
+  </div>
+
+  <button
+    onClick={() => setCurrentPage(currentPage + 1)}
+    disabled={currentPage === totalPages}
+    className="rounded-lg border border-slate-600 px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-700"
+  >
+    Next →
+  </button>
+
+</div>
+   <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+
+  {displayedProjects.map((project) => {
+  const isSelected = portfolioProjects.some(
+    (item: any) => item.project_id === project.id
+  );
+
+  return (
+        <div
+    key={project.id}
+   onClick={() =>
+  isSelected
+    ? removeProjectFromPortfolio(
+        portfolioProjects.find(
+          p => p.project_id === project.id
+        )!.id
+      )
+    : addProjectToPortfolio(project.id)
+}
+    className={`cursor-pointer rounded-xl border p-5 transition ${
+   isSelected
+        ? "border-green-500 bg-slate-800"
+        : "border-slate-700 bg-slate-900 hover:border-green-500"
+}`}
+>
+
+    <div className="flex justify-between items-start">
+
+        <div>
+
+            <h4 className="text-xl font-bold text-white">
+                {project.name}
+            </h4>
+
+            <p className="mt-1 text-slate-400">
+                {project.country}
+            </p>
+
+            <p className="text-slate-500">
+                {project.category}
+            </p>
+
+            <p className="mt-2 text-green-400">
+                CO₂ Reduction: {project.co2_reduction} tonnes
+            </p>
+
+        </div>
+
+        <input
+    type="checkbox"
+    checked={portfolioProjects.some(
+    (item: any) => item.project_id === project.id
+)}
+    onChange={() => toggleProject(project.id)}
+    className="h-6 w-6"
+/>
+    </div>
+
+</div>
+  );
+})}
+
 </div>
 <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-800 p-8">
 
-    <h3 className="text-3xl font-bold text-white">
-        Your Match Day Portfolio
-    </h3>
+  <h3 className="text-3xl font-bold text-white">
+    Your Match Day Portfolio
+  </h3>
 
-    {portfolioProjects.length === 0 ? (
+  {selectedPortfolioProjects.length === 0 ? (
 
-        <p className="mt-6 text-slate-400">
-            No projects selected yet.
-        </p>
+    <p className="mt-6 text-slate-400">
+      No projects selected yet.
+    </p>
 
-    ) : (
+  ) : (
 
-        <div className="mt-6 space-y-4">
+    <div className="mt-6 space-y-4">
 
-            {portfolioProjects.map((item: any) => (
+      {selectedPortfolioProjects.map((item: any) => (
 
-  <div
-    key={item.id}
-    className="rounded-xl bg-slate-700 p-5 flex items-center justify-between"
-  >
-
-    <div>
-      <h4 className="text-xl font-bold text-green-400">
-        {item.climate_projects.name}
-      </h4>
-
-      <p className="mt-2 text-slate-300">
-        {item.climate_projects.description}
-      </p>
-    </div>
-
-    <button
-      onClick={() => removeProjectFromPortfolio(item.id)}
-      className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-500"
-    >
-      Remove
-    </button>
-
-  </div>
-
-))}
-
-        </div>
-
-    )}
-
-</div>
-</section>
-</div>
-     
-     
-        </div>
+        <div
+          key={item.id}
+          className="rounded-xl bg-slate-700 p-5 flex items-center justify-between"
+        >
+          <div>
           
-    </main>
+            <h4 className="text-xl font-bold text-green-400">
+              {item.climate_projects?.name}
+            </h4>
+
+            <p className="mt-2 text-slate-300">
+              {item.climate_projects?.description}
+            </p>
+
+          </div>
+
+          <button
+            onClick={() => removeProjectFromPortfolio(item.id)}
+            className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-500"
+          >
+            Remove
+          </button>
+
+        </div>
+
+      ))}
+{portfolioProjects.length === 5 && (
+  <div className="mt-8 flex justify-end">
+    <button
+      onClick={submitPortfolio}
+      className="rounded-xl bg-green-600 px-8 py-3 font-bold text-white hover:bg-green-500"
+    >
+      Submit Portfolio
+    </button>
+  </div>
+)}
+        </div>
+
+  )}
+
+</div>
+
+</section>
+
+</div>
+
+</main>
   );
 }
 
@@ -391,6 +501,7 @@ function DashboardCard({
   title: string;
   value: any;
 }) {
+  
   return (
     <div className="rounded-2xl bg-slate-900 p-6">
       <p className="text-sm text-slate-400">{title}</p>
@@ -407,6 +518,7 @@ function ActionItem({
   complete: boolean;
   text: string;
 }) {
+  
   return (
     <div className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-5 py-4">
 

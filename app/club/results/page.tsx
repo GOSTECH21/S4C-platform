@@ -207,7 +207,7 @@ export default function ResultsPage() {
           🏆 Projects Currently Qualifying for Funding in Today's Match
         </h2>
 
-        <div className="space-y-4">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
 
           {results.slice(0, 3).map((project, index) => (
 

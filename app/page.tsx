@@ -3,7 +3,7 @@ import UserTypeCards from "@/app/components/home/UserTypeCards";
 import HowItWorks from "@/app/components/home/HowItWorks";
 import Footer from "@/app/components/home/Footer";
 import Image from "next/image";
-
+import FeaturedProject from "@/app/components/dashboard/FeaturedProject";
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
