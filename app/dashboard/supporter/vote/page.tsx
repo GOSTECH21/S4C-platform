@@ -26,7 +26,7 @@ export default function VotePage() {
         const supporter = await getOrCreateSupporter();
 
         if (!supporter) {
-          window.location.href = "/login";
+          window.location.href = "/fan/login";
           return;
         }
 

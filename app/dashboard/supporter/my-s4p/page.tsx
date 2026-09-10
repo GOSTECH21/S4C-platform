@@ -25,7 +25,7 @@ export default function MyS4PPage() {
       try {
         const supporter = await getOrCreateSupporter();
         if (!supporter) {
-          window.location.href = "/login";
+          window.location.href = "/fan/login";
           return;
         }
         setSupporterId(supporter.id);
