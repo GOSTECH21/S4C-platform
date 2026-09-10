@@ -143,9 +143,23 @@ const REQUIRED_VOTES = 3;
 export async function getMyS4PCampaign(
   supporter: Supporter & { favourite_club_id?: string | null }
 ): Promise<S4PCampaign | null> {
-  const clubId = supporter.favourite_club_id;
-  if (!clubId) return null;
+  const clubId = supporter.favourite_club_id ?? null;
 
+  const fromPortfolio = clubId
+    ? await campaignFromClubPortfolio(clubId)
+    : null;
+  if (fromPortfolio && fromPortfolio.projects.length > 0) {
+    return fromPortfolio;
+  }
+
+  // The live fan campaign (Arsenal vs Chelsea) is stored on match_campaigns.
+  // Use it whenever the club portfolio is empty so login still shows projects.
+  return campaignFromOpenMatch(clubId);
+}
+
+async function campaignFromClubPortfolio(
+  clubId: string
+): Promise<S4PCampaign | null> {
   const { data: club } = await supabase
     .from("clubs")
     .select("id, name")
@@ -153,7 +167,6 @@ export async function getMyS4PCampaign(
     .maybeSingle();
   if (!club) return null;
 
-  // Director-selected projects (the club's match portfolio).
   const { data: portfolio } = await supabase
     .from("club_match_portfolio")
     .select(`fixture_id, climate_projects (${PROJECT_FIELDS})`)
@@ -166,6 +179,8 @@ export async function getMyS4PCampaign(
           .climate_projects
     )
     .filter((p): p is ClimateProject => Boolean(p));
+
+  if (projects.length === 0) return null;
 
   const fixtureId =
     (portfolio ?? []).map((row) => row.fixture_id).find(Boolean) ?? null;
@@ -229,6 +244,72 @@ export async function getMyS4PCampaign(
     amountPerGoal,
     requiredVotes: REQUIRED_VOTES,
     fixtureId,
+    projects: projects.slice(0, 5),
+  };
+}
+
+async function campaignFromOpenMatch(
+  clubId: string | null
+): Promise<S4PCampaign | null> {
+  let campaignQuery = supabase
+    .from("match_campaigns")
+    .select(
+      "id, club_id, title, sponsorship_per_goal, maximum_votes, status"
+    )
+    .eq("status", "open");
+
+  if (clubId) {
+    campaignQuery = campaignQuery.eq("club_id", clubId);
+  }
+
+  const { data: campaign } = await campaignQuery.maybeSingle();
+
+  const openCampaign =
+    campaign ??
+    (
+      await supabase
+        .from("match_campaigns")
+        .select(
+          "id, club_id, title, sponsorship_per_goal, maximum_votes, status"
+        )
+        .eq("status", "open")
+        .maybeSingle()
+    ).data;
+
+  if (!openCampaign) return null;
+
+  const { data: rows } = await supabase
+    .from("campaign_projects")
+    .select(`display_order, climate_projects (${PROJECT_FIELDS})`)
+    .eq("campaign_id", openCampaign.id)
+    .order("display_order");
+
+  const projects = (rows ?? [])
+    .map(
+      (row) =>
+        (row as unknown as { climate_projects: ClimateProject })
+          .climate_projects
+    )
+    .filter((p): p is ClimateProject => Boolean(p));
+
+  if (projects.length === 0) return null;
+
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("id, name")
+    .eq("id", openCampaign.club_id)
+    .maybeSingle();
+
+  return {
+    clubId: openCampaign.club_id,
+    clubName: club?.name ?? "Your club",
+    matchTitle: openCampaign.title?.replace(/ Climate Campaign$/i, "") ??
+      club?.name ??
+      "Match",
+    sponsorName: DEFAULT_SPONSOR,
+    amountPerGoal: Number(openCampaign.sponsorship_per_goal) || DEFAULT_AMOUNT_PER_GOAL,
+    requiredVotes: openCampaign.maximum_votes ?? REQUIRED_VOTES,
+    fixtureId: null,
     projects: projects.slice(0, 5),
   };
 }
