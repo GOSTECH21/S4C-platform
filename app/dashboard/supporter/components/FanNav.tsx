@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
+import {
+  SUPPORTER_CAMPAIGN_ALIASES,
+  SUPPORTER_CAMPAIGN_PATH,
+} from "@/app/lib/routes";
 
 const LINKS = [
-  { href: "/supporter/dashboard/my-s4p", label: "My S4P" },
+  { href: SUPPORTER_CAMPAIGN_PATH, label: "My S4P", aliases: SUPPORTER_CAMPAIGN_ALIASES },
   { href: "/dashboard/supporter/vote", label: "All Projects" },
 ];
 
@@ -20,7 +24,7 @@ export default function FanNav() {
 
   return (
     <header className="mb-10 flex flex-col gap-4 border-b border-slate-800 pb-6 sm:flex-row sm:items-center sm:justify-between">
-      <Link href="/supporter/dashboard/my-s4p" className="flex items-center gap-2">
+      <Link href={SUPPORTER_CAMPAIGN_PATH} className="flex items-center gap-2">
         <span className="text-2xl font-black tracking-tight text-green-400">
           S4P
         </span>
@@ -31,7 +35,7 @@ export default function FanNav() {
 
       <nav className="flex items-center gap-2">
         {LINKS.map((link) => {
-          const active = pathname === link.href;
+          const active = (link.aliases ?? [link.href]).includes(pathname);
           return (
             <Link
               key={link.href}

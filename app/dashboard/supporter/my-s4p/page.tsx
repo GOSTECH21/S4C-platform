@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   getMyS4PCampaign,
   getOrCreateSupporter,
@@ -16,25 +17,32 @@ export default function MyS4PPage() {
   const [campaign, setCampaign] = useState<S4PCampaign | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       try {
         const supporter = await getOrCreateSupporter();
+        if (cancelled) return;
+
         if (!supporter) {
-          window.location.href = "/login";
+          setNeedsLogin(true);
           return;
         }
         setSupporterId(supporter.id);
 
         const camp = await getMyS4PCampaign(supporter);
+        if (cancelled) return;
         setCampaign(camp);
 
         if (camp) {
           const voted = await getVotedProjectIds(supporter.id);
+          if (cancelled) return;
           const preselected = camp.projects
             .map((p) => p.id)
             .filter((id) => voted.has(id));
@@ -45,15 +53,20 @@ export default function MyS4PPage() {
         }
       } catch (err) {
         console.error("Failed to load My S4P campaign:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load your campaign."
-        );
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load your campaign."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const required = campaign?.requiredVotes ?? 3;
@@ -104,11 +117,38 @@ export default function MyS4PPage() {
     );
   }
 
+  if (needsLogin) {
+    return (
+      <main className="min-h-screen bg-slate-950 p-8 text-white">
+        <div className="mx-auto max-w-6xl">
+          <FanNav />
+          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-8">
+            <h2 className="text-2xl font-bold">Sign in to see your campaign</h2>
+            <p className="mt-3 text-slate-300">
+              Your match climate campaign appears here right after you log in.
+            </p>
+            <Link
+              href="/login"
+              className="mt-6 inline-block rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950 hover:bg-green-400"
+            >
+              Login
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (!campaign) {
     return (
       <main className="min-h-screen bg-slate-950 p-8 text-white">
         <div className="mx-auto max-w-6xl">
           <FanNav />
+          {error && (
+            <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+              {error}
+            </div>
+          )}
           <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-8">
             <h2 className="text-2xl font-bold">No active campaign yet</h2>
             <p className="mt-3 text-slate-300">
@@ -130,7 +170,6 @@ export default function MyS4PPage() {
       <div className="mx-auto max-w-5xl px-8 pt-8">
         <FanNav />
 
-        {/* Campaign header */}
         <div className="text-center">
           <h1 className="text-3xl font-black md:text-4xl">
             {campaign.matchTitle} Climate Campaign
@@ -163,43 +202,52 @@ export default function MyS4PPage() {
           </div>
         )}
 
-        {/* Project selection grid */}
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {campaign.projects.map((project) => {
-            const isSelected = selected.has(project.id);
-            const disabled = !isSelected && selected.size >= required;
+        {campaign.projects.length === 0 ? (
+          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center">
+            <h2 className="text-2xl font-bold">Projects coming soon</h2>
+            <p className="mt-3 text-slate-300">
+              {campaign.clubName} hasn&apos;t published this match&apos;s
+              climate projects yet.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            {campaign.projects.map((project) => {
+              const isSelected = selected.has(project.id);
+              const disabled = !isSelected && selected.size >= required;
 
-            return (
-              <div
-                key={project.id}
-                className={`flex flex-col rounded-2xl border p-6 ${
-                  isSelected
-                    ? "border-green-500 bg-slate-800"
-                    : "border-slate-700 bg-slate-900"
-                }`}
-              >
-                <h2 className="text-xl font-bold">{project.name}</h2>
-                <p className="mt-3 flex-1 text-sm text-slate-300">
-                  {project.description}
-                </p>
-
-                <button
-                  onClick={() => toggle(project.id)}
-                  disabled={disabled}
-                  className={`mt-6 w-full rounded-lg py-3 font-bold transition ${
+              return (
+                <div
+                  key={project.id}
+                  className={`flex flex-col rounded-2xl border p-6 ${
                     isSelected
-                      ? "bg-green-500 text-slate-950 hover:bg-green-400"
-                      : disabled
-                        ? "cursor-not-allowed bg-slate-800 text-slate-500"
-                        : "bg-slate-700 text-white hover:bg-slate-600"
+                      ? "border-green-500 bg-slate-800"
+                      : "border-slate-700 bg-slate-900"
                   }`}
                 >
-                  {isSelected ? "✓ Selected" : "Select Project"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                  <h2 className="text-xl font-bold">{project.name}</h2>
+                  <p className="mt-3 flex-1 text-sm text-slate-300">
+                    {project.description}
+                  </p>
+
+                  <button
+                    onClick={() => toggle(project.id)}
+                    disabled={disabled}
+                    className={`mt-6 w-full rounded-lg py-3 font-bold transition ${
+                      isSelected
+                        ? "bg-green-500 text-slate-950 hover:bg-green-400"
+                        : disabled
+                          ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                          : "bg-slate-700 text-white hover:bg-slate-600"
+                    }`}
+                  >
+                    {isSelected ? "✓ Selected" : "Select Project"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {submitted && selectedProjects.length > 0 && impact.totalCo2 > 0 && (
           <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-6">
@@ -222,7 +270,6 @@ export default function MyS4PPage() {
         )}
       </div>
 
-      {/* Sticky "Your Vote" bar */}
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-8 py-5 sm:flex-row sm:justify-between">
           <div>

@@ -1,3 +1,4 @@
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 
 export type ClimateProject = {
@@ -24,14 +25,53 @@ const PROJECT_FIELDS =
   "id, name, description, category, country, estimated_co2, funding_goal, image_url, status";
 
 /**
+ * Wait until Supabase has restored the session from storage. `getUser()` can
+ * return null immediately after a client-side login navigation, which previously
+ * bounced fans back to /login (or left My S4P spinning on "Loading...").
+ */
+export async function waitForAuthUser(
+  timeoutMs = 4000
+): Promise<User | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session?.user) return session.user;
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (settled) return;
+      if (nextSession?.user) {
+        settled = true;
+        if (timer) clearTimeout(timer);
+        data.subscription.unsubscribe();
+        resolve(nextSession.user);
+      } else if (event === "INITIAL_SESSION") {
+        settled = true;
+        if (timer) clearTimeout(timer);
+        data.subscription.unsubscribe();
+        resolve(null);
+      }
+    });
+
+    timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      data.subscription.unsubscribe();
+      resolve(null);
+    }, timeoutMs);
+  });
+}
+
+/**
  * Resolve the supporter row for the currently authenticated user, creating a
  * minimal one on first use. Registration only creates a `profiles` row, so a
  * fan may not yet have a `supporters` record when they first vote.
  */
 export async function getOrCreateSupporter(): Promise<Supporter | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await waitForAuthUser();
 
   if (!user) return null;
 
@@ -99,7 +139,11 @@ export async function getVotedProjectIds(
     .select("climate_project_id")
     .eq("supporter_id", supporterId);
 
-  if (error) throw error;
+  // Missing table / RLS should not block the campaign page from rendering.
+  if (error) {
+    console.warn("Could not load existing votes:", error.message);
+    return new Set();
+  }
 
   return new Set((data ?? []).map((row) => row.climate_project_id as string));
 }
@@ -154,17 +198,22 @@ export async function getMyS4PCampaign(
   if (!club) return null;
 
   // Director-selected projects (the club's match portfolio).
-  const { data: portfolio } = await supabase
+  const { data: portfolio, error: portfolioError } = await supabase
     .from("club_match_portfolio")
     .select(`fixture_id, climate_projects (${PROJECT_FIELDS})`)
     .eq("club_id", clubId);
 
+  if (portfolioError) {
+    console.warn("Match portfolio query failed:", portfolioError.message);
+  }
+
   const projects = (portfolio ?? [])
     .map(
       (row) =>
-        (row as unknown as { climate_projects: ClimateProject })
+        (row as unknown as { climate_projects: ClimateProject | ClimateProject[] })
           .climate_projects
     )
+    .flatMap((p) => (Array.isArray(p) ? p : p ? [p] : []))
     .filter((p): p is ClimateProject => Boolean(p));
 
   const fixtureId =
@@ -206,7 +255,6 @@ export async function getMyS4PCampaign(
     .select("amount_per_goal, sponsor_id")
     .eq("status", "Active")
     .ilike("fixture", `%${club.name}%`)
-    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (camp) {

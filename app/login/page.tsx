@@ -1,43 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
+import { destinationForRole, SUPPORTER_CAMPAIGN_PATH } from "../lib/routes";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    router.prefetch(SUPPORTER_CAMPAIGN_PATH);
+
+    let cancelled = false;
+
+    async function bounceIfAlreadySignedIn() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled || !session?.user) return;
+      const href = await resolveDestination(session.user.id);
+      if (!cancelled) router.replace(href);
+    }
+
+    bounceIfAlreadySignedIn();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   async function handleLogin() {
-    const { error } = await supabase.auth.signInWithPassword({
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      alert(error.message);
+    if (signInError) {
+      setError(signInError.message);
+      setBusy(false);
       return;
     }
 
-    const { data: profile, error: profileError } = await supabase
-  .from("profiles")
-  .select("role")
-  .single();
-
-if (profileError) {
-  alert(profileError.message);
-  return;
-}
-
-if (profile.role === "admin") {
-  window.location.href = "/admin/match-centre";
-} else if (profile.role === "club") {
-  window.location.href = "/dashboard/club";
-} else if (profile.role === "sponsor") {
-  window.location.href = "/dashboard/sponsor";
-} else {
-  window.location.href = "/supporter/dashboard/my-s4p";
-}
+    // Navigate immediately. Role lookup is best-effort and must never
+    // leave the fan stuck on this page after a successful sign-in.
+    const href = await resolveDestination(data.user?.id);
+    router.replace(href);
   }
 
   return (
@@ -45,12 +60,19 @@ if (profile.role === "admin") {
       <div className="w-full max-w-md rounded-xl bg-slate-900 p-8 shadow-lg">
         <h1 className="mb-6 text-3xl font-bold text-green-400">Login</h1>
 
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
         <input
           type="email"
           placeholder="Email"
           className="mb-4 w-full rounded-md bg-slate-800 p-3"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={busy}
         />
 
         <input
@@ -59,6 +81,7 @@ if (profile.role === "admin") {
           className="mb-6 w-full rounded-md bg-slate-800 p-3"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          disabled={busy}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleLogin();
           }}
@@ -66,9 +89,10 @@ if (profile.role === "admin") {
 
         <button
           onClick={handleLogin}
-          className="w-full rounded-md bg-green-500 py-3 font-bold text-black"
+          disabled={busy}
+          className="w-full rounded-md bg-green-500 py-3 font-bold text-black disabled:cursor-wait disabled:opacity-70"
         >
-          Login
+          {busy ? "Signing in..." : "Login"}
         </button>
 
         <p className="mt-4 text-center text-sm text-slate-400">
@@ -80,4 +104,20 @@ if (profile.role === "admin") {
       </div>
     </main>
   );
+}
+
+async function resolveDestination(userId: string | undefined): Promise<string> {
+  if (!userId) return SUPPORTER_CAMPAIGN_PATH;
+
+  try {
+    const result = await Promise.race([
+      supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 2000)
+      ),
+    ]);
+    return destinationForRole(result.data?.role);
+  } catch {
+    return SUPPORTER_CAMPAIGN_PATH;
+  }
 }
