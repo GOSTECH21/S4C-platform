@@ -36,21 +36,7 @@ if (profile.role === "admin") {
 } else if (profile.role === "sponsor") {
   window.location.href = "/dashboard/sponsor";
 } else {
-  const { data: preferences, error: preferencesError } = await supabase
-  .from("supporter_preferences")
-  .select("id")
-  .limit(1);
-
-if (preferencesError) {
-  alert(preferencesError.message);
-  return;
-}
-
-if (preferences && preferences.length > 0) {
-  window.location.href = "/dashboard/supporter/calendar";
-} else {
-  window.location.href = "/dashboard/supporter/preferences";
-}
+  window.location.href = "/supporter/dashboard/my-s4p";
 }
   }
 
