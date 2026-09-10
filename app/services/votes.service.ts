@@ -17,6 +17,7 @@ export type Supporter = {
   full_name: string | null;
   email: string | null;
   auth_user_id: string | null;
+  favourite_club_id?: string | null;
 };
 
 const PROJECT_FIELDS =
@@ -36,7 +37,7 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
 
   const byAuthId = await supabase
     .from("supporters")
-    .select("id, full_name, email, auth_user_id")
+    .select("id, full_name, email, auth_user_id, favourite_club_id")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -45,7 +46,7 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
   if (user.email) {
     const byEmail = await supabase
       .from("supporters")
-      .select("id, full_name, email, auth_user_id")
+      .select("id, full_name, email, auth_user_id, favourite_club_id")
       .eq("email", user.email)
       .maybeSingle();
 
@@ -68,7 +69,7 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
       auth_user_id: user.id,
       notification_enabled: true,
     })
-    .select("id, full_name, email, auth_user_id")
+    .select("id, full_name, email, auth_user_id, favourite_club_id")
     .single();
 
   if (created.error) throw created.error;
