@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
 
 export default function SponsorLoginPage() {
@@ -71,6 +72,12 @@ export default function SponsorLoginPage() {
           {loading ? "Signing In..." : "Sign In"}
         </button>
       </form>
+
+      <p className="mt-6 text-center text-sm text-slate-500">
+        <Link href="/" className="hover:text-slate-300">
+          ← Back to home
+        </Link>
+      </p>
     </div>
   );
 }

@@ -1,4 +1,14 @@
 import Link from "next/link";
+import {
+  CLUB_LOGIN_PATH,
+  CLUB_REGISTER_PATH,
+  FAN_LOGIN_PATH,
+  FAN_REGISTER_PATH,
+  PARTNER_LOGIN_PATH,
+  PARTNER_REGISTER_PATH,
+  SPONSOR_LOGIN_PATH,
+  SPONSOR_REGISTER_PATH,
+} from "@/app/lib/routes";
 
 const userTypes = [
   {
@@ -6,8 +16,8 @@ const userTypes = [
     title: "A Fan",
     description:
       "Support your favourite club, earn Climate Credits and help fund verified climate projects.",
-    register: "/fan/register",
-    login: "/fan/login",
+    register: FAN_REGISTER_PATH,
+    login: FAN_LOGIN_PATH,
     registerText: "Join as a Fan",
   },
   {
@@ -15,8 +25,8 @@ const userTypes = [
     title: "A Sports Club",
     description:
       "Create Climate Sponsorship Projects, engage your supporters and compete in the Climate Impact League.",
-    register: "/club/register",
-    login: "/club/login",
+    register: CLUB_REGISTER_PATH,
+    login: CLUB_LOGIN_PATH,
     registerText: "Register Your Club",
   },
   {
@@ -24,8 +34,8 @@ const userTypes = [
     title: "A Climate Sponsor",
     description:
       "Sponsor sporting moments and create measurable environmental impact through verified climate action.",
-    register: "/sponsor/register",
-    login: "/sponsor/login",
+    register: SPONSOR_REGISTER_PATH,
+    login: SPONSOR_LOGIN_PATH,
     registerText: "Become a Climate Sponsor",
   },
   {
@@ -33,8 +43,8 @@ const userTypes = [
     title: "A Climate Partner",
     description:
       "Register your climate programme and receive Climate Credits from fans, clubs and sponsors.",
-    register: "/partner/register",
-    login: "/partner/login",
+    register: PARTNER_REGISTER_PATH,
+    login: PARTNER_LOGIN_PATH,
     registerText: "Register as a Climate Partner",
   },
 ];
