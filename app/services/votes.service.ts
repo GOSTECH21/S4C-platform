@@ -109,9 +109,8 @@ export async function getVotedProjects(
 ): Promise<ClimateProject[]> {
   const { data, error } = await supabase
     .from("supporter_votes")
-    .select(`id, created_at, climate_projects (${PROJECT_FIELDS})`)
-    .eq("supporter_id", supporterId)
-    .order("created_at", { ascending: false });
+    .select(`id, climate_projects (${PROJECT_FIELDS})`)
+    .eq("supporter_id", supporterId);
 
   if (error) throw error;
 
