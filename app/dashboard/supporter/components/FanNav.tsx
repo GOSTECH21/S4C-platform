@@ -6,7 +6,7 @@ import { supabase } from "@/app/lib/supabase";
 
 const LINKS = [
   { href: "/supporter/dashboard/my-s4p", label: "My S4P" },
-  { href: "/dashboard/supporter/vote", label: "All Projects" },
+  { href: "/dashboard/supporter/vote", label: "Climate Projects" },
 ];
 
 export default function FanNav() {
@@ -19,7 +19,7 @@ export default function FanNav() {
   }
 
   return (
-    <header className="mb-10 flex flex-col gap-4 border-b border-slate-800 pb-6 sm:flex-row sm:items-center sm:justify-between">
+    <header className="sticky top-0 z-30 mb-10 flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-1 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
       <Link href="/supporter/dashboard/my-s4p" className="flex items-center gap-2">
         <span className="text-2xl font-black tracking-tight text-green-400">
           S4P
