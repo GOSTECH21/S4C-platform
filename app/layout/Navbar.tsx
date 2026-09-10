@@ -19,14 +19,14 @@ export default function Navbar() {
 
         <div className="flex gap-3">
           <Link
-            href="/login"
+            href="/"
             className="rounded-lg border border-slate-600 px-4 py-2 text-white hover:bg-slate-800"
           >
             Login
           </Link>
 
           <Link
-            href="/register"
+            href="/"
             className="rounded-lg bg-green-400 px-4 py-2 font-semibold text-slate-950 hover:bg-green-300"
           >
             Register

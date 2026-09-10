@@ -128,7 +128,7 @@ export default function MyS4PPage() {
               Your match climate campaign appears here right after you log in.
             </p>
             <Link
-              href="/login"
+              href="/fan/login"
               className="mt-6 inline-block rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950 hover:bg-green-400"
             >
               Login

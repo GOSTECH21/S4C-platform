@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import {
+  FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_ALIASES,
   SUPPORTER_CAMPAIGN_PATH,
 } from "@/app/lib/routes";
@@ -19,7 +20,7 @@ export default function FanNav() {
 
   async function logout() {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push(FAN_LOGIN_PATH);
   }
 
   return (

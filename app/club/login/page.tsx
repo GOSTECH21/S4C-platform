@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 export default function ClubLoginPage() {
@@ -69,6 +70,12 @@ export default function ClubLoginPage() {
           >
             {loading ? "Signing In..." : "Sign In"}
           </button>
+
+          <p className="pt-2 text-center text-sm text-slate-500">
+            <Link href="/" className="hover:text-slate-300">
+              ← Back to home
+            </Link>
+          </p>
 
         </div>
 

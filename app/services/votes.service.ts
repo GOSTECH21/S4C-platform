@@ -27,7 +27,7 @@ const PROJECT_FIELDS =
 /**
  * Wait until Supabase has restored the session from storage. `getUser()` can
  * return null immediately after a client-side login navigation, which previously
- * bounced fans back to /login (or left My S4P spinning on "Loading...").
+ * bounced fans back to /fan/login (or left My S4P spinning on "Loading...").
  */
 export async function waitForAuthUser(
   timeoutMs = 4000

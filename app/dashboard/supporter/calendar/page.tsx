@@ -81,7 +81,7 @@ export default function SupporterCalendarPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        window.location.href = "/login";
+        window.location.href = "/fan/login";
         return;
       }
 
