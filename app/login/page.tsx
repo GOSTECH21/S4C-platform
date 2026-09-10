@@ -36,7 +36,7 @@ if (profile.role === "admin") {
 } else if (profile.role === "sponsor") {
   window.location.href = "/dashboard/sponsor";
 } else {
-  window.location.href = "/dashboard/supporter/vote";
+  window.location.href = "/dashboard/supporter/my-s4p";
 }
   }
 

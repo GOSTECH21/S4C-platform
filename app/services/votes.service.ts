@@ -119,6 +119,146 @@ export async function getVotedProjects(
     .filter((project): project is ClimateProject => Boolean(project));
 }
 
+export type S4PCampaign = {
+  clubId: string;
+  clubName: string;
+  matchTitle: string;
+  sponsorName: string;
+  amountPerGoal: number;
+  requiredVotes: number;
+  fixtureId: string | null;
+  projects: ClimateProject[];
+};
+
+const DEFAULT_SPONSOR = "Budweiser";
+const DEFAULT_AMOUNT_PER_GOAL = 10000;
+const REQUIRED_VOTES = 3;
+
+/**
+ * The match climate campaign shown on a fan's My S4P page: the projects the
+ * club's sustainability director selected for the match, plus the sponsor
+ * commitment. Resilient to sparse data via sensible fallbacks.
+ */
+export async function getMyS4PCampaign(
+  supporter: Supporter & { favourite_club_id?: string | null }
+): Promise<S4PCampaign | null> {
+  const clubId = supporter.favourite_club_id;
+  if (!clubId) return null;
+
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("id, name")
+    .eq("id", clubId)
+    .maybeSingle();
+  if (!club) return null;
+
+  // Director-selected projects (the club's match portfolio).
+  const { data: portfolio } = await supabase
+    .from("club_match_portfolio")
+    .select(`fixture_id, climate_projects (${PROJECT_FIELDS})`)
+    .eq("club_id", clubId);
+
+  const projects = (portfolio ?? [])
+    .map(
+      (row) =>
+        (row as unknown as { climate_projects: ClimateProject })
+          .climate_projects
+    )
+    .filter((p): p is ClimateProject => Boolean(p));
+
+  const fixtureId =
+    (portfolio ?? []).map((row) => row.fixture_id).find(Boolean) ?? null;
+
+  // Match title from the linked (or any) fixture involving this club.
+  let matchTitle = `${club.name} Climate Campaign`;
+  const fixtureQuery = fixtureId
+    ? supabase
+        .from("fixtures")
+        .select("home_club_id, away_club_id")
+        .eq("id", fixtureId)
+        .maybeSingle()
+    : supabase
+        .from("fixtures")
+        .select("home_club_id, away_club_id")
+        .or(`home_club_id.eq.${clubId},away_club_id.eq.${clubId}`)
+        .limit(1)
+        .maybeSingle();
+  const { data: fixture } = await fixtureQuery;
+  if (fixture) {
+    const { data: names } = await supabase
+      .from("clubs")
+      .select("id, name")
+      .in("id", [fixture.home_club_id, fixture.away_club_id]);
+    const nameById = Object.fromEntries(
+      (names ?? []).map((c) => [c.id, c.name])
+    );
+    matchTitle = `${nameById[fixture.home_club_id] ?? club.name} vs ${
+      nameById[fixture.away_club_id] ?? "Opponent"
+    }`;
+  }
+
+  // Sponsor commitment from an active campaign referencing this club.
+  let sponsorName = DEFAULT_SPONSOR;
+  let amountPerGoal = DEFAULT_AMOUNT_PER_GOAL;
+  const { data: camp } = await supabase
+    .from("sponsorship_campaigns")
+    .select("amount_per_goal, sponsor_id")
+    .eq("status", "Active")
+    .ilike("fixture", `%${club.name}%`)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (camp) {
+    amountPerGoal = camp.amount_per_goal ?? amountPerGoal;
+    if (camp.sponsor_id) {
+      const { data: sponsor } = await supabase
+        .from("sponsors")
+        .select("name")
+        .eq("id", camp.sponsor_id)
+        .maybeSingle();
+      if (sponsor?.name) sponsorName = sponsor.name;
+    }
+  }
+
+  return {
+    clubId: club.id,
+    clubName: club.name,
+    matchTitle,
+    sponsorName,
+    amountPerGoal,
+    requiredVotes: REQUIRED_VOTES,
+    fixtureId,
+    projects: projects.slice(0, 5),
+  };
+}
+
+/**
+ * Persist a fan's campaign vote: replaces any prior votes among the campaign's
+ * projects with the newly selected set.
+ */
+export async function submitCampaignVotes(
+  supporterId: string,
+  selectedProjectIds: string[],
+  campaignProjectIds: string[]
+) {
+  if (campaignProjectIds.length > 0) {
+    const { error: delError } = await supabase
+      .from("supporter_votes")
+      .delete()
+      .eq("supporter_id", supporterId)
+      .in("climate_project_id", campaignProjectIds);
+    if (delError) throw delError;
+  }
+
+  const rows = selectedProjectIds.map((projectId) => ({
+    supporter_id: supporterId,
+    climate_project_id: projectId,
+  }));
+
+  const { error } = await supabase.from("supporter_votes").insert(rows);
+  if (error) throw error;
+}
+
 export async function castVote(supporterId: string, projectId: string) {
   const { error } = await supabase
     .from("supporter_votes")

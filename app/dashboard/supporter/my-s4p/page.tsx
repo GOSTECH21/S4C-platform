@@ -1,42 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
+  getMyS4PCampaign,
   getOrCreateSupporter,
-  getVotedProjects,
-  type ClimateProject,
-  type Supporter,
+  getVotedProjectIds,
+  submitCampaignVotes,
+  type S4PCampaign,
 } from "@/app/services/votes.service";
-import { summariseImpact, type ImpactSummary } from "@/app/lib/impact";
+import { summariseImpact } from "@/app/lib/impact";
 import FanNav from "../components/FanNav";
 
 export default function MyS4PPage() {
-  const [supporter, setSupporter] = useState<Supporter | null>(null);
-  const [projects, setProjects] = useState<ClimateProject[]>([]);
-  const [impact, setImpact] = useState<ImpactSummary | null>(null);
+  const [supporterId, setSupporterId] = useState<string | null>(null);
+  const [campaign, setCampaign] = useState<S4PCampaign | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const currentSupporter = await getOrCreateSupporter();
-
-        if (!currentSupporter) {
+        const supporter = await getOrCreateSupporter();
+        if (!supporter) {
           window.location.href = "/login";
           return;
         }
+        setSupporterId(supporter.id);
 
-        setSupporter(currentSupporter);
+        const camp = await getMyS4PCampaign(supporter);
+        setCampaign(camp);
 
-        const voted = await getVotedProjects(currentSupporter.id);
-        setProjects(voted);
-        setImpact(summariseImpact(voted));
+        if (camp) {
+          const voted = await getVotedProjectIds(supporter.id);
+          const preselected = camp.projects
+            .map((p) => p.id)
+            .filter((id) => voted.has(id));
+          if (preselected.length > 0) {
+            setSelected(new Set(preselected.slice(0, camp.requiredVotes)));
+            setSubmitted(true);
+          }
+        }
       } catch (err) {
-        console.error("Failed to load My S4P:", err);
+        console.error("Failed to load My S4P campaign:", err);
         setError(
-          err instanceof Error ? err.message : "Failed to load your S4P page."
+          err instanceof Error ? err.message : "Failed to load your campaign."
         );
       } finally {
         setLoading(false);
@@ -46,159 +56,224 @@ export default function MyS4PPage() {
     load();
   }, []);
 
-  const displayName = supporter?.full_name || supporter?.email || "Supporter";
+  const required = campaign?.requiredVotes ?? 3;
+
+  function toggle(projectId: string) {
+    setSubmitted(false);
+    setError(null);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectId)) {
+        next.delete(projectId);
+      } else if (next.size < required) {
+        next.add(projectId);
+      }
+      return next;
+    });
+  }
+
+  async function submit() {
+    if (!supporterId || !campaign || selected.size !== required) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await submitCampaignVotes(
+        supporterId,
+        [...selected],
+        campaign.projects.map((p) => p.id)
+      );
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Failed to submit vote:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to submit your vote."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-950 p-8 text-white">
+        <div className="mx-auto max-w-6xl">
+          <FanNav />
+          <p className="text-slate-400">Loading your campaign...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <main className="min-h-screen bg-slate-950 p-8 text-white">
+        <div className="mx-auto max-w-6xl">
+          <FanNav />
+          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-8">
+            <h2 className="text-2xl font-bold">No active campaign yet</h2>
+            <p className="mt-3 text-slate-300">
+              Your club hasn&apos;t pushed a match climate campaign to your S4P
+              page yet. Check back on match day.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const selectedProjects = campaign.projects.filter((p) => selected.has(p.id));
+  const impact = summariseImpact(selectedProjects);
+  const canSubmit = selected.size === required && !submitting;
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="mx-auto max-w-6xl">
+    <main className="min-h-screen bg-slate-950 pb-40 text-white">
+      <div className="mx-auto max-w-5xl px-8 pt-8">
         <FanNav />
 
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          My S4P
-        </p>
-        <h1 className="mt-3 text-4xl font-black">
-          {loading ? "Your climate impact" : `${displayName}'s climate impact`}
-        </h1>
-        <p className="mt-3 max-w-2xl text-slate-300">
-          Every project you vote for helps direct climate funding. Here is the
-          estimated impact of the projects you support.
-        </p>
+        {/* Campaign header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-black md:text-4xl">
+            {campaign.matchTitle} Climate Campaign
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-300">
+            Vote for the{" "}
+            <span className="font-bold text-white">
+              {numberWord(required).toUpperCase()}
+            </span>{" "}
+            climate projects you want funded if your club scores.
+          </p>
+
+          <div className="mt-5 inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-sm font-bold text-white">
+            Sponsor Commitment: £{campaign.amountPerGoal.toLocaleString()} per
+            Goal
+          </div>
+        </div>
 
         {error && (
-          <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+          <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
             {error}
           </div>
         )}
 
-        {loading ? (
-          <p className="mt-12 text-slate-400">Loading your impact...</p>
-        ) : projects.length === 0 ? (
-          <div className="mt-12 rounded-2xl border border-slate-800 bg-slate-900 p-8">
-            <h2 className="text-2xl font-bold">You haven&apos;t voted yet</h2>
-            <p className="mt-3 text-slate-300">
-              Vote for the climate projects you care about and your estimated
-              impact will appear here.
-            </p>
-            <Link
-              href="/dashboard/supporter/vote"
-              className="mt-6 inline-block rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950 hover:bg-green-400"
-            >
-              Browse Climate Projects
-            </Link>
+        {submitted && !error && (
+          <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
+            ✓ Your vote has been submitted. If {campaign.clubName} scores, £
+            {campaign.amountPerGoal.toLocaleString()} per goal will be split
+            across your {required} chosen projects.
           </div>
-        ) : (
-          <>
-            {impact && (
-              <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                <ImpactCard
-                  label="Projects supported"
-                  value={impact.projectCount.toLocaleString()}
-                  hint={
-                    impact.categories.length > 0
-                      ? impact.categories.join(" · ")
-                      : undefined
-                  }
-                />
-                <ImpactCard
-                  label="Estimated CO₂ saved"
-                  value={`${impact.totalCo2.toLocaleString()} t`}
-                  hint="Across all your projects"
-                />
-                <ImpactCard
-                  label="≈ Trees planted"
-                  value={impact.treesEquivalent.toLocaleString()}
-                  hint="Equivalent yearly absorption"
-                />
-                <ImpactCard
-                  label="≈ Cars off the road"
-                  value={impact.carsOffRoad.toLocaleString()}
-                  hint="For one year"
-                />
-              </div>
-            )}
-
-            {impact && impact.totalFunding > 0 && (
-              <p className="mt-6 text-slate-300">
-                Total funding goal of your projects:{" "}
-                <span className="font-bold text-green-400">
-                  £{impact.totalFunding.toLocaleString()}
-                </span>
-                {impact.countries.length > 0 && (
-                  <>
-                    {" "}
-                    across{" "}
-                    <span className="font-bold text-green-400">
-                      {impact.countries.length}
-                    </span>{" "}
-                    {impact.countries.length === 1 ? "country" : "countries"}.
-                  </>
-                )}
-              </p>
-            )}
-
-            <h2 className="mt-12 text-2xl font-bold">
-              Projects you&apos;ve voted for
-            </h2>
-
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-6"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-xl font-bold">{project.name}</h3>
-                    {project.category && (
-                      <span className="whitespace-nowrap rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
-                        {project.category}
-                      </span>
-                    )}
-                  </div>
-
-                  {project.country && (
-                    <p className="mt-1 text-sm text-slate-400">
-                      📍 {project.country}
-                    </p>
-                  )}
-
-                  <p className="mt-3 flex-1 text-slate-300">
-                    {project.description}
-                  </p>
-
-                  <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-950/60 p-4">
-                    <span className="text-xs uppercase tracking-wide text-slate-400">
-                      Your estimated impact
-                    </span>
-                    <span className="text-lg font-bold text-green-400">
-                      {project.estimated_co2 != null
-                        ? `${project.estimated_co2.toLocaleString()} t CO₂`
-                        : "TBC"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
         )}
+
+        {/* Project selection grid */}
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {campaign.projects.map((project) => {
+            const isSelected = selected.has(project.id);
+            const disabled = !isSelected && selected.size >= required;
+
+            return (
+              <div
+                key={project.id}
+                className={`flex flex-col rounded-2xl border p-6 ${
+                  isSelected
+                    ? "border-green-500 bg-slate-800"
+                    : "border-slate-700 bg-slate-900"
+                }`}
+              >
+                <h2 className="text-xl font-bold">{project.name}</h2>
+                <p className="mt-3 flex-1 text-sm text-slate-300">
+                  {project.description}
+                </p>
+
+                <button
+                  onClick={() => toggle(project.id)}
+                  disabled={disabled}
+                  className={`mt-6 w-full rounded-lg py-3 font-bold transition ${
+                    isSelected
+                      ? "bg-green-500 text-slate-950 hover:bg-green-400"
+                      : disabled
+                        ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                        : "bg-slate-700 text-white hover:bg-slate-600"
+                  }`}
+                >
+                  {isSelected ? "✓ Selected" : "Select Project"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {submitted && selectedProjects.length > 0 && impact.totalCo2 > 0 && (
+          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <h3 className="text-lg font-bold">Estimated impact of your vote</h3>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <ImpactStat
+                label="Est. CO₂ funded"
+                value={`${impact.totalCo2.toLocaleString()} t`}
+              />
+              <ImpactStat
+                label="≈ Trees planted"
+                value={impact.treesEquivalent.toLocaleString()}
+              />
+              <ImpactStat
+                label="≈ Cars off the road"
+                value={impact.carsOffRoad.toLocaleString()}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sticky "Your Vote" bar */}
+      <div className="fixed inset-x-0 bottom-0 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-8 py-5 sm:flex-row sm:justify-between">
+          <div>
+            <p className="font-bold">Your Vote</p>
+            <p className="text-sm text-slate-400">
+              {selected.size} of {required} projects selected
+            </p>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-[0.65rem] uppercase tracking-[0.25em] text-slate-500">
+                Presented by
+              </p>
+              <p className="text-lg font-black text-amber-300">
+                {campaign.sponsorName}
+              </p>
+            </div>
+
+            <button
+              onClick={submit}
+              disabled={!canSubmit}
+              className={`rounded-lg px-6 py-3 font-bold transition ${
+                canSubmit
+                  ? "bg-green-500 text-slate-950 hover:bg-green-400"
+                  : "cursor-not-allowed bg-slate-700 text-slate-400"
+              }`}
+            >
+              {submitting
+                ? "Submitting..."
+                : submitted
+                  ? "Update My Vote"
+                  : "Submit My Vote"}
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );
 }
 
-function ImpactCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
+function ImpactStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <p className="text-sm text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black text-green-400">{value}</p>
-      {hint && <p className="mt-2 text-xs text-slate-500">{hint}</p>}
+    <div className="rounded-xl bg-slate-950/60 p-4">
+      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-1 text-2xl font-black text-green-400">{value}</p>
     </div>
   );
+}
+
+function numberWord(n: number): string {
+  const words = ["zero", "one", "two", "three", "four", "five"];
+  return words[n] ?? String(n);
 }

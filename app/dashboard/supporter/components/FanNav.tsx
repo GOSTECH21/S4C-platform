@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 
 const LINKS = [
-  { href: "/dashboard/supporter/vote", label: "Climate Projects" },
   { href: "/dashboard/supporter/my-s4p", label: "My S4P" },
+  { href: "/dashboard/supporter/vote", label: "All Projects" },
 ];
 
 export default function FanNav() {
@@ -20,7 +20,7 @@ export default function FanNav() {
 
   return (
     <header className="mb-10 flex flex-col gap-4 border-b border-slate-800 pb-6 sm:flex-row sm:items-center sm:justify-between">
-      <Link href="/dashboard/supporter/vote" className="flex items-center gap-2">
+      <Link href="/dashboard/supporter/my-s4p" className="flex items-center gap-2">
         <span className="text-2xl font-black tracking-tight text-green-400">
           S4P
         </span>
