@@ -3,7 +3,7 @@ import {
   clubInCurrentSeasonLeague,
   isCurrentSeasonLeagueFixture,
 } from "../app/lib/current-season";
-import { getTeamCatalog } from "../app/services/teams.service";
+import { loadTeamCatalogFromDatabase } from "../app/services/teams.service";
 
 const failures: string[] = [];
 
@@ -100,7 +100,7 @@ function main() {
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
 
-  getTeamCatalog()
+  loadTeamCatalogFromDatabase()
     .then((catalog) => {
       const football = catalog.find((group) => group.sport === "Football");
       const premier = football?.competitions.find(

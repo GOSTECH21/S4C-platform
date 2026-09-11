@@ -1,10 +1,10 @@
-import { getTeamCatalog } from "@/app/services/teams.service";
+import { loadTeamCatalogFromDatabase } from "@/app/services/teams.service";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const catalog = await getTeamCatalog();
+    const catalog = await loadTeamCatalogFromDatabase();
     return Response.json({ catalog });
   } catch (error) {
     const message =

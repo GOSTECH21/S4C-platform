@@ -104,6 +104,23 @@ type CatalogClubRow = {
 };
 
 export async function getTeamCatalog(): Promise<TeamGroup[]> {
+  if (typeof window !== "undefined") {
+    try {
+      const response = await fetch("/api/fan/team-catalog", { cache: "no-store" });
+      if (response.ok) {
+        const payload = (await response.json()) as { catalog?: TeamGroup[] };
+        if (Array.isArray(payload.catalog) && payload.catalog.length > 0) {
+          return payload.catalog;
+        }
+      }
+    } catch {
+      // Fall through to a direct database read.
+    }
+  }
+  return loadTeamCatalogFromDatabase();
+}
+
+export async function loadTeamCatalogFromDatabase(): Promise<TeamGroup[]> {
   await ensureCurrentSeasonRoster();
   const { data, error } = await supabase
     .from("clubs")
