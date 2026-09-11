@@ -40,7 +40,9 @@ const NAME_ALIASES: Record<string, string[]> = {
 };
 
 export function displayClubName(name: string): string {
-  if (/^hearts$/i.test(name)) return "Hearts of Midlothian FC";
+  if (/heart of midlothian|hearts of midlothian|^hearts$/i.test(name)) {
+    return "Hearts of Midlothian FC";
+  }
   return name;
 }
 
