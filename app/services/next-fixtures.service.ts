@@ -413,33 +413,20 @@ async function fetchFeedFixtures(team: TeamRef): Promise<UpcomingMatch[]> {
   }
 }
 
-function rank(source: UpcomingMatch["source"]): number {
-  if (source === "club-website") return 0;
-  if (source === "fixtures-list") return 1;
-  return 2;
+function matchKey(match: UpcomingMatch): string {
+  return `${match.date}|${normalizeClubName(match.homeName)}|${normalizeClubName(match.awayName)}`;
 }
 
-function mergeMatches(groups: UpcomingMatch[][]): UpcomingMatch[] {
-  const byKey = new Map<string, UpcomingMatch>();
-  for (const group of groups) {
-    for (const match of group) {
-      const key = `${match.date}|${normalizeClubName(match.homeName)}|${normalizeClubName(match.awayName)}`;
-      const existing = byKey.get(key);
-      if (!existing || rank(match.source) < rank(existing.source)) {
-        byKey.set(key, match);
-      } else if (
-        existing &&
-        rank(match.source) === rank(existing.source) &&
-        !existing.venue &&
-        match.venue
-      ) {
-        byKey.set(key, { ...existing, venue: match.venue });
-      }
-    }
-  }
-  return [...byKey.values()].sort((a, b) =>
-    matchSortKey(a).localeCompare(matchSortKey(b))
-  );
+function enrichVenues(
+  matches: UpcomingMatch[],
+  extras: UpcomingMatch[]
+): UpcomingMatch[] {
+  const byKey = new Map(extras.map((match) => [matchKey(match), match]));
+  return matches.map((match) => {
+    if (match.venue) return match;
+    const extra = byKey.get(matchKey(match));
+    return extra?.venue ? { ...match, venue: extra.venue } : match;
+  });
 }
 
 async function fetchS4pFixtures(
@@ -515,12 +502,22 @@ export async function getUpcomingFixturesForTeams(
         fetchFeedFixtures(team),
         fetchS4pFixtures(team, clubRows),
       ]);
-      result[team.id] = mergeMatches([
-        fromSite,
-        fromBbc,
-        fromFeed,
-        fromDb,
-      ]).slice(0, 5);
+      const [fromSite, fromBbc, fromFeed, fromDb] = await Promise.all([
+        fetchClubWebsiteFixtures(team),
+        fetchBbcFixtures(team),
+        fetchFeedFixtures(team),
+        fetchS4pFixtures(team, clubRows),
+      ]);
+      const extras = [...fromBbc, ...fromFeed, ...fromDb];
+      if (fromSite.length > 0) {
+        result[team.id] = enrichVenues(fromSite, extras).slice(0, 5);
+      } else if (fromBbc.length > 0) {
+        result[team.id] = enrichVenues(fromBbc, extras).slice(0, 5);
+      } else if (fromFeed.length > 0) {
+        result[team.id] = enrichVenues(fromFeed, fromDb).slice(0, 5);
+      } else {
+        result[team.id] = fromDb.slice(0, 5);
+      }
     })
   );
 
