@@ -1,4 +1,10 @@
 import { supabase } from "../lib/supabase";
+import {
+  getSupportedTeams,
+  scoreLabelForSport,
+  sponsorLogoSrc,
+  type TeamOption,
+} from "./teams.service";
 
 export type ClimateProject = {
   id: string;
@@ -219,7 +225,9 @@ export type S4PCampaign = {
   clubName: string;
   matchTitle: string;
   sponsorName: string;
+  sponsorLogoUrl: string | null;
   amountPerGoal: number;
+  scoreLabel: string;
   requiredVotes: number;
   fixtureId: string | null;
   featuredProject: ClimateProject | null;
@@ -232,30 +240,67 @@ const DEFAULT_AMOUNT_PER_GOAL = 10000;
 const REQUIRED_VOTES = 3;
 
 /**
- * The match climate campaign shown on a fan's My S4P page: the projects the
- * club's sustainability director selected for the match, plus the sponsor
- * commitment. Resilient to sparse data via sensible fallbacks.
+ * Match climate campaigns for a fan: only matches involving teams they
+ * support, with the sustainability director's sponsored projects.
  */
+export async function getMyS4PCampaigns(
+  supporter: Supporter & { favourite_club_id?: string | null }
+): Promise<S4PCampaign[]> {
+  const teams = await getSupportedTeams(supporter);
+  if (teams.length === 0) return [];
+
+  const clubIds = new Set(teams.map((team) => team.id));
+  const campaigns: S4PCampaign[] = [];
+  const seen = new Set<string>();
+
+  const { data: open } = await supabase
+    .from("match_campaigns")
+    .select(
+      "id, club_id, title, sponsorship_per_goal, maximum_votes, status, match_id"
+    )
+    .eq("status", "open");
+
+  for (const row of open ?? []) {
+    if (!campaignMatchesSupportedTeams(row, clubIds, teams)) continue;
+    const built = await buildCampaignFromMatchRow(row, teams);
+    const key = built?.campaignId ?? built?.clubId;
+    if (built && key && !seen.has(key)) {
+      seen.add(key);
+      campaigns.push(built);
+    }
+  }
+
+  return campaigns;
+}
+
 export async function getMyS4PCampaign(
   supporter: Supporter & { favourite_club_id?: string | null }
 ): Promise<S4PCampaign | null> {
-  const clubId = supporter.favourite_club_id ?? null;
+  const campaigns = await getMyS4PCampaigns(supporter);
+  return campaigns[0] ?? null;
+}
 
-  const fromPortfolio = clubId
-    ? await campaignFromClubPortfolio(clubId)
-    : null;
-  if (fromPortfolio && (fromPortfolio.projects.length > 0 || fromPortfolio.featuredProject)) {
-    return fromPortfolio;
-  }
+function campaignMatchesSupportedTeams(
+  row: { club_id: string; title: string | null },
+  clubIds: Set<string>,
+  teams: TeamOption[]
+): boolean {
+  if (clubIds.has(row.club_id)) return true;
+  const title = (row.title ?? "").toLowerCase();
+  return teams.some((team) => titleIncludesTeam(title, team));
+}
 
-  // The live fan campaign (Arsenal vs Chelsea) is stored on match_campaigns.
-  // Use it whenever the club portfolio is empty so login still shows projects.
-  return campaignFromOpenMatch(clubId);
+function titleIncludesTeam(title: string, team: TeamOption): boolean {
+  const names = [team.name, team.displayName].map((name) =>
+    name.toLowerCase()
+  );
+  return names.some((name) => name.length > 2 && title.includes(name.toLowerCase()));
 }
 
 async function campaignFromClubPortfolio(
-  clubId: string
+  team: TeamOption
 ): Promise<S4PCampaign | null> {
+  const clubId = team.id;
   const { data: club } = await supabase
     .from("clubs")
     .select("id, name")
@@ -309,38 +354,23 @@ async function campaignFromClubPortfolio(
     }`;
   }
 
-  // Sponsor commitment from an active campaign referencing this club.
-  let sponsorName = DEFAULT_SPONSOR;
-  let amountPerGoal = DEFAULT_AMOUNT_PER_GOAL;
-  const { data: camp } = await supabase
-    .from("sponsorship_campaigns")
-    .select("amount_per_goal, sponsor_id")
-    .eq("status", "Active")
-    .ilike("fixture", `%${club.name}%`)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (camp) {
-    amountPerGoal = camp.amount_per_goal ?? amountPerGoal;
-    if (camp.sponsor_id) {
-      const { data: sponsor } = await supabase
-        .from("sponsors")
-        .select("name")
-        .eq("id", camp.sponsor_id)
-        .maybeSingle();
-      if (sponsor?.name) sponsorName = sponsor.name;
-    }
-  }
-
   const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
   const campaignId = await resolveOpenCampaignId(clubId);
+  const sponsor = await resolveCampaignSponsor({
+    clubName: club.name,
+    matchTitle,
+    amountPerGoal: DEFAULT_AMOUNT_PER_GOAL,
+    sport: team.sport,
+  });
 
   return {
     clubId: club.id,
-    clubName: club.name,
+    clubName: team.displayName || club.name,
     matchTitle,
-    sponsorName,
-    amountPerGoal,
+    sponsorName: sponsor.name,
+    sponsorLogoUrl: sponsor.logoUrl,
+    amountPerGoal: sponsor.amountPerGoal,
+    scoreLabel: sponsor.scoreLabel,
     requiredVotes: REQUIRED_VOTES,
     fixtureId,
     featuredProject,
@@ -349,35 +379,16 @@ async function campaignFromClubPortfolio(
   };
 }
 
-async function campaignFromOpenMatch(
-  clubId: string | null
+async function buildCampaignFromMatchRow(
+  openCampaign: {
+    id: string;
+    club_id: string;
+    title: string | null;
+    sponsorship_per_goal: number | string | null;
+    maximum_votes: number | null;
+  },
+  teams: TeamOption[]
 ): Promise<S4PCampaign | null> {
-  let campaignQuery = supabase
-    .from("match_campaigns")
-    .select(
-      "id, club_id, title, sponsorship_per_goal, maximum_votes, status"
-    )
-    .eq("status", "open");
-
-  if (clubId) {
-    campaignQuery = campaignQuery.eq("club_id", clubId);
-  }
-
-  const { data: campaign } = await campaignQuery.maybeSingle();
-
-  const openCampaign =
-    campaign ??
-    (
-      await supabase
-        .from("match_campaigns")
-        .select(
-          "id, club_id, title, sponsorship_per_goal, maximum_votes, status"
-        )
-        .eq("status", "open")
-        .maybeSingle()
-    ).data;
-
-  if (!openCampaign) return null;
 
   const { data: rows } = await supabase
     .from("campaign_projects")
@@ -402,21 +413,102 @@ async function campaignFromOpenMatch(
     .maybeSingle();
 
   const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
+  const matchTitle =
+    openCampaign.title?.replace(/ Climate Campaign$/i, "") ??
+    club?.name ??
+    "Match";
+  const fanTeam =
+    teams.find((team) => team.id === openCampaign.club_id) ??
+    teams.find((team) => titleIncludesTeam(matchTitle.toLowerCase(), team));
+  const amountPerGoal =
+    Number(openCampaign.sponsorship_per_goal) || DEFAULT_AMOUNT_PER_GOAL;
+  const sponsor = await resolveCampaignSponsor({
+    clubName: fanTeam?.name ?? club?.name ?? "Your club",
+    matchTitle,
+    amountPerGoal,
+    sport: fanTeam?.sport ?? "Football",
+  });
 
   return {
     clubId: openCampaign.club_id,
-    clubName: club?.name ?? "Your club",
-    matchTitle: openCampaign.title?.replace(/ Climate Campaign$/i, "") ??
-      club?.name ??
-      "Match",
-    sponsorName: DEFAULT_SPONSOR,
-    amountPerGoal: Number(openCampaign.sponsorship_per_goal) || DEFAULT_AMOUNT_PER_GOAL,
+    clubName: fanTeam?.displayName ?? club?.name ?? "Your club",
+    matchTitle,
+    sponsorName: sponsor.name,
+    sponsorLogoUrl: sponsor.logoUrl,
+    amountPerGoal: sponsor.amountPerGoal,
+    scoreLabel: sponsor.scoreLabel,
     requiredVotes: openCampaign.maximum_votes ?? REQUIRED_VOTES,
     fixtureId: null,
     featuredProject,
     projects: clubProjects,
     campaignId: openCampaign.id,
   };
+}
+
+async function resolveCampaignSponsor({
+  clubName,
+  matchTitle,
+  amountPerGoal,
+  sport,
+}: {
+  clubName: string;
+  matchTitle: string;
+  amountPerGoal: number;
+  sport: string;
+}): Promise<{
+  name: string;
+  logoUrl: string | null;
+  amountPerGoal: number;
+  scoreLabel: string;
+}> {
+  const scoreLabel = scoreLabelForSport(sport);
+  const fixtureNeedle = matchTitle.replace(/ Climate Campaign$/i, "").trim();
+
+  const { data: rows } = await supabase
+    .from("sponsorship_campaigns")
+    .select("amount_per_goal, sponsor_id, fixture, sponsored_event, sport")
+    .eq("status", "Active");
+
+  const matching = (rows ?? []).filter((row) => {
+    const fixture = (row.fixture ?? "").toLowerCase();
+    const event = (row.sponsored_event ?? "").toLowerCase();
+    const club = clubName.toLowerCase();
+    const needle = fixtureNeedle.toLowerCase();
+    return (
+      fixture.includes(club) ||
+      event.includes(club) ||
+      (needle.length > 3 && fixture.includes(needle))
+    );
+  });
+
+  const preferred =
+    matching.find(
+      (row) =>
+        (row.sponsored_event ?? "").toLowerCase().includes(clubName.toLowerCase()) &&
+        row.sponsor_id
+    ) ??
+    matching.find((row) => row.sponsor_id) ??
+    matching[0];
+
+  let name = DEFAULT_SPONSOR;
+  let logoUrl = sponsorLogoSrc(DEFAULT_SPONSOR, null);
+  let amount = amountPerGoal;
+
+  if (preferred) {
+    if (preferred.sponsor_id) {
+      const { data: sponsor } = await supabase
+        .from("sponsors")
+        .select("name, logo_url")
+        .eq("id", preferred.sponsor_id)
+        .maybeSingle();
+      if (sponsor?.name) {
+        name = sponsor.name;
+        logoUrl = sponsorLogoSrc(sponsor.name, sponsor.logo_url);
+      }
+    }
+  }
+
+  return { name, logoUrl, amountPerGoal: amount, scoreLabel };
 }
 
 /**

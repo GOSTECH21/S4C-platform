@@ -9,6 +9,7 @@ export const SUPPORTER_LOGIN_PATH = "/supporter/login";
 /** The URL fans actually land on after login (matches localhost bookmarks). */
 export const SUPPORTER_CAMPAIGN_PATH = "/supporter/dashboard";
 export const SUPPORTER_PROJECTS_PATH = "/dashboard/supporter/vote";
+export const SUPPORTER_TEAMS_PATH = "/dashboard/supporter/preferences";
 
 export const SUPPORTER_CAMPAIGN_ALIASES = [
   "/supporter/dashboard",

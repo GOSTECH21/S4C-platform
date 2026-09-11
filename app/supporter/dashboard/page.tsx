@@ -1,23 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
-  getMyS4PCampaign,
+  getMyS4PCampaigns,
   getOrCreateSupporter,
   getVotedProjectIds,
   submitCampaignVotes,
   type ClimateProject,
   type S4PCampaign,
 } from "@/app/services/votes.service";
+import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import { summariseImpact } from "@/app/lib/impact";
+import { FAN_LOGIN_PATH, SUPPORTER_TEAMS_PATH } from "@/app/lib/routes";
 
 export default function MyS4PDashboardPage() {
   const [supporterId, setSupporterId] = useState<string | null>(null);
-  const [campaign, setCampaign] = useState<S4PCampaign | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [campaigns, setCampaigns] = useState<S4PCampaign[]>([]);
+  const [teams, setTeams] = useState<TeamOption[]>([]);
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,25 +27,17 @@ export default function MyS4PDashboardPage() {
       try {
         const supporter = await getOrCreateSupporter();
         if (!supporter) {
-          window.location.href = "/fan/login";
+          window.location.href = FAN_LOGIN_PATH;
           return;
         }
         setSupporterId(supporter.id);
-
-        const camp = await getMyS4PCampaign(supporter);
-        setCampaign(camp);
-
-        if (camp) {
-          const voted = await getVotedProjectIds(supporter.id);
-          const voteable = voteableProjects(camp);
-          const preselected = voteable
-            .map((p) => p.id)
-            .filter((id) => voted.has(id));
-          if (preselected.length > 0) {
-            setSelected(new Set(preselected.slice(0, camp.requiredVotes)));
-            setSubmitted(true);
-          }
-        }
+        const [supported, camps] = await Promise.all([
+          getSupportedTeams(supporter),
+          getMyS4PCampaigns(supporter),
+        ]);
+        setTeams(supported);
+        setCampaigns(camps);
+        setVotedIds(await getVotedProjectIds(supporter.id));
       } catch (err) {
         console.error("Failed to load My S4P campaign:", err);
         setError(
@@ -57,8 +51,99 @@ export default function MyS4PDashboardPage() {
     load();
   }, []);
 
-  const required = campaign?.requiredVotes ?? 3;
-  const voteable = campaign ? voteableProjects(campaign) : [];
+  if (loading) {
+    return (
+      <main className="px-8 pb-16 text-white">
+        <p className="text-slate-400">Loading your campaign...</p>
+      </main>
+    );
+  }
+
+  if (teams.length === 0) {
+    return (
+      <main className="px-8 pb-16 text-white">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
+          <h2 className="text-2xl font-bold">Choose the teams you support</h2>
+          <p className="mt-3 text-slate-300">
+            My S4P only shows matches for your teams. Select clubs across
+            football, rugby and other sports so you receive their sponsored
+            climate projects on match day.
+          </p>
+          <Link
+            href={SUPPORTER_TEAMS_PATH}
+            className="mt-6 inline-flex rounded-lg bg-green-500 px-5 py-3 font-bold text-slate-950"
+          >
+            Choose my teams
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (campaigns.length === 0) {
+    return (
+      <main className="px-8 pb-16 text-white">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
+          <h2 className="text-2xl font-bold">No sponsored match right now</h2>
+          <p className="mt-3 text-slate-300">
+            You support {teams.map((team) => team.displayName).join(", ")}.
+            When one of those teams is playing, you will see the five climate
+            projects their sustainability director selected for that match.
+          </p>
+          <Link
+            href={SUPPORTER_TEAMS_PATH}
+            className="mt-6 inline-flex rounded-lg border border-green-500/40 px-5 py-3 font-bold text-green-300"
+          >
+            Update my teams
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <div className="space-y-16 pb-16">
+      {error && (
+        <div className="mx-auto max-w-5xl px-8">
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
+            {error}
+          </div>
+        </div>
+      )}
+      {campaigns.map((campaign) => (
+        <CampaignPanel
+          key={campaign.campaignId ?? campaign.clubId}
+          campaign={campaign}
+          supporterId={supporterId}
+          votedIds={votedIds}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CampaignPanel({
+  campaign,
+  supporterId,
+  votedIds,
+}: {
+  campaign: S4PCampaign;
+  supporterId: string | null;
+  votedIds: Set<string>;
+}) {
+  const required = campaign.requiredVotes;
+  const voteable = voteableProjects(campaign);
+  const [selected, setSelected] = useState<Set<string>>(() => {
+    const preselected = voteable
+      .map((project) => project.id)
+      .filter((id) => votedIds.has(id));
+    return new Set(preselected.slice(0, required));
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(
+    voteable.some((project) => votedIds.has(project.id))
+  );
+  const [error, setError] = useState<string | null>(null);
 
   function toggle(projectId: string) {
     setSubmitted(false);
@@ -75,7 +160,7 @@ export default function MyS4PDashboardPage() {
   }
 
   async function submit() {
-    if (!supporterId || !campaign || selected.size !== required) return;
+    if (!supporterId || selected.size !== required) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -96,34 +181,13 @@ export default function MyS4PDashboardPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <main className="px-8 pb-16 text-white">
-        <p className="text-slate-400">Loading your campaign...</p>
-      </main>
-    );
-  }
-
-  if (!campaign) {
-    return (
-      <main className="px-8 pb-16 text-white">
-        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
-          <h2 className="text-2xl font-bold">No active campaign yet</h2>
-          <p className="mt-3 text-slate-300">
-            Your club hasn&apos;t pushed a match climate campaign to your S4P
-            page yet. Check back on match day.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  const selectedProjects = voteable.filter((p) => selected.has(p.id));
+  const selectedProjects = voteable.filter((project) => selected.has(project.id));
   const impact = summariseImpact(selectedProjects);
   const canSubmit = selected.size === required && !submitting;
+  const s2ps = `£${campaign.amountPerGoal.toLocaleString()}/${campaign.scoreLabel}`;
 
   return (
-    <main className="pb-40 text-white">
+    <main className="pb-8 text-white">
       <div className="mx-auto max-w-5xl px-8">
         <div className="text-center">
           <h1 className="text-3xl font-black md:text-4xl">
@@ -134,12 +198,11 @@ export default function MyS4PDashboardPage() {
             <span className="font-bold text-white">
               {numberWord(required).toUpperCase()}
             </span>{" "}
-            climate projects you want funded if your club scores.
+            climate projects you want funded if {campaign.clubName} scores.
           </p>
 
           <div className="mt-5 inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-sm font-bold text-white">
-            Sponsor Commitment: £{campaign.amountPerGoal.toLocaleString()} per
-            Goal
+            S2PS: {s2ps}
           </div>
         </div>
 
@@ -151,9 +214,8 @@ export default function MyS4PDashboardPage() {
 
         {submitted && !error && (
           <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
-            ✓ Your vote has been submitted. If {campaign.clubName} scores, £
-            {campaign.amountPerGoal.toLocaleString()} per goal will be split
-            across your {required} chosen projects.
+            ✓ Your vote has been submitted. If {campaign.clubName} scores,{" "}
+            {s2ps} will be split across your {required} chosen projects.
           </div>
         )}
 
@@ -162,6 +224,8 @@ export default function MyS4PDashboardPage() {
             <ProjectCard
               project={campaign.featuredProject}
               featured
+              sponsorName={campaign.sponsorName}
+              sponsorLogoUrl={campaign.sponsorLogoUrl}
               isSelected={selected.has(campaign.featuredProject.id)}
               disabled={
                 !selected.has(campaign.featuredProject.id) &&
@@ -183,6 +247,8 @@ export default function MyS4PDashboardPage() {
             <ProjectCard
               key={project.id}
               project={project}
+              sponsorName={campaign.sponsorName}
+              sponsorLogoUrl={campaign.sponsorLogoUrl}
               isSelected={selected.has(project.id)}
               disabled={!selected.has(project.id) && selected.size >= required}
               onToggle={() => toggle(project.id)}
@@ -209,10 +275,8 @@ export default function MyS4PDashboardPage() {
             </div>
           </div>
         )}
-      </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-8 py-5 sm:flex-row sm:justify-between">
+        <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950/80 px-6 py-5 sm:flex-row sm:justify-between">
           <div>
             <p className="font-bold">Your Vote</p>
             <p className="text-sm text-slate-400">
@@ -221,15 +285,10 @@ export default function MyS4PDashboardPage() {
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-[0.65rem] uppercase tracking-[0.25em] text-slate-500">
-                Presented by
-              </p>
-              <p className="text-lg font-black text-amber-300">
-                {campaign.sponsorName}
-              </p>
-            </div>
-
+            <SponsorMark
+              name={campaign.sponsorName}
+              logoUrl={campaign.sponsorLogoUrl}
+            />
             <button
               onClick={submit}
               disabled={!canSubmit}
@@ -261,12 +320,16 @@ function voteableProjects(campaign: S4PCampaign): ClimateProject[] {
 function ProjectCard({
   project,
   featured = false,
+  sponsorName,
+  sponsorLogoUrl,
   isSelected,
   disabled,
   onToggle,
 }: {
   project: ClimateProject;
   featured?: boolean;
+  sponsorName: string;
+  sponsorLogoUrl: string | null;
   isSelected: boolean;
   disabled: boolean;
   onToggle: () => void;
@@ -306,6 +369,8 @@ function ProjectCard({
         </div>
       )}
 
+      <SponsorMark name={sponsorName} logoUrl={sponsorLogoUrl} className="mt-5" />
+
       <button
         onClick={onToggle}
         disabled={disabled}
@@ -323,6 +388,34 @@ function ProjectCard({
       >
         {isSelected ? "✓ Selected" : "Select Project"}
       </button>
+    </div>
+  );
+}
+
+function SponsorMark({
+  name,
+  logoUrl,
+  className = "",
+}: {
+  name: string;
+  logoUrl: string | null;
+  className?: string;
+}) {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      {logoUrl ? (
+        <img src={logoUrl} alt="" className="h-8 w-auto rounded-sm bg-white/10 p-1" />
+      ) : (
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-amber-300 text-xs font-black text-slate-950">
+          {name.slice(0, 1)}
+        </span>
+      )}
+      <div className="text-left">
+        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-slate-500">
+          Sponsored by
+        </p>
+        <p className="text-sm font-bold text-amber-300">{name}</p>
+      </div>
     </div>
   );
 }

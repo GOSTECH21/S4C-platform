@@ -7,6 +7,7 @@ import {
   FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_PATH,
   SUPPORTER_PROJECTS_PATH,
+  SUPPORTER_TEAMS_PATH,
   isMyS4PPath,
 } from "@/app/lib/routes";
 
@@ -17,6 +18,7 @@ const LINKS = [
     label: "Climate Projects",
     match: "projects" as const,
   },
+  { href: SUPPORTER_TEAMS_PATH, label: "My Teams", match: "teams" as const },
 ];
 
 export default function FanNav() {
@@ -44,8 +46,10 @@ export default function FanNav() {
           const active =
             link.match === "campaign"
               ? isMyS4PPath(pathname)
-              : pathname === SUPPORTER_PROJECTS_PATH ||
-                pathname === "/supporter/dashboard/vote";
+              : link.match === "teams"
+                ? pathname === SUPPORTER_TEAMS_PATH
+                : pathname === SUPPORTER_PROJECTS_PATH ||
+                  pathname === "/supporter/dashboard/vote";
 
           return (
             <Link
