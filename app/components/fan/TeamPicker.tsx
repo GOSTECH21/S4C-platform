@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { TeamGroup, TeamOption } from "@/app/services/teams.service";
+import { CURRENT_SEASON } from "@/app/lib/current-season";
 
 const DEFAULT_OPEN = new Set([
   "Premier League",
@@ -83,7 +84,7 @@ export default function TeamPicker({
                   <summary className="cursor-pointer list-none font-semibold text-white">
                     {competition.name}
                     <span className="ml-2 text-sm font-normal text-slate-400">
-                      {competition.teams.length} teams
+                      {CURRENT_SEASON} · {competition.teams.length} teams
                     </span>
                   </summary>
                   <div className="mt-4 grid gap-3 md:grid-cols-3">

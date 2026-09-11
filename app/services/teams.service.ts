@@ -1,4 +1,8 @@
-import { supabase } from "../lib/supabase";
+import { ensureCurrentSeasonRoster } from "./season-roster.service";
+import {
+  CURRENT_SEASON_LEAGUES,
+  clubInCurrentSeasonLeague,
+} from "../lib/current-season";
 
 type SupporterRef = {
   id: string;
@@ -86,6 +90,7 @@ export function groupTeams(teams: TeamOption[]): TeamGroup[] {
   }));
 }
 export async function getTeamCatalog(): Promise<TeamGroup[]> {
+  await ensureCurrentSeasonRoster();
   const { data, error } = await supabase
     .from("clubs")
     .select(
@@ -106,6 +111,12 @@ export async function getTeamCatalog(): Promise<TeamGroup[]> {
     ).competitions;
     const sport = competition?.sports?.name ?? "Other";
     const competitionName = competition?.name ?? "Other";
+    if (
+      CURRENT_SEASON_LEAGUES[competitionName] &&
+      !clubInCurrentSeasonLeague(competitionName, row.name as string)
+    ) {
+      continue;
+    }
     const team: TeamOption = {
       id: row.id as string,
       name: row.name as string,

@@ -8,6 +8,7 @@ import {
   type TeamRef,
   type UpcomingMatch,
 } from "../lib/upcoming-matches";
+import { clubInCurrentSeasonLeague } from "../lib/current-season";
 
 const MONTHS: Record<string, number> = {
   january: 0,
@@ -70,6 +71,10 @@ const BBC_FOOTBALL_SLUGS: Record<string, string> = {
   "dundee united": "dundee-united",
   "st mirren": "st-mirren",
   motherwell: "motherwell",
+  "coventry city": "coventry-city",
+  "hull city": "hull-city",
+  "ipswich town": "ipswich-town",
+  falkirk: "falkirk",
   "st johnstone": "st-johnstone",
   "ross county": "ross-county",
 };
@@ -541,29 +546,38 @@ async function fetchS4pFixtures(
 
   if (error || !data) return [];
 
-  return data.map((row) => {
-    const home = (row as unknown as { home_club: { name: string } | null })
-      .home_club?.name;
-    const away = (row as unknown as { away_club: { name: string } | null })
-      .away_club?.name;
-    const competition = (
-      row as unknown as { competitions: { name: string } | null }
-    ).competitions?.name;
-    return {
-      id: `s4p-${row.id}`,
-      date: row.fixture_date as string,
-      kickoff: kickoffHhMm((row.kickoff_time as string | null) ?? null),
-      homeName: home ?? "Home",
-      awayName: away ?? "Away",
-      venue: (row.venue as string | null) ?? null,
-      competition: competition ?? null,
-      source: "s4p" as const,
-      sourceUrl:
-        fixturePageFor(team.displayName)?.url ??
-        fixturePageFor(team.name)?.url ??
-        null,
-    };
-  });
+  return data
+    .map((row) => {
+      const home = (row as unknown as { home_club: { name: string } | null })
+        .home_club?.name;
+      const away = (row as unknown as { away_club: { name: string } | null })
+        .away_club?.name;
+      const competition = (
+        row as unknown as { competitions: { name: string } | null }
+      ).competitions?.name;
+      return {
+        id: `s4p-${row.id}`,
+        date: row.fixture_date as string,
+        kickoff: kickoffHhMm((row.kickoff_time as string | null) ?? null),
+        homeName: home ?? "Home",
+        awayName: away ?? "Away",
+        venue: (row.venue as string | null) ?? null,
+        competition: competition ?? null,
+        source: "s4p" as const,
+        sourceUrl:
+          fixturePageFor(team.displayName)?.url ??
+          fixturePageFor(team.name)?.url ??
+          null,
+      };
+    })
+    .filter((match) => {
+      if (!match.competition) return true;
+      if (isCupCompetition(match.competition)) return true;
+      return (
+        clubInCurrentSeasonLeague(match.competition, match.homeName) &&
+        clubInCurrentSeasonLeague(match.competition, match.awayName)
+      );
+    });
 }
 
 export async function getUpcomingFixturesForTeams(

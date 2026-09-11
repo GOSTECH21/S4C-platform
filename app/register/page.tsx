@@ -11,6 +11,7 @@ import {
   type TeamOption,
 } from "@/app/services/teams.service";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import { CURRENT_SEASON } from "@/app/lib/current-season";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -170,9 +171,10 @@ export default function RegisterPage() {
 
           <h2 className="mt-10 text-2xl font-bold">Teams you support</h2>
           <p className="mt-2 text-slate-300">
-            Pick from different sports and leagues — for example Arsenal
-            (Premier League), Hearts of Midlothian FC (Scottish Premiership),
-            and Scotland (Six Nations Rugby).
+            Pick from the current {CURRENT_SEASON} season — not last season’s
+            relegated clubs. For example Arsenal (Premier League), Hearts of
+            Midlothian FC (Scottish Premiership), and Scotland (Six Nations
+            Rugby).
           </p>
 
           <div className="mt-6">

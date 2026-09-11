@@ -20,6 +20,7 @@ import {
   matchSortKey,
   type UpcomingMatch,
 } from "@/app/lib/upcoming-matches";
+import { CURRENT_SEASON } from "@/app/lib/current-season";
 
 async function loadFixtures(teams: TeamOption[]) {
   const response = await fetch("/api/fan/next-fixtures", {
@@ -164,7 +165,7 @@ export default function SupporterPreferencesPage() {
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
                 ? "Pick teams across sports and leagues, then save. My S4P only shows matches for the teams you support."
-                : "Showing only the clubs you selected — not the full league. Click a league to see your teams, next matches, and cup ties."}
+                : `Showing only the clubs you selected from the current ${CURRENT_SEASON} season. Click a league to see your teams, next matches, and cup ties.`}}
             </p>
           </div>
 
