@@ -59,12 +59,43 @@ async function splitFeaturedProjects(
   featuredProject: ClimateProject | null;
   clubProjects: ClimateProject[];
 }> {
-  const fromList = projects.find(isFeaturedClimateProject) ?? null;
-  const featuredProject = fromList ?? (await getFeaturedClimateProject());
+  // Featured is platform-level (Global Schools Solar) and sits above the
+  // club sustainability director's five match projects — never as one of them.
+  const featuredProject =
+    (await getFeaturedClimateProject()) ??
+    projects.find(isFeaturedClimateProject) ??
+    null;
   const clubProjects = projects
-    .filter((project) => project.id !== featuredProject?.id)
+    .filter(
+      (project) =>
+        project.id !== featuredProject?.id &&
+        !isFeaturedClimateProject(project)
+    )
     .slice(0, 5);
   return { featuredProject, clubProjects };
+}
+
+async function resolveOpenCampaignId(
+  clubId: string | null
+): Promise<string | null> {
+  if (clubId) {
+    const forClub = await supabase
+      .from("match_campaigns")
+      .select("id")
+      .eq("status", "open")
+      .eq("club_id", clubId)
+      .maybeSingle();
+    if (forClub.data?.id) return forClub.data.id as string;
+  }
+
+  const anyOpen = await supabase
+    .from("match_campaigns")
+    .select("id")
+    .eq("status", "open")
+    .limit(1)
+    .maybeSingle();
+
+  return (anyOpen.data?.id as string | undefined) ?? null;
 }
 
 /**
@@ -193,6 +224,7 @@ export type S4PCampaign = {
   fixtureId: string | null;
   featuredProject: ClimateProject | null;
   projects: ClimateProject[];
+  campaignId: string | null;
 };
 
 const DEFAULT_SPONSOR = "Budweiser";
@@ -301,6 +333,7 @@ async function campaignFromClubPortfolio(
   }
 
   const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
+  const campaignId = await resolveOpenCampaignId(clubId);
 
   return {
     clubId: club.id,
@@ -312,6 +345,7 @@ async function campaignFromClubPortfolio(
     fixtureId,
     featuredProject,
     projects: clubProjects,
+    campaignId,
   };
 }
 
@@ -381,6 +415,7 @@ async function campaignFromOpenMatch(
     fixtureId: null,
     featuredProject,
     projects: clubProjects,
+    campaignId: openCampaign.id,
   };
 }
 
@@ -391,7 +426,8 @@ async function campaignFromOpenMatch(
 export async function submitCampaignVotes(
   supporterId: string,
   selectedProjectIds: string[],
-  campaignProjectIds: string[]
+  campaignProjectIds: string[],
+  campaignId?: string | null
 ) {
   if (campaignProjectIds.length > 0) {
     const { error: delError } = await supabase
@@ -402,9 +438,13 @@ export async function submitCampaignVotes(
     if (delError) throw delError;
   }
 
+  const resolvedCampaignId =
+    campaignId ?? (await resolveOpenCampaignId(null));
+
   const rows = selectedProjectIds.map((projectId) => ({
     supporter_id: supporterId,
     climate_project_id: projectId,
+    ...(resolvedCampaignId ? { campaign_id: resolvedCampaignId } : {}),
   }));
 
   const { error } = await supabase.from("supporter_votes").insert(rows);

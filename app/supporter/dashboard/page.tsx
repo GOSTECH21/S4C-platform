@@ -82,7 +82,8 @@ export default function MyS4PDashboardPage() {
       await submitCampaignVotes(
         supporterId,
         [...selected],
-        voteable.map((project) => project.id)
+        voteable.map((project) => project.id),
+        campaign.campaignId
       );
       setSubmitted(true);
     } catch (err) {
@@ -171,7 +172,13 @@ export default function MyS4PDashboardPage() {
           </div>
         )}
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {campaign.projects.length > 0 && (
+          <h2 className="mt-10 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+            Club climate projects
+          </h2>
+        )}
+
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
           {campaign.projects.map((project) => (
             <ProjectCard
               key={project.id}
