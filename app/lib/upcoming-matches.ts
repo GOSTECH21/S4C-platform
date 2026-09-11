@@ -60,6 +60,27 @@ export function namesMatch(a: string, b: string): boolean {
   return left.includes(right) || right.includes(left);
 }
 
+export function namesLooselyMatch(a: string, b: string): boolean {
+  if (namesMatch(a, b)) return true;
+  const skip = new Set([
+    "united",
+    "city",
+    "town",
+    "real",
+    "sporting",
+    "athletic",
+    "club",
+    "hotspur",
+  ]);
+  const tokens = (value: string) =>
+    normalizeClubName(value)
+      .split(" ")
+      .filter((token) => token.length >= 4 && !skip.has(token));
+  const left = tokens(a);
+  const right = tokens(b);
+  return left.some((token) => right.includes(token));
+}
+
 export function formatKickoff(kickoff: string | null): string {
   if (!kickoff) return "TBC";
   const [hours, minutes] = kickoff.split(":");

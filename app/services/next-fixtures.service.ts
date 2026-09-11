@@ -2,6 +2,7 @@ import { supabase } from "../lib/supabase";
 import {
   isCupCompetition,
   matchSortKey,
+  namesLooselyMatch,
   namesMatch,
   normalizeClubName,
   type TeamRef,
@@ -449,25 +450,43 @@ function sourceRank(source: UpcomingMatch["source"]): number {
   return 2;
 }
 
+function sameFixture(a: UpcomingMatch, b: UpcomingMatch): boolean {
+  if (a.date !== b.date) return false;
+  return (
+    (namesLooselyMatch(a.homeName, b.homeName) &&
+      namesLooselyMatch(a.awayName, b.awayName)) ||
+    (namesLooselyMatch(a.homeName, b.awayName) &&
+      namesLooselyMatch(a.awayName, b.homeName))
+  );
+}
+
 function mergeByPreferredSource(groups: UpcomingMatch[][]): UpcomingMatch[] {
-  const byKey = new Map<string, UpcomingMatch>();
+  const merged: UpcomingMatch[] = [];
   for (const group of groups) {
     for (const match of group) {
-      const key = matchKey(match);
-      const existing = byKey.get(key);
-      if (!existing || sourceRank(match.source) < sourceRank(existing.source)) {
-        byKey.set(key, {
+      const index = merged.findIndex((existing) => sameFixture(existing, match));
+      if (index < 0) {
+        merged.push(match);
+        continue;
+      }
+      const existing = merged[index];
+      if (sourceRank(match.source) < sourceRank(existing.source)) {
+        merged[index] = {
           ...match,
-          venue: match.venue || existing?.venue || null,
-        });
-      } else if (existing && !existing.venue && match.venue) {
-        byKey.set(key, { ...existing, venue: match.venue });
+          venue: match.venue || existing.venue,
+          competition: match.competition || existing.competition,
+        };
+      } else if (!existing.venue && match.venue) {
+        merged[index] = { ...existing, venue: match.venue };
+      } else if (
+        !isCupCompetition(existing.competition) &&
+        isCupCompetition(match.competition)
+      ) {
+        merged[index] = { ...existing, competition: match.competition };
       }
     }
   }
-  return [...byKey.values()].sort((a, b) =>
-    matchSortKey(a).localeCompare(matchSortKey(b))
-  );
+  return merged.sort((a, b) => matchSortKey(a).localeCompare(matchSortKey(b)));
 }
 
 function selectDisplayedFixtures(matches: UpcomingMatch[]): UpcomingMatch[] {
