@@ -18,7 +18,7 @@ import {
   campaignHeadline,
   formatMatchHeadline,
   formatMoney,
-  formatSponsorshipRate,
+  formatSponsorshipBadge,
   formatVoteCount,
   voteProgress,
 } from "@/app/lib/sponsorship-auction";
@@ -268,7 +268,6 @@ function CampaignPanel({
               project={campaign.featuredProject}
               featured
               sponsorName={campaign.sponsorName}
-              sponsorLogoUrl={campaign.sponsorLogoUrl}
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(campaign.featuredProject.id)}
               disabled={
@@ -292,7 +291,6 @@ function CampaignPanel({
               key={project.id}
               project={project}
               sponsorName={campaign.sponsorName}
-              sponsorLogoUrl={campaign.sponsorLogoUrl}
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(project.id)}
               disabled={!selected.has(project.id) && selected.size >= required}
@@ -360,7 +358,6 @@ function ProjectCard({
   project,
   featured = false,
   sponsorName,
-  sponsorLogoUrl,
   scoreLabel,
   isSelected,
   disabled,
@@ -369,7 +366,6 @@ function ProjectCard({
   project: CampaignProject;
   featured?: boolean;
   sponsorName: string;
-  sponsorLogoUrl: string | null;
   scoreLabel: string;
   isSelected: boolean;
   disabled: boolean;
@@ -422,17 +418,22 @@ function ProjectCard({
           }`}
         >
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em]">
-            Sponsorship / {scoreLabel}
+            Sponsorship:
           </p>
           <p
             className={`font-black leading-tight ${
-              featured ? "text-2xl" : "text-xl"
+              featured ? "text-2xl" : "text-lg"
             }`}
           >
-            {formatSponsorshipRate(project.currentAmount, scoreLabel)}
+            {formatSponsorshipBadge({
+              amount: project.currentAmount,
+              scoreLabel,
+              openingAmount: project.openingAmount,
+              maxAmount: project.maxAmount,
+            })}
           </p>
         </div>
-        <SponsorMark name={sponsorName} logoUrl={sponsorLogoUrl} />
+        <SponsorMark name={sponsorName} />
       </div>
 
       <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-3">
@@ -480,28 +481,17 @@ function ProjectCard({
 
 function SponsorMark({
   name,
-  logoUrl,
   className = "",
 }: {
   name: string;
-  logoUrl: string | null;
   className?: string;
 }) {
   return (
-    <div className={`flex min-w-0 items-center gap-3 ${className}`}>
-      {logoUrl ? (
-        <img src={logoUrl} alt="" className="h-8 w-auto rounded-sm bg-white/10 p-1" />
-      ) : (
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-amber-300 text-xs font-black text-slate-950">
-          {name.slice(0, 1)}
-        </span>
-      )}
-      <div className="text-left">
-        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-slate-500">
-          Sponsored by
-        </p>
-        <p className="text-sm font-bold text-amber-300">{name}</p>
-      </div>
+    <div className={`min-w-0 text-left ${className}`}>
+      <p className="text-[0.65rem] uppercase tracking-[0.25em] text-slate-500">
+        Sponsored by
+      </p>
+      <p className="text-sm font-bold text-amber-300">{name}</p>
     </div>
   );
 }

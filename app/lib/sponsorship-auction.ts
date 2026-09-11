@@ -81,7 +81,24 @@ export function formatSponsorshipRate(
   amount: number,
   scoreLabel: string
 ): string {
-  return `${formatMoney(amount)} / ${scoreLabel}`;
+  return `${formatMoney(amount)}/${scoreLabel}`;
+}
+
+export function formatSponsorshipBadge({
+  amount,
+  scoreLabel,
+  openingAmount = OPENING_SPONSORSHIP,
+  maxAmount = DEFAULT_MAX_SPONSORSHIP,
+}: {
+  amount: number;
+  scoreLabel: string;
+  openingAmount?: number;
+  maxAmount?: number;
+}): string {
+  const rate = formatSponsorshipRate(amount, scoreLabel);
+  if (amount <= openingAmount) return `${rate} (Min)`;
+  if (amount >= maxAmount) return `${rate} (Max)`;
+  return rate;
 }
 
 export function formatVoteCount(votes: number): string {

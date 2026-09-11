@@ -2,6 +2,7 @@ import {
   campaignHeadline,
   currentSponsorshipAmount,
   formatMatchHeadline,
+  formatSponsorshipBadge,
   formatSponsorshipRate,
   OPENING_SPONSORSHIP,
   DEFAULT_MAX_SPONSORSHIP,
@@ -53,8 +54,18 @@ assert(
   "Votes above the target stay capped at the max bid"
 );
 assert(
-  formatSponsorshipRate(1000, "Goal") === "£1,000 / Goal",
+  formatSponsorshipRate(1000, "Goal") === "£1,000/Goal",
   "Live amount is labelled per scoring event"
+);
+assert(
+  formatSponsorshipBadge({ amount: 1000, scoreLabel: "Goal" }) ===
+    "£1,000/Goal (Min)",
+  "Opening amount is labelled as the minimum"
+);
+assert(
+  formatSponsorshipBadge({ amount: 10000, scoreLabel: "Goal" }) ===
+    "£10,000/Goal (Max)",
+  "Peak amount is labelled as the maximum"
 );
 
 if (failures.length > 0) {
