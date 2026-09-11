@@ -5,6 +5,7 @@ import { supabase } from "../../../lib/supabase";
 import FanNav from "../components/FanNav";
 import TeamPicker from "@/app/components/fan/TeamPicker";
 import MyTeamsList from "@/app/components/fan/MyTeamsList";
+import UpcomingMatches from "@/app/components/fan/UpcomingMatches";
 import {
   getSupportedTeams,
   getTeamCatalog,
@@ -14,12 +15,40 @@ import {
 } from "@/app/services/teams.service";
 import { getOrCreateSupporter } from "@/app/services/votes.service";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
+import {
+  matchSortKey,
+  type UpcomingMatch,
+} from "@/app/lib/upcoming-matches";
+
+async function loadFixtures(teams: TeamOption[]) {
+  const response = await fetch("/api/fan/next-fixtures", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      teams: teams.map((team) => ({
+        id: team.id,
+        name: team.name,
+        displayName: team.displayName,
+        sport: team.sport,
+      })),
+    }),
+  });
+  if (!response.ok) {
+    throw new Error("Could not load upcoming matches.");
+  }
+  const payload = (await response.json()) as {
+    fixtures?: Record<string, UpcomingMatch[]>;
+  };
+  return payload.fixtures ?? {};
+}
 
 export default function SupporterPreferencesPage() {
   const [catalog, setCatalog] = useState<TeamGroup[]>([]);
   const [selected, setSelected] = useState<TeamOption[]>([]);
+  const [fixtures, setFixtures] = useState<Record<string, UpcomingMatch[]>>({});
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingFixtures, setLoadingFixtures] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +67,20 @@ export default function SupporterPreferencesPage() {
         setCatalog(groups);
         setSelected(teams);
         setEditing(teams.length === 0);
+        if (teams.length > 0) {
+          setLoadingFixtures(true);
+          try {
+            setFixtures(await loadFixtures(teams));
+          } catch (err) {
+            setError(
+              err instanceof Error
+                ? err.message
+                : "Could not load upcoming matches."
+            );
+          } finally {
+            setLoadingFixtures(false);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load teams.");
       } finally {
@@ -67,11 +110,30 @@ export default function SupporterPreferencesPage() {
       await saveSupportedTeams(user.id, supporter.id, selected);
       setEditing(false);
       setBusy(false);
+      setLoadingFixtures(true);
+      try {
+        setFixtures(await loadFixtures(selected));
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Could not load upcoming matches."
+        );
+      } finally {
+        setLoadingFixtures(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your teams.");
       setBusy(false);
     }
   }
+
+  const upcoming = selected
+    .flatMap((team) => {
+      const next = fixtures[team.id]?.[0];
+      return next
+        ? [{ clubId: team.id, clubName: team.displayName, match: next }]
+        : [];
+    })
+    .sort((a, b) => matchSortKey(a.match).localeCompare(matchSortKey(b.match)));
 
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -89,7 +151,7 @@ export default function SupporterPreferencesPage() {
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
                 ? "Pick teams across sports and leagues, then save. My S4P only shows matches for the teams you support."
-                : "Showing only the clubs you selected — not the full league. Click a league to see your teams."}
+                : "Showing only the clubs you selected — not the full league. Click a league to see your teams and their next matches."}
             </p>
           </div>
 
@@ -113,7 +175,7 @@ export default function SupporterPreferencesPage() {
         {loading ? (
           <p className="mt-8 text-slate-400">Loading teams...</p>
         ) : (
-          <div className="mt-8">
+          <div className="mt-8 space-y-8">
             {editing ? (
               <TeamPicker
                 catalog={catalog}
@@ -121,7 +183,10 @@ export default function SupporterPreferencesPage() {
                 onChange={setSelected}
               />
             ) : (
-              <MyTeamsList teams={selected} />
+              <>
+                <UpcomingMatches items={upcoming} loading={loadingFixtures} />
+                <MyTeamsList teams={selected} fixtures={fixtures} />
+              </>
             )}
           </div>
         )}

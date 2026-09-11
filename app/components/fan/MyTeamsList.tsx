@@ -2,10 +2,21 @@
 
 import { useState } from "react";
 import { groupTeams, type TeamOption } from "@/app/services/teams.service";
+import { MatchLines } from "@/app/components/fan/UpcomingMatches";
+import type { UpcomingMatch } from "@/app/lib/upcoming-matches";
 
-export default function MyTeamsList({ teams }: { teams: TeamOption[] }) {
-  const [openLeague, setOpenLeague] = useState<string | null>(null);
+export default function MyTeamsList({
+  teams,
+  fixtures,
+}: {
+  teams: TeamOption[];
+  fixtures: Record<string, UpcomingMatch[]>;
+}) {
   const groups = groupTeams(teams);
+  const firstKey = groups[0]
+    ? `${groups[0].sport}:${groups[0].competitions[0]?.name}`
+    : null;
+  const [openLeague, setOpenLeague] = useState<string | null>(firstKey);
 
   if (teams.length === 0) {
     return (
@@ -44,15 +55,28 @@ export default function MyTeamsList({ teams }: { teams: TeamOption[] }) {
                     </span>
                   </button>
                   {expanded && (
-                    <div className="grid gap-3 px-4 pb-4 md:grid-cols-3">
-                      {competition.teams.map((team) => (
-                        <div
-                          key={team.id}
-                          className="rounded-xl border border-green-400 bg-green-400 p-4 font-semibold text-slate-950"
-                        >
-                          ✓ {team.displayName}
-                        </div>
-                      ))}
+                    <div className="grid gap-3 px-4 pb-4 md:grid-cols-2">
+                      {competition.teams.map((team) => {
+                        const matches = fixtures[team.id] ?? [];
+                        return (
+                          <div
+                            key={team.id}
+                            className="rounded-xl border border-green-400 bg-green-400 p-4 text-slate-950"
+                          >
+                            <p className="font-semibold">✓ {team.displayName}</p>
+                            <div className="mt-3 border-t border-green-700/30 pt-3">
+                              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-800">
+                                Next matches
+                              </p>
+                              <MatchLines
+                                matches={matches.slice(0, 3)}
+                                clubName={team.displayName}
+                                compact
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
