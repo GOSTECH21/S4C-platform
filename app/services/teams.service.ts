@@ -18,7 +18,7 @@ export type TeamGroup = {
   competitions: { name: string; teams: TeamOption[] }[];
 };
 
-const SPORT_ORDER = ["Football", "Rugby", "Cricket", "NFL", "NHL"];
+export const SPORT_ORDER = ["Football", "Rugby", "Cricket", "NFL", "NHL"];
 
 const NAME_ALIASES: Record<string, string[]> = {
   hearts: [
@@ -59,7 +59,32 @@ export function sponsorLogoSrc(
   return null;
 }
 
-export async function getTeamCatalog(): Promise<TeamGroup[]> {
+export function groupTeams(teams: TeamOption[]): TeamGroup[] {
+  const grouped = new Map<string, Map<string, TeamOption[]>>();
+
+  for (const team of teams) {
+    if (!grouped.has(team.sport)) grouped.set(team.sport, new Map());
+    const byComp = grouped.get(team.sport)!;
+    if (!byComp.has(team.competition)) byComp.set(team.competition, []);
+    byComp.get(team.competition)!.push(team);
+  }
+
+  const sports = [...grouped.keys()].sort((a, b) => {
+    const ai = SPORT_ORDER.indexOf(a);
+    const bi = SPORT_ORDER.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi) || a.localeCompare(b);
+  });
+
+  return sports.map((sport) => ({
+    sport,
+    competitions: [...grouped.get(sport)!.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, list]) => ({
+        name,
+        teams: list.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+      })),
+  }));
+}
   const { data, error } = await supabase
     .from("clubs")
     .select(
