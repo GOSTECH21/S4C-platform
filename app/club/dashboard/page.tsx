@@ -1,157 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import {
+  loadCampaignProjectLists,
+  loadClubSession,
+  readStoredMatchDay,
+  findOpenClubCampaign,
+  type ClubAccount,
+  type ClubProfile,
+} from "@/app/services/club-match-day.service";
+import type { ClimateProject } from "@/app/services/votes.service";
+import { ciltPositionLabel, premierLeagueCilt } from "@/app/lib/cilt";
+import {
+  MATCH_DAY_LEAD_HOURS,
+  MATCH_DAY_PROJECT_COUNT,
+} from "@/app/lib/partner-projects";
+import { formatMoney } from "@/app/lib/sponsorship-auction";
+import {
+  CLUB_LOGIN_PATH,
+  CLUB_SELECT_PROJECTS_PATH,
+} from "@/app/lib/routes";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
-  const [portfolioProjects, setPortfolioProjects] = useState<any[]>([]);
-const [loading, setLoading] = useState(true);
-const [club, setClub] = useState<any>(null);
-const [account, setAccount] = useState<any>(null);
-const [projects, setProjects] = useState<any[]>([]);
-const [featuredProjects, setFeaturedProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [club, setClub] = useState<ClubProfile | null>(null);
+  const [account, setAccount] = useState<ClubAccount | null>(null);
+  const [voted, setVoted] = useState<ClimateProject[]>([]);
+  const [funded, setFunded] = useState<ClimateProject[]>([]);
+  const [selected, setSelected] = useState<ClimateProject[]>([]);
+  const [minAmount, setMinAmount] = useState<number | null>(null);
 
-async function loadPortfolio(clubId: string) {
-  const { data, error } = await supabase
-    .from("club_match_portfolio")
-    .select(
-      `
-      id,
-      climate_projects (
-        id,
-        name,
-        description
-      )
-    `
-    )
-    .eq("club_id", clubId);
+  useEffect(() => {
+    async function load() {
+      const session = await loadClubSession();
+      if (!session) {
+        router.push(CLUB_LOGIN_PATH);
+        return;
+      }
+      setAccount(session.account);
+      setClub(session.club);
 
-  if (!error) {
-    setPortfolioProjects(data || []);
-  }
-}
-function isProjectSelected(projectId: string) {
-  return portfolioProjects.some(
-    (item: any) => item.project_id === projectId
+      const stored = readStoredMatchDay(session.club.id);
+      if (stored) setMinAmount(stored.minAmount);
+
+      const campaign = await findOpenClubCampaign(session.club.id, session.club.name);
+
+      const lists = await loadCampaignProjectLists(campaign?.id ?? stored?.campaignId ?? null);
+      setVoted(lists.voted);
+      setFunded(lists.funded);
+      setSelected(lists.selected);
+      setLoading(false);
+    }
+
+    load();
+  }, [router]);
+
+  const extraTonnes = useMemo(
+    () => funded.reduce((sum, project) => sum + (Number(project.estimated_co2) || 0), 0),
+    [funded]
   );
-}
-async function addProjectToPortfolio(projectId: string) {
-  if (!account) return;
-
-  if (isProjectSelected(projectId)) {
-    alert("This project is already in your Match Day Portfolio.");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("club_match_portfolio")
-    .insert({
-      club_id: account.club_id,
-      project_id: projectId,
-      status: "selected",
-    });
-
-  if (error) {
-    console.error(error);
-    alert("Project could not be added.");
-    return;
-  }
-
-  await loadPortfolio(account.club_id);
-
-  alert("✅ Project added to Match Day Portfolio");
-}
-
-async function removeProjectFromPortfolio(portfolioId: string) {
-  const { error } = await supabase
-    .from("club_match_portfolio")
-    .delete()
-    .eq("id", portfolioId);
-
-  if (error) {
-    console.error(error);
-    alert("Couldn't remove project.");
-    return;
-  }
-
-  await loadPortfolio(account.club_id);
-}
-
-   useEffect(() => {
-  loadDashboard();
-}, []);
-
-useEffect(() => {
-  if (account?.club_id) {
-    loadPortfolio(account.club_id);
-  }
-}, [account]);
-
-  async function loadDashboard() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/club/login");
-      return;
-    }
-
-    const { data: clubAccount, error: accountError } = await supabase
-      .from("club_accounts")
-      .select("*")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    if (accountError || !clubAccount) {
-      alert("Club account not found.");
-      return;
-    }
-
-    const { data: clubData, error: clubError } = await supabase
-      .from("clubs")
-      .select("*")
-      .eq("id", clubAccount.club_id)
-      .single();
-
-    if (clubError || !clubData) {
-      alert("Club not found.");
-      return;
-    }
-
-    setAccount(clubAccount);
-    setClub(clubData);
-    setLoading(false);
-    await loadPortfolio(clubAccount.club_id);
-    const { data: projectData, error: projectError } = await supabase
-  .from("climate_projects")
-  .select("*")
-  .eq("club_id", clubAccount.club_id)
-  .order("created_at");
-
-if (!projectError && projectData) {
-  setProjects(projectData);
-}
-const { data: featured } = await supabase
-  .from("climate_projects")
-  .select("*")
-  .eq("featured", true)
-  .eq("status", "active")
-  .limit(1);
-
-setFeaturedProjects(featured || []);
-  }
+  const cilt = club ? premierLeagueCilt(club.name, extraTonnes) : [];
+  const clubRow = cilt.find((row) => row.isClub);
 
   async function logout() {
     await supabase.auth.signOut();
-    router.push("/club/login");
+    router.push(CLUB_LOGIN_PATH);
   }
 
-  if (loading) {
+  if (loading || !club || !account) {
     return (
-      <main className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
         Loading Dashboard...
       </main>
     );
@@ -159,228 +80,203 @@ setFeaturedProjects(featured || []);
 
   return (
     <main className="min-h-screen bg-slate-950 p-10 text-white">
-
       <div className="mx-auto max-w-7xl">
-
         <div className="mb-10 flex items-center justify-between">
-
           <div>
-            <h1 className="text-4xl font-black">
-              {club.name}
-            </h1>
-
+            <h1 className="text-4xl font-black">{club.name}</h1>
             <p className="mt-2 text-slate-400">
               Welcome to your Score-4-Our-Planet Club Dashboard
             </p>
           </div>
-
           <button
             onClick={logout}
             className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
           >
             Logout
           </button>
-
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-          <DashboardCard
-            title="Status"
-            value={account.status}
-          />
-
-          <DashboardCard
-            title="Supporters"
-            value={account.supporter_base}
-          />
-
-          <DashboardCard
-            title="Attendance"
-            value={account.average_attendance}
-          />
-
-          <DashboardCard
-            title="Country"
-            value={club.country}
-          />
-
+          <DashboardCard title="Status" value={account.status} />
+          <DashboardCard title="Supporters" value={account.supporter_base} />
+          <DashboardCard title="Attendance" value={account.average_attendance} />
+          <DashboardCard title="Country" value={club.country} />
         </div>
 
         <div className="mt-10 rounded-2xl bg-slate-900 p-8">
-
-          <h2 className="mb-6 text-2xl font-bold">
-            Club Representative
-          </h2>
-
+          <h2 className="mb-6 text-2xl font-bold">Club Representative</h2>
           <div className="grid gap-4 md:grid-cols-2">
-
             <Info label="Name">
               {account.first_name} {account.last_name}
             </Info>
+            <Info label="Role">{account.job_title}</Info>
+            <Info label="Email">{account.email}</Info>
+            <Info label="Phone">{account.phone}</Info>
+          </div>
+        </div>
 
-            <Info label="Role">
-              {account.job_title}
-            </Info>
-
-            <Info label="Email">
-              {account.email}
-            </Info>
-
-            <Info label="Phone">
-              {account.phone}
-            </Info>
-
+        <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
+          <div className="text-center">
+            <h2 className="text-4xl font-black md:text-5xl">
+              Select Your {MATCH_DAY_PROJECT_COUNT} New Climate Projects for
+              this Match Day
+            </h2>
+            <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
+              Choose {MATCH_DAY_PROJECT_COUNT} Climate Project Partner projects
+              for supporters to vote on. {MATCH_DAY_LEAD_HOURS} hours before
+              kick-off, attach the minimum sponsorship amount per Goal scored by{" "}
+              {club.name} players.
+            </p>
           </div>
 
-        </div>
-<div className="mt-10">
+          <button
+            className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
+            onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
+          >
+            Select Your {MATCH_DAY_PROJECT_COUNT} New Climate Projects for this
+            Match Day
+          </button>
 
-  <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
+          {selected.length > 0 && (
+            <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-800 p-6">
+              <h3 className="text-xl font-bold">This Match Day portfolio</h3>
+              {minAmount != null && (
+                <p className="mt-2 text-sm text-green-300">
+                  Minimum sponsorship: {formatMoney(minAmount)}/Goal
+                </p>
+              )}
+              <ul className="mt-4 space-y-2 text-slate-300">
+                {selected.map((project) => (
+                  <li key={project.id}>• {project.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
 
-  <div className="text-center">
+        <section className="mt-12">
+          <h2 className="text-3xl font-black">Voted-For Projects</h2>
+          <p className="mt-2 text-slate-400">
+            Climate projects supporters have voted for on your match-day
+            campaign.
+          </p>
+          <ProjectGrid
+            projects={voted}
+            empty="No supporter votes yet. Once fans vote on My S4P, those projects appear here."
+          />
+        </section>
 
-    <h2 className="text-5xl font-black text-white">
-  Choose Climate Projects for Your Next Match
-</h2>
+        <section className="mt-12">
+          <h2 className="text-3xl font-black">Funded Projects</h2>
+          <p className="mt-2 text-slate-400">
+            Projects unlocked when {club.name} players score and the locked
+            sponsorship is paid.
+          </p>
+          <ProjectGrid
+            projects={funded}
+            empty="No projects have been funded from Goals yet."
+            funded
+          />
+        </section>
 
-<p className="mt-4 text-xl text-slate-300">
-  Choose the climate projects that your supporters will be able to support during your next match.
-</p>
+        <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+                S4P Climate Impact League Table
+              </p>
+              <h2 className="mt-2 text-3xl font-black">CILT · Premier League</h2>
+              <p className="mt-2 max-w-2xl text-slate-400">
+                Clubs ranked by tonnes of carbon avoided, reduced or offset from
+                sponsorship funded by Goals scored.
+              </p>
+            </div>
+            {clubRow && (
+              <div className="rounded-2xl bg-green-500 px-6 py-4 text-slate-950">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em]">
+                  {club.name} position
+                </p>
+                <p className="text-3xl font-black">
+                  {ciltPositionLabel(clubRow)}
+                </p>
+                <p className="text-sm font-semibold">
+                  {clubRow.tonnes.toLocaleString("en-GB")} t CO₂
+                </p>
+              </div>
+            )}
+          </div>
 
-  </div>
-<div className="mt-12 grid gap-8 lg:grid-cols-2">
-
-  {featuredProjects.map((project) => {
-
-    const selected = portfolioProjects.some(
-      (item: any) => item.project_id === project.id
-    );
- 
-    return (
-
-      <div
-        key={project.id}
-        className="rounded-2xl border-2 border-green-500 bg-slate-800 p-8 flex flex-col h-full"
-      >
-
-        <span className="inline-flex rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
-          ⭐ FEATURED CLIMATE PROJECT
-        </span>
-
-        <h3 className="mt-6 text-3xl font-bold text-white">
-          {project.name}
-        </h3>
-
-        <p className="mt-5 text-lg leading-8 text-slate-300">
-          {project.description}
-        </p>
-
-        <button
-          disabled={selected}
-          onClick={() =>
- addProjectToPortfolio(project.id)}
-          
-          className={`mt-10 w-full rounded-xl py-4 text-lg font-bold ${
-            selected
-              ? "bg-slate-600 text-slate-300 cursor-not-allowed"
-              : "bg-green-500 text-black hover:bg-green-400"
-          }`}
-      
-        >
-          {selected
-            ? "✓ Added to Match Day Portfolio"
-            : "➕ Add to Match Day Portfolio"}
-        </button>
-
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-12 bg-slate-950 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="col-span-2">Pos</span>
+              <span className="col-span-7">Club</span>
+              <span className="col-span-3 text-right">t CO₂</span>
+            </div>
+            {cilt.map((row) => (
+              <div
+                key={row.club}
+                className={`grid grid-cols-12 border-t border-slate-800 px-5 py-4 ${
+                  row.isClub ? "bg-green-500 text-slate-950" : "bg-slate-950/40"
+                }`}
+              >
+                <strong className="col-span-2">{row.position}</strong>
+                <span className="col-span-7 font-semibold">{row.club}</span>
+                <span className="col-span-3 text-right font-black">
+                  {row.tonnes.toLocaleString("en-GB")}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
-
-    );
-
-  })}
- 
-<div className="rounded-2xl border border-slate-700 bg-slate-800 p-8 flex flex-col justify-between h-full">
-
-  <div>
-    <h3 className="text-3xl font-bold text-white">
-      Create Your Club's Own Climate Project
-    </h3>
-
-    <p className="mt-5 text-lg text-slate-300">
-      Can't find a suitable climate project?
-    </p>
-
-    <p className="mt-4 leading-7 text-slate-400">
-      Create a unique climate project for your club and offer it to supporters as part of your Match Day Climate Portfolio.
-    </p>
-  
- </div>
-  <div className="mt-10">
-    <button
-      className="w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
-      onClick={() => router.push("/club/projects/new")}
-    >
-      + Create New Climate Project
-    </button>
-  </div>
-</div>
-</div>
-<div className="mt-10 rounded-2xl border border-slate-700 bg-slate-800 p-8">
-
-    <h3 className="text-3xl font-bold text-white">
-        Your Match Day Portfolio
-    </h3>
-
-    {portfolioProjects.length === 0 ? (
-
-        <p className="mt-6 text-slate-400">
-            No projects selected yet.
-        </p>
-
-    ) : (
-
-        <div className="mt-6 space-y-4">
-
-            {portfolioProjects.map((item: any) => (
-
-  <div
-    key={item.id}
-    className="rounded-xl bg-slate-700 p-5 flex items-center justify-between"
-  >
-
-    <div>
-      <h4 className="text-xl font-bold text-green-400">
-        {item.climate_projects.name}
-      </h4>
-
-      <p className="mt-2 text-slate-300">
-        {item.climate_projects.description}
-      </p>
-    </div>
-
-    <button
-      onClick={() => removeProjectFromPortfolio(item.id)}
-      className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-500"
-    >
-      Remove
-    </button>
-
-  </div>
-
-))}
-
-        </div>
-
-    )}
-
-</div>
-</section>
-</div>
-     
-     
-        </div>
-          
     </main>
+  );
+}
+
+function ProjectGrid({
+  projects,
+  empty,
+  funded = false,
+}: {
+  projects: ClimateProject[];
+  empty: string;
+  funded?: boolean;
+}) {
+  if (projects.length === 0) {
+    return (
+      <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8 text-slate-400">
+        {empty}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 grid gap-6 md:grid-cols-2">
+      {projects.map((project) => (
+        <div
+          key={project.id}
+          className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-xl font-bold">{project.name}</h3>
+            {funded && (
+              <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
+                Funded
+              </span>
+            )}
+          </div>
+          {project.country && (
+            <p className="mt-1 text-sm text-slate-400">📍 {project.country}</p>
+          )}
+          <p className="mt-3 text-slate-300">{project.description}</p>
+          {project.estimated_co2 != null && (
+            <p className="mt-4 text-sm font-semibold text-green-400">
+              {project.estimated_co2.toLocaleString("en-GB")} t CO₂
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -389,48 +285,16 @@ function DashboardCard({
   value,
 }: {
   title: string;
-  value: any;
+  value: string | number | null | undefined;
 }) {
   return (
     <div className="rounded-2xl bg-slate-900 p-6">
       <p className="text-sm text-slate-400">{title}</p>
-      <p className="mt-3 text-3xl font-black text-green-400">
-        {value}
-      </p>
+      <p className="mt-3 text-3xl font-black text-green-400">{value ?? "—"}</p>
     </div>
   );
 }
-function ActionItem({
-  complete,
-  text,
-}: {
-  complete: boolean;
-  text: string;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-5 py-4">
 
-      <div className="flex items-center gap-4">
-
-        <div
-          className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
-            complete
-              ? "bg-green-500 text-black"
-              : "bg-slate-700 text-slate-300"
-          }`}
-        >
-          {complete ? "✓" : "○"}
-        </div>
-
-        <span className="text-lg text-white">
-          {text}
-        </span>
-
-      </div>
-
-    </div>
-  );
-}
 function Info({
   label,
   children,
