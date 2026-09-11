@@ -502,12 +502,6 @@ export async function getUpcomingFixturesForTeams(
         fetchFeedFixtures(team),
         fetchS4pFixtures(team, clubRows),
       ]);
-      const [fromSite, fromBbc, fromFeed, fromDb] = await Promise.all([
-        fetchClubWebsiteFixtures(team),
-        fetchBbcFixtures(team),
-        fetchFeedFixtures(team),
-        fetchS4pFixtures(team, clubRows),
-      ]);
       const extras = [...fromBbc, ...fromFeed, ...fromDb];
       if (fromSite.length > 0) {
         result[team.id] = enrichVenues(fromSite, extras).slice(0, 5);
