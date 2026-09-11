@@ -10,6 +10,7 @@ export type ClimateProject = {
   funding_goal: number | null;
   image_url: string | null;
   status: string | null;
+  featured?: boolean | null;
 };
 
 export type Supporter = {
@@ -21,7 +22,50 @@ export type Supporter = {
 };
 
 const PROJECT_FIELDS =
-  "id, name, description, category, country, estimated_co2, funding_goal, image_url, status";
+  "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured";
+
+const FEATURED_PROJECT_NAME = "Global Schools Solar";
+
+export function isFeaturedClimateProject(
+  project: Pick<ClimateProject, "name" | "featured">
+): boolean {
+  if (project.featured) return true;
+  return /global\s+schools\s+solar/i.test(project.name ?? "");
+}
+
+export async function getFeaturedClimateProject(): Promise<ClimateProject | null> {
+  const byFlag = await supabase
+    .from("climate_projects")
+    .select(PROJECT_FIELDS)
+    .eq("featured", true)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (byFlag.data) return byFlag.data as ClimateProject;
+
+  const byName = await supabase
+    .from("climate_projects")
+    .select(PROJECT_FIELDS)
+    .ilike("name", FEATURED_PROJECT_NAME)
+    .maybeSingle();
+
+  return (byName.data as ClimateProject | null) ?? null;
+}
+
+async function splitFeaturedProjects(
+  projects: ClimateProject[]
+): Promise<{
+  featuredProject: ClimateProject | null;
+  clubProjects: ClimateProject[];
+}> {
+  const fromList = projects.find(isFeaturedClimateProject) ?? null;
+  const featuredProject = fromList ?? (await getFeaturedClimateProject());
+  const clubProjects = projects
+    .filter((project) => project.id !== featuredProject?.id)
+    .slice(0, 5);
+  return { featuredProject, clubProjects };
+}
 
 /**
  * Resolve the supporter row for the currently authenticated user, creating a
@@ -77,17 +121,36 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
   return created.data;
 }
 
-/** All active climate projects supporters can vote for. */
-export async function getClimateProjectsForVoting(): Promise<ClimateProject[]> {
+/** Projects this supporter has voted for, plus those votes that have been funded. */
+export async function getVotedAndFundedProjects(supporterId: string): Promise<{
+  voted: ClimateProject[];
+  funded: ClimateProject[];
+}> {
+  const voted = await getVotedProjects(supporterId);
+  const fundedIds = await getFundedProjectIds(voted.map((project) => project.id));
+  return {
+    voted,
+    funded: voted.filter((project) => fundedIds.has(project.id)),
+  };
+}
+
+async function getFundedProjectIds(projectIds: string[]): Promise<Set<string>> {
+  const funded = new Set<string>();
+  if (projectIds.length === 0) return funded;
+
   const { data, error } = await supabase
-    .from("climate_projects")
-    .select(PROJECT_FIELDS)
-    .eq("status", "active")
-    .order("created_at", { ascending: true });
+    .from("campaign_projects")
+    .select("climate_project_id")
+    .eq("is_winner", true)
+    .in("climate_project_id", projectIds);
 
-  if (error) throw error;
+  if (!error) {
+    for (const row of data ?? []) {
+      if (row.climate_project_id) funded.add(row.climate_project_id as string);
+    }
+  }
 
-  return (data ?? []) as ClimateProject[];
+  return funded;
 }
 
 /** The set of project ids the supporter has already voted for. */
@@ -128,6 +191,7 @@ export type S4PCampaign = {
   amountPerGoal: number;
   requiredVotes: number;
   fixtureId: string | null;
+  featuredProject: ClimateProject | null;
   projects: ClimateProject[];
 };
 
@@ -148,7 +212,7 @@ export async function getMyS4PCampaign(
   const fromPortfolio = clubId
     ? await campaignFromClubPortfolio(clubId)
     : null;
-  if (fromPortfolio && fromPortfolio.projects.length > 0) {
+  if (fromPortfolio && (fromPortfolio.projects.length > 0 || fromPortfolio.featuredProject)) {
     return fromPortfolio;
   }
 
@@ -236,6 +300,8 @@ async function campaignFromClubPortfolio(
     }
   }
 
+  const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
+
   return {
     clubId: club.id,
     clubName: club.name,
@@ -244,7 +310,8 @@ async function campaignFromClubPortfolio(
     amountPerGoal,
     requiredVotes: REQUIRED_VOTES,
     fixtureId,
-    projects: projects.slice(0, 5),
+    featuredProject,
+    projects: clubProjects,
   };
 }
 
@@ -300,6 +367,8 @@ async function campaignFromOpenMatch(
     .eq("id", openCampaign.club_id)
     .maybeSingle();
 
+  const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
+
   return {
     clubId: openCampaign.club_id,
     clubName: club?.name ?? "Your club",
@@ -310,7 +379,8 @@ async function campaignFromOpenMatch(
     amountPerGoal: Number(openCampaign.sponsorship_per_goal) || DEFAULT_AMOUNT_PER_GOAL,
     requiredVotes: openCampaign.maximum_votes ?? REQUIRED_VOTES,
     fixtureId: null,
-    projects: projects.slice(0, 5),
+    featuredProject,
+    projects: clubProjects,
   };
 }
 

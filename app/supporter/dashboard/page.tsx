@@ -6,6 +6,7 @@ import {
   getOrCreateSupporter,
   getVotedProjectIds,
   submitCampaignVotes,
+  type ClimateProject,
   type S4PCampaign,
 } from "@/app/services/votes.service";
 import { summariseImpact } from "@/app/lib/impact";
@@ -34,7 +35,8 @@ export default function MyS4PDashboardPage() {
 
         if (camp) {
           const voted = await getVotedProjectIds(supporter.id);
-          const preselected = camp.projects
+          const voteable = voteableProjects(camp);
+          const preselected = voteable
             .map((p) => p.id)
             .filter((id) => voted.has(id));
           if (preselected.length > 0) {
@@ -56,6 +58,7 @@ export default function MyS4PDashboardPage() {
   }, []);
 
   const required = campaign?.requiredVotes ?? 3;
+  const voteable = campaign ? voteableProjects(campaign) : [];
 
   function toggle(projectId: string) {
     setSubmitted(false);
@@ -79,7 +82,7 @@ export default function MyS4PDashboardPage() {
       await submitCampaignVotes(
         supporterId,
         [...selected],
-        campaign.projects.map((p) => p.id)
+        voteable.map((project) => project.id)
       );
       setSubmitted(true);
     } catch (err) {
@@ -114,7 +117,7 @@ export default function MyS4PDashboardPage() {
     );
   }
 
-  const selectedProjects = campaign.projects.filter((p) => selected.has(p.id));
+  const selectedProjects = voteable.filter((p) => selected.has(p.id));
   const impact = summariseImpact(selectedProjects);
   const canSubmit = selected.size === required && !submitting;
 
@@ -153,41 +156,31 @@ export default function MyS4PDashboardPage() {
           </div>
         )}
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {campaign.projects.map((project) => {
-            const isSelected = selected.has(project.id);
-            const disabled = !isSelected && selected.size >= required;
+        {campaign.featuredProject && (
+          <div className="mt-10">
+            <ProjectCard
+              project={campaign.featuredProject}
+              featured
+              isSelected={selected.has(campaign.featuredProject.id)}
+              disabled={
+                !selected.has(campaign.featuredProject.id) &&
+                selected.size >= required
+              }
+              onToggle={() => toggle(campaign.featuredProject!.id)}
+            />
+          </div>
+        )}
 
-            return (
-              <div
-                key={project.id}
-                className={`flex flex-col rounded-2xl border p-6 ${
-                  isSelected
-                    ? "border-green-500 bg-slate-800"
-                    : "border-slate-700 bg-slate-900"
-                }`}
-              >
-                <h2 className="text-xl font-bold">{project.name}</h2>
-                <p className="mt-3 flex-1 text-sm text-slate-300">
-                  {project.description}
-                </p>
-
-                <button
-                  onClick={() => toggle(project.id)}
-                  disabled={disabled}
-                  className={`mt-6 w-full rounded-lg py-3 font-bold transition ${
-                    isSelected
-                      ? "bg-green-500 text-slate-950 hover:bg-green-400"
-                      : disabled
-                        ? "cursor-not-allowed bg-slate-800 text-slate-500"
-                        : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-                >
-                  {isSelected ? "✓ Selected" : "Select Project"}
-                </button>
-              </div>
-            );
-          })}
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {campaign.projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              isSelected={selected.has(project.id)}
+              disabled={!selected.has(project.id) && selected.size >= required}
+              onToggle={() => toggle(project.id)}
+            />
+          ))}
         </div>
 
         {submitted && selectedProjects.length > 0 && impact.totalCo2 > 0 && (
@@ -249,6 +242,81 @@ export default function MyS4PDashboardPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function voteableProjects(campaign: S4PCampaign): ClimateProject[] {
+  return campaign.featuredProject
+    ? [campaign.featuredProject, ...campaign.projects]
+    : campaign.projects;
+}
+
+function ProjectCard({
+  project,
+  featured = false,
+  isSelected,
+  disabled,
+  onToggle,
+}: {
+  project: ClimateProject;
+  featured?: boolean;
+  isSelected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div
+      className={`flex flex-col rounded-2xl border p-6 md:p-8 ${
+        featured
+          ? "border-2 border-green-500 bg-slate-800"
+          : isSelected
+            ? "border-green-500 bg-slate-800"
+            : "border-slate-700 bg-slate-900"
+      }`}
+    >
+      {featured && (
+        <span className="inline-flex w-fit rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
+          ⭐ Featured Climate Project
+        </span>
+      )}
+
+      <h2 className={`font-bold ${featured ? "mt-6 text-3xl" : "text-xl"}`}>
+        {project.name}
+      </h2>
+      <p className={`mt-3 flex-1 text-slate-300 ${featured ? "text-lg leading-8" : "text-sm"}`}>
+        {project.description}
+      </p>
+
+      {featured && (
+        <div className="mt-5 space-y-1 text-sm text-slate-400">
+          {project.country && <p>📍 {project.country}</p>}
+          {project.estimated_co2 != null && (
+            <p>🌳 Estimated CO₂ Offset: {project.estimated_co2.toLocaleString()} tonnes</p>
+          )}
+          {project.funding_goal != null && (
+            <p>🎯 Funding Goal: £{project.funding_goal.toLocaleString()}</p>
+          )}
+        </div>
+      )}
+
+      <button
+        onClick={onToggle}
+        disabled={disabled}
+        className={`mt-6 w-full rounded-lg py-3 font-bold transition ${
+          featured ? "mt-8 py-4 text-lg" : ""
+        } ${
+          isSelected
+            ? "bg-green-500 text-slate-950 hover:bg-green-400"
+            : disabled
+              ? "cursor-not-allowed bg-slate-800 text-slate-500"
+              : featured
+                ? "bg-green-500 text-slate-950 hover:bg-green-400"
+                : "bg-slate-700 text-white hover:bg-slate-600"
+        }`}
+      >
+        {isSelected ? "✓ Selected" : "Select Project"}
+      </button>
+    </div>
   );
 }
 
