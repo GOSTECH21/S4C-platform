@@ -85,6 +85,7 @@ export function groupTeams(teams: TeamOption[]): TeamGroup[] {
       })),
   }));
 }
+export async function getTeamCatalog(): Promise<TeamGroup[]> {
   const { data, error } = await supabase
     .from("clubs")
     .select(
