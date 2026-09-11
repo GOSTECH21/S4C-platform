@@ -218,28 +218,26 @@ export async function saveMatchDaySelection({
       }))
     );
     if (insertError) {
-      console.error("Could not update campaign projects:", insertError.message);
+      throw new Error("Could not save the 5 match-day projects. Please try again.");
     }
   }
 
   await supabase.from("club_match_portfolio").delete().eq("club_id", clubId);
-  const portfolioRows = projectIds.map((projectId) => ({
-    club_id: clubId,
-    climate_project_id: projectId,
-    project_id: projectId,
-    status: "selected",
-  }));
-  const { error: portfolioError } = await supabase
-    .from("club_match_portfolio")
-    .insert(portfolioRows);
-  if (portfolioError) {
-    const withoutProjectId = portfolioRows.map(
-      ({ project_id: _ignored, ...row }) => row
-    );
-    const retry = await supabase.from("club_match_portfolio").insert(withoutProjectId);
-    if (retry.error) {
-      console.error("Could not update match-day portfolio:", retry.error.message);
-    }
+  const portfolioAttempts = [
+    projectIds.map((projectId) => ({
+      club_id: clubId,
+      project_id: projectId,
+      status: "selected",
+    })),
+    projectIds.map((projectId) => ({
+      club_id: clubId,
+      climate_project_id: projectId,
+      status: "selected",
+    })),
+  ];
+  for (const rows of portfolioAttempts) {
+    const { error } = await supabase.from("club_match_portfolio").insert(rows);
+    if (!error) break;
   }
 
   const selection: MatchDaySelection = {
