@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createSponsorshipCampaign } from "@/app/services/sponsorship-campaigns.service";
-import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import { scoreEventForSport, scoreLabelForSport } from "@/app/lib/sports";
 
 export default function CampaignBuilderPage() {
 
@@ -36,8 +36,9 @@ const [selectedPackage, setSelectedPackage] = useState("Gold");
     Football: [
     "Premier League",
     "Championship",
-    "Scottish Premier League",
-    "Women's Super League",
+    "Scottish Premiership",
+    "La Liga",
+    "Serie A",
   ],
 
   Rugby: [
@@ -46,22 +47,11 @@ const [selectedPackage, setSelectedPackage] = useState("Gold");
   ],
 
   NFL: [
-    "NFL Regular Season",
+    "NFL",
   ],
 
-  Basketball: [
+  NBA: [
     "NBA",
-    "EuroLeague",
-  ],
-
-  Cricket: [
-    "The Hundred",
-    "IPL",
-  ],
-
-  Golf: [
-    "PGA Tour",
-    "DP World Tour",
   ],
 };
 
@@ -129,6 +119,18 @@ const [selectedPackage, setSelectedPackage] = useState("Gold");
     "Exeter Chiefs vs Gloucester",
     "Sale Sharks vs Newcastle Falcons",
     "Wasps vs Worcester Warriors",
+  ],
+
+  NFL: [
+    "New England Patriots vs Buffalo Bills",
+    "Kansas City Chiefs vs Buffalo Bills",
+    "Dallas Cowboys vs Philadelphia Eagles",
+    "Green Bay Packers vs Chicago Bears",
+    "San Francisco 49ers vs Seattle Seahawks",
+    "Miami Dolphins vs New York Jets",
+    "Baltimore Ravens vs Cincinnati Bengals",
+    "Pittsburgh Steelers vs Cleveland Browns",
+    "Detroit Lions vs Minnesota Vikings",
   ],
 
   "NFL Regular Season": [
@@ -206,17 +208,14 @@ const opponent = selectedFixture
 
 const generatedCampaignName =
   selectedOutcome && opponent
-    ? `${selectedOutcome} Goal Sponsorship vs ${opponent}`
+    ? `${selectedOutcome} ${scoreLabelForSport(selectedSport)} Sponsorship vs ${opponent}`
     : "";
-    const sponsoredEvent =
-  selectedSport === "Rugby"
-    ? `${selectedOutcome} TRY Scored`
-    : `${selectedOutcome} Goal Scored`;
+    const sponsoredEvent = `${selectedOutcome} ${scoreEventForSport(selectedSport)}`;
     async function handleCreateCampaign() {
   alert("handleCreateCampaign called");
 
   console.log("Creating campaign:", {
-    campaign_name: `${selectedOutcome} Goals Scored vs ${selectedFixture}`,
+    campaign_name: `${selectedOutcome} ${scoreEventForSport(selectedSport)} vs ${selectedFixture}`,
     fixture: selectedFixture,
     sponsored_event: sponsoredEvent,
     sport: selectedSport,
@@ -226,10 +225,7 @@ const generatedCampaignName =
   
   try {
     console.log("Creating campaign:", {
-  campaign_name:
-  selectedSport === "Rugby"
-    ? `${selectedOutcome} TRY Scored vs ${selectedFixture} Sponsorship`
-    : `${selectedOutcome} Goals Scored vs ${selectedFixture} Sponsorship`,
+  campaign_name: `${selectedOutcome} ${scoreEventForSport(selectedSport)} vs ${selectedFixture} Sponsorship`,
   fixture: selectedFixture,
   sponsored_event: sponsoredEvent,
   sport: selectedSport,
@@ -238,10 +234,7 @@ const generatedCampaignName =
 const sponsor = await getCurrentSponsor();
     await createSponsorshipCampaign({
     sponsor_id: sponsor.id,
-campaign_name:
-  selectedSport === "Rugby"
-    ? `${selectedOutcome} TRY vs ${selectedFixture} Sponsorship`
-    : `${selectedOutcome} Goals Scored vs ${selectedFixture} Sponsorship`,
+campaign_name: `${selectedOutcome} ${scoreEventForSport(selectedSport)} vs ${selectedFixture} Sponsorship`,
     
     sport: selectedSport,
     competition: selectedCompetition,
@@ -334,27 +327,27 @@ return (
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
 
-            {[
-              "Football",
-              "Rugby",
-              "NFL",
-              "Basketball",
-              "Cricket",
-              "Golf",
-            ].map((sport) => (
-
+            {["Football", "Rugby", "NFL", "NBA"].map((sport) => (
               <button
                 key={sport}
                 onClick={() => {
                   setSelectedSport(sport);
+                  setTrigger(
+                    sport === "Rugby"
+                      ? "Try"
+                      : sport === "NFL"
+                        ? "Touchdown"
+                        : sport === "NBA"
+                          ? "3-Point"
+                          : "Goal"
+                  );
                   setStep(2);
                 }}
                 className="rounded-xl border p-6 text-center transition hover:border-emerald-600 hover:bg-emerald-50"
               >
                 {sport}
-          </button>
-
-        ))}
+              </button>
+            ))}
       </div>
 
     </div>
@@ -505,9 +498,7 @@ return (
   <span>Sponsored Event</span>
 
   <span>
-    {selectedSport === "Rugby"
-        ? `${selectedOutcome} TRY`
-        : `${selectedOutcome} Scored`}
+    {selectedOutcome} {scoreEventForSport(selectedSport)}
 </span>
 </div>
   </div>
@@ -532,7 +523,7 @@ return (
           <div>
 
             <p className="font-medium">
-              {team} Goals Scored
+              {team} {scoreEventForSport(selectedSport)}
             </p>
 
             <p className="text-sm text-slate-500">

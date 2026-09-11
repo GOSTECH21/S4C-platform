@@ -7,6 +7,13 @@ import {
   findClubOnRoster,
   seasonNamesMatch,
 } from "../lib/current-season";
+import {
+  isPrimarySport,
+  SPORT_ORDER,
+  scoreLabelForSport,
+} from "../lib/sports";
+
+export { SPORT_ORDER, scoreLabelForSport };
 
 type SupporterRef = {
   id: string;
@@ -26,8 +33,6 @@ export type TeamGroup = {
   competitions: { name: string; teams: TeamOption[] }[];
 };
 
-export const SPORT_ORDER = ["Football", "Rugby", "Cricket", "NFL", "NHL"];
-
 const NAME_ALIASES: Record<string, string[]> = {
   hearts: [
     "hearts",
@@ -44,16 +49,6 @@ export function displayClubName(name: string): string {
     return "Hearts of Midlothian FC";
   }
   return name;
-}
-
-export function scoreLabelForSport(sport: string | null | undefined): string {
-  const value = (sport ?? "").toLowerCase();
-  if (value.includes("rugby")) return "Try";
-  if (value.includes("nfl") || value.includes("american football")) {
-    return "Touchdown";
-  }
-  if (value.includes("cricket")) return "Run";
-  return "Goal";
 }
 
 export function sponsorLogoSrc(
@@ -167,6 +162,7 @@ export async function loadTeamCatalogFromDatabase(): Promise<TeamGroup[]> {
     if (usedIds.has(row.id)) continue;
     if (canonicalLeagueName(row.competition)) continue;
     if (!row.id || row.competition === "Other") continue;
+    if (!isPrimarySport(row.sport)) continue;
     teams.push({
       id: row.id,
       name: row.name,
@@ -176,7 +172,7 @@ export async function loadTeamCatalogFromDatabase(): Promise<TeamGroup[]> {
     });
   }
 
-  return groupTeams(teams);
+  return groupTeams(teams).filter((group) => isPrimarySport(group.sport));
 }
 
 export async function findClubByPreferenceName(

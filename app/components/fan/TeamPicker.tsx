@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import type { TeamGroup, TeamOption } from "@/app/services/teams.service";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
+import { sportCategory } from "@/app/lib/sports";
 
 const DEFAULT_OPEN = new Set([
   "Premier League",
   "Scottish Premiership",
-  "La Liga",
-  "Serie A",
   "Six Nations",
   "NFL",
+  "NBA",
 ]);
 
 export default function TeamPicker({
@@ -71,50 +71,68 @@ export default function TeamPicker({
       )}
 
       <div className="mt-6 space-y-6">
-        {filtered.map((group) => (
-          <section
-            key={group.sport}
-            className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
-          >
-            <h2 className="text-2xl font-bold text-green-400">{group.sport}</h2>
-            <div className="mt-5 space-y-5">
-              {group.competitions.map((competition) => (
-                <details
-                  key={competition.name}
-                  open={DEFAULT_OPEN.has(competition.name) || Boolean(query)}
-                  className="rounded-xl border border-slate-800 bg-slate-950 p-4"
-                >
-                  <summary className="cursor-pointer list-none font-semibold text-white">
-                    {competition.name}
-                    <span className="ml-2 text-sm font-normal text-slate-400">
-                      {CURRENT_SEASON} · {competition.teams.length} teams
-                    </span>
-                  </summary>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    {competition.teams.map((team) => {
-                      const active = selectedIds.has(team.id);
-                      return (
-                        <button
-                          key={team.id}
-                          type="button"
-                          onClick={() => toggle(team)}
-                          className={`rounded-xl border p-4 text-left font-semibold ${
-                            active
-                              ? "border-green-400 bg-green-400 text-slate-950"
-                              : "border-slate-700 bg-slate-900 text-white"
-                          }`}
-                        >
-                          {active ? "✓ " : ""}
-                          {team.displayName}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </section>
-        ))}
+        {filtered.map((group) => {
+          const category = sportCategory(group.sport);
+          return (
+            <section
+              key={group.sport}
+              className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <h2 className="text-2xl font-bold text-green-400">
+                  {category?.icon ? `${category.icon} ` : ""}
+                  {group.sport}
+                </h2>
+                {category && (
+                  <p className="text-sm font-semibold text-slate-300">
+                    {category.scoreEvent} · {category.exampleS2PS}
+                  </p>
+                )}
+              </div>
+              {category && (
+                <p className="mt-2 max-w-3xl text-sm text-slate-400">
+                  {category.summary}
+                </p>
+              )}
+              <div className="mt-5 space-y-5">
+                {group.competitions.map((competition) => (
+                  <details
+                    key={competition.name}
+                    open={DEFAULT_OPEN.has(competition.name) || Boolean(query)}
+                    className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+                  >
+                    <summary className="cursor-pointer list-none font-semibold text-white">
+                      {competition.name}
+                      <span className="ml-2 text-sm font-normal text-slate-400">
+                        {CURRENT_SEASON} · {competition.teams.length} teams
+                      </span>
+                    </summary>
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      {competition.teams.map((team) => {
+                        const active = selectedIds.has(team.id);
+                        return (
+                          <button
+                            key={team.id}
+                            type="button"
+                            onClick={() => toggle(team)}
+                            className={`rounded-xl border p-4 text-left font-semibold ${
+                              active
+                                ? "border-green-400 bg-green-400 text-slate-950"
+                                : "border-slate-700 bg-slate-900 text-white"
+                            }`}
+                          >
+                            {active ? "✓ " : ""}
+                            {team.displayName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

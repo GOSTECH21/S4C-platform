@@ -4,6 +4,7 @@ import {
   isCurrentSeasonLeagueFixture,
 } from "../app/lib/current-season";
 import { loadTeamCatalogFromDatabase } from "../app/services/teams.service";
+import { scoreLabelForSport } from "../app/lib/sports";
 
 const failures: string[] = [];
 
@@ -57,9 +58,13 @@ assert(
   clubInCurrentSeasonLeague("Serie A", "AC Milan"),
   "AC Milan must be in Serie A"
 );
+assert(scoreLabelForSport("Football") === "Goal", "Football sponsorship is per Goal");
+assert(scoreLabelForSport("Rugby") === "Try", "Rugby sponsorship is per Try");
+assert(scoreLabelForSport("NFL") === "Touchdown", "NFL sponsorship is per Touchdown");
+assert(scoreLabelForSport("NBA") === "3-Point", "NBA sponsorship is per 3-Point");
 assert(
-  clubInCurrentSeasonLeague("Six Nations", "Scotland"),
-  "Scotland must be in Six Nations"
+  clubInCurrentSeasonLeague("NBA", "Boston Celtics"),
+  "Boston Celtics must be in the NBA catalog"
 );
 
 assert(
@@ -136,6 +141,7 @@ function main() {
         ["Football", "Serie A", "AC Milan"],
         ["Rugby", "Six Nations", "Scotland"],
         ["NFL", "NFL", "New England Patriots"],
+        ["NBA", "NBA", "Boston Celtics"],
       ] as const;
       for (const [sport, league, team] of needed) {
         const group = catalog.find((item) => item.sport === sport);

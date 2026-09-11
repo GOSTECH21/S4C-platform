@@ -32,7 +32,10 @@ const competitions: Record<string, string[]> = {
 
   Basketball: [
     "NBA",
-    "EuroLeague",
+  ],
+
+  NBA: [
+    "NBA",
   ],
 
   Hockey: [

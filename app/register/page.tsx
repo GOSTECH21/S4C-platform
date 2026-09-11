@@ -125,10 +125,11 @@ export default function RegisterPage() {
         </p>
         <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
         <p className="mt-2 text-slate-400">
-          Create your account and choose the teams you support across football,
-          rugby and American Football. You will only see sponsored climate
-          projects when those teams are playing — and you will get a match-day
-          alert when a sponsored match is live.
+          Create your account and choose the teams you support across the four
+          sports categories: Football (Goal scored), Rugby (Try scored), NFL
+          (Touchdown scored) and NBA (3-Point Score Sponsorship). You will only
+          see sponsored climate projects when those teams are playing — and you
+          will get a match-day alert when a sponsored match is live.
         </p>
 
         {error && (
@@ -177,9 +178,12 @@ export default function RegisterPage() {
             Relegated clubs such as West Ham United, Burnley and Wolves now sit
             in the EFL Championship, so they cannot appear as Premier League
             opponents (Arsenal cannot play West Ham in the league this season).
-            Examples: Arsenal (Premier League), Hearts of Midlothian FC
-            (Scottish Premiership), Real Madrid (La Liga), AC Milan (Serie A),
-            Scotland (Six Nations Rugby), and New England Patriots (NFL).
+            A Goal for Arsenal, a Try for Scotland, a Touchdown for the
+            Patriots or a 3-Point for an NBA team each releases the sponsor
+            amount agreed for that match (for example £10,000/Goal). Examples:
+            Arsenal (Premier League), Hearts of Midlothian FC (Scottish
+            Premiership), Scotland (Six Nations Rugby), New England Patriots
+            (NFL) and Boston Celtics (NBA).
           </p>
 
           <div className="mt-6">

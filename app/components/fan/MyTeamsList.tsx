@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { groupTeams, type TeamOption } from "@/app/services/teams.service";
+import { sportCategory } from "@/app/lib/sports";
 import { MatchLines } from "@/app/components/fan/UpcomingMatches";
 import {
   isCupCompetition,
@@ -31,12 +32,19 @@ export default function MyTeamsList({
 
   return (
     <div className="space-y-6">
-      {groups.map((group) => (
+      {groups.map((group) => {
+        const category = sportCategory(group.sport);
+        return (
         <section
           key={group.sport}
           className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
         >
           <h2 className="text-2xl font-bold text-green-400">{group.sport}</h2>
+          {category && (
+            <p className="mt-1 text-sm text-slate-400">
+              {category.scoreEvent} · {category.exampleS2PS}
+            </p>
+          )}
           <div className="mt-5 space-y-3">
             {group.competitions.map((competition) => {
               const key = `${group.sport}:${competition.name}`;
@@ -102,7 +110,8 @@ export default function MyTeamsList({
             })}
           </div>
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }

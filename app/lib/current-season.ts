@@ -184,6 +184,38 @@ export const CURRENT_SEASON_LEAGUES: Record<string, string[]> = {
     "Tennessee Titans",
     "Washington Commanders",
   ],
+  NBA: [
+    "Atlanta Hawks",
+    "Boston Celtics",
+    "Brooklyn Nets",
+    "Charlotte Hornets",
+    "Chicago Bulls",
+    "Cleveland Cavaliers",
+    "Dallas Mavericks",
+    "Denver Nuggets",
+    "Detroit Pistons",
+    "Golden State Warriors",
+    "Houston Rockets",
+    "Indiana Pacers",
+    "Los Angeles Clippers",
+    "Los Angeles Lakers",
+    "Memphis Grizzlies",
+    "Miami Heat",
+    "Milwaukee Bucks",
+    "Minnesota Timberwolves",
+    "New Orleans Pelicans",
+    "New York Knicks",
+    "Oklahoma City Thunder",
+    "Orlando Magic",
+    "Philadelphia 76ers",
+    "Phoenix Suns",
+    "Portland Trail Blazers",
+    "Sacramento Kings",
+    "San Antonio Spurs",
+    "Toronto Raptors",
+    "Utah Jazz",
+    "Washington Wizards",
+  ],
 };
 
 export const LEAGUE_SPORT: Record<string, string> = {
@@ -196,6 +228,7 @@ export const LEAGUE_SPORT: Record<string, string> = {
   "Serie A": "Football",
   "Six Nations": "Rugby",
   NFL: "NFL",
+  NBA: "NBA",
 };
 
 export const LEAGUE_COUNTRY: Record<string, string> = {
@@ -208,6 +241,7 @@ export const LEAGUE_COUNTRY: Record<string, string> = {
   "Serie A": "Italy",
   "Six Nations": "Europe",
   NFL: "USA",
+  NBA: "USA",
 };
 
 const LEAGUE_ALIASES: Record<string, string> = {
@@ -233,6 +267,9 @@ const LEAGUE_ALIASES: Record<string, string> = {
   nfl: "NFL",
   "nfl regular season": "NFL",
   "national football league": "NFL",
+  nba: "NBA",
+  "national basketball association": "NBA",
+  basketball: "NBA",
 };
 
 const CLUB_ALIASES: Record<string, string[]> = {
@@ -278,6 +315,17 @@ const CLUB_ALIASES: Record<string, string[]> = {
   "49ers": ["san francisco 49ers"],
   "washington commanders": ["commanders"],
   commanders: ["washington commanders"],
+  "los angeles lakers": ["lakers", "la lakers"],
+  lakers: ["los angeles lakers"],
+  "boston celtics": ["celtics"],
+  celtics: ["boston celtics"],
+  "golden state warriors": ["warriors"],
+  warriors: ["golden state warriors"],
+  "new york knicks": ["knicks"],
+  knicks: ["new york knicks"],
+  "philadelphia 76ers": ["76ers", "sixers"],
+  "76ers": ["philadelphia 76ers"],
+  sixers: ["philadelphia 76ers"],
 };
 
 export function normalizeSeasonName(value: string): string {

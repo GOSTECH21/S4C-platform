@@ -215,7 +215,9 @@ function CampaignPanel({
             <span className="font-bold text-white">
               {numberWord(required).toUpperCase()}
             </span>{" "}
-            climate projects you want funded if {campaign.clubName} scores.
+            climate projects you want funded if {campaign.clubName} scores a{" "}
+            {campaign.scoreLabel}. Each {campaign.scoreLabel} releases {s2ps}{" "}
+            for those projects.
           </p>
 
           <div className="mt-5 inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-sm font-bold text-white">
@@ -231,8 +233,9 @@ function CampaignPanel({
 
         {submitted && !error && (
           <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
-            ✓ Your vote has been submitted. If {campaign.clubName} scores,{" "}
-            {s2ps} will be split across your {required} chosen projects.
+            ✓ Your vote has been submitted. If {campaign.clubName} scores a{" "}
+            {campaign.scoreLabel}, {s2ps} will be split across your {required}{" "}
+            chosen projects.
           </div>
         )}
 
