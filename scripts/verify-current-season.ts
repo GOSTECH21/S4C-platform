@@ -1,0 +1,127 @@
+import {
+  CURRENT_SEASON_LEAGUES,
+  clubInCurrentSeasonLeague,
+  isCurrentSeasonLeagueFixture,
+} from "../app/lib/current-season";
+import { getTeamCatalog } from "../app/services/teams.service";
+
+const failures: string[] = [];
+
+function assert(condition: boolean, message: string) {
+  if (!condition) failures.push(message);
+}
+
+const premierLeague = CURRENT_SEASON_LEAGUES["Premier League"];
+const championship = CURRENT_SEASON_LEAGUES["EFL Championship"];
+const scottish = CURRENT_SEASON_LEAGUES["Scottish Premiership"];
+
+assert(premierLeague.length === 20, "Premier League must have 20 clubs");
+assert(championship.length === 24, "EFL Championship must have 24 clubs");
+assert(scottish.length === 12, "Scottish Premiership must have 12 clubs");
+
+for (const relegated of [
+  "West Ham United",
+  "Burnley",
+  "Wolverhampton Wanderers",
+]) {
+  assert(
+    !clubInCurrentSeasonLeague("Premier League", relegated),
+    `${relegated} must not be in the 2026/27 Premier League`
+  );
+  assert(
+    clubInCurrentSeasonLeague("EFL Championship", relegated),
+    `${relegated} must be in the 2026/27 EFL Championship`
+  );
+}
+
+for (const promoted of ["Coventry City", "Ipswich Town", "Hull City"]) {
+  assert(
+    clubInCurrentSeasonLeague("Premier League", promoted),
+    `${promoted} must be in the 2026/27 Premier League`
+  );
+  assert(
+    !clubInCurrentSeasonLeague("EFL Championship", promoted),
+    `${promoted} must not remain in the Championship`
+  );
+}
+
+assert(
+  !isCurrentSeasonLeagueFixture(
+    "Premier League",
+    "Arsenal",
+    "West Ham United"
+  ),
+  "Arsenal cannot play West Ham in the Premier League this season"
+);
+
+assert(
+  isCurrentSeasonLeagueFixture("EFL Championship", "West Ham United", "Burnley"),
+  "West Ham vs Burnley is a valid Championship fixture"
+);
+
+assert(
+  isCurrentSeasonLeagueFixture("Premier League", "Arsenal", "Chelsea"),
+  "Arsenal vs Chelsea remains a valid Premier League fixture"
+);
+
+assert(
+  clubInCurrentSeasonLeague("Scottish Premiership", "Falkirk"),
+  "Falkirk must be in the current Scottish Premiership"
+);
+assert(
+  !clubInCurrentSeasonLeague("Scottish Premiership", "Ross County"),
+  "Ross County must not remain in the Scottish Premiership"
+);
+
+function main() {
+  if (failures.length > 0) {
+    console.error(failures.join("\n"));
+    process.exit(1);
+  }
+
+  console.log("Current-season membership and fixture rules passed.");
+
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
+
+  getTeamCatalog()
+    .then((catalog) => {
+      const football = catalog.find((group) => group.sport === "Football");
+      const premier = football?.competitions.find(
+        (competition) => competition.name === "Premier League"
+      );
+      const championshipGroup = football?.competitions.find(
+        (competition) => competition.name === "EFL Championship"
+      );
+      const names = (premier?.teams ?? []).map((team) => team.displayName);
+      console.log("Premier League catalog:", names.join(", "));
+      if (names.some((name) => /west ham|burnley|wolves/i.test(name))) {
+        throw new Error(
+          "Live catalog still includes a relegated Premier League club."
+        );
+      }
+      if (!names.some((name) => /coventry/i.test(name))) {
+        throw new Error(
+          "Live catalog is missing Coventry City from the Premier League."
+        );
+      }
+      const championshipNames = (championshipGroup?.teams ?? []).map(
+        (team) => team.displayName
+      );
+      if (!championshipNames.some((name) => /west ham/i.test(name))) {
+        throw new Error(
+          "Live catalog is missing West Ham United from the Championship."
+        );
+      }
+      console.log(
+        "Live catalog: Premier League",
+        names.length,
+        "clubs; Championship includes West Ham."
+      );
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
+}
+
+main();

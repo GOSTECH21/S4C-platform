@@ -8,7 +8,7 @@ import {
   type TeamRef,
   type UpcomingMatch,
 } from "../lib/upcoming-matches";
-import { clubInCurrentSeasonLeague } from "../lib/current-season";
+import { isCurrentSeasonLeagueFixture } from "../lib/current-season";
 
 const MONTHS: Record<string, number> = {
   january: 0,
@@ -570,14 +570,16 @@ async function fetchS4pFixtures(
           null,
       };
     })
-    .filter((match) => {
-      if (!match.competition) return true;
-      if (isCupCompetition(match.competition)) return true;
-      return (
-        clubInCurrentSeasonLeague(match.competition, match.homeName) &&
-        clubInCurrentSeasonLeague(match.competition, match.awayName)
-      );
-    });
+    .filter(keepCurrentSeasonFixture);
+}
+
+function keepCurrentSeasonFixture(match: UpcomingMatch): boolean {
+  if (isCupCompetition(match.competition)) return true;
+  return isCurrentSeasonLeagueFixture(
+    match.competition,
+    match.homeName,
+    match.awayName
+  );
 }
 
 export async function getUpcomingFixturesForTeams(
@@ -600,12 +602,18 @@ export async function getUpcomingFixturesForTeams(
         fetchFeedFixtures(team),
         fetchS4pFixtures(team, clubRows),
       ]);
-      const extras = [...fromBbc, ...fromFeed, ...fromDb];
-      const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed]);
+      const extras = [...fromBbc, ...fromFeed, ...fromDb].filter(
+        keepCurrentSeasonFixture
+      );
+      const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed]).filter(
+        keepCurrentSeasonFixture
+      );
       if (live.length > 0) {
         result[team.id] = selectDisplayedFixtures(enrichVenues(live, extras));
       } else {
-        result[team.id] = selectDisplayedFixtures(fromDb);
+        result[team.id] = selectDisplayedFixtures(
+          fromDb.filter(keepCurrentSeasonFixture)
+        );
       }
     })
   );

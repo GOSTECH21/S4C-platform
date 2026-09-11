@@ -164,8 +164,8 @@ export default function SupporterPreferencesPage() {
             </h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
-                ? "Pick teams across sports and leagues, then save. My S4P only shows matches for the teams you support."
-                : `Showing only the clubs you selected from the current ${CURRENT_SEASON} season. Click a league to see your teams, next matches, and cup ties.`}}
+                ? `Pick ${CURRENT_SEASON} squads across sports and leagues, then save. Relegated clubs appear in their current division, not last season’s.`
+                : `Showing only the clubs you selected from the current ${CURRENT_SEASON} season. Click a league to see your teams, next matches, and cup ties.`}
             </p>
           </div>
 

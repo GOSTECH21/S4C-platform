@@ -1,7 +1,9 @@
 import {
   CURRENT_SEASON,
   CURRENT_SEASON_LEAGUES,
-  clubInCurrentSeasonLeague,
+  canonicalLeagueName,
+  findClubOnRoster,
+  isCurrentSeasonLeagueFixture,
   normalizeSeasonName,
 } from "../lib/current-season";
 import { supabase } from "../lib/supabase";
@@ -86,7 +88,7 @@ async function syncCurrentSeasonRoster(): Promise<void> {
     const competition = byName.get(league);
     if (!competition) continue;
     for (const teamName of teams) {
-      let club = findClub(clubRows, teamName);
+      let club = findClubOnRoster(clubRows, teamName);
       if (!club) {
         const { data: inserted, error } = await supabase
           .from("clubs")
@@ -166,14 +168,11 @@ async function dropStaleLeagueFixtures(
     const competitionName = [...competitions.values()].find(
       (row) => row.id === fixture.competition_id
     )?.name;
-    if (!competitionName || !CURRENT_SEASON_LEAGUES[competitionName]) continue;
+    if (!canonicalLeagueName(competitionName)) continue;
     const home = clubById.get(fixture.home_club_id as string);
     const away = clubById.get(fixture.away_club_id as string);
     if (!home || !away) continue;
-    if (
-      !clubInCurrentSeasonLeague(competitionName, home.name) ||
-      !clubInCurrentSeasonLeague(competitionName, away.name)
-    ) {
+    if (!isCurrentSeasonLeagueFixture(competitionName, home.name, away.name)) {
       staleIds.push(fixture.id as string);
     }
   }
@@ -182,17 +181,4 @@ async function dropStaleLeagueFixtures(
   for (const id of staleIds) {
     await supabase.from("fixtures").delete().eq("id", id);
   }
-}
-
-function findClub(clubs: ClubRow[], name: string): ClubRow | undefined {
-  const needle = normalizeSeasonName(name);
-  const aliases = new Set([
-    needle,
-    ...(needle === "hearts" || needle.includes("heart of midlothian")
-      ? ["hearts", "heart of midlothian", "hearts of midlothian"]
-      : []),
-    ...(needle === "brighton" ? ["brighton hove albion"] : []),
-    ...(needle === "brighton hove albion" ? ["brighton"] : []),
-  ]);
-  return clubs.find((club) => aliases.has(normalizeSeasonName(club.name)));
 }

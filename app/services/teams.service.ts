@@ -1,7 +1,11 @@
+import { supabase } from "@/app/lib/supabase";
 import { ensureCurrentSeasonRoster } from "./season-roster.service";
 import {
   CURRENT_SEASON_LEAGUES,
-  clubInCurrentSeasonLeague,
+  LEAGUE_SPORT,
+  canonicalLeagueName,
+  findClubOnRoster,
+  seasonNamesMatch,
 } from "../lib/current-season";
 
 type SupporterRef = {
@@ -89,62 +93,69 @@ export function groupTeams(teams: TeamOption[]): TeamGroup[] {
       })),
   }));
 }
+type CatalogClubRow = {
+  id: string;
+  name: string;
+  sport: string;
+  competition: string;
+};
+
 export async function getTeamCatalog(): Promise<TeamGroup[]> {
   await ensureCurrentSeasonRoster();
   const { data, error } = await supabase
     .from("clubs")
-    .select(
-      "id, name, competition_id, competitions ( name, sports ( name ) )"
-    )
-    .not("competition_id", "is", null)
+    .select("id, name, competitions ( name, sports ( name ) )")
     .order("name");
 
   if (error) throw error;
 
-  const grouped = new Map<string, Map<string, TeamOption[]>>();
-
-  for (const row of data ?? []) {
+  const rows: CatalogClubRow[] = (data ?? []).map((row) => {
     const competition = (
       row as unknown as {
         competitions: { name: string | null; sports: { name: string } | null } | null;
       }
     ).competitions;
-    const sport = competition?.sports?.name ?? "Other";
-    const competitionName = competition?.name ?? "Other";
-    if (
-      CURRENT_SEASON_LEAGUES[competitionName] &&
-      !clubInCurrentSeasonLeague(competitionName, row.name as string)
-    ) {
-      continue;
-    }
-    const team: TeamOption = {
+    return {
       id: row.id as string,
       name: row.name as string,
-      displayName: displayClubName(row.name as string),
-      sport,
-      competition: competitionName,
+      sport: competition?.sports?.name ?? "Other",
+      competition: competition?.name ?? "Other",
     };
-    if (!grouped.has(sport)) grouped.set(sport, new Map());
-    const byComp = grouped.get(sport)!;
-    if (!byComp.has(competitionName)) byComp.set(competitionName, []);
-    byComp.get(competitionName)!.push(team);
-  }
-
-  const sports = [...grouped.keys()].sort((a, b) => {
-    const ai = SPORT_ORDER.indexOf(a);
-    const bi = SPORT_ORDER.indexOf(b);
-    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi) || a.localeCompare(b);
   });
 
-  return sports.map((sport) => ({
-    sport,
-    competitions: [...grouped.get(sport)!.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([name, teams]) => ({
-        name,
-        teams: teams.sort((a, b) => a.displayName.localeCompare(b.displayName)),
-      })),
-  }));
+  const teams: TeamOption[] = [];
+  const usedIds = new Set<string>();
+
+  for (const [league, names] of Object.entries(CURRENT_SEASON_LEAGUES)) {
+    const sport = LEAGUE_SPORT[league] ?? "Football";
+    for (const name of names) {
+      const club = findClubOnRoster(rows, name);
+      const team: TeamOption = {
+        id: club?.id ?? `season:${league}:${name}`,
+        name: club?.name ?? name,
+        displayName: displayClubName(club?.name ?? name),
+        sport: club?.sport && club.sport !== "Other" ? club.sport : sport,
+        competition: league,
+      };
+      if (club) usedIds.add(club.id);
+      teams.push(team);
+    }
+  }
+
+  for (const row of rows) {
+    if (usedIds.has(row.id)) continue;
+    if (canonicalLeagueName(row.competition)) continue;
+    if (!row.id || row.competition === "Other") continue;
+    teams.push({
+      id: row.id,
+      name: row.name,
+      displayName: displayClubName(row.name),
+      sport: row.sport,
+      competition: row.competition,
+    });
+  }
+
+  return groupTeams(teams);
 }
 
 export async function findClubByPreferenceName(
@@ -185,12 +196,16 @@ export async function findClubByPreferenceName(
       competitions: { name: string | null; sports: { name: string } | null } | null;
     }
   ).competitions;
+  const currentLeague =
+    Object.entries(CURRENT_SEASON_LEAGUES).find(([, names]) =>
+      names.some((clubName) => seasonNamesMatch(clubName, data.name as string))
+    )?.[0] ?? competition?.name ?? "";
   return {
     id: data.id as string,
     name: data.name as string,
     displayName: displayClubName(data.name as string),
-    sport: competition?.sports?.name ?? "Football",
-    competition: competition?.name ?? "",
+    sport: competition?.sports?.name ?? LEAGUE_SPORT[currentLeague] ?? "Football",
+    competition: currentLeague,
   };
 }
 
