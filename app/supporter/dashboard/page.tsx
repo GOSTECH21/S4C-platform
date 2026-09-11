@@ -415,12 +415,20 @@ function ProjectCard({
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        <div className="rounded-xl bg-green-500 px-4 py-3 text-slate-950">
+      <div className="mt-5 flex items-center gap-3">
+        <div
+          className={`shrink-0 rounded-xl bg-green-500 text-slate-950 ${
+            featured ? "px-4 py-3" : "px-3 py-2"
+          }`}
+        >
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em]">
             Sponsorship / {scoreLabel}
           </p>
-          <p className="text-2xl font-black leading-tight">
+          <p
+            className={`font-black leading-tight ${
+              featured ? "text-2xl" : "text-xl"
+            }`}
+          >
             {formatSponsorshipRate(project.currentAmount, scoreLabel)}
           </p>
         </div>
