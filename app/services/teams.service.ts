@@ -100,13 +100,14 @@ type CatalogClubRow = {
   name: string;
   sport: string;
   competition: string;
+  competition_id: string | null;
 };
 
 export async function getTeamCatalog(): Promise<TeamGroup[]> {
   await ensureCurrentSeasonRoster();
   const { data, error } = await supabase
     .from("clubs")
-    .select("id, name, competitions ( name, sports ( name ) )")
+    .select("id, name, competition_id, competitions ( name, sports ( name ) )")
     .order("name");
 
   if (error) throw error;
@@ -122,6 +123,7 @@ export async function getTeamCatalog(): Promise<TeamGroup[]> {
       name: row.name as string,
       sport: competition?.sports?.name ?? "Other",
       competition: competition?.name ?? "Other",
+      competition_id: (row.competition_id as string | null) ?? null,
     };
   });
 

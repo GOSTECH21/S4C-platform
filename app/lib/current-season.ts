@@ -150,6 +150,40 @@ export const CURRENT_SEASON_LEAGUES: Record<string, string[]> = {
     "Venezia",
   ],
   "Six Nations": ["England", "France", "Ireland", "Italy", "Scotland", "Wales"],
+  NFL: [
+    "Arizona Cardinals",
+    "Atlanta Falcons",
+    "Baltimore Ravens",
+    "Buffalo Bills",
+    "Carolina Panthers",
+    "Chicago Bears",
+    "Cincinnati Bengals",
+    "Cleveland Browns",
+    "Dallas Cowboys",
+    "Denver Broncos",
+    "Detroit Lions",
+    "Green Bay Packers",
+    "Houston Texans",
+    "Indianapolis Colts",
+    "Jacksonville Jaguars",
+    "Kansas City Chiefs",
+    "Las Vegas Raiders",
+    "Los Angeles Chargers",
+    "Los Angeles Rams",
+    "Miami Dolphins",
+    "Minnesota Vikings",
+    "New England Patriots",
+    "New Orleans Saints",
+    "New York Giants",
+    "New York Jets",
+    "Philadelphia Eagles",
+    "Pittsburgh Steelers",
+    "San Francisco 49ers",
+    "Seattle Seahawks",
+    "Tampa Bay Buccaneers",
+    "Tennessee Titans",
+    "Washington Commanders",
+  ],
 };
 
 export const LEAGUE_SPORT: Record<string, string> = {
@@ -161,6 +195,19 @@ export const LEAGUE_SPORT: Record<string, string> = {
   "Ligue 1": "Football",
   "Serie A": "Football",
   "Six Nations": "Rugby",
+  NFL: "NFL",
+};
+
+export const LEAGUE_COUNTRY: Record<string, string> = {
+  "Premier League": "England",
+  "EFL Championship": "England",
+  "Scottish Premiership": "Scotland",
+  Bundesliga: "Germany",
+  "La Liga": "Spain",
+  "Ligue 1": "France",
+  "Serie A": "Italy",
+  "Six Nations": "Europe",
+  NFL: "USA",
 };
 
 const LEAGUE_ALIASES: Record<string, string> = {
@@ -183,6 +230,9 @@ const LEAGUE_ALIASES: Record<string, string> = {
   "serie a": "Serie A",
   "six nations": "Six Nations",
   "guinness six nations": "Six Nations",
+  nfl: "NFL",
+  "nfl regular season": "NFL",
+  "national football league": "NFL",
 };
 
 const CLUB_ALIASES: Record<string, string[]> = {
@@ -220,6 +270,14 @@ const CLUB_ALIASES: Record<string, string[]> = {
   "saint johnstone": ["st johnstone"],
   "st mirren": ["saint mirren"],
   "saint mirren": ["st mirren"],
+  "new england patriots": ["patriots"],
+  patriots: ["new england patriots"],
+  "kansas city chiefs": ["chiefs"],
+  chiefs: ["kansas city chiefs"],
+  "san francisco 49ers": ["49ers", "niners"],
+  "49ers": ["san francisco 49ers"],
+  "washington commanders": ["commanders"],
+  commanders: ["washington commanders"],
 };
 
 export function normalizeSeasonName(value: string): string {
@@ -287,11 +345,18 @@ export function isCurrentSeasonLeagueFixture(
   );
 }
 
-export function findClubOnRoster<T extends { name: string }>(
+export function findClubOnRoster<T extends { name: string; competition_id?: string | null }>(
   clubs: T[],
   name: string
 ): T | undefined {
-  return clubs.find((club) => seasonNamesMatch(club.name, name));
+  const matches = clubs.filter((club) => seasonNamesMatch(club.name, name));
+  if (matches.length === 0) return undefined;
+  return [...matches].sort((left, right) => {
+    const leftAssigned = left.competition_id ? 0 : 1;
+    const rightAssigned = right.competition_id ? 0 : 1;
+    if (leftAssigned !== rightAssigned) return leftAssigned - rightAssigned;
+    return left.name.length - right.name.length;
+  })[0];
 }
 
 export function clubsInCurrentSeasonCompetition<T extends { name: string }>(

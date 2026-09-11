@@ -87,8 +87,9 @@ export default function MyS4PDashboardPage() {
           <h2 className="text-2xl font-bold">No sponsored match right now</h2>
           <p className="mt-3 text-slate-300">
             You support {teams.map((team) => team.displayName).join(", ")}.
-            When one of those teams is playing, you will see the five climate
-            projects their sustainability director selected for that match.
+            When one of those teams is playing, you will get a match-day alert
+            on your phone and you will see the sponsored climate projects here
+            so you can vote.
           </p>
           <Link
             href={SUPPORTER_TEAMS_PATH}
@@ -110,6 +111,22 @@ export default function MyS4PDashboardPage() {
           </div>
         </div>
       )}
+      <div className="mx-auto max-w-5xl px-8">
+        <div className="rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+            Match-day alert
+          </p>
+          <p className="mt-2 text-lg font-bold text-white">
+            {campaigns.length === 1
+              ? `${campaigns[0].matchTitle} has sponsored climate projects ready for your vote.`
+              : `${campaigns.length} sponsored matches are live for the teams you support.`}
+          </p>
+          <p className="mt-2 text-sm text-slate-300">
+            The same alert is sent to your phone. Vote below, then review funded
+            value and carbon impact on Climate Projects.
+          </p>
+        </div>
+      </div>
       {campaigns.map((campaign) => (
         <CampaignPanel
           key={campaign.campaignId ?? campaign.clubId}

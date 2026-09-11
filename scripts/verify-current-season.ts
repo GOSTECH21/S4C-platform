@@ -46,6 +46,23 @@ for (const promoted of ["Coventry City", "Ipswich Town", "Hull City"]) {
 }
 
 assert(
+  clubInCurrentSeasonLeague("NFL", "New England Patriots"),
+  "New England Patriots must be in the current NFL catalog"
+);
+assert(
+  clubInCurrentSeasonLeague("La Liga", "Real Madrid"),
+  "Real Madrid must be in La Liga"
+);
+assert(
+  clubInCurrentSeasonLeague("Serie A", "AC Milan"),
+  "AC Milan must be in Serie A"
+);
+assert(
+  clubInCurrentSeasonLeague("Six Nations", "Scotland"),
+  "Scotland must be in Six Nations"
+);
+
+assert(
   !isCurrentSeasonLeagueFixture(
     "Premier League",
     "Arsenal",
@@ -112,10 +129,28 @@ function main() {
           "Live catalog is missing West Ham United from the Championship."
         );
       }
+      const needed = [
+        ["Football", "Premier League", "Arsenal"],
+        ["Football", "Scottish Premiership", "Hearts"],
+        ["Football", "La Liga", "Real Madrid"],
+        ["Football", "Serie A", "AC Milan"],
+        ["Rugby", "Six Nations", "Scotland"],
+        ["NFL", "NFL", "New England Patriots"],
+      ] as const;
+      for (const [sport, league, team] of needed) {
+        const group = catalog.find((item) => item.sport === sport);
+        const competition = group?.competitions.find((item) => item.name === league);
+        const found = competition?.teams.some((item) =>
+          new RegExp(team, "i").test(item.displayName + " " + item.name)
+        );
+        if (!found) {
+          throw new Error(`Live catalog is missing ${team} in ${league}.`);
+        }
+      }
       console.log(
         "Live catalog: Premier League",
         names.length,
-        "clubs; Championship includes West Ham."
+        "clubs; Championship includes West Ham; fan scenario teams present."
       );
     })
     .catch((error) => {

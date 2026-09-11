@@ -125,8 +125,10 @@ export default function RegisterPage() {
         </p>
         <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
         <p className="mt-2 text-slate-400">
-          Create your account and choose the teams you support. You will only
-          see sponsored climate projects when those teams are playing.
+          Create your account and choose the teams you support across football,
+          rugby and American Football. You will only see sponsored climate
+          projects when those teams are playing — and you will get a match-day
+          alert when a sponsored match is live.
         </p>
 
         {error && (
@@ -176,7 +178,8 @@ export default function RegisterPage() {
             in the EFL Championship, so they cannot appear as Premier League
             opponents (Arsenal cannot play West Ham in the league this season).
             Examples: Arsenal (Premier League), Hearts of Midlothian FC
-            (Scottish Premiership), and Scotland (Six Nations Rugby).
+            (Scottish Premiership), Real Madrid (La Liga), AC Milan (Serie A),
+            Scotland (Six Nations Rugby), and New England Patriots (NFL).
           </p>
 
           <div className="mt-6">

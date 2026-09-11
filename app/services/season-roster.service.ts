@@ -1,6 +1,8 @@
 import {
   CURRENT_SEASON,
   CURRENT_SEASON_LEAGUES,
+  LEAGUE_COUNTRY,
+  LEAGUE_SPORT,
   canonicalLeagueName,
   findClubOnRoster,
   isCurrentSeasonLeagueFixture,
@@ -45,30 +47,22 @@ async function syncCurrentSeasonRoster(): Promise<void> {
     .select("id, name, competition_id");
   if (clubError) throw clubError;
 
+  const { data: sports, error: sportsError } = await supabase
+    .from("sports")
+    .select("id, name");
+  if (sportsError) throw sportsError;
+
   const clubRows = (clubs ?? []) as ClubRow[];
   const byName = new Map(
     (competitions ?? []).map((row) => [row.name, row as CompetitionRow])
   );
+  const sportsByName = new Map(
+    (sports ?? []).map((row) => [row.name as string, row as { id: string; name: string }])
+  );
+
+  await ensureLeagueCompetitions(byName, sportsByName);
 
   if (rosterAlreadyCurrent(clubRows, byName)) return;
-
-  const football = byName.get("Premier League");
-  if (!football?.sport_id) return;
-
-  if (!byName.has("EFL Championship")) {
-    const { data: created, error } = await supabase
-      .from("competitions")
-      .insert({
-        sport_id: football.sport_id,
-        name: "EFL Championship",
-        country: "England",
-        season: CURRENT_SEASON,
-      })
-      .select("id, name, sport_id, country, season")
-      .single();
-    if (error) throw error;
-    byName.set(created.name, created as CompetitionRow);
-  }
 
   for (const competition of byName.values()) {
     if (
@@ -134,6 +128,39 @@ async function syncCurrentSeasonRoster(): Promise<void> {
   }
 
   await dropStaleLeagueFixtures(clubRows, byName);
+}
+
+async function ensureLeagueCompetitions(
+  byName: Map<string, CompetitionRow>,
+  sportsByName: Map<string, { id: string; name: string }>
+): Promise<void> {
+  for (const league of Object.keys(CURRENT_SEASON_LEAGUES)) {
+    if (byName.has(league)) continue;
+    const sportName = LEAGUE_SPORT[league] ?? "Football";
+    let sport = sportsByName.get(sportName);
+    if (!sport) {
+      const { data: createdSport, error } = await supabase
+        .from("sports")
+        .insert({ name: sportName })
+        .select("id, name")
+        .single();
+      if (error) throw error;
+      sport = createdSport as { id: string; name: string };
+      sportsByName.set(sport.name, sport);
+    }
+    const { data: created, error } = await supabase
+      .from("competitions")
+      .insert({
+        sport_id: sport.id,
+        name: league,
+        country: LEAGUE_COUNTRY[league] ?? null,
+        season: CURRENT_SEASON,
+      })
+      .select("id, name, sport_id, country, season")
+      .single();
+    if (error) throw error;
+    byName.set(created.name, created as CompetitionRow);
+  }
 }
 
 function rosterAlreadyCurrent(

@@ -7,7 +7,10 @@ import { CURRENT_SEASON } from "@/app/lib/current-season";
 const DEFAULT_OPEN = new Set([
   "Premier League",
   "Scottish Premiership",
+  "La Liga",
+  "Serie A",
   "Six Nations",
+  "NFL",
 ]);
 
 export default function TeamPicker({

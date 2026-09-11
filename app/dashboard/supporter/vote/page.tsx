@@ -52,7 +52,11 @@ export default function VotePage() {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
               Your climate votes
             </p>
-            <h1 className="mt-3 text-4xl font-black">Climate Projects</h1>
+            <p className="mt-3 max-w-2xl text-slate-300">
+              Review the climate projects you voted for, and the ones that were
+              funded — including the total value of each funded project and its
+              carbon impact.
+            </p>
           </div>
 
           <Link
@@ -160,15 +164,15 @@ function HistoryCard({
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <Stat
-          label="Est. CO₂ saved"
+          label="Carbon impact"
           value={
             project.estimated_co2 != null
-              ? `${project.estimated_co2.toLocaleString()} t`
+              ? `${project.estimated_co2.toLocaleString()} t CO₂`
               : "TBC"
           }
         />
         <Stat
-          label="Funding goal"
+          label={funded ? "Total value" : "Project value"}
           value={
             project.funding_goal != null
               ? `£${project.funding_goal.toLocaleString()}`
