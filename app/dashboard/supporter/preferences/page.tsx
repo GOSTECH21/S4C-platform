@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 import FanNav from "../components/FanNav";
 import TeamPicker from "@/app/components/fan/TeamPicker";
+import MyTeamsList from "@/app/components/fan/MyTeamsList";
 import {
   getSupportedTeams,
   getTeamCatalog,
@@ -83,12 +84,12 @@ export default function SupporterPreferencesPage() {
               My Teams & Sports
             </p>
             <h1 className="mt-3 text-4xl font-black">
-              {editing ? "Choose the teams you follow" : "My teams"}
+              {editing ? "Add or change teams" : "My teams"}
             </h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
-                ? "Pick teams across sports and leagues. My S4P only shows matches for the teams you support."
-                : "Click a league to see the teams you support in that competition."}
+                ? "Pick teams across sports and leagues, then save. My S4P only shows matches for the teams you support."
+                : "Showing only the clubs you selected — not the full league. Click a league to see your teams."}
             </p>
           </div>
 
@@ -113,12 +114,15 @@ export default function SupporterPreferencesPage() {
           <p className="mt-8 text-slate-400">Loading teams...</p>
         ) : (
           <div className="mt-8">
-            <TeamPicker
-              catalog={catalog}
-              selected={selected}
-              onChange={setSelected}
-              selectedOnly={!editing}
-            />
+            {editing ? (
+              <TeamPicker
+                catalog={catalog}
+                selected={selected}
+                onChange={setSelected}
+              />
+            ) : (
+              <MyTeamsList teams={selected} />
+            )}
           </div>
         )}
 
