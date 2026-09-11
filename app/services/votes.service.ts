@@ -1,10 +1,18 @@
 import { supabase } from "../lib/supabase";
 import {
+  displayClubName,
   getSupportedTeams,
   scoreLabelForSport,
   sponsorLogoSrc,
   type TeamOption,
 } from "./teams.service";
+import {
+  OPENING_SPONSORSHIP,
+  DEFAULT_MAX_SPONSORSHIP,
+  VOTE_TARGET_FOR_MAX,
+  currentSponsorshipAmount,
+  formatMatchHeadline,
+} from "../lib/sponsorship-auction";
 
 export type ClimateProject = {
   id: string;
@@ -220,23 +228,32 @@ export async function getVotedProjects(
     .filter((project): project is ClimateProject => Boolean(project));
 }
 
+export type CampaignProject = ClimateProject & {
+  votesReceived: number;
+  openingAmount: number;
+  maxAmount: number;
+  currentAmount: number;
+  voteTarget: number;
+};
+
 export type S4PCampaign = {
   clubId: string;
   clubName: string;
   matchTitle: string;
   sponsorName: string;
   sponsorLogoUrl: string | null;
-  amountPerGoal: number;
   scoreLabel: string;
   requiredVotes: number;
   fixtureId: string | null;
-  featuredProject: ClimateProject | null;
-  projects: ClimateProject[];
+  featuredProject: CampaignProject | null;
+  projects: CampaignProject[];
   campaignId: string | null;
+  openingAmount: number;
+  maxAmount: number;
+  voteTarget: number;
 };
 
 const DEFAULT_SPONSOR = "Budweiser";
-const DEFAULT_AMOUNT_PER_GOAL = 10000;
 const REQUIRED_VOTES = 3;
 
 /**
@@ -327,7 +344,7 @@ async function campaignFromClubPortfolio(
     (portfolio ?? []).map((row) => row.fixture_id).find(Boolean) ?? null;
 
   // Match title from the linked (or any) fixture involving this club.
-  let matchTitle = `${club.name} Climate Campaign`;
+  let matchTitle = club.name;
   const fixtureQuery = fixtureId
     ? supabase
         .from("fixtures")
@@ -347,7 +364,7 @@ async function campaignFromClubPortfolio(
       .select("id, name")
       .in("id", [fixture.home_club_id, fixture.away_club_id]);
     const nameById = Object.fromEntries(
-      (names ?? []).map((c) => [c.id, c.name])
+      (names ?? []).map((c) => [c.id, displayClubName(c.name as string)])
     );
     matchTitle = `${nameById[fixture.home_club_id] ?? club.name} vs ${
       nameById[fixture.away_club_id] ?? "Opponent"
@@ -359,23 +376,32 @@ async function campaignFromClubPortfolio(
   const sponsor = await resolveCampaignSponsor({
     clubName: club.name,
     matchTitle,
-    amountPerGoal: DEFAULT_AMOUNT_PER_GOAL,
     sport: team.sport,
   });
+  const voteCounts = await countProjectVotes(campaignId, [
+    featuredProject?.id,
+    ...clubProjects.map((project) => project.id),
+  ]);
 
   return {
     clubId: club.id,
     clubName: team.displayName || club.name,
-    matchTitle,
+    matchTitle: formatMatchHeadline(matchTitle),
     sponsorName: sponsor.name,
     sponsorLogoUrl: sponsor.logoUrl,
-    amountPerGoal: sponsor.amountPerGoal,
     scoreLabel: sponsor.scoreLabel,
     requiredVotes: REQUIRED_VOTES,
     fixtureId,
-    featuredProject,
-    projects: clubProjects,
+    featuredProject: featuredProject
+      ? withAuction(featuredProject, voteCounts.get(featuredProject.id) ?? 0)
+      : null,
+    projects: clubProjects.map((project) =>
+      withAuction(project, voteCounts.get(project.id) ?? 0)
+    ),
     campaignId,
+    openingAmount: OPENING_SPONSORSHIP,
+    maxAmount: DEFAULT_MAX_SPONSORSHIP,
+    voteTarget: VOTE_TARGET_FOR_MAX,
   };
 }
 
@@ -386,13 +412,14 @@ async function buildCampaignFromMatchRow(
     title: string | null;
     sponsorship_per_goal: number | string | null;
     maximum_votes: number | null;
+    match_id?: string | null;
   },
   teams: TeamOption[]
 ): Promise<S4PCampaign | null> {
 
   const { data: rows } = await supabase
     .from("campaign_projects")
-    .select(`display_order, climate_projects (${PROJECT_FIELDS})`)
+    .select(`display_order, vote_count, climate_project_id, climate_projects (${PROJECT_FIELDS})`)
     .eq("campaign_id", openCampaign.id)
     .order("display_order");
 
@@ -406,6 +433,12 @@ async function buildCampaignFromMatchRow(
 
   if (projects.length === 0) return null;
 
+  const storedVotes = new Map<string, number>();
+  for (const row of rows ?? []) {
+    const id = row.climate_project_id as string | null;
+    if (id) storedVotes.set(id, Number(row.vote_count) || 0);
+  }
+
   const { data: club } = await supabase
     .from("clubs")
     .select("id, name")
@@ -413,21 +446,28 @@ async function buildCampaignFromMatchRow(
     .maybeSingle();
 
   const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
-  const matchTitle =
-    openCampaign.title?.replace(/ Climate Campaign$/i, "") ??
-    club?.name ??
-    "Match";
+  const fixtureTitle = await matchTitleFromFixture(openCampaign.match_id);
+  const matchTitle = formatMatchHeadline(
+    fixtureTitle ?? openCampaign.title ?? club?.name ?? "Match"
+  );
   const fanTeam =
     teams.find((team) => team.id === openCampaign.club_id) ??
     teams.find((team) => titleIncludesTeam(matchTitle.toLowerCase(), team));
-  const amountPerGoal =
-    Number(openCampaign.sponsorship_per_goal) || DEFAULT_AMOUNT_PER_GOAL;
+  const maxAmount =
+    Number(openCampaign.sponsorship_per_goal) > OPENING_SPONSORSHIP
+      ? Number(openCampaign.sponsorship_per_goal)
+      : DEFAULT_MAX_SPONSORSHIP;
   const sponsor = await resolveCampaignSponsor({
     clubName: fanTeam?.name ?? club?.name ?? "Your club",
     matchTitle,
-    amountPerGoal,
     sport: fanTeam?.sport ?? "Football",
   });
+  const counted = await countProjectVotes(openCampaign.id, [
+    featuredProject?.id,
+    ...clubProjects.map((project) => project.id),
+  ]);
+  const votesFor = (projectId: string) =>
+    Math.max(counted.get(projectId) ?? 0, storedVotes.get(projectId) ?? 0);
 
   return {
     clubId: openCampaign.club_id,
@@ -435,30 +475,100 @@ async function buildCampaignFromMatchRow(
     matchTitle,
     sponsorName: sponsor.name,
     sponsorLogoUrl: sponsor.logoUrl,
-    amountPerGoal: sponsor.amountPerGoal,
     scoreLabel: sponsor.scoreLabel,
     requiredVotes: openCampaign.maximum_votes ?? REQUIRED_VOTES,
-    fixtureId: null,
-    featuredProject,
-    projects: clubProjects,
+    fixtureId: openCampaign.match_id ?? null,
+    featuredProject: featuredProject
+      ? withAuction(featuredProject, votesFor(featuredProject.id), maxAmount)
+      : null,
+    projects: clubProjects.map((project) =>
+      withAuction(project, votesFor(project.id), maxAmount)
+    ),
     campaignId: openCampaign.id,
+    openingAmount: OPENING_SPONSORSHIP,
+    maxAmount,
+    voteTarget: VOTE_TARGET_FOR_MAX,
   };
+}
+
+function withAuction(
+  project: ClimateProject,
+  votesReceived: number,
+  maxAmount = DEFAULT_MAX_SPONSORSHIP
+): CampaignProject {
+  const openingAmount = OPENING_SPONSORSHIP;
+  const voteTarget = VOTE_TARGET_FOR_MAX;
+  return {
+    ...project,
+    votesReceived,
+    openingAmount,
+    maxAmount,
+    voteTarget,
+    currentAmount: currentSponsorshipAmount({
+      votesReceived,
+      openingAmount,
+      maxAmount,
+      voteTarget,
+    }),
+  };
+}
+
+async function countProjectVotes(
+  campaignId: string | null,
+  projectIds: (string | null | undefined)[]
+): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  const ids = projectIds.filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return counts;
+
+  let query = supabase
+    .from("supporter_votes")
+    .select("climate_project_id")
+    .in("climate_project_id", ids);
+  if (campaignId) query = query.eq("campaign_id", campaignId);
+  const { data } = await query;
+
+  for (const row of data ?? []) {
+    const id = row.climate_project_id as string;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  return counts;
+}
+
+async function matchTitleFromFixture(
+  fixtureId: string | null | undefined
+): Promise<string | null> {
+  if (!fixtureId) return null;
+  const { data: fixture } = await supabase
+    .from("fixtures")
+    .select("home_club_id, away_club_id")
+    .eq("id", fixtureId)
+    .maybeSingle();
+  if (!fixture) return null;
+  const { data: names } = await supabase
+    .from("clubs")
+    .select("id, name")
+    .in("id", [fixture.home_club_id, fixture.away_club_id]);
+  const nameById = Object.fromEntries(
+    (names ?? []).map((row) => [row.id, displayClubName(row.name as string)])
+  );
+  const home = nameById[fixture.home_club_id as string];
+  const away = nameById[fixture.away_club_id as string];
+  if (!home || !away) return null;
+  return `${home} v ${away}`;
 }
 
 async function resolveCampaignSponsor({
   clubName,
   matchTitle,
-  amountPerGoal,
   sport,
 }: {
   clubName: string;
   matchTitle: string;
-  amountPerGoal: number;
   sport: string;
 }): Promise<{
   name: string;
   logoUrl: string | null;
-  amountPerGoal: number;
   scoreLabel: string;
 }> {
   const scoreLabel = scoreLabelForSport(sport);
@@ -492,7 +602,6 @@ async function resolveCampaignSponsor({
 
   let name = DEFAULT_SPONSOR;
   let logoUrl = sponsorLogoSrc(DEFAULT_SPONSOR, null);
-  let amount = amountPerGoal;
 
   if (preferred) {
     if (preferred.sponsor_id) {
@@ -508,7 +617,7 @@ async function resolveCampaignSponsor({
     }
   }
 
-  return { name, logoUrl, amountPerGoal: amount, scoreLabel };
+  return { name, logoUrl, scoreLabel };
 }
 
 /**
@@ -541,6 +650,24 @@ export async function submitCampaignVotes(
 
   const { error } = await supabase.from("supporter_votes").insert(rows);
   if (error) throw error;
+
+  if (resolvedCampaignId) {
+    await refreshCampaignVoteCounts(resolvedCampaignId, campaignProjectIds);
+  }
+}
+
+async function refreshCampaignVoteCounts(
+  campaignId: string,
+  projectIds: string[]
+) {
+  const counted = await countProjectVotes(campaignId, projectIds);
+  for (const projectId of projectIds) {
+    await supabase
+      .from("campaign_projects")
+      .update({ vote_count: counted.get(projectId) ?? 0 })
+      .eq("campaign_id", campaignId)
+      .eq("climate_project_id", projectId);
+  }
 }
 
 export async function castVote(supporterId: string, projectId: string) {

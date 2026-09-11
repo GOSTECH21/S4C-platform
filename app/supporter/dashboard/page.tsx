@@ -7,37 +7,51 @@ import {
   getOrCreateSupporter,
   getVotedProjectIds,
   submitCampaignVotes,
-  type ClimateProject,
+  type CampaignProject,
   type S4PCampaign,
+  type Supporter,
 } from "@/app/services/votes.service";
 import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import { summariseImpact } from "@/app/lib/impact";
 import { FAN_LOGIN_PATH, SUPPORTER_TEAMS_PATH } from "@/app/lib/routes";
+import {
+  campaignHeadline,
+  formatMatchHeadline,
+  formatMoney,
+  formatSponsorshipRate,
+  formatVoteCount,
+  voteProgress,
+} from "@/app/lib/sponsorship-auction";
 
 export default function MyS4PDashboardPage() {
-  const [supporterId, setSupporterId] = useState<string | null>(null);
+  const [supporter, setSupporter] = useState<Supporter | null>(null);
   const [campaigns, setCampaigns] = useState<S4PCampaign[]>([]);
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  async function loadCampaigns(current: Supporter) {
+    const [supported, camps, voted] = await Promise.all([
+      getSupportedTeams(current),
+      getMyS4PCampaigns(current),
+      getVotedProjectIds(current.id),
+    ]);
+    setTeams(supported);
+    setCampaigns(camps);
+    setVotedIds(voted);
+  }
+
   useEffect(() => {
     async function load() {
       try {
-        const supporter = await getOrCreateSupporter();
-        if (!supporter) {
+        const current = await getOrCreateSupporter();
+        if (!current) {
           window.location.href = FAN_LOGIN_PATH;
           return;
         }
-        setSupporterId(supporter.id);
-        const [supported, camps] = await Promise.all([
-          getSupportedTeams(supporter),
-          getMyS4PCampaigns(supporter),
-        ]);
-        setTeams(supported);
-        setCampaigns(camps);
-        setVotedIds(await getVotedProjectIds(supporter.id));
+        setSupporter(current);
+        await loadCampaigns(current);
       } catch (err) {
         console.error("Failed to load My S4P campaign:", err);
         setError(
@@ -102,6 +116,11 @@ export default function MyS4PDashboardPage() {
     );
   }
 
+  const alertHeadline =
+    campaigns.length === 1
+      ? `${formatMatchHeadline(campaigns[0].matchTitle)} has sponsored climate projects ready for your vote.`
+      : `${campaigns.length} sponsored matches are live for the teams you support.`;
+
   return (
     <div className="space-y-16 pb-16">
       {error && (
@@ -116,11 +135,7 @@ export default function MyS4PDashboardPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
             Match-day alert
           </p>
-          <p className="mt-2 text-lg font-bold text-white">
-            {campaigns.length === 1
-              ? `${campaigns[0].matchTitle} has sponsored climate projects ready for your vote.`
-              : `${campaigns.length} sponsored matches are live for the teams you support.`}
-          </p>
+          <p className="mt-2 text-lg font-bold text-white">{alertHeadline}</p>
           <p className="mt-2 text-sm text-slate-300">
             The same alert is sent to your phone. Vote below, then review funded
             value and carbon impact on Climate Projects.
@@ -131,8 +146,12 @@ export default function MyS4PDashboardPage() {
         <CampaignPanel
           key={campaign.campaignId ?? campaign.clubId}
           campaign={campaign}
-          supporterId={supporterId}
+          supporterId={supporter?.id ?? null}
           votedIds={votedIds}
+          onVotesChanged={async () => {
+            if (!supporter) return;
+            await loadCampaigns(supporter);
+          }}
         />
       ))}
     </div>
@@ -143,10 +162,12 @@ function CampaignPanel({
   campaign,
   supporterId,
   votedIds,
+  onVotesChanged,
 }: {
   campaign: S4PCampaign;
   supporterId: string | null;
   votedIds: Set<string>;
+  onVotesChanged: () => Promise<void>;
 }) {
   const required = campaign.requiredVotes;
   const voteable = voteableProjects(campaign);
@@ -188,6 +209,7 @@ function CampaignPanel({
         campaign.campaignId
       );
       setSubmitted(true);
+      await onVotesChanged();
     } catch (err) {
       console.error("Failed to submit vote:", err);
       setError(
@@ -201,28 +223,29 @@ function CampaignPanel({
   const selectedProjects = voteable.filter((project) => selected.has(project.id));
   const impact = summariseImpact(selectedProjects);
   const canSubmit = selected.size === required && !submitting;
-  const s2ps = `£${campaign.amountPerGoal.toLocaleString()}/${campaign.scoreLabel}`;
+  const headline = campaignHeadline(campaign.matchTitle);
 
   return (
     <main className="pb-8 text-white">
       <div className="mx-auto max-w-5xl px-8">
         <div className="text-center">
-          <h1 className="text-3xl font-black md:text-4xl">
-            {campaign.matchTitle} Climate Campaign
-          </h1>
+          <h1 className="text-3xl font-black md:text-4xl">{headline}</h1>
           <p className="mx-auto mt-3 max-w-2xl text-slate-300">
             Vote for the{" "}
             <span className="font-bold text-white">
               {numberWord(required).toUpperCase()}
             </span>{" "}
-            climate projects you want funded if {campaign.clubName} scores a{" "}
-            {campaign.scoreLabel}. Each {campaign.scoreLabel} releases {s2ps}{" "}
-            for those projects.
+            Climate Projects you want funded if YOUR TEAM scores.
           </p>
-
-          <div className="mt-5 inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-sm font-bold text-white">
-            S2PS: {s2ps}
-          </div>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
+            The 72-hour voting window closes 2 hours before kick-off. Until then
+            the sponsorship amount per {campaign.scoreLabel} rises with votes,
+            from {formatMoney(campaign.openingAmount)} up to{" "}
+            {formatMoney(campaign.maxAmount)} at{" "}
+            {formatVoteCount(campaign.voteTarget)} votes. The highest-bidder
+            sponsor is then locked in. If your team does not score, they pay
+            nothing — but still reach every voter.
+          </p>
         </div>
 
         {error && (
@@ -233,9 +256,9 @@ function CampaignPanel({
 
         {submitted && !error && (
           <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
-            ✓ Your vote has been submitted. If {campaign.clubName} scores a{" "}
-            {campaign.scoreLabel}, {s2ps} will be split across your {required}{" "}
-            chosen projects.
+            ✓ Your vote has been submitted. Watch the Vote Received counters —
+            as they rise, the live sponsorship amount per {campaign.scoreLabel}{" "}
+            rises with them and locks 2 hours before kick-off.
           </div>
         )}
 
@@ -246,6 +269,7 @@ function CampaignPanel({
               featured
               sponsorName={campaign.sponsorName}
               sponsorLogoUrl={campaign.sponsorLogoUrl}
+              scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(campaign.featuredProject.id)}
               disabled={
                 !selected.has(campaign.featuredProject.id) &&
@@ -269,6 +293,7 @@ function CampaignPanel({
               project={project}
               sponsorName={campaign.sponsorName}
               sponsorLogoUrl={campaign.sponsorLogoUrl}
+              scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(project.id)}
               disabled={!selected.has(project.id) && selected.size >= required}
               onToggle={() => toggle(project.id)}
@@ -304,34 +329,28 @@ function CampaignPanel({
             </p>
           </div>
 
-          <div className="flex items-center gap-6">
-            <SponsorMark
-              name={campaign.sponsorName}
-              logoUrl={campaign.sponsorLogoUrl}
-            />
-            <button
-              onClick={submit}
-              disabled={!canSubmit}
-              className={`rounded-lg px-6 py-3 font-bold transition ${
-                canSubmit
-                  ? "bg-green-500 text-slate-950 hover:bg-green-400"
-                  : "cursor-not-allowed bg-slate-700 text-slate-400"
-              }`}
-            >
-              {submitting
-                ? "Submitting..."
-                : submitted
-                  ? "Update My Vote"
-                  : "Submit My Vote"}
-            </button>
-          </div>
+          <button
+            onClick={submit}
+            disabled={!canSubmit}
+            className={`rounded-lg px-6 py-3 font-bold transition ${
+              canSubmit
+                ? "bg-green-500 text-slate-950 hover:bg-green-400"
+                : "cursor-not-allowed bg-slate-700 text-slate-400"
+            }`}
+          >
+            {submitting
+              ? "Submitting..."
+              : submitted
+                ? "Update My Vote"
+                : "Submit My Vote"}
+          </button>
         </div>
       </div>
     </main>
   );
 }
 
-function voteableProjects(campaign: S4PCampaign): ClimateProject[] {
+function voteableProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
     ? [campaign.featuredProject, ...campaign.projects]
     : campaign.projects;
@@ -342,18 +361,25 @@ function ProjectCard({
   featured = false,
   sponsorName,
   sponsorLogoUrl,
+  scoreLabel,
   isSelected,
   disabled,
   onToggle,
 }: {
-  project: ClimateProject;
+  project: CampaignProject;
   featured?: boolean;
   sponsorName: string;
   sponsorLogoUrl: string | null;
+  scoreLabel: string;
   isSelected: boolean;
   disabled: boolean;
   onToggle: () => void;
 }) {
+  const progress = voteProgress({
+    votesReceived: project.votesReceived,
+    voteTarget: project.voteTarget,
+  });
+
   return (
     <div
       className={`flex flex-col rounded-2xl border p-6 md:p-8 ${
@@ -389,7 +415,39 @@ function ProjectCard({
         </div>
       )}
 
-      <SponsorMark name={sponsorName} logoUrl={sponsorLogoUrl} className="mt-5" />
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <div className="rounded-xl bg-green-500 px-4 py-3 text-slate-950">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em]">
+            Sponsorship / {scoreLabel}
+          </p>
+          <p className="text-2xl font-black leading-tight">
+            {formatSponsorshipRate(project.currentAmount, scoreLabel)}
+          </p>
+        </div>
+        <SponsorMark name={sponsorName} logoUrl={sponsorLogoUrl} />
+      </div>
+
+      <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+            Votes received
+          </p>
+          <p className="text-lg font-black text-white">
+            {formatVoteCount(project.votesReceived)}
+          </p>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
+          <div
+            className="h-full rounded-full bg-green-500 transition-all"
+            style={{ width: `${Math.max(progress * 100, progress > 0 ? 0.8 : 0)}%` }}
+          />
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Opens at {formatMoney(project.openingAmount)} · peaks at{" "}
+          {formatMoney(project.maxAmount)} / {scoreLabel} when votes reach{" "}
+          {formatVoteCount(project.voteTarget)}. Locked 2 hours before kick-off.
+        </p>
+      </div>
 
       <button
         onClick={onToggle}
@@ -422,7 +480,7 @@ function SponsorMark({
   className?: string;
 }) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex min-w-0 items-center gap-3 ${className}`}>
       {logoUrl ? (
         <img src={logoUrl} alt="" className="h-8 w-auto rounded-sm bg-white/10 p-1" />
       ) : (
