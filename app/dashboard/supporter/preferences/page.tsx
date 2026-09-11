@@ -16,6 +16,7 @@ import {
 import { getOrCreateSupporter } from "@/app/services/votes.service";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
 import {
+  isCupCompetition,
   matchSortKey,
   type UpcomingMatch,
 } from "@/app/lib/upcoming-matches";
@@ -135,6 +136,18 @@ export default function SupporterPreferencesPage() {
     })
     .sort((a, b) => matchSortKey(a.match).localeCompare(matchSortKey(b.match)));
 
+  const cups = selected
+    .flatMap((team) =>
+      (fixtures[team.id] ?? [])
+        .filter((match) => isCupCompetition(match.competition))
+        .map((match) => ({
+          clubId: team.id,
+          clubName: team.displayName,
+          match,
+        }))
+    )
+    .sort((a, b) => matchSortKey(a.match).localeCompare(matchSortKey(b.match)));
+
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
       <div className="mx-auto max-w-5xl">
@@ -151,7 +164,7 @@ export default function SupporterPreferencesPage() {
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
                 ? "Pick teams across sports and leagues, then save. My S4P only shows matches for the teams you support."
-                : "Showing only the clubs you selected — not the full league. Click a league to see your teams and their next matches."}
+                : "Showing only the clubs you selected — not the full league. Click a league to see your teams, next matches, and cup ties."}
             </p>
           </div>
 
@@ -184,7 +197,11 @@ export default function SupporterPreferencesPage() {
               />
             ) : (
               <>
-                <UpcomingMatches items={upcoming} loading={loadingFixtures} />
+                <UpcomingMatches
+                  items={upcoming}
+                  cups={cups}
+                  loading={loadingFixtures}
+                />
                 <MyTeamsList teams={selected} fixtures={fixtures} />
               </>
             )}

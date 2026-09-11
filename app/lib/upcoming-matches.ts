@@ -97,3 +97,38 @@ export function sourceLabel(source: UpcomingMatchSource): string {
 export function matchSortKey(match: UpcomingMatch): string {
   return `${match.date}T${(match.kickoff ?? "99:99").slice(0, 5)}`;
 }
+
+const CUP_NAME =
+  /champions league|europa league|europa cup|conference league|fa cup|scottish cup|carabao|league cup|premier sports cup|efl cup|\bcup\b|\btrophy\b|uefa super cup/;
+
+const LEAGUE_NAME =
+  /premier league|scottish premiership|premiership|la liga|bundesliga|serie a|ligue 1|championship\b|league one|league two|six nations/;
+
+export function isCupCompetition(name: string | null | undefined): boolean {
+  const value = (name ?? "").toLowerCase();
+  if (!value) return false;
+  if (CUP_NAME.test(value)) return true;
+  if (LEAGUE_NAME.test(value)) return false;
+  return false;
+}
+
+export function displayCompetition(name: string | null | undefined): string {
+  if (!name) return "";
+  const value = name.toLowerCase();
+  if (/champions league/.test(value)) return "UEFA Champions League";
+  if (/conference league/.test(value) || /europa conference/.test(value)) {
+    return "UEFA Europa Conference League";
+  }
+  if (/europa/.test(value)) return "UEFA Europa League";
+  if (/\bfa cup\b/.test(value)) return "FA Cup";
+  if (/scottish cup/.test(value) && !/league cup/.test(value)) {
+    return "Scottish Cup";
+  }
+  if (/carabao/.test(value) || (/league cup/.test(value) && /england/.test(value))) {
+    return "Carabao Cup";
+  }
+  if (/premier sports cup/.test(value) || (/league cup/.test(value) && /scotland/.test(value))) {
+    return "Scottish League Cup";
+  }
+  return name.replace(/^England - |^Scotland - |^Europe - /i, "").trim();
+}

@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { groupTeams, type TeamOption } from "@/app/services/teams.service";
 import { MatchLines } from "@/app/components/fan/UpcomingMatches";
-import type { UpcomingMatch } from "@/app/lib/upcoming-matches";
+import {
+  isCupCompetition,
+  type UpcomingMatch,
+} from "@/app/lib/upcoming-matches";
 
 export default function MyTeamsList({
   teams,
@@ -58,6 +61,9 @@ export default function MyTeamsList({
                     <div className="grid gap-3 px-4 pb-4 md:grid-cols-2">
                       {competition.teams.map((team) => {
                         const matches = fixtures[team.id] ?? [];
+                        const cups = matches.filter((match) =>
+                          isCupCompetition(match.competition)
+                        );
                         return (
                           <div
                             key={team.id}
@@ -69,11 +75,23 @@ export default function MyTeamsList({
                                 Next matches
                               </p>
                               <MatchLines
-                                matches={matches.slice(0, 3)}
+                                matches={matches.slice(0, 4)}
                                 clubName={team.displayName}
                                 compact
                               />
                             </div>
+                            {cups.length > 0 && (
+                              <div className="mt-3 border-t border-green-700/30 pt-3">
+                                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-800">
+                                  Cup competitions
+                                </p>
+                                <MatchLines
+                                  matches={cups.slice(0, 6)}
+                                  clubName={team.displayName}
+                                  compact
+                                />
+                              </div>
+                            )}
                           </div>
                         );
                       })}

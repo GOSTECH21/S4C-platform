@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import {
+  isCupCompetition,
   matchSortKey,
   namesMatch,
   normalizeClubName,
@@ -311,18 +312,43 @@ async function fetchClubWebsiteFixtures(team: TeamRef): Promise<UpcomingMatch[]>
   const html = await fetchText(page.url, 3600);
   if (!html) return [];
   if (page.parser === "hearts") {
-    return parseHeartsFixtureCards(html, page.url).slice(0, 8);
+    return parseHeartsFixtureCards(html, page.url).slice(0, 24);
   }
   return [];
+}
+
+function monthKeys(count: number): string[] {
+  const now = new Date();
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() + index, 1);
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${date.getFullYear()}-${month}`;
+  });
 }
 
 async function fetchBbcFixtures(team: TeamRef): Promise<UpcomingMatch[]> {
   const mapped = bbcSlug(team);
   if (!mapped) return [];
-  const url = `https://www.bbc.co.uk/sport/${mapped.sport}/teams/${mapped.slug}/scores-fixtures`;
-  const html = await fetchText(url, 1800);
-  if (!html) return [];
-  return parseBbcScoresFixtures(html, url).slice(0, 8);
+  const base = `https://www.bbc.co.uk/sport/${mapped.sport}/teams/${mapped.slug}/scores-fixtures`;
+  const urls =
+    mapped.sport === "football"
+      ? monthKeys(8).map((month) => `${base}/${month}`)
+      : [base];
+
+  const pages = await Promise.all(urls.map((url) => fetchText(url, 1800)));
+  const matches: UpcomingMatch[] = [];
+  const seen = new Set<string>();
+  for (let index = 0; index < pages.length; index += 1) {
+    const html = pages[index];
+    if (!html) continue;
+    for (const match of parseBbcScoresFixtures(html, urls[index])) {
+      const key = matchKey(match);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      matches.push(match);
+    }
+  }
+  return matches.sort((a, b) => matchSortKey(a).localeCompare(matchSortKey(b)));
 }
 
 async function fetchFeedFixtures(team: TeamRef): Promise<UpcomingMatch[]> {
@@ -417,6 +443,45 @@ function matchKey(match: UpcomingMatch): string {
   return `${match.date}|${normalizeClubName(match.homeName)}|${normalizeClubName(match.awayName)}`;
 }
 
+function sourceRank(source: UpcomingMatch["source"]): number {
+  if (source === "club-website") return 0;
+  if (source === "fixtures-list") return 1;
+  return 2;
+}
+
+function mergeByPreferredSource(groups: UpcomingMatch[][]): UpcomingMatch[] {
+  const byKey = new Map<string, UpcomingMatch>();
+  for (const group of groups) {
+    for (const match of group) {
+      const key = matchKey(match);
+      const existing = byKey.get(key);
+      if (!existing || sourceRank(match.source) < sourceRank(existing.source)) {
+        byKey.set(key, {
+          ...match,
+          venue: match.venue || existing?.venue || null,
+        });
+      } else if (existing && !existing.venue && match.venue) {
+        byKey.set(key, { ...existing, venue: match.venue });
+      }
+    }
+  }
+  return [...byKey.values()].sort((a, b) =>
+    matchSortKey(a).localeCompare(matchSortKey(b))
+  );
+}
+
+function selectDisplayedFixtures(matches: UpcomingMatch[]): UpcomingMatch[] {
+  const cups = matches.filter((match) => isCupCompetition(match.competition));
+  const league = matches.filter((match) => !isCupCompetition(match.competition));
+  const chosen = new Map<string, UpcomingMatch>();
+  for (const match of [...league.slice(0, 4), ...cups.slice(0, 12)]) {
+    chosen.set(matchKey(match), match);
+  }
+  return [...chosen.values()].sort((a, b) =>
+    matchSortKey(a).localeCompare(matchSortKey(b))
+  );
+}
+
 function enrichVenues(
   matches: UpcomingMatch[],
   extras: UpcomingMatch[]
@@ -503,14 +568,11 @@ export async function getUpcomingFixturesForTeams(
         fetchS4pFixtures(team, clubRows),
       ]);
       const extras = [...fromBbc, ...fromFeed, ...fromDb];
-      if (fromSite.length > 0) {
-        result[team.id] = enrichVenues(fromSite, extras).slice(0, 5);
-      } else if (fromBbc.length > 0) {
-        result[team.id] = enrichVenues(fromBbc, extras).slice(0, 5);
-      } else if (fromFeed.length > 0) {
-        result[team.id] = enrichVenues(fromFeed, fromDb).slice(0, 5);
+      const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed]);
+      if (live.length > 0) {
+        result[team.id] = selectDisplayedFixtures(enrichVenues(live, extras));
       } else {
-        result[team.id] = fromDb.slice(0, 5);
+        result[team.id] = selectDisplayedFixtures(fromDb);
       }
     })
   );
