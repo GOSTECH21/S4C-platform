@@ -1,8 +1,10 @@
 import {
   FEATURED_GLOBAL_SCHOOLS_SOLAR,
   FEATURED_PROJECT_NAME,
+  INTERNATIONAL_CLIMATE_PROJECTS,
   PARTNER_MATCH_DAY_CATALOG,
-  SCCAN_CLIMATE_PROJECTS,
+  SELECTABLE_MATCH_DAY_CATALOG,
+  UK_CLIMATE_PROJECTS,
 } from "../app/lib/sccan-catalog";
 
 const failures: string[] = [];
@@ -11,14 +13,26 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(SCCAN_CLIMATE_PROJECTS.length === 19, "MVP catalog has 19 SCCAN projects");
+assert(UK_CLIMATE_PROJECTS.length === 10, "Page 1 has 10 UK Climate Partner projects");
 assert(
-  PARTNER_MATCH_DAY_CATALOG.length === 20,
-  "SD list is 19 SCCAN projects plus featured Global Schools Solar"
+  INTERNATIONAL_CLIMATE_PROJECTS.length === 10,
+  "Page 2 has 10 international Climate Partner projects"
+);
+assert(
+  INTERNATIONAL_CLIMATE_PROJECTS[0].name === "Ugandan Cookstove",
+  "Ugandan Cookstove is the first international project"
+);
+assert(
+  SELECTABLE_MATCH_DAY_CATALOG.length === 20,
+  "SDs choose from 20 partner projects"
+);
+assert(
+  PARTNER_MATCH_DAY_CATALOG.length === 21,
+  "Published catalog is featured Global Schools Solar plus 20 choosable projects"
 );
 assert(
   PARTNER_MATCH_DAY_CATALOG[0].name === FEATURED_PROJECT_NAME,
-  "Global Schools Solar is first in the partner catalog"
+  "Global Schools Solar is first in the published catalog"
 );
 assert(
   FEATURED_GLOBAL_SCHOOLS_SOLAR.featured === true,
@@ -33,11 +47,14 @@ assert(
   "Featured project copy does not mention Kenya"
 );
 assert(
-  SCCAN_CLIMATE_PROJECTS.every((project) => project.country === "Scotland"),
-  "SCCAN projects are Scottish community climate action"
+  UK_CLIMATE_PROJECTS.every(
+    (project) =>
+      project.country === "United Kingdom" || project.country === "Scotland"
+  ),
+  "UK catalog projects are United Kingdom / Scotland"
 );
 assert(
-  new Set(PARTNER_MATCH_DAY_CATALOG.map((project) => project.name)).size === 20,
+  new Set(PARTNER_MATCH_DAY_CATALOG.map((project) => project.name)).size === 21,
   "Catalog names are unique"
 );
 
@@ -46,4 +63,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("SCCAN Climate Partner catalog: 19 + featured Global Schools Solar.");
+console.log(
+  "Match Day catalog: featured Global Schools Solar + 10 UK + 10 international."
+);

@@ -12,12 +12,14 @@ import {
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import type { ClimateProject } from "@/app/services/votes.service";
+import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
   ciltLeagueForClub,
   ciltPositionLabel,
   climateImpactLeagueTable,
 } from "@/app/lib/cilt";
 import {
+  MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_LEAD_HOURS,
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
@@ -192,14 +194,15 @@ export default function ClubDashboardPage() {
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
             <h2 className="text-4xl font-black md:text-5xl">
-              Select Your {MATCH_DAY_PROJECT_COUNT} New Climate Projects for
-              this Match Day
+              Select Your {MATCH_DAY_PROJECT_COUNT} Climate Projects for this
+              Match Day
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
-              Choose {MATCH_DAY_PROJECT_COUNT} Climate Project Partner projects
-              for supporters to vote on. {MATCH_DAY_LEAD_HOURS} hours before
-              kick-off, attach the minimum sponsorship amount per Goal scored by{" "}
-              {club.name} players.
+              Global Schools Solar is included in every Match Day five. Choose{" "}
+              {MATCH_DAY_CHOICE_COUNT} Climate Partner projects (UK and
+              international) for supporters to vote on. {MATCH_DAY_LEAD_HOURS}{" "}
+              hours before kick-off, attach the minimum sponsorship amount per
+              Goal scored by {club.name} players.
             </p>
           </div>
 
@@ -207,7 +210,7 @@ export default function ClubDashboardPage() {
             className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
             onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
           >
-            Select Your {MATCH_DAY_PROJECT_COUNT} New Climate Projects for this
+            Select Your {MATCH_DAY_PROJECT_COUNT} Climate Projects for this
             Match Day
           </button>
 
@@ -222,7 +225,7 @@ export default function ClubDashboardPage() {
             )}
             <ProjectGrid
               projects={selected}
-              empty={`No projects selected for this Match Day yet. Choose ${MATCH_DAY_PROJECT_COUNT} Climate Partner projects above.`}
+              empty={`No projects selected for this Match Day yet. Global Schools Solar will be included automatically once you choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects.`}
               badge="Selected"
             />
           </div>
@@ -336,8 +339,12 @@ export default function ClubDashboardPage() {
                 CILT · {ciltLeague ?? "League"}
               </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
-                {ciltLeague === "Scottish Premiership"
-                  ? "Scottish Premier League clubs ranked by tonnes of carbon avoided, reduced or offset from Goals scored and fan votes."
+                {ciltLeague
+                  ? `${
+                      ciltLeague === "Scottish Premiership"
+                        ? "Scottish Premier League"
+                        : ciltLeague
+                    } clubs ranked by tonnes of carbon avoided, reduced or offset from Goals scored and fan votes.`
                   : "Clubs ranked by tonnes of carbon avoided, reduced or offset from sponsorship funded by Goals scored."}
               </p>
             </div>
@@ -416,9 +423,13 @@ function ProjectGrid({
         >
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-xl font-bold">{project.name}</h3>
-            {(funded || badge) && (
+            {(funded || badge || isFeaturedClimateProject(project)) && (
               <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
-                {funded ? "Funded" : badge}
+                {funded
+                  ? "Funded"
+                  : isFeaturedClimateProject(project)
+                    ? "Featured"
+                    : badge}
               </span>
             )}
           </div>

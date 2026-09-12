@@ -1,11 +1,13 @@
 import {
+  MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
   partnerPageCount,
   partnerProjectPage,
 } from "../app/lib/partner-projects";
-import { ciltPositionLabel, premierLeagueCilt, scottishPremiershipCilt } from "../app/lib/cilt";
+import { ciltPositionLabel, premierLeagueCilt, scottishPremiershipCilt, climateImpactLeagueTable } from "../app/lib/cilt";
 import { leagueForClubName } from "../app/lib/current-season";
+import { SELECTABLE_MATCH_DAY_CATALOG } from "../app/lib/sccan-catalog";
 
 const failures: string[] = [];
 
@@ -17,7 +19,20 @@ const ids = Array.from({ length: 20 }, (_, index) => index + 1);
 assert(partnerProjectPage(ids, 0).length === PARTNER_PAGE_SIZE, "Page 1 has 10 projects");
 assert(partnerProjectPage(ids, 1).join(",") === "11,12,13,14,15,16,17,18,19,20", "Page 2 has the next 10");
 assert(partnerPageCount(20) === 2, "20 partner projects paginate into 2 pages");
-assert(MATCH_DAY_PROJECT_COUNT === 5, "SD selects 5 projects for the match");
+assert(MATCH_DAY_PROJECT_COUNT === 5, "Match Day portfolio is 5 projects including featured GSS");
+assert(MATCH_DAY_CHOICE_COUNT === 4, "SD chooses 4 partner projects; GSS is included as a must");
+assert(
+  partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 0).every((project) =>
+    /united kingdom|scotland/i.test(project.country)
+  ),
+  "Page 1 is UK-based Climate Partner projects"
+);
+assert(
+  partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 1).some(
+    (project) => project.name === "Ugandan Cookstove"
+  ),
+  "Page 2 includes Ugandan Cookstove"
+);
 
 const table = premierLeagueCilt("Arsenal FC");
 assert(table.length === 20, "CILT ranks all 20 Premier League clubs");
@@ -56,6 +71,21 @@ assert(
   (climbedHearts?.tonnes ?? 0) > (celtic?.tonnes ?? 0) ||
     (climbedHearts?.position ?? 99) <= 2,
   "Hearts can overtake higher Scottish Premiership clubs on the CILT"
+);
+
+assert(
+  leagueForClubName("Real Madrid") === "La Liga",
+  "Real Madrid is a La Liga club"
+);
+const laLiga = climateImpactLeagueTable("La Liga", "Real Madrid");
+assert(laLiga.length === 20, "CILT ranks all 20 La Liga clubs");
+assert(
+  Boolean(laLiga.find((row) => row.isClub)),
+  "Real Madrid is highlighted on the La Liga CILT"
+);
+assert(
+  leagueForClubName("Arsenal") === "Premier League",
+  "Arsenal remains a Premier League club"
 );
 
 if (failures.length > 0) {

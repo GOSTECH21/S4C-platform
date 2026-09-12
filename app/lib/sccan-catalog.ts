@@ -1,8 +1,10 @@
-/** 19 SCCAN community climate projects plus featured Global Schools Solar. */
+/** 10 UK Climate Partner projects plus 10 international projects for Match Day choice. */
 
 export const SCCAN_SOURCE_URL = "https://sccan.scot/";
 export const SCCAN_PARTNER_NAME = "Scottish Communities Climate Action Network";
 export const SCCAN_LOCATION_TAG = "SCCAN";
+export const UK_LOCATION_TAG = "UK";
+export const INTERNATIONAL_LOCATION_TAG = "International";
 export const FEATURED_PROJECT_NAME = "Global Schools Solar";
 
 export type PartnerCatalogProject = {
@@ -262,10 +264,161 @@ export const SCCAN_CLIMATE_PROJECTS: PartnerCatalogProject[] = [
   },
 ];
 
+/** Page 1 of the SD selector: UK-based Climate Partner projects. */
+export const UK_CLIMATE_PROJECTS: PartnerCatalogProject[] =
+  SCCAN_CLIMATE_PROJECTS.slice(0, 10).map((project) => ({
+    ...project,
+    country: project.country === "Scotland" ? "United Kingdom" : project.country,
+    location: UK_LOCATION_TAG,
+  }));
+
+/** Page 2 of the SD selector: international Climate Partner projects. */
+export const INTERNATIONAL_CLIMATE_PROJECTS: PartnerCatalogProject[] = [
+  {
+    name: "Ugandan Cookstove",
+    description:
+      "Distribute efficient cookstoves so households burn less firewood, cut smoke in the home and protect local woodland.",
+    category: "Clean Cooking",
+    country: "Uganda",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 7400,
+    funding_goal: 190000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Indian Solar Microgrids",
+    description:
+      "Village microgrids that power homes, clinics and small businesses with rooftop and community solar.",
+    category: "Solar Energy",
+    country: "India",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 11200,
+    funding_goal: 260000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Bangladesh Cyclone Resilience",
+    description:
+      "Community shelters, raised gardens and early-warning work so coastal families can live with stronger storms.",
+    category: "Resilience",
+    country: "Bangladesh",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 4800,
+    funding_goal: 150000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Peru Andean Reforestation",
+    description:
+      "Native-tree planting with highland communities to restore slopes, water catchments and local livelihoods.",
+    category: "Biodiversity",
+    country: "Peru",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 8900,
+    funding_goal: 210000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Indonesia Mangrove Restoration",
+    description:
+      "Replant mangrove belts that store carbon, buffer storm surges and support coastal fisheries.",
+    category: "Biodiversity",
+    country: "Indonesia",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 13600,
+    funding_goal: 280000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Ghana Agroforestry",
+    description:
+      "Farmers mix trees with food crops to restore soil, shade cocoa and keep carbon in the landscape.",
+    category: "Sustainable Agriculture",
+    country: "Ghana",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 6200,
+    funding_goal: 170000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Brazil Atlantic Forest Restoration",
+    description:
+      "Restore fragments of the Atlantic Forest with native species and community nurseries.",
+    category: "Biodiversity",
+    country: "Brazil",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 15400,
+    funding_goal: 320000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Nepal Community Hydro",
+    description:
+      "Small hydropower for mountain villages so lighting, schools and clinics run on clean energy.",
+    category: "Renewable Energy",
+    country: "Nepal",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 5100,
+    funding_goal: 175000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Philippines Coastal Protection",
+    description:
+      "Community-led reef, mangrove and shoreline work that cuts flood risk and stores blue carbon.",
+    category: "Ocean Cleanup",
+    country: "Philippines",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 4300,
+    funding_goal: 145000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+  {
+    name: "Mexico Community Wind",
+    description:
+      "Shared wind generation that funds local climate projects and displaces diesel in rural towns.",
+    category: "Renewable Energy",
+    country: "Mexico",
+    location: INTERNATIONAL_LOCATION_TAG,
+    estimated_co2: 9800,
+    funding_goal: 240000,
+    featured: false,
+    source: "Climate Partner · International",
+  },
+];
+
+/** 20 projects the Sustainability Director chooses from (10 UK, then 10 international). */
+export const SELECTABLE_MATCH_DAY_CATALOG: PartnerCatalogProject[] = [
+  ...UK_CLIMATE_PROJECTS,
+  ...INTERNATIONAL_CLIMATE_PROJECTS,
+];
+
+/** Published catalog: featured Global Schools Solar plus the 20 choosable projects. */
 export const PARTNER_MATCH_DAY_CATALOG: PartnerCatalogProject[] = [
   FEATURED_GLOBAL_SCHOOLS_SOLAR,
-  ...SCCAN_CLIMATE_PROJECTS,
+  ...SELECTABLE_MATCH_DAY_CATALOG,
 ];
+
+export function isUkCatalogName(name: string | null | undefined): boolean {
+  const value = (name ?? "").trim().toLowerCase();
+  return UK_CLIMATE_PROJECTS.some((project) => project.name.toLowerCase() === value);
+}
+
+export function isInternationalCatalogName(name: string | null | undefined): boolean {
+  const value = (name ?? "").trim().toLowerCase();
+  return INTERNATIONAL_CLIMATE_PROJECTS.some(
+    (project) => project.name.toLowerCase() === value
+  );
+}
 
 export function isSccanCatalogName(name: string | null | undefined): boolean {
   const value = (name ?? "").trim().toLowerCase();

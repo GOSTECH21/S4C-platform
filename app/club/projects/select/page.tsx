@@ -7,16 +7,18 @@ import type { ClimateProject } from "@/app/services/votes.service";
 import {
   loadClubSession,
   loadPartnerClimateProjects,
+  loadFeaturedMatchDayProject,
   readStoredMatchDay,
   saveMatchDaySelection,
 } from "@/app/services/club-match-day.service";
-import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
+  MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_LEAD_HOURS,
   MATCH_DAY_PROJECT_COUNT,
   partnerPageCount,
   partnerProjectPage,
 } from "@/app/lib/partner-projects";
+import { isInternationalCatalogName, isUkCatalogName } from "@/app/lib/sccan-catalog";
 import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
 import {
   CLUB_DASHBOARD_PATH,
@@ -28,6 +30,7 @@ export default function SelectMatchDayProjectsPage() {
   const [clubName, setClubName] = useState("your club");
   const [clubId, setClubId] = useState<string | null>(null);
   const [projects, setProjects] = useState<ClimateProject[]>([]);
+  const [featured, setFeatured] = useState<ClimateProject | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const [minAmount, setMinAmount] = useState(String(OPENING_SPONSORSHIP));
@@ -57,9 +60,14 @@ export default function SelectMatchDayProjectsPage() {
         setClubName(session.club.name);
         const catalog = await loadPartnerClimateProjects();
         setProjects(catalog);
+        const featuredProject = await loadFeaturedMatchDayProject();
+        setFeatured(featuredProject);
         const stored = readStoredMatchDay(session.club.id);
         if (stored) {
-          setSelected(new Set(stored.projectIds));
+          const chosen = stored.projectIds.filter(
+            (id) => id !== featuredProject?.id
+          );
+          setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
           setMinAmount(String(stored.minAmount));
         }
       } catch (err) {
@@ -85,7 +93,7 @@ export default function SelectMatchDayProjectsPage() {
       const next = new Set(prev);
       if (next.has(projectId)) {
         next.delete(projectId);
-      } else if (next.size < MATCH_DAY_PROJECT_COUNT) {
+      } else if (next.size < MATCH_DAY_CHOICE_COUNT) {
         next.add(projectId);
       }
       return next;
@@ -94,8 +102,10 @@ export default function SelectMatchDayProjectsPage() {
 
   async function confirm() {
     if (!clubId) return;
-    if (selected.size !== MATCH_DAY_PROJECT_COUNT) {
-      setError(`Select exactly ${MATCH_DAY_PROJECT_COUNT} projects.`);
+    if (selected.size !== MATCH_DAY_CHOICE_COUNT) {
+      setError(
+        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar is included in every Match Day five.`
+      );
       return;
     }
     const amount = Number(minAmount);
@@ -143,22 +153,41 @@ export default function SelectMatchDayProjectsPage() {
         </button>
 
         <h1 className="mt-6 text-4xl font-black">
-          Select Your {MATCH_DAY_PROJECT_COUNT} New Climate Projects for this
-          Match Day
+          Select {MATCH_DAY_CHOICE_COUNT} Climate Projects for this Match Day
         </h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          These {projects.length} projects are offered by Climate Project
-          Partners. Pick {MATCH_DAY_PROJECT_COUNT} that {clubName} should
-          support, then attach a minimum sponsorship amount per Goal. Do this
+          Global Schools Solar is included in every Match Day five. Choose{" "}
+          {MATCH_DAY_CHOICE_COUNT} more from 10 UK Climate Partner projects and
+          10 international projects. Page 1 is UK (projects 1–10). Page 2 is
+          international (projects 11–20), including Ugandan Cookstove. Do this
           at least {MATCH_DAY_LEAD_HOURS} hours before kick-off.
         </p>
 
+        {featured && (
+          <div className="mt-8 rounded-2xl border border-green-500/40 bg-green-500/10 p-6">
+            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
+              Featured Climate Project · included in every Match Day
+            </p>
+            <h2 className="mt-2 text-2xl font-bold">{featured.name}</h2>
+            <p className="mt-2 text-slate-300">{featured.description}</p>
+            <p className="mt-3 text-sm text-slate-400">
+              {featured.country}
+              {featured.estimated_co2 != null
+                ? ` · ${featured.estimated_co2.toLocaleString("en-GB")} t CO₂`
+                : ""}
+            </p>
+          </div>
+        )}
+
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900 px-5 py-4">
           <p className="font-bold">
-            {selected.size} of {MATCH_DAY_PROJECT_COUNT} selected
+            {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
           </p>
           <p className="text-sm text-slate-400">
-            Page {page + 1} of {pages}
+            {page === 0
+              ? "UK Climate Projects · 1–10"
+              : "International Climate Projects · 11–20"}{" "}
+            · Page {page + 1} of {pages}
           </p>
         </div>
 
@@ -171,7 +200,12 @@ export default function SelectMatchDayProjectsPage() {
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {visible.map((project) => {
             const isOn = selected.has(project.id);
-            const full = !isOn && selected.size >= MATCH_DAY_PROJECT_COUNT;
+            const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
+            const region = isUkCatalogName(project.name)
+              ? "UK Climate Partner"
+              : isInternationalCatalogName(project.name)
+                ? "International Climate Partner"
+                : "Climate Project Partner";
             return (
               <div
                 key={project.id}
@@ -182,9 +216,7 @@ export default function SelectMatchDayProjectsPage() {
                 }`}
               >
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  {isFeaturedClimateProject(project)
-                    ? "Featured Climate Project"
-                    : "Climate Project Partner · SCCAN"}
+                  {region}
                 </p>
                 <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
                 <p className="mt-3 flex-1 text-slate-300">{project.description}</p>
@@ -253,12 +285,12 @@ export default function SelectMatchDayProjectsPage() {
           </label>
           <button
             onClick={confirm}
-            disabled={saving || selected.size !== MATCH_DAY_PROJECT_COUNT}
+            disabled={saving || selected.size !== MATCH_DAY_CHOICE_COUNT}
             className="mt-6 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
             {saving
               ? "Saving..."
-              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects at ${formatMoney(Number(minAmount) || OPENING_SPONSORSHIP)}/Goal (Min)`}
+              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects (Global Schools Solar + ${MATCH_DAY_CHOICE_COUNT}) at ${formatMoney(Number(minAmount) || OPENING_SPONSORSHIP)}/Goal (Min)`}
           </button>
         </div>
       </div>

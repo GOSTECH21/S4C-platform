@@ -1,12 +1,16 @@
 import { supabase } from "../lib/supabase";
 import {
   MATCH_DAY_PROJECT_COUNT,
+  MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_LEAD_HOURS,
 } from "../lib/partner-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
 import { findClubOnRoster, seasonNamesMatch } from "../lib/current-season";
 import { publishSccanCatalog } from "./partner.service";
-import type { ClimateProject } from "./votes.service";
+import {
+  isFeaturedClimateProject,
+  type ClimateProject,
+} from "./votes.service";
 
 const PROJECT_FIELDS =
   "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured";
@@ -61,7 +65,13 @@ const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
 const FILE_RECORD_STORAGE_PREFIX = "s4p.sd.fileRecords.";
 
 export async function loadPartnerClimateProjects(): Promise<ClimateProject[]> {
-  return publishSccanCatalog();
+  const published = await publishSccanCatalog();
+  return published.filter((project) => !isFeaturedClimateProject(project));
+}
+
+export async function loadFeaturedMatchDayProject(): Promise<ClimateProject | null> {
+  const published = await publishSccanCatalog();
+  return published.find(isFeaturedClimateProject) ?? null;
 }
 
 const ACCOUNT_FIELDS =
@@ -392,6 +402,7 @@ export async function loadClubProjectBoard(
   minAmount: number | null;
   records: ClubFileRecord[];
 }> {
+  await publishSccanCatalog();
   const stored = readStoredMatchDay(clubId);
   const campaign = await findOpenClubCampaign(clubId, clubName);
   const lists = await loadCampaignProjectLists(
@@ -405,12 +416,13 @@ export async function loadClubProjectBoard(
       ? []
       : await loadProjectsByIds(stored?.projectIds ?? []);
 
-  const selected =
+  const selected = await ensureFeaturedSelection(
     lists.selected.length > 0
       ? lists.selected
       : portfolio.length > 0
         ? portfolio
-        : storedProjects;
+        : storedProjects
+  );
   const voted = uniqueProjects(lists.voted);
   const funded = uniqueProjects(lists.funded);
   const minAmount = stored?.minAmount ?? campaign?.sponsorship_per_goal ?? null;
@@ -440,6 +452,17 @@ function uniqueProjects(projects: ClimateProject[]): ClimateProject[] {
     seen.add(project.id);
     return true;
   });
+}
+
+async function ensureFeaturedSelection(
+  selected: ClimateProject[]
+): Promise<ClimateProject[]> {
+  const featured = await loadFeaturedMatchDayProject();
+  if (!featured) return uniqueProjects(selected).slice(0, MATCH_DAY_PROJECT_COUNT);
+  const others = selected.filter(
+    (project) => project.id !== featured.id && !isFeaturedClimateProject(project)
+  );
+  return uniqueProjects([featured, ...others]).slice(0, MATCH_DAY_PROJECT_COUNT);
 }
 
 function snapshotProject(project: ClimateProject): ClubFileProject {
@@ -624,9 +647,17 @@ export async function saveMatchDaySelection({
   projectIds: string[];
   minAmount: number;
 }): Promise<MatchDaySelection> {
-  if (projectIds.length !== MATCH_DAY_PROJECT_COUNT) {
-    throw new Error(`Select exactly ${MATCH_DAY_PROJECT_COUNT} climate projects.`);
+  const featured = await loadFeaturedMatchDayProject();
+  if (!featured) {
+    throw new Error("The Featured Climate Project could not be loaded.");
   }
+  const chosen = [...new Set(projectIds.filter((id) => id !== featured.id))];
+  if (chosen.length !== MATCH_DAY_CHOICE_COUNT) {
+    throw new Error(
+      `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar is included automatically.`
+    );
+  }
+  const portfolioIds = [featured.id, ...chosen];
   const amount = Math.max(OPENING_SPONSORSHIP, Math.round(minAmount));
   const campaign = await findOpenClubCampaign(clubId, clubName);
 
@@ -637,7 +668,7 @@ export async function saveMatchDaySelection({
       .eq("campaign_id", campaign.id);
 
     const { error: insertError } = await supabase.from("campaign_projects").insert(
-      projectIds.map((projectId, index) => ({
+      portfolioIds.map((projectId, index) => ({
         campaign_id: campaign.id,
         climate_project_id: projectId,
         display_order: index + 1,
@@ -652,12 +683,12 @@ export async function saveMatchDaySelection({
 
   await supabase.from("club_match_portfolio").delete().eq("club_id", clubId);
   const portfolioAttempts = [
-    projectIds.map((projectId) => ({
+    portfolioIds.map((projectId) => ({
       club_id: clubId,
       project_id: projectId,
       status: "selected",
     })),
-    projectIds.map((projectId) => ({
+    portfolioIds.map((projectId) => ({
       club_id: clubId,
       climate_project_id: projectId,
       status: "selected",
@@ -669,13 +700,13 @@ export async function saveMatchDaySelection({
   }
 
   const selection: MatchDaySelection = {
-    projectIds,
+    projectIds: portfolioIds,
     minAmount: amount,
     savedAt: new Date().toISOString(),
     campaignId: campaign?.id ?? null,
   };
   writeStoredMatchDay(clubId, selection);
-  const selectedProjects = await loadProjectsByIds(projectIds);
+  const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
     clubId,
     clubName,
@@ -688,5 +719,5 @@ export async function saveMatchDaySelection({
 }
 
 export function matchDayWindowCopy(): string {
-  return `Select ${MATCH_DAY_PROJECT_COUNT} projects at least ${MATCH_DAY_LEAD_HOURS} hours before kick-off so supporters can vote.`;
+  return `Select ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects at least ${MATCH_DAY_LEAD_HOURS} hours before kick-off. Global Schools Solar is included in every Match Day five.`;
 }

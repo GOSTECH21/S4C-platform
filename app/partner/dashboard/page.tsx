@@ -17,8 +17,9 @@ import {
 } from "@/app/lib/routes";
 import {
   FEATURED_PROJECT_NAME,
-  SCCAN_CLIMATE_PROJECTS,
+  INTERNATIONAL_CLIMATE_PROJECTS,
   SCCAN_SOURCE_URL,
+  UK_CLIMATE_PROJECTS,
 } from "@/app/lib/sccan-catalog";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 
@@ -118,17 +119,27 @@ export default function PartnerDashboardPage() {
   }
 
   const featured = projects.filter(isFeaturedClimateProject);
-  const sccan = projects.filter(
+  const ukProjects = projects.filter(
     (project) =>
       !isFeaturedClimateProject(project) &&
-      SCCAN_CLIMATE_PROJECTS.some(
+      UK_CLIMATE_PROJECTS.some(
+        (item) => item.name.toLowerCase() === project.name.toLowerCase()
+      )
+  );
+  const international = projects.filter(
+    (project) =>
+      !isFeaturedClimateProject(project) &&
+      INTERNATIONAL_CLIMATE_PROJECTS.some(
         (item) => item.name.toLowerCase() === project.name.toLowerCase()
       )
   );
   const uploaded = projects.filter(
     (project) =>
       !isFeaturedClimateProject(project) &&
-      !SCCAN_CLIMATE_PROJECTS.some(
+      !UK_CLIMATE_PROJECTS.some(
+        (item) => item.name.toLowerCase() === project.name.toLowerCase()
+      ) &&
+      !INTERNATIONAL_CLIMATE_PROJECTS.some(
         (item) => item.name.toLowerCase() === project.name.toLowerCase()
       )
   );
@@ -150,8 +161,8 @@ export default function PartnerDashboardPage() {
               <a href={SCCAN_SOURCE_URL} className="text-green-400 underline">
                 sccan.scot
               </a>{" "}
-              ({SCCAN_CLIMATE_PROJECTS.length} projects) plus featured{" "}
-              {FEATURED_PROJECT_NAME}.
+              UK projects plus international projects, with featured{" "}
+              {FEATURED_PROJECT_NAME} included in every Match Day five.
             </p>
             <p className="mt-2 text-sm text-slate-500">{email}</p>
           </div>
@@ -190,14 +201,30 @@ export default function PartnerDashboardPage() {
 
         <section className="mt-12">
           <h2 className="text-2xl font-black">
-            SCCAN catalog ({sccan.length} of {SCCAN_CLIMATE_PROJECTS.length})
+            UK Climate Projects ({ukProjects.length} of {UK_CLIMATE_PROJECTS.length})
           </h2>
           <p className="mt-2 text-slate-400">
-            These 19 projects are offered to every Sustainability Director on
-            match day.
+            These 10 UK projects are page 1 of every Sustainability Director
+            Match Day selector.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {sccan.map((project) => (
+            {ukProjects.map((project) => (
+              <ProjectRow key={project.id} project={project} />
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="text-2xl font-black">
+            International Climate Projects ({international.length} of{" "}
+            {INTERNATIONAL_CLIMATE_PROJECTS.length})
+          </h2>
+          <p className="mt-2 text-slate-400">
+            These 10 international projects are page 2, including Ugandan
+            Cookstove.
+          </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {international.map((project) => (
               <ProjectRow key={project.id} project={project} />
             ))}
           </div>
