@@ -651,7 +651,13 @@ export async function saveMatchDaySelection({
   if (!featured) {
     throw new Error("The Featured Climate Project could not be loaded.");
   }
-  const chosen = [...new Set(projectIds.filter((id) => id !== featured.id))];
+  const selectable = await loadPartnerClimateProjects();
+  const validIds = new Set(selectable.map((project) => project.id));
+  const chosen = [
+    ...new Set(
+      projectIds.filter((id) => id !== featured.id && validIds.has(id))
+    ),
+  ];
   if (chosen.length !== MATCH_DAY_CHOICE_COUNT) {
     throw new Error(
       `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar is included automatically.`

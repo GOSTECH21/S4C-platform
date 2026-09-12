@@ -62,10 +62,11 @@ export default function SelectMatchDayProjectsPage() {
         setProjects(catalog);
         const featuredProject = await loadFeaturedMatchDayProject();
         setFeatured(featuredProject);
+        const validIds = new Set(catalog.map((project) => project.id));
         const stored = readStoredMatchDay(session.club.id);
         if (stored) {
           const chosen = stored.projectIds.filter(
-            (id) => id !== featuredProject?.id
+            (id) => id !== featuredProject?.id && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
           setMinAmount(String(stored.minAmount));
