@@ -1,5 +1,6 @@
 import {
   CURRENT_SEASON_LEAGUES,
+  leagueForClubName,
   seasonNamesMatch,
 } from "./current-season";
 
@@ -27,6 +28,27 @@ const PREMIER_LEAGUE_TONNES: Record<string, number> = {
   "Hull City": 5360,
 };
 
+/** Season-to-date CO₂ tonnes for the 12-club Scottish Premiership CILT. */
+const SCOTTISH_PREMIERSHIP_TONNES: Record<string, number> = {
+  Celtic: 15240,
+  Rangers: 14110,
+  Hearts: 12840,
+  Hibernian: 11320,
+  Aberdeen: 10480,
+  Kilmarnock: 9120,
+  Motherwell: 8460,
+  "Dundee United": 7810,
+  "St Mirren": 7240,
+  Dundee: 6680,
+  "St Johnstone": 6010,
+  Falkirk: 5420,
+};
+
+const TONNES_BY_LEAGUE: Record<string, Record<string, number>> = {
+  "Premier League": PREMIER_LEAGUE_TONNES,
+  "Scottish Premiership": SCOTTISH_PREMIERSHIP_TONNES,
+};
+
 export type CiltRow = {
   position: number;
   club: string;
@@ -34,15 +56,25 @@ export type CiltRow = {
   isClub: boolean;
 };
 
-export function premierLeagueCilt(
+export function ciltLeagueForClub(clubName: string): string | null {
+  const league = leagueForClubName(clubName);
+  if (league && TONNES_BY_LEAGUE[league]) return league;
+  return null;
+}
+
+export function climateImpactLeagueTable(
+  leagueName: string,
   clubName: string,
   extraTonnes = 0
 ): CiltRow[] {
-  const clubs = CURRENT_SEASON_LEAGUES["Premier League"];
+  const clubs = CURRENT_SEASON_LEAGUES[leagueName];
+  if (!clubs?.length) return [];
+  const baselines = TONNES_BY_LEAGUE[leagueName] ?? {};
+
   const rows = clubs.map((club) => {
     const base =
-      PREMIER_LEAGUE_TONNES[club] ??
-      Object.entries(PREMIER_LEAGUE_TONNES).find(([name]) =>
+      baselines[club] ??
+      Object.entries(baselines).find(([name]) =>
         seasonNamesMatch(name, club)
       )?.[1] ??
       0;
@@ -63,6 +95,20 @@ export function premierLeagueCilt(
     ...row,
     position: index + 1,
   }));
+}
+
+export function premierLeagueCilt(
+  clubName: string,
+  extraTonnes = 0
+): CiltRow[] {
+  return climateImpactLeagueTable("Premier League", clubName, extraTonnes);
+}
+
+export function scottishPremiershipCilt(
+  clubName: string,
+  extraTonnes = 0
+): CiltRow[] {
+  return climateImpactLeagueTable("Scottish Premiership", clubName, extraTonnes);
 }
 
 export function ciltPositionLabel(row: CiltRow | undefined): string {

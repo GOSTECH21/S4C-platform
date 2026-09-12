@@ -37,7 +37,28 @@ export type MatchDaySelection = {
   campaignId: string | null;
 };
 
+export type ClubFileProject = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  country: string | null;
+  estimated_co2: number | null;
+};
+
+export type ClubFileRecord = {
+  id: string;
+  clubId: string;
+  campaignId: string | null;
+  savedAt: string;
+  matchLabel: string;
+  minAmount: number | null;
+  selected: ClubFileProject[];
+  voted: ClubFileProject[];
+};
+
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
+const FILE_RECORD_STORAGE_PREFIX = "s4p.sd.fileRecords.";
 
 export async function loadPartnerClimateProjects(): Promise<ClimateProject[]> {
   return publishSccanCatalog();
@@ -327,6 +348,251 @@ export async function loadCampaignProjectLists(campaignId: string | null): Promi
   return { selected, voted, funded };
 }
 
+export async function loadProjectsByIds(
+  projectIds: string[]
+): Promise<ClimateProject[]> {
+  if (projectIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("climate_projects")
+    .select(PROJECT_FIELDS)
+    .in("id", projectIds);
+  if (error || !data) return [];
+  const byId = new Map(
+    (data as ClimateProject[]).map((project) => [project.id, project])
+  );
+  return projectIds
+    .map((id) => byId.get(id))
+    .filter((project): project is ClimateProject => Boolean(project));
+}
+
+export async function loadPortfolioProjects(
+  clubId: string
+): Promise<ClimateProject[]> {
+  const { data, error } = await supabase
+    .from("club_match_portfolio")
+    .select("*")
+    .eq("club_id", clubId);
+  if (error || !data?.length) return [];
+
+  const ids = (data as Array<Record<string, unknown>>)
+    .map((row) =>
+      String(row.project_id ?? row.climate_project_id ?? "")
+    )
+    .filter(Boolean);
+  return loadProjectsByIds([...new Set(ids)]);
+}
+
+export async function loadClubProjectBoard(
+  clubId: string,
+  clubName: string
+): Promise<{
+  selected: ClimateProject[];
+  voted: ClimateProject[];
+  funded: ClimateProject[];
+  minAmount: number | null;
+  records: ClubFileRecord[];
+}> {
+  const stored = readStoredMatchDay(clubId);
+  const campaign = await findOpenClubCampaign(clubId, clubName);
+  const lists = await loadCampaignProjectLists(
+    campaign?.id ?? stored?.campaignId ?? null
+  );
+  const portfolio = lists.selected.length
+    ? []
+    : await loadPortfolioProjects(clubId);
+  const storedProjects =
+    lists.selected.length || portfolio.length
+      ? []
+      : await loadProjectsByIds(stored?.projectIds ?? []);
+
+  const selected =
+    lists.selected.length > 0
+      ? lists.selected
+      : portfolio.length > 0
+        ? portfolio
+        : storedProjects;
+  const voted = uniqueProjects(lists.voted);
+  const funded = uniqueProjects(lists.funded);
+  const minAmount = stored?.minAmount ?? campaign?.sponsorship_per_goal ?? null;
+
+  const record = await persistFileRecord({
+    clubId,
+    clubName,
+    campaignId: campaign?.id ?? stored?.campaignId ?? null,
+    minAmount,
+    selected,
+    voted,
+  });
+  const remote = await loadRemoteFileRecords(clubId);
+  const records = mergeFileRecords(
+    mergeRecordLists(readFileRecords(clubId), remote),
+    record
+  );
+  writeFileRecords(clubId, records);
+
+  return { selected, voted, funded, minAmount, records };
+}
+
+function uniqueProjects(projects: ClimateProject[]): ClimateProject[] {
+  const seen = new Set<string>();
+  return projects.filter((project) => {
+    if (seen.has(project.id)) return false;
+    seen.add(project.id);
+    return true;
+  });
+}
+
+function snapshotProject(project: ClimateProject): ClubFileProject {
+  return {
+    id: project.id,
+    name: project.name,
+    description: project.description ?? null,
+    category: project.category ?? null,
+    country: project.country ?? null,
+    estimated_co2: project.estimated_co2 ?? null,
+  };
+}
+
+function sameProjectSet(left: ClubFileProject[], right: ClubFileProject[]) {
+  if (left.length !== right.length) return false;
+  const ids = new Set(left.map((project) => project.id));
+  return right.every((project) => ids.has(project.id));
+}
+
+function readFileRecords(clubId: string): ClubFileRecord[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(FILE_RECORD_STORAGE_PREFIX + clubId);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as ClubFileRecord[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFileRecords(clubId: string, records: ClubFileRecord[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    FILE_RECORD_STORAGE_PREFIX + clubId,
+    JSON.stringify(records.slice(0, 50))
+  );
+}
+
+function mergeFileRecords(
+  existing: ClubFileRecord[],
+  incoming: ClubFileRecord | null
+): ClubFileRecord[] {
+  if (!incoming) return existing;
+  return mergeRecordLists(existing, [incoming]);
+}
+
+function mergeRecordLists(
+  left: ClubFileRecord[],
+  right: ClubFileRecord[]
+): ClubFileRecord[] {
+  const byId = new Map<string, ClubFileRecord>();
+  for (const record of [...left, ...right]) {
+    const previous = byId.get(record.id);
+    if (!previous || record.savedAt >= previous.savedAt) byId.set(record.id, record);
+  }
+  return [...byId.values()]
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+    .slice(0, 50);
+}
+
+async function loadRemoteFileRecords(clubId: string): Promise<ClubFileRecord[]> {
+  const { data, error } = await supabase
+    .from("club_climate_file_records")
+    .select(
+      "id, club_id, campaign_id, saved_at, match_label, min_amount, selected, voted"
+    )
+    .eq("club_id", clubId)
+    .order("saved_at", { ascending: false });
+  if (error || !data) return [];
+  return data.map((row) => ({
+    id: String(row.id),
+    clubId: String(row.club_id),
+    campaignId: (row.campaign_id as string | null) ?? null,
+    savedAt: String(row.saved_at),
+    matchLabel: String(row.match_label ?? "Match Day"),
+    minAmount:
+      row.min_amount == null ? null : Number(row.min_amount),
+    selected: (row.selected as ClubFileRecord["selected"]) ?? [],
+    voted: (row.voted as ClubFileRecord["voted"]) ?? [],
+  }));
+}
+
+export async function persistFileRecord({
+  clubId,
+  clubName,
+  campaignId,
+  minAmount,
+  selected,
+  voted,
+}: {
+  clubId: string;
+  clubName: string;
+  campaignId: string | null;
+  minAmount: number | null;
+  selected: ClimateProject[];
+  voted: ClimateProject[];
+}): Promise<ClubFileRecord | null> {
+  if (selected.length === 0 && voted.length === 0) return null;
+
+  const selectedSnap = selected.map(snapshotProject);
+  const votedSnap = voted.map(snapshotProject);
+  const existing = readFileRecords(clubId);
+  const current =
+    existing.find((record) =>
+      campaignId ? record.campaignId === campaignId : false
+    ) ??
+    existing.find(
+      (record) =>
+        sameProjectSet(record.selected, selectedSnap) &&
+        record.savedAt.slice(0, 10) === new Date().toISOString().slice(0, 10)
+    );
+
+  const record: ClubFileRecord = {
+    id: current?.id ?? crypto.randomUUID(),
+    clubId,
+    campaignId,
+    savedAt: new Date().toISOString(),
+    matchLabel: current?.matchLabel ?? `${clubName} Match Day`,
+    minAmount,
+    selected: selectedSnap,
+    voted: votedSnap,
+  };
+
+  const next = mergeFileRecords(existing, record);
+  writeFileRecords(clubId, next);
+
+  const payload = {
+    id: record.id,
+    club_id: clubId,
+    campaign_id: campaignId,
+    saved_at: record.savedAt,
+    match_label: record.matchLabel,
+    min_amount: minAmount,
+    selected: selectedSnap,
+    voted: votedSnap,
+  };
+  const updated = await supabase
+    .from("club_climate_file_records")
+    .update(payload)
+    .eq("id", record.id);
+  if (updated.error) {
+    await supabase.from("club_climate_file_records").insert(payload);
+  }
+
+  return record;
+}
+
+export function fileRecordDownloadName(clubName: string): string {
+  const slug = clubName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return `s4p-${slug || "club"}-match-day-file-record.json`;
+}
+
 export function readStoredMatchDay(clubId: string): MatchDaySelection | null {
   if (typeof window === "undefined") return null;
   try {
@@ -409,6 +675,15 @@ export async function saveMatchDaySelection({
     campaignId: campaign?.id ?? null,
   };
   writeStoredMatchDay(clubId, selection);
+  const selectedProjects = await loadProjectsByIds(projectIds);
+  await persistFileRecord({
+    clubId,
+    clubName,
+    campaignId: campaign?.id ?? null,
+    minAmount: amount,
+    selected: selectedProjects,
+    voted: [],
+  });
   return selection;
 }
 

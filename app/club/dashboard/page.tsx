@@ -4,15 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import {
-  loadCampaignProjectLists,
   loadClubSession,
-  readStoredMatchDay,
-  findOpenClubCampaign,
+  loadClubProjectBoard,
+  fileRecordDownloadName,
   type ClubAccount,
+  type ClubFileRecord,
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import type { ClimateProject } from "@/app/services/votes.service";
-import { ciltPositionLabel, premierLeagueCilt } from "@/app/lib/cilt";
+import {
+  ciltLeagueForClub,
+  ciltPositionLabel,
+  climateImpactLeagueTable,
+} from "@/app/lib/cilt";
 import {
   MATCH_DAY_LEAD_HOURS,
   MATCH_DAY_PROJECT_COUNT,
@@ -33,6 +37,7 @@ export default function ClubDashboardPage() {
   const [funded, setFunded] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<ClimateProject[]>([]);
   const [minAmount, setMinAmount] = useState<number | null>(null);
+  const [records, setRecords] = useState<ClubFileRecord[]>([]);
   const [unlinked, setUnlinked] = useState(false);
 
   useEffect(() => {
@@ -53,15 +58,12 @@ export default function ClubDashboardPage() {
       setAccount(session.account);
       setClub(session.club);
 
-      const stored = readStoredMatchDay(session.club.id);
-      if (stored) setMinAmount(stored.minAmount);
-
-      const campaign = await findOpenClubCampaign(session.club.id, session.club.name);
-
-      const lists = await loadCampaignProjectLists(campaign?.id ?? stored?.campaignId ?? null);
-      setVoted(lists.voted);
-      setFunded(lists.funded);
-      setSelected(lists.selected);
+      const board = await loadClubProjectBoard(session.club.id, session.club.name);
+      setVoted(board.voted);
+      setFunded(board.funded);
+      setSelected(board.selected);
+      setMinAmount(board.minAmount);
+      setRecords(board.records);
       setLoading(false);
     }
 
@@ -69,11 +71,44 @@ export default function ClubDashboardPage() {
   }, [router]);
 
   const extraTonnes = useMemo(
-    () => funded.reduce((sum, project) => sum + (Number(project.estimated_co2) || 0), 0),
-    [funded]
+    () =>
+      [...funded, ...voted].reduce(
+        (sum, project) => sum + (Number(project.estimated_co2) || 0),
+        0
+      ),
+    [funded, voted]
   );
-  const cilt = club ? premierLeagueCilt(club.name, extraTonnes) : [];
+  const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
+  const cilt =
+    club && ciltLeague
+      ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
+      : [];
   const clubRow = cilt.find((row) => row.isClub);
+
+  function downloadFileRecord() {
+    if (!club) return;
+    const payload = {
+      club: club.name,
+      country: club.country,
+      savedAt: new Date().toISOString(),
+      thisMatchDay: {
+        minAmount,
+        selected,
+        voted,
+        funded,
+      },
+      records,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileRecordDownloadName(club.name);
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   async function logout() {
     await supabase.auth.signOut();
@@ -176,21 +211,21 @@ export default function ClubDashboardPage() {
             Match Day
           </button>
 
-          {selected.length > 0 && (
-            <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-800 p-6">
-              <h3 className="text-xl font-bold">This Match Day portfolio</h3>
-              {minAmount != null && (
-                <p className="mt-2 text-sm text-green-300">
-                  Minimum sponsorship: {formatMoney(minAmount)}/Goal
-                </p>
-              )}
-              <ul className="mt-4 space-y-2 text-slate-300">
-                {selected.map((project) => (
-                  <li key={project.id}>• {project.name}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className="mt-10 text-left">
+            <h3 className="text-2xl font-black">
+              This Match Day — Selected Climate Projects
+            </h3>
+            {minAmount != null && (
+              <p className="mt-2 text-sm text-green-300">
+                Minimum sponsorship: {formatMoney(minAmount)}/Goal
+              </p>
+            )}
+            <ProjectGrid
+              projects={selected}
+              empty={`No projects selected for this Match Day yet. Choose ${MATCH_DAY_PROJECT_COUNT} Climate Partner projects above.`}
+              badge="Selected"
+            />
+          </div>
         </section>
 
         <section className="mt-12">
@@ -202,7 +237,80 @@ export default function ClubDashboardPage() {
           <ProjectGrid
             projects={voted}
             empty="No supporter votes yet. Once fans vote on My S4P, those projects appear here."
+            badge="Voted"
           />
+        </section>
+
+        <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+                Match Day File Record
+              </p>
+              <h2 className="mt-2 text-3xl font-black">
+                Selected and voted projects, kept for lookback
+              </h2>
+              <p className="mt-2 max-w-2xl text-slate-400">
+                Every confirmed Match Day selection and every voted project is
+                stored in this club file record so the Sustainability Director
+                can look back later.
+              </p>
+            </div>
+            <button
+              onClick={downloadFileRecord}
+              className="rounded-xl border border-green-500 px-5 py-3 font-semibold text-green-400"
+            >
+              Download file record
+            </button>
+          </div>
+
+          {records.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-slate-400">
+              No file records yet. Confirm {MATCH_DAY_PROJECT_COUNT} Match Day
+              projects to create the first record.
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {records.map((record) => (
+                <div
+                  key={record.id}
+                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+                >
+                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
+                    <h3 className="text-xl font-bold">{record.matchLabel}</h3>
+                    <p className="text-sm text-slate-400">
+                      {new Date(record.savedAt).toLocaleString("en-GB")}
+                    </p>
+                  </div>
+                  {record.minAmount != null && (
+                    <p className="mt-2 text-sm text-green-300">
+                      Minimum sponsorship: {formatMoney(record.minAmount)}/Goal
+                    </p>
+                  )}
+                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Selected
+                  </p>
+                  <ul className="mt-2 space-y-1 text-slate-300">
+                    {record.selected.map((project) => (
+                      <li key={project.id}>• {project.name}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Voted
+                  </p>
+                  {record.voted.length === 0 ? (
+                    <p className="mt-2 text-slate-500">No votes recorded yet.</p>
+                  ) : (
+                    <ul className="mt-2 space-y-1 text-slate-300">
+                      {record.voted.map((project) => (
+                        <li key={project.id}>• {project.name}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="mt-12">
@@ -224,10 +332,13 @@ export default function ClubDashboardPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
                 S4P Climate Impact League Table
               </p>
-              <h2 className="mt-2 text-3xl font-black">CILT · Premier League</h2>
+              <h2 className="mt-2 text-3xl font-black">
+                CILT · {ciltLeague ?? "League"}
+              </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
-                Clubs ranked by tonnes of carbon avoided, reduced or offset from
-                sponsorship funded by Goals scored.
+                {ciltLeague === "Scottish Premiership"
+                  ? "Scottish Premier League clubs ranked by tonnes of carbon avoided, reduced or offset from Goals scored and fan votes."
+                  : "Clubs ranked by tonnes of carbon avoided, reduced or offset from sponsorship funded by Goals scored."}
               </p>
             </div>
             {clubRow && (
@@ -265,6 +376,11 @@ export default function ClubDashboardPage() {
                 </span>
               </div>
             ))}
+            {cilt.length === 0 && (
+              <div className="border-t border-slate-800 px-5 py-6 text-slate-400">
+                This club is not yet ranked in a CILT league table.
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -276,10 +392,12 @@ function ProjectGrid({
   projects,
   empty,
   funded = false,
+  badge,
 }: {
   projects: ClimateProject[];
   empty: string;
   funded?: boolean;
+  badge?: string;
 }) {
   if (projects.length === 0) {
     return (
@@ -298,9 +416,9 @@ function ProjectGrid({
         >
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-xl font-bold">{project.name}</h3>
-            {funded && (
+            {(funded || badge) && (
               <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
-                Funded
+                {funded ? "Funded" : badge}
               </span>
             )}
           </div>

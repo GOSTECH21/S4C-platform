@@ -380,6 +380,13 @@ export function clubInCurrentSeasonLeague(
   );
 }
 
+export function leagueForClubName(clubName: string): string | null {
+  for (const [league, clubs] of Object.entries(CURRENT_SEASON_LEAGUES)) {
+    if (clubs.some((club) => seasonNamesMatch(club, clubName))) return league;
+  }
+  return null;
+}
+
 export function isCurrentSeasonLeagueFixture(
   leagueName: string | null | undefined,
   homeName: string,

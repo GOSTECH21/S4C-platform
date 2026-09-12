@@ -4,7 +4,8 @@ import {
   partnerPageCount,
   partnerProjectPage,
 } from "../app/lib/partner-projects";
-import { ciltPositionLabel, premierLeagueCilt } from "../app/lib/cilt";
+import { ciltPositionLabel, premierLeagueCilt, scottishPremiershipCilt } from "../app/lib/cilt";
+import { leagueForClubName } from "../app/lib/current-season";
 
 const failures: string[] = [];
 
@@ -28,6 +29,34 @@ assert(
   "Arsenal has a CILT position and carbon tonnage"
 );
 assert(ciltPositionLabel(table[0]).endsWith("st"), "1st uses the st suffix");
+
+assert(
+  leagueForClubName("Hearts of Midlothian FC") === "Scottish Premiership",
+  "Hearts of Midlothian FC is a Scottish Premiership club"
+);
+assert(
+  leagueForClubName("Arsenal") === "Premier League",
+  "Arsenal remains a Premier League club"
+);
+
+const spl = scottishPremiershipCilt("Hearts of Midlothian FC");
+assert(spl.length === 12, "CILT ranks all 12 Scottish Premiership clubs");
+const hearts = spl.find((row) => row.isClub);
+assert(Boolean(hearts), "Hearts is highlighted on the Scottish Premiership CILT");
+assert((hearts?.position ?? 99) <= 3, "Hearts starts in the Scottish Premiership top 3");
+
+const climbed = scottishPremiershipCilt("Hearts of Midlothian FC", 3000);
+const climbedHearts = climbed.find((row) => row.isClub);
+const celtic = climbed.find((row) => row.club === "Celtic");
+assert(
+  (climbedHearts?.position ?? 99) < (hearts?.position ?? 0),
+  "Hearts climbs the Scottish Premiership CILT when extra carbon impact is added"
+);
+assert(
+  (climbedHearts?.tonnes ?? 0) > (celtic?.tonnes ?? 0) ||
+    (climbedHearts?.position ?? 99) <= 2,
+  "Hearts can overtake higher Scottish Premiership clubs on the CILT"
+);
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));
