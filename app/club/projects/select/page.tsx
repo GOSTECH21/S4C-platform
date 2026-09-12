@@ -9,6 +9,7 @@ import {
   readStoredMatchDay,
   saveMatchDaySelection,
 } from "@/app/services/club-match-day.service";
+import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
   MATCH_DAY_LEAD_HOURS,
   MATCH_DAY_PROJECT_COUNT,
@@ -170,7 +171,9 @@ export default function SelectMatchDayProjectsPage() {
                 }`}
               >
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Climate Project Partner
+                  {isFeaturedClimateProject(project)
+                    ? "Featured Climate Project"
+                    : "Climate Project Partner · SCCAN"}
                 </p>
                 <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
                 <p className="mt-3 flex-1 text-slate-300">{project.description}</p>

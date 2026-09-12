@@ -32,7 +32,7 @@ const userTypes = [
     emoji: "🌍",
     title: "A Climate Partner",
     description:
-      "Register your climate programme and receive Climate Credits from fans, clubs and sponsors.",
+      "Register your climate programme, upload projects and offer them to Sustainability Directors for match day.",
     register: "/partner/register",
     login: "/partner/login",
     registerText: "Register as a Climate Partner",

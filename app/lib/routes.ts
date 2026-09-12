@@ -21,6 +21,9 @@ export const CLUB_LOGIN_PATH = "/club/login";
 export const CLUB_DASHBOARD_PATH = "/club/dashboard";
 export const CLUB_SELECT_PROJECTS_PATH = "/club/projects/select";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
+export const PARTNER_LOGIN_PATH = "/partner/login";
+export const PARTNER_REGISTER_PATH = "/partner/register";
+export const PARTNER_DASHBOARD_PATH = "/partner/dashboard";
 
 export function isMyS4PPath(pathname: string | null): boolean {
   if (!pathname) return false;
@@ -35,6 +38,8 @@ export function destinationForRole(role: string | null | undefined): string {
       return "/club/dashboard";
     case "sponsor":
       return "/sponsor/dashboard";
+    case "partner":
+      return PARTNER_DASHBOARD_PATH;
     default:
       return SUPPORTER_CAMPAIGN_PATH;
   }

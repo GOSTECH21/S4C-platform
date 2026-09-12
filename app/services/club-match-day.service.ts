@@ -5,6 +5,7 @@ import {
 } from "../lib/partner-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
 import { seasonNamesMatch } from "../lib/current-season";
+import { publishSccanCatalog } from "./partner.service";
 import type { ClimateProject } from "./votes.service";
 
 const PROJECT_FIELDS =
@@ -39,17 +40,7 @@ export type MatchDaySelection = {
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
 
 export async function loadPartnerClimateProjects(): Promise<ClimateProject[]> {
-  const { data, error } = await supabase
-    .from("climate_projects")
-    .select(PROJECT_FIELDS)
-    .is("club_id", null)
-    .order("name");
-
-  if (error) throw error;
-
-  return ((data ?? []) as ClimateProject[])
-    .filter((project) => (project.status ?? "active") !== "archived")
-    .slice(0, 20);
+  return publishSccanCatalog();
 }
 
 export async function loadClubSession(): Promise<{
