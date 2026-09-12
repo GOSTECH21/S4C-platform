@@ -340,11 +340,7 @@ export default function ClubDashboardPage() {
               </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
                 {ciltLeague
-                  ? `${
-                      ciltLeague === "Scottish Premiership"
-                        ? "Scottish Premier League"
-                        : ciltLeague
-                    } clubs ranked by tonnes of carbon avoided, reduced or offset from Goals scored and fan votes.`
+                  ? `${ciltLeague} clubs ranked by tonnes of carbon avoided, reduced or offset from Goals scored and fan votes.`
                   : "Clubs ranked by tonnes of carbon avoided, reduced or offset from sponsorship funded by Goals scored."}
               </p>
             </div>
