@@ -20,6 +20,7 @@ import {
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import {
   CLUB_LOGIN_PATH,
+  CLUB_REGISTER_PATH,
   CLUB_SELECT_PROJECTS_PATH,
 } from "@/app/lib/routes";
 
@@ -32,12 +33,21 @@ export default function ClubDashboardPage() {
   const [funded, setFunded] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<ClimateProject[]>([]);
   const [minAmount, setMinAmount] = useState<number | null>(null);
+  const [unlinked, setUnlinked] = useState(false);
 
   useEffect(() => {
     async function load() {
       const session = await loadClubSession();
       if (!session) {
-        router.push(CLUB_LOGIN_PATH);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.replace(CLUB_LOGIN_PATH);
+          return;
+        }
+        setUnlinked(true);
+        setLoading(false);
         return;
       }
       setAccount(session.account);
@@ -68,6 +78,35 @@ export default function ClubDashboardPage() {
   async function logout() {
     await supabase.auth.signOut();
     router.push(CLUB_LOGIN_PATH);
+  }
+
+  if (unlinked) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
+        <div className="max-w-lg rounded-2xl bg-slate-900 p-8 text-center">
+          <h1 className="text-3xl font-black">Club account not linked yet</h1>
+          <p className="mt-4 text-slate-300">
+            You are signed in, but this email is not attached to a club
+            Sustainability Director profile yet. Complete club registration
+            and you will land on the dashboard.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <a
+              href={CLUB_REGISTER_PATH}
+              className="rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950"
+            >
+              Complete club registration
+            </a>
+            <button
+              onClick={logout}
+              className="rounded-xl border border-slate-600 px-6 py-3 font-semibold"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (loading || !club || !account) {

@@ -18,6 +18,7 @@ export const SUPPORTER_CAMPAIGN_ALIASES = [
 ];
 
 export const CLUB_LOGIN_PATH = "/club/login";
+export const CLUB_REGISTER_PATH = "/club/register";
 export const CLUB_DASHBOARD_PATH = "/club/dashboard";
 export const CLUB_SELECT_PROJECTS_PATH = "/club/projects/select";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";

@@ -4,7 +4,7 @@ import {
   MATCH_DAY_LEAD_HOURS,
 } from "../lib/partner-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
-import { seasonNamesMatch } from "../lib/current-season";
+import { findClubOnRoster, seasonNamesMatch } from "../lib/current-season";
 import { publishSccanCatalog } from "./partner.service";
 import type { ClimateProject } from "./votes.service";
 
@@ -43,6 +43,29 @@ export async function loadPartnerClimateProjects(): Promise<ClimateProject[]> {
   return publishSccanCatalog();
 }
 
+const ACCOUNT_FIELDS =
+  "id, club_id, first_name, last_name, job_title, email, phone, status, supporter_base, average_attendance";
+
+export type ClubRegistrationInput = {
+  clubName: string;
+  country: string;
+  website: string;
+  stadium: string;
+  firstName: string;
+  lastName: string;
+  jobTitle: string;
+  email: string;
+  phone: string;
+  password: string;
+  supporterBase: string;
+  attendance: string;
+  sustainability: string;
+  climateSponsorship: boolean;
+  climateCredits: boolean;
+  climateLeague: boolean;
+  globalSchoolsSolar: boolean;
+};
+
 export async function loadClubSession(): Promise<{
   account: ClubAccount;
   club: ClubProfile;
@@ -52,28 +75,176 @@ export async function loadClubSession(): Promise<{
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: account, error: accountError } = await supabase
-    .from("club_accounts")
-    .select(
-      "id, club_id, first_name, last_name, job_title, email, phone, status, supporter_base, average_attendance"
-    )
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (accountError || !account) return null;
+  const account = await loadClubAccountForUser(user.id, user.email);
+  if (!account) return null;
 
   const { data: club, error: clubError } = await supabase
     .from("clubs")
     .select("id, name, country")
     .eq("id", account.club_id)
-    .single();
+    .maybeSingle();
 
   if (clubError || !club) return null;
 
   return {
-    account: account as ClubAccount,
+    account,
     club: club as ClubProfile,
   };
+}
+
+async function loadClubAccountForUser(
+  userId: string,
+  email: string | null | undefined
+): Promise<ClubAccount | null> {
+  const byAuth = await supabase
+    .from("club_accounts")
+    .select(ACCOUNT_FIELDS)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  if (byAuth.data) return byAuth.data as ClubAccount;
+
+  if (!email) return null;
+
+  const byEmail = await supabase
+    .from("club_accounts")
+    .select(ACCOUNT_FIELDS)
+    .ilike("email", email)
+    .limit(1)
+    .maybeSingle();
+
+  if (!byEmail.data) return null;
+
+  await supabase
+    .from("club_accounts")
+    .update({ auth_user_id: userId })
+    .eq("id", byEmail.data.id);
+
+  return byEmail.data as ClubAccount;
+}
+
+export async function findClubForRegistration(
+  clubName: string
+): Promise<ClubProfile | null> {
+  const { data } = await supabase.from("clubs").select("id, name, country");
+  const match = findClubOnRoster(data ?? [], clubName);
+  return match ?? null;
+}
+
+export async function registerClubSustainabilityDirector(
+  input: ClubRegistrationInput
+) {
+  const user = await createOrSignInClubUser(input.email, input.password);
+  await upsertClubProfile(user.id, input.email);
+
+  const club = await resolveRegisteredClub(input);
+  const payload = {
+    club_id: club.id,
+    auth_user_id: user.id,
+    first_name: input.firstName,
+    last_name: input.lastName,
+    job_title: input.jobTitle,
+    email: input.email,
+    phone: input.phone,
+    website: input.website,
+    supporter_base: input.supporterBase,
+    average_attendance: input.attendance,
+    sustainability_notes: input.sustainability,
+    climate_sponsorship: input.climateSponsorship,
+    climate_league: input.climateLeague,
+    fan_climate_credits: input.climateCredits,
+    impact_dashboard: input.globalSchoolsSolar,
+    status: "pending",
+  };
+
+  const existing = await supabase
+    .from("club_accounts")
+    .select("id")
+    .ilike("email", input.email)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.data) {
+    const { error } = await supabase
+      .from("club_accounts")
+      .update(payload)
+      .eq("id", existing.data.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("club_accounts").insert(payload);
+    if (error) throw error;
+  }
+
+  return club;
+}
+
+async function createOrSignInClubUser(email: string, password: string) {
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (authError) {
+    if (!/already (been )?registered|already exists/i.test(authError.message)) {
+      throw authError;
+    }
+    const signedIn = await supabase.auth.signInWithPassword({ email, password });
+    if (signedIn.error) throw signedIn.error;
+    if (!signedIn.data.user) throw new Error("Could not sign in to this club account.");
+    return signedIn.data.user;
+  }
+
+  if (!authData.session) {
+    const signedIn = await supabase.auth.signInWithPassword({ email, password });
+    if (signedIn.error) throw signedIn.error;
+    if (!signedIn.data.user) {
+      throw new Error("Failed to create authentication user.");
+    }
+    return signedIn.data.user;
+  }
+
+  if (!authData.user) throw new Error("Failed to create authentication user.");
+  return authData.user;
+}
+
+async function resolveRegisteredClub(
+  input: ClubRegistrationInput
+): Promise<ClubProfile> {
+  const existing = await findClubForRegistration(input.clubName);
+  if (existing) return existing;
+
+  const { data: club, error } = await supabase
+    .from("clubs")
+    .insert({
+      name: input.clubName,
+      short_name: input.clubName,
+      country: input.country,
+      city: "",
+      stadium: input.stadium,
+      logo_url: "",
+      primary_colour: "",
+      secondary_colour: "",
+      competition_id: null,
+    })
+    .select("id, name, country")
+    .single();
+
+  if (error || !club) throw error ?? new Error("Could not create the club.");
+  return club as ClubProfile;
+}
+
+async function upsertClubProfile(userId: string, email: string) {
+  const inserted = await supabase.from("profiles").insert({
+    id: userId,
+    email,
+    role: "club",
+  });
+  if (!inserted.error) return;
+  if (inserted.error.code === "23505") {
+    await supabase.from("profiles").update({ role: "club" }).eq("id", userId);
+    return;
+  }
+  throw inserted.error;
 }
 
 function campaignBelongsToClub(

@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { supabase } from "../../lib/supabase";
-export default function ClubRegistrationPage() {
+import { registerClubSustainabilityDirector } from "@/app/services/club-match-day.service";
+import { CLUB_DASHBOARD_PATH } from "@/app/lib/routes";
 
+export default function ClubRegistrationPage() {
   const [step, setStep] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
 
   const [formData, setFormData] = useState({
 
@@ -76,98 +80,45 @@ confirmPassword: "",
     }));
 
   };
-const submitRegistration = async () => {
+  const submitRegistration = async () => {
+    if (busy) return;
+    setError(null);
     if (formData.password !== formData.confirmPassword) {
-  alert("Passwords do not match.");
-  return;
-}
-
-if (formData.password.length < 8) {
-  alert("Password must be at least 8 characters long.");
-  return;
-}
-  try {
-    const { data: authData, error: authError } =
-  await supabase.auth.signUp({
-    email: formData.email,
-    password: formData.password,
-  });
-
-if (authError) {
-  throw authError;
-}
-
-if (!authData.user) {
-  throw new Error("Failed to create authentication user.");
-}
-    // STEP 1: Create the club
-    const { data: club, error: clubError } = await supabase
-      .from("clubs")
-      .insert([
-        {
-          name: formData.clubName,
-          short_name: formData.clubName,
-          country: formData.country,
-          city: "",
-          stadium: formData.stadium,
-          logo_url: "",
-          primary_colour: "",
-          secondary_colour: "",
-          competition_id: null,
-        },
-      ])
-      .select()
-      .single();
-
-    if (clubError) {
-      alert(clubError.message);
+      setError("Passwords do not match.");
+      return;
+    }
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
-    // STEP 2: Create the club account
-    const { data: account, error: accountError } = await supabase
-      .from("club_accounts")
-      .insert([
-        {
-          club_id: club.id,
-auth_user_id: authData.user.id,
-
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          job_title: formData.jobTitle,
-          email: formData.email,
-          phone: formData.phone,
-          website: formData.website,
-
-          supporter_base: formData.supporterBase,
-          average_attendance: formData.attendance,
-          sustainability_notes: formData.sustainability,
-
-          climate_sponsorship: formData.climateSponsorship,
-          climate_league: formData.climateLeague,
-          fan_climate_credits: formData.climateCredits,
-          impact_dashboard: formData.globalSchoolsSolar,
-
-          status: "pending",
-        },
-      ])
-      .select();
-
-    if (accountError) {
-      alert(accountError.message);
-      return;
+    setBusy(true);
+    try {
+      await registerClubSustainabilityDirector({
+        clubName: formData.clubName,
+        country: formData.country,
+        website: formData.website,
+        stadium: formData.stadium,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        jobTitle: formData.jobTitle,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        supporterBase: formData.supporterBase,
+        attendance: formData.attendance,
+        sustainability: formData.sustainability,
+        climateSponsorship: formData.climateSponsorship,
+        climateCredits: formData.climateCredits,
+        climateLeague: formData.climateLeague,
+        globalSchoolsSolar: formData.globalSchoolsSolar,
+      });
+      window.location.href = CLUB_DASHBOARD_PATH;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+      setBusy(false);
     }
-
-    alert("🎉 Club registered successfully!");
-
-    console.log("Club:", club);
-    console.log("Account:", account);
-  } catch (error: any) {
-    console.error(error);
-    alert(error.message ?? "Unknown error");
-  }
-
-    };
+  };
 
   return (
 
@@ -761,6 +712,12 @@ auth_user_id: authData.user.id,
   </>
 )}
 
+        {error && (
+          <div className="mt-8 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+            {error}
+          </div>
+        )}
+
 {/* ============================
     NAVIGATION
 ============================ */}
@@ -800,9 +757,10 @@ auth_user_id: authData.user.id,
 
     <button
       onClick={submitRegistration}
-      className="rounded-xl bg-green-500 px-8 py-3 font-bold text-black hover:bg-green-400"
+      disabled={busy}
+      className="rounded-xl bg-green-500 px-8 py-3 font-bold text-black hover:bg-green-400 disabled:opacity-70"
     >
-      Complete Club Registration
+      {busy ? "Opening your dashboard..." : "Complete Club Registration"}
     </button>
 
   )}

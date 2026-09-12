@@ -2,6 +2,7 @@ import {
   CURRENT_SEASON_LEAGUES,
   clubInCurrentSeasonLeague,
   isCurrentSeasonLeagueFixture,
+  seasonNamesMatch,
 } from "../app/lib/current-season";
 import { loadTeamCatalogFromDatabase } from "../app/services/teams.service";
 import { scoreLabelForSport } from "../app/lib/sports";
@@ -45,6 +46,15 @@ for (const promoted of ["Coventry City", "Ipswich Town", "Hull City"]) {
     `${promoted} must not remain in the Championship`
   );
 }
+
+assert(
+  seasonNamesMatch("Hearts of Midlothian FC", "Heart of Midlothian"),
+  "Hearts of Midlothian FC matches the catalog Hearts club"
+);
+assert(
+  seasonNamesMatch("Hearts of Midlothian FC", "Hearts"),
+  "Hearts of Midlothian FC matches the short Hearts name"
+);
 
 assert(
   clubInCurrentSeasonLeague("NFL", "New England Patriots"),

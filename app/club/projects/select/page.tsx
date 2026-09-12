@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/app/lib/supabase";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
   loadClubSession,
@@ -39,7 +40,17 @@ export default function SelectMatchDayProjectsPage() {
       try {
         const session = await loadClubSession();
         if (!session) {
-          router.push(CLUB_LOGIN_PATH);
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) {
+            router.replace(CLUB_LOGIN_PATH);
+            return;
+          }
+          setError(
+            "This login is not linked to a club account yet. Complete club registration first."
+          );
+          setLoading(false);
           return;
         }
         setClubId(session.club.id);
