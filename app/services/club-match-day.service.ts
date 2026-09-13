@@ -387,7 +387,19 @@ export async function ensureOpenClubCampaign(
   }
 
   const matchId = await findClubFixtureId(clubId);
+  const votingOpens = new Date().toISOString();
+  const votingCloses = new Date(Date.now() + MATCH_DAY_LEAD_HOURS * 60 * 60 * 1000).toISOString();
   const attempts: Array<Record<string, unknown>> = [
+    {
+      club_id: clubId,
+      title,
+      status: "open",
+      sponsorship_per_goal: amount,
+      maximum_votes: 3,
+      voting_opens: votingOpens,
+      voting_closes: votingCloses,
+      ...(matchId ? { match_id: matchId } : {}),
+    },
     {
       club_id: clubId,
       title,
@@ -740,6 +752,7 @@ export function readStoredMatchDay(clubId: string): MatchDaySelection | null {
 }
 
 function writeStoredMatchDay(clubId: string, selection: MatchDaySelection) {
+  if (typeof window === "undefined") return;
   window.localStorage.setItem(
     MATCH_DAY_STORAGE_PREFIX + clubId,
     JSON.stringify(selection)
@@ -828,16 +841,18 @@ async function writeClubPortfolio(
       status,
     })),
   ];
+  let lastError = "Could not save the Match Day projects.";
   for (const rows of portfolioAttempts) {
     const { error } = await supabase.from("club_match_portfolio").insert(rows);
     if (!error) return;
+    lastError = error.message;
   }
+  throw new Error(lastError);
 }
 
 export async function postMatchDayProjectsToFans({
   clubId,
   clubName,
-  country,
 }: {
   clubId: string;
   clubName: string;
@@ -853,38 +868,35 @@ export async function postMatchDayProjectsToFans({
     );
   }
 
-  const featured = selected.find(isFeaturedClimateProject) ?? selected[0];
-  const others = selected.filter((project) => project.id !== featured.id);
-  const catalog = await loadPartnerClimateProjects({ clubName, country });
-  const validIds = new Set(catalog.map((project) => project.id));
-  const chosen = others.filter((project) => validIds.has(project.id)).slice(0, MATCH_DAY_CHOICE_COUNT);
-  if (chosen.length !== MATCH_DAY_CHOICE_COUNT) {
-    throw new Error(
-      `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects before posting to fans.`
-    );
-  }
-
-  const portfolioIds = [featured.id, ...chosen.map((project) => project.id)];
+  const portfolioIds = selected.slice(0, MATCH_DAY_PROJECT_COUNT).map(
+    (project) => project.id
+  );
   const amount = Math.max(
     OPENING_SPONSORSHIP,
     Math.round(board.minAmount ?? stored?.minAmount ?? OPENING_SPONSORSHIP)
   );
-  const campaign = await ensureOpenClubCampaign(clubId, clubName, amount);
-  await writeCampaignProjects(campaign.id, portfolioIds);
   await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_POSTED);
+
+  let campaign: OpenClubCampaign | null = null;
+  try {
+    campaign = await ensureOpenClubCampaign(clubId, clubName, amount);
+    await writeCampaignProjects(campaign.id, portfolioIds);
+  } catch {
+    campaign = await findOpenClubCampaign(clubId, clubName);
+  }
 
   const selection: MatchDaySelection = {
     projectIds: portfolioIds,
     minAmount: amount,
     savedAt: new Date().toISOString(),
-    campaignId: campaign.id,
+    campaignId: campaign?.id ?? stored?.campaignId ?? null,
     postedAt: new Date().toISOString(),
   };
   writeStoredMatchDay(clubId, selection);
   await persistFileRecord({
     clubId,
     clubName,
-    campaignId: campaign.id,
+    campaignId: campaign?.id ?? stored?.campaignId ?? null,
     minAmount: amount,
     selected: await loadProjectsByIds(portfolioIds),
     voted: board.voted,
