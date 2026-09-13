@@ -204,15 +204,14 @@ export default function ClubDashboardPage() {
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
             <h2 className="text-4xl font-black md:text-5xl">
-              Select Your {MATCH_DAY_PROJECT_COUNT} Climate Projects for this
-              Match Day
+              {selected.length >= MATCH_DAY_PROJECT_COUNT
+                ? `Here's your ${MATCH_DAY_PROJECT_COUNT} chosen Projects for this Match Day`
+                : `Select Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day`}
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
-              Global Schools Solar is included in every Match Day five. Choose{" "}
-              {MATCH_DAY_CHOICE_COUNT} Climate Partner projects ({localCountry}{" "}
-              and international) for supporters to vote on. {MATCH_DAY_LEAD_HOURS}{" "}
-              hours before kick-off, attach the minimum sponsorship amount per
-              Goal scored by {club.name} players.
+              {selected.length >= MATCH_DAY_PROJECT_COUNT
+                ? "These Projects will be voted for by your Fans/Supporters as to which project receives the sponsorship funding."
+                : `Global Schools Solar is included in every Match Day five. Choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects (${localCountry} and international) for supporters to vote on. ${MATCH_DAY_LEAD_HOURS} hours before kick-off, attach the minimum sponsorship amount per Goal scored by ${club.name} players.`}
             </p>
           </div>
 
@@ -220,8 +219,9 @@ export default function ClubDashboardPage() {
             className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
             onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
           >
-            Select Your {MATCH_DAY_PROJECT_COUNT} Climate Projects for this
-            Match Day
+            {selected.length >= MATCH_DAY_PROJECT_COUNT
+              ? `Post Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects to your Fans/Supporters to Vote on`
+              : `Select Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day`}
           </button>
 
           <div className="mt-10 text-left">
