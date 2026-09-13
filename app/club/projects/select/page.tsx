@@ -19,6 +19,7 @@ import {
   partnerProjectPage,
 } from "@/app/lib/partner-projects";
 import { isInternationalCatalogName, isUkCatalogName } from "@/app/lib/sccan-catalog";
+import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
 import {
   CLUB_DASHBOARD_PATH,
@@ -28,6 +29,7 @@ import {
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
   const [clubName, setClubName] = useState("your club");
+  const [clubCountry, setClubCountry] = useState<string | null>(null);
   const [clubId, setClubId] = useState<string | null>(null);
   const [projects, setProjects] = useState<ClimateProject[]>([]);
   const [featured, setFeatured] = useState<ClimateProject | null>(null);
@@ -58,6 +60,7 @@ export default function SelectMatchDayProjectsPage() {
         }
         setClubId(session.club.id);
         setClubName(session.club.name);
+        setClubCountry(session.club.country);
         const catalog = await loadPartnerClimateProjects();
         setProjects(catalog);
         const featuredProject = await loadFeaturedMatchDayProject();
@@ -172,7 +175,10 @@ export default function SelectMatchDayProjectsPage() {
             <h2 className="mt-2 text-2xl font-bold">{featured.name}</h2>
             <p className="mt-2 text-slate-300">{featured.description}</p>
             <p className="mt-3 text-sm text-slate-400">
-              {featured.country}
+              {climateProjectCountryLabel(featured, {
+                clubName,
+                country: clubCountry,
+              })}
               {featured.estimated_co2 != null
                 ? ` · ${featured.estimated_co2.toLocaleString("en-GB")} t CO₂`
                 : ""}

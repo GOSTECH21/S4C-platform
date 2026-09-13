@@ -5,14 +5,18 @@ import Link from "next/link";
 import {
   getOrCreateSupporter,
   getVotedAndFundedProjects,
+  isFeaturedClimateProject,
   type ClimateProject,
 } from "@/app/services/votes.service";
+import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import FanNav from "../components/FanNav";
 import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import { featuredClimateProjectCountryLabelForClubs } from "@/app/lib/featured-climate-country";
 
 export default function VotePage() {
   const [voted, setVoted] = useState<ClimateProject[]>([]);
   const [funded, setFunded] = useState<ClimateProject[]>([]);
+  const [teams, setTeams] = useState<TeamOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,8 +31,10 @@ export default function VotePage() {
         }
 
         const lists = await getVotedAndFundedProjects(supporter.id);
+        const supported = await getSupportedTeams(supporter);
         setVoted(votedProjectsOnly(lists.voted, lists.funded));
         setFunded(lists.funded);
+        setTeams(supported);
       } catch (err) {
         console.error("Failed to load climate projects:", err);
         setError(
@@ -93,7 +99,7 @@ export default function VotePage() {
           ) : (
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               {voted.map((project) => (
-                <HistoryCard key={project.id} project={project} />
+                <HistoryCard key={project.id} project={project} teams={teams} />
               ))}
             </div>
           )}
@@ -116,7 +122,7 @@ export default function VotePage() {
           ) : (
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               {funded.map((project) => (
-                <HistoryCard key={project.id} project={project} funded />
+                <HistoryCard key={project.id} project={project} funded teams={teams} />
               ))}
             </div>
           )}
@@ -137,10 +143,20 @@ function votedProjectsOnly(
 function HistoryCard({
   project,
   funded = false,
+  teams,
 }: {
   project: ClimateProject;
   funded?: boolean;
+  teams: TeamOption[];
 }) {
+  const country = isFeaturedClimateProject(project)
+    ? featuredClimateProjectCountryLabelForClubs(
+        teams.map((team) => ({
+          clubName: team.name,
+          league: team.competition,
+        }))
+      )
+    : project.country;
   return (
     <div className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-6">
       <div className="flex items-start justify-between gap-4">
@@ -156,8 +172,8 @@ function HistoryCard({
         ) : null}
       </div>
 
-      {project.country && (
-        <p className="mt-1 text-sm text-slate-400">📍 {project.country}</p>
+      {country && (
+        <p className="mt-1 text-sm text-slate-400">📍 {country}</p>
       )}
 
       <p className="mt-4 flex-1 text-slate-300">{project.description}</p>

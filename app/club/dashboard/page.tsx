@@ -13,6 +13,7 @@ import {
 } from "@/app/services/club-match-day.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
+import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import {
   ciltLeagueForClub,
   ciltPositionLabel,
@@ -227,6 +228,8 @@ export default function ClubDashboardPage() {
               projects={selected}
               empty={`No projects selected for this Match Day yet. Global Schools Solar will be included automatically once you choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects.`}
               badge="Selected"
+              clubName={club.name}
+              clubCountry={club.country}
             />
           </div>
         </section>
@@ -241,6 +244,8 @@ export default function ClubDashboardPage() {
             projects={voted}
             empty="No supporter votes yet. Once fans vote on My S4P, those projects appear here."
             badge="Voted"
+            clubName={club.name}
+            clubCountry={club.country}
           />
         </section>
 
@@ -326,6 +331,8 @@ export default function ClubDashboardPage() {
             projects={funded}
             empty="No projects have been funded from Goals yet."
             funded
+            clubName={club.name}
+            clubCountry={club.country}
           />
         </section>
 
@@ -396,11 +403,15 @@ function ProjectGrid({
   empty,
   funded = false,
   badge,
+  clubName,
+  clubCountry,
 }: {
   projects: ClimateProject[];
   empty: string;
   funded?: boolean;
   badge?: string;
+  clubName?: string | null;
+  clubCountry?: string | null;
 }) {
   if (projects.length === 0) {
     return (
@@ -412,7 +423,12 @@ function ProjectGrid({
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
-      {projects.map((project) => (
+      {projects.map((project) => {
+        const country = climateProjectCountryLabel(project, {
+          clubName,
+          country: clubCountry,
+        });
+        return (
         <div
           key={project.id}
           className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
@@ -429,8 +445,8 @@ function ProjectGrid({
               </span>
             )}
           </div>
-          {project.country && (
-            <p className="mt-1 text-sm text-slate-400">📍 {project.country}</p>
+          {country && (
+            <p className="mt-1 text-sm text-slate-400">📍 {country}</p>
           )}
           <p className="mt-3 text-slate-300">{project.description}</p>
           {project.estimated_co2 != null && (
@@ -439,7 +455,8 @@ function ProjectGrid({
             </p>
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

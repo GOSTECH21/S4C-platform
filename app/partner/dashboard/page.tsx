@@ -162,7 +162,9 @@ export default function PartnerDashboardPage() {
                 sccan.scot
               </a>{" "}
               UK projects plus international projects, with featured{" "}
-              {FEATURED_PROJECT_NAME} included in every Match Day five.
+              {FEATURED_PROJECT_NAME} included in every Match Day five. Clubs
+              and fans see it as their home country and International — UK and
+              International for a UK club, Italy and International for AC Milan.
             </p>
             <p className="mt-2 text-sm text-slate-500">{email}</p>
           </div>
@@ -336,7 +338,7 @@ function ProjectRow({
       </h3>
       <p className="mt-2 text-sm text-slate-300">{project.description}</p>
       <p className="mt-3 text-xs text-slate-500">
-        {project.country}
+        {featured ? "Home country and International" : project.country}
         {project.estimated_co2 != null
           ? ` · ${project.estimated_co2.toLocaleString("en-GB")} t CO₂`
           : ""}

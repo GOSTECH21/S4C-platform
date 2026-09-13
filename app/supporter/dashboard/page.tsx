@@ -22,6 +22,7 @@ import {
   formatVoteCount,
   voteProgress,
 } from "@/app/lib/sponsorship-auction";
+import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -267,6 +268,7 @@ function CampaignPanel({
             <ProjectCard
               project={campaign.featuredProject}
               featured
+              clubName={campaign.clubName}
               sponsorName={campaign.sponsorName}
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(campaign.featuredProject.id)}
@@ -290,6 +292,7 @@ function CampaignPanel({
             <ProjectCard
               key={project.id}
               project={project}
+              clubName={campaign.clubName}
               sponsorName={campaign.sponsorName}
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(project.id)}
@@ -357,6 +360,7 @@ function voteableProjects(campaign: S4PCampaign): CampaignProject[] {
 function ProjectCard({
   project,
   featured = false,
+  clubName,
   sponsorName,
   scoreLabel,
   isSelected,
@@ -365,6 +369,7 @@ function ProjectCard({
 }: {
   project: CampaignProject;
   featured?: boolean;
+  clubName: string;
   sponsorName: string;
   scoreLabel: string;
   isSelected: boolean;
@@ -375,6 +380,7 @@ function ProjectCard({
     votesReceived: project.votesReceived,
     voteTarget: project.voteTarget,
   });
+  const country = climateProjectCountryLabel(project, { clubName });
 
   return (
     <div
@@ -401,7 +407,7 @@ function ProjectCard({
 
       {featured && (
         <div className="mt-5 space-y-1 text-sm text-slate-400">
-          {project.country && <p>📍 {project.country}</p>}
+          {country && <p>📍 {country}</p>}
           {project.estimated_co2 != null && (
             <p>🌳 Estimated CO₂ Offset: {project.estimated_co2.toLocaleString()} tonnes</p>
           )}

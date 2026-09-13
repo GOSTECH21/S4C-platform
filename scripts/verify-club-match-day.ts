@@ -8,6 +8,11 @@ import {
 import { ciltPositionLabel, premierLeagueCilt, scottishPremiershipCilt, climateImpactLeagueTable } from "../app/lib/cilt";
 import { leagueForClubName } from "../app/lib/current-season";
 import { SELECTABLE_MATCH_DAY_CATALOG } from "../app/lib/sccan-catalog";
+import {
+  climateProjectCountryLabel,
+  featuredClimateProjectCountryLabel,
+  featuredClimateProjectCountryLabelForClubs,
+} from "../app/lib/featured-climate-country";
 
 const failures: string[] = [];
 
@@ -86,6 +91,47 @@ assert(
 assert(
   leagueForClubName("Arsenal") === "Premier League",
   "Arsenal remains a Premier League club"
+);
+
+assert(
+  featuredClimateProjectCountryLabel({ clubName: "Hearts of Midlothian FC" }) ===
+    "UK and International",
+  "Hearts sees Global Schools Solar as UK and International"
+);
+assert(
+  featuredClimateProjectCountryLabel({
+    clubName: "Arsenal",
+    country: "England",
+  }) === "UK and International",
+  "Arsenal sees Global Schools Solar as UK and International"
+);
+assert(
+  featuredClimateProjectCountryLabel({ clubName: "AC Milan" }) ===
+    "Italy and International",
+  "An AC Milan club or supporter sees Global Schools Solar as Italy and International"
+);
+assert(
+  featuredClimateProjectCountryLabel({ clubName: "Real Madrid" }) ===
+    "Spain and International",
+  "A La Liga club sees Global Schools Solar as Spain and International"
+);
+assert(
+  featuredClimateProjectCountryLabel() === "International",
+  "Without a club, Global Schools Solar stays International"
+);
+assert(
+  climateProjectCountryLabel(
+    { name: "Ugandan Cookstove", country: "Uganda" },
+    { clubName: "Arsenal" }
+  ) === "Uganda",
+  "Partner project countries stay as stored"
+);
+assert(
+  featuredClimateProjectCountryLabelForClubs([
+    { clubName: "Arsenal" },
+    { clubName: "AC Milan" },
+  ]) === "UK, Italy and International",
+  "A fan who supports Arsenal and AC Milan sees both home countries plus International"
 );
 
 if (failures.length > 0) {
