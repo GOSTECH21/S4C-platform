@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SPORT_SELECT_OPTIONS, scoreLabelForSport } from "@/app/lib/sports";
 
 export default function NewCampaignPage() {
 
@@ -48,17 +49,15 @@ export default function NewCampaignPage() {
 
           <select
             value={sport}
-            onChange={(e)=>setSport(e.target.value)}
+            onChange={(e)=>{
+              setSport(e.target.value);
+              setTrigger(scoreLabelForSport(e.target.value));
+            }}
             className="w-full rounded-lg border p-3"
           >
-            <option>Football</option>
-            <option>Rugby</option>
-            <option>Cricket</option>
-            <option>Basketball</option>
-            <option>Tennis</option>
-            <option>Formula 1</option>
-            <option>Golf</option>
-            <option>Athletics</option>
+            {SPORT_SELECT_OPTIONS.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
           </select>
 
         </div>
@@ -91,10 +90,7 @@ export default function NewCampaignPage() {
             <option>Goal</option>
             <option>Try</option>
             <option>Touchdown</option>
-            <option>Wicket</option>
-            <option>Birdie</option>
-            <option>Ace</option>
-            <option>Win</option>
+            <option>3-Point</option>
           </select>
 
         </div>

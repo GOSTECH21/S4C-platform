@@ -1,3 +1,4 @@
+import { clubsInCurrentSeasonCompetition } from "../lib/current-season";
 import { supabase } from "../lib/supabase";
 import { initializeLeagueTable } from "./league-table.service";
 type Club = {
@@ -77,15 +78,25 @@ export async function generateFixtures({
   kickoffTime: string;
 }) {
 
-  // Load clubs
+  const { data: competition, error: competitionError } = await supabase
+    .from("competitions")
+    .select("id, name")
+    .eq("id", competitionId)
+    .maybeSingle();
+  if (competitionError) throw competitionError;
 
-  const { data: clubs, error } = await supabase
+  const { data: clubRows, error } = await supabase
     .from("clubs")
     .select("*")
     .eq("competition_id", competitionId)
     .order("name");
 
   if (error) throw error;
+
+  const clubs = clubsInCurrentSeasonCompetition(
+    (clubRows ?? []) as Club[],
+    competition?.name
+  );
 
   // Prevent duplicate seasons
 
