@@ -197,9 +197,9 @@ assert(
 assert(
   !fanTeamMatchesPostedClub(unitedFan, {
     clubId: "other",
-    title: "Arsenal Climate Campaign",
+    title: "Arsenal vs Chelsea Climate Campaign",
   }),
-  "A Manchester United fan does not match an Arsenal campaign"
+  "A Manchester United fan does not match an Arsenal vs Chelsea campaign"
 );
 assert(
   fanTeamMatchesPostedClub(unitedFan, { clubId: "fan-united", title: "Other" }),

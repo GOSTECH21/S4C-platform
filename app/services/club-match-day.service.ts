@@ -301,7 +301,7 @@ function campaignBelongsToClub(
 ): boolean {
   return fanTeamMatchesPostedClub(
     { id: clubId, name: clubName, displayName: clubName },
-    { clubId: row.club_id, title: row.title, clubName }
+    { clubId: row.club_id, title: row.title }
   );
 }
 
@@ -309,6 +309,7 @@ type OpenClubCampaign = {
   id: string;
   title: string | null;
   sponsorship_per_goal: number | null;
+  club_id?: string | null;
 };
 
 export async function findOpenClubCampaign(
@@ -427,7 +428,7 @@ export async function ensureOpenClubCampaign(
     const inserted = await supabase
       .from("match_campaigns")
       .insert(payload)
-      .select("id, title, sponsorship_per_goal")
+      .select("id, title, sponsorship_per_goal, club_id")
       .single();
     if (!inserted.error && inserted.data) {
       return inserted.data as OpenClubCampaign;
@@ -792,7 +793,7 @@ export async function saveMatchDaySelection({
   const amount = Math.max(OPENING_SPONSORSHIP, Math.round(minAmount));
   const campaign = await findOpenClubCampaign(clubId, clubName);
 
-  if (campaign) {
+  if (campaign && campaignBelongsToClub(campaign, clubId, clubName)) {
     await writeCampaignProjects(campaign.id, portfolioIds);
   }
 
@@ -880,7 +881,9 @@ export async function postMatchDayProjectsToFans({
   let campaign: OpenClubCampaign | null = null;
   try {
     campaign = await ensureOpenClubCampaign(clubId, clubName, amount);
-    await writeCampaignProjects(campaign.id, portfolioIds);
+    if (campaignBelongsToClub({ ...campaign, club_id: campaign.club_id ?? clubId }, clubId, clubName)) {
+      await writeCampaignProjects(campaign.id, portfolioIds);
+    }
   } catch {
     campaign = await findOpenClubCampaign(clubId, clubName);
   }
