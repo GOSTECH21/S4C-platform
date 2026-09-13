@@ -13,6 +13,12 @@ import {
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
+import { seasonNamesMatch } from "../lib/current-season";
+import {
+  fanTeamMatchesPostedClub,
+  isPostedPortfolioStatus,
+  portfolioProjectId,
+} from "../lib/match-day-post";
 
 export type ClimateProject = {
   id: string;
@@ -257,8 +263,8 @@ const DEFAULT_SPONSOR = "Budweiser";
 const REQUIRED_VOTES = 3;
 
 /**
- * Match climate campaigns for a fan: only matches involving teams they
- * support, with the sustainability director's sponsored projects.
+ * Match climate campaigns for a fan: clubs they support that have posted
+ * Match Day projects, with the sustainability director's sponsored list.
  */
 export async function getMyS4PCampaigns(
   supporter: Supporter & { favourite_club_id?: string | null }
@@ -266,9 +272,8 @@ export async function getMyS4PCampaigns(
   const teams = await getSupportedTeams(supporter);
   if (teams.length === 0) return [];
 
-  const clubIds = new Set(teams.map((team) => team.id));
   const campaigns: S4PCampaign[] = [];
-  const seen = new Set<string>();
+  const seenTeams = new Set<string>();
 
   const { data: open } = await supabase
     .from("match_campaigns")
@@ -278,13 +283,27 @@ export async function getMyS4PCampaigns(
     .eq("status", "open");
 
   for (const row of open ?? []) {
-    if (!campaignMatchesSupportedTeams(row, clubIds, teams)) continue;
+    const matched = matchingSupportedTeams(row, teams);
+    if (matched.length === 0) continue;
     const built = await buildCampaignFromMatchRow(row, teams);
-    const key = built?.campaignId ?? built?.clubId;
-    if (built && key && !seen.has(key)) {
-      seen.add(key);
-      campaigns.push(built);
-    }
+    if (!built) continue;
+    const unseen = matched.filter((team) => !seenTeams.has(team.id));
+    if (unseen.length === 0) continue;
+    for (const team of unseen) seenTeams.add(team.id);
+    const primary = unseen[0];
+    campaigns.push({
+      ...built,
+      clubId: primary.id,
+      clubName: primary.displayName || built.clubName,
+    });
+  }
+
+  for (const team of teams) {
+    if (seenTeams.has(team.id)) continue;
+    const fromPortfolio = await campaignFromClubPortfolio(team);
+    if (!fromPortfolio) continue;
+    seenTeams.add(team.id);
+    campaigns.push(fromPortfolio);
   }
 
   return campaigns;
@@ -297,54 +316,92 @@ export async function getMyS4PCampaign(
   return campaigns[0] ?? null;
 }
 
-function campaignMatchesSupportedTeams(
-  row: { club_id: string; title: string | null },
-  clubIds: Set<string>,
+function matchingSupportedTeams(
+  row: { club_id: string | null; title: string | null },
   teams: TeamOption[]
-): boolean {
-  if (clubIds.has(row.club_id)) return true;
-  const title = (row.title ?? "").toLowerCase();
-  return teams.some((team) => titleIncludesTeam(title, team));
+): TeamOption[] {
+  return teams.filter((team) =>
+    fanTeamMatchesPostedClub(team, {
+      clubId: row.club_id,
+      title: row.title,
+    })
+  );
 }
 
 function titleIncludesTeam(title: string, team: TeamOption): boolean {
-  const names = [team.name, team.displayName].map((name) =>
-    name.toLowerCase()
-  );
-  return names.some((name) => name.length > 2 && title.includes(name.toLowerCase()));
+  return fanTeamMatchesPostedClub(team, { title });
+}
+
+async function resolveClubIdsForFanTeam(team: TeamOption): Promise<string[]> {
+  const ids = new Set<string>();
+  if (team.id && !team.id.startsWith("season:")) ids.add(team.id);
+
+  const { data } = await supabase.from("clubs").select("id, name");
+  for (const club of data ?? []) {
+    const clubId = String(club.id);
+    const clubName = String(club.name ?? "");
+    if (
+      fanTeamMatchesPostedClub(team, { clubId, clubName }) ||
+      seasonNamesMatch(team.name, clubName) ||
+      seasonNamesMatch(team.displayName, clubName)
+    ) {
+      ids.add(clubId);
+    }
+  }
+  return [...ids];
 }
 
 async function campaignFromClubPortfolio(
   team: TeamOption
 ): Promise<S4PCampaign | null> {
-  const clubId = team.id;
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("id, name")
-    .eq("id", clubId)
-    .maybeSingle();
-  if (!club) return null;
+  const clubIds = await resolveClubIdsForFanTeam(team);
+  if (clubIds.length === 0) return null;
 
   const { data: portfolio } = await supabase
     .from("club_match_portfolio")
-    .select(`fixture_id, climate_projects (${PROJECT_FIELDS})`)
-    .eq("club_id", clubId);
+    .select("*")
+    .in("club_id", clubIds);
 
-  const projects = (portfolio ?? [])
-    .map(
-      (row) =>
-        (row as unknown as { climate_projects: ClimateProject })
-          .climate_projects
-    )
-    .filter((p): p is ClimateProject => Boolean(p));
+  const rows = (portfolio ?? []).filter((row) =>
+    isPostedPortfolioStatus((row as { status?: unknown }).status)
+  );
+  if (rows.length === 0) return null;
 
+  const projectIds = [
+    ...new Set(
+      rows
+        .map((row) => portfolioProjectId(row as Record<string, unknown>))
+        .filter(Boolean)
+    ),
+  ];
+  if (projectIds.length === 0) return null;
+
+  const { data: projectRows } = await supabase
+    .from("climate_projects")
+    .select(PROJECT_FIELDS)
+    .in("id", projectIds);
+  const byId = new Map(
+    ((projectRows ?? []) as ClimateProject[]).map((project) => [
+      project.id,
+      project,
+    ])
+  );
+  const projects = projectIds
+    .map((id) => byId.get(id))
+    .filter((project): project is ClimateProject => Boolean(project));
   if (projects.length === 0) return null;
 
-  const fixtureId =
-    (portfolio ?? []).map((row) => row.fixture_id).find(Boolean) ?? null;
+  const postedClubId = String(rows[0].club_id ?? team.id);
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("id, name")
+    .eq("id", postedClubId)
+    .maybeSingle();
 
-  // Match title from the linked (or any) fixture involving this club.
-  let matchTitle = club.name;
+  const fixtureId =
+    rows.map((row) => row.fixture_id as string | null).find(Boolean) ?? null;
+
+  let matchTitle = club?.name ?? team.displayName;
   const fixtureQuery = fixtureId
     ? supabase
         .from("fixtures")
@@ -354,7 +411,11 @@ async function campaignFromClubPortfolio(
     : supabase
         .from("fixtures")
         .select("home_club_id, away_club_id")
-        .or(`home_club_id.eq.${clubId},away_club_id.eq.${clubId}`)
+        .or(
+          clubIds
+            .map((id) => `home_club_id.eq.${id},away_club_id.eq.${id}`)
+            .join(",")
+        )
         .limit(1)
         .maybeSingle();
   const { data: fixture } = await fixtureQuery;
@@ -366,15 +427,17 @@ async function campaignFromClubPortfolio(
     const nameById = Object.fromEntries(
       (names ?? []).map((c) => [c.id, displayClubName(c.name as string)])
     );
-    matchTitle = `${nameById[fixture.home_club_id] ?? club.name} vs ${
+    matchTitle = `${nameById[fixture.home_club_id] ?? matchTitle} vs ${
       nameById[fixture.away_club_id] ?? "Opponent"
     }`;
   }
 
   const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
-  const campaignId = await resolveOpenCampaignId(clubId);
+  const campaignId =
+    (await resolveOpenCampaignId(postedClubId)) ??
+    (await resolveOpenCampaignId(team.id));
   const sponsor = await resolveCampaignSponsor({
-    clubName: club.name,
+    clubName: club?.name ?? team.name,
     matchTitle,
     sport: team.sport,
   });
@@ -384,8 +447,8 @@ async function campaignFromClubPortfolio(
   ]);
 
   return {
-    clubId: club.id,
-    clubName: team.displayName || club.name,
+    clubId: team.id,
+    clubName: team.displayName || club?.name || team.name,
     matchTitle: formatMatchHeadline(matchTitle),
     sponsorName: sponsor.name,
     sponsorLogoUrl: sponsor.logoUrl,

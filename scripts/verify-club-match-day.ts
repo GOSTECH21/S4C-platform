@@ -15,6 +15,10 @@ import {
   localCatalogCountryForClub,
   selectableCatalogForClub,
 } from "../app/lib/featured-climate-country";
+import {
+  fanTeamMatchesPostedClub,
+  matchDayCampaignTitle,
+} from "../app/lib/match-day-post";
 
 const failures: string[] = [];
 
@@ -165,6 +169,41 @@ assert(
     { clubName: "AC Milan" },
   ]) === "UK, Italy and International",
   "A fan who supports Arsenal and AC Milan sees both home countries plus International"
+);
+
+const unitedFan = {
+  id: "fan-united",
+  name: "Manchester United",
+  displayName: "Manchester United",
+};
+assert(
+  matchDayCampaignTitle("Manchester United") ===
+    "Manchester United Climate Campaign",
+  "Posted campaign title includes the club name"
+);
+assert(
+  fanTeamMatchesPostedClub(unitedFan, {
+    clubId: "sd-united",
+    title: "Manchester United Climate Campaign",
+  }),
+  "A Manchester United fan matches a posted Man United campaign by title"
+);
+assert(
+  fanTeamMatchesPostedClub(unitedFan, {
+    title: "Man United vs Liverpool Climate Campaign",
+  }),
+  "A Manchester United fan matches a Man United vs opponent campaign title"
+);
+assert(
+  !fanTeamMatchesPostedClub(unitedFan, {
+    clubId: "other",
+    title: "Arsenal Climate Campaign",
+  }),
+  "A Manchester United fan does not match an Arsenal campaign"
+);
+assert(
+  fanTeamMatchesPostedClub(unitedFan, { clubId: "fan-united", title: "Other" }),
+  "A fan matches a posted campaign when the club id is the same"
 );
 
 if (failures.length > 0) {

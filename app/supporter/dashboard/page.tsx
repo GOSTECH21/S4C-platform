@@ -99,12 +99,11 @@ export default function MyS4PDashboardPage() {
     return (
       <main className="px-8 pb-16 text-white">
         <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
-          <h2 className="text-2xl font-bold">No sponsored match right now</h2>
+          <h2 className="text-2xl font-bold">No posted climate projects right now</h2>
           <p className="mt-3 text-slate-300">
             You support {teams.map((team) => team.displayName).join(", ")}.
-            When one of those teams is playing, you will get a match-day alert
-            on your phone and you will see the sponsored climate projects here
-            so you can vote.
+            When one of those clubs posts its Match Day climate projects, they
+            appear here so you can vote.
           </p>
           <Link
             href={SUPPORTER_TEAMS_PATH}

@@ -7,6 +7,8 @@ import {
   loadClubSession,
   loadClubProjectBoard,
   fileRecordDownloadName,
+  postMatchDayProjectsToFans,
+  readStoredMatchDay,
   type ClubAccount,
   type ClubFileRecord,
   type ClubProfile,
@@ -45,6 +47,9 @@ export default function ClubDashboardPage() {
   const [minAmount, setMinAmount] = useState<number | null>(null);
   const [records, setRecords] = useState<ClubFileRecord[]>([]);
   const [unlinked, setUnlinked] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [postedAt, setPostedAt] = useState<string | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -70,6 +75,7 @@ export default function ClubDashboardPage() {
       setSelected(board.selected);
       setMinAmount(board.minAmount);
       setRecords(board.records);
+      setPostedAt(readStoredMatchDay(session.club.id)?.postedAt ?? null);
       setLoading(false);
     }
 
@@ -125,6 +131,32 @@ export default function ClubDashboardPage() {
   async function logout() {
     await supabase.auth.signOut();
     router.push(CLUB_LOGIN_PATH);
+  }
+
+  async function handleMatchDayAction() {
+    if (selected.length < MATCH_DAY_PROJECT_COUNT) {
+      router.push(CLUB_SELECT_PROJECTS_PATH);
+      return;
+    }
+    if (!club) return;
+    setPosting(true);
+    setPostError(null);
+    try {
+      const posted = await postMatchDayProjectsToFans({
+        clubId: club.id,
+        clubName: club.name,
+        country: club.country,
+      });
+      setPostedAt(posted.postedAt ?? new Date().toISOString());
+    } catch (err) {
+      setPostError(
+        err instanceof Error
+          ? err.message
+          : "Could not post these projects to your fans."
+      );
+    } finally {
+      setPosting(false);
+    }
   }
 
   if (unlinked) {
@@ -216,13 +248,36 @@ export default function ClubDashboardPage() {
           </div>
 
           <button
-            className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500"
-            onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
+            className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500 disabled:cursor-wait disabled:opacity-70"
+            disabled={posting}
+            onClick={() => void handleMatchDayAction()}
           >
-            {selected.length >= MATCH_DAY_PROJECT_COUNT
-              ? `Post Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects to your Fans/Supporters to Vote on`
-              : `Select Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day`}
+            {posting
+              ? "Posting to your fans..."
+              : selected.length >= MATCH_DAY_PROJECT_COUNT
+                ? `Post Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects to your Fans/Supporters to Vote on`
+                : `Select Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day`}
           </button>
+          {selected.length >= MATCH_DAY_PROJECT_COUNT && (
+            <button
+              type="button"
+              className="mt-3 w-full text-sm font-semibold text-green-400 hover:underline"
+              onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
+            >
+              Change your {MATCH_DAY_CHOICE_COUNT} Climate Partner projects
+            </button>
+          )}
+          {postError && (
+            <p className="mt-4 text-center text-sm font-semibold text-red-400">
+              {postError}
+            </p>
+          )}
+          {postedAt && !postError && (
+            <p className="mt-4 text-center text-sm font-semibold text-green-300">
+              Posted to your fans on My S4P. Supporters of {club.name} will see
+              these {MATCH_DAY_PROJECT_COUNT} projects when they open their page.
+            </p>
+          )}
 
           <div className="mt-10 text-left">
             <h3 className="text-2xl font-black">
