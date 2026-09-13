@@ -18,8 +18,11 @@ import {
   partnerPageCount,
   partnerProjectPage,
 } from "@/app/lib/partner-projects";
-import { isInternationalCatalogName, isUkCatalogName } from "@/app/lib/sccan-catalog";
-import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
+import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
+import {
+  climateProjectCountryLabel,
+  localCatalogCountryForClub,
+} from "@/app/lib/featured-climate-country";
 import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
 import {
   CLUB_DASHBOARD_PATH,
@@ -61,7 +64,10 @@ export default function SelectMatchDayProjectsPage() {
         setClubId(session.club.id);
         setClubName(session.club.name);
         setClubCountry(session.club.country);
-        const catalog = await loadPartnerClimateProjects();
+        const catalog = await loadPartnerClimateProjects({
+          clubName: session.club.name,
+          country: session.club.country,
+        });
         setProjects(catalog);
         const featuredProject = await loadFeaturedMatchDayProject();
         setFeatured(featuredProject);
@@ -86,6 +92,10 @@ export default function SelectMatchDayProjectsPage() {
   }, [router]);
 
   const pages = partnerPageCount(projects.length);
+  const localCountry = localCatalogCountryForClub({
+    clubName,
+    country: clubCountry,
+  });
   const visible = useMemo(
     () => partnerProjectPage(projects, page),
     [projects, page]
@@ -125,6 +135,7 @@ export default function SelectMatchDayProjectsPage() {
       await saveMatchDaySelection({
         clubId,
         clubName,
+        country: clubCountry,
         projectIds: [...selected],
         minAmount: amount,
       });
@@ -161,10 +172,11 @@ export default function SelectMatchDayProjectsPage() {
         </h1>
         <p className="mt-3 max-w-3xl text-slate-300">
           Global Schools Solar is included in every Match Day five. Choose{" "}
-          {MATCH_DAY_CHOICE_COUNT} more from 10 UK Climate Partner projects and
-          10 international projects. Page 1 is UK (projects 1–10). Page 2 is
-          international (projects 11–20), including Ugandan Cookstove. Do this
-          at least {MATCH_DAY_LEAD_HOURS} hours before kick-off.
+          {MATCH_DAY_CHOICE_COUNT} more from 10 local Climate Partner projects in{" "}
+          {localCountry} and 10 international projects. Page 1 is {localCountry}{" "}
+          (projects 1–10). Page 2 is international (projects 11–20), including
+          Ugandan Cookstove. Do this at least {MATCH_DAY_LEAD_HOURS} hours before
+          kick-off.
         </p>
 
         {featured && (
@@ -192,7 +204,7 @@ export default function SelectMatchDayProjectsPage() {
           </p>
           <p className="text-sm text-slate-400">
             {page === 0
-              ? "UK Climate Projects · 1–10"
+              ? `${localCountry} Climate Projects · 1–10`
               : "International Climate Projects · 11–20"}{" "}
             · Page {page + 1} of {pages}
           </p>
@@ -208,8 +220,8 @@ export default function SelectMatchDayProjectsPage() {
           {visible.map((project) => {
             const isOn = selected.has(project.id);
             const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
-            const region = isUkCatalogName(project.name)
-              ? "UK Climate Partner"
+            const region = isLocalCatalogName(project.name, localCountry)
+              ? `${localCountry} Climate Partner`
               : isInternationalCatalogName(project.name)
                 ? "International Climate Partner"
                 : "Climate Project Partner";

@@ -1,4 +1,4 @@
-import { FEATURED_PROJECT_NAME } from "./sccan-catalog";
+import { FEATURED_PROJECT_NAME, selectableCatalogForCountry } from "./sccan-catalog";
 import {
   LEAGUE_COUNTRY,
   canonicalLeagueName,
@@ -42,6 +42,30 @@ const KNOWN_REGIONS: Record<string, string> = {
 
 const SKIP_REGIONS = new Set(["international", "global", "worldwide", "europe"]);
 
+const CATALOG_NATIONS: Record<string, string> = {
+  england: "England",
+  scotland: "Scotland",
+  wales: "Wales",
+  "northern ireland": "Northern Ireland",
+  italy: "Italy",
+  spain: "Spain",
+  france: "France",
+  germany: "Germany",
+  ireland: "Ireland",
+  usa: "USA",
+  "united states": "USA",
+  "united states of america": "USA",
+};
+
+const UK_AMBIGUOUS = new Set([
+  "uk",
+  "u k",
+  "united kingdom",
+  "great britain",
+  "britain",
+  "gb",
+]);
+
 function isFeaturedName(name: string | null | undefined): boolean {
   return new RegExp(`^${FEATURED_PROJECT_NAME}$`, "i").test((name ?? "").trim())
     || /global\s+schools\s+solar/i.test(name ?? "");
@@ -82,6 +106,40 @@ export function localClimateRegionForClub(
   }
 
   return canonicalLocalClimateRegion(context.clubName);
+}
+
+/**
+ * Nation used for the SD's 10 local Climate Partner projects.
+ * England and Scotland stay separate, so Arsenal and Hearts do not share a list.
+ */
+export function localCatalogCountryForClub(
+  context: ClimateCountryContext
+): string {
+  const countryKey = normalizeSeasonName(context.country ?? "");
+  if (countryKey && !UK_AMBIGUOUS.has(countryKey) && !SKIP_REGIONS.has(countryKey)) {
+    const nation = CATALOG_NATIONS[countryKey];
+    if (nation) return nation;
+  }
+
+  const league =
+    canonicalLeagueName(context.league) ??
+    (context.clubName ? leagueForClubName(context.clubName) : null);
+
+  if (league === "Six Nations") {
+    const fromNation = CATALOG_NATIONS[normalizeSeasonName(context.clubName ?? "")];
+    if (fromNation) return fromNation;
+  }
+
+  if (league) {
+    const fromLeague = CATALOG_NATIONS[normalizeSeasonName(LEAGUE_COUNTRY[league] ?? "")];
+    if (fromLeague) return fromLeague;
+  }
+
+  return "England";
+}
+
+export function selectableCatalogForClub(context: ClimateCountryContext) {
+  return selectableCatalogForCountry(localCatalogCountryForClub(context));
 }
 
 export function featuredClimateProjectCountryLabel(

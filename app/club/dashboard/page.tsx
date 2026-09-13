@@ -13,7 +13,10 @@ import {
 } from "@/app/services/club-match-day.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
-import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
+import {
+  climateProjectCountryLabel,
+  localCatalogCountryForClub,
+} from "@/app/lib/featured-climate-country";
 import {
   ciltLeagueForClub,
   ciltPositionLabel,
@@ -82,6 +85,12 @@ export default function ClubDashboardPage() {
     [funded, voted]
   );
   const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
+  const localCountry = club
+    ? localCatalogCountryForClub({
+        clubName: club.name,
+        country: club.country,
+      })
+    : "local";
   const cilt =
     club && ciltLeague
       ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
@@ -200,8 +209,8 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               Global Schools Solar is included in every Match Day five. Choose{" "}
-              {MATCH_DAY_CHOICE_COUNT} Climate Partner projects (UK and
-              international) for supporters to vote on. {MATCH_DAY_LEAD_HOURS}{" "}
+              {MATCH_DAY_CHOICE_COUNT} Climate Partner projects ({localCountry}{" "}
+              and international) for supporters to vote on. {MATCH_DAY_LEAD_HOURS}{" "}
               hours before kick-off, attach the minimum sponsorship amount per
               Goal scored by {club.name} players.
             </p>

@@ -18,8 +18,8 @@ import {
 import {
   FEATURED_PROJECT_NAME,
   INTERNATIONAL_CLIMATE_PROJECTS,
+  LOCAL_CLIMATE_PROJECTS_BY_COUNTRY,
   SCCAN_SOURCE_URL,
-  UK_CLIMATE_PROJECTS,
 } from "@/app/lib/sccan-catalog";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 
@@ -119,12 +119,18 @@ export default function PartnerDashboardPage() {
   }
 
   const featured = projects.filter(isFeaturedClimateProject);
-  const ukProjects = projects.filter(
-    (project) =>
-      !isFeaturedClimateProject(project) &&
-      UK_CLIMATE_PROJECTS.some(
-        (item) => item.name.toLowerCase() === project.name.toLowerCase()
-      )
+  const localByCountry = Object.entries(LOCAL_CLIMATE_PROJECTS_BY_COUNTRY).map(
+    ([country, catalog]) => ({
+      country,
+      catalog,
+      projects: projects.filter(
+        (project) =>
+          !isFeaturedClimateProject(project) &&
+          catalog.some(
+            (item) => item.name.toLowerCase() === project.name.toLowerCase()
+          )
+      ),
+    })
   );
   const international = projects.filter(
     (project) =>
@@ -136,8 +142,10 @@ export default function PartnerDashboardPage() {
   const uploaded = projects.filter(
     (project) =>
       !isFeaturedClimateProject(project) &&
-      !UK_CLIMATE_PROJECTS.some(
-        (item) => item.name.toLowerCase() === project.name.toLowerCase()
+      !localByCountry.some((group) =>
+        group.catalog.some(
+          (item) => item.name.toLowerCase() === project.name.toLowerCase()
+        )
       ) &&
       !INTERNATIONAL_CLIMATE_PROJECTS.some(
         (item) => item.name.toLowerCase() === project.name.toLowerCase()
@@ -161,10 +169,11 @@ export default function PartnerDashboardPage() {
               <a href={SCCAN_SOURCE_URL} className="text-green-400 underline">
                 sccan.scot
               </a>{" "}
-              UK projects plus international projects, with featured{" "}
-              {FEATURED_PROJECT_NAME} included in every Match Day five. Clubs
-              and fans see it as their home country and International — UK and
-              International for a UK club, Italy and International for AC Milan.
+              local projects by country (Scotland, England, Italy and more) plus
+              international projects, with featured {FEATURED_PROJECT_NAME}{" "}
+              included in every Match Day five. Clubs and fans see it as their
+              home country and International — UK and International for a UK
+              club, Italy and International for AC Milan.
             </p>
             <p className="mt-2 text-sm text-slate-500">{email}</p>
           </div>
@@ -201,20 +210,23 @@ export default function PartnerDashboardPage() {
           </div>
         </section>
 
-        <section className="mt-12">
-          <h2 className="text-2xl font-black">
-            UK Climate Projects ({ukProjects.length} of {UK_CLIMATE_PROJECTS.length})
-          </h2>
-          <p className="mt-2 text-slate-400">
-            These 10 UK projects are page 1 of every Sustainability Director
-            Match Day selector.
-          </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {ukProjects.map((project) => (
-              <ProjectRow key={project.id} project={project} />
-            ))}
-          </div>
-        </section>
+        {localByCountry.map(({ country, catalog, projects: localProjects }) => (
+          <section key={country} className="mt-12">
+            <h2 className="text-2xl font-black">
+              {country} Climate Projects ({localProjects.length} of{" "}
+              {catalog.length})
+            </h2>
+            <p className="mt-2 text-slate-400">
+              These 10 {country} projects are page 1 of the Match Day selector
+              for clubs in {country}.
+            </p>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {localProjects.map((project) => (
+                <ProjectRow key={project.id} project={project} />
+              ))}
+            </div>
+          </section>
+        ))}
 
         <section className="mt-12">
           <h2 className="text-2xl font-black">

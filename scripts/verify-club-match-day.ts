@@ -7,11 +7,13 @@ import {
 } from "../app/lib/partner-projects";
 import { ciltPositionLabel, premierLeagueCilt, scottishPremiershipCilt, climateImpactLeagueTable } from "../app/lib/cilt";
 import { leagueForClubName } from "../app/lib/current-season";
-import { SELECTABLE_MATCH_DAY_CATALOG } from "../app/lib/sccan-catalog";
+import { SELECTABLE_MATCH_DAY_CATALOG, selectableCatalogForCountry } from "../app/lib/sccan-catalog";
 import {
   climateProjectCountryLabel,
   featuredClimateProjectCountryLabel,
   featuredClimateProjectCountryLabelForClubs,
+  localCatalogCountryForClub,
+  selectableCatalogForClub,
 } from "../app/lib/featured-climate-country";
 
 const failures: string[] = [];
@@ -28,15 +30,46 @@ assert(MATCH_DAY_PROJECT_COUNT === 5, "Match Day portfolio is 5 projects includi
 assert(MATCH_DAY_CHOICE_COUNT === 4, "SD chooses 4 partner projects; GSS is included as a must");
 assert(
   partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 0).every((project) =>
-    /united kingdom|scotland/i.test(project.country)
+    /scotland/i.test(project.country)
   ),
-  "Page 1 is UK-based Climate Partner projects"
+  "Default page 1 is Scotland-based Climate Partner projects"
 );
 assert(
   partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 1).some(
     (project) => project.name === "Ugandan Cookstove"
   ),
   "Page 2 includes Ugandan Cookstove"
+);
+assert(
+  localCatalogCountryForClub({ clubName: "Hearts of Midlothian FC" }) === "Scotland",
+  "Hearts local catalog is Scotland"
+);
+assert(
+  localCatalogCountryForClub({ clubName: "Arsenal", country: "England" }) ===
+    "England",
+  "Arsenal local catalog is England"
+);
+assert(
+  localCatalogCountryForClub({ clubName: "AC Milan" }) === "Italy",
+  "AC Milan local catalog is Italy"
+);
+assert(
+  selectableCatalogForClub({ clubName: "Arsenal" })
+    .slice(0, 10)
+    .every((project) => project.country === "England"),
+  "Arsenal chooses from 10 England projects on page 1"
+);
+assert(
+  selectableCatalogForCountry("Italy")
+    .slice(0, 10)
+    .every((project) => project.country === "Italy"),
+  "AC Milan chooses from 10 Italy projects on page 1"
+);
+assert(
+  selectableCatalogForClub({ clubName: "Hearts of Midlothian FC" })
+    .slice(10)
+    .some((project) => project.name === "Ugandan Cookstove"),
+  "Every club still sees international projects including Ugandan Cookstove"
 );
 
 const table = premierLeagueCilt("Arsenal FC");

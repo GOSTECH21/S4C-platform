@@ -6,6 +6,8 @@ import {
 } from "../lib/partner-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
 import { findClubOnRoster, seasonNamesMatch } from "../lib/current-season";
+import type { ClimateCountryContext } from "../lib/featured-climate-country";
+import { selectableCatalogForClub } from "../lib/featured-climate-country";
 import { publishSccanCatalog } from "./partner.service";
 import {
   isFeaturedClimateProject,
@@ -64,9 +66,16 @@ export type ClubFileRecord = {
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
 const FILE_RECORD_STORAGE_PREFIX = "s4p.sd.fileRecords.";
 
-export async function loadPartnerClimateProjects(): Promise<ClimateProject[]> {
+export async function loadPartnerClimateProjects(
+  context: ClimateCountryContext = {}
+): Promise<ClimateProject[]> {
   const published = await publishSccanCatalog();
-  return published.filter((project) => !isFeaturedClimateProject(project));
+  const byName = new Map(
+    published.map((project) => [project.name.toLowerCase(), project])
+  );
+  return selectableCatalogForClub(context)
+    .map((item) => byName.get(item.name.toLowerCase()))
+    .filter((project): project is ClimateProject => Boolean(project));
 }
 
 export async function loadFeaturedMatchDayProject(): Promise<ClimateProject | null> {
@@ -639,11 +648,13 @@ function writeStoredMatchDay(clubId: string, selection: MatchDaySelection) {
 export async function saveMatchDaySelection({
   clubId,
   clubName,
+  country,
   projectIds,
   minAmount,
 }: {
   clubId: string;
   clubName: string;
+  country?: string | null;
   projectIds: string[];
   minAmount: number;
 }): Promise<MatchDaySelection> {
@@ -651,7 +662,7 @@ export async function saveMatchDaySelection({
   if (!featured) {
     throw new Error("The Featured Climate Project could not be loaded.");
   }
-  const selectable = await loadPartnerClimateProjects();
+  const selectable = await loadPartnerClimateProjects({ clubName, country });
   const validIds = new Set(selectable.map((project) => project.id));
   const chosen = [
     ...new Set(
