@@ -1,6 +1,7 @@
 "use client";
 
-import { scoreLabelForSport } from "@/app/lib/sports";
+import { useState } from "react";
+import { SPORT_SELECT_OPTIONS, scoreLabelForSport } from "@/app/lib/sports";
 
 export default function NewCampaignPage() {
 
@@ -54,10 +55,9 @@ export default function NewCampaignPage() {
             }}
             className="w-full rounded-lg border p-3"
           >
-            <option>Football</option>
-            <option>Rugby</option>
-            <option>NFL</option>
-            <option>NBA</option>
+            {SPORT_SELECT_OPTIONS.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
           </select>
 
         </div>

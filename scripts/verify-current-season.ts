@@ -5,7 +5,7 @@ import {
   seasonNamesMatch,
 } from "../app/lib/current-season";
 import { loadTeamCatalogFromDatabase } from "../app/services/teams.service";
-import { scoreLabelForSport } from "../app/lib/sports";
+import { SPORT_SELECT_OPTIONS, scoreLabelForSport } from "../app/lib/sports";
 
 const failures: string[] = [];
 
@@ -72,6 +72,18 @@ assert(scoreLabelForSport("Football") === "Goal", "Football sponsorship is per G
 assert(scoreLabelForSport("Rugby") === "Try", "Rugby sponsorship is per Try");
 assert(scoreLabelForSport("NFL") === "Touchdown", "NFL sponsorship is per Touchdown");
 assert(scoreLabelForSport("NBA") === "3-Point", "NBA sponsorship is per 3-Point");
+assert(
+  scoreLabelForSport("Basketball") === "3-Point",
+  "Basketball uses the NBA 3-Point sponsorship trigger"
+);
+assert(
+  SPORT_SELECT_OPTIONS.join(",") === "Football,Rugby,NFL,Basketball",
+  "Club sport picker is Football, Rugby, NFL, Basketball"
+);
+assert(
+  !(SPORT_SELECT_OPTIONS as readonly string[]).includes("Cricket"),
+  "Cricket is not a selectable S4P sport"
+);
 assert(
   clubInCurrentSeasonLeague("NBA", "Boston Celtics"),
   "Boston Celtics must be in the NBA catalog"

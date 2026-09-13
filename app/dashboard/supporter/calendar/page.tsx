@@ -59,13 +59,13 @@ const allFixtures = [
   },
   {
     id: "5",
-    sport: "Cricket",
-    team: "Australia",
-    opponent: "England",
+    sport: "Basketball",
+    team: "Boston Celtics",
+    opponent: "New York Knicks",
     date: "2026-09-26",
-    time: "11:00",
+    time: "19:30",
     status: "upcoming",
-    venue: "MCG",
+    venue: "TD Garden",
     opportunities: [],
   },
 ];

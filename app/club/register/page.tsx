@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { registerClubSustainabilityDirector } from "@/app/services/club-match-day.service";
 import { CLUB_DASHBOARD_PATH } from "@/app/lib/routes";
+import { SPORT_SELECT_OPTIONS } from "@/app/lib/sports";
 
 export default function ClubRegistrationPage() {
   const [step, setStep] = useState(1);
@@ -242,13 +243,9 @@ confirmPassword: "",
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
         >
 
-          <option>Football</option>
-
-          <option>Rugby</option>
-
-          <option>Cricket</option>
-
-          <option>Basketball</option>
+          {SPORT_SELECT_OPTIONS.map((sport) => (
+            <option key={sport}>{sport}</option>
+          ))}
 
         </select>
 
