@@ -11,7 +11,9 @@ import {
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   proposalMailtoToDirector,
+  resolveClubForSponsor,
   sendSponsorProposalToClub,
+  type SponsorProjectProposal,
 } from "@/app/services/sponsor-offers.service";
 import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
 import {
@@ -22,6 +24,7 @@ import {
 import { localCatalogCountryForClub } from "@/app/lib/featured-climate-country";
 import { supabase } from "@/app/lib/supabase";
 import {
+  CLUB_LOGIN_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
@@ -31,7 +34,6 @@ export default function SponsorCreateCampaignPage() {
   const [brand, setBrand] = useState("Sponsor");
   const [email, setEmail] = useState<string | null>(null);
   const [clubName, setClubName] = useState("Arsenal");
-  const [clubId, setClubId] = useState<string | null>(null);
   const [clubEmail, setClubEmail] = useState<string | null>(null);
   const [projects, setProjects] = useState<ClimateProject[]>([]);
   const [featured, setFeatured] = useState<ClimateProject | null>(null);
@@ -41,6 +43,9 @@ export default function SponsorCreateCampaignPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentMailto, setSentMailto] = useState<string | null>(null);
+  const [sentProposal, setSentProposal] = useState<SponsorProjectProposal | null>(
+    null
+  );
 
   const clubs = Object.values(CURRENT_SEASON_LEAGUES).flat();
   const localCountry = localCatalogCountryForClub({ clubName });
@@ -72,22 +77,8 @@ export default function SponsorCreateCampaignPage() {
       const catalog = await loadPartnerClimateProjects({ clubName });
       setProjects(catalog);
       setFeatured(await loadFeaturedMatchDayProject());
-      const { data: club } = await supabase
-        .from("clubs")
-        .select("id, name")
-        .ilike("name", `%${clubName}%`)
-        .limit(1)
-        .maybeSingle();
-      setClubId(club?.id ?? null);
-      if (club?.id) {
-        const { data: account } = await supabase
-          .from("club_accounts")
-          .select("email")
-          .eq("club_id", club.id)
-          .limit(1)
-          .maybeSingle();
-        setClubEmail((account?.email as string | null) ?? null);
-      }
+      const club = await resolveClubForSponsor(clubName);
+      setClubEmail(club.email);
     }
     if (!loading) void loadCatalog();
   }, [clubName, loading]);
@@ -109,20 +100,20 @@ export default function SponsorCreateCampaignPage() {
     setSending(true);
     setError(null);
     try {
+      const club = await resolveClubForSponsor(clubName);
+      setClubEmail(club.email);
       const chosen = projects.filter((project) => selected.has(project.id));
       const five = featured ? [featured, ...chosen] : chosen;
       const proposal = await sendSponsorProposalToClub({
-        clubId: clubId ?? `name:${clubName}`,
-        clubName,
+        clubId: club.id ?? `name:${club.name}`,
+        clubName: club.name,
         sponsorName: brand,
         sponsorEmail: email,
         projects: five,
       });
-      const mailto = proposalMailtoToDirector(clubEmail, proposal);
+      const mailto = proposalMailtoToDirector(club.email, proposal);
+      setSentProposal(proposal);
       setSentMailto(mailto);
-      if (mailto.startsWith("mailto:") && clubEmail) {
-        window.open(mailto, "_blank");
-      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not send this list to the club."
@@ -157,6 +148,7 @@ export default function SponsorCreateCampaignPage() {
             setClubName(event.target.value);
             setSelected(new Set());
             setSentMailto(null);
+            setSentProposal(null);
           }}
           className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
         >
@@ -252,11 +244,45 @@ export default function SponsorCreateCampaignPage() {
           ? "Sending to the Sustainability Director..."
           : `Send these ${MATCH_DAY_PROJECT_COUNT} Climate Projects to the Sustainability Director`}
       </button>
-      {sentMailto && (
-        <p className="mt-4 text-center text-sm text-green-300">
-          These 5 Climate Projects are now on the {clubName} Sustainability
-          Director dashboard as Sponsorship Selected Projects.
-        </p>
+      {sentProposal && (
+        <div className="mt-8 rounded-3xl border border-green-500/40 bg-green-500/10 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+            Sent to the Sustainability Director
+          </p>
+          <h2 className="mt-2 text-3xl font-black">
+            {sentProposal.clubName} now has your 5 Climate Projects
+          </h2>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            The Sponsorship Manager does not post to fans from this page. Log
+            in as the club Sustainability Director. Their dashboard shows
+            these under Sponsorship Selected Projects, with{" "}
+            <strong>Post these to fans</strong>.
+          </p>
+          <ul className="mt-4 space-y-1 text-slate-200">
+            {sentProposal.projects.map((project) => (
+              <li key={project.id}>• {project.name}</li>
+            ))}
+          </ul>
+          <Link
+            href={`${CLUB_LOGIN_PATH}#sponsorship-selected`}
+            className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-4 text-lg font-bold hover:bg-blue-500"
+          >
+            Post these to fans
+          </Link>
+          <p className="mt-3 text-sm text-slate-400">
+            That opens club login. Sign in as the {sentProposal.clubName}{" "}
+            Sustainability Director, then click Post these to fans on
+            Sponsorship Selected Projects.
+          </p>
+          {sentMailto && clubEmail && (
+            <a
+              href={sentMailto}
+              className="mt-4 inline-block text-sm font-semibold text-green-400"
+            >
+              Also email the Sustainability Director
+            </a>
+          )}
+        </div>
       )}
     </div>
   );

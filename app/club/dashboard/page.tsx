@@ -385,7 +385,7 @@ export default function ClubDashboardPage() {
           </div>
         </section>
 
-        <section className="mt-12 rounded-3xl border border-blue-500/30 bg-slate-900 p-10">
+        <section id="sponsorship-selected" className="mt-12 rounded-3xl border border-blue-500/30 bg-slate-900 p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
             From the Sponsorship Manager
           </p>

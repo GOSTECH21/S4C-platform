@@ -44,11 +44,47 @@ export type SponsorDashboardStats = {
   fanVotes: number;
 };
 
+export function normalizeClubName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/\b(football club|f\.c\.|fc|afc|cfc)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function clubsMatch(left: string, right: string): boolean {
-  const a = left.trim().toLowerCase();
-  const b = right.trim().toLowerCase();
+  const a = normalizeClubName(left);
+  const b = normalizeClubName(right);
   if (!a || !b) return false;
   return a === b || a.includes(b) || b.includes(a);
+}
+
+export function bestClubMatch<T extends { name: string }>(
+  clubs: T[],
+  clubName: string
+): T | null {
+  const normalized = normalizeClubName(clubName);
+  if (!normalized) return null;
+  const ranked = clubs
+    .map((club) => ({ club, n: normalizeClubName(club.name) }))
+    .filter(
+      (row) =>
+        row.n === normalized ||
+        row.n.includes(normalized) ||
+        normalized.includes(row.n)
+    )
+    .sort((a, b) => {
+      const aExact = a.n === normalized ? 0 : 1;
+      const bExact = b.n === normalized ? 0 : 1;
+      if (aExact !== bExact) return aExact - bExact;
+      return (
+        Math.abs(a.n.length - normalized.length) -
+        Math.abs(b.n.length - normalized.length)
+      );
+    });
+  return ranked[0]?.club ?? null;
 }
 
 export type ClubProposalRef = {

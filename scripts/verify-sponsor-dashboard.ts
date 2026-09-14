@@ -8,6 +8,8 @@ import {
   proposalMatchesClub,
   sponsorshipSelectedProposals,
   sponsorshipFundedProposals,
+  bestClubMatch,
+  normalizeClubName,
 } from "../app/lib/sponsor-dashboard";
 
 const failures: string[] = [];
@@ -127,6 +129,22 @@ assert(
 assert(
   sponsorshipFundedProposals(incoming).length === 1,
   "Posted Option 2 lists are Sponsorship Funded Projects"
+);
+
+assert(
+  normalizeClubName("Arsenal FC") === "arsenal",
+  "Arsenal FC normalizes to the same club key as Arsenal"
+);
+assert(
+  clubsMatch("Hearts of Midlothian FC", "Hearts"),
+  "Hearts picker name matches the registered club title"
+);
+assert(
+  bestClubMatch(
+    [{ name: "Arsenal Women" }, { name: "Arsenal FC" }],
+    "Arsenal"
+  )?.name === "Arsenal FC",
+  "Arsenal picker resolves to Arsenal FC, not Arsenal Women"
 );
 
 if (failures.length > 0) {

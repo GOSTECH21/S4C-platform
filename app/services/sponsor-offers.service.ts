@@ -4,6 +4,7 @@ import { scoreLabelForSport } from "../lib/sports";
 import { sponsorOfferHeadline } from "../lib/s4p-climate-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
 import {
+  bestClubMatch,
   pairSignedSponsorships,
   proposalMatchesClub,
   unsignedMatchOffers,
@@ -417,43 +418,92 @@ export async function markSponsorProposalPosted(proposalId: string) {
     .eq("id", proposalId);
 }
 
-export async function listClubSponsorProposals(
-  clubId: string,
-  clubName: string
-): Promise<SponsorProjectProposal[]> {
-  const local = readJson<SponsorProjectProposal[]>(PROPOSAL_STORAGE, []).filter(
-    (row) => proposalMatchesClub(row, clubId, clubName)
+function mapProposalRow(
+  row: Record<string, unknown>,
+  fallbackClubId = "",
+  fallbackClubName = ""
+): SponsorProjectProposal {
+  return {
+    id: String(row.id),
+    clubId: String(row.club_id ?? fallbackClubId),
+    clubName: String(row.club_name ?? fallbackClubName),
+    sponsorId: (row.sponsor_id as string | null) ?? null,
+    sponsorName: String(row.sponsor_name ?? "Sponsor"),
+    sponsorEmail: (row.sponsor_email as string | null) ?? null,
+    projectIds: (row.project_ids as string[]) ?? [],
+    projects: (row.projects as SponsorOfferProject[]) ?? [],
+    createdAt: String(row.created_at ?? ""),
+    status: String(row.status ?? "sent"),
+  };
+}
+
+export async function resolveClubForSponsor(clubName: string): Promise<{
+  id: string | null;
+  name: string;
+  email: string | null;
+}> {
+  const { data } = await supabase.from("clubs").select("id, name");
+  const matched = bestClubMatch(
+    (data ?? []).map((row) => ({
+      id: String(row.id),
+      name: String(row.name ?? ""),
+    })),
+    clubName
   );
+  if (!matched) {
+    return { id: null, name: clubName, email: null };
+  }
+  const { data: account } = await supabase
+    .from("club_accounts")
+    .select("email")
+    .eq("club_id", matched.id)
+    .limit(1)
+    .maybeSingle();
+  return {
+    id: matched.id,
+    name: matched.name || clubName,
+    email: (account?.email as string | null) ?? null,
+  };
+}
+
+export async function listAllSponsorProposals(): Promise<SponsorProjectProposal[]> {
+  const local = readJson<SponsorProjectProposal[]>(PROPOSAL_STORAGE, []);
   const { data } = await supabase
     .from("sponsor_project_proposals")
     .select("*")
     .order("created_at", { ascending: false });
-  const remote = (data ?? [])
-    .filter((row) =>
-      proposalMatchesClub(
-        {
-          clubId: (row.club_id as string | null) ?? null,
-          clubName: (row.club_name as string | null) ?? null,
-        },
-        clubId,
-        clubName
-      )
-    )
-    .map((row) => ({
-      id: String(row.id),
-      clubId: String(row.club_id ?? clubId),
-      clubName: String(row.club_name ?? clubName),
-      sponsorId: (row.sponsor_id as string | null) ?? null,
-      sponsorName: String(row.sponsor_name ?? "Sponsor"),
-      sponsorEmail: (row.sponsor_email as string | null) ?? null,
-      projectIds: (row.project_ids as string[]) ?? [],
-      projects: (row.projects as SponsorOfferProject[]) ?? [],
-      createdAt: String(row.created_at ?? ""),
-      status: String(row.status ?? "sent"),
-    }));
+  const remote = (data ?? []).map((row) =>
+    mapProposalRow(row as Record<string, unknown>)
+  );
   return mergeById(local, remote).sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
   );
+}
+
+export async function listSponsorSentProposals(
+  sponsorId?: string | null,
+  sponsorName?: string | null
+): Promise<SponsorProjectProposal[]> {
+  const all = await listAllSponsorProposals();
+  return all.filter((row) => {
+    if (sponsorId && row.sponsorId && row.sponsorId === sponsorId) return true;
+    if (
+      sponsorName &&
+      row.sponsorName.trim().toLowerCase() === sponsorName.trim().toLowerCase()
+    ) {
+      return true;
+    }
+    if (!row.sponsorId) return true;
+    return false;
+  });
+}
+
+export async function listClubSponsorProposals(
+  clubId: string,
+  clubName: string
+): Promise<SponsorProjectProposal[]> {
+  const all = await listAllSponsorProposals();
+  return all.filter((row) => proposalMatchesClub(row, clubId, clubName));
 }
 
 export function proposalMailtoToDirector(

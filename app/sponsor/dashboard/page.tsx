@@ -7,11 +7,14 @@ import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   loadSponsorFolder,
+  listSponsorSentProposals,
   type SignedSponsorship,
   type SponsorDashboardStats,
   type SponsorMatchOffer,
+  type SponsorProjectProposal,
 } from "@/app/services/sponsor-offers.service";
 import {
+  CLUB_LOGIN_PATH,
   SPONSOR_CREATE_CAMPAIGN_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
@@ -31,15 +34,22 @@ export default function SponsorDashboardPage() {
   const [brand, setBrand] = useState("your brand");
   const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
   const [signed, setSigned] = useState<SignedSponsorship[]>([]);
+  const [sentCampaigns, setSentCampaigns] = useState<SponsorProjectProposal[]>(
+    []
+  );
   const [stats, setStats] = useState<SponsorDashboardStats>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
+      let sponsorName = "your brand";
+      let sponsorId = "";
       try {
         const sponsor = await getCurrentSponsor();
-        setBrand(String(sponsor.name ?? "your brand"));
+        sponsorName = String(sponsor.name ?? "your brand");
+        sponsorId = String(sponsor.id ?? "");
+        setBrand(sponsorName);
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
         return;
@@ -49,6 +59,9 @@ export default function SponsorDashboardPage() {
         setPending(folder.pending);
         setSigned(folder.signed);
         setStats(folder.stats);
+        setSentCampaigns(
+          await listSponsorSentProposals(sponsorId, sponsorName)
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not load offers.");
       } finally {
@@ -151,6 +164,58 @@ export default function SponsorDashboardPage() {
             the Sustainability Director to push to fans.
           </p>
         </Link>
+      </section>
+
+      <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">
+          Option 2 campaigns you sent
+        </p>
+        <h2 className="mt-2 text-3xl font-black">
+          Waiting for Post these to fans
+        </h2>
+        <p className="mt-2 text-slate-300">
+          After you create a campaign, the club Sustainability Director posts
+          it to fans. Log in as that club to see the blue{" "}
+          <strong>Post these to fans</strong> button under Sponsorship
+          Selected Projects.
+        </p>
+        {sentCampaigns.length === 0 ? (
+          <p className="mt-6 text-slate-500">
+            No campaign sent yet. Choose 5 Climate Projects in Option 2, then
+            click the blue send button.
+          </p>
+        ) : (
+          <div className="mt-8 space-y-4">
+            {sentCampaigns.map((campaign) => (
+              <div
+                key={campaign.id}
+                className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+              >
+                <p className="text-sm text-green-300">
+                  Sent to {campaign.clubName}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">
+                  {campaign.status === "posted"
+                    ? "The Sustainability Director has posted this list to fans."
+                    : "The Sustainability Director still needs to click Post these to fans."}
+                </p>
+                <ul className="mt-4 space-y-1 text-slate-300">
+                  {campaign.projects.map((project) => (
+                    <li key={project.id}>• {project.name}</li>
+                  ))}
+                </ul>
+                {campaign.status !== "posted" && (
+                  <Link
+                    href={`${CLUB_LOGIN_PATH}#sponsorship-selected`}
+                    className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500"
+                  >
+                    Post these to fans
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section
