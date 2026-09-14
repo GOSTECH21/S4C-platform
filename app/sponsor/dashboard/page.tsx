@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
-  listOfferSignatures,
-  listSponsorMatchOffers,
+  loadSponsorFolder,
+  type SignedSponsorship,
+  type SponsorDashboardStats,
   type SponsorMatchOffer,
-  type SponsorOfferSignature,
 } from "@/app/services/sponsor-offers.service";
 import {
   SPONSOR_CREATE_CAMPAIGN_PATH,
@@ -17,13 +17,21 @@ import {
   SPONSOR_OFFERS_PATH,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
+import { formatMoney, formatVoteCount } from "@/app/lib/sponsorship-auction";
+
+const EMPTY_STATS: SponsorDashboardStats = {
+  projectCount: 0,
+  carbonTonnes: 0,
+  expenditureGbp: 0,
+  fanVotes: 0,
+};
 
 export default function SponsorDashboardPage() {
   const router = useRouter();
   const [brand, setBrand] = useState("your brand");
-  const [role, setRole] = useState("Sponsorship Manager");
-  const [offers, setOffers] = useState<SponsorMatchOffer[]>([]);
-  const [signatures, setSignatures] = useState<SponsorOfferSignature[]>([]);
+  const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
+  const [signed, setSigned] = useState<SignedSponsorship[]>([]);
+  const [stats, setStats] = useState<SponsorDashboardStats>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,18 +40,15 @@ export default function SponsorDashboardPage() {
       try {
         const sponsor = await getCurrentSponsor();
         setBrand(String(sponsor.name ?? "your brand"));
-        if (sponsor.industry) setRole(String(sponsor.industry));
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
         return;
       }
       try {
-        const [nextOffers, nextSignatures] = await Promise.all([
-          listSponsorMatchOffers(),
-          listOfferSignatures(),
-        ]);
-        setOffers(nextOffers);
-        setSignatures(nextSignatures);
+        const folder = await loadSponsorFolder();
+        setPending(folder.pending);
+        setSigned(folder.signed);
+        setStats(folder.stats);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not load offers.");
       } finally {
@@ -67,13 +72,15 @@ export default function SponsorDashboardPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-            {role}; {brand}
+            Signed in as {brand}
           </p>
-          <h1 className="mt-3 text-4xl font-black">Sponsor dashboard</h1>
+          <h1 className="mt-3 text-4xl font-black tracking-tight">
+            S4P SPONSORSHIP DASHBOARD
+          </h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            When a Sustainability Director posts 5 Climate Projects, you receive
-            them at the same time as the club&apos;s fans. Or create your own 5
-            and send that list to the Sustainability Director.
+            Receive the club&apos;s 5 Climate Projects, sign them off, and keep
+            the settled sponsorships in your folder — including carbon impact,
+            spend, and fans who voted with your brand on screen.
           </p>
         </div>
         <button
@@ -90,18 +97,44 @@ export default function SponsorDashboardPage() {
         </div>
       )}
 
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Climate Projects sponsored"
+          value={String(stats.projectCount)}
+        />
+        <StatCard
+          label="Carbon impact"
+          value={`${formatVoteCount(Math.round(stats.carbonTonnes))} tCO₂e`}
+        />
+        <StatCard
+          label="Total expenditure"
+          value={formatMoney(stats.expenditureGbp)}
+        />
+        <StatCard
+          label="Fans who voted and saw your brand"
+          value={formatVoteCount(stats.fanVotes)}
+        />
+      </section>
+
       <section className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+        <Link
+          href={SPONSOR_OFFERS_PATH}
+          className="rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+        >
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
             Option 1
           </p>
           <h2 className="mt-3 text-2xl font-black">Receive the club&apos;s 5</h2>
           <p className="mt-3 text-slate-300">
-            Open the same 5 Climate Projects the Sustainability Director posted
-            to fans. Sign as Goal Sponsor. Terms and Conditions apply. Then add
-            your brand name for SPONSORED BY.
+            Open New Sponsorship/Score Offer immediately. If the Sustainability
+            Director has posted their 5, sign them off here.
           </p>
-        </div>
+          <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
+            {pending.length > 0
+              ? `Open ${pending.length} new offer${pending.length === 1 ? "" : "s"}`
+              : "Open New Sponsorship/Score Offer"}
+          </p>
+        </Link>
         <Link
           href={SPONSOR_CREATE_CAMPAIGN_PATH}
           className="rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
@@ -120,44 +153,69 @@ export default function SponsorDashboardPage() {
         </Link>
       </section>
 
-      <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
-        <h2 className="text-3xl font-black">Match offers from clubs</h2>
-        <p className="mt-2 text-slate-400">
-          These arrive when a Sustainability Director posts their 5 Climate
-          Projects.
+      <section
+        id="signed-folder"
+        className="rounded-3xl border border-slate-700 bg-slate-900 p-8"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+          Folder
         </p>
-        {offers.length === 0 ? (
+        <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
+        <p className="mt-2 text-slate-400">
+          Once you sign off a club&apos;s 5 and the sponsorship is settled, it
+          is lodged here.
+        </p>
+        {signed.length === 0 ? (
           <p className="mt-6 text-slate-500">
-            No club has posted 5 Climate Projects yet. When they do, a Click
-            here link appears in this inbox.
+            No signed sponsorships yet. Use Option 1 to receive the club&apos;s
+            5, agree, and sign them off.
           </p>
         ) : (
           <div className="mt-8 space-y-4">
-            {offers.map((offer) => {
-              const signed = signatures.find((row) => row.offerId === offer.id);
-              const when = formatLongMatchDate(offer.matchDate);
+            {signed.map((row) => {
+              const when = formatLongMatchDate(row.offer.matchDate);
               return (
                 <div
-                  key={offer.id}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+                  key={row.signature.id}
+                  className="rounded-2xl border border-green-500/30 bg-slate-950 p-6"
                 >
-                  <p className="text-sm text-slate-400">
-                    {role}; {brand}
-                  </p>
-                  <h3 className="mt-2 text-xl font-bold">{offer.headline}</h3>
-                  {when && (
-                    <p className="mt-1 text-sm text-slate-400">{when}</p>
-                  )}
-                  {signed ? (
-                    <p className="mt-3 font-semibold text-green-300">
-                      Signed — SPONSORED BY {signed.brandName}
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-sm text-green-300">
+                        SPONSORED BY {row.signature.brandName}
+                      </p>
+                      <h3 className="mt-1 text-xl font-bold">
+                        {row.offer.headline}
+                      </h3>
+                      {when && (
+                        <p className="mt-1 text-sm text-slate-400">{when}</p>
+                      )}
+                      <p className="mt-1 text-sm text-slate-400">
+                        Signed by {row.signature.signerName} on{" "}
+                        {new Date(row.signature.signedAt).toLocaleString("en-GB")}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-green-300">
+                      {formatMoney(
+                        Number(row.offer.sponsorshipAmountGbp) || 0
+                      )}
                     </p>
-                  ) : null}
+                  </div>
+                  <ul className="mt-4 space-y-1 text-slate-300">
+                    {row.offer.projects.map((project) => (
+                      <li key={project.id}>
+                        • {project.name}
+                        {project.estimated_co2
+                          ? ` — ${formatVoteCount(Math.round(Number(project.estimated_co2)))} tCO₂e`
+                          : ""}
+                      </li>
+                    ))}
+                  </ul>
                   <Link
-                    href={`${SPONSOR_OFFERS_PATH}/${offer.id}`}
-                    className="mt-4 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500"
+                    href={`${SPONSOR_OFFERS_PATH}/${row.offer.id}`}
+                    className="mt-4 inline-flex text-sm font-semibold text-green-400"
                   >
-                    Click here
+                    Open signed copy
                   </Link>
                 </div>
               );
@@ -165,6 +223,17 @@ export default function SponsorDashboardPage() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-3 text-2xl font-black text-white">{value}</p>
     </div>
   );
 }

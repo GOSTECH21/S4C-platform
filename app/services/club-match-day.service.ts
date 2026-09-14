@@ -911,6 +911,7 @@ export async function postMatchDayProjectsToFans({
       clubId,
       clubName,
       projects: selectedProjects,
+      sponsorshipAmountGbp: amount,
     });
   } catch {
     // Fans still receive the posted five even if the sponsor offer cannot be stored.

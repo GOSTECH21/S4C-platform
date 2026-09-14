@@ -16,6 +16,8 @@ import {
 } from "@/app/services/club-match-day.service";
 import {
   listClubSponsorProposals,
+  listClubSignedSponsorships,
+  type SignedSponsorship,
   type SponsorProjectProposal,
 } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
@@ -34,6 +36,10 @@ import {
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
 import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
+import {
+  signedCopyDownloadName,
+  signedCopyPayload,
+} from "@/app/lib/sponsor-dashboard";
 import {
   CLUB_LOGIN_PATH,
   CLUB_REGISTER_PATH,
@@ -55,6 +61,7 @@ export default function ClubDashboardPage() {
   const [postedAt, setPostedAt] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
   const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
+  const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -83,6 +90,9 @@ export default function ClubDashboardPage() {
       setPostedAt(readStoredMatchDay(session.club.id)?.postedAt ?? null);
       setProposals(
         await listClubSponsorProposals(session.club.id, session.club.name)
+      );
+      setSignedCopies(
+        await listClubSignedSponsorships(session.club.id, session.club.name)
       );
       setLoading(false);
     }
@@ -136,6 +146,22 @@ export default function ClubDashboardPage() {
     URL.revokeObjectURL(url);
   }
 
+  function downloadSignedCopy(copy: SignedSponsorship) {
+    const blob = new Blob(
+      [JSON.stringify(signedCopyPayload(copy), null, 2)],
+      { type: "application/json" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = signedCopyDownloadName(
+      copy.offer.clubName,
+      copy.signature.brandName
+    );
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     router.push(CLUB_LOGIN_PATH);
@@ -156,6 +182,9 @@ export default function ClubDashboardPage() {
         country: club.country,
       });
       setPostedAt(posted.postedAt ?? new Date().toISOString());
+      setSignedCopies(
+        await listClubSignedSponsorships(club.id, club.name)
+      );
     } catch (err) {
       setPostError(
         err instanceof Error
@@ -341,6 +370,71 @@ export default function ClubDashboardPage() {
               clubCountry={club.country}
             />
           </div>
+        </section>
+
+        <section className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+            Sponsorship record
+          </p>
+          <h2 className="mt-2 text-3xl font-black">
+            Signed copy of the sponsorship
+          </h2>
+          <p className="mt-2 max-w-3xl text-slate-300">
+            When a Sponsorship Manager signs off your 5 Climate Projects, the
+            signed copy — brand name, signer, date, and the five projects —
+            is kept here for the club.
+          </p>
+          {signedCopies.length === 0 ? (
+            <p className="mt-6 text-slate-500">
+              Waiting for a Sponsorship Manager to sign off Option 1. After
+              they agree and sign, the signed copy appears in this folder.
+            </p>
+          ) : (
+            <div className="mt-8 space-y-6">
+              {signedCopies.map((copy) => (
+                <div
+                  key={copy.signature.id}
+                  className="rounded-2xl border border-green-500/30 bg-slate-950 p-6"
+                >
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-sm font-semibold text-amber-300">
+                        SPONSORED BY {copy.signature.brandName}
+                      </p>
+                      <h3 className="mt-1 text-xl font-bold">
+                        {copy.offer.headline}
+                      </h3>
+                      <p className="mt-2 text-sm text-slate-400">
+                        Signed by {copy.signature.signerName} on{" "}
+                        {new Date(copy.signature.signedAt).toLocaleString(
+                          "en-GB"
+                        )}
+                      </p>
+                      <p className="mt-1 text-sm text-green-300">
+                        Amount:{" "}
+                        {formatMoney(
+                          Number(copy.offer.sponsorshipAmountGbp) ||
+                            OPENING_SPONSORSHIP
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => downloadSignedCopy(copy)}
+                      className="rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
+                    >
+                      Download signed copy
+                    </button>
+                  </div>
+                  <ul className="mt-4 space-y-1 text-slate-300">
+                    {copy.offer.projects.map((project) => (
+                      <li key={project.id}>• {project.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {proposals.length > 0 && (

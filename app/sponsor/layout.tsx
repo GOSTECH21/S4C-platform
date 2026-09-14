@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import {
-  HOME_PATH,
-  SPONSOR_DASHBOARD_PATH,
-  SPONSOR_LOGIN_PATH,
-  SPONSOR_REGISTER_PATH,
-} from "@/app/lib/routes";
+import { HOME_PATH } from "@/app/lib/routes";
+import { SponsorNav } from "./sponsor-nav";
 
 export default function SponsorLayout({
   children,
@@ -19,16 +15,8 @@ export default function SponsorLayout({
           <Link href={HOME_PATH} className="text-2xl font-black text-green-400">
             S4P
           </Link>
-          <nav className="flex gap-6 text-sm font-semibold text-slate-300">
-            <Link href={SPONSOR_REGISTER_PATH} className="hover:text-white">
-              Register as Sponsor
-            </Link>
-            <Link href={SPONSOR_LOGIN_PATH} className="hover:text-white">
-              Login
-            </Link>
-            <Link href={SPONSOR_DASHBOARD_PATH} className="hover:text-white">
-              Dashboard
-            </Link>
+          <nav className="flex items-center gap-6 text-sm font-semibold text-slate-300">
+            <SponsorNav />
           </nav>
         </div>
       </header>

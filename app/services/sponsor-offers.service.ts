@@ -2,6 +2,14 @@ import { supabase } from "../lib/supabase";
 import { LEAGUE_SPORT, leagueForClubName } from "../lib/current-season";
 import { scoreLabelForSport } from "../lib/sports";
 import { sponsorOfferHeadline } from "../lib/s4p-climate-projects";
+import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
+import {
+  pairSignedSponsorships,
+  unsignedMatchOffers,
+  sponsorshipFolderStats,
+  type SignedSponsorship,
+  type SponsorDashboardStats,
+} from "../lib/sponsor-dashboard";
 import type { ClimateProject } from "./votes.service";
 import { getCurrentSponsor } from "./current-sponsor.service";
 
@@ -26,6 +34,7 @@ export type SponsorMatchOffer = {
   projects: SponsorOfferProject[];
   postedAt: string;
   headline: string;
+  sponsorshipAmountGbp: number;
 };
 
 export type SponsorOfferSignature = {
@@ -148,11 +157,13 @@ export async function publishSponsorMatchOffer({
   clubName,
   clubEmail,
   projects,
+  sponsorshipAmountGbp,
 }: {
   clubId: string;
   clubName: string;
   clubEmail?: string | null;
   projects: ClimateProject[];
+  sponsorshipAmountGbp?: number | null;
 }): Promise<SponsorMatchOffer> {
   const context = await lookupClubMatchContext(clubId, clubName);
   const offer: SponsorMatchOffer = {
@@ -172,6 +183,8 @@ export async function publishSponsorMatchOffer({
       matchDate: context.matchDate,
       scoreLabel: context.scoreLabel,
     }),
+    sponsorshipAmountGbp:
+      Number(sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
   };
 
   const local = readJson<SponsorMatchOffer[]>(OFFER_STORAGE, []);
@@ -217,6 +230,8 @@ function mapOfferRow(row: Record<string, unknown>): SponsorMatchOffer {
     headline:
       (row.headline as string | null) ??
       sponsorOfferHeadline({ clubName, matchTitle, matchDate, scoreLabel }),
+    sponsorshipAmountGbp:
+      Number(row.sponsorship_amount_gbp) || OPENING_SPONSORSHIP,
   };
 }
 
@@ -227,7 +242,13 @@ export async function listSponsorMatchOffers(): Promise<SponsorMatchOffer[]> {
     .select("*")
     .order("posted_at", { ascending: false });
   const remote = (data ?? []).map((row) => mapOfferRow(row as Record<string, unknown>));
-  return mergeById(local, remote).sort((a, b) => b.postedAt.localeCompare(a.postedAt));
+  return mergeById(local, remote)
+    .map((offer) => ({
+      ...offer,
+      sponsorshipAmountGbp:
+        Number(offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+    }))
+    .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
 }
 
 export async function getSponsorMatchOffer(
@@ -420,3 +441,57 @@ export function proposalMailtoToDirector(
   );
   return `mailto:${clubEmail ?? ""}?subject=${subject}&body=${body}`;
 }
+
+export async function countFansWhoVotedOnProjects(
+  projectIds: string[]
+): Promise<number> {
+  const ids = [...new Set(projectIds.filter(Boolean))];
+  if (ids.length === 0) return 0;
+  const { data } = await supabase
+    .from("supporter_votes")
+    .select("supporter_id")
+    .in("climate_project_id", ids);
+  return new Set((data ?? []).map((row) => String(row.supporter_id))).size;
+}
+
+export async function loadSponsorFolder(options?: {
+  sponsorId?: string | null;
+}): Promise<{
+  offers: SponsorMatchOffer[];
+  signatures: SponsorOfferSignature[];
+  pending: SponsorMatchOffer[];
+  signed: SignedSponsorship[];
+  stats: SponsorDashboardStats;
+}> {
+  const [offers, signatures] = await Promise.all([
+    listSponsorMatchOffers(),
+    listOfferSignatures(),
+  ]);
+  const signed = pairSignedSponsorships(offers, signatures, {
+    sponsorId: options?.sponsorId,
+  });
+  const pending = unsignedMatchOffers(offers, signatures);
+  const fanVotes = await countFansWhoVotedOnProjects(
+    signed.flatMap((row) => row.offer.projectIds)
+  );
+  return {
+    offers,
+    signatures,
+    pending,
+    signed,
+    stats: sponsorshipFolderStats(signed, fanVotes),
+  };
+}
+
+export async function listClubSignedSponsorships(
+  clubId: string,
+  clubName: string
+): Promise<SignedSponsorship[]> {
+  const [offers, signatures] = await Promise.all([
+    listSponsorMatchOffers(),
+    listOfferSignatures(),
+  ]);
+  return pairSignedSponsorships(offers, signatures, { clubId, clubName });
+}
+
+export type { SignedSponsorship, SponsorDashboardStats };

@@ -69,6 +69,7 @@ export default function SponsorOfferPage() {
         brandName: brandName || brandDefault,
       });
       setSignedBrand(signed.brandName);
+      router.push(`${SPONSOR_DASHBOARD_PATH}#signed-folder`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your signature.");
     } finally {
@@ -110,7 +111,10 @@ export default function SponsorOfferPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-2xl font-bold">{project.name}</h2>
-              {isFeaturedClimateProject(project) && (
+              {isFeaturedClimateProject({
+                name: project.name,
+                featured: false,
+              }) && (
                 <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
                   Featured
                 </span>
@@ -132,8 +136,15 @@ export default function SponsorOfferPage() {
           </p>
           <p className="mt-2 text-slate-300">
             Fans of {offer.clubName} will see this brand name alongside each of
-            the 5 Climate Projects.
+            the 5 Climate Projects. This copy is now lodged in your Dashboard
+            folder, and the club Sustainability Director has a signed copy.
           </p>
+          <Link
+            href={`${SPONSOR_DASHBOARD_PATH}#signed-folder`}
+            className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
+          >
+            Open Dashboard folder
+          </Link>
         </div>
       ) : (
         <form
