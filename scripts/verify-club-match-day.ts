@@ -19,6 +19,7 @@ import {
   fanTeamMatchesPostedClub,
   matchDayCampaignTitle,
 } from "../app/lib/match-day-post";
+import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 
 const failures: string[] = [];
 
@@ -144,17 +145,17 @@ assert(
 );
 assert(
   featuredClimateProjectCountryLabel({ clubName: "AC Milan" }) ===
-    "Italy and International",
-  "An AC Milan club or supporter sees Global Schools Solar as Italy and International"
+    "UK and International",
+  "Only Global Schools Solar is classified as UK and International"
 );
 assert(
   featuredClimateProjectCountryLabel({ clubName: "Real Madrid" }) ===
-    "Spain and International",
-  "A La Liga club sees Global Schools Solar as Spain and International"
+    "UK and International",
+  "A La Liga club still sees Global Schools Solar as UK and International"
 );
 assert(
-  featuredClimateProjectCountryLabel() === "International",
-  "Without a club, Global Schools Solar stays International"
+  featuredClimateProjectCountryLabel() === "UK and International",
+  "Global Schools Solar stays UK and International without a club"
 );
 assert(
   climateProjectCountryLabel(
@@ -167,8 +168,8 @@ assert(
   featuredClimateProjectCountryLabelForClubs([
     { clubName: "Arsenal" },
     { clubName: "AC Milan" },
-  ]) === "UK, Italy and International",
-  "A fan who supports Arsenal and AC Milan sees both home countries plus International"
+  ]) === "UK and International",
+  "Fans see Global Schools Solar as UK and International"
 );
 
 const unitedFan = {
@@ -204,6 +205,21 @@ assert(
 assert(
   fanTeamMatchesPostedClub(unitedFan, { clubId: "fan-united", title: "Other" }),
   "A fan matches a posted campaign when the club id is the same"
+);
+assert(
+  sponsorOfferHeadline({
+    clubName: "Arsenal",
+    matchTitle: "Arsenal vs Chelsea",
+    matchDate: "2026-10-18T15:00:00.000Z",
+    scoreLabel: "Goal",
+  }).includes("Arsenal vs Chelsea") &&
+    sponsorOfferHeadline({
+      clubName: "Arsenal",
+      matchTitle: "Arsenal vs Chelsea",
+      matchDate: "2026-10-18T15:00:00.000Z",
+      scoreLabel: "Goal",
+    }).includes("18th October 2026"),
+  "Sponsor offer names the club, fixture and match date"
 );
 
 if (failures.length > 0) {

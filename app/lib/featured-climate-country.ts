@@ -143,27 +143,15 @@ export function selectableCatalogForClub(context: ClimateCountryContext) {
 }
 
 export function featuredClimateProjectCountryLabel(
-  context: ClimateCountryContext = {}
+  _context: ClimateCountryContext = {}
 ): string {
-  const local = localClimateRegionForClub(context);
-  if (!local || local === INTERNATIONAL_CLIMATE_REGION) {
-    return INTERNATIONAL_CLIMATE_REGION;
-  }
-  return `${local} and ${INTERNATIONAL_CLIMATE_REGION}`;
+  return `${UK_CLIMATE_REGION} and ${INTERNATIONAL_CLIMATE_REGION}`;
 }
 
 export function featuredClimateProjectCountryLabelForClubs(
-  clubs: ClimateCountryContext[]
+  _clubs: ClimateCountryContext[] = []
 ): string {
-  const locals = [
-    ...new Set(
-      clubs
-        .map((club) => localClimateRegionForClub(club))
-        .filter((region): region is string => Boolean(region))
-    ),
-  ];
-  if (locals.length === 0) return INTERNATIONAL_CLIMATE_REGION;
-  return `${locals.join(", ")} and ${INTERNATIONAL_CLIMATE_REGION}`;
+  return featuredClimateProjectCountryLabel();
 }
 
 export function climateProjectCountryLabel(

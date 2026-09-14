@@ -896,14 +896,25 @@ export async function postMatchDayProjectsToFans({
     postedAt: new Date().toISOString(),
   };
   writeStoredMatchDay(clubId, selection);
+  const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
     clubId,
     clubName,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
     minAmount: amount,
-    selected: await loadProjectsByIds(portfolioIds),
+    selected: selectedProjects,
     voted: board.voted,
   });
+  try {
+    const { publishSponsorMatchOffer } = await import("./sponsor-offers.service");
+    await publishSponsorMatchOffer({
+      clubId,
+      clubName,
+      projects: selectedProjects,
+    });
+  } catch {
+    // Fans still receive the posted five even if the sponsor offer cannot be stored.
+  }
   return selection;
 }
 

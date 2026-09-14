@@ -26,7 +26,7 @@ const userTypes = [
       "Sponsor sporting moments and create measurable environmental impact through verified climate action.",
     register: "/sponsor/register",
     login: "/sponsor/login",
-    registerText: "Become a Climate Sponsor",
+    registerText: "Register as Sponsor",
   },
   {
     emoji: "🌍",

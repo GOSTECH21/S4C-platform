@@ -635,6 +635,19 @@ async function resolveCampaignSponsor({
   scoreLabel: string;
 }> {
   const scoreLabel = scoreLabelForSport(sport);
+  try {
+    const { signedBrandForClub } = await import("./sponsor-offers.service");
+    const signed = await signedBrandForClub(clubName);
+    if (signed) {
+      return {
+        name: signed,
+        logoUrl: sponsorLogoSrc(signed, null),
+        scoreLabel,
+      };
+    }
+  } catch {
+    // Fall through to the existing sponsorship campaign lookup.
+  }
   const fixtureNeedle = matchTitle.replace(/ Climate Campaign$/i, "").trim();
 
   const { data: rows } = await supabase

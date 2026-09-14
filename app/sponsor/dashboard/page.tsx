@@ -2,379 +2,169 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { processSportingEvent } from "@/app/services/sponsor-trigger-engine.service";
-import { getSponsorCampaigns } from "@/app/services/sponsorship-campaigns.service";
-console.log("processSportingEvent =", processSportingEvent);
+import { useRouter } from "next/navigation";
+import { logoutSponsor } from "@/app/services/sponsor-auth.service";
+import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import {
+  listOfferSignatures,
+  listSponsorMatchOffers,
+  type SponsorMatchOffer,
+  type SponsorOfferSignature,
+} from "@/app/services/sponsor-offers.service";
+import {
+  SPONSOR_CREATE_CAMPAIGN_PATH,
+  SPONSOR_LOGIN_PATH,
+  SPONSOR_OFFERS_PATH,
+} from "@/app/lib/routes";
+import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
+
 export default function SponsorDashboardPage() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const router = useRouter();
+  const [brand, setBrand] = useState("your brand");
+  const [role, setRole] = useState("Sponsorship Manager");
+  const [offers, setOffers] = useState<SponsorMatchOffer[]>([]);
+  const [signatures, setSignatures] = useState<SponsorOfferSignature[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCampaigns();
-  }, []);
-
-  async function loadCampaigns() {
-    try {
-      const data = await getSponsorCampaigns();
-      setCampaigns(data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    async function load() {
+      try {
+        const sponsor = await getCurrentSponsor();
+        setBrand(String(sponsor.name ?? "your brand"));
+        if (sponsor.industry) setRole(String(sponsor.industry));
+      } catch {
+        router.replace(SPONSOR_LOGIN_PATH);
+        return;
+      }
+      try {
+        const [nextOffers, nextSignatures] = await Promise.all([
+          listSponsorMatchOffers(),
+          listOfferSignatures(),
+        ]);
+        setOffers(nextOffers);
+        setSignatures(nextSignatures);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load offers.");
+      } finally {
+        setLoading(false);
+      }
     }
+    load();
+  }, [router]);
+
+  async function logout() {
+    await logoutSponsor();
+    router.push(SPONSOR_LOGIN_PATH);
   }
 
-  const activeCampaigns = campaigns.filter(
-    (c) => c.status === "Active"
-  ).length;
+  if (loading) {
+    return <p className="text-slate-400">Loading sponsor dashboard...</p>;
+  }
 
-  const totalBudget = campaigns.reduce(
-    (sum, c) => sum + Number(c.marketing_budget || 0),
-    0
-  );
-  const latestCampaign = campaigns[0];
-const simulatedTeam =
-  latestCampaign?.sport === "Rugby"
-    ? (latestCampaign?.sponsored_event ?? "")
-        .replace(" TRY Scored", "")
-        .replace(" TRY", "")
-    : (latestCampaign?.sponsored_event ?? "")
-        .replace(" Goal Scored", "")
-        .replace(" Goals Scored", "");
-   const simulationLabel =
-    latestCampaign?.sport === "Rugby"
-        ? "TRY"
-        : "Goal"; 
   return (
     <div className="space-y-10">
-
-      {/* Hero */}
-
-      <section className="rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-500 p-10 text-white shadow-lg">
-
-        <p className="text-sm uppercase tracking-widest text-emerald-100">
-          Score-For-Our-Planet (S4P)
-        </p>
-
-        <h1 className="mt-3 text-5xl font-bold">
-          Welcome back 👋
-        </h1>
-
-        <p className="mt-5 max-w-3xl text-lg leading-8 text-emerald-50">
-          Every sporting moment turns your marketing budget into
-          verified climate action while rewarding supporters.
-          Track campaigns, climate funding and impact from one place.
-        </p>
-
-        <div className="mt-8 flex gap-4">
-
-          <Link
-            href="/sponsor/campaigns/new"
-            className="inline-flex rounded-xl bg-white px-8 py-4 font-semibold text-emerald-700 shadow hover:bg-emerald-50"
-          >
-            Create Sponsorship Campaign
-          </Link>
-<button
-  onClick={async () => {
-    console.log("========== SIMULATING GOAL ==========");
-console.log("Campaign:", latestCampaign);
-console.log("Sport:", latestCampaign?.sport);
-console.log("Competition:", latestCampaign?.competition);
-console.log("Fixture:", latestCampaign?.fixture);
-console.log("Sponsored Event:", latestCampaign?.sponsored_event);
-console.log("Team:", simulatedTeam);
-
-alert("Button clicked");
-
-try {
-  console.log("Calling processSportingEvent...");
-
-  const result = await processSportingEvent({
-    sport: latestCampaign?.sport,
-    competition: latestCampaign?.competition,
-    fixture: latestCampaign?.fixture,
-    team: simulatedTeam,
-    event:
-      latestCampaign?.sport === "Rugby"
-        ? "TRY"
-        : "Goal",
-    minute: 64,
-  });
-
-  console.log("Returned:", result);
-
-} catch (err) {
-  console.error("ERROR:", err);
-}
-
-console.log("Finished");
-  }}
-  
-  className="rounded-xl border border-white px-6 py-3 text-white hover:bg-white hover:text-emerald-700"
->
-     {`Simulate ${simulationLabel}`}
-</button>
-        </div>
-
-      </section>
-
-      {/* Statistics */}
-
-      <section className="grid gap-6 md:grid-cols-4">
-
-        <StatCard
-          title="Active Campaigns"
-          value={
-            loading
-              ? "..."
-              : activeCampaigns.toString()
-          }
-        />
-
-        <StatCard
-  title="Monthly Commitment"
-  value={
-    loading
-      ? "..."
-      : `£${totalBudget.toLocaleString()}`
-  }
-/>
-
-        <StatCard
-  title="Climate Credits Issued"
-  value="125,000"
-/>
-
-        <StatCard
-  title="Supporters Rewarded"
-  value="2,143"
-/>
-
-      </section>
-            {/* Recent Activity */}
-
-      <section className="rounded-2xl border bg-white p-8 shadow-sm">
-
-        <div className="flex items-center justify-between">
-
-          <h2 className="text-2xl font-bold">
-            Recent Activity
-          </h2>
-
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-            Live
-          </span>
-
-        </div>
-
-        <div className="mt-8 space-y-5">
-
-          <ActivityItem
-    title={`${latestCampaign?.campaign_name ?? "Campaign"} launched`}
-    description={`${latestCampaign?.fixture ?? "-"} • ${latestCampaign?.competition ?? "-"}`}
-    time="Just now"
-/>
-
-          <ActivityItem
-    title="Climate funding committed"
-    description={`£${latestCampaign?.amount_per_goal ?? 0} will be unlocked for every ${latestCampaign?.sponsored_event ?? "goal"}.`}
-    time="Just now"
-/>
-
-          <ActivityItem
-    title="Campaign is now Active"
-    description={latestCampaign?.campaign_name ?? "Waiting for first qualifying sporting event."}
-    time="Just now"
-/>
-
-        </div>
-
-      </section>
-            {/* Campaigns */}
-
-      <section className="rounded-2xl border bg-white p-10 shadow-sm">
-
-        <div className="mb-8 flex items-center justify-between">
-
-          <div>
-
-            <h2 className="text-3xl font-bold">
-              My Sponsorship Portfolio
-            </h2>
-
-            <p className="mt-2 text-slate-500">
-              Manage your active sponsorships.
-            </p>
-
-          </div>
-
-          <Link
-            href="/sponsor/campaigns/new"
-            className="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white hover:bg-emerald-700"
-          >
-            Create Sponsorship Campaign
-          </Link>
-
-        </div>
-
-        {loading ? (
-
-          <p className="text-slate-500">
-            Loading sponsorships...
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+            {role}; {brand}
           </p>
-
-        ) : campaigns.length === 0 ? (
-
-          <p className="text-slate-500">
-            No sponsorships found.
+          <h1 className="mt-3 text-4xl font-black">Sponsor dashboard</h1>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            When a Sustainability Director posts 5 Climate Projects, you receive
+            them at the same time as the club&apos;s fans. Or create your own 5
+            and send that list to the Sustainability Director.
           </p>
-
-        ) : (
-
-          <div className="overflow-x-auto">
-
-            <table className="w-full table-fixed">
-
-              <thead>
-
-<tr className="border-b text-left">
-
-<th className="w-[34%]">Campaign</th>
-
-<th className="w-[18%]">Fixture</th>
-
-<th className="w-[18%]">Sponsor Event</th>
-
-<th className="w-[8%] text-center">Package</th>
-
-<th className="w-[12%] text-center">£ / Score</th>
-
-<th className="w-[5%] text-center">Scores</th>
-
-<th className="w-[5%] text-center">Status</th>
-
-</tr>
-
-</thead>
-
-              <tbody>
-
-                {campaigns.map((campaign) => (
-
-                  <tr
-                    key={campaign.id}
-                    className="border-b"
-                  >
-
-                    <td className="py-4 font-medium">
-  {campaign.campaign_name}
-</td>
-
-<td>
-  {campaign.fixture || "-"}
-</td>
-<td>
-
-    <span className="font-medium">
-
-        {campaign.sponsored_event || "-"}
-
-    </span>
-
-</td>
-
-<td className="text-center pr-2">
-  {campaign.package}
-</td>
-
-<td className="text-center pl-2">
-  £{Number(campaign.amount_per_goal).toLocaleString()}
-</td>
-
-<td className="text-center w-14">
-  {campaign.goals_triggered ?? 0}
-</td>
-<td>
-  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-    {campaign.status}
-  </span>
-</td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        )}
-
-      </section>
-
-    </div>
-
-  );
-
-}
-type StatCardProps = {
-  title: string;
-  value: string;
-};
-
-function StatCard({
-  title,
-  value,
-}: StatCardProps) {
-  return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
-
-      <p className="text-sm font-medium text-slate-500">
-        {title}
-      </p>
-
-      <p className="mt-3 text-4xl font-bold text-emerald-700">
-        {value}
-      </p>
-
-    </div>
-  );
-}
-
-type ActivityItemProps = {
-  title: string;
-  description: string;
-  time: string;
-};
-
-function ActivityItem({
-  title,
-  description,
-  time,
-}: ActivityItemProps) {
-  return (
-    <div className="flex items-start gap-4 rounded-xl border p-5">
-
-      <div className="mt-1 h-3 w-3 rounded-full bg-emerald-500" />
-
-      <div className="flex-1">
-
-        <h4 className="font-semibold">
-          {title}
-        </h4>
-
-        <p className="mt-1 text-slate-500">
-          {description}
-        </p>
-
+        </div>
+        <button
+          onClick={() => void logout()}
+          className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
+        >
+          Logout
+        </button>
       </div>
 
-      <span className="text-sm text-slate-400">
-        {time}
-      </span>
+      {error && (
+        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+          {error}
+        </div>
+      )}
 
+      <section className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+            Option 1
+          </p>
+          <h2 className="mt-3 text-2xl font-black">Receive the club&apos;s 5</h2>
+          <p className="mt-3 text-slate-300">
+            Open the same 5 Climate Projects the Sustainability Director posted
+            to fans. Sign as Goal Sponsor. Terms and Conditions apply. Then add
+            your brand name for SPONSORED BY.
+          </p>
+        </div>
+        <Link
+          href={SPONSOR_CREATE_CAMPAIGN_PATH}
+          className="rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+            Option 2
+          </p>
+          <h2 className="mt-3 text-2xl font-black">
+            Create Your Sponsorship Campaign
+          </h2>
+          <p className="mt-3 text-slate-300">
+            Choose 5 Climate Projects yourself — Global Schools Solar plus 4
+            from List 1 (local) and List 2 (international) — and send them to
+            the Sustainability Director to push to fans.
+          </p>
+        </Link>
+      </section>
+
+      <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+        <h2 className="text-3xl font-black">Match offers from clubs</h2>
+        <p className="mt-2 text-slate-400">
+          These arrive when a Sustainability Director posts their 5 Climate
+          Projects.
+        </p>
+        {offers.length === 0 ? (
+          <p className="mt-6 text-slate-500">
+            No club has posted 5 Climate Projects yet. When they do, a Click
+            here link appears in this inbox.
+          </p>
+        ) : (
+          <div className="mt-8 space-y-4">
+            {offers.map((offer) => {
+              const signed = signatures.find((row) => row.offerId === offer.id);
+              const when = formatLongMatchDate(offer.matchDate);
+              return (
+                <div
+                  key={offer.id}
+                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+                >
+                  <p className="text-sm text-slate-400">
+                    {role}; {brand}
+                  </p>
+                  <h3 className="mt-2 text-xl font-bold">{offer.headline}</h3>
+                  {when && (
+                    <p className="mt-1 text-sm text-slate-400">{when}</p>
+                  )}
+                  {signed ? (
+                    <p className="mt-3 font-semibold text-green-300">
+                      Signed — SPONSORED BY {signed.brandName}
+                    </p>
+                  ) : null}
+                  <Link
+                    href={`${SPONSOR_OFFERS_PATH}/${offer.id}`}
+                    className="mt-4 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500"
+                  >
+                    Click here
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

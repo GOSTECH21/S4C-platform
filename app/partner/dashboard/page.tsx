@@ -171,9 +171,9 @@ export default function PartnerDashboardPage() {
               </a>{" "}
               local projects by country (Scotland, England, Italy and more) plus
               international projects, with featured {FEATURED_PROJECT_NAME}{" "}
-              included in every Match Day five. Clubs and fans see it as their
-              home country and International — UK and International for a UK
-              club, Italy and International for AC Milan.
+              included in every Match Day five. Global Schools Solar is the
+              only project classified as UK and International. List 1 is the
+              club&apos;s country. List 2 is international.
             </p>
             <p className="mt-2 text-sm text-slate-500">{email}</p>
           </div>

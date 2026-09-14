@@ -9,10 +9,15 @@ import {
   fileRecordDownloadName,
   postMatchDayProjectsToFans,
   readStoredMatchDay,
+  saveMatchDaySelection,
   type ClubAccount,
   type ClubFileRecord,
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
+import {
+  listClubSponsorProposals,
+  type SponsorProjectProposal,
+} from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
@@ -26,10 +31,9 @@ import {
 } from "@/app/lib/cilt";
 import {
   MATCH_DAY_CHOICE_COUNT,
-  MATCH_DAY_LEAD_HOURS,
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
-import { formatMoney } from "@/app/lib/sponsorship-auction";
+import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
 import {
   CLUB_LOGIN_PATH,
   CLUB_REGISTER_PATH,
@@ -50,6 +54,7 @@ export default function ClubDashboardPage() {
   const [posting, setPosting] = useState(false);
   const [postedAt, setPostedAt] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
+  const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -76,6 +81,9 @@ export default function ClubDashboardPage() {
       setMinAmount(board.minAmount);
       setRecords(board.records);
       setPostedAt(readStoredMatchDay(session.club.id)?.postedAt ?? null);
+      setProposals(
+        await listClubSponsorProposals(session.club.id, session.club.name)
+      );
       setLoading(false);
     }
 
@@ -159,6 +167,39 @@ export default function ClubDashboardPage() {
     }
   }
 
+  async function pushSponsorProposal(proposal: SponsorProjectProposal) {
+    if (!club) return;
+    setPosting(true);
+    setPostError(null);
+    try {
+      const featuredId = selected.find(isFeaturedClimateProject)?.id;
+      const partnerIds = proposal.projectIds.filter((id) => id !== featuredId);
+      await saveMatchDaySelection({
+        clubId: club.id,
+        clubName: club.name,
+        country: club.country,
+        projectIds: partnerIds,
+        minAmount: minAmount ?? OPENING_SPONSORSHIP,
+      });
+      const posted = await postMatchDayProjectsToFans({
+        clubId: club.id,
+        clubName: club.name,
+        country: club.country,
+      });
+      const board = await loadClubProjectBoard(club.id, club.name);
+      setSelected(board.selected);
+      setPostedAt(posted.postedAt ?? new Date().toISOString());
+    } catch (err) {
+      setPostError(
+        err instanceof Error
+          ? err.message
+          : "Could not push the sponsor's Climate Projects to your fans."
+      );
+    } finally {
+      setPosting(false);
+    }
+  }
+
   if (unlinked) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
@@ -235,15 +276,18 @@ export default function ClubDashboardPage() {
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
-            <h2 className="text-4xl font-black md:text-5xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+              S4P Climate Projects
+            </p>
+            <h2 className="mt-3 text-4xl font-black md:text-5xl">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
                 ? `Here's your ${MATCH_DAY_PROJECT_COUNT} chosen Projects for this Match Day`
-                : `Select Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day`}
+                : "S4P Climate Projects"}
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? "These Projects will be voted for by your Fans/Supporters as to which project receives the sponsorship funding."
-                : `Global Schools Solar is included in every Match Day five. Choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects (${localCountry} and international) for supporters to vote on. ${MATCH_DAY_LEAD_HOURS} hours before kick-off, attach the minimum sponsorship amount per Goal scored by ${club.name} players.`}
+                ? "These Projects will be voted for by your Fans/Supporters as to which project receives the sponsorship funding. Brands receive the same five at the same time."
+                : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Global Schools Solar is included automatically and is UK and International.`}
             </p>
           </div>
 
@@ -253,18 +297,18 @@ export default function ClubDashboardPage() {
             onClick={() => void handleMatchDayAction()}
           >
             {posting
-              ? "Posting to your fans..."
+              ? "Posting to your fans and brands..."
               : selected.length >= MATCH_DAY_PROJECT_COUNT
                 ? `Post Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects to your Fans/Supporters to Vote on`
-                : `Select Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day`}
+                : "S4P Climate Projects"}
           </button>
           {selected.length >= MATCH_DAY_PROJECT_COUNT && (
             <button
               type="button"
-              className="mt-3 w-full text-sm font-semibold text-green-400 hover:underline"
+              className="mt-3 w-full rounded-xl border border-green-500/40 py-3 text-sm font-semibold text-green-400 hover:bg-green-500/10"
               onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
             >
-              Change your {MATCH_DAY_CHOICE_COUNT} Climate Partner projects
+              S4P Climate Projects — change List 1 and List 2
             </button>
           )}
           {postError && (
@@ -274,8 +318,9 @@ export default function ClubDashboardPage() {
           )}
           {postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
-              Posted to your fans on My S4P. Supporters of {club.name} will see
-              these {MATCH_DAY_PROJECT_COUNT} projects when they open their page.
+              Posted to your fans on My S4P and to registered brands. Supporters
+              of {club.name} will see these {MATCH_DAY_PROJECT_COUNT} projects
+              when they open their page.
             </p>
           )}
 
@@ -297,6 +342,51 @@ export default function ClubDashboardPage() {
             />
           </div>
         </section>
+
+        {proposals.length > 0 && (
+          <section className="mt-12 rounded-3xl border border-amber-500/30 bg-slate-900 p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
+              From your brand / sponsor
+            </p>
+            <h2 className="mt-2 text-3xl font-black">
+              Sponsorship Manager lists to push to fans
+            </h2>
+            <p className="mt-2 max-w-3xl text-slate-300">
+              A registered sponsor has sent 5 Climate Projects. Push their list
+              to your Fans/Supporters to vote on.
+            </p>
+            <div className="mt-8 space-y-6">
+              {proposals.map((proposal) => (
+                <div
+                  key={proposal.id}
+                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+                >
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                    <div>
+                      <h3 className="text-xl font-bold">{proposal.sponsorName}</h3>
+                      <p className="text-sm text-slate-400">
+                        {new Date(proposal.createdAt).toLocaleString("en-GB")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={posting}
+                      onClick={() => void pushSponsorProposal(proposal)}
+                      className="rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500 disabled:opacity-70"
+                    >
+                      Push this list to fans
+                    </button>
+                  </div>
+                  <ul className="mt-4 space-y-1 text-slate-300">
+                    {proposal.projects.map((project) => (
+                      <li key={project.id}>• {project.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-12">
           <h2 className="text-3xl font-black">Voted-For Projects</h2>

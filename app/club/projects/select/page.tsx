@@ -167,16 +167,13 @@ export default function SelectMatchDayProjectsPage() {
           ← Back to dashboard
         </button>
 
-        <h1 className="mt-6 text-4xl font-black">
-          Select {MATCH_DAY_CHOICE_COUNT} Climate Projects for this Match Day
-        </h1>
+        <h1 className="mt-6 text-4xl font-black">S4P Climate Projects</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Global Schools Solar is included in every Match Day five. Choose{" "}
-          {MATCH_DAY_CHOICE_COUNT} more from 10 local Climate Partner projects in{" "}
-          {localCountry} and 10 international projects. Page 1 is {localCountry}{" "}
-          (projects 1–10). Page 2 is international (projects 11–20), including
-          Ugandan Cookstove. Do this at least {MATCH_DAY_LEAD_HOURS} hours before
-          kick-off.
+          Global Schools Solar is included in every Match Day five and is the
+          only project classified as UK and International. Choose{" "}
+          {MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate
+          Partner projects in {localCountry}. List 2 is international projects,
+          including Ugandan Cookstove.
         </p>
 
         {featured && (
@@ -202,12 +199,30 @@ export default function SelectMatchDayProjectsPage() {
           <p className="font-bold">
             {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
           </p>
-          <p className="text-sm text-slate-400">
-            {page === 0
-              ? `${localCountry} Climate Projects · 1–10`
-              : "International Climate Projects · 11–20"}{" "}
-            · Page {page + 1} of {pages}
-          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setPage(0)}
+              className={`rounded-lg px-4 py-2 text-sm font-bold ${
+                page === 0
+                  ? "bg-green-500 text-slate-950"
+                  : "border border-slate-700 text-slate-300"
+              }`}
+            >
+              List 1 · {localCountry}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage(1)}
+              className={`rounded-lg px-4 py-2 text-sm font-bold ${
+                page === 1
+                  ? "bg-green-500 text-slate-950"
+                  : "border border-slate-700 text-slate-300"
+              }`}
+            >
+              List 2 · International
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -268,18 +283,18 @@ export default function SelectMatchDayProjectsPage() {
 
         <div className="mt-8 flex items-center justify-between">
           <button
-            onClick={() => setPage((value) => Math.max(0, value - 1))}
+            onClick={() => setPage(0)}
             disabled={page === 0}
             className="rounded-xl border border-slate-700 px-5 py-3 font-bold disabled:cursor-not-allowed disabled:text-slate-600"
           >
-            {"<< Previous"}
+            List 1 · {localCountry}
           </button>
           <button
-            onClick={() => setPage((value) => Math.min(pages - 1, value + 1))}
+            onClick={() => setPage(1)}
             disabled={page >= pages - 1}
             className="rounded-xl bg-slate-800 px-5 py-3 font-bold hover:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-600"
           >
-            {"Next >>"}
+            List 2 · International
           </button>
         </div>
 
