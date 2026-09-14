@@ -5,6 +5,7 @@ import { sponsorOfferHeadline } from "../lib/s4p-climate-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
 import {
   pairSignedSponsorships,
+  proposalMatchesClub,
   unsignedMatchOffers,
   sponsorshipFolderStats,
   type SignedSponsorship,
@@ -377,11 +378,12 @@ export async function sendSponsorProposalToClub({
   };
 
   const local = readJson<SponsorProjectProposal[]>(PROPOSAL_STORAGE, []);
-  writeJson(PROPOSAL_STORAGE, [proposal, ...local].slice(0, 50));
+  writeJson(PROPOSAL_STORAGE, [proposal, ...local.filter((row) => row.id !== proposal.id)].slice(0, 50));
 
+  const remoteClubId = isUuid(proposal.clubId) ? proposal.clubId : null;
   await supabase.from("sponsor_project_proposals").insert({
     id: proposal.id,
-    club_id: proposal.clubId,
+    club_id: remoteClubId,
     club_name: proposal.clubName,
     sponsor_id: proposal.sponsorId,
     sponsor_name: proposal.sponsorName,
@@ -395,22 +397,47 @@ export async function sendSponsorProposalToClub({
   return proposal;
 }
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+export async function markSponsorProposalPosted(proposalId: string) {
+  const local = readJson<SponsorProjectProposal[]>(PROPOSAL_STORAGE, []);
+  writeJson(
+    PROPOSAL_STORAGE,
+    local.map((row) =>
+      row.id === proposalId ? { ...row, status: "posted" } : row
+    )
+  );
+  await supabase
+    .from("sponsor_project_proposals")
+    .update({ status: "posted" })
+    .eq("id", proposalId);
+}
+
 export async function listClubSponsorProposals(
   clubId: string,
   clubName: string
 ): Promise<SponsorProjectProposal[]> {
   const local = readJson<SponsorProjectProposal[]>(PROPOSAL_STORAGE, []).filter(
-    (row) => row.clubId === clubId || row.clubName.toLowerCase() === clubName.toLowerCase()
+    (row) => proposalMatchesClub(row, clubId, clubName)
   );
   const { data } = await supabase
     .from("sponsor_project_proposals")
     .select("*")
     .order("created_at", { ascending: false });
   const remote = (data ?? [])
-    .filter(
-      (row) =>
-        row.club_id === clubId ||
-        String(row.club_name ?? "").toLowerCase() === clubName.toLowerCase()
+    .filter((row) =>
+      proposalMatchesClub(
+        {
+          clubId: (row.club_id as string | null) ?? null,
+          clubName: (row.club_name as string | null) ?? null,
+        },
+        clubId,
+        clubName
+      )
     )
     .map((row) => ({
       id: String(row.id),

@@ -5,6 +5,9 @@ import {
   signedCopyPayload,
   signedCopyDownloadName,
   clubsMatch,
+  proposalMatchesClub,
+  sponsorshipSelectedProposals,
+  sponsorshipFundedProposals,
 } from "../app/lib/sponsor-dashboard";
 
 const failures: string[] = [];
@@ -94,6 +97,36 @@ assert(
     "s4p-signed-sponsorship"
   ),
   "Club can download a named signed copy file"
+);
+
+assert(
+  proposalMatchesClub(
+    { clubId: "name:Arsenal", clubName: "Arsenal" },
+    "club-uuid",
+    "Arsenal FC"
+  ),
+  "Sponsor list sent to Arsenal appears on the Arsenal FC dashboard"
+);
+assert(
+  !proposalMatchesClub(
+    { clubId: "name:Arsenal", clubName: "Arsenal" },
+    "other-id",
+    "Manchester United"
+  ),
+  "Arsenal sponsor list does not appear on United's dashboard"
+);
+
+const incoming = [
+  { clubName: "Arsenal", status: "sent" },
+  { clubName: "Arsenal", status: "posted" },
+];
+assert(
+  sponsorshipSelectedProposals(incoming).length === 1,
+  "Unposted Option 2 lists are Sponsorship Selected Projects"
+);
+assert(
+  sponsorshipFundedProposals(incoming).length === 1,
+  "Posted Option 2 lists are Sponsorship Funded Projects"
 );
 
 if (failures.length > 0) {

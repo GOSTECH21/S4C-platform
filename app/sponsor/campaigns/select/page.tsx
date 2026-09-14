@@ -120,7 +120,9 @@ export default function SponsorCreateCampaignPage() {
       });
       const mailto = proposalMailtoToDirector(clubEmail, proposal);
       setSentMailto(mailto);
-      window.location.href = mailto;
+      if (mailto.startsWith("mailto:") && clubEmail) {
+        window.open(mailto, "_blank");
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not send this list to the club."
@@ -252,8 +254,8 @@ export default function SponsorCreateCampaignPage() {
       </button>
       {sentMailto && (
         <p className="mt-4 text-center text-sm text-green-300">
-          List stored for {clubName}. A reply email to the Sustainability
-          Director has been opened.
+          These 5 Climate Projects are now on the {clubName} Sustainability
+          Director dashboard as Sponsorship Selected Projects.
         </p>
       )}
     </div>

@@ -51,6 +51,42 @@ export function clubsMatch(left: string, right: string): boolean {
   return a === b || a.includes(b) || b.includes(a);
 }
 
+export type ClubProposalRef = {
+  clubId?: string | null;
+  clubName?: string | null;
+  status?: string | null;
+};
+
+export function proposalMatchesClub(
+  proposal: ClubProposalRef,
+  clubId: string,
+  clubName: string
+): boolean {
+  if (proposal.clubId && clubId && proposal.clubId === clubId) return true;
+  const storedId = String(proposal.clubId ?? "");
+  if (storedId.startsWith("name:") && clubsMatch(storedId.slice(5), clubName)) {
+    return true;
+  }
+  return clubsMatch(String(proposal.clubName ?? ""), clubName);
+}
+
+export function isFundedSponsorProposal(status: string | null | undefined) {
+  const value = String(status ?? "").toLowerCase();
+  return value === "posted" || value === "funded";
+}
+
+export function sponsorshipSelectedProposals<T extends ClubProposalRef>(
+  proposals: T[]
+): T[] {
+  return proposals.filter((row) => !isFundedSponsorProposal(row.status));
+}
+
+export function sponsorshipFundedProposals<T extends ClubProposalRef>(
+  proposals: T[]
+): T[] {
+  return proposals.filter((row) => isFundedSponsorProposal(row.status));
+}
+
 export function pairSignedSponsorships(
   offers: FolderOffer[],
   signatures: FolderSignature[],

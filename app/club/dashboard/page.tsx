@@ -17,6 +17,7 @@ import {
 import {
   listClubSponsorProposals,
   listClubSignedSponsorships,
+  markSponsorProposalPosted,
   type SignedSponsorship,
   type SponsorProjectProposal,
 } from "@/app/services/sponsor-offers.service";
@@ -39,6 +40,8 @@ import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction"
 import {
   signedCopyDownloadName,
   signedCopyPayload,
+  sponsorshipFundedProposals,
+  sponsorshipSelectedProposals,
 } from "@/app/lib/sponsor-dashboard";
 import {
   CLUB_LOGIN_PATH,
@@ -120,6 +123,14 @@ export default function ClubDashboardPage() {
       ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
       : [];
   const clubRow = cilt.find((row) => row.isClub);
+  const selectedProposals = useMemo(
+    () => sponsorshipSelectedProposals(proposals),
+    [proposals]
+  );
+  const fundedProposals = useMemo(
+    () => sponsorshipFundedProposals(proposals),
+    [proposals]
+  );
 
   function downloadFileRecord() {
     if (!club) return;
@@ -218,6 +229,8 @@ export default function ClubDashboardPage() {
       const board = await loadClubProjectBoard(club.id, club.name);
       setSelected(board.selected);
       setPostedAt(posted.postedAt ?? new Date().toISOString());
+      await markSponsorProposalPosted(proposal.id);
+      setProposals(await listClubSponsorProposals(club.id, club.name));
     } catch (err) {
       setPostError(
         err instanceof Error
@@ -372,6 +385,62 @@ export default function ClubDashboardPage() {
           </div>
         </section>
 
+        <section className="mt-12 rounded-3xl border border-blue-500/30 bg-slate-900 p-10">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
+            From the Sponsorship Manager
+          </p>
+          <h2 className="mt-2 text-3xl font-black">
+            Sponsorship Selected Projects
+          </h2>
+          <p className="mt-2 max-w-3xl text-slate-300">
+            When a Sponsorship Manager chooses 5 Climate Projects and sends
+            them with the blue button, those projects appear here — not the
+            five you selected yourself.
+          </p>
+          {selectedProposals.length === 0 ? (
+            <p className="mt-6 text-slate-500">
+              No Sponsorship Manager has sent a list yet. Their 5 Climate
+              Projects will show here as soon as they click Send these 5
+              Climate Projects to the Sustainability Director.
+            </p>
+          ) : (
+            <div className="mt-8 space-y-8">
+              {selectedProposals.map((proposal) => (
+                <div
+                  key={proposal.id}
+                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+                >
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                    <div>
+                      <p className="text-sm font-semibold text-amber-300">
+                        Chosen by {proposal.sponsorName}
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {new Date(proposal.createdAt).toLocaleString("en-GB")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={posting}
+                      onClick={() => void pushSponsorProposal(proposal)}
+                      className="rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500 disabled:opacity-70"
+                    >
+                      Post these to fans
+                    </button>
+                  </div>
+                  <ProjectGrid
+                    projects={proposalAsProjects(proposal)}
+                    empty="This list has no Climate Projects."
+                    badge="Sponsor selected"
+                    clubName={club.name}
+                    clubCountry={club.country}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         <section className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
             Sponsorship record
@@ -437,50 +506,47 @@ export default function ClubDashboardPage() {
           )}
         </section>
 
-        {proposals.length > 0 && (
-          <section className="mt-12 rounded-3xl border border-amber-500/30 bg-slate-900 p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
-              From your brand / sponsor
+        <section className="mt-12 rounded-3xl border border-emerald-500/30 bg-slate-900 p-10">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
+            From the Sponsorship Manager
+          </p>
+          <h2 className="mt-2 text-3xl font-black">
+            Sponsorship Funded Projects
+          </h2>
+          <p className="mt-2 max-w-3xl text-slate-300">
+            After you post a Sponsorship Manager&apos;s 5 Climate Projects to
+            fans, that list is kept here as the funded sponsorship campaign.
+          </p>
+          {fundedProposals.length === 0 ? (
+            <p className="mt-6 text-slate-500">
+              No sponsor-chosen list has been posted to fans yet. Post a
+              Sponsorship Selected list and it moves here.
             </p>
-            <h2 className="mt-2 text-3xl font-black">
-              Sponsorship Manager lists to push to fans
-            </h2>
-            <p className="mt-2 max-w-3xl text-slate-300">
-              A registered sponsor has sent 5 Climate Projects. Push their list
-              to your Fans/Supporters to vote on.
-            </p>
-            <div className="mt-8 space-y-6">
-              {proposals.map((proposal) => (
+          ) : (
+            <div className="mt-8 space-y-8">
+              {fundedProposals.map((proposal) => (
                 <div
                   key={proposal.id}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+                  className="rounded-2xl border border-emerald-500/30 bg-slate-950 p-6"
                 >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-                    <div>
-                      <h3 className="text-xl font-bold">{proposal.sponsorName}</h3>
-                      <p className="text-sm text-slate-400">
-                        {new Date(proposal.createdAt).toLocaleString("en-GB")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={posting}
-                      onClick={() => void pushSponsorProposal(proposal)}
-                      className="rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500 disabled:opacity-70"
-                    >
-                      Push this list to fans
-                    </button>
-                  </div>
-                  <ul className="mt-4 space-y-1 text-slate-300">
-                    {proposal.projects.map((project) => (
-                      <li key={project.id}>• {project.name}</li>
-                    ))}
-                  </ul>
+                  <p className="text-sm font-semibold text-amber-300">
+                    Funded by {proposal.sponsorName}
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    Posted {new Date(proposal.createdAt).toLocaleString("en-GB")}
+                  </p>
+                  <ProjectGrid
+                    projects={proposalAsProjects(proposal)}
+                    empty="This funded list has no Climate Projects."
+                    funded
+                    clubName={club.name}
+                    clubCountry={club.country}
+                  />
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         <section className="mt-12">
           <h2 className="text-3xl font-black">Voted-For Projects</h2>
@@ -644,6 +710,22 @@ export default function ClubDashboardPage() {
       </div>
     </main>
   );
+}
+
+function proposalAsProjects(
+  proposal: SponsorProjectProposal
+): ClimateProject[] {
+  return proposal.projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    category: project.category,
+    country: project.country,
+    estimated_co2: project.estimated_co2,
+    funding_goal: null,
+    image_url: null,
+    status: "active",
+  }));
 }
 
 function ProjectGrid({
