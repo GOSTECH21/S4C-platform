@@ -205,7 +205,7 @@ export async function publishSponsorMatchOffer({
     [offer, ...local.filter((row) => row.clubId !== clubId)].slice(0, 50)
   );
 
-  await supabase.from("sponsor_match_offers").insert({
+  void supabase.from("sponsor_match_offers").insert({
     id: offer.id,
     club_id: offer.clubId,
     club_name: offer.clubName,
