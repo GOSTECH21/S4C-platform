@@ -173,7 +173,7 @@ export default function SponsorDashboardPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
                 Signed in as {brand}
               </p>
-              <label className="mt-2 block text-xs text-slate-500">
+              <label className="mt-2 inline-flex cursor-pointer items-center rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-green-400">
                 {logoUrl ? "Change brand logo" : "Upload brand logo"}
                 <input
                   type="file"
@@ -186,7 +186,7 @@ export default function SponsorDashboardPage() {
                       saveBrandLogo(brand, next);
                     });
                   }}
-                  className="mt-1 block w-full text-xs text-slate-400 file:mr-2 file:rounded-md file:border-0 file:bg-slate-800 file:px-3 file:py-1 file:text-slate-200"
+                  className="sr-only"
                 />
               </label>
             </div>
