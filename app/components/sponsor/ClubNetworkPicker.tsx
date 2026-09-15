@@ -7,10 +7,14 @@ export function ClubNetworkPicker({
   selected,
   onChange,
   compact = false,
+  matchDayClub,
+  onChooseMatchDayClub,
 }: {
   selected: string[];
   onChange: (clubs: string[]) => void;
   compact?: boolean;
+  matchDayClub?: string;
+  onChooseMatchDayClub?: (club: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const selectedSet = new Set(selected.map((name) => name.toLowerCase()));
@@ -29,10 +33,15 @@ export function ClubNetworkPicker({
 
   function toggle(club: string) {
     if (selectedSet.has(club.toLowerCase())) {
+      if (onChooseMatchDayClub) {
+        onChooseMatchDayClub(club);
+        return;
+      }
       onChange(selected.filter((name) => name.toLowerCase() !== club.toLowerCase()));
       return;
     }
     onChange([...selected, club]);
+    onChooseMatchDayClub?.(club);
   }
 
   return (
@@ -65,18 +74,23 @@ export function ClubNetworkPicker({
             <div className="mt-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
               {group.clubs.map((club) => {
                 const on = selectedSet.has(club.toLowerCase());
+                const locked =
+                  Boolean(matchDayClub) &&
+                  matchDayClub?.toLowerCase() === club.toLowerCase();
                 return (
                   <button
                     key={club}
                     type="button"
                     onClick={() => toggle(club)}
                     className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
-                      on
-                        ? "border-green-400 bg-green-400 text-slate-950"
-                        : "border-slate-700 bg-slate-900 text-white"
+                      locked
+                        ? "border-amber-400 bg-amber-400 text-slate-950"
+                        : on
+                          ? "border-green-400 bg-green-400 text-slate-950"
+                          : "border-slate-700 bg-slate-900 text-white"
                     }`}
                   >
-                    {on ? "✓ " : ""}
+                    {locked ? "Match Day · " : on ? "✓ " : ""}
                     {club}
                   </button>
                 );

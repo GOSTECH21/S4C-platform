@@ -2,6 +2,7 @@ import {
   addClubsToNetwork,
   acceptInviteIntoNetwork,
   brandKey,
+  brandsMatch,
   emptySponsor,
   inviteMatchesSponsor,
   removeSponsor,
@@ -18,6 +19,7 @@ const ROSTER_KEY = "s4p.club.climateSponsors";
 const NETWORK_KEY = "s4p.sponsor.goalNetwork";
 const LOCK_KEY = "s4p.sponsor.matchLock";
 const INVITE_KEY = "s4p.network.invites";
+const LOGO_KEY = "s4p.sponsor.brandLogo";
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -195,8 +197,46 @@ export function lockMatchDayClub({
 
 export function clearMatchDayLock(brandName: string) {
   const store = readJson<LockStore>(LOCK_KEY, {});
-  delete store[brandKey(brandName)];
+  for (const key of Object.keys(store)) {
+    const row = store[key];
+    if (
+      key === brandKey(brandName) ||
+      brandsMatch(key, brandName) ||
+      brandsMatch(row.brandKey, brandName)
+    ) {
+      delete store[key];
+    }
+  }
   writeJson(LOCK_KEY, store);
+}
+
+export function saveBrandLogo(brandName: string, logoDataUrl: string) {
+  const store = readJson<Record<string, string>>(LOGO_KEY, {});
+  store[brandKey(brandName)] = logoDataUrl;
+  writeJson(LOGO_KEY, store);
+}
+
+export function loadBrandLogo(brandName: string): string | null {
+  const store = readJson<Record<string, string>>(LOGO_KEY, {});
+  const exact = store[brandKey(brandName)];
+  if (exact) return exact;
+  const match = Object.entries(store).find(([key]) => brandsMatch(key, brandName));
+  return match?.[1] ?? null;
+}
+
+export function readLogoFile(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) {
+    return Promise.reject(new Error("Please upload an image file for your brand logo."));
+  }
+  if (file.size > 1_500_000) {
+    return Promise.reject(new Error("Brand logo must be under 1.5 MB."));
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Could not read that logo."));
+    reader.readAsDataURL(file);
+  });
 }
 
 export function listNetworkInvites(): NetworkInvite[] {

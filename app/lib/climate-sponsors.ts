@@ -295,3 +295,17 @@ export function selectedBrandsReadyToReceive(
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
   return `${hours} hours before kick-off, lock in one club from your Goal Sponsorship Network. Posted Climate Projects from other clubs will not reach this account while that lock is active.`;
 }
+
+export function unlockedMatchDay(matchLabel = MATCH_DAY_LOCK_LABELS[0]): {
+  clubName: string;
+  matchLabel: string;
+} {
+  return { clubName: "", matchLabel };
+}
+
+export function replaceLockedClub(
+  matchLabel: string,
+  clubName: string
+): { clubName: string; matchLabel: string } {
+  return { clubName: clubName.trim(), matchLabel };
+}

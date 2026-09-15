@@ -17,6 +17,8 @@ import {
   toggleSelectedSponsor,
   topClimateSponsors,
   upsertSponsor,
+  unlockedMatchDay,
+  replaceLockedClub,
   type ClubSponsorRoster,
   type GoalSponsorshipNetwork,
 } from "../app/lib/climate-sponsors";
@@ -278,6 +280,22 @@ assert(
     }
   ).length === 0,
   "A locked brand that was not selected does not receive the posted five"
+);
+
+const afterUnlock = unlockedMatchDay("Premier League Match");
+assert(afterUnlock.clubName === "", "Unlock clears the club from the lock box");
+assert(
+  afterUnlock.matchLabel === "Premier League Match",
+  "Unlock keeps the Match dropdown ready on the right"
+);
+assert(
+  replaceLockedClub(afterUnlock.matchLabel, "Rangers").clubName === "Rangers",
+  "Selecting Rangers replaces the cleared club in the lock box"
+);
+assert(
+  replaceLockedClub("Champions League Match", "Rangers").matchLabel ===
+    "Champions League Match",
+  "The right-hand Match dropdown can switch to Champions League"
 );
 
 assert(

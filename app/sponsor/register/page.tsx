@@ -3,8 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { registerSponsor } from "@/app/services/sponsor-auth.service";
-import { ensureGoalNetwork } from "@/app/services/climate-sponsors.service";
+import {
+  ensureGoalNetwork,
+  saveBrandLogo,
+} from "@/app/services/climate-sponsors.service";
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
+import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
@@ -17,6 +21,8 @@ export default function SponsorRegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clubNames, setClubNames] = useState<string[]>([]);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +43,9 @@ export default function SponsorRegisterPage() {
         jobTitle,
         email,
         password,
+        logoDataUrl: logoUrl,
       });
+      if (logoUrl) saveBrandLogo(companyName, logoUrl);
       ensureGoalNetwork({
         brandName: companyName,
         email,
@@ -121,6 +129,15 @@ export default function SponsorRegisterPage() {
             required
           />
         </label>
+        <BrandLogoField
+          brandName={companyName}
+          logoUrl={logoUrl}
+          error={logoError}
+          onChange={(next) => {
+            setLogoError(null);
+            setLogoUrl(next);
+          }}
+        />
         <div>
           <p className="text-sm text-slate-400">
             Clubs whose Goals you would like to sponsor
