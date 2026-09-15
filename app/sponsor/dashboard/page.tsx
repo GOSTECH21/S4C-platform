@@ -87,6 +87,7 @@ export default function SponsorDashboardPage() {
           currentLock?.clubName ?? existing?.clubNames[0] ?? "Arsenal"
         );
         setInvites(listInvitesForSponsor(sponsorName, sponsorEmail));
+        setLoading(false);
         const folder = await loadSponsorFolder({
           sponsorId,
           brandName: sponsorName,
