@@ -36,7 +36,11 @@ import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
-import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
+import {
+  OPENING_SPONSORSHIP,
+  formatGbpPerVote,
+  formatMoney,
+} from "@/app/lib/sponsorship-auction";
 import {
   signedCopyDownloadName,
   signedCopyPayload,
@@ -58,6 +62,11 @@ export default function ClubDashboardPage() {
   const [funded, setFunded] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<ClimateProject[]>([]);
   const [minAmount, setMinAmount] = useState<number | null>(null);
+  const [projectedVotes, setProjectedVotes] = useState<number | null>(null);
+  const [gbpPerVote, setGbpPerVote] = useState<number | null>(null);
+  const [expectedSponsorship, setExpectedSponsorship] = useState<number | null>(
+    null
+  );
   const [records, setRecords] = useState<ClubFileRecord[]>([]);
   const [unlinked, setUnlinked] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -90,7 +99,11 @@ export default function ClubDashboardPage() {
       setSelected(board.selected);
       setMinAmount(board.minAmount);
       setRecords(board.records);
-      setPostedAt(readStoredMatchDay(session.club.id)?.postedAt ?? null);
+      const stored = readStoredMatchDay(session.club.id);
+      setPostedAt(stored?.postedAt ?? null);
+      setProjectedVotes(stored?.projectedVotes ?? null);
+      setGbpPerVote(stored?.gbpPerVote ?? null);
+      setExpectedSponsorship(stored?.expectedSponsorship ?? null);
       setProposals(
         await listClubSponsorProposals(session.club.id, session.club.name)
       );
@@ -370,9 +383,14 @@ export default function ClubDashboardPage() {
             <h3 className="text-2xl font-black">
               This Match Day — Selected Climate Projects
             </h3>
-            {minAmount != null && (
+            {(expectedSponsorship != null || minAmount != null) && (
               <p className="mt-2 text-sm text-green-300">
-                Minimum sponsorship: {formatMoney(minAmount)}/Goal
+                Base {formatMoney(OPENING_SPONSORSHIP)}/Goal (Min)
+                {expectedSponsorship != null && projectedVotes
+                  ? ` · proposed ${formatMoney(expectedSponsorship)}/Goal at ${projectedVotes.toLocaleString("en-GB")} votes (${formatGbpPerVote(gbpPerVote ?? 0.01)}/vote)`
+                  : minAmount != null
+                    ? ` · ${formatMoney(minAmount)}/Goal`
+                    : ""}
               </p>
             )}
             <ProjectGrid

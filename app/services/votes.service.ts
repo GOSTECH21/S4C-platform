@@ -9,7 +9,7 @@ import {
 import {
   OPENING_SPONSORSHIP,
   DEFAULT_MAX_SPONSORSHIP,
-  VOTE_TARGET_FOR_MAX,
+  DEFAULT_PROJECTED_VOTES,
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
@@ -31,6 +31,7 @@ export type ClimateProject = {
   image_url: string | null;
   status: string | null;
   featured?: boolean | null;
+  location?: string | null;
 };
 
 export type Supporter = {
@@ -445,6 +446,7 @@ async function campaignFromClubPortfolio(
     featuredProject?.id,
     ...clubProjects.map((project) => project.id),
   ]);
+  const auction = auctionSettingsForClub(postedClubId ?? team.id, campaignId);
 
   return {
     clubId: team.id,
@@ -456,15 +458,15 @@ async function campaignFromClubPortfolio(
     requiredVotes: REQUIRED_VOTES,
     fixtureId,
     featuredProject: featuredProject
-      ? withAuction(featuredProject, voteCounts.get(featuredProject.id) ?? 0)
+      ? withAuction(featuredProject, voteCounts.get(featuredProject.id) ?? 0, auction)
       : null,
     projects: clubProjects.map((project) =>
-      withAuction(project, voteCounts.get(project.id) ?? 0)
+      withAuction(project, voteCounts.get(project.id) ?? 0, auction)
     ),
     campaignId,
-    openingAmount: OPENING_SPONSORSHIP,
-    maxAmount: DEFAULT_MAX_SPONSORSHIP,
-    voteTarget: VOTE_TARGET_FOR_MAX,
+    openingAmount: auction.openingAmount,
+    maxAmount: auction.maxAmount,
+    voteTarget: auction.voteTarget,
   };
 }
 
@@ -516,10 +518,6 @@ async function buildCampaignFromMatchRow(
   const fanTeam =
     teams.find((team) => team.id === openCampaign.club_id) ??
     teams.find((team) => titleIncludesTeam(matchTitle.toLowerCase(), team));
-  const maxAmount =
-    Number(openCampaign.sponsorship_per_goal) > OPENING_SPONSORSHIP
-      ? Number(openCampaign.sponsorship_per_goal)
-      : DEFAULT_MAX_SPONSORSHIP;
   const sponsor = await resolveCampaignSponsor({
     clubName: fanTeam?.name ?? club?.name ?? "Your club",
     matchTitle,
@@ -531,6 +529,11 @@ async function buildCampaignFromMatchRow(
   ]);
   const votesFor = (projectId: string) =>
     Math.max(counted.get(projectId) ?? 0, storedVotes.get(projectId) ?? 0);
+  const auction = auctionSettingsForClub(
+    openCampaign.club_id,
+    openCampaign.id,
+    Number(openCampaign.sponsorship_per_goal)
+  );
 
   return {
     clubId: openCampaign.club_id,
@@ -539,28 +542,29 @@ async function buildCampaignFromMatchRow(
     sponsorName: sponsor.name,
     sponsorLogoUrl: sponsor.logoUrl,
     scoreLabel: sponsor.scoreLabel,
-    requiredVotes: openCampaign.maximum_votes ?? REQUIRED_VOTES,
+    requiredVotes: REQUIRED_VOTES,
     fixtureId: openCampaign.match_id ?? null,
     featuredProject: featuredProject
-      ? withAuction(featuredProject, votesFor(featuredProject.id), maxAmount)
+      ? withAuction(featuredProject, votesFor(featuredProject.id), auction)
       : null,
     projects: clubProjects.map((project) =>
-      withAuction(project, votesFor(project.id), maxAmount)
+      withAuction(project, votesFor(project.id), auction)
     ),
     campaignId: openCampaign.id,
-    openingAmount: OPENING_SPONSORSHIP,
-    maxAmount,
-    voteTarget: VOTE_TARGET_FOR_MAX,
+    openingAmount: auction.openingAmount,
+    maxAmount: auction.maxAmount,
+    voteTarget: auction.voteTarget,
   };
 }
 
 function withAuction(
   project: ClimateProject,
   votesReceived: number,
-  maxAmount = DEFAULT_MAX_SPONSORSHIP
+  auction: { openingAmount: number; maxAmount: number; voteTarget: number }
 ): CampaignProject {
-  const openingAmount = OPENING_SPONSORSHIP;
-  const voteTarget = VOTE_TARGET_FOR_MAX;
+  const openingAmount = auction.openingAmount;
+  const maxAmount = auction.maxAmount;
+  const voteTarget = auction.voteTarget;
   return {
     ...project,
     votesReceived,
@@ -574,6 +578,57 @@ function withAuction(
       voteTarget,
     }),
   };
+}
+
+function auctionSettingsForClub(
+  clubId: string | null | undefined,
+  campaignId: string | null | undefined,
+  sponsorshipPerGoal?: number
+): { openingAmount: number; maxAmount: number; voteTarget: number } {
+  const stored = readAuctionStore(campaignId, clubId);
+  const voteTarget =
+    Number(stored?.projectedVotes) > 0
+      ? Number(stored?.projectedVotes)
+      : DEFAULT_PROJECTED_VOTES;
+  const maxFromStore = Number(stored?.expectedSponsorship);
+  const maxFromCampaign =
+    Number(sponsorshipPerGoal) > OPENING_SPONSORSHIP
+      ? Number(sponsorshipPerGoal)
+      : 0;
+  const maxAmount =
+    maxFromStore > 0
+      ? maxFromStore
+      : maxFromCampaign || DEFAULT_MAX_SPONSORSHIP;
+  return {
+    openingAmount: OPENING_SPONSORSHIP,
+    maxAmount,
+    voteTarget,
+  };
+}
+
+function readAuctionStore(
+  campaignId: string | null | undefined,
+  clubId: string | null | undefined
+): {
+  projectedVotes?: number;
+  expectedSponsorship?: number;
+} | null {
+  if (typeof window === "undefined") return null;
+  try {
+    if (campaignId) {
+      const raw = window.localStorage.getItem(
+        `s4p.campaign.auction.${campaignId}`
+      );
+      if (raw) return JSON.parse(raw);
+    }
+    if (clubId) {
+      const raw = window.localStorage.getItem(`s4p.sd.matchDay.${clubId}`);
+      if (raw) return JSON.parse(raw);
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 async function countProjectVotes(

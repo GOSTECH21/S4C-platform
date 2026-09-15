@@ -3,25 +3,34 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_LEAD_HOURS,
+  listsWithUploadsFirst,
 } from "../lib/partner-projects";
-import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
+import {
+  DEFAULT_GBP_PER_VOTE,
+  DEFAULT_PROJECTED_VOTES,
+  OPENING_SPONSORSHIP,
+  expectedSponsorshipFromVotes,
+} from "../lib/sponsorship-auction";
 import { findClubOnRoster } from "../lib/current-season";
 import type { ClimateCountryContext } from "../lib/featured-climate-country";
-import { selectableCatalogForClub } from "../lib/featured-climate-country";
+import {
+  localCatalogCountryForClub,
+  selectableCatalogForClub,
+} from "../lib/featured-climate-country";
 import {
   MATCH_DAY_PORTFOLIO_POSTED,
   MATCH_DAY_PORTFOLIO_SELECTED,
   fanTeamMatchesPostedClub,
   matchDayCampaignTitle,
 } from "../lib/match-day-post";
-import { publishSccanCatalog } from "./partner.service";
+import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
 import {
   isFeaturedClimateProject,
   type ClimateProject,
 } from "./votes.service";
 
 const PROJECT_FIELDS =
-  "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured";
+  "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured, location";
 
 export type ClubAccount = {
   id: string;
@@ -45,6 +54,9 @@ export type ClubProfile = {
 export type MatchDaySelection = {
   projectIds: string[];
   minAmount: number;
+  projectedVotes: number;
+  gbpPerVote: number;
+  expectedSponsorship: number;
   savedAt: string;
   campaignId: string | null;
   postedAt?: string | null;
@@ -72,17 +84,31 @@ export type ClubFileRecord = {
 
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
 const FILE_RECORD_STORAGE_PREFIX = "s4p.sd.fileRecords.";
+const CAMPAIGN_AUCTION_PREFIX = "s4p.campaign.auction.";
 
 export async function loadPartnerClimateProjects(
   context: ClimateCountryContext = {}
 ): Promise<ClimateProject[]> {
+  const lists = await loadPartnerClimateProjectLists(context);
+  return [...lists.local, ...lists.international];
+}
+
+export async function loadPartnerClimateProjectLists(
+  context: ClimateCountryContext = {}
+): Promise<{ local: ClimateProject[]; international: ClimateProject[] }> {
   const published = await publishSccanCatalog();
+  const uploaded = await loadUploadedPartnerProjects();
   const byName = new Map(
     published.map((project) => [project.name.toLowerCase(), project])
   );
-  return selectableCatalogForClub(context)
+  const generic = selectableCatalogForClub(context)
     .map((item) => byName.get(item.name.toLowerCase()))
     .filter((project): project is ClimateProject => Boolean(project));
+  return listsWithUploadsFirst(
+    generic,
+    uploaded,
+    localCatalogCountryForClub(context)
+  );
 }
 
 export async function loadFeaturedMatchDayProject(): Promise<ClimateProject | null> {
@@ -746,10 +772,65 @@ export function readStoredMatchDay(clubId: string): MatchDaySelection | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as MatchDaySelection;
     if (!Array.isArray(parsed.projectIds)) return null;
-    return parsed;
+    return withAuctionDefaults(parsed);
   } catch {
     return null;
   }
+}
+
+export function readCampaignAuction(campaignId: string | null | undefined) {
+  if (!campaignId || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CAMPAIGN_AUCTION_PREFIX + campaignId);
+    if (!raw) return null;
+    return JSON.parse(raw) as Pick<
+      MatchDaySelection,
+      "minAmount" | "projectedVotes" | "gbpPerVote" | "expectedSponsorship"
+    >;
+  } catch {
+    return null;
+  }
+}
+
+function writeCampaignAuction(
+  campaignId: string | null,
+  selection: MatchDaySelection
+) {
+  if (!campaignId || typeof window === "undefined") return;
+  window.localStorage.setItem(
+    CAMPAIGN_AUCTION_PREFIX + campaignId,
+    JSON.stringify({
+      minAmount: selection.minAmount,
+      projectedVotes: selection.projectedVotes,
+      gbpPerVote: selection.gbpPerVote,
+      expectedSponsorship: selection.expectedSponsorship,
+    })
+  );
+}
+
+function withAuctionDefaults(
+  parsed: Partial<MatchDaySelection> & { projectIds: string[] }
+): MatchDaySelection {
+  const projectedVotes =
+    Number(parsed.projectedVotes) > 0
+      ? Number(parsed.projectedVotes)
+      : DEFAULT_PROJECTED_VOTES;
+  const gbpPerVote =
+    Number(parsed.gbpPerVote) > 0 ? Number(parsed.gbpPerVote) : DEFAULT_GBP_PER_VOTE;
+  const expectedSponsorship =
+    Number(parsed.expectedSponsorship) > 0
+      ? Number(parsed.expectedSponsorship)
+      : expectedSponsorshipFromVotes({ projectedVotes, gbpPerVote });
+  return {
+    projectIds: parsed.projectIds,
+    minAmount: Number(parsed.minAmount) || OPENING_SPONSORSHIP,
+    projectedVotes,
+    gbpPerVote,
+    expectedSponsorship,
+    savedAt: parsed.savedAt ?? new Date().toISOString(),
+    campaignId: parsed.campaignId ?? null,
+    postedAt: parsed.postedAt,
+  };
 }
 
 function writeStoredMatchDay(clubId: string, selection: MatchDaySelection) {
@@ -766,12 +847,18 @@ export async function saveMatchDaySelection({
   country,
   projectIds,
   minAmount,
+  projectedVotes,
+  gbpPerVote,
+  expectedSponsorship,
 }: {
   clubId: string;
   clubName: string;
   country?: string | null;
   projectIds: string[];
   minAmount: number;
+  projectedVotes?: number;
+  gbpPerVote?: number;
+  expectedSponsorship?: number;
 }): Promise<MatchDaySelection> {
   const featured = await loadFeaturedMatchDayProject();
   if (!featured) {
@@ -804,24 +891,28 @@ export async function saveMatchDaySelection({
   );
 
   const stored = readStoredMatchDay(clubId);
-  const selection: MatchDaySelection = {
+  const auction = withAuctionDefaults({
     projectIds: portfolioIds,
     minAmount: amount,
+    projectedVotes,
+    gbpPerVote,
+    expectedSponsorship,
     savedAt: new Date().toISOString(),
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
     postedAt: campaign ? stored?.postedAt ?? new Date().toISOString() : stored?.postedAt ?? null,
-  };
-  writeStoredMatchDay(clubId, selection);
+  });
+  writeStoredMatchDay(clubId, auction);
+  writeCampaignAuction(auction.campaignId, auction);
   const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
     clubId,
     clubName,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    minAmount: amount,
+    minAmount: auction.expectedSponsorship,
     selected: selectedProjects,
     voted: [],
   });
-  return selection;
+  return auction;
 }
 
 async function writeClubPortfolio(
@@ -872,15 +963,24 @@ export async function postMatchDayProjectsToFans({
   const portfolioIds = selected.slice(0, MATCH_DAY_PROJECT_COUNT).map(
     (project) => project.id
   );
-  const amount = Math.max(
-    OPENING_SPONSORSHIP,
-    Math.round(board.minAmount ?? stored?.minAmount ?? OPENING_SPONSORSHIP)
-  );
+  const auction = withAuctionDefaults({
+    projectIds: portfolioIds,
+    minAmount: OPENING_SPONSORSHIP,
+    projectedVotes: stored?.projectedVotes,
+    gbpPerVote: stored?.gbpPerVote,
+    expectedSponsorship: stored?.expectedSponsorship,
+    savedAt: new Date().toISOString(),
+    campaignId: stored?.campaignId ?? null,
+  });
   await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_POSTED);
 
   let campaign: OpenClubCampaign | null = null;
   try {
-    campaign = await ensureOpenClubCampaign(clubId, clubName, amount);
+    campaign = await ensureOpenClubCampaign(
+      clubId,
+      clubName,
+      auction.expectedSponsorship
+    );
     if (campaignBelongsToClub({ ...campaign, club_id: campaign.club_id ?? clubId }, clubId, clubName)) {
       await writeCampaignProjects(campaign.id, portfolioIds);
     }
@@ -889,19 +989,18 @@ export async function postMatchDayProjectsToFans({
   }
 
   const selection: MatchDaySelection = {
-    projectIds: portfolioIds,
-    minAmount: amount,
-    savedAt: new Date().toISOString(),
+    ...auction,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
     postedAt: new Date().toISOString(),
   };
   writeStoredMatchDay(clubId, selection);
+  writeCampaignAuction(selection.campaignId, selection);
   const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
     clubId,
     clubName,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    minAmount: amount,
+    minAmount: selection.expectedSponsorship,
     selected: selectedProjects,
     voted: board.voted,
   });
@@ -911,7 +1010,7 @@ export async function postMatchDayProjectsToFans({
       clubId,
       clubName,
       projects: selectedProjects,
-      sponsorshipAmountGbp: amount,
+      sponsorshipAmountGbp: selection.expectedSponsorship,
     });
   } catch {
     // Fans still receive the posted five even if the sponsor offer cannot be stored.

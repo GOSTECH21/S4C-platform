@@ -45,6 +45,7 @@ export default function PartnerDashboardPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -64,6 +65,14 @@ export default function PartnerDashboardPage() {
     setProfile(session.profile);
     await publishSccanCatalog();
     setProjects(await loadPartnerLibrary());
+  }
+
+  function handleSelectProject(project: ClimateProject) {
+    setSelectedId(project.id);
+    setError(null);
+    setNotice(
+      `“${project.name}” is ready for club matching. Sustainability Directors and Sponsorship Managers can select it from S4P Climate Projects — uploaded partner projects sit at the top of each list.`
+    );
   }
 
   useEffect(() => {
@@ -96,7 +105,9 @@ export default function PartnerDashboardPage() {
         estimated_co2: "",
         funding_goal: "",
       });
-      setNotice("Project uploaded. Sustainability Directors can now include it in later catalogs.");
+      setNotice(
+        "Project uploaded. It now sits at the top of the matching country or international list so Sustainability Directors and Sponsorship Managers can select it."
+      );
       setProjects(await loadPartnerLibrary());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
@@ -205,41 +216,88 @@ export default function PartnerDashboardPage() {
           <h2 className="text-2xl font-black">Featured project</h2>
           <div className="mt-4 grid gap-6">
             {featured.map((project) => (
-              <ProjectRow key={project.id} project={project} featured />
+              <ProjectRow
+                key={project.id}
+                project={project}
+                featured
+                selected={selectedId === project.id}
+                onSelect={handleSelectProject}
+              />
             ))}
           </div>
         </section>
 
-        {localByCountry.map(({ country, catalog, projects: localProjects }) => (
+        {localByCountry.map(({ country, catalog, projects: localProjects }) => {
+          const uploadedHere = uploaded.filter(
+            (project) =>
+              (project.country ?? "").toLowerCase() === country.toLowerCase()
+          );
+          const listed = [...uploadedHere, ...localProjects];
+          return (
           <section key={country} className="mt-12">
             <h2 className="text-2xl font-black">
-              {country} Climate Projects ({localProjects.length} of{" "}
-              {catalog.length})
+              {country} Climate Projects ({listed.length} of{" "}
+              {catalog.length}
+              {uploadedHere.length ? ` + ${uploadedHere.length} uploaded` : ""})
             </h2>
             <p className="mt-2 text-slate-400">
-              These 10 {country} projects are page 1 of the Match Day selector
-              for clubs in {country}.
+              Uploaded projects sit at the top. Generic {country} catalog
+              projects follow. Sustainability Directors and Sponsorship
+              Managers can select any of these.
             </p>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {localProjects.map((project) => (
-                <ProjectRow key={project.id} project={project} />
+              {listed.map((project) => (
+                <ProjectRow
+                  key={project.id}
+                  project={project}
+                  uploaded={uploadedHere.some((row) => row.id === project.id)}
+                  selected={selectedId === project.id}
+                  onSelect={handleSelectProject}
+                />
               ))}
             </div>
           </section>
-        ))}
+          );
+        })}
 
         <section className="mt-12">
           <h2 className="text-2xl font-black">
-            International Climate Projects ({international.length} of{" "}
-            {INTERNATIONAL_CLIMATE_PROJECTS.length})
+            International Climate Projects ({
+              international.length +
+              uploaded.filter(
+                (project) =>
+                  !localByCountry.some(
+                    (group) =>
+                      (project.country ?? "").toLowerCase() ===
+                      group.country.toLowerCase()
+                  )
+              ).length
+            }{" "}
+            of {INTERNATIONAL_CLIMATE_PROJECTS.length})
           </h2>
           <p className="mt-2 text-slate-400">
-            These 10 international projects are page 2, including Ugandan
-            Cookstove.
+            Uploaded international projects sit at the top of this list,
+            including anything not tied to a local catalog country.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {international.map((project) => (
-              <ProjectRow key={project.id} project={project} />
+            {[
+              ...uploaded.filter(
+                (project) =>
+                  !localByCountry.some(
+                    (group) =>
+                      (project.country ?? "").toLowerCase() ===
+                      group.country.toLowerCase()
+                  )
+              ),
+              ...international,
+            ].map((project) => (
+              <ProjectRow
+                key={project.id}
+                project={project}
+                uploaded={uploaded.some((row) => row.id === project.id)}
+                selected={selectedId === project.id}
+                onSelect={handleSelectProject}
+              />
             ))}
           </div>
         </section>
@@ -317,14 +375,6 @@ export default function PartnerDashboardPage() {
               {saving ? "Uploading..." : "Upload climate project"}
             </button>
           </form>
-
-          {uploaded.length > 0 && (
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {uploaded.map((project) => (
-                <ProjectRow key={project.id} project={project} />
-              ))}
-            </div>
-          )}
         </section>
       </div>
     </main>
@@ -334,18 +384,35 @@ export default function PartnerDashboardPage() {
 function ProjectRow({
   project,
   featured = false,
+  uploaded = false,
+  selected = false,
+  onSelect,
 }: {
   project: ClimateProject;
   featured?: boolean;
+  uploaded?: boolean;
+  selected?: boolean;
+  onSelect: (project: ClimateProject) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+    <div
+      className={`rounded-2xl border p-5 ${
+        selected
+          ? "border-green-500 bg-slate-800"
+          : "border-slate-800 bg-slate-900"
+      }`}
+    >
       {featured && (
         <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-bold">
           Featured
         </span>
       )}
-      <h3 className={`font-bold ${featured ? "mt-3 text-2xl" : "text-xl"}`}>
+      {uploaded && (
+        <span className="ml-2 rounded-full bg-blue-600 px-3 py-1 text-xs font-bold">
+          Uploaded
+        </span>
+      )}
+      <h3 className={`font-bold ${featured || uploaded ? "mt-3 text-2xl" : "text-xl"}`}>
         {project.name}
       </h3>
       <p className="mt-2 text-sm text-slate-300">{project.description}</p>
@@ -355,6 +422,21 @@ function ProjectRow({
           ? ` · ${project.estimated_co2.toLocaleString("en-GB")} t CO₂`
           : ""}
       </p>
+      <button
+        type="button"
+        onClick={() => onSelect(project)}
+        className={`mt-4 w-full rounded-xl py-3 font-bold ${
+          selected
+            ? "bg-green-500 text-slate-950"
+            : "bg-slate-700 text-white hover:bg-slate-600"
+        }`}
+      >
+        {selected
+          ? "✓ Selected"
+          : uploaded
+            ? "Select project — listed first for clubs"
+            : "Select project"}
+      </button>
     </div>
   );
 }

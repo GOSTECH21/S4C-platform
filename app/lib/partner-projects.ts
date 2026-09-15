@@ -15,3 +15,45 @@ export function partnerProjectPage<T>(projects: T[], page: number): T[] {
 export function partnerPageCount(total: number): number {
   return Math.max(1, Math.ceil(total / PARTNER_PAGE_SIZE));
 }
+
+export function isLocalUploadedCountry(
+  country: string | null | undefined,
+  localCountry: string
+): boolean {
+  const value = (country ?? "").trim().toLowerCase();
+  const local = localCountry.trim().toLowerCase();
+  if (!value || !local) return false;
+  return value === local || value.includes(local) || local.includes(value);
+}
+
+/** Partner-form uploads store `Organisation · Climate Partner` in location. */
+export function isPartnerUpload(project: {
+  location?: string | null;
+}): boolean {
+  return /climate partner/i.test(project.location ?? "");
+}
+
+export function listsWithUploadsFirst<
+  T extends { id: string; name: string; country?: string | null },
+>(
+  generic: T[],
+  uploaded: T[],
+  localCountry: string
+): { local: T[]; international: T[] } {
+  const genericNames = new Set(generic.map((project) => project.name.toLowerCase()));
+  const extra = uploaded.filter(
+    (project) => !genericNames.has(project.name.toLowerCase())
+  );
+  const genericLocal = generic.slice(0, PARTNER_PAGE_SIZE);
+  const genericInternational = generic.slice(PARTNER_PAGE_SIZE);
+  const uploadedLocal = extra.filter((project) =>
+    isLocalUploadedCountry(project.country, localCountry)
+  );
+  const uploadedInternational = extra.filter(
+    (project) => !uploadedLocal.some((row) => row.id === project.id)
+  );
+  return {
+    local: [...uploadedLocal, ...genericLocal],
+    international: [...uploadedInternational, ...genericInternational],
+  };
+}

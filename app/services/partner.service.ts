@@ -152,25 +152,45 @@ export async function loadPublishedPartnerProjects(): Promise<ClimateProject[]> 
     );
 }
 
-export async function loadPartnerLibrary(): Promise<ClimateProject[]> {
-  const published = await loadPublishedPartnerProjects();
-  const session = await loadPartnerSession();
-  if (!session) return published;
-
-  const { data } = await supabase
+export async function loadUploadedPartnerProjects(): Promise<ClimateProject[]> {
+  const catalogNames = new Set(
+    PARTNER_MATCH_DAY_CATALOG.map((project) => project.name.toLowerCase())
+  );
+  const { data, error } = await supabase
     .from("climate_projects")
     .select(PROJECT_FIELDS)
-    .is("club_id", null)
-    .ilike("location", `%${session.profile.organisationName}%`);
+    .is("club_id", null);
 
-  const extra = ((data ?? []) as ClimateProject[]).filter(
+  if (error) throw error;
+
+  return ((data ?? []) as ClimateProject[]).filter(
     (project) =>
-      !published.some((item) => item.id === project.id) &&
-      !PARTNER_MATCH_DAY_CATALOG.some(
-        (item) => item.name.toLowerCase() === project.name.toLowerCase()
-      )
+      !catalogNames.has(project.name.toLowerCase()) &&
+      !isFeaturedName(project.name) &&
+      (project.status ?? "active") !== "archived"
   );
-  return [...published, ...extra];
+}
+
+function isFeaturedName(name: string | null | undefined) {
+  return (name ?? "").trim().toLowerCase() === FEATURED_PROJECT_NAME.toLowerCase();
+}
+
+export async function loadPartnerLibrary(): Promise<ClimateProject[]> {
+  const [published, uploaded] = await Promise.all([
+    loadPublishedPartnerProjects(),
+    loadUploadedPartnerProjects(),
+  ]);
+  const session = await loadPartnerSession();
+  if (!session) return [...uploaded, ...published];
+  const mine = uploaded.filter((project) =>
+    String(project.location ?? "")
+      .toLowerCase()
+      .includes(session.profile.organisationName.toLowerCase())
+  );
+  const others = uploaded.filter(
+    (project) => !mine.some((row) => row.id === project.id)
+  );
+  return [...mine, ...others, ...published];
 }
 
 export async function uploadPartnerProject(

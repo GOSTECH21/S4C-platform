@@ -1,8 +1,35 @@
 /** Highest-bidder sponsorship that rises with votes during the 72-hour window. */
 
 export const OPENING_SPONSORSHIP = 1000;
-export const DEFAULT_MAX_SPONSORSHIP = 10000;
-export const VOTE_TARGET_FOR_MAX = 500_000;
+export const DEFAULT_GBP_PER_VOTE = 0.01;
+export const DEFAULT_PROJECTED_VOTES = 500_000;
+/** Default peak: 500,000 votes × £0.01/vote. */
+export const DEFAULT_MAX_SPONSORSHIP = 5_000;
+export const VOTE_TARGET_FOR_MAX = DEFAULT_PROJECTED_VOTES;
+
+export function expectedSponsorshipFromVotes({
+  projectedVotes,
+  gbpPerVote = DEFAULT_GBP_PER_VOTE,
+}: {
+  projectedVotes: number;
+  gbpPerVote?: number;
+}): number {
+  const votes = Math.max(0, Number(projectedVotes) || 0);
+  const rate = Math.max(0, Number(gbpPerVote) || 0);
+  return Math.round(votes * rate);
+}
+
+export function gbpPerVoteFromExpected({
+  projectedVotes,
+  expectedSponsorship,
+}: {
+  projectedVotes: number;
+  expectedSponsorship: number;
+}): number {
+  const votes = Math.max(0, Number(projectedVotes) || 0);
+  if (votes <= 0) return DEFAULT_GBP_PER_VOTE;
+  return Math.round((Number(expectedSponsorship) / votes) * 10_000) / 10_000;
+}
 
 /** Familiar match-day names. Catalog pages can still use the legal club title. */
 const SHORT_CLUB_NAMES: Array<[RegExp, string]> = [
@@ -75,6 +102,13 @@ export function voteProgress({
 
 export function formatMoney(amount: number): string {
   return `£${amount.toLocaleString("en-GB")}`;
+}
+
+export function formatGbpPerVote(rate: number): string {
+  return `£${rate.toLocaleString("en-GB", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function formatSponsorshipRate(

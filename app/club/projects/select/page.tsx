@@ -1,29 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
   loadClubSession,
-  loadPartnerClimateProjects,
+  loadPartnerClimateProjectLists,
   loadFeaturedMatchDayProject,
   readStoredMatchDay,
   saveMatchDaySelection,
 } from "@/app/services/club-match-day.service";
 import {
   MATCH_DAY_CHOICE_COUNT,
-  MATCH_DAY_LEAD_HOURS,
   MATCH_DAY_PROJECT_COUNT,
-  partnerPageCount,
-  partnerProjectPage,
+  isPartnerUpload,
 } from "@/app/lib/partner-projects";
 import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
 import {
   climateProjectCountryLabel,
   localCatalogCountryForClub,
 } from "@/app/lib/featured-climate-country";
-import { OPENING_SPONSORSHIP, formatMoney } from "@/app/lib/sponsorship-auction";
+import {
+  DEFAULT_GBP_PER_VOTE,
+  DEFAULT_PROJECTED_VOTES,
+  OPENING_SPONSORSHIP,
+  expectedSponsorshipFromVotes,
+  formatGbpPerVote,
+  formatMoney,
+  gbpPerVoteFromExpected,
+} from "@/app/lib/sponsorship-auction";
 import {
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
@@ -34,11 +40,20 @@ export default function SelectMatchDayProjectsPage() {
   const [clubName, setClubName] = useState("your club");
   const [clubCountry, setClubCountry] = useState<string | null>(null);
   const [clubId, setClubId] = useState<string | null>(null);
-  const [projects, setProjects] = useState<ClimateProject[]>([]);
+  const [localProjects, setLocalProjects] = useState<ClimateProject[]>([]);
+  const [internationalProjects, setInternationalProjects] = useState<
+    ClimateProject[]
+  >([]);
   const [featured, setFeatured] = useState<ClimateProject | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
-  const [minAmount, setMinAmount] = useState(String(OPENING_SPONSORSHIP));
+  const [projectedVotes, setProjectedVotes] = useState(
+    String(DEFAULT_PROJECTED_VOTES)
+  );
+  const [gbpPerVote, setGbpPerVote] = useState(String(DEFAULT_GBP_PER_VOTE));
+  const [expectedSponsorship, setExpectedSponsorship] = useState(
+    String(expectedSponsorshipFromVotes({ projectedVotes: DEFAULT_PROJECTED_VOTES }))
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,11 +79,13 @@ export default function SelectMatchDayProjectsPage() {
         setClubId(session.club.id);
         setClubName(session.club.name);
         setClubCountry(session.club.country);
-        const catalog = await loadPartnerClimateProjects({
+        const lists = await loadPartnerClimateProjectLists({
           clubName: session.club.name,
           country: session.club.country,
         });
-        setProjects(catalog);
+        setLocalProjects(lists.local);
+        setInternationalProjects(lists.international);
+        const catalog = [...lists.local, ...lists.international];
         const featuredProject = await loadFeaturedMatchDayProject();
         setFeatured(featuredProject);
         const validIds = new Set(catalog.map((project) => project.id));
@@ -78,7 +95,9 @@ export default function SelectMatchDayProjectsPage() {
             (id) => id !== featuredProject?.id && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
-          setMinAmount(String(stored.minAmount));
+          setProjectedVotes(String(stored.projectedVotes));
+          setGbpPerVote(String(stored.gbpPerVote));
+          setExpectedSponsorship(String(stored.expectedSponsorship));
         }
       } catch (err) {
         setError(
@@ -91,15 +110,42 @@ export default function SelectMatchDayProjectsPage() {
     load();
   }, [router]);
 
-  const pages = partnerPageCount(projects.length);
   const localCountry = localCatalogCountryForClub({
     clubName,
     country: clubCountry,
   });
-  const visible = useMemo(
-    () => partnerProjectPage(projects, page),
-    [projects, page]
-  );
+  const visible = page === 0 ? localProjects : internationalProjects;
+
+  function updateProjectedVotes(value: string) {
+    setProjectedVotes(value);
+    const votes = Number(value);
+    const rate = Number(gbpPerVote) || DEFAULT_GBP_PER_VOTE;
+    if (Number.isFinite(votes) && votes >= 0) {
+      setExpectedSponsorship(
+        String(expectedSponsorshipFromVotes({ projectedVotes: votes, gbpPerVote: rate }))
+      );
+    }
+  }
+
+  function updateGbpPerVote(value: string) {
+    setGbpPerVote(value);
+    const rate = Number(value);
+    const votes = Number(projectedVotes) || DEFAULT_PROJECTED_VOTES;
+    if (Number.isFinite(rate) && rate >= 0) {
+      setExpectedSponsorship(
+        String(expectedSponsorshipFromVotes({ projectedVotes: votes, gbpPerVote: rate }))
+      );
+    }
+  }
+
+  function updateExpectedSponsorship(value: string) {
+    setExpectedSponsorship(value);
+    const expected = Number(value);
+    const votes = Number(projectedVotes) || DEFAULT_PROJECTED_VOTES;
+    if (Number.isFinite(expected) && expected >= 0 && votes > 0) {
+      setGbpPerVote(String(gbpPerVoteFromExpected({ projectedVotes: votes, expectedSponsorship: expected })));
+    }
+  }
 
   function toggle(projectId: string) {
     setError(null);
@@ -122,10 +168,20 @@ export default function SelectMatchDayProjectsPage() {
       );
       return;
     }
-    const amount = Number(minAmount);
-    if (!Number.isFinite(amount) || amount < OPENING_SPONSORSHIP) {
+    const votes = Number(projectedVotes);
+    const rate = Number(gbpPerVote);
+    const expected = Number(expectedSponsorship);
+    if (!Number.isFinite(votes) || votes <= 0) {
+      setError("Enter a projected number of votes.");
+      return;
+    }
+    if (!Number.isFinite(rate) || rate <= 0) {
+      setError("Enter a sponsorship amount per vote.");
+      return;
+    }
+    if (!Number.isFinite(expected) || expected < OPENING_SPONSORSHIP) {
       setError(
-        `Minimum sponsorship must be at least ${formatMoney(OPENING_SPONSORSHIP)} per Goal.`
+        `Expected Sponsorship/Goal must be at least ${formatMoney(OPENING_SPONSORSHIP)}.`
       );
       return;
     }
@@ -137,7 +193,10 @@ export default function SelectMatchDayProjectsPage() {
         clubName,
         country: clubCountry,
         projectIds: [...selected],
-        minAmount: amount,
+        minAmount: OPENING_SPONSORSHIP,
+        projectedVotes: votes,
+        gbpPerVote: rate,
+        expectedSponsorship: expected,
       });
       router.push(CLUB_DASHBOARD_PATH);
     } catch (err) {
@@ -252,6 +311,11 @@ export default function SelectMatchDayProjectsPage() {
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
                   {region}
                 </p>
+                {isPartnerUpload(project) && (
+                    <p className="mt-1 text-xs font-semibold text-green-400">
+                      Uploaded climate project
+                    </p>
+                  )}
                 <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
                 <p className="mt-3 flex-1 text-slate-300">{project.description}</p>
                 <div className="mt-4 space-y-1 text-sm text-slate-400">
@@ -291,7 +355,7 @@ export default function SelectMatchDayProjectsPage() {
           </button>
           <button
             onClick={() => setPage(1)}
-            disabled={page >= pages - 1}
+            disabled={page === 1}
             className="rounded-xl bg-slate-800 px-5 py-3 font-bold hover:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-600"
           >
             List 2 · International
@@ -300,23 +364,57 @@ export default function SelectMatchDayProjectsPage() {
 
         <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8">
           <h3 className="text-2xl font-bold">
-            Minimum sponsorship per Goal scored by {clubName} players
+            Votes married to Sponsorship/Goal
           </h3>
           <p className="mt-2 text-slate-400">
-            Brands can bid above this floor during the voting window. The amount
-            locks {MATCH_DAY_LEAD_HOURS === 72 ? "2 hours before kick-off" : ""}.
+            Base sponsorship is {formatMoney(OPENING_SPONSORSHIP)} per Goal.
+            Projected votes times £/vote set the expected Sponsorship/Goal
+            proposed to the brand. Fans see the amount rise from the base as
+            votes come in.
           </p>
-          <label className="mt-6 block text-sm text-slate-400">
-            Minimum £ / Goal
-            <input
-              type="number"
-              min={OPENING_SPONSORSHIP}
-              step={100}
-              value={minAmount}
-              onChange={(event) => setMinAmount(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-            />
-          </label>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <label className="block text-sm text-slate-400">
+              Projected Number of Votes
+              <input
+                type="number"
+                min={1}
+                step={1000}
+                value={projectedVotes}
+                onChange={(event) => updateProjectedVotes(event.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+              />
+            </label>
+            <label className="block text-sm text-slate-400">
+              £ / Vote
+              <input
+                type="number"
+                min={0.01}
+                step={0.01}
+                value={gbpPerVote}
+                onChange={(event) => updateGbpPerVote(event.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+              />
+            </label>
+            <label className="block text-sm text-slate-400">
+              Expected Sponsorship/Goal
+              <input
+                type="number"
+                min={OPENING_SPONSORSHIP}
+                step={100}
+                value={expectedSponsorship}
+                onChange={(event) =>
+                  updateExpectedSponsorship(event.target.value)
+                }
+                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+              />
+            </label>
+          </div>
+          <p className="mt-4 text-sm text-green-300">
+            Opens at {formatMoney(OPENING_SPONSORSHIP)}/Goal (Min). Peaks at{" "}
+            {formatMoney(Number(expectedSponsorship) || 0)}/Goal when votes
+            reach             {Number(projectedVotes || 0).toLocaleString("en-GB")} (
+            {formatGbpPerVote(Number(gbpPerVote) || 0)}/vote).
+          </p>
           <button
             onClick={confirm}
             disabled={saving || selected.size !== MATCH_DAY_CHOICE_COUNT}
@@ -324,7 +422,7 @@ export default function SelectMatchDayProjectsPage() {
           >
             {saving
               ? "Saving..."
-              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects (Global Schools Solar + ${MATCH_DAY_CHOICE_COUNT}) at ${formatMoney(Number(minAmount) || OPENING_SPONSORSHIP)}/Goal (Min)`}
+              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects at ${formatMoney(OPENING_SPONSORSHIP)} rising to ${formatMoney(Number(expectedSponsorship) || 0)}/Goal`}
           </button>
         </div>
       </div>

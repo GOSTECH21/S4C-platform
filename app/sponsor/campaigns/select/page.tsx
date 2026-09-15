@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
   loadFeaturedMatchDayProject,
-  loadPartnerClimateProjects,
+  loadPartnerClimateProjectLists,
 } from "@/app/services/club-match-day.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
@@ -19,7 +19,7 @@ import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
 import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
-  partnerProjectPage,
+  isPartnerUpload,
 } from "@/app/lib/partner-projects";
 import { localCatalogCountryForClub } from "@/app/lib/featured-climate-country";
 import { supabase } from "@/app/lib/supabase";
@@ -35,7 +35,10 @@ export default function SponsorCreateCampaignPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [clubName, setClubName] = useState("Arsenal");
   const [clubEmail, setClubEmail] = useState<string | null>(null);
-  const [projects, setProjects] = useState<ClimateProject[]>([]);
+  const [localProjects, setLocalProjects] = useState<ClimateProject[]>([]);
+  const [internationalProjects, setInternationalProjects] = useState<
+    ClimateProject[]
+  >([]);
   const [featured, setFeatured] = useState<ClimateProject | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [list, setList] = useState<1 | 2>(1);
@@ -49,10 +52,7 @@ export default function SponsorCreateCampaignPage() {
 
   const clubs = Object.values(CURRENT_SEASON_LEAGUES).flat();
   const localCountry = localCatalogCountryForClub({ clubName });
-  const visible = useMemo(
-    () => partnerProjectPage(projects, list === 1 ? 0 : 1),
-    [projects, list]
-  );
+  const visible = list === 1 ? localProjects : internationalProjects;
 
   useEffect(() => {
     async function load() {
@@ -74,8 +74,9 @@ export default function SponsorCreateCampaignPage() {
 
   useEffect(() => {
     async function loadCatalog() {
-      const catalog = await loadPartnerClimateProjects({ clubName });
-      setProjects(catalog);
+      const lists = await loadPartnerClimateProjectLists({ clubName });
+      setLocalProjects(lists.local);
+      setInternationalProjects(lists.international);
       setFeatured(await loadFeaturedMatchDayProject());
       const club = await resolveClubForSponsor(clubName);
       setClubEmail(club.email);
@@ -102,7 +103,8 @@ export default function SponsorCreateCampaignPage() {
     try {
       const club = await resolveClubForSponsor(clubName);
       setClubEmail(club.email);
-      const chosen = projects.filter((project) => selected.has(project.id));
+      const catalog = [...localProjects, ...internationalProjects];
+      const chosen = catalog.filter((project) => selected.has(project.id));
       const five = featured ? [featured, ...chosen] : chosen;
       const proposal = await sendSponsorProposalToClub({
         clubId: club.id ?? `name:${club.name}`,
@@ -214,6 +216,11 @@ export default function SponsorCreateCampaignPage() {
                 isOn ? "border-green-500 bg-slate-800" : "border-slate-700 bg-slate-900"
               }`}
             >
+              {isPartnerUpload(project) ? (
+                <p className="text-xs font-semibold text-green-400">
+                  Uploaded climate project
+                </p>
+              ) : null}
               <h2 className="text-xl font-bold">{project.name}</h2>
               <p className="mt-2 text-sm text-slate-400">📍 {project.country}</p>
               <p className="mt-3 text-slate-300">{project.description}</p>

@@ -2,6 +2,8 @@ import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
+  isPartnerUpload,
+  listsWithUploadsFirst,
   partnerPageCount,
   partnerProjectPage,
 } from "../app/lib/partner-projects";
@@ -220,6 +222,43 @@ assert(
       scoreLabel: "Goal",
     }).includes("18th October 2026"),
   "Sponsor offer names the club, fixture and match date"
+);
+
+const merged = listsWithUploadsFirst(
+  [
+    { id: "g1", name: "Generic Local", country: "England" },
+    { id: "g2", name: "Generic Two", country: "England" },
+    { id: "g3", name: "Generic Three", country: "England" },
+    { id: "g4", name: "Generic Four", country: "England" },
+    { id: "g5", name: "Generic Five", country: "England" },
+    { id: "g6", name: "Generic Six", country: "England" },
+    { id: "g7", name: "Generic Seven", country: "England" },
+    { id: "g8", name: "Generic Eight", country: "England" },
+    { id: "g9", name: "Generic Nine", country: "England" },
+    { id: "g10", name: "Generic Ten", country: "England" },
+    { id: "i1", name: "Ugandan Cookstove", country: "Uganda" },
+  ],
+  [
+    { id: "u1", name: "Partner Upload England", country: "England" },
+    { id: "u2", name: "Partner Upload Ghana", country: "Ghana" },
+  ],
+  "England"
+);
+assert(
+  merged.local[0].name === "Partner Upload England",
+  "Uploaded local climate projects sit above generic List 1 projects"
+);
+assert(
+  merged.international[0].name === "Partner Upload Ghana",
+  "Uploaded international climate projects sit above generic List 2 projects"
+);
+assert(
+  isPartnerUpload({ location: "Carbon Warriors · Climate Partner" }),
+  "Form uploads are tagged as Climate Partner projects"
+);
+assert(
+  !isPartnerUpload({ location: "SCCAN" }),
+  "Generic catalog projects are not treated as form uploads"
 );
 
 if (failures.length > 0) {
