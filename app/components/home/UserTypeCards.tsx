@@ -26,13 +26,13 @@ const userTypes = [
       "Sponsor sporting moments and create measurable environmental impact through verified climate action.",
     register: "/sponsor/register",
     login: "/sponsor/login",
-    registerText: "Become a Climate Sponsor",
+    registerText: "Register as Sponsor",
   },
   {
     emoji: "🌍",
     title: "A Climate Partner",
     description:
-      "Register your climate programme and receive Climate Credits from fans, clubs and sponsors.",
+      "Register your climate programme, upload projects and offer them to Sustainability Directors for match day.",
     register: "/partner/register",
     login: "/partner/login",
     registerText: "Register as a Climate Partner",

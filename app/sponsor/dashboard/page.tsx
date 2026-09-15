@@ -2,379 +2,547 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { processSportingEvent } from "@/app/services/sponsor-trigger-engine.service";
-import { getSponsorCampaigns } from "@/app/services/sponsorship-campaigns.service";
-console.log("processSportingEvent =", processSportingEvent);
+import { useRouter } from "next/navigation";
+import { logoutSponsor } from "@/app/services/sponsor-auth.service";
+import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import {
+  loadSponsorFolder,
+  listSponsorSentProposals,
+  type SignedSponsorship,
+  type SponsorDashboardStats,
+  type SponsorMatchOffer,
+  type SponsorProjectProposal,
+} from "@/app/services/sponsor-offers.service";
+import {
+  clearMatchDayLock,
+  ensureGoalNetwork,
+  listInvitesForSponsor,
+  loadGoalNetwork,
+  loadMatchDayLock,
+  lockMatchDayClub,
+  respondToNetworkInvite,
+} from "@/app/services/climate-sponsors.service";
+import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
+import {
+  MATCH_DAY_LOCK_LABELS,
+  lockCopy,
+  type GoalSponsorshipNetwork,
+  type MatchDayClubLock,
+  type NetworkInvite,
+} from "@/app/lib/climate-sponsors";
+import { leagueForClubName } from "@/app/lib/current-season";
+import {
+  CLUB_LOGIN_PATH,
+  SPONSOR_CREATE_CAMPAIGN_PATH,
+  SPONSOR_LOGIN_PATH,
+  SPONSOR_OFFERS_PATH,
+} from "@/app/lib/routes";
+import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
+import { formatMoney, formatVoteCount } from "@/app/lib/sponsorship-auction";
+
+const EMPTY_STATS: SponsorDashboardStats = {
+  projectCount: 0,
+  carbonTonnes: 0,
+  expenditureGbp: 0,
+  fanVotes: 0,
+};
+
 export default function SponsorDashboardPage() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const router = useRouter();
+  const [brand, setBrand] = useState("your brand");
+  const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
+  const [signed, setSigned] = useState<SignedSponsorship[]>([]);
+  const [sentCampaigns, setSentCampaigns] = useState<SponsorProjectProposal[]>(
+    []
+  );
+  const [stats, setStats] = useState<SponsorDashboardStats>(EMPTY_STATS);
+  const [network, setNetwork] = useState<GoalSponsorshipNetwork | null>(null);
+  const [lock, setLock] = useState<MatchDayClubLock | null>(null);
+  const [invites, setInvites] = useState<NetworkInvite[]>([]);
+  const [lockClub, setLockClub] = useState("Arsenal");
+  const [lockLabel, setLockLabel] = useState(MATCH_DAY_LOCK_LABELS[0]);
+  const [networkClubs, setNetworkClubs] = useState<string[]>([]);
+  const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCampaigns();
-  }, []);
-
-  async function loadCampaigns() {
-    try {
-      const data = await getSponsorCampaigns();
-      setCampaigns(data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    async function load() {
+      let sponsorName = "your brand";
+      let sponsorId = "";
+      let sponsorEmail: string | null = null;
+      try {
+        const sponsor = await getCurrentSponsor();
+        sponsorName = String(sponsor.name ?? "your brand");
+        sponsorId = String(sponsor.id ?? "");
+        sponsorEmail = (sponsor.email as string | null) ?? null;
+        setBrand(sponsorName);
+        setEmail(sponsorEmail);
+        const existing = loadGoalNetwork(sponsorName, sponsorEmail);
+        setNetwork(existing);
+        setNetworkClubs(existing?.clubNames ?? []);
+        const currentLock = loadMatchDayLock(sponsorName);
+        setLock(currentLock);
+        setLockClub(
+          currentLock?.clubName ?? existing?.clubNames[0] ?? "Arsenal"
+        );
+        setInvites(listInvitesForSponsor(sponsorName, sponsorEmail));
+        setLoading(false);
+        const folder = await loadSponsorFolder({
+          sponsorId,
+          brandName: sponsorName,
+          brandEmail: sponsorEmail,
+        });
+        setPending(folder.pending);
+        setSigned(folder.signed);
+        setStats(folder.stats);
+        setSentCampaigns(
+          await listSponsorSentProposals(sponsorId, sponsorName)
+        );
+      } catch (err) {
+        if (!sponsorId) {
+          router.replace(SPONSOR_LOGIN_PATH);
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Could not load offers.");
+      } finally {
+        setLoading(false);
+      }
     }
+    load();
+  }, [router]);
+
+  async function logout() {
+    await logoutSponsor();
+    router.push(SPONSOR_LOGIN_PATH);
   }
 
-  const activeCampaigns = campaigns.filter(
-    (c) => c.status === "Active"
-  ).length;
+  if (loading) {
+    return <p className="text-slate-400">Loading sponsor dashboard...</p>;
+  }
 
-  const totalBudget = campaigns.reduce(
-    (sum, c) => sum + Number(c.marketing_budget || 0),
-    0
-  );
-  const latestCampaign = campaigns[0];
-const simulatedTeam =
-  latestCampaign?.sport === "Rugby"
-    ? (latestCampaign?.sponsored_event ?? "")
-        .replace(" TRY Scored", "")
-        .replace(" TRY", "")
-    : (latestCampaign?.sponsored_event ?? "")
-        .replace(" Goal Scored", "")
-        .replace(" Goals Scored", "");
-   const simulationLabel =
-    latestCampaign?.sport === "Rugby"
-        ? "TRY"
-        : "Goal"; 
   return (
     <div className="space-y-10">
-
-      {/* Hero */}
-
-      <section className="rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-500 p-10 text-white shadow-lg">
-
-        <p className="text-sm uppercase tracking-widest text-emerald-100">
-          Score-For-Our-Planet (S4P)
-        </p>
-
-        <h1 className="mt-3 text-5xl font-bold">
-          Welcome back 👋
-        </h1>
-
-        <p className="mt-5 max-w-3xl text-lg leading-8 text-emerald-50">
-          Every sporting moment turns your marketing budget into
-          verified climate action while rewarding supporters.
-          Track campaigns, climate funding and impact from one place.
-        </p>
-
-        <div className="mt-8 flex gap-4">
-
-          <Link
-            href="/sponsor/campaigns/new"
-            className="inline-flex rounded-xl bg-white px-8 py-4 font-semibold text-emerald-700 shadow hover:bg-emerald-50"
-          >
-            Create Sponsorship Campaign
-          </Link>
-<button
-  onClick={async () => {
-    console.log("========== SIMULATING GOAL ==========");
-console.log("Campaign:", latestCampaign);
-console.log("Sport:", latestCampaign?.sport);
-console.log("Competition:", latestCampaign?.competition);
-console.log("Fixture:", latestCampaign?.fixture);
-console.log("Sponsored Event:", latestCampaign?.sponsored_event);
-console.log("Team:", simulatedTeam);
-
-alert("Button clicked");
-
-try {
-  console.log("Calling processSportingEvent...");
-
-  const result = await processSportingEvent({
-    sport: latestCampaign?.sport,
-    competition: latestCampaign?.competition,
-    fixture: latestCampaign?.fixture,
-    team: simulatedTeam,
-    event:
-      latestCampaign?.sport === "Rugby"
-        ? "TRY"
-        : "Goal",
-    minute: 64,
-  });
-
-  console.log("Returned:", result);
-
-} catch (err) {
-  console.error("ERROR:", err);
-}
-
-console.log("Finished");
-  }}
-  
-  className="rounded-xl border border-white px-6 py-3 text-white hover:bg-white hover:text-emerald-700"
->
-     {`Simulate ${simulationLabel}`}
-</button>
-        </div>
-
-      </section>
-
-      {/* Statistics */}
-
-      <section className="grid gap-6 md:grid-cols-4">
-
-        <StatCard
-          title="Active Campaigns"
-          value={
-            loading
-              ? "..."
-              : activeCampaigns.toString()
-          }
-        />
-
-        <StatCard
-  title="Monthly Commitment"
-  value={
-    loading
-      ? "..."
-      : `£${totalBudget.toLocaleString()}`
-  }
-/>
-
-        <StatCard
-  title="Climate Credits Issued"
-  value="125,000"
-/>
-
-        <StatCard
-  title="Supporters Rewarded"
-  value="2,143"
-/>
-
-      </section>
-            {/* Recent Activity */}
-
-      <section className="rounded-2xl border bg-white p-8 shadow-sm">
-
-        <div className="flex items-center justify-between">
-
-          <h2 className="text-2xl font-bold">
-            Recent Activity
-          </h2>
-
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-            Live
-          </span>
-
-        </div>
-
-        <div className="mt-8 space-y-5">
-
-          <ActivityItem
-    title={`${latestCampaign?.campaign_name ?? "Campaign"} launched`}
-    description={`${latestCampaign?.fixture ?? "-"} • ${latestCampaign?.competition ?? "-"}`}
-    time="Just now"
-/>
-
-          <ActivityItem
-    title="Climate funding committed"
-    description={`£${latestCampaign?.amount_per_goal ?? 0} will be unlocked for every ${latestCampaign?.sponsored_event ?? "goal"}.`}
-    time="Just now"
-/>
-
-          <ActivityItem
-    title="Campaign is now Active"
-    description={latestCampaign?.campaign_name ?? "Waiting for first qualifying sporting event."}
-    time="Just now"
-/>
-
-        </div>
-
-      </section>
-            {/* Campaigns */}
-
-      <section className="rounded-2xl border bg-white p-10 shadow-sm">
-
-        <div className="mb-8 flex items-center justify-between">
-
-          <div>
-
-            <h2 className="text-3xl font-bold">
-              My Sponsorship Portfolio
-            </h2>
-
-            <p className="mt-2 text-slate-500">
-              Manage your active sponsorships.
-            </p>
-
-          </div>
-
-          <Link
-            href="/sponsor/campaigns/new"
-            className="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white hover:bg-emerald-700"
-          >
-            Create Sponsorship Campaign
-          </Link>
-
-        </div>
-
-        {loading ? (
-
-          <p className="text-slate-500">
-            Loading sponsorships...
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+            Signed in as {brand}
           </p>
-
-        ) : campaigns.length === 0 ? (
-
-          <p className="text-slate-500">
-            No sponsorships found.
+          <h1 className="mt-3 text-4xl font-black tracking-tight">
+            S4P SPONSORSHIP DASHBOARD
+          </h1>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            Receive the club&apos;s 5 Climate Projects, sign them off, and keep
+            the settled sponsorships in your folder — including carbon impact,
+            spend, and fans who voted with your brand on screen.
           </p>
-
-        ) : (
-
-          <div className="overflow-x-auto">
-
-            <table className="w-full table-fixed">
-
-              <thead>
-
-<tr className="border-b text-left">
-
-<th className="w-[34%]">Campaign</th>
-
-<th className="w-[18%]">Fixture</th>
-
-<th className="w-[18%]">Sponsor Event</th>
-
-<th className="w-[8%] text-center">Package</th>
-
-<th className="w-[12%] text-center">£ / Score</th>
-
-<th className="w-[5%] text-center">Scores</th>
-
-<th className="w-[5%] text-center">Status</th>
-
-</tr>
-
-</thead>
-
-              <tbody>
-
-                {campaigns.map((campaign) => (
-
-                  <tr
-                    key={campaign.id}
-                    className="border-b"
-                  >
-
-                    <td className="py-4 font-medium">
-  {campaign.campaign_name}
-</td>
-
-<td>
-  {campaign.fixture || "-"}
-</td>
-<td>
-
-    <span className="font-medium">
-
-        {campaign.sponsored_event || "-"}
-
-    </span>
-
-</td>
-
-<td className="text-center pr-2">
-  {campaign.package}
-</td>
-
-<td className="text-center pl-2">
-  £{Number(campaign.amount_per_goal).toLocaleString()}
-</td>
-
-<td className="text-center w-14">
-  {campaign.goals_triggered ?? 0}
-</td>
-<td>
-  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-    {campaign.status}
-  </span>
-</td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        )}
-
-      </section>
-
-    </div>
-
-  );
-
-}
-type StatCardProps = {
-  title: string;
-  value: string;
-};
-
-function StatCard({
-  title,
-  value,
-}: StatCardProps) {
-  return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
-
-      <p className="text-sm font-medium text-slate-500">
-        {title}
-      </p>
-
-      <p className="mt-3 text-4xl font-bold text-emerald-700">
-        {value}
-      </p>
-
-    </div>
-  );
-}
-
-type ActivityItemProps = {
-  title: string;
-  description: string;
-  time: string;
-};
-
-function ActivityItem({
-  title,
-  description,
-  time,
-}: ActivityItemProps) {
-  return (
-    <div className="flex items-start gap-4 rounded-xl border p-5">
-
-      <div className="mt-1 h-3 w-3 rounded-full bg-emerald-500" />
-
-      <div className="flex-1">
-
-        <h4 className="font-semibold">
-          {title}
-        </h4>
-
-        <p className="mt-1 text-slate-500">
-          {description}
-        </p>
-
+        </div>
+        <button
+          onClick={() => void logout()}
+          className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
+        >
+          Logout
+        </button>
       </div>
 
-      <span className="text-sm text-slate-400">
-        {time}
-      </span>
+      {error && (
+        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+          {error}
+        </div>
+      )}
 
+      {invites.some((row) => row.status === "pending") && (
+        <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">
+            LinkedIn-style requests
+          </p>
+          <h2 className="mt-2 text-3xl font-black">Goal Sponsorship Network</h2>
+          <div className="mt-6 space-y-4">
+            {invites
+              .filter((row) => row.status === "pending")
+              .map((invite) => {
+                const league = leagueForClubName(invite.fromClubName);
+                return (
+                  <div
+                    key={invite.id}
+                    className="rounded-2xl border border-slate-700 bg-slate-950 p-5"
+                  >
+                    <p className="text-sm text-slate-400">
+                      From {invite.fromDirectorName} at {invite.fromClubName}
+                    </p>
+                    <p className="mt-2 text-slate-200">{invite.message}</p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          respondToNetworkInvite({
+                            inviteId: invite.id,
+                            brandName: brand,
+                            email,
+                            accept: true,
+                            includeLeague: false,
+                          });
+                          const next = loadGoalNetwork(brand, email);
+                          setNetwork(next);
+                          setNetworkClubs(next?.clubNames ?? []);
+                          if (next?.clubNames[0] && !lock) {
+                            setLockClub(next.clubNames[0]);
+                          }
+                          setInvites(listInvitesForSponsor(brand, email));
+                        }}
+                        className="rounded-xl bg-green-500 px-4 py-3 font-bold text-slate-950"
+                      >
+                        Add {invite.fromClubName}
+                      </button>
+                      {league && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            respondToNetworkInvite({
+                            inviteId: invite.id,
+                            brandName: brand,
+                            email,
+                            accept: true,
+                            includeLeague: true,
+                          });
+                          const next = loadGoalNetwork(brand, email);
+                          setNetwork(next);
+                          setNetworkClubs(next?.clubNames ?? []);
+                          if (next?.clubNames[0] && !lock) {
+                            setLockClub(next.clubNames[0]);
+                          }
+                          setInvites(listInvitesForSponsor(brand, email));
+                          }}
+                          className="rounded-xl border border-green-500/40 px-4 py-3 font-semibold text-green-300"
+                        >
+                          Add every {league} club
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          respondToNetworkInvite({
+                            inviteId: invite.id,
+                            brandName: brand,
+                            email,
+                            accept: false,
+                            includeLeague: false,
+                          });
+                          setInvites(listInvitesForSponsor(brand, email));
+                        }}
+                        className="rounded-xl border border-slate-600 px-4 py-3 text-sm"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </section>
+      )}
+
+      <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+          Match Day lock-in
+        </p>
+        <h2 className="mt-2 text-3xl font-black">
+          Select the club whose Goals you will sponsor
+        </h2>
+        <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
+        {lock ? (
+          <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
+            <p className="text-sm uppercase tracking-[0.2em] text-green-300">
+              Locked in
+            </p>
+            <p className="mt-2 text-2xl font-black">
+              {lock.clubName} · {lock.matchLabel}
+            </p>
+            <p className="mt-2 text-sm text-slate-400">
+              Posted Climate Projects from other clubs will not appear on this
+              dashboard until you change this lock.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                clearMatchDayLock(brand);
+                setLock(null);
+              }}
+              className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm"
+            >
+              Unlock
+            </button>
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <label className="block text-sm text-slate-400">
+              Club from your Goal Sponsorship Network
+              <select
+                value={lockClub}
+                onChange={(event) => setLockClub(event.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+              >
+                {(network?.clubNames.length ? network.clubNames : [lockClub]).map(
+                  (name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  )
+                )}
+              </select>
+            </label>
+            <label className="block text-sm text-slate-400">
+              Match Day
+              <select
+                value={lockLabel}
+                onChange={(event) => setLockLabel(event.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+              >
+                {MATCH_DAY_LOCK_LABELS.map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                void (async () => {
+                  if (networkClubs.length && !network?.clubNames.length) {
+                    ensureGoalNetwork({ brandName: brand, clubNames: networkClubs });
+                  }
+                  const next = lockMatchDayClub({
+                    brandName: brand,
+                    clubName: lockClub,
+                    matchLabel: lockLabel,
+                  });
+                  setLock(next);
+                  const folder = await loadSponsorFolder({ brandName: brand });
+                  setPending(folder.pending);
+                  setSigned(folder.signed);
+                })();
+              }}
+              className="rounded-xl bg-green-500 py-4 font-bold text-slate-950 md:col-span-2"
+            >
+              Lock in {lockClub} for this Match Day
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+        <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>
+        <p className="mt-2 text-slate-400">
+          Clubs you chose at registration plus any you accepted from a
+          Sustainability Director. Add more at any time.
+        </p>
+        <div className="mt-6">
+          <ClubNetworkPicker
+            selected={networkClubs}
+            onChange={(clubs) => {
+              setNetworkClubs(clubs);
+              const next = ensureGoalNetwork({
+                brandName: brand,
+                clubNames: clubs,
+              });
+              setNetwork(next);
+            }}
+            compact
+          />
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Climate Projects sponsored"
+          value={String(stats.projectCount)}
+        />
+        <StatCard
+          label="Carbon impact"
+          value={`${formatVoteCount(Math.round(stats.carbonTonnes))} tCO₂e`}
+        />
+        <StatCard
+          label="Total expenditure"
+          value={formatMoney(stats.expenditureGbp)}
+        />
+        <StatCard
+          label="Fans who voted and saw your brand"
+          value={formatVoteCount(stats.fanVotes)}
+        />
+      </section>
+
+      <section className="grid gap-6 md:grid-cols-2">
+        <Link
+          href={SPONSOR_OFFERS_PATH}
+          className="rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+            Option 1
+          </p>
+          <h2 className="mt-3 text-2xl font-black">Receive the club&apos;s 5</h2>
+          <p className="mt-3 text-slate-300">
+            After you lock in a club, open New Sponsorship/Score Offer. If that
+            club&apos;s Sustainability Director posted their 5 to you, sign them
+            off here. Posts from other clubs stay hidden while the lock is on.
+          </p>
+          <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
+            {pending.length > 0
+              ? `Open ${pending.length} new offer${pending.length === 1 ? "" : "s"}`
+              : "Open New Sponsorship/Score Offer"}
+          </p>
+        </Link>
+        <Link
+          href={SPONSOR_CREATE_CAMPAIGN_PATH}
+          className="rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+            Option 2
+          </p>
+          <h2 className="mt-3 text-2xl font-black">
+            Create Your Sponsorship Campaign
+          </h2>
+          <p className="mt-3 text-slate-300">
+            Choose 5 Climate Projects yourself — Global Schools Solar plus 4
+            from List 1 (local) and List 2 (international) — and send them to
+            the Sustainability Director to push to fans.
+          </p>
+        </Link>
+      </section>
+
+      <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">
+          Option 2 campaigns you sent
+        </p>
+        <h2 className="mt-2 text-3xl font-black">
+          Waiting for Post these to fans
+        </h2>
+        <p className="mt-2 text-slate-300">
+          After you create a campaign, the club Sustainability Director posts
+          it to fans. Log in as that club to see the blue{" "}
+          <strong>Post these to fans</strong> button under Sponsorship
+          Selected Projects.
+        </p>
+        {sentCampaigns.length === 0 ? (
+          <p className="mt-6 text-slate-500">
+            No campaign sent yet. Choose 5 Climate Projects in Option 2, then
+            click the blue send button.
+          </p>
+        ) : (
+          <div className="mt-8 space-y-4">
+            {sentCampaigns.map((campaign) => (
+              <div
+                key={campaign.id}
+                className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
+              >
+                <p className="text-sm text-green-300">
+                  Sent to {campaign.clubName}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">
+                  {campaign.status === "posted"
+                    ? "The Sustainability Director has posted this list to fans."
+                    : "The Sustainability Director still needs to click Post these to fans."}
+                </p>
+                <ul className="mt-4 space-y-1 text-slate-300">
+                  {campaign.projects.map((project) => (
+                    <li key={project.id}>• {project.name}</li>
+                  ))}
+                </ul>
+                {campaign.status !== "posted" && (
+                  <Link
+                    href={`${CLUB_LOGIN_PATH}#sponsorship-selected`}
+                    className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500"
+                  >
+                    Post these to fans
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section
+        id="signed-folder"
+        className="rounded-3xl border border-slate-700 bg-slate-900 p-8"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+          Folder
+        </p>
+        <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
+        <p className="mt-2 text-slate-400">
+          Once you sign off a club&apos;s 5 and the sponsorship is settled, it
+          is lodged here.
+        </p>
+        {signed.length === 0 ? (
+          <p className="mt-6 text-slate-500">
+            No signed sponsorships yet. Use Option 1 to receive the club&apos;s
+            5, agree, and sign them off.
+          </p>
+        ) : (
+          <div className="mt-8 space-y-4">
+            {signed.map((row) => {
+              const when = formatLongMatchDate(row.offer.matchDate);
+              return (
+                <div
+                  key={row.signature.id}
+                  className="rounded-2xl border border-green-500/30 bg-slate-950 p-6"
+                >
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-sm text-green-300">
+                        SPONSORED BY {row.signature.brandName}
+                      </p>
+                      <h3 className="mt-1 text-xl font-bold">
+                        {row.offer.headline}
+                      </h3>
+                      {when && (
+                        <p className="mt-1 text-sm text-slate-400">{when}</p>
+                      )}
+                      <p className="mt-1 text-sm text-slate-400">
+                        Signed by {row.signature.signerName} on{" "}
+                        {new Date(row.signature.signedAt).toLocaleString("en-GB")}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-green-300">
+                      {formatMoney(
+                        Number(row.offer.sponsorshipAmountGbp) || 0
+                      )}
+                    </p>
+                  </div>
+                  <ul className="mt-4 space-y-1 text-slate-300">
+                    {row.offer.projects.map((project) => (
+                      <li key={project.id}>
+                        • {project.name}
+                        {project.estimated_co2
+                          ? ` — ${formatVoteCount(Math.round(Number(project.estimated_co2)))} tCO₂e`
+                          : ""}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={`${SPONSOR_OFFERS_PATH}/${row.offer.id}`}
+                    className="mt-4 inline-flex text-sm font-semibold text-green-400"
+                  >
+                    Open signed copy
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-3 text-2xl font-black text-white">{value}</p>
     </div>
   );
 }

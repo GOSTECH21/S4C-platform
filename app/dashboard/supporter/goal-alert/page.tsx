@@ -3,7 +3,8 @@ import Link from "next/link";
 const sportEvents: Record<string, { label: string; emoji: string }> = {
   Football: { label: "GOAL!", emoji: "⚽" },
   Rugby: { label: "TRY!", emoji: "🏉" },
-  Cricket: { label: "WICKET!", emoji: "🏏" },
+  NFL: { label: "TOUCHDOWN!", emoji: "🏈" },
+  NBA: { label: "3-POINT!", emoji: "🏀" },
 };
 
 const sponsorGroups: Record<
@@ -11,19 +12,24 @@ const sponsorGroups: Record<
   { name: string; amount: number }[]
 > = {
   Football: [
-    { name: "🍺 Budweiser", amount: 1 },
-    { name: "🥤 Coca-Cola", amount: 1 },
-    { name: "🪒 Gillette", amount: 1 },
+    { name: "🍺 Budweiser", amount: 10000 },
+    { name: "🥤 Coca-Cola", amount: 10000 },
+    { name: "🪒 Gillette", amount: 10000 },
   ],
   Rugby: [
-    { name: "🍺 Guinness", amount: 1 },
-    { name: "⚡ ScottishPower", amount: 1 },
-    { name: "🏦 Royal Bank of Scotland", amount: 1 },
+    { name: "🍺 Guinness", amount: 10000 },
+    { name: "⚡ ScottishPower", amount: 10000 },
+    { name: "🏦 Royal Bank of Scotland", amount: 10000 },
   ],
-  Cricket: [
-    { name: "🫖 Yorkshire Tea", amount: 1 },
-    { name: "✈️ Emirates", amount: 1 },
-    { name: "👓 Specsavers", amount: 1 },
+  NFL: [
+    { name: "🏈 Gatorade", amount: 10000 },
+    { name: "🚗 Ford", amount: 10000 },
+    { name: "💳 Visa", amount: 10000 },
+  ],
+  NBA: [
+    { name: "🥤 Sprite", amount: 10000 },
+    { name: "👟 Nike", amount: 10000 },
+    { name: "📡 State Farm", amount: 10000 },
   ],
 };
 
