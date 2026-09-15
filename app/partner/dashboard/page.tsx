@@ -162,6 +162,14 @@ export default function PartnerDashboardPage() {
         (item) => item.name.toLowerCase() === project.name.toLowerCase()
       )
   );
+  const uploadedInternational = uploaded.filter(
+    (project) =>
+      !localByCountry.some(
+        (group) =>
+          (project.country ?? "").toLowerCase() === group.country.toLowerCase()
+      )
+  );
+  const listedInternational = [...uploadedInternational, ...international];
 
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -262,39 +270,23 @@ export default function PartnerDashboardPage() {
 
         <section className="mt-12">
           <h2 className="text-2xl font-black">
-            International Climate Projects ({
-              international.length +
-              uploaded.filter(
-                (project) =>
-                  !localByCountry.some(
-                    (group) =>
-                      (project.country ?? "").toLowerCase() ===
-                      group.country.toLowerCase()
-                  )
-              ).length
-            }{" "}
-            of {INTERNATIONAL_CLIMATE_PROJECTS.length})
+            International Climate Projects ({international.length} of{" "}
+            {INTERNATIONAL_CLIMATE_PROJECTS.length}
+            {uploadedInternational.length
+              ? ` + ${uploadedInternational.length} uploaded`
+              : ""}
+            )
           </h2>
           <p className="mt-2 text-slate-400">
             Uploaded international projects sit at the top of this list,
             including anything not tied to a local catalog country.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {[
-              ...uploaded.filter(
-                (project) =>
-                  !localByCountry.some(
-                    (group) =>
-                      (project.country ?? "").toLowerCase() ===
-                      group.country.toLowerCase()
-                  )
-              ),
-              ...international,
-            ].map((project) => (
+            {listedInternational.map((project) => (
               <ProjectRow
                 key={project.id}
                 project={project}
-                uploaded={uploaded.some((row) => row.id === project.id)}
+                uploaded={uploadedInternational.some((row) => row.id === project.id)}
                 selected={selectedId === project.id}
                 onSelect={handleSelectProject}
               />

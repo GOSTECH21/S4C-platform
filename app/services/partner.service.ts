@@ -153,22 +153,44 @@ export async function loadPublishedPartnerProjects(): Promise<ClimateProject[]> 
 }
 
 export async function loadUploadedPartnerProjects(): Promise<ClimateProject[]> {
-  const catalogNames = new Set(
-    PARTNER_MATCH_DAY_CATALOG.map((project) => project.name.toLowerCase())
-  );
   const { data, error } = await supabase
     .from("climate_projects")
     .select(PROJECT_FIELDS)
-    .is("club_id", null);
+    .is("club_id", null)
+    .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    const fallback = await supabase
+      .from("climate_projects")
+      .select(PROJECT_FIELDS)
+      .is("club_id", null);
+    if (fallback.error) throw fallback.error;
+    return uniqueUploaded(fallback.data as ClimateProject[]);
+  }
 
-  return ((data ?? []) as ClimateProject[]).filter(
-    (project) =>
-      !catalogNames.has(project.name.toLowerCase()) &&
-      !isFeaturedName(project.name) &&
-      (project.status ?? "active") !== "archived"
+  return uniqueUploaded(data as ClimateProject[]);
+}
+
+function uniqueUploaded(rows: ClimateProject[]): ClimateProject[] {
+  const catalogNames = new Set(
+    PARTNER_MATCH_DAY_CATALOG.map((project) => project.name.toLowerCase())
   );
+  const seen = new Set<string>();
+  const unique: ClimateProject[] = [];
+  for (const project of rows ?? []) {
+    const key = project.name.toLowerCase();
+    if (
+      catalogNames.has(key) ||
+      isFeaturedName(project.name) ||
+      (project.status ?? "active") === "archived" ||
+      seen.has(key)
+    ) {
+      continue;
+    }
+    seen.add(key);
+    unique.push(project);
+  }
+  return unique;
 }
 
 function isFeaturedName(name: string | null | undefined) {

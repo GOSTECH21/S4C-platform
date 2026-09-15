@@ -41,9 +41,14 @@ export function listsWithUploadsFirst<
   localCountry: string
 ): { local: T[]; international: T[] } {
   const genericNames = new Set(generic.map((project) => project.name.toLowerCase()));
-  const extra = uploaded.filter(
-    (project) => !genericNames.has(project.name.toLowerCase())
-  );
+  const extra: T[] = [];
+  const seenUploads = new Set<string>();
+  for (const project of uploaded) {
+    const key = project.name.toLowerCase();
+    if (genericNames.has(key) || seenUploads.has(key)) continue;
+    seenUploads.add(key);
+    extra.push(project);
+  }
   const genericLocal = generic.slice(0, PARTNER_PAGE_SIZE);
   const genericInternational = generic.slice(PARTNER_PAGE_SIZE);
   const uploadedLocal = extra.filter((project) =>

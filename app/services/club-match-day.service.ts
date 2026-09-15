@@ -877,10 +877,27 @@ export async function saveMatchDaySelection({
     );
   }
   const portfolioIds = [featured.id, ...chosen];
-  const amount = Math.max(OPENING_SPONSORSHIP, Math.round(minAmount));
+  const stored = readStoredMatchDay(clubId);
   const campaign = await findOpenClubCampaign(clubId, clubName);
+  const auction = withAuctionDefaults({
+    projectIds: portfolioIds,
+    minAmount: Math.max(OPENING_SPONSORSHIP, Math.round(minAmount)),
+    projectedVotes,
+    gbpPerVote,
+    expectedSponsorship,
+    savedAt: new Date().toISOString(),
+    campaignId: campaign?.id ?? stored?.campaignId ?? null,
+    postedAt: campaign ? stored?.postedAt ?? new Date().toISOString() : stored?.postedAt ?? null,
+  });
 
   if (campaign && campaignBelongsToClub(campaign, clubId, clubName)) {
+    await supabase
+      .from("match_campaigns")
+      .update({
+        sponsorship_per_goal: auction.expectedSponsorship,
+        status: "open",
+      })
+      .eq("id", campaign.id);
     await writeCampaignProjects(campaign.id, portfolioIds);
   }
 
@@ -890,17 +907,6 @@ export async function saveMatchDaySelection({
     campaign ? MATCH_DAY_PORTFOLIO_POSTED : MATCH_DAY_PORTFOLIO_SELECTED
   );
 
-  const stored = readStoredMatchDay(clubId);
-  const auction = withAuctionDefaults({
-    projectIds: portfolioIds,
-    minAmount: amount,
-    projectedVotes,
-    gbpPerVote,
-    expectedSponsorship,
-    savedAt: new Date().toISOString(),
-    campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    postedAt: campaign ? stored?.postedAt ?? new Date().toISOString() : stored?.postedAt ?? null,
-  });
   writeStoredMatchDay(clubId, auction);
   writeCampaignAuction(auction.campaignId, auction);
   const selectedProjects = await loadProjectsByIds(portfolioIds);
@@ -963,14 +969,22 @@ export async function postMatchDayProjectsToFans({
   const portfolioIds = selected.slice(0, MATCH_DAY_PROJECT_COUNT).map(
     (project) => project.id
   );
+  const existingCampaign = await findOpenClubCampaign(clubId, clubName);
+  const peakFromCampaign = Number(existingCampaign?.sponsorship_per_goal);
+  const peakFromBoard = Number(board.minAmount);
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
     minAmount: OPENING_SPONSORSHIP,
     projectedVotes: stored?.projectedVotes,
     gbpPerVote: stored?.gbpPerVote,
-    expectedSponsorship: stored?.expectedSponsorship,
+    expectedSponsorship:
+      Math.max(
+        Number(stored?.expectedSponsorship) || 0,
+        peakFromCampaign > OPENING_SPONSORSHIP ? peakFromCampaign : 0,
+        peakFromBoard > OPENING_SPONSORSHIP ? peakFromBoard : 0
+      ) || undefined,
     savedAt: new Date().toISOString(),
-    campaignId: stored?.campaignId ?? null,
+    campaignId: stored?.campaignId ?? existingCampaign?.id ?? null,
   });
   await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_POSTED);
 

@@ -37,6 +37,8 @@ import {
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
 import {
+  DEFAULT_GBP_PER_VOTE,
+  DEFAULT_PROJECTED_VOTES,
   OPENING_SPONSORSHIP,
   formatGbpPerVote,
   formatMoney,
@@ -101,9 +103,20 @@ export default function ClubDashboardPage() {
       setRecords(board.records);
       const stored = readStoredMatchDay(session.club.id);
       setPostedAt(stored?.postedAt ?? null);
-      setProjectedVotes(stored?.projectedVotes ?? null);
-      setGbpPerVote(stored?.gbpPerVote ?? null);
-      setExpectedSponsorship(stored?.expectedSponsorship ?? null);
+      const peak =
+        stored?.expectedSponsorship && stored.expectedSponsorship > OPENING_SPONSORSHIP
+          ? stored.expectedSponsorship
+          : board.minAmount && board.minAmount > OPENING_SPONSORSHIP
+            ? board.minAmount
+            : stored?.expectedSponsorship ?? null;
+      setProjectedVotes(stored?.projectedVotes ?? (peak ? DEFAULT_PROJECTED_VOTES : null));
+      setGbpPerVote(
+        stored?.gbpPerVote ??
+          (peak && (stored?.projectedVotes ?? DEFAULT_PROJECTED_VOTES)
+            ? peak / (stored?.projectedVotes ?? DEFAULT_PROJECTED_VOTES)
+            : null)
+      );
+      setExpectedSponsorship(peak);
       setProposals(
         await listClubSponsorProposals(session.club.id, session.club.name)
       );
