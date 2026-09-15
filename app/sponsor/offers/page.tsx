@@ -25,13 +25,16 @@ export default function NewSponsorshipOfferPage() {
   useEffect(() => {
     async function load() {
       try {
-        await getCurrentSponsor();
+        const sponsor = await getCurrentSponsor();
+        const folder = await loadSponsorFolder({
+          sponsorId: String(sponsor.id ?? ""),
+          brandName: String(sponsor.name ?? ""),
+        });
+        setPending(folder.pending);
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
         return;
       }
-      const folder = await loadSponsorFolder();
-      setPending(folder.pending);
       setLoading(false);
     }
     load();
@@ -62,9 +65,9 @@ export default function NewSponsorshipOfferPage() {
 
       {!offer ? (
         <p className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
-          No Sustainability Director has posted 5 Climate Projects yet. When
-          they do, the club&apos;s 5 appear here so you can sign them off
-          immediately.
+          No posted Climate Projects for the club you have locked in. Lock a
+          club 72 hours before Match Day, and only that club&apos;s five will
+          appear here after the Sustainability Director posts them to you.
         </p>
       ) : (
         <OfferPreview offer={offer} />

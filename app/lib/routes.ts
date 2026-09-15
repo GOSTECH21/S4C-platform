@@ -21,6 +21,7 @@ export const CLUB_LOGIN_PATH = "/club/login";
 export const CLUB_REGISTER_PATH = "/club/register";
 export const CLUB_DASHBOARD_PATH = "/club/dashboard";
 export const CLUB_SELECT_PROJECTS_PATH = "/club/projects/select";
+export const CLUB_SPONSORS_PATH = "/club/sponsors";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";

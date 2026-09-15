@@ -14,6 +14,11 @@ import {
 } from "../lib/sponsor-dashboard";
 import type { ClimateProject } from "./votes.service";
 import { getCurrentSponsor } from "./current-sponsor.service";
+import {
+  loadGoalNetwork,
+  loadMatchDayLock,
+} from "./climate-sponsors.service";
+import { offersForLockedSponsor } from "../lib/climate-sponsors";
 
 export type SponsorOfferProject = {
   id: string;
@@ -37,6 +42,7 @@ export type SponsorMatchOffer = {
   postedAt: string;
   headline: string;
   sponsorshipAmountGbp: number;
+  targetBrandNames?: string[] | null;
 };
 
 export type SponsorOfferSignature = {
@@ -95,7 +101,8 @@ function writeJson(key: string, value: unknown) {
 
 function mergeById<T extends { id: string }>(left: T[], right: T[]): T[] {
   const byId = new Map<string, T>();
-  for (const item of [...left, ...right]) byId.set(item.id, item);
+  for (const item of right) byId.set(item.id, item);
+  for (const item of left) byId.set(item.id, item);
   return [...byId.values()];
 }
 
@@ -160,12 +167,14 @@ export async function publishSponsorMatchOffer({
   clubEmail,
   projects,
   sponsorshipAmountGbp,
+  targetBrandNames,
 }: {
   clubId: string;
   clubName: string;
   clubEmail?: string | null;
   projects: ClimateProject[];
   sponsorshipAmountGbp?: number | null;
+  targetBrandNames?: string[] | null;
 }): Promise<SponsorMatchOffer> {
   const context = await lookupClubMatchContext(clubId, clubName);
   const offer: SponsorMatchOffer = {
@@ -187,6 +196,7 @@ export async function publishSponsorMatchOffer({
     }),
     sponsorshipAmountGbp:
       Number(sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+    targetBrandNames: (targetBrandNames ?? []).filter(Boolean),
   };
 
   const local = readJson<SponsorMatchOffer[]>(OFFER_STORAGE, []);
@@ -234,6 +244,9 @@ function mapOfferRow(row: Record<string, unknown>): SponsorMatchOffer {
       sponsorOfferHeadline({ clubName, matchTitle, matchDate, scoreLabel }),
     sponsorshipAmountGbp:
       Number(row.sponsorship_amount_gbp) || OPENING_SPONSORSHIP,
+    targetBrandNames: Array.isArray(row.target_brand_names)
+      ? (row.target_brand_names as string[])
+      : undefined,
   };
 }
 
@@ -249,6 +262,7 @@ export async function listSponsorMatchOffers(): Promise<SponsorMatchOffer[]> {
       ...offer,
       sponsorshipAmountGbp:
         Number(offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+      targetBrandNames: offer.targetBrandNames,
     }))
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
 }
@@ -533,6 +547,8 @@ export async function countFansWhoVotedOnProjects(
 
 export async function loadSponsorFolder(options?: {
   sponsorId?: string | null;
+  brandName?: string | null;
+  brandEmail?: string | null;
 }): Promise<{
   offers: SponsorMatchOffer[];
   signatures: SponsorOfferSignature[];
@@ -540,10 +556,18 @@ export async function loadSponsorFolder(options?: {
   signed: SignedSponsorship[];
   stats: SponsorDashboardStats;
 }> {
-  const [offers, signatures] = await Promise.all([
+  const [allOffers, signatures] = await Promise.all([
     listSponsorMatchOffers(),
     listOfferSignatures(),
   ]);
+  const brandName = options?.brandName ?? "";
+  const offers = brandName
+    ? offersForLockedSponsor(allOffers, {
+        brandName,
+        network: loadGoalNetwork(brandName, options?.brandEmail),
+        lock: loadMatchDayLock(brandName),
+      })
+    : allOffers;
   const signed = pairSignedSponsorships(offers, signatures, {
     sponsorId: options?.sponsorId,
   });

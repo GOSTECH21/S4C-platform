@@ -50,9 +50,22 @@ import {
   sponsorshipSelectedProposals,
 } from "@/app/lib/sponsor-dashboard";
 import {
+  loadClubSponsorRoster,
+  loadGoalNetwork,
+  loadMatchDayLock,
+  setMatchDaySponsorTargets,
+} from "@/app/services/climate-sponsors.service";
+import {
+  selectedBrandsReadyToReceive,
+  rankSponsorsBySpend,
+  type ClubSponsorRoster,
+} from "@/app/lib/climate-sponsors";
+import { BrandMark } from "@/app/components/club/BrandMark";
+import {
   CLUB_LOGIN_PATH,
   CLUB_REGISTER_PATH,
   CLUB_SELECT_PROJECTS_PATH,
+  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 
 export default function ClubDashboardPage() {
@@ -76,6 +89,7 @@ export default function ClubDashboardPage() {
   const [postError, setPostError] = useState<string | null>(null);
   const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
+  const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -123,6 +137,7 @@ export default function ClubDashboardPage() {
       setSignedCopies(
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
+      setRoster(loadClubSponsorRoster(session.club.id, session.club.name));
       setLoading(false);
     }
 
@@ -157,6 +172,18 @@ export default function ClubDashboardPage() {
     () => sponsorshipFundedProposals(proposals),
     [proposals]
   );
+  const readySponsorBrands = useMemo(() => {
+    if (!roster) return [];
+    return selectedBrandsReadyToReceive(roster, {
+      networkFor: (brand) => {
+        const row = roster.sponsors.find(
+          (sponsor) => sponsor.brandName.toLowerCase() === brand.toLowerCase()
+        );
+        return loadGoalNetwork(brand, row?.email);
+      },
+      lockFor: (brand) => loadMatchDayLock(brand),
+    });
+  }, [roster]);
 
   function downloadFileRecord() {
     if (!club) return;
@@ -342,6 +369,66 @@ export default function ClubDashboardPage() {
           </div>
         </div>
 
+        <section id="our-climate-sponsors" className="mt-12 rounded-3xl border border-amber-400/30 bg-slate-900 p-10">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
+            Brands
+          </p>
+          <h2 className="mt-2 text-4xl font-black">Our Climate Sponsors</h2>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            Add decision-maker contacts, branding and climate-project spend.
+            Select who should receive this Match Day five. They only see it if
+            they chose {club.name} at registration or accepted your network
+            request, and have locked {club.name} for this Match Day.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push(CLUB_SPONSORS_PATH)}
+            className="mt-6 rounded-xl bg-amber-400 px-6 py-4 text-lg font-bold text-slate-950"
+          >
+            Our Climate Sponsors
+          </button>
+          {roster && roster.sponsors.length > 0 && (
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {rankSponsorsBySpend(roster.sponsors).map((sponsor) => {
+                const on = roster.selectedIds.includes(sponsor.id);
+                const ready = readySponsorBrands.some((row) => row.id === sponsor.id);
+                return (
+                  <button
+                    key={sponsor.id}
+                    type="button"
+                    onClick={() =>
+                      setRoster(
+                        setMatchDaySponsorTargets(club.id, club.name, sponsor.id)
+                      )
+                    }
+                    className={`flex items-start gap-3 rounded-2xl border p-4 text-left ${
+                      on
+                        ? "border-green-500 bg-slate-800"
+                        : "border-slate-700 bg-slate-950"
+                    }`}
+                  >
+                    <BrandMark name={sponsor.brandName} logoUrl={sponsor.logoUrl} />
+                    <div>
+                      <p className="font-bold">{sponsor.brandName}</p>
+                      <p className="text-sm text-slate-400">
+                        {sponsor.contactName || "Decision maker not set"}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {formatMoney(sponsor.spentGbp)} climate spend
+                        {ready
+                          ? " · locked in — will receive this post"
+                          : on
+                            ? " · selected, waiting for lock-in"
+                            : ""}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
@@ -354,7 +441,7 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? "These Projects will be voted for by your Fans/Supporters as to which project receives the sponsorship funding. Brands receive the same five at the same time."
+                ? "These Projects will be voted for by your Fans/Supporters as to which project receives the sponsorship funding. Selected Climate Sponsors who have locked this club for the Match Day receive the same five on their dashboard."
                 : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Global Schools Solar is included automatically and is UK and International.`}
             </p>
           </div>
@@ -386,9 +473,14 @@ export default function ClubDashboardPage() {
           )}
           {postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
-              Posted to your fans on My S4P and to registered brands. Supporters
-              of {club.name} will see these {MATCH_DAY_PROJECT_COUNT} projects
-              when they open their page.
+              Posted to your fans on My S4P
+              {readySponsorBrands.length
+                ? ` and to ${readySponsorBrands.map((row) => row.brandName).join(", ")}.`
+                : roster?.selectedIds.length
+                  ? ` Selected Climate Sponsors will see these five once they lock ${club.name} for this Match Day.`
+                  : ". No Climate Sponsor was selected, so brand dashboards were not updated."}{" "}
+              Supporters of {club.name} will see these {MATCH_DAY_PROJECT_COUNT}{" "}
+              projects when they open their page.
             </p>
           )}
 

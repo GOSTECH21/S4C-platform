@@ -1020,11 +1020,15 @@ export async function postMatchDayProjectsToFans({
   });
   try {
     const { publishSponsorMatchOffer } = await import("./sponsor-offers.service");
+    const { loadClubSponsorRoster } = await import("./climate-sponsors.service");
+    const { selectedSponsors } = await import("../lib/climate-sponsors");
+    const roster = loadClubSponsorRoster(clubId, clubName);
     await publishSponsorMatchOffer({
       clubId,
       clubName,
       projects: selectedProjects,
       sponsorshipAmountGbp: selection.expectedSponsorship,
+      targetBrandNames: selectedSponsors(roster).map((sponsor) => sponsor.brandName),
     });
   } catch {
     // Fans still receive the posted five even if the sponsor offer cannot be stored.

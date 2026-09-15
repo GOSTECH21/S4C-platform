@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { registerSponsor } from "@/app/services/sponsor-auth.service";
+import { ensureGoalNetwork } from "@/app/services/climate-sponsors.service";
+import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
@@ -14,12 +16,18 @@ export default function SponsorRegisterPage() {
   const [jobTitle, setJobTitle] = useState("Sponsorship Manager");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [clubNames, setClubNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
     if (loading) return;
+    if (clubNames.length === 0) {
+      setError("Select at least one club whose Goals you want to sponsor.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -29,6 +37,11 @@ export default function SponsorRegisterPage() {
         jobTitle,
         email,
         password,
+      });
+      ensureGoalNetwork({
+        brandName: companyName,
+        email,
+        clubNames,
       });
       window.location.href = SPONSOR_DASHBOARD_PATH;
     } catch (err) {
@@ -44,9 +57,10 @@ export default function SponsorRegisterPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
       <p className="mt-4 text-slate-300">
-        Create your Sponsorship Manager account. After registration you can
-        receive a club&apos;s 5 Climate Projects, or create your own list and
-        send it to the Sustainability Director.
+        Create your Sponsorship Manager account and choose the clubs whose Goals
+        you want to sponsor. Those clubs join your Goal Sponsorship Network.
+        72 hours before a Match Day you lock in one club — and only that
+        club&apos;s posted Climate Projects appear here.
       </p>
 
       {error && (
@@ -107,6 +121,18 @@ export default function SponsorRegisterPage() {
             required
           />
         </label>
+        <div>
+          <p className="text-sm text-slate-400">
+            Clubs whose Goals you would like to sponsor
+          </p>
+          <div className="mt-3">
+            <ClubNetworkPicker
+              selected={clubNames}
+              onChange={setClubNames}
+              compact
+            />
+          </div>
+        </div>
         <button
           type="submit"
           disabled={loading}

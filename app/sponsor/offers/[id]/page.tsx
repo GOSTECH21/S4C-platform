@@ -9,6 +9,11 @@ import {
   signSponsorOffer,
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
+import {
+  loadGoalNetwork,
+  loadMatchDayLock,
+} from "@/app/services/climate-sponsors.service";
+import { sponsorCanReceiveClubPost } from "@/app/lib/climate-sponsors";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   SPONSOR_DASHBOARD_PATH,
@@ -34,16 +39,27 @@ export default function SponsorOfferPage() {
 
   useEffect(() => {
     async function load() {
+      let brand = "";
       try {
         const sponsor = await getCurrentSponsor();
-        setBrandDefault(String(sponsor.name ?? ""));
-        setBrandName(String(sponsor.name ?? ""));
+        brand = String(sponsor.name ?? "");
+        setBrandDefault(brand);
+        setBrandName(brand);
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
         return;
       }
       const next = await getSponsorMatchOffer(params.id);
-      setOffer(next);
+      const allowed =
+        next &&
+        sponsorCanReceiveClubPost({
+          network: loadGoalNetwork(brand),
+          lock: loadMatchDayLock(brand),
+          clubName: next.clubName,
+          brandName: brand,
+          targetBrandNames: next.targetBrandNames,
+        });
+      setOffer(allowed ? next : null);
       const signatures = await listOfferSignatures();
       const signed = signatures.find((row) => row.offerId === params.id);
       if (signed) {
