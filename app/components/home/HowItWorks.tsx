@@ -47,7 +47,7 @@ export default function HowItWorks() {
 
       </div>
 
-      <div className="mt-24 flex items-start justify-between">
+      <div className="mt-24 flex items-stretch justify-between">
 
         {steps.map((step, index) => (
 
@@ -76,7 +76,9 @@ export default function HowItWorks() {
 
             {index < steps.length - 1 && (
 
-              <div className="mt-10 hidden h-1 w-full rounded-full bg-gradient-to-r from-green-500 to-green-300 xl:block" />
+              <div className="mt-auto hidden w-full pt-10 xl:block">
+                <div className="h-1 w-full rounded-full bg-gradient-to-r from-green-500 to-green-300" />
+              </div>
 
             )}
 
