@@ -10,19 +10,19 @@ export default function HowItWorks() {
       number: "02",
       title: "Climate Sponsors Step In",
       description:
-        "Sponsors commit funding to sporting moments, competitions and clubs.",
+        "Sponsors commit funding (as Climate Credits) to sporting moments (e.g every Goal, or every Try scored) during a Match",
     },
     {
       number: "03",
       title: "Fans Earn Climate Credits",
       description:
-        "Supporters receive Climate Credits through their passion for sport.",
+        "Supporters & Fans receives a share of the Climate Credits (funding) whenever their Team scores",
     },
     {
       number: "04",
       title: "Climate Partners Benefit",
       description:
-        "Fans direct their Climate Credits towards verified Climate Partners and projects.",
+        "Fans direct their Climate Credits towards their preferred Climate Projects by Voting for them",
     },
     {
       number: "05",

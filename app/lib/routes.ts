@@ -31,6 +31,11 @@ export const PARTNER_LOGIN_PATH = "/partner/login";
 export const PARTNER_REGISTER_PATH = "/partner/register";
 export const PARTNER_DASHBOARD_PATH = "/partner/dashboard";
 
+export const CLIMATE_SPONSORSHIP_PATH = "/climate-sponsorship";
+export const CLIMATE_CREDITS_PATH = "/climate-credits";
+export const CLIMATE_IMPACT_LEAGUE_PATH = "/climate-impact-league";
+export const GLOBAL_SCHOOLS_SOLAR_PATH = "/global-schools-solar";
+
 export function isMyS4PPath(pathname: string | null): boolean {
   if (!pathname) return false;
   return SUPPORTER_CAMPAIGN_ALIASES.includes(pathname);

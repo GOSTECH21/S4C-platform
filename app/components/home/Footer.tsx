@@ -1,4 +1,10 @@
 import Link from "next/link";
+import {
+  CLIMATE_CREDITS_PATH,
+  CLIMATE_IMPACT_LEAGUE_PATH,
+  CLIMATE_SPONSORSHIP_PATH,
+  GLOBAL_SCHOOLS_SOLAR_PATH,
+} from "@/app/lib/routes";
 
 export default function Footer() {
   return (
@@ -68,23 +74,30 @@ export default function Footer() {
             </h3>
 
             <div className="mt-5 space-y-3">
-
-              <p className="text-slate-400">
+              <Link
+                href={CLIMATE_SPONSORSHIP_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
                 Climate Sponsorship
-              </p>
-
-              <p className="text-slate-400">
+              </Link>
+              <Link
+                href={CLIMATE_CREDITS_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
                 Climate Credits
-              </p>
-
-              <p className="text-slate-400">
-                Climate Impact League
-              </p>
-
-              <p className="text-slate-400">
+              </Link>
+              <Link
+                href={CLIMATE_IMPACT_LEAGUE_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
+                Climate Impact League Table
+              </Link>
+              <Link
+                href={GLOBAL_SCHOOLS_SOLAR_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
                 Global Schools Solar
-              </p>
-
+              </Link>
             </div>
 
           </div>
