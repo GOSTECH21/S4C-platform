@@ -44,7 +44,10 @@ import {
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import { formatMoney, formatVoteCount } from "@/app/lib/sponsorship-auction";
+import { votedProjectsOnSignedOffer } from "@/app/lib/sponsor-dashboard";
+import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
+import type { ClimateProject } from "@/app/services/votes.service";
 
 const EMPTY_STATS: SponsorDashboardStats = {
   projectCount: 0,
@@ -58,6 +61,9 @@ export default function SponsorDashboardPage() {
   const [brand, setBrand] = useState("your brand");
   const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
   const [signed, setSigned] = useState<SignedSponsorship[]>([]);
+  const [votedByClub, setVotedByClub] = useState<Record<string, ClimateProject[]>>(
+    {}
+  );
   const [sentCampaigns, setSentCampaigns] = useState<SponsorProjectProposal[]>(
     []
   );
@@ -107,6 +113,16 @@ export default function SponsorDashboardPage() {
         setPending(folder.pending);
         setSigned(folder.signed);
         setStats(folder.stats);
+        const clubIds = [...new Set(folder.signed.map((row) => row.offer.clubId))];
+        const votedEntries = await Promise.all(
+          clubIds.map(async (clubId) => {
+            const voted = clubId
+              ? await loadVotedPortfolioProjects(clubId)
+              : [];
+            return [clubId, voted] as const;
+          })
+        );
+        setVotedByClub(Object.fromEntries(votedEntries));
         setSentCampaigns(
           await listSponsorSentProposals(sponsorId, sponsorName)
         );
@@ -132,6 +148,14 @@ export default function SponsorDashboardPage() {
     const folder = await loadSponsorFolder({ brandName: brand, brandEmail: email });
     setPending(folder.pending);
     setSigned(folder.signed);
+    const clubIds = [...new Set(folder.signed.map((row) => row.offer.clubId))];
+    const votedEntries = await Promise.all(
+      clubIds.map(async (clubId) => {
+        const voted = clubId ? await loadVotedPortfolioProjects(clubId) : [];
+        return [clubId, voted] as const;
+      })
+    );
+    setVotedByClub(Object.fromEntries(votedEntries));
   }
 
   function applyMatchDayLock(clubName: string, matchLabel: string) {
@@ -531,7 +555,8 @@ export default function SponsorDashboardPage() {
         <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
         <p className="mt-2 text-slate-400">
           Once you sign off a club&apos;s 5 and the sponsorship is settled, it
-          is lodged here.
+          is lodged here — including the Climate Projects fans later vote for
+          from that five.
         </p>
         {signed.length === 0 ? (
           <p className="mt-6 text-slate-500">
@@ -542,6 +567,10 @@ export default function SponsorDashboardPage() {
           <div className="mt-8 space-y-4">
             {signed.map((row) => {
               const when = formatLongMatchDate(row.offer.matchDate);
+              const votedFor = votedProjectsOnSignedOffer(
+                row.offer,
+                votedByClub[row.offer.clubId] ?? []
+              );
               return (
                 <div
                   key={row.signature.id}
@@ -569,7 +598,10 @@ export default function SponsorDashboardPage() {
                       )}
                     </p>
                   </div>
-                  <ul className="mt-4 space-y-1 text-slate-300">
+                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Signed Climate Projects
+                  </p>
+                  <ul className="mt-2 space-y-1 text-slate-300">
                     {row.offer.projects.map((project) => (
                       <li key={project.id}>
                         • {project.name}
@@ -579,6 +611,26 @@ export default function SponsorDashboardPage() {
                       </li>
                     ))}
                   </ul>
+                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-green-400">
+                    Voted by fans
+                  </p>
+                  {votedFor.length === 0 ? (
+                    <p className="mt-2 text-slate-500">
+                      Waiting for fans to vote on this Match Day five. The 3
+                      Climate Projects they choose will appear here.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1 text-slate-300">
+                      {votedFor.map((project) => (
+                        <li key={project.id}>
+                          • {project.name}
+                          {project.estimated_co2
+                            ? ` — ${formatVoteCount(Math.round(Number(project.estimated_co2)))} tCO₂e`
+                            : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <Link
                     href={`${SPONSOR_OFFERS_PATH}/${row.offer.id}`}
                     className="mt-4 inline-flex text-sm font-semibold text-green-400"

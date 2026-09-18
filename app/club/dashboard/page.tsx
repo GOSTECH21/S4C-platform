@@ -44,6 +44,7 @@ import {
   formatMoney,
 } from "@/app/lib/sponsorship-auction";
 import {
+  lookbackSponsorForRecord,
   signedCopyDownloadName,
   signedCopyPayload,
   sponsorshipFundedProposals,
@@ -61,6 +62,7 @@ import {
   type ClubSponsorRoster,
 } from "@/app/lib/climate-sponsors";
 import { BrandMark } from "@/app/components/club/BrandMark";
+import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
   CLUB_REGISTER_PATH,
@@ -698,7 +700,9 @@ export default function ClubDashboardPage() {
               <p className="mt-2 max-w-2xl text-slate-400">
                 Every confirmed Match Day selection and every voted project is
                 stored in this club file record so the Sustainability Director
-                can look back later.
+                can look back later. When more than one brand signs the same
+                five, each lookback is stamped with that sponsor&apos;s name and
+                logo.
               </p>
             </div>
             <button
@@ -716,13 +720,34 @@ export default function ClubDashboardPage() {
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {records.map((record) => (
+              {records.map((record) => {
+                const sponsor = lookbackSponsorForRecord(
+                  record,
+                  signedCopies,
+                  (name) => sponsorLogoSrc(name, null)
+                );
+                return (
                 <div
                   key={record.id}
                   className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
                 >
-                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
-                    <h3 className="text-xl font-bold">{record.matchLabel}</h3>
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div className="flex items-start gap-3">
+                      {sponsor && (
+                        <BrandMark
+                          name={sponsor.name}
+                          logoUrl={sponsor.logoUrl}
+                        />
+                      )}
+                      <div>
+                        <h3 className="text-xl font-bold">{record.matchLabel}</h3>
+                        {sponsor && (
+                          <p className="mt-1 text-sm font-semibold text-amber-300">
+                            Sponsored by {sponsor.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                     <p className="text-sm text-slate-400">
                       {new Date(record.savedAt).toLocaleString("en-GB")}
                     </p>
@@ -753,7 +778,8 @@ export default function ClubDashboardPage() {
                     </ul>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

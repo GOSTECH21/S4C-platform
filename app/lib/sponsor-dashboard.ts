@@ -186,6 +186,157 @@ export function sponsorshipFolderStats(
   };
 }
 
+export function votedProjectsOnSignedOffer<T extends { id: string }>(
+  offer: { projectIds?: string[]; projects: T[] },
+  voted: { id: string }[]
+): T[] {
+  const votedIds = new Set(voted.map((project) => project.id));
+  return offer.projects.filter((project) => votedIds.has(project.id));
+}
+
+export function brandsMatch(
+  left: string | null | undefined,
+  right: string | null | undefined
+) {
+  const a = String(left ?? "").trim().toLowerCase();
+  const b = String(right ?? "").trim().toLowerCase();
+  return Boolean(a && b && a === b);
+}
+
+export function sameLookbackProjectSet(
+  left: { id: string }[],
+  right: { id: string }[]
+) {
+  if (left.length !== right.length) return false;
+  const ids = new Set(left.map((project) => project.id));
+  return right.every((project) => ids.has(project.id));
+}
+
+export function findCurrentLookbackRecord<
+  T extends {
+    campaignId: string | null;
+    savedAt: string;
+    selected: { id: string }[];
+    sponsorName?: string | null;
+  },
+>(
+  existing: T[],
+  query: {
+    campaignId: string | null;
+    selected: { id: string }[];
+    sponsorName?: string | null;
+    today?: string;
+  }
+): T | undefined {
+  const today = query.today ?? new Date().toISOString().slice(0, 10);
+  const sameSet = (record: T) =>
+    sameLookbackProjectSet(record.selected, query.selected);
+  const sameDay = (record: T) => record.savedAt.slice(0, 10) === today;
+  const sameCampaign = (record: T) =>
+    Boolean(query.campaignId && record.campaignId === query.campaignId);
+
+  if (query.sponsorName) {
+    const named = existing.find(
+      (record) =>
+        brandsMatch(record.sponsorName, query.sponsorName) &&
+        (sameCampaign(record) || sameSet(record))
+    );
+    if (named) return named;
+    return existing.find(
+      (record) =>
+        !record.sponsorName &&
+        (sameCampaign(record) || (sameSet(record) && sameDay(record)))
+    );
+  }
+
+  return (
+    existing.find((record) => sameCampaign(record) && !record.sponsorName) ??
+    existing.find(
+      (record) => sameSet(record) && sameDay(record) && !record.sponsorName
+    )
+  );
+}
+
+export function lookbackSponsorForRecord(
+  record: {
+    savedAt: string;
+    selected: { id: string }[];
+    sponsorName?: string | null;
+    sponsorLogoUrl?: string | null;
+  },
+  signed: SignedSponsorship[],
+  logoFor: (name: string) => string | null = () => null
+): { name: string; logoUrl: string | null } | null {
+  if (record.sponsorName) {
+    return {
+      name: record.sponsorName,
+      logoUrl: record.sponsorLogoUrl ?? logoFor(record.sponsorName),
+    };
+  }
+  if (signed.length === 0) return null;
+  const selectedIds = new Set(record.selected.map((project) => project.id));
+  const matching = signed.filter((row) => {
+    const ids = row.offer.projectIds ?? row.offer.projects.map((project) => project.id);
+    if (ids.length === 0) return false;
+    const overlap = ids.filter((id) => selectedIds.has(id)).length;
+    return overlap >= Math.min(3, ids.length);
+  });
+  const pool = matching.length > 0 ? matching : signed;
+  const saved = Date.parse(record.savedAt) || 0;
+  const ranked = [...pool].sort(
+    (a, b) =>
+      Math.abs(Date.parse(a.signature.signedAt) - saved) -
+      Math.abs(Date.parse(b.signature.signedAt) - saved)
+  );
+  const best = ranked[0];
+  if (!best) return null;
+  return {
+    name: best.signature.brandName,
+    logoUrl: logoFor(best.signature.brandName),
+  };
+}
+
+export function assignLookbackSponsors<
+  T extends {
+    savedAt: string;
+    selected: { id: string }[];
+    sponsorName?: string | null;
+    sponsorLogoUrl?: string | null;
+  },
+>(
+  records: T[],
+  signed: SignedSponsorship[],
+  logoFor: (name: string) => string | null = () => null
+): T[] {
+  const used = new Set<string>();
+  return records.map((record) => {
+    if (record.sponsorName) {
+      const owned = signed.find(
+        (row) =>
+          brandsMatch(row.signature.brandName, record.sponsorName) &&
+          !used.has(row.signature.id)
+      );
+      if (owned) used.add(owned.signature.id);
+      return {
+        ...record,
+        sponsorLogoUrl: record.sponsorLogoUrl ?? logoFor(record.sponsorName),
+      };
+    }
+    const remaining = signed.filter((row) => !used.has(row.signature.id));
+    const inferred = lookbackSponsorForRecord(record, remaining, logoFor);
+    if (!inferred) return record;
+    const consumed = remaining.find((row) =>
+      brandsMatch(row.signature.brandName, inferred.name)
+    );
+    if (consumed) used.add(consumed.signature.id);
+    return {
+      ...record,
+      sponsorName: inferred.name,
+      sponsorLogoUrl: inferred.logoUrl,
+    };
+  });
+}
+
 export function signedCopyDownloadName(clubName: string, brandName: string) {
   const slug = `${clubName}-${brandName}`
     .toLowerCase()

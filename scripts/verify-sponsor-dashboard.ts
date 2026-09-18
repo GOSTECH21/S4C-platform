@@ -10,6 +10,10 @@ import {
   sponsorshipFundedProposals,
   bestClubMatch,
   normalizeClubName,
+  votedProjectsOnSignedOffer,
+  assignLookbackSponsors,
+  findCurrentLookbackRecord,
+  lookbackSponsorForRecord,
 } from "../app/lib/sponsor-dashboard";
 
 const failures: string[] = [];
@@ -145,6 +149,102 @@ assert(
     "Arsenal"
   )?.name === "Arsenal FC",
   "Arsenal picker resolves to Arsenal FC, not Arsenal Women"
+);
+
+const votedOnOffer = votedProjectsOnSignedOffer(offer, [
+  { id: "gss" },
+  { id: "int-1" },
+  { id: "local-1" },
+  { id: "other" },
+]);
+assert(
+  votedOnOffer.map((project) => project.id).join(",") === "gss,local-1,int-1",
+  "Sponsor folder shows the 3 fan-voted projects from the signed five"
+);
+
+const budweiserSig = {
+  ...signature,
+  id: "sig-bud",
+  brandName: "Budweiser",
+  signedAt: "2026-09-18T14:47:04.000Z",
+};
+const gilletteSig = {
+  ...signature,
+  id: "sig-gil",
+  offerId: "offer-gil",
+  brandName: "Gillette",
+  signedAt: "2026-09-18T12:00:00.000Z",
+};
+const gilletteOffer = { ...offer, id: "offer-gil" };
+const villaSigned = pairSignedSponsorships(
+  [offer, gilletteOffer],
+  [budweiserSig, gilletteSig]
+);
+const logos: Record<string, string> = {
+  Budweiser: "/sponsors/budweiser.svg",
+  Gillette: "/sponsors/gillette.svg",
+};
+const logoFor = (name: string) => logos[name] ?? null;
+const lookbacks = [
+  {
+    savedAt: "2026-09-18T15:00:41.000Z",
+    selected: offer.projects,
+  },
+  {
+    savedAt: "2026-09-18T12:50:10.000Z",
+    selected: offer.projects,
+  },
+];
+const stamped = assignLookbackSponsors(lookbacks, villaSigned, logoFor);
+assert(
+  stamped[0].sponsorName === "Budweiser" &&
+    stamped[0].sponsorLogoUrl === "/sponsors/budweiser.svg",
+  "Later Match Day lookback is stamped Budweiser"
+);
+assert(
+  stamped[1].sponsorName === "Gillette" &&
+    stamped[1].sponsorLogoUrl === "/sponsors/gillette.svg",
+  "Earlier Match Day lookback is stamped Gillette"
+);
+
+const named = findCurrentLookbackRecord(
+  [
+    {
+      campaignId: null,
+      savedAt: "2026-09-18T15:00:41.000Z",
+      selected: offer.projects,
+      sponsorName: "Budweiser",
+    },
+    {
+      campaignId: null,
+      savedAt: "2026-09-18T12:50:10.000Z",
+      selected: offer.projects,
+      sponsorName: "Gillette",
+    },
+  ],
+  {
+    campaignId: null,
+    selected: offer.projects,
+    sponsorName: "Gillette",
+    today: "2026-09-18",
+  }
+);
+assert(
+  named?.sponsorName === "Gillette",
+  "Gillette lookback is not merged into the Budweiser file record"
+);
+
+assert(
+  lookbackSponsorForRecord(
+    {
+      savedAt: "2026-09-18T15:00:41.000Z",
+      selected: offer.projects,
+      sponsorName: "Budweiser",
+    },
+    villaSigned,
+    logoFor
+  )?.name === "Budweiser",
+  "Stored sponsor name wins on a lookback card"
 );
 
 if (failures.length > 0) {

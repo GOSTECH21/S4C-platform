@@ -25,7 +25,15 @@ import {
   isVotedPortfolioStatus,
   matchDayCampaignTitle,
 } from "../lib/match-day-post";
+import {
+  assignLookbackSponsors,
+  findCurrentLookbackRecord,
+  sameLookbackProjectSet,
+  votedProjectsOnSignedOffer,
+} from "../lib/sponsor-dashboard";
 import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
+import { listClubSignedSponsorships } from "./sponsor-offers.service";
+import { sponsorLogoSrc } from "./teams.service";
 import {
   isFeaturedClimateProject,
   type ClimateProject,
@@ -82,6 +90,8 @@ export type ClubFileRecord = {
   minAmount: number | null;
   selected: ClubFileProject[];
   voted: ClubFileProject[];
+  sponsorName?: string | null;
+  sponsorLogoUrl?: string | null;
 };
 
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
@@ -594,19 +604,44 @@ export async function loadClubProjectBoard(
   const voted = uniqueProjects([...lists.voted, ...votedFromPortfolio]);
   const funded = uniqueProjects(lists.funded);
   const minAmount = stored?.minAmount ?? campaign?.sponsorship_per_goal ?? null;
+  const campaignId = campaign?.id ?? stored?.campaignId ?? null;
+  const signed = await listClubSignedSponsorships(clubId, clubName);
+  const logoFor = (name: string) => sponsorLogoSrc(name, null);
 
-  const record = await persistFileRecord({
-    clubId,
-    clubName,
-    campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    minAmount,
-    selected,
-    voted,
-  });
+  if (signed.length === 0) {
+    await persistFileRecord({
+      clubId,
+      clubName,
+      campaignId,
+      minAmount,
+      selected,
+      voted,
+    });
+  } else {
+    for (const copy of signed) {
+      const offerSelected =
+        copy.offer.projects.length > 0
+          ? copy.offer.projects
+          : selected.filter((project) => copy.offer.projectIds.includes(project.id));
+      await persistFileRecord({
+        clubId,
+        clubName,
+        campaignId,
+        minAmount,
+        selected: offerSelected,
+        voted: votedProjectsOnSignedOffer(copy.offer, voted),
+        sponsorName: copy.signature.brandName,
+        sponsorLogoUrl: logoFor(copy.signature.brandName),
+        savedAt: copy.signature.signedAt,
+      });
+    }
+  }
+
   const remote = await loadRemoteFileRecords(clubId);
-  const records = mergeFileRecords(
+  const records = assignLookbackSponsors(
     mergeRecordLists(readFileRecords(clubId), remote),
-    record
+    signed,
+    logoFor
   );
   writeFileRecords(clubId, records);
 
@@ -633,7 +668,14 @@ async function ensureFeaturedSelection(
   return uniqueProjects([featured, ...others]).slice(0, MATCH_DAY_PROJECT_COUNT);
 }
 
-function snapshotProject(project: ClimateProject): ClubFileProject {
+function snapshotProject(project: {
+  id: string;
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  country?: string | null;
+  estimated_co2?: number | null;
+}): ClubFileProject {
   return {
     id: project.id,
     name: project.name,
@@ -644,10 +686,15 @@ function snapshotProject(project: ClimateProject): ClubFileProject {
   };
 }
 
-function sameProjectSet(left: ClubFileProject[], right: ClubFileProject[]) {
-  if (left.length !== right.length) return false;
-  const ids = new Set(left.map((project) => project.id));
-  return right.every((project) => ids.has(project.id));
+function mergeVotedProjects(
+  previous: ClubFileProject[] | undefined,
+  next: ClubFileProject[]
+): ClubFileProject[] {
+  if (!previous || previous.length === 0) return next;
+  if (next.length === 0) return previous;
+  const byId = new Map(previous.map((project) => [project.id, project]));
+  for (const project of next) byId.set(project.id, project);
+  return [...byId.values()];
 }
 
 function readFileRecords(clubId: string): ClubFileRecord[] {
@@ -711,6 +758,14 @@ async function loadRemoteFileRecords(clubId: string): Promise<ClubFileRecord[]> 
       row.min_amount == null ? null : Number(row.min_amount),
     selected: (row.selected as ClubFileRecord["selected"]) ?? [],
     voted: (row.voted as ClubFileRecord["voted"]) ?? [],
+    sponsorName:
+      "sponsor_name" in row
+        ? (row.sponsor_name as string | null) ?? null
+        : undefined,
+    sponsorLogoUrl:
+      "sponsor_logo_url" in row
+        ? (row.sponsor_logo_url as string | null) ?? null
+        : undefined,
   }));
 }
 
@@ -721,41 +776,63 @@ export async function persistFileRecord({
   minAmount,
   selected,
   voted,
+  sponsorName,
+  sponsorLogoUrl,
+  savedAt,
 }: {
   clubId: string;
   clubName: string;
   campaignId: string | null;
   minAmount: number | null;
-  selected: ClimateProject[];
-  voted: ClimateProject[];
+  selected: Array<{
+    id: string;
+    name: string;
+    description?: string | null;
+    category?: string | null;
+    country?: string | null;
+    estimated_co2?: number | null;
+  }>;
+  voted: Array<{
+    id: string;
+    name: string;
+    description?: string | null;
+    category?: string | null;
+    country?: string | null;
+    estimated_co2?: number | null;
+  }>;
+  sponsorName?: string | null;
+  sponsorLogoUrl?: string | null;
+  savedAt?: string | null;
 }): Promise<ClubFileRecord | null> {
   if (selected.length === 0 && voted.length === 0) return null;
 
   const selectedSnap = selected.map(snapshotProject);
   const votedSnap = voted.map(snapshotProject);
   const existing = readFileRecords(clubId);
-  const current =
-    existing.find((record) =>
-      campaignId ? record.campaignId === campaignId : false
-    ) ??
-    existing.find(
-      (record) =>
-        sameProjectSet(record.selected, selectedSnap) &&
-        record.savedAt.slice(0, 10) === new Date().toISOString().slice(0, 10)
-    );
+  const current = findCurrentLookbackRecord(existing, {
+    campaignId,
+    selected: selectedSnap,
+    sponsorName,
+  });
 
   const record: ClubFileRecord = {
     id: current?.id ?? crypto.randomUUID(),
     clubId,
     campaignId,
-    savedAt: new Date().toISOString(),
+    savedAt: current?.savedAt ?? savedAt ?? new Date().toISOString(),
     matchLabel: current?.matchLabel ?? `${clubName} Match Day`,
     minAmount,
     selected: selectedSnap,
-    voted: votedSnap,
+    voted: mergeVotedProjects(current?.voted, votedSnap),
+    sponsorName: sponsorName ?? current?.sponsorName ?? null,
+    sponsorLogoUrl: sponsorLogoUrl ?? current?.sponsorLogoUrl ?? null,
   };
 
-  const next = mergeFileRecords(existing, record);
+  const next = mergeFileRecords(existing, record).map((row) => {
+    if (row.id === record.id) return row;
+    if (!sameLookbackProjectSet(row.selected, selectedSnap)) return row;
+    return { ...row, voted: mergeVotedProjects(row.voted, votedSnap) };
+  });
   writeFileRecords(clubId, next);
 
   const payload = {
@@ -766,7 +843,7 @@ export async function persistFileRecord({
     match_label: record.matchLabel,
     min_amount: minAmount,
     selected: selectedSnap,
-    voted: votedSnap,
+    voted: record.voted,
   };
   const updated = await supabase
     .from("club_climate_file_records")
