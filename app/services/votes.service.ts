@@ -18,8 +18,16 @@ import {
   MATCH_DAY_PORTFOLIO_VOTED,
   fanTeamMatchesPostedClub,
   isPostedPortfolioStatus,
+  matchDayCampaignTitle,
   portfolioProjectId,
 } from "../lib/match-day-post";
+import {
+  MISSING_CAMPAIGN_VOTE_MESSAGE,
+  isCampaignIdNotNullError,
+  isVoteUuid,
+  ownedCampaignId,
+  voteRowsForInsert,
+} from "../lib/fan-votes";
 
 export type ClimateProject = {
   id: string;
@@ -75,12 +83,6 @@ function throwIfQueryError(error: unknown, fallback: string) {
   throw err;
 }
 
-function isUuid(value: string | null | undefined): value is string {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value ?? ""
-  );
-}
-
 export function isFeaturedClimateProject(
   project: Pick<ClimateProject, "name" | "featured">
 ): boolean {
@@ -133,14 +135,95 @@ async function splitFeaturedProjects(
 async function resolveOpenCampaignId(
   clubId: string | null
 ): Promise<string | null> {
-  if (!clubId) return null;
+  if (!isVoteUuid(clubId)) return null;
   const forClub = await supabase
     .from("match_campaigns")
-    .select("id")
+    .select("id, club_id")
     .eq("status", "open")
     .eq("club_id", clubId)
     .maybeSingle();
-  return (forClub.data?.id as string | undefined) ?? null;
+  return ownedCampaignId(forClub.data, clubId);
+}
+
+async function ensureOpenCampaignIdForClub(
+  clubId: string | null | undefined,
+  clubName?: string | null
+): Promise<string | null> {
+  if (!isVoteUuid(clubId)) return null;
+  const existing = await resolveOpenCampaignId(clubId);
+  if (existing) return existing;
+
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("name")
+    .eq("id", clubId)
+    .maybeSingle();
+  const title = matchDayCampaignTitle(clubName || club?.name || "Match Day");
+  const attempts: Array<Record<string, unknown>> = [
+    {
+      club_id: clubId,
+      title,
+      status: "open",
+      sponsorship_per_goal: OPENING_SPONSORSHIP,
+      maximum_votes: 3,
+    },
+    {
+      club_id: clubId,
+      title,
+      status: "open",
+      sponsorship_per_goal: OPENING_SPONSORSHIP,
+    },
+    { club_id: clubId, title, status: "open" },
+  ];
+  for (const payload of attempts) {
+    const inserted = await supabase
+      .from("match_campaigns")
+      .insert(payload)
+      .select("id, club_id")
+      .single();
+    if (!inserted.error && inserted.data) {
+      return ownedCampaignId(inserted.data, clubId);
+    }
+  }
+
+  const { data: other } = await supabase
+    .from("clubs")
+    .select("id")
+    .neq("id", clubId)
+    .limit(1)
+    .maybeSingle();
+  if (other?.id) {
+    const fixture = await supabase
+      .from("fixtures")
+      .insert({
+        home_club_id: clubId,
+        away_club_id: other.id,
+        status: "scheduled",
+        fixture_date: new Date().toISOString().slice(0, 10),
+      })
+      .select("id")
+      .single();
+    if (fixture.data?.id) {
+      const withMatch = await supabase
+        .from("match_campaigns")
+        .insert({
+          club_id: clubId,
+          title,
+          status: "open",
+          match_id: fixture.data.id,
+          sponsorship_per_goal: OPENING_SPONSORSHIP,
+          maximum_votes: 3,
+        })
+        .select("id, club_id")
+        .single();
+      if (!withMatch.error && withMatch.data) {
+        return ownedCampaignId(withMatch.data, clubId);
+      }
+      await supabase.from("fixtures").delete().eq("id", fixture.data.id);
+    }
+  }
+
+  return resolveOpenCampaignId(clubId);
 }
 
 /**
@@ -462,7 +545,7 @@ async function campaignFromClubPortfolio(
   const { featuredProject, clubProjects } = await splitFeaturedProjects(projects);
   const campaignId =
     (await resolveOpenCampaignId(postedClubId)) ??
-    (await resolveOpenCampaignId(team.id));
+    (await ensureOpenCampaignIdForClub(postedClubId, club?.name ?? team.name));
   const sponsor = await resolveCampaignSponsor({
     clubName: club?.name ?? team.name,
     matchTitle,
@@ -802,15 +885,45 @@ export async function submitCampaignVotes(
     }
   }
 
-  const resolvedCampaignId = isUuid(campaignId ?? null) ? campaignId : null;
+  let resolvedCampaignId: string | null = isVoteUuid(campaignId)
+    ? campaignId
+    : null;
+  if (resolvedCampaignId && isVoteUuid(postedClubId)) {
+    const owned = await supabase
+      .from("match_campaigns")
+      .select("id, club_id")
+      .eq("id", resolvedCampaignId)
+      .maybeSingle();
+    resolvedCampaignId = ownedCampaignId(owned.data, postedClubId);
+  }
+  if (!resolvedCampaignId) {
+    resolvedCampaignId = await ensureOpenCampaignIdForClub(postedClubId);
+  }
 
-  const rows = selectedProjectIds.map((projectId) => ({
-    supporter_id: supporterId,
-    climate_project_id: projectId,
-    ...(resolvedCampaignId ? { campaign_id: resolvedCampaignId } : {}),
-  }));
+  const rows = voteRowsForInsert(
+    supporterId,
+    selectedProjectIds,
+    resolvedCampaignId
+  );
 
-  const { error } = await supabase.from("supporter_votes").insert(rows);
+  let { error } = await supabase.from("supporter_votes").insert(rows);
+  if (isCampaignIdNotNullError(error) && !resolvedCampaignId) {
+    resolvedCampaignId = await ensureOpenCampaignIdForClub(postedClubId);
+    if (resolvedCampaignId) {
+      const retried = await supabase
+        .from("supporter_votes")
+        .insert(
+          voteRowsForInsert(supporterId, selectedProjectIds, resolvedCampaignId)
+        );
+      error = retried.error;
+    }
+  }
+  if (isCampaignIdNotNullError(error)) {
+    throwIfQueryError(
+      { message: MISSING_CAMPAIGN_VOTE_MESSAGE, code: "23502" },
+      MISSING_CAMPAIGN_VOTE_MESSAGE
+    );
+  }
   if (error && error.code !== "23505") {
     throwIfQueryError(error, "Could not save your vote.");
   }
@@ -823,6 +936,7 @@ export async function submitCampaignVotes(
 
   if (resolvedCampaignId) {
     try {
+      await attachCampaignProjects(resolvedCampaignId, campaignProjectIds);
       await refreshCampaignVoteCounts(resolvedCampaignId, campaignProjectIds);
     } catch {
       // Vote rows remain even if campaign totals cannot be updated.
@@ -830,12 +944,35 @@ export async function submitCampaignVotes(
   }
 }
 
+async function attachCampaignProjects(
+  campaignId: string,
+  projectIds: string[]
+) {
+  const ids = [...new Set(projectIds.filter(Boolean))];
+  if (!isVoteUuid(campaignId) || ids.length === 0) return;
+  const existing = await supabase
+    .from("campaign_projects")
+    .select("id")
+    .eq("campaign_id", campaignId)
+    .limit(1);
+  if (existing.data?.length) return;
+  await supabase.from("campaign_projects").insert(
+    ids.map((projectId, index) => ({
+      campaign_id: campaignId,
+      climate_project_id: projectId,
+      display_order: index + 1,
+      vote_count: 0,
+      is_winner: false,
+    }))
+  );
+}
+
 export async function markPortfolioProjectsVoted(
   clubId: string | null | undefined,
   projectIds: string[]
 ) {
   const ids = [...new Set(projectIds.filter(Boolean))];
-  if (!isUuid(clubId) || ids.length === 0) return;
+  if (!isVoteUuid(clubId) || ids.length === 0) return;
 
   try {
     await supabase

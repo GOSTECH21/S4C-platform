@@ -26,6 +26,11 @@ import {
   matchDayCampaignTitle,
 } from "../app/lib/match-day-post";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
+import {
+  isCampaignIdNotNullError,
+  ownedCampaignId,
+  voteRowsForInsert,
+} from "../app/lib/fan-votes";
 
 const failures: string[] = [];
 
@@ -237,6 +242,45 @@ assert(
       scoreLabel: "Goal",
     }).includes("18th October 2026"),
   "Sponsor offer names the club, fixture and match date"
+);
+
+const villaId = "45192725-c291-4f9f-9d65-3ed7c333f2a1";
+const arsenalCampaign = {
+  id: "a05b2f53-b57f-4364-8eb4-ec33909e70d7",
+  club_id: "f1e2b11b-b00b-487f-8411-bf222d8e00be",
+};
+assert(
+  ownedCampaignId(arsenalCampaign, villaId) === null,
+  "Villa fan votes must not attach to the Arsenal vs Chelsea campaign"
+);
+assert(
+  ownedCampaignId(
+    { id: "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051", club_id: villaId },
+    villaId
+  ) === "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051",
+  "A campaign owned by Villa can receive Villa fan votes"
+);
+const rowsWithoutCampaign = voteRowsForInsert("sup-1", ["p1", "p2"], null);
+assert(
+  rowsWithoutCampaign.every((row) => !("campaign_id" in row)),
+  "Votes omit campaign_id when the club has not opened a campaign"
+);
+const rowsWithCampaign = voteRowsForInsert(
+  "sup-1",
+  ["p1"],
+  "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051"
+);
+assert(
+  rowsWithCampaign[0].campaign_id === "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051",
+  "Votes include the club's own campaign id when it exists"
+);
+assert(
+  isCampaignIdNotNullError({
+    code: "23502",
+    message:
+      'null value in column "campaign_id" of relation "supporter_votes" violates not-null constraint',
+  }),
+  "Detects the hosted campaign_id NOT NULL vote failure"
 );
 
 const merged = listsWithUploadsFirst(

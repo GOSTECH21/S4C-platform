@@ -384,6 +384,27 @@ async function findClubFixtureId(clubId: string): Promise<string | null> {
   return (data?.id as string | undefined) ?? null;
 }
 
+async function createClubFixtureId(clubId: string): Promise<string | null> {
+  const { data: other } = await supabase
+    .from("clubs")
+    .select("id")
+    .neq("id", clubId)
+    .limit(1)
+    .maybeSingle();
+  if (!other?.id) return null;
+  const inserted = await supabase
+    .from("fixtures")
+    .insert({
+      home_club_id: clubId,
+      away_club_id: other.id,
+      status: "scheduled",
+      fixture_date: new Date().toISOString().slice(0, 10),
+    })
+    .select("id")
+    .single();
+  return (inserted.data?.id as string | undefined) ?? null;
+}
+
 async function writeCampaignProjects(
   campaignId: string,
   projectIds: string[]
@@ -428,7 +449,7 @@ export async function ensureOpenClubCampaign(
   const matchId = await findClubFixtureId(clubId);
   const votingOpens = new Date().toISOString();
   const votingCloses = new Date(Date.now() + MATCH_DAY_LEAD_HOURS * 60 * 60 * 1000).toISOString();
-  const attempts: Array<Record<string, unknown>> = [
+  const attemptsFor = (fixtureId: string | null): Array<Record<string, unknown>> => [
     {
       club_id: clubId,
       title,
@@ -437,7 +458,7 @@ export async function ensureOpenClubCampaign(
       maximum_votes: 3,
       voting_opens: votingOpens,
       voting_closes: votingCloses,
-      ...(matchId ? { match_id: matchId } : {}),
+      ...(fixtureId ? { match_id: fixtureId } : {}),
     },
     {
       club_id: clubId,
@@ -445,24 +466,25 @@ export async function ensureOpenClubCampaign(
       status: "open",
       sponsorship_per_goal: amount,
       maximum_votes: 3,
-      ...(matchId ? { match_id: matchId } : {}),
+      ...(fixtureId ? { match_id: fixtureId } : {}),
     },
     {
       club_id: clubId,
       title,
       status: "open",
       sponsorship_per_goal: amount,
-      ...(matchId ? { match_id: matchId } : {}),
+      ...(fixtureId ? { match_id: fixtureId } : {}),
     },
     {
       club_id: clubId,
       title,
       status: "open",
+      ...(fixtureId ? { match_id: fixtureId } : {}),
     },
   ];
 
   let lastError = "Could not post the Match Day campaign for your fans.";
-  for (const payload of attempts) {
+  for (const payload of attemptsFor(matchId)) {
     const inserted = await supabase
       .from("match_campaigns")
       .insert(payload)
@@ -472,6 +494,24 @@ export async function ensureOpenClubCampaign(
       return inserted.data as OpenClubCampaign;
     }
     lastError = inserted.error?.message || lastError;
+  }
+
+  if (!matchId) {
+    const createdMatchId = await createClubFixtureId(clubId);
+    if (createdMatchId) {
+      for (const payload of attemptsFor(createdMatchId)) {
+        const inserted = await supabase
+          .from("match_campaigns")
+          .insert(payload)
+          .select("id, title, sponsorship_per_goal, club_id")
+          .single();
+        if (!inserted.error && inserted.data) {
+          return inserted.data as OpenClubCampaign;
+        }
+        lastError = inserted.error?.message || lastError;
+      }
+      await supabase.from("fixtures").delete().eq("id", createdMatchId);
+    }
   }
 
   throw new Error(lastError);
@@ -604,7 +644,24 @@ export async function loadClubProjectBoard(
   const voted = uniqueProjects([...lists.voted, ...votedFromPortfolio]);
   const funded = uniqueProjects(lists.funded);
   const minAmount = stored?.minAmount ?? campaign?.sponsorship_per_goal ?? null;
-  const campaignId = campaign?.id ?? stored?.campaignId ?? null;
+  let campaignId = campaign?.id ?? stored?.campaignId ?? null;
+  if (!campaign && selected.length >= MATCH_DAY_PROJECT_COUNT) {
+    try {
+      const opened = await ensureOpenClubCampaign(
+        clubId,
+        clubName,
+        minAmount ?? OPENING_SPONSORSHIP
+      );
+      campaignId = opened.id;
+      await writeCampaignProjects(
+        opened.id,
+        selected.map((project) => project.id)
+      );
+    } catch {
+      // Fan votes still save on the portfolio; campaign_id can stay empty
+      // once that column is nullable.
+    }
+  }
   const signed = await listClubSignedSponsorships(clubId, clubName);
   const logoFor = (name: string) => sponsorLogoSrc(name, null);
 
