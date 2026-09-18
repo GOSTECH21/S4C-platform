@@ -65,10 +65,11 @@ import { BrandMark } from "@/app/components/club/BrandMark";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
-  CLUB_REGISTER_PATH,
   CLUB_SELECT_PROJECTS_PATH,
   CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
+import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
+import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -86,6 +87,7 @@ export default function ClubDashboardPage() {
   );
   const [records, setRecords] = useState<ClubFileRecord[]>([]);
   const [unlinked, setUnlinked] = useState(false);
+  const [signedInKind, setSignedInKind] = useState<SignedInKind>("unknown");
   const [posting, setPosting] = useState(false);
   const [postedAt, setPostedAt] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
@@ -104,6 +106,7 @@ export default function ClubDashboardPage() {
           router.replace(CLUB_LOGIN_PATH);
           return;
         }
+        setSignedInKind((await identifySignedInKind()) ?? "unknown");
         setUnlinked(true);
         setLoading(false);
         return;
@@ -229,8 +232,9 @@ export default function ClubDashboardPage() {
   }
 
   async function logout() {
+    const href = clubGateCopy(signedInKind).logoutHref;
     await supabase.auth.signOut();
-    router.push(CLUB_LOGIN_PATH);
+    router.push(href);
   }
 
   async function handleMatchDayAction() {
@@ -298,21 +302,18 @@ export default function ClubDashboardPage() {
   }
 
   if (unlinked) {
+    const gate = clubGateCopy(signedInKind);
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
         <div className="max-w-lg rounded-2xl bg-slate-900 p-8 text-center">
-          <h1 className="text-3xl font-black">Club account not linked yet</h1>
-          <p className="mt-4 text-slate-300">
-            You are signed in, but this email is not attached to a club
-            Sustainability Director profile yet. Complete club registration
-            and you will land on the dashboard.
-          </p>
+          <h1 className="text-3xl font-black">{gate.title}</h1>
+          <p className="mt-4 text-slate-300">{gate.body}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <a
-              href={CLUB_REGISTER_PATH}
+              href={gate.primaryHref}
               className="rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950"
             >
-              Complete club registration
+              {gate.primaryLabel}
             </a>
             <button
               onClick={logout}

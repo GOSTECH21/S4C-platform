@@ -31,6 +31,11 @@ import {
   ownedCampaignId,
   voteRowsForInsert,
 } from "../app/lib/fan-votes";
+import {
+  clubGateCopy,
+  clubLoginWrongRoleMessage,
+  kindFromProfileRole,
+} from "../app/lib/signed-in-role";
 
 const failures: string[] = [];
 
@@ -281,6 +286,16 @@ assert(
       'null value in column "campaign_id" of relation "supporter_votes" violates not-null constraint',
   }),
   "Detects the hosted campaign_id NOT NULL vote failure"
+);
+
+assert(kindFromProfileRole("supporter") === "fan", "Supporter profile is a fan");
+assert(
+  clubGateCopy("fan").primaryHref.includes("supporter/dashboard"),
+  "A signed-in fan is sent to My S4P instead of club registration"
+);
+assert(
+  /fan account/i.test(clubLoginWrongRoleMessage("fan")),
+  "Club login tells a fan they do not need a club sign-in to vote"
 );
 
 const merged = listsWithUploadsFirst(

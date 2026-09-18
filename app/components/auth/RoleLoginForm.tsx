@@ -10,6 +10,7 @@ type RoleLoginFormProps = {
   subtitle: string;
   destination: string;
   registerHref: string;
+  afterSignIn?: () => Promise<string | null>;
 };
 
 export default function RoleLoginForm({
@@ -17,6 +18,7 @@ export default function RoleLoginForm({
   subtitle,
   destination,
   registerHref,
+  afterSignIn,
 }: RoleLoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,6 +40,15 @@ export default function RoleLoginForm({
       setError(signInError.message);
       setBusy(false);
       return;
+    }
+
+    if (afterSignIn) {
+      const blocked = await afterSignIn();
+      if (blocked) {
+        setError(blocked);
+        setBusy(false);
+        return;
+      }
     }
 
     window.location.href = destination;

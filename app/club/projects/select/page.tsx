@@ -34,6 +34,8 @@ import {
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
 } from "@/app/lib/routes";
+import { clubGateCopy } from "@/app/lib/signed-in-role";
+import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -70,9 +72,8 @@ export default function SelectMatchDayProjectsPage() {
             router.replace(CLUB_LOGIN_PATH);
             return;
           }
-          setError(
-            "This login is not linked to a club account yet. Complete club registration first."
-          );
+          const kind = (await identifySignedInKind()) ?? "unknown";
+          setError(clubGateCopy(kind).body);
           setLoading(false);
           return;
         }
