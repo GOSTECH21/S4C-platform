@@ -8,6 +8,7 @@ import {
   getVotedProjectIds,
   markPortfolioProjectsVoted,
   submitCampaignVotes,
+  describeDataError,
   type CampaignProject,
   type S4PCampaign,
   type Supporter,
@@ -222,12 +223,14 @@ function CampaignPanel({
         campaign.postedClubId ?? campaign.clubId
       );
       setSubmitted(true);
-      await onVotesChanged();
+      try {
+        await onVotesChanged();
+      } catch {
+        // The vote is saved even if the page refresh fails.
+      }
     } catch (err) {
-      console.error("Failed to submit vote:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to submit your vote."
-      );
+      console.error("Failed to submit vote:", describeDataError(err));
+      setError(describeDataError(err, "Failed to submit your vote."));
     } finally {
       setSubmitting(false);
     }

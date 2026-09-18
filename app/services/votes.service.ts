@@ -48,6 +48,39 @@ const PROJECT_FIELDS =
 
 const FEATURED_PROJECT_NAME = "Global Schools Solar";
 
+export function describeDataError(error: unknown, fallback = "Request failed."): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (error && typeof error === "object") {
+    const row = error as {
+      message?: string;
+      details?: string;
+      hint?: string;
+      code?: string;
+    };
+    const parts = [row.message, row.details, row.hint, row.code]
+      .map((part) => String(part ?? "").trim())
+      .filter(Boolean);
+    if (parts.length > 0) return parts.join(" — ");
+  }
+  if (typeof error === "string" && error.trim()) return error;
+  return fallback;
+}
+
+function throwIfQueryError(error: unknown, fallback: string) {
+  if (!error) return;
+  const message = describeDataError(error, fallback);
+  const code = String((error as { code?: string }).code ?? "");
+  const err = new Error(message);
+  (err as Error & { code?: string }).code = code;
+  throw err;
+}
+
+function isUuid(value: string | null | undefined): value is string {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value ?? ""
+  );
+}
+
 export function isFeaturedClimateProject(
   project: Pick<ClimateProject, "name" | "featured">
 ): boolean {
@@ -205,7 +238,7 @@ export async function getVotedProjectIds(
     .select("climate_project_id")
     .eq("supporter_id", supporterId);
 
-  if (error) throw error;
+  throwIfQueryError(error, "Could not load your previous votes.");
 
   return new Set((data ?? []).map((row) => row.climate_project_id as string));
 }
@@ -219,7 +252,7 @@ export async function getVotedProjects(
     .select(`id, climate_projects (${PROJECT_FIELDS})`)
     .eq("supporter_id", supporterId);
 
-  if (error) throw error;
+  throwIfQueryError(error, "Could not load the Climate Projects you voted for.");
 
   return (data ?? [])
     .map((row) => (row as unknown as { climate_projects: ClimateProject }).climate_projects)
@@ -764,10 +797,12 @@ export async function submitCampaignVotes(
       .delete()
       .eq("supporter_id", supporterId)
       .in("climate_project_id", campaignProjectIds);
-    if (delError) throw delError;
+    if (delError && delError.code !== "PGRST116") {
+      throwIfQueryError(delError, "Could not clear your previous votes.");
+    }
   }
 
-  const resolvedCampaignId = campaignId ?? null;
+  const resolvedCampaignId = isUuid(campaignId ?? null) ? campaignId : null;
 
   const rows = selectedProjectIds.map((projectId) => ({
     supporter_id: supporterId,
@@ -776,12 +811,22 @@ export async function submitCampaignVotes(
   }));
 
   const { error } = await supabase.from("supporter_votes").insert(rows);
-  if (error) throw error;
+  if (error && error.code !== "23505") {
+    throwIfQueryError(error, "Could not save your vote.");
+  }
 
-  await markPortfolioProjectsVoted(postedClubId, selectedProjectIds);
+  try {
+    await markPortfolioProjectsVoted(postedClubId, selectedProjectIds);
+  } catch {
+    // The vote is already stored; the club board can pick it up on refresh.
+  }
 
   if (resolvedCampaignId) {
-    await refreshCampaignVoteCounts(resolvedCampaignId, campaignProjectIds);
+    try {
+      await refreshCampaignVoteCounts(resolvedCampaignId, campaignProjectIds);
+    } catch {
+      // Vote rows remain even if campaign totals cannot be updated.
+    }
   }
 }
 
@@ -790,18 +835,26 @@ export async function markPortfolioProjectsVoted(
   projectIds: string[]
 ) {
   const ids = [...new Set(projectIds.filter(Boolean))];
-  if (!clubId || ids.length === 0) return;
+  if (!isUuid(clubId) || ids.length === 0) return;
 
-  await supabase
-    .from("club_match_portfolio")
-    .update({ status: MATCH_DAY_PORTFOLIO_VOTED })
-    .eq("club_id", clubId)
-    .in("project_id", ids);
-  await supabase
-    .from("club_match_portfolio")
-    .update({ status: MATCH_DAY_PORTFOLIO_VOTED })
-    .eq("club_id", clubId)
-    .in("climate_project_id", ids);
+  try {
+    await supabase
+      .from("club_match_portfolio")
+      .update({ status: MATCH_DAY_PORTFOLIO_VOTED })
+      .eq("club_id", clubId)
+      .in("project_id", ids);
+  } catch {
+    return;
+  }
+  try {
+    await supabase
+      .from("club_match_portfolio")
+      .update({ status: MATCH_DAY_PORTFOLIO_VOTED })
+      .eq("club_id", clubId)
+      .in("climate_project_id", ids);
+  } catch {
+    // Hosted schema uses project_id only.
+  }
 }
 
 async function refreshCampaignVoteCounts(
