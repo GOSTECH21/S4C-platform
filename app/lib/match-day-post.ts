@@ -2,6 +2,8 @@ import { seasonNamesMatch } from "./current-season";
 
 export const MATCH_DAY_PORTFOLIO_SELECTED = "selected";
 export const MATCH_DAY_PORTFOLIO_POSTED = "posted";
+/** Posted Match Day project that at least one fan has voted for. */
+export const MATCH_DAY_PORTFOLIO_VOTED = "posted-voted";
 
 export function matchDayCampaignTitle(clubName: string): string {
   return `${clubName} Climate Campaign`;
@@ -41,5 +43,11 @@ export function portfolioProjectId(row: Record<string, unknown>): string {
 }
 
 export function isPostedPortfolioStatus(status: unknown): boolean {
-  return String(status ?? "").toLowerCase() === MATCH_DAY_PORTFOLIO_POSTED;
+  const value = String(status ?? "").toLowerCase();
+  return value === MATCH_DAY_PORTFOLIO_POSTED || value === MATCH_DAY_PORTFOLIO_VOTED;
+}
+
+export function isVotedPortfolioStatus(status: unknown): boolean {
+  const value = String(status ?? "").toLowerCase();
+  return value === MATCH_DAY_PORTFOLIO_VOTED || value.includes("voted");
 }

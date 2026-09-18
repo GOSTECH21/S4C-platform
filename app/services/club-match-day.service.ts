@@ -20,7 +20,9 @@ import {
 import {
   MATCH_DAY_PORTFOLIO_POSTED,
   MATCH_DAY_PORTFOLIO_SELECTED,
+  MATCH_DAY_PORTFOLIO_VOTED,
   fanTeamMatchesPostedClub,
+  isVotedPortfolioStatus,
   matchDayCampaignTitle,
 } from "../lib/match-day-post";
 import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
@@ -524,6 +526,22 @@ export async function loadProjectsByIds(
     .filter((project): project is ClimateProject => Boolean(project));
 }
 
+export async function loadVotedPortfolioProjects(
+  clubId: string
+): Promise<ClimateProject[]> {
+  const { data, error } = await supabase
+    .from("club_match_portfolio")
+    .select("*")
+    .eq("club_id", clubId);
+  if (error || !data?.length) return [];
+
+  const ids = (data as Array<Record<string, unknown>>)
+    .filter((row) => isVotedPortfolioStatus(row.status))
+    .map((row) => String(row.project_id ?? row.climate_project_id ?? ""))
+    .filter(Boolean);
+  return loadProjectsByIds([...new Set(ids)]);
+}
+
 export async function loadPortfolioProjects(
   clubId: string
 ): Promise<ClimateProject[]> {
@@ -572,7 +590,8 @@ export async function loadClubProjectBoard(
         ? portfolio
         : storedProjects
   );
-  const voted = uniqueProjects(lists.voted);
+  const votedFromPortfolio = await loadVotedPortfolioProjects(clubId);
+  const voted = uniqueProjects([...lists.voted, ...votedFromPortfolio]);
   const funded = uniqueProjects(lists.funded);
   const minAmount = stored?.minAmount ?? campaign?.sponsorship_per_goal ?? null;
 
@@ -910,13 +929,16 @@ export async function saveMatchDaySelection({
   writeStoredMatchDay(clubId, auction);
   writeCampaignAuction(auction.campaignId, auction);
   const selectedProjects = await loadProjectsByIds(portfolioIds);
+  const votedProjects = (await loadVotedPortfolioProjects(clubId)).filter(
+    (project) => portfolioIds.includes(project.id)
+  );
   await persistFileRecord({
     clubId,
     clubName,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
     minAmount: auction.expectedSponsorship,
     selected: selectedProjects,
-    voted: [],
+    voted: votedProjects,
   });
   return auction;
 }
@@ -926,17 +948,32 @@ async function writeClubPortfolio(
   projectIds: string[],
   status: string
 ) {
+  const existing = await supabase
+    .from("club_match_portfolio")
+    .select("*")
+    .eq("club_id", clubId);
+  const previouslyVoted = new Set(
+    ((existing.data ?? []) as Array<Record<string, unknown>>)
+      .filter((row) => isVotedPortfolioStatus(row.status))
+      .map((row) => String(row.project_id ?? row.climate_project_id ?? ""))
+      .filter(Boolean)
+  );
+
   await supabase.from("club_match_portfolio").delete().eq("club_id", clubId);
+  const rowStatus = (projectId: string) =>
+    status === MATCH_DAY_PORTFOLIO_POSTED && previouslyVoted.has(projectId)
+      ? MATCH_DAY_PORTFOLIO_VOTED
+      : status;
   const portfolioAttempts = [
     projectIds.map((projectId) => ({
       club_id: clubId,
       project_id: projectId,
-      status,
+      status: rowStatus(projectId),
     })),
     projectIds.map((projectId) => ({
       club_id: clubId,
       climate_project_id: projectId,
-      status,
+      status: rowStatus(projectId),
     })),
   ];
   let lastError = "Could not save the Match Day projects.";

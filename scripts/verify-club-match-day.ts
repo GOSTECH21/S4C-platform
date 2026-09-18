@@ -18,7 +18,11 @@ import {
   selectableCatalogForClub,
 } from "../app/lib/featured-climate-country";
 import {
+  MATCH_DAY_PORTFOLIO_POSTED,
+  MATCH_DAY_PORTFOLIO_VOTED,
   fanTeamMatchesPostedClub,
+  isPostedPortfolioStatus,
+  isVotedPortfolioStatus,
   matchDayCampaignTitle,
 } from "../app/lib/match-day-post";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
@@ -207,6 +211,17 @@ assert(
 assert(
   fanTeamMatchesPostedClub(unitedFan, { clubId: "fan-united", title: "Other" }),
   "A fan matches a posted campaign when the club id is the same"
+);
+assert(
+  isPostedPortfolioStatus(MATCH_DAY_PORTFOLIO_POSTED) &&
+    isPostedPortfolioStatus(MATCH_DAY_PORTFOLIO_VOTED) &&
+    !isPostedPortfolioStatus("selected"),
+  "Voted Match Day projects stay posted for fans"
+);
+assert(
+  isVotedPortfolioStatus(MATCH_DAY_PORTFOLIO_VOTED) &&
+    !isVotedPortfolioStatus(MATCH_DAY_PORTFOLIO_POSTED),
+  "Club Voted-For Projects reads posted-voted portfolio rows"
 );
 assert(
   sponsorOfferHeadline({

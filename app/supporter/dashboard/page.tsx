@@ -6,6 +6,7 @@ import {
   getMyS4PCampaigns,
   getOrCreateSupporter,
   getVotedProjectIds,
+  markPortfolioProjectsVoted,
   submitCampaignVotes,
   type CampaignProject,
   type S4PCampaign,
@@ -41,6 +42,17 @@ export default function MyS4PDashboardPage() {
     setTeams(supported);
     setCampaigns(camps);
     setVotedIds(voted);
+    await Promise.all(
+      camps.map((campaign) => {
+        const votedOnThis = voteableProjects(campaign)
+          .map((project) => project.id)
+          .filter((id) => voted.has(id));
+        return markPortfolioProjectsVoted(
+          campaign.postedClubId ?? campaign.clubId,
+          votedOnThis
+        );
+      })
+    );
   }
 
   useEffect(() => {
@@ -206,7 +218,8 @@ function CampaignPanel({
         supporterId,
         [...selected],
         voteable.map((project) => project.id),
-        campaign.campaignId
+        campaign.campaignId,
+        campaign.postedClubId ?? campaign.clubId
       );
       setSubmitted(true);
       await onVotesChanged();

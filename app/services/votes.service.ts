@@ -15,6 +15,7 @@ import {
 } from "../lib/sponsorship-auction";
 import { seasonNamesMatch } from "../lib/current-season";
 import {
+  MATCH_DAY_PORTFOLIO_VOTED,
   fanTeamMatchesPostedClub,
   isPostedPortfolioStatus,
   portfolioProjectId,
@@ -99,24 +100,14 @@ async function splitFeaturedProjects(
 async function resolveOpenCampaignId(
   clubId: string | null
 ): Promise<string | null> {
-  if (clubId) {
-    const forClub = await supabase
-      .from("match_campaigns")
-      .select("id")
-      .eq("status", "open")
-      .eq("club_id", clubId)
-      .maybeSingle();
-    if (forClub.data?.id) return forClub.data.id as string;
-  }
-
-  const anyOpen = await supabase
+  if (!clubId) return null;
+  const forClub = await supabase
     .from("match_campaigns")
     .select("id")
     .eq("status", "open")
-    .limit(1)
+    .eq("club_id", clubId)
     .maybeSingle();
-
-  return (anyOpen.data?.id as string | undefined) ?? null;
+  return (forClub.data?.id as string | undefined) ?? null;
 }
 
 /**
@@ -255,6 +246,7 @@ export type S4PCampaign = {
   featuredProject: CampaignProject | null;
   projects: CampaignProject[];
   campaignId: string | null;
+  postedClubId: string | null;
   openingAmount: number;
   maxAmount: number;
   voteTarget: number;
@@ -296,6 +288,7 @@ export async function getMyS4PCampaigns(
       ...built,
       clubId: primary.id,
       clubName: primary.displayName || built.clubName,
+      postedClubId: built.postedClubId || built.clubId,
     });
   }
 
@@ -449,7 +442,7 @@ async function campaignFromClubPortfolio(
   const auction = auctionSettingsForClub(postedClubId ?? team.id, campaignId);
 
   return {
-    clubId: team.id,
+    clubId: postedClubId,
     clubName: team.displayName || club?.name || team.name,
     matchTitle: formatMatchHeadline(matchTitle),
     sponsorName: sponsor.name,
@@ -464,6 +457,7 @@ async function campaignFromClubPortfolio(
       withAuction(project, voteCounts.get(project.id) ?? 0, auction)
     ),
     campaignId,
+    postedClubId,
     openingAmount: auction.openingAmount,
     maxAmount: auction.maxAmount,
     voteTarget: auction.voteTarget,
@@ -551,6 +545,7 @@ async function buildCampaignFromMatchRow(
       withAuction(project, votesFor(project.id), auction)
     ),
     campaignId: openCampaign.id,
+    postedClubId: openCampaign.club_id,
     openingAmount: auction.openingAmount,
     maxAmount: auction.maxAmount,
     voteTarget: auction.voteTarget,
@@ -753,13 +748,15 @@ async function resolveCampaignSponsor({
 
 /**
  * Persist a fan's campaign vote: replaces any prior votes among the campaign's
- * projects with the newly selected set.
+ * projects with the newly selected set, and marks those projects on the club's
+ * Match Day portfolio so the Sustainability Director can see them.
  */
 export async function submitCampaignVotes(
   supporterId: string,
   selectedProjectIds: string[],
   campaignProjectIds: string[],
-  campaignId?: string | null
+  campaignId?: string | null,
+  postedClubId?: string | null
 ) {
   if (campaignProjectIds.length > 0) {
     const { error: delError } = await supabase
@@ -770,8 +767,7 @@ export async function submitCampaignVotes(
     if (delError) throw delError;
   }
 
-  const resolvedCampaignId =
-    campaignId ?? (await resolveOpenCampaignId(null));
+  const resolvedCampaignId = campaignId ?? null;
 
   const rows = selectedProjectIds.map((projectId) => ({
     supporter_id: supporterId,
@@ -782,9 +778,30 @@ export async function submitCampaignVotes(
   const { error } = await supabase.from("supporter_votes").insert(rows);
   if (error) throw error;
 
+  await markPortfolioProjectsVoted(postedClubId, selectedProjectIds);
+
   if (resolvedCampaignId) {
     await refreshCampaignVoteCounts(resolvedCampaignId, campaignProjectIds);
   }
+}
+
+export async function markPortfolioProjectsVoted(
+  clubId: string | null | undefined,
+  projectIds: string[]
+) {
+  const ids = [...new Set(projectIds.filter(Boolean))];
+  if (!clubId || ids.length === 0) return;
+
+  await supabase
+    .from("club_match_portfolio")
+    .update({ status: MATCH_DAY_PORTFOLIO_VOTED })
+    .eq("club_id", clubId)
+    .in("project_id", ids);
+  await supabase
+    .from("club_match_portfolio")
+    .update({ status: MATCH_DAY_PORTFOLIO_VOTED })
+    .eq("club_id", clubId)
+    .in("climate_project_id", ids);
 }
 
 async function refreshCampaignVoteCounts(
