@@ -46,47 +46,7 @@ export async function getFanRegistrationsForStaff(): Promise<{
   const fans = (data ?? []).map((row) =>
     mapFanRow(row as Parameters<typeof mapFanRow>[0])
   );
-  const memberships = await expandFanClubMemberships(fans);
-  return { fans, memberships };
-}
-
-async function expandFanClubMemberships(
-  fans: RegisteredFan[]
-): Promise<RegisteredFan[]> {
-  const userIds = fans
-    .map((fan) => fan.authUserId)
-    .filter((id): id is string => Boolean(id));
-  if (userIds.length === 0) return fans;
-
-  const { data, error } = await supabase
-    .from("supporter_preferences")
-    .select("user_id, club")
-    .in("user_id", userIds);
-
-  if (error || !data?.length) return fans;
-
-  const clubsByUser = new Map<string, Set<string>>();
-  for (const row of data) {
-    const userId = String(row.user_id ?? "");
-    const clubName = String(row.club ?? "").trim();
-    if (!userId || !clubName) continue;
-    const clubs = clubsByUser.get(userId) ?? new Set<string>();
-    clubs.add(clubName);
-    clubsByUser.set(userId, clubs);
-  }
-
-  const memberships: RegisteredFan[] = [];
-  for (const fan of fans) {
-    const extra = fan.authUserId ? clubsByUser.get(fan.authUserId) : undefined;
-    if (!extra || extra.size === 0) {
-      memberships.push(fan);
-      continue;
-    }
-    for (const clubName of extra) {
-      memberships.push({ ...fan, clubName });
-    }
-  }
-  return memberships.length > 0 ? memberships : fans;
+  return { fans, memberships: fans };
 }
 
 export async function createSupporter({

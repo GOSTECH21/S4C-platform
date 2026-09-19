@@ -3,29 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import AppLayout from "../layout/AppLayout";
 import { groupFansByClub, type RegisteredFan } from "@/app/lib/s4p-admin";
-import { loadStaffParticipantRoster } from "@/app/services/s4p-admin.service";
+import {
+  loadStaffParticipantRoster,
+  type StaffDirector,
+  type StaffSponsor,
+} from "@/app/services/s4p-admin.service";
 import { supabase } from "@/app/lib/supabase";
 import { ADMIN_LOGIN_PATH } from "@/app/lib/routes";
 
-type Director = {
-  id: string;
-  fullName: string;
-  email: string;
-  clubName: string;
-};
-
-type SponsorRow = {
-  id: string;
-  brandName: string;
-  contactName: string;
-  jobTitle: string;
-};
+type Director = StaffDirector;
 
 export default function S4PAdminHomePage() {
   const [fans, setFans] = useState<RegisteredFan[]>([]);
   const [memberships, setMemberships] = useState<RegisteredFan[]>([]);
   const [directors, setDirectors] = useState<Director[]>([]);
-  const [sponsors, setSponsors] = useState<SponsorRow[]>([]);
+  const [sponsors, setSponsors] = useState<StaffSponsor[]>([]);
+  const [openSponsorId, setOpenSponsorId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -107,7 +100,9 @@ export default function S4PAdminHomePage() {
             <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
               <h2 className="text-3xl font-black">Fans by club</h2>
               <p className="mt-2 text-slate-400">
-                Totals use the club each fan chose at registration.
+                Totals use the club each fan chose at registration. Club
+                Sustainability Directors and Sponsorship Managers are listed in
+                their own sections, not as fans.
               </p>
               {groups.length === 0 ? (
                 <p className="mt-6 text-slate-500">No fans registered yet.</p>
@@ -168,17 +163,54 @@ export default function S4PAdminHomePage() {
                   <p className="mt-4 text-slate-500">No sponsor accounts yet.</p>
                 ) : (
                   <ul className="mt-4 space-y-3">
-                    {sponsors.map((row) => (
-                      <li key={row.id} className="rounded-xl bg-slate-950 p-4">
-                        <p className="font-semibold">{row.brandName}</p>
-                        <p className="text-sm text-slate-400">
-                          {row.contactName}
-                        </p>
-                        <p className="mt-1 text-sm text-green-300">
-                          {row.jobTitle}
-                        </p>
-                      </li>
-                    ))}
+                    {sponsors.map((row) => {
+                      const open = openSponsorId === row.id;
+                      return (
+                        <li key={row.id}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenSponsorId(open ? null : row.id)
+                            }
+                            className="w-full rounded-xl bg-slate-950 p-4 text-left transition hover:border-green-500 hover:ring-1 hover:ring-green-500"
+                          >
+                            <p className="font-semibold">{row.brandName}</p>
+                            <p className="text-sm text-slate-400">
+                              {row.contactName}
+                            </p>
+                            <p className="mt-1 text-sm text-green-300">
+                              {row.jobTitle}
+                            </p>
+                            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                              {open ? "Hide clubs" : "View sponsored clubs"}
+                            </p>
+                          </button>
+                          {open && (
+                            <div className="mt-2 rounded-xl border border-slate-700 bg-slate-900 p-4">
+                              <p className="text-sm font-semibold text-green-300">
+                                Clubs this manager sponsors
+                              </p>
+                              {row.clubNames.length === 0 ? (
+                                <p className="mt-2 text-sm text-slate-500">
+                                  No clubs in this Goal Sponsorship Network yet.
+                                </p>
+                              ) : (
+                                <ul className="mt-2 space-y-1">
+                                  {row.clubNames.map((clubName) => (
+                                    <li
+                                      key={clubName}
+                                      className="text-sm text-slate-200"
+                                    >
+                                      {clubName}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>

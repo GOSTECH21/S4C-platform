@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabase";
 import {
   addClubsToNetwork,
   acceptInviteIntoNetwork,
@@ -14,6 +15,7 @@ import {
   type MatchDayClubLock,
   type NetworkInvite,
 } from "../lib/climate-sponsors";
+import { uniqueClubNames } from "../lib/s4p-admin";
 
 const ROSTER_KEY = "s4p.club.climateSponsors";
 const NETWORK_KEY = "s4p.sponsor.goalNetwork";
@@ -143,6 +145,46 @@ export function saveGoalNetwork(network: GoalSponsorshipNetwork) {
     brandKey: brandKey(network.brandName),
   };
   writeJson(NETWORK_KEY, store);
+  void persistSponsorClubNetwork(network);
+}
+
+export function clubsForBrandFromLocalStores(
+  brandName: string,
+  email?: string | null
+): string[] {
+  const names: string[] = [];
+  const network = loadGoalNetwork(brandName, email);
+  names.push(...(network?.clubNames ?? []));
+  const rosters = readJson<RosterStore>(ROSTER_KEY, {});
+  for (const roster of Object.values(rosters)) {
+    const listed = roster.sponsors?.some(
+      (sponsor) =>
+        brandsMatch(sponsor.brandName, brandName) ||
+        Boolean(
+          email &&
+            sponsor.email &&
+            sponsor.email.toLowerCase() === email.toLowerCase()
+        )
+    );
+    if (listed && roster.clubName) names.push(roster.clubName);
+  }
+  return uniqueClubNames(names);
+}
+
+async function persistSponsorClubNetwork(network: GoalSponsorshipNetwork) {
+  if (network.clubNames.length === 0) return;
+  const rows = uniqueClubNames(network.clubNames).map((clubName) => ({
+    brand_name: network.brandName,
+    club_name: clubName,
+    email: network.email,
+  }));
+  try {
+    await supabase.from("sponsor_club_network").upsert(rows, {
+      onConflict: "brand_name,club_name",
+    });
+  } catch {
+    // Table is optional until migration 0009 is applied.
+  }
 }
 
 export function ensureGoalNetwork({
