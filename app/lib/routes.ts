@@ -27,6 +27,9 @@ export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";
+export const ADMIN_LOGIN_PATH = "/admin/login";
+export const ADMIN_REGISTER_PATH = "/admin/register";
+export const ADMIN_PATH = "/admin";
 export const PARTNER_LOGIN_PATH = "/partner/login";
 export const PARTNER_REGISTER_PATH = "/partner/register";
 export const PARTNER_DASHBOARD_PATH = "/partner/dashboard";
@@ -44,7 +47,7 @@ export function isMyS4PPath(pathname: string | null): boolean {
 export function destinationForRole(role: string | null | undefined): string {
   switch (role) {
     case "admin":
-      return "/admin/match-centre";
+      return ADMIN_PATH;
     case "club":
       return "/club/dashboard";
     case "sponsor":

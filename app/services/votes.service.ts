@@ -28,6 +28,7 @@ import {
   ownedCampaignId,
   voteRowsForInsert,
 } from "../lib/fan-votes";
+import { resolvedFullName } from "../lib/s4p-admin";
 
 export type ClimateProject = {
   id: string;
@@ -226,6 +227,33 @@ async function ensureOpenCampaignIdForClub(
   return resolveOpenCampaignId(clubId);
 }
 
+function metadataFullName(user: {
+  email?: string | null;
+  user_metadata?: { full_name?: string; first_name?: string; last_name?: string };
+}) {
+  const meta = user.user_metadata;
+  const combined = `${meta?.first_name ?? ""} ${meta?.last_name ?? ""}`.trim();
+  return (
+    meta?.full_name?.trim() ||
+    combined ||
+    undefined
+  );
+}
+
+async function supporterWithResolvedName(
+  row: Supporter,
+  user: { email?: string | null; user_metadata?: { full_name?: string; first_name?: string; last_name?: string } }
+): Promise<Supporter> {
+  const fullName = resolvedFullName(
+    row.full_name,
+    row.email ?? user.email,
+    metadataFullName(user)
+  );
+  if (!fullName || fullName === row.full_name) return row;
+  await supabase.from("supporters").update({ full_name: fullName }).eq("id", row.id);
+  return { ...row, full_name: fullName };
+}
+
 /**
  * Resolve the supporter row for the currently authenticated user, creating a
  * minimal one on first use. Registration only creates a `profiles` row, so a
@@ -244,7 +272,7 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if (byAuthId.data) return byAuthId.data;
+  if (byAuthId.data) return supporterWithResolvedName(byAuthId.data, user);
 
   if (user.email) {
     const byEmail = await supabase
@@ -260,14 +288,20 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
           .update({ auth_user_id: user.id })
           .eq("id", byEmail.data.id);
       }
-      return { ...byEmail.data, auth_user_id: user.id };
+      return supporterWithResolvedName(
+        { ...byEmail.data, auth_user_id: user.id },
+        user
+      );
     }
   }
 
   const created = await supabase
     .from("supporters")
     .insert({
-      full_name: user.email?.split("@")[0] ?? "Supporter",
+      full_name:
+        metadataFullName(user) ||
+        user.email?.split("@")[0] ||
+        "Supporter",
       email: user.email,
       auth_user_id: user.id,
       notification_enabled: true,

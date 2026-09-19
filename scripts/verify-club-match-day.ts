@@ -289,6 +289,7 @@ assert(
 );
 
 assert(kindFromProfileRole("supporter") === "fan", "Supporter profile is a fan");
+assert(kindFromProfileRole("admin") === "admin", "Admin profile is S4P staff");
 assert(
   clubGateCopy("fan").primaryHref.includes("supporter/dashboard"),
   "A signed-in fan is sent to My S4P instead of club registration"

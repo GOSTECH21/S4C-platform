@@ -10,6 +10,14 @@ export async function identifySignedInKind(): Promise<SignedInKind | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const fromProfile = kindFromProfileRole(profile?.role);
+  if (fromProfile === "admin") return "admin";
+
   const clubByAuth = await supabase
     .from("club_accounts")
     .select("id")
@@ -27,12 +35,6 @@ export async function identifySignedInKind(): Promise<SignedInKind | null> {
     if (clubByEmail.data) return "club";
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-  const fromProfile = kindFromProfileRole(profile?.role);
   if (fromProfile === "sponsor" || fromProfile === "partner") return fromProfile;
 
   const supporterByAuth = await supabase
@@ -60,4 +62,27 @@ export async function identifySignedInKind(): Promise<SignedInKind | null> {
   if (sponsor.data) return "sponsor";
 
   return fromProfile;
+}
+
+export async function requireS4PStaff(): Promise<{
+  email: string | null;
+  fullName: string | null;
+} | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, email")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (kindFromProfileRole(profile?.role) !== "admin") return null;
+  const meta = user.user_metadata as
+    | { full_name?: string; first_name?: string }
+    | undefined;
+  return {
+    email: (profile?.email as string | null) ?? user.email ?? null,
+    fullName: meta?.full_name ?? meta?.first_name ?? null,
+  };
 }

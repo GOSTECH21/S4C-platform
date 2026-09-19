@@ -12,9 +12,12 @@ import {
 } from "@/app/services/teams.service";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
+import { storedFullName } from "@/app/lib/s4p-admin";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [catalog, setCatalog] = useState<TeamGroup[]>([]);
@@ -44,10 +47,23 @@ export default function RegisterPage() {
       return;
     }
 
+    const fullName = storedFullName(firstName, lastName);
+    if (!fullName) {
+      setError("Enter your first name and last name.");
+      return;
+    }
+
     setBusy(true);
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: fullName,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+        },
+      },
     });
 
     if (signUpError) {
@@ -77,7 +93,7 @@ export default function RegisterPage() {
     const created = await supabase
       .from("supporters")
       .insert({
-        full_name: email.split("@")[0] ?? "Supporter",
+        full_name: fullName,
         email: user.email,
         auth_user_id: user.id,
         favourite_club_id: teams[0].id,
@@ -94,7 +110,12 @@ export default function RegisterPage() {
         .eq("auth_user_id", user.id)
         .maybeSingle();
       supporterId = existing.data?.id;
-      if (!supporterId) {
+      if (supporterId) {
+        await supabase
+          .from("supporters")
+          .update({ full_name: fullName, email: user.email })
+          .eq("id", supporterId);
+      } else {
         setError(created.error.message);
         setBusy(false);
         return;
@@ -125,11 +146,12 @@ export default function RegisterPage() {
         </p>
         <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
         <p className="mt-2 text-slate-400">
-          Create your account and choose the teams you support across the four
-          sports categories: Football (Goal scored), Rugby (Try scored), NFL
-          (Touchdown scored) and NBA (3-Point Score Sponsorship). You will only
-          see sponsored climate projects when those teams are playing — and you
-          will get a match-day alert when a sponsored match is live.
+          Create your account with your real name and email, then choose the
+          teams you support across the four sports categories: Football (Goal
+          scored), Rugby (Try scored), NFL (Touchdown scored) and NBA (3-Point
+          Score Sponsorship). You will only see sponsored climate projects when
+          those teams are playing — and you will get a match-day alert when a
+          sponsored match is live.
         </p>
 
         {error && (
@@ -139,13 +161,33 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleRegister} className="mt-8">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
+            <input
+              type="text"
+              name="firstName"
+              autoComplete="given-name"
+              placeholder="First name"
+              className="rounded-md bg-slate-800 p-3"
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+              required
+            />
+            <input
+              type="text"
+              name="lastName"
+              autoComplete="family-name"
+              placeholder="Last name"
+              className="rounded-md bg-slate-800 p-3"
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+              required
+            />
             <input
               type="email"
               name="email"
               autoComplete="email"
               placeholder="Email"
-              className="rounded-md bg-slate-800 p-3"
+              className="rounded-md bg-slate-800 p-3 md:col-span-2"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required

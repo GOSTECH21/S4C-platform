@@ -1,4 +1,5 @@
 import {
+  ADMIN_PATH,
   CLUB_REGISTER_PATH,
   FAN_LOGIN_PATH,
   HOME_PATH,
@@ -7,12 +8,19 @@ import {
   SUPPORTER_CAMPAIGN_PATH,
 } from "./routes";
 
-export type SignedInKind = "club" | "fan" | "sponsor" | "partner" | "unknown";
+export type SignedInKind =
+  | "admin"
+  | "club"
+  | "fan"
+  | "sponsor"
+  | "partner"
+  | "unknown";
 
 export function kindFromProfileRole(
   role: string | null | undefined
 ): SignedInKind {
   const value = String(role ?? "").toLowerCase();
+  if (value === "admin") return "admin";
   if (value === "club") return "club";
   if (value === "sponsor") return "sponsor";
   if (value === "partner") return "partner";
@@ -48,6 +56,15 @@ export function clubGateCopy(kind: SignedInKind) {
       logoutHref: HOME_PATH,
     };
   }
+  if (kind === "admin") {
+    return {
+      title: "You're signed in as S4P staff",
+      body: "This page is the club Sustainability Director dashboard. Open the S4P Admin Database instead.",
+      primaryLabel: "Go to S4P Admin Database",
+      primaryHref: ADMIN_PATH,
+      logoutHref: HOME_PATH,
+    };
+  }
   return {
     title: "Club account not linked yet",
     body: "You are signed in, but this email is not attached to a club Sustainability Director profile yet. Complete club registration and you will land on the dashboard.",
@@ -66,6 +83,9 @@ export function clubLoginWrongRoleMessage(kind: SignedInKind) {
   }
   if (kind === "partner") {
     return "This email is a Climate Partner account. Use Partner Login.";
+  }
+  if (kind === "admin") {
+    return "This email is an S4P staff account. Use S4P staff login.";
   }
   return "This email is not linked to a club Sustainability Director profile.";
 }

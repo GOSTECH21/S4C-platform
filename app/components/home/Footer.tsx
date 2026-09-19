@@ -127,9 +127,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-
           © {new Date().getFullYear()} Score-For-Our-Planet (S4P). All Rights Reserved.
-
+          {" · "}
+          <Link href="/admin/login" className="hover:text-slate-300">
+            S4P staff
+          </Link>
         </div>
 
       </div>
