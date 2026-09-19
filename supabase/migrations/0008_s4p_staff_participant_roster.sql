@@ -1,35 +1,36 @@
+-- PASTE this file into Supabase Dashboard → SQL Editor → New query → Run.
+-- Do not paste a cursor.com URL. Copy the SQL text only (no line numbers).
+-- Safe to run more than once.
+--
 -- S4P Admin Database: only authorized staff (profiles.role = 'admin')
 -- can list every Fan name and email. Fans can still insert and read
 -- their own supporter row after they register.
---
--- Apply this in the Supabase SQL editor (or via `psql`) against the project.
--- It is safe to run more than once.
 
 create or replace function public.is_s4p_staff()
 returns boolean
 language sql
 stable
 security definer
-set search_path = public
-as $$
+set search_path = public, auth
+as $s4p$
   select exists (
     select 1
     from public.profiles
     where id = auth.uid()
       and lower(coalesce(role, '')) = 'admin'
   );
-$$;
+$s4p$;
 
 revoke all on function public.is_s4p_staff() from public;
 grant execute on function public.is_s4p_staff() to authenticated;
 
 alter table public.supporters enable row level security;
 
-do $$
+do $s4p$
 declare
-  policy record;
+  pol record;
 begin
-  for policy in
+  for pol in
     select policyname
     from pg_policies
     where schemaname = 'public'
@@ -37,11 +38,13 @@ begin
   loop
     execute format(
       'drop policy if exists %I on public.supporters',
-      policy.policyname
+      pol.policyname
     );
   end loop;
-end $$;
+end
+$s4p$;
 
+drop policy if exists "Fans can view their supporter row" on public.supporters;
 create policy "Fans can view their supporter row"
   on public.supporters
   for select
@@ -54,6 +57,7 @@ create policy "Fans can view their supporter row"
     )
   );
 
+drop policy if exists "Fans can insert their supporter row" on public.supporters;
 create policy "Fans can insert their supporter row"
   on public.supporters
   for insert
@@ -65,6 +69,7 @@ create policy "Fans can insert their supporter row"
     )
   );
 
+drop policy if exists "Fans can update their supporter row" on public.supporters;
 create policy "Fans can update their supporter row"
   on public.supporters
   for update
@@ -82,23 +87,19 @@ create policy "Fans can update their supporter row"
     or auth_user_id = auth.uid()
   );
 
-drop policy if exists "S4P staff can view supporter preferences"
-  on public.supporter_preferences;
-create policy "S4P staff can view supporter preferences"
-  on public.supporter_preferences
-  for select
-  using (public.is_s4p_staff());
-
-drop policy if exists "S4P staff can view club accounts"
-  on public.club_accounts;
-create policy "S4P staff can view club accounts"
-  on public.club_accounts
-  for select
-  using (public.is_s4p_staff());
-
-drop policy if exists "S4P staff can view sponsors"
-  on public.sponsors;
-create policy "S4P staff can view sponsors"
-  on public.sponsors
-  for select
-  using (public.is_s4p_staff());
+do $s4p$
+begin
+  if to_regclass('public.supporter_preferences') is not null then
+    execute 'drop policy if exists "S4P staff can view supporter preferences" on public.supporter_preferences';
+    execute 'create policy "S4P staff can view supporter preferences" on public.supporter_preferences for select using (public.is_s4p_staff())';
+  end if;
+  if to_regclass('public.club_accounts') is not null then
+    execute 'drop policy if exists "S4P staff can view club accounts" on public.club_accounts';
+    execute 'create policy "S4P staff can view club accounts" on public.club_accounts for select using (public.is_s4p_staff())';
+  end if;
+  if to_regclass('public.sponsors') is not null then
+    execute 'drop policy if exists "S4P staff can view sponsors" on public.sponsors';
+    execute 'create policy "S4P staff can view sponsors" on public.sponsors for select using (public.is_s4p_staff())';
+  end if;
+end
+$s4p$;
