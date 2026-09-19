@@ -1,4 +1,10 @@
 import Link from "next/link";
+import {
+  CLIMATE_CREDITS_PATH,
+  CLIMATE_IMPACT_LEAGUE_PATH,
+  CLIMATE_SPONSORSHIP_PATH,
+  GLOBAL_SCHOOLS_SOLAR_PATH,
+} from "@/app/lib/routes";
 
 export default function Footer() {
   return (
@@ -68,23 +74,30 @@ export default function Footer() {
             </h3>
 
             <div className="mt-5 space-y-3">
-
-              <p className="text-slate-400">
+              <Link
+                href={CLIMATE_SPONSORSHIP_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
                 Climate Sponsorship
-              </p>
-
-              <p className="text-slate-400">
+              </Link>
+              <Link
+                href={CLIMATE_CREDITS_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
                 Climate Credits
-              </p>
-
-              <p className="text-slate-400">
-                Climate Impact League
-              </p>
-
-              <p className="text-slate-400">
+              </Link>
+              <Link
+                href={CLIMATE_IMPACT_LEAGUE_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
+                Climate Impact League Table
+              </Link>
+              <Link
+                href={GLOBAL_SCHOOLS_SOLAR_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
                 Global Schools Solar
-              </p>
-
+              </Link>
             </div>
 
           </div>
@@ -114,9 +127,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-
           © {new Date().getFullYear()} Score-For-Our-Planet (S4P). All Rights Reserved.
-
+          {" · "}
+          <Link href="/admin/login" className="hover:text-slate-300">
+            S4P staff
+          </Link>
         </div>
 
       </div>

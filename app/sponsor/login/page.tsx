@@ -1,76 +1,83 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
+import {
+  SPONSOR_DASHBOARD_PATH,
+  SPONSOR_REGISTER_PATH,
+} from "@/app/lib/routes";
 
 export default function SponsorLoginPage() {
-  const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-
+  async function handleLogin(event: React.FormEvent) {
+    event.preventDefault();
+    if (loading) return;
     setLoading(true);
-
+    setError(null);
     try {
-      await loginSponsor({
-        email,
-        password,
-      });
-
-      router.push("/sponsor/dashboard");
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
+      await loginSponsor({ email, password });
+      window.location.href = SPONSOR_DASHBOARD_PATH;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign in.");
       setLoading(false);
     }
   }
 
   return (
-    <div className="mx-auto max-w-lg py-20">
-      <h1 className="text-4xl font-bold">Sponsor Login</h1>
-
-      <p className="mt-4 text-gray-600">
-        Sign in to manage your S4P sponsorship campaigns.
+    <div className="mx-auto max-w-lg py-10">
+      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+        Brand / Sponsor
       </p>
-
-      <form onSubmit={handleLogin} className="mt-10 space-y-6">
-        <div>
-          <label className="mb-2 block font-medium">Email</label>
-
+      <h1 className="mt-3 text-4xl font-black">Sponsor Login</h1>
+      <p className="mt-4 text-slate-300">
+        Sign in as Sponsorship Manager to receive a club&apos;s 5 Climate
+        Projects or create your own campaign list.
+      </p>
+      {error && (
+        <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleLogin} className="mt-10 space-y-5">
+        <label className="block text-sm text-slate-400">
+          Email
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border p-3"
+            onChange={(event) => setEmail(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             required
           />
-        </div>
-
-        <div>
-          <label className="mb-2 block font-medium">Password</label>
-
+        </label>
+        <label className="block text-sm text-slate-400">
+          Password
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border p-3"
+            onChange={(event) => setPassword(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             required
           />
-        </div>
-
+        </label>
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-emerald-600 py-4 font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
-          {loading ? "Signing In..." : "Sign In"}
+          {loading ? "Signing in..." : "Login"}
         </button>
       </form>
+      <p className="mt-6 text-center text-sm text-slate-400">
+        New brand?{" "}
+        <Link href={SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
+          Register as Sponsor
+        </Link>
+      </p>
     </div>
   );
 }

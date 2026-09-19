@@ -1,14 +1,27 @@
+import { clubsInCurrentSeasonCompetition } from "../lib/current-season";
 import { supabase } from "../lib/supabase";
 
 export async function initializeLeagueTable(
   competitionId: string
 ) {
-  const { data: clubs, error } = await supabase
+  const { data: competition, error: competitionError } = await supabase
+    .from("competitions")
+    .select("name")
+    .eq("id", competitionId)
+    .maybeSingle();
+  if (competitionError) throw competitionError;
+
+  const { data: clubRows, error } = await supabase
     .from("clubs")
-    .select("id")
+    .select("id, name")
     .eq("competition_id", competitionId);
 
   if (error) throw error;
+
+  const clubs = clubsInCurrentSeasonCompetition(
+    clubRows ?? [],
+    competition?.name
+  );
 
   const rows = clubs.map((club) => ({
     competition_id: competitionId,
