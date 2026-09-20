@@ -15,6 +15,7 @@ import { destinationForRole } from "../app/lib/routes";
 import {
   clubGateCopy,
   clubLoginWrongRoleMessage,
+  fanLoginWrongRoleMessage,
   kindFromProfileRole,
 } from "../app/lib/signed-in-role";
 
@@ -35,6 +36,18 @@ assert(
   "Greeting capitalizes the first name"
 );
 assert(welcomeBackMessage("   ") === null, "No greeting when the name is missing");
+assert(
+  welcomeBackMessage("Stevepalmerliv") === "Welcome back Steve",
+  "Does not greet a Sustainability Director handle as Stevepalmerliv"
+);
+assert(
+  welcomeBackMessage("Alex") === "Welcome back Alex",
+  "A real fan first name still greets as Welcome back Alex"
+);
+assert(
+  guessPersonNameFromEmailLocal("stevepalmerliv") === "Steve Palmer",
+  "Recovers Steve Palmer from the Liverpool SD email handle"
+);
 assert(
   looksLikeEmailLocalPart("pauladamvillafc", "pauladamvillafc@gmail.com"),
   "Email-prefix names are detected"
@@ -143,6 +156,11 @@ assert(
 assert(
   /s4p staff/i.test(clubLoginWrongRoleMessage("admin")),
   "Club login tells S4P staff to use staff login"
+);
+assert(kindFromProfileRole("club") === "club", "Club profile is a Sustainability Director");
+assert(
+  /sustainability director/i.test(fanLoginWrongRoleMessage("club")),
+  "Fan login tells a Sustainability Director to use Club Login"
 );
 
 if (failures.length > 0) {

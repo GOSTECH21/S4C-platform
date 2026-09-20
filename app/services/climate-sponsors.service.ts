@@ -7,6 +7,7 @@ import {
   emptySponsor,
   inviteMatchesSponsor,
   removeSponsor,
+  selectedSponsors,
   toggleSelectedSponsor,
   upsertSponsor,
   type ClubClimateSponsor,
@@ -16,6 +17,7 @@ import {
   type NetworkInvite,
 } from "../lib/climate-sponsors";
 import { uniqueClubNames } from "../lib/s4p-admin";
+import { offerBelongsToClub } from "../lib/campaign-sponsor";
 
 const ROSTER_KEY = "s4p.club.climateSponsors";
 const NETWORK_KEY = "s4p.sponsor.goalNetwork";
@@ -57,6 +59,18 @@ export function loadClubSponsorRoster(
     };
   }
   return { clubId, clubName, sponsors: [], selectedIds: [] };
+}
+
+export function selectedBrandNamesForClubName(clubName: string): string[] {
+  if (!clubName.trim() || typeof window === "undefined") return [];
+  const store = readJson<RosterStore>(ROSTER_KEY, {});
+  for (const roster of Object.values(store)) {
+    if (!offerBelongsToClub(roster.clubName || "", clubName)) continue;
+    return selectedSponsors(roster)
+      .map((sponsor) => sponsor.brandName.trim())
+      .filter(Boolean);
+  }
+  return [];
 }
 
 export function saveClubSponsorRoster(roster: ClubSponsorRoster) {

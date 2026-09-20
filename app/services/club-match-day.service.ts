@@ -1165,6 +1165,16 @@ export async function postMatchDayProjectsToFans({
     DEFAULT_MINIMUM_SPONSORSHIP;
   const postedAt = new Date();
   const visibleAt = fanPostVisibleAt(postedAt);
+  let sponsorNames: string[] = [];
+  try {
+    const { loadClubSponsorRoster } = await import("./climate-sponsors.service");
+    const { selectedSponsors } = await import("../lib/climate-sponsors");
+    sponsorNames = selectedSponsors(
+      loadClubSponsorRoster(clubId, clubName)
+    ).map((sponsor) => sponsor.brandName);
+  } catch {
+    sponsorNames = [];
+  }
   writeFanPostSchedule({
     clubId,
     clubName,
@@ -1172,6 +1182,7 @@ export async function postMatchDayProjectsToFans({
     visibleAt: visibleAt.toISOString(),
     projectIds: portfolioIds,
     campaignId: stored?.campaignId ?? existingCampaign?.id ?? null,
+    sponsorNames,
   });
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
@@ -1213,6 +1224,7 @@ export async function postMatchDayProjectsToFans({
     visibleAt: visibleAt.toISOString(),
     projectIds: portfolioIds,
     campaignId: selection.campaignId,
+    sponsorNames,
   });
   const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
@@ -1225,16 +1237,13 @@ export async function postMatchDayProjectsToFans({
   });
   try {
     const { publishSponsorMatchOffer } = await import("./sponsor-offers.service");
-    const { loadClubSponsorRoster } = await import("./climate-sponsors.service");
-    const { selectedSponsors } = await import("../lib/climate-sponsors");
-    const roster = loadClubSponsorRoster(clubId, clubName);
     await publishSponsorMatchOffer({
       clubId,
       clubName,
       projects: selectedProjects,
       sponsorshipAmountGbp: selection.minAmount,
       gbpPerVote: selection.gbpPerVote,
-      targetBrandNames: selectedSponsors(roster).map((sponsor) => sponsor.brandName),
+      targetBrandNames: sponsorNames,
     });
   } catch {
     // Fans still receive the posted five even if the sponsor offer cannot be stored.

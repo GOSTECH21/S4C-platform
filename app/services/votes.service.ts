@@ -33,6 +33,8 @@ import {
   voteRowsForInsert,
 } from "../lib/fan-votes";
 import { resolvedFullName } from "../lib/s4p-admin";
+import { identifySignedInKind } from "./signed-in-role.service";
+import { isFanFacingKind } from "../lib/signed-in-role";
 
 export type ClimateProject = {
   id: string;
@@ -270,6 +272,9 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
 
   if (!user) return null;
 
+  const kind = await identifySignedInKind();
+  if (kind && !isFanFacingKind(kind)) return null;
+
   const byAuthId = await supabase
     .from("supporters")
     .select("id, full_name, email, auth_user_id, favourite_club_id")
@@ -302,10 +307,7 @@ export async function getOrCreateSupporter(): Promise<Supporter | null> {
   const created = await supabase
     .from("supporters")
     .insert({
-      full_name:
-        metadataFullName(user) ||
-        user.email?.split("@")[0] ||
-        "Supporter",
+      full_name: metadataFullName(user) || "Supporter",
       email: user.email,
       auth_user_id: user.id,
       notification_enabled: true,
@@ -410,7 +412,6 @@ export type S4PCampaign = {
   isVisible: boolean;
 };
 
-const DEFAULT_SPONSOR = "Budweiser";
 const REQUIRED_VOTES = 3;
 
 /**
@@ -613,9 +614,10 @@ async function campaignFromClubPortfolio(
     (await resolveOpenCampaignId(postedClubId)) ??
     (await ensureOpenCampaignIdForClub(postedClubId, club?.name ?? team.name));
   const sponsor = await resolveCampaignSponsor({
-    clubName: club?.name ?? team.name,
+    clubName: club?.name ?? posted?.clubName ?? team.name,
     matchTitle,
     sport: team.sport,
+    postedSponsorNames: posted?.sponsorNames,
   });
   const voteCounts = await countProjectVotes(campaignId, [
     featuredProject?.id,
@@ -905,19 +907,26 @@ async function resolveCampaignSponsor({
   clubName,
   matchTitle,
   sport,
+  postedSponsorNames,
 }: {
   clubName: string;
   matchTitle: string;
   sport: string;
+  postedSponsorNames?: string[] | null;
 }): Promise<{
   name: string;
   logoUrl: string | null;
   scoreLabel: string;
 }> {
   const scoreLabel = scoreLabelForSport(sport);
+  const postedName = (postedSponsorNames ?? [])
+    .map((name) => name.trim())
+    .find(Boolean);
   try {
-    const { signedBrandForClub } = await import("./sponsor-offers.service");
-    const signed = await signedBrandForClub(clubName);
+    const { signedOrPostedBrandForClub } = await import(
+      "./sponsor-offers.service"
+    );
+    const signed = await signedOrPostedBrandForClub(clubName);
     if (signed) {
       return {
         name: signed,
@@ -926,7 +935,29 @@ async function resolveCampaignSponsor({
       };
     }
   } catch {
-    // Fall through to the existing sponsorship campaign lookup.
+    // Fall through to the posted Match Day brand, then the campaign table.
+  }
+  if (postedName) {
+    return {
+      name: postedName,
+      logoUrl: sponsorLogoSrc(postedName, null),
+      scoreLabel,
+    };
+  }
+  try {
+    const { selectedBrandNamesForClubName } = await import(
+      "./climate-sponsors.service"
+    );
+    const fromRoster = selectedBrandNamesForClubName(clubName)[0];
+    if (fromRoster) {
+      return {
+        name: fromRoster,
+        logoUrl: sponsorLogoSrc(fromRoster, null),
+        scoreLabel,
+      };
+    }
+  } catch {
+    // Fall through to the campaign table.
   }
   const fixtureNeedle = matchTitle.replace(/ Climate Campaign$/i, "").trim();
 
@@ -956,24 +987,22 @@ async function resolveCampaignSponsor({
     matching.find((row) => row.sponsor_id) ??
     matching[0];
 
-  let name = DEFAULT_SPONSOR;
-  let logoUrl = sponsorLogoSrc(DEFAULT_SPONSOR, null);
-
-  if (preferred) {
-    if (preferred.sponsor_id) {
-      const { data: sponsor } = await supabase
-        .from("sponsors")
-        .select("name, logo_url")
-        .eq("id", preferred.sponsor_id)
-        .maybeSingle();
-      if (sponsor?.name) {
-        name = sponsor.name;
-        logoUrl = sponsorLogoSrc(sponsor.name, sponsor.logo_url);
-      }
+  if (preferred?.sponsor_id) {
+    const { data: sponsor } = await supabase
+      .from("sponsors")
+      .select("name, logo_url")
+      .eq("id", preferred.sponsor_id)
+      .maybeSingle();
+    if (sponsor?.name) {
+      return {
+        name: sponsor.name,
+        logoUrl: sponsorLogoSrc(sponsor.name, sponsor.logo_url),
+        scoreLabel,
+      };
     }
   }
 
-  return { name, logoUrl, scoreLabel };
+  return { name: "Goal Sponsor", logoUrl: null, scoreLabel };
 }
 
 /**

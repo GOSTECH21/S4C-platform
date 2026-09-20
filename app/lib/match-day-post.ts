@@ -65,6 +65,7 @@ export type FanPostSchedule = {
   visibleAt: string;
   projectIds?: string[];
   campaignId?: string | null;
+  sponsorNames?: string[];
 };
 
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
@@ -81,6 +82,7 @@ export type PostedMatchDayForFan = {
   clubName: string;
   projectIds: string[];
   campaignId: string | null;
+  sponsorNames: string[];
 };
 
 export function fanPostVisibleAt(postedAt: string | Date): Date {
@@ -193,6 +195,7 @@ export function postedMatchDayForFanTeam(
     clubName: schedule?.clubName || team.displayName || team.name,
     projectIds,
     campaignId: schedule?.campaignId ?? store?.campaignId ?? null,
+    sponsorNames: schedule?.sponsorNames?.filter(Boolean) ?? [],
   };
 }
 

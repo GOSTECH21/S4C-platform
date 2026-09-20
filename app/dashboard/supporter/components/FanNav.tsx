@@ -11,7 +11,12 @@ import {
   SUPPORTER_TEAMS_PATH,
   isMyS4PPath,
 } from "@/app/lib/routes";
-import { welcomeBackMessage, resolvedFullName } from "@/app/lib/s4p-admin";
+import { fanWelcomeMessage, welcomeBackMessage } from "@/app/lib/s4p-admin";
+import {
+  destinationForSignedInKind,
+  isFanFacingKind,
+} from "@/app/lib/signed-in-role";
+import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { getOrCreateSupporter } from "@/app/services/votes.service";
 
 const LINKS = [
@@ -35,6 +40,14 @@ export default function FanNav() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      const kind = await identifySignedInKind();
+      if (!cancelled && kind && !isFanFacingKind(kind)) {
+        const dest = destinationForSignedInKind(kind);
+        if (dest) {
+          router.replace(dest);
+          return;
+        }
+      }
       const metadataName =
         (user?.user_metadata?.full_name as string | undefined) ||
         `${user?.user_metadata?.first_name ?? ""} ${user?.user_metadata?.last_name ?? ""}`.trim();
@@ -46,9 +59,7 @@ export default function FanNav() {
         const current = await getOrCreateSupporter();
         if (cancelled) return;
         setWelcome(
-          welcomeBackMessage(
-            resolvedFullName(current?.full_name, current?.email, metadataName)
-          )
+          fanWelcomeMessage(current?.full_name, current?.email, metadataName)
         );
       } catch {
         if (!cancelled) {
@@ -59,7 +70,7 @@ export default function FanNav() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   async function logout() {
     await supabase.auth.signOut();

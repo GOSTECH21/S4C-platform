@@ -17,6 +17,8 @@ export async function identifySignedInKind(): Promise<SignedInKind | null> {
     .maybeSingle();
   const fromProfile = kindFromProfileRole(profile?.role);
   if (fromProfile === "admin") return "admin";
+  if (fromProfile === "club") return "club";
+  if (fromProfile === "sponsor" || fromProfile === "partner") return fromProfile;
 
   const clubByAuth = await supabase
     .from("club_accounts")
@@ -34,8 +36,6 @@ export async function identifySignedInKind(): Promise<SignedInKind | null> {
       .maybeSingle();
     if (clubByEmail.data) return "club";
   }
-
-  if (fromProfile === "sponsor" || fromProfile === "partner") return fromProfile;
 
   const supporterByAuth = await supabase
     .from("supporters")

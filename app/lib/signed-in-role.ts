@@ -1,5 +1,6 @@
 import {
   ADMIN_PATH,
+  CLUB_DASHBOARD_PATH,
   CLUB_REGISTER_PATH,
   FAN_LOGIN_PATH,
   HOME_PATH,
@@ -26,6 +27,37 @@ export function kindFromProfileRole(
   if (value === "partner") return "partner";
   if (value === "supporter" || value === "fan") return "fan";
   return "unknown";
+}
+
+export function isFanFacingKind(kind: SignedInKind | null | undefined): boolean {
+  return kind === "fan" || kind === "unknown" || kind == null;
+}
+
+export function destinationForSignedInKind(
+  kind: SignedInKind | null | undefined
+): string | null {
+  if (kind === "club") return CLUB_DASHBOARD_PATH;
+  if (kind === "sponsor") return SPONSOR_DASHBOARD_PATH;
+  if (kind === "partner") return PARTNER_DASHBOARD_PATH;
+  if (kind === "admin") return ADMIN_PATH;
+  if (kind === "fan") return SUPPORTER_CAMPAIGN_PATH;
+  return null;
+}
+
+export function fanLoginWrongRoleMessage(kind: SignedInKind) {
+  if (kind === "club") {
+    return "This email is a club Sustainability Director account. Use Club Login — My S4P is only for fans and supporters.";
+  }
+  if (kind === "sponsor") {
+    return "This email is a sponsor account. Use Sponsor Login.";
+  }
+  if (kind === "partner") {
+    return "This email is a Climate Partner account. Use Partner Login.";
+  }
+  if (kind === "admin") {
+    return "This email is an S4P staff account. Use S4P staff login.";
+  }
+  return "This email is not a fan account.";
 }
 
 export function clubGateCopy(kind: SignedInKind) {

@@ -17,6 +17,7 @@ export function looksLikeEmailLocalPart(
 }
 
 const EMAIL_NAME_SUFFIXES = [
+  "liverpool",
   "villafc",
   "fulham",
   "gillette",
@@ -28,11 +29,15 @@ const EMAIL_NAME_SUFFIXES = [
   "bud",
   "dia",
   "okey",
+  "lfc",
+  "liv",
 ];
 
 const EMAIL_FIRST_NAMES = [
   "christopher",
   "alexander",
+  "stephen",
+  "steven",
   "godwin",
   "jacob",
   "jason",
@@ -42,6 +47,7 @@ const EMAIL_FIRST_NAMES = [
   "john",
   "paul",
   "owen",
+  "steve",
 ];
 
 function titleCaseWord(value: string) {
@@ -192,9 +198,28 @@ export function uniqueClubNames(clubNames: string[]): string[] {
   return [...seen.values()].sort((a, b) => a.localeCompare(b));
 }
 
+export function looksLikeAccountHandle(fullName: string | null | undefined) {
+  const cleaned = String(fullName ?? "").replace(/\s+/g, " ").trim();
+  if (!cleaned || /\s/.test(cleaned)) return false;
+  const compact = compactIdentity(cleaned);
+  if (
+    EMAIL_NAME_SUFFIXES.some(
+      (suffix) => compact.endsWith(suffix) && compact.length - suffix.length >= 4
+    )
+  ) {
+    return true;
+  }
+  return compact.length > 12;
+}
+
 export function welcomeFirstName(fullName: string | null | undefined) {
   const cleaned = String(fullName ?? "").replace(/\s+/g, " ").trim();
   if (!cleaned) return null;
+  if (looksLikeAccountHandle(cleaned)) {
+    const guessed = guessPersonNameFromEmailLocal(cleaned);
+    if (guessed) return welcomeFirstName(guessed);
+    return null;
+  }
   const first = cleaned.split(" ")[0];
   if (!first) return null;
   return first.charAt(0).toUpperCase() + first.slice(1);
@@ -203,6 +228,14 @@ export function welcomeFirstName(fullName: string | null | undefined) {
 export function welcomeBackMessage(fullName: string | null | undefined) {
   const first = welcomeFirstName(fullName);
   return first ? `Welcome back ${first}` : null;
+}
+
+export function fanWelcomeMessage(
+  storedName: string | null | undefined,
+  email: string | null | undefined,
+  metadataName: string | null | undefined
+) {
+  return welcomeBackMessage(resolvedFullName(storedName, email, metadataName));
 }
 
 export type RegisteredFan = {

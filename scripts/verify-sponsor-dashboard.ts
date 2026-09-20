@@ -16,6 +16,7 @@ import {
   lookbackSponsorForRecord,
 } from "../app/lib/sponsor-dashboard";
 import { sponsorOfferSignOffPath } from "../app/lib/routes";
+import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { readFileSync } from "fs";
 
 const failures: string[] = [];
@@ -272,6 +273,52 @@ assert(
 assert(
   !offerListPage.includes("${SPONSOR_OFFERS_PATH}/${"),
   "The offer list does not link to /sponsor/offers/[id]"
+);
+
+assert(
+  signedOrPostedBrandForClub(
+    "Liverpool",
+    [
+      {
+        id: "liv-offer",
+        clubName: "Liverpool Football Club",
+        postedAt: "2026-09-20T13:00:00.000Z",
+        targetBrandNames: ["American Express"],
+      },
+    ],
+    []
+  ) === "American Express",
+  "Liverpool fans see American Express from the posted Match Day offer"
+);
+assert(
+  signedOrPostedBrandForClub(
+    "Liverpool Football Club",
+    [
+      {
+        id: "liv-offer",
+        clubName: "Liverpool Football Club",
+        postedAt: "2026-09-20T13:00:00.000Z",
+        targetBrandNames: ["American Express"],
+      },
+    ],
+    [{ offerId: "other", brandName: "Budweiser" }]
+  ) === "American Express",
+  "A Budweiser signature on another offer does not replace American Express"
+);
+assert(
+  signedOrPostedBrandForClub(
+    "Liverpool",
+    [
+      {
+        id: "liv-offer",
+        clubName: "Liverpool Football Club",
+        postedAt: "2026-09-20T14:00:00.000Z",
+        targetBrandNames: ["American Express"],
+      },
+    ],
+    [{ offerId: "liv-offer", brandName: "American Express" }]
+  ) === "American Express",
+  "A signed American Express offer stays American Express"
 );
 
 if (failures.length > 0) {

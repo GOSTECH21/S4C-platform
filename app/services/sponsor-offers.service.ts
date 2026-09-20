@@ -18,7 +18,7 @@ import {
   loadGoalNetwork,
   loadMatchDayLock,
 } from "./climate-sponsors.service";
-import { offersForLockedSponsor } from "../lib/climate-sponsors";
+import { signedOrPostedBrandForClub as brandFromPostedOffers } from "../lib/campaign-sponsor";
 
 export type SponsorOfferProject = {
   id: string;
@@ -223,6 +223,9 @@ export async function publishSponsorMatchOffer({
     posted_at: offer.postedAt,
     headline: offer.headline,
     status: "open",
+    target_brand_names: offer.targetBrandNames,
+    gbp_per_vote: offer.gbpPerVote,
+    sponsorship_amount_gbp: offer.sponsorshipAmountGbp,
   });
 
   return offer;
@@ -350,21 +353,17 @@ export async function signSponsorOffer({
 export async function signedBrandForClub(
   clubName: string
 ): Promise<string | null> {
+  return signedOrPostedBrandForClub(clubName);
+}
+
+export async function signedOrPostedBrandForClub(
+  clubName: string
+): Promise<string | null> {
   const [offers, signatures] = await Promise.all([
     listSponsorMatchOffers(),
     listOfferSignatures(),
   ]);
-  const clubOffers = offers.filter((offer) =>
-    offer.clubName.toLowerCase().includes(clubName.toLowerCase()) ||
-    clubName.toLowerCase().includes(offer.clubName.toLowerCase())
-  );
-  for (const offer of clubOffers) {
-    const signed = signatures.find(
-      (row) => row.offerId === offer.id && row.brandName.trim()
-    );
-    if (signed) return signed.brandName;
-  }
-  return null;
+  return brandFromPostedOffers(clubName, offers, signatures);
 }
 
 export async function sendSponsorProposalToClub({
