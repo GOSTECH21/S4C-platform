@@ -277,6 +277,27 @@ assert(
   "Posted Liverpool Match Day five is resolved for a catalog Liverpool fan"
 );
 assert(
+  postedMatchDayForFanTeam(
+    { id: "roster-liverpool", name: "Liverpool", displayName: "Liverpool" },
+    [
+      {
+        clubId: "sd-liverpool",
+        clubName: "Liverpool Football Club",
+        postedAt: "2026-09-20T13:00:00.000Z",
+        visibleAt: "2026-09-20T13:00:00.000Z",
+      },
+    ],
+    [
+      { clubId: "roster-liverpool", projectIds: ["old-one"] },
+      {
+        clubId: "sd-liverpool",
+        projectIds: ["gss", "southwark", "yorkshire", "edinburgh", "paws"],
+      },
+    ]
+  )?.projectIds.includes("southwark"),
+  "The Sustainability Director's posted five wins over a roster Liverpool store"
+);
+assert(
   isPostedPortfolioStatus(MATCH_DAY_PORTFOLIO_POSTED) &&
     isPostedPortfolioStatus(MATCH_DAY_PORTFOLIO_VOTED) &&
     !isPostedPortfolioStatus("selected"),

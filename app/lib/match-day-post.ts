@@ -177,13 +177,10 @@ export function postedMatchDayForFanTeam(
       clubName: schedule.clubName,
     })
   );
-  const matchedClubIds = new Set(matchedSchedules.map((schedule) => schedule.clubId));
-  if (team.id) matchedClubIds.add(team.id);
-  const matchedStores = stores.filter((store) => matchedClubIds.has(store.clubId));
   const schedule = matchedSchedules[0];
   const store =
-    matchedStores[0] ??
-    stores.find((row) => schedule && row.clubId === schedule.clubId) ??
+    (schedule && stores.find((row) => row.clubId === schedule.clubId)) ??
+    stores.find((row) => row.clubId === team.id) ??
     null;
   const projectIds =
     (schedule?.projectIds?.length ? schedule.projectIds : null) ??
