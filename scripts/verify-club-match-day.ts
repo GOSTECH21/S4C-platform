@@ -24,6 +24,10 @@ import {
   isPostedPortfolioStatus,
   isVotedPortfolioStatus,
   matchDayCampaignTitle,
+  FAN_POST_APPEAR_DELAY_MINUTES,
+  fanPostVisibleAt,
+  fanPostVisibility,
+  isFanPostVisible,
 } from "../app/lib/match-day-post";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
@@ -232,6 +236,23 @@ assert(
   isVotedPortfolioStatus(MATCH_DAY_PORTFOLIO_VOTED) &&
     !isVotedPortfolioStatus(MATCH_DAY_PORTFOLIO_POSTED),
   "Club Voted-For Projects reads posted-voted portfolio rows"
+);
+assert(
+  FAN_POST_APPEAR_DELAY_MINUTES === 0,
+  "Posted Climate Projects appear on fan dashboards immediately"
+);
+assert(
+  isFanPostVisible(new Date(Date.now() + 60_000).toISOString()),
+  "There is no hold-back after the Sustainability Director posts"
+);
+assert(
+  fanPostVisibleAt("2026-09-20T12:00:00.000Z").toISOString() ===
+    "2026-09-20T12:00:00.000Z",
+  "Visible-at is the moment the SD posts"
+);
+assert(
+  fanPostVisibility({ postedAt: "2026-09-20T12:00:00.000Z" }).isVisible,
+  "Fan visibility is instant"
 );
 assert(
   sponsorOfferHeadline({

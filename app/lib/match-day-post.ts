@@ -51,3 +51,70 @@ export function isVotedPortfolioStatus(status: unknown): boolean {
   const value = String(status ?? "").toLowerCase();
   return value === MATCH_DAY_PORTFOLIO_VOTED || value.includes("voted");
 }
+
+/** Posted Match Day fives appear on fan dashboards immediately. */
+export const FAN_POST_APPEAR_DELAY_MINUTES = 0;
+export const FAN_POST_APPEAR_DELAY_MS = 0;
+
+const FAN_POST_SCHEDULE_PREFIX = "s4p.fan.postSchedule.";
+
+export type FanPostSchedule = {
+  clubId: string;
+  clubName: string;
+  postedAt: string;
+  visibleAt: string;
+};
+
+export function fanPostVisibleAt(postedAt: string | Date): Date {
+  const start = new Date(postedAt).getTime();
+  return new Date(Number.isFinite(start) ? start : Date.now());
+}
+
+export function isFanPostVisible(
+  _visibleAt?: string | Date | null,
+  _now = Date.now()
+): boolean {
+  return true;
+}
+
+export function writeFanPostSchedule(schedule: FanPostSchedule) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    FAN_POST_SCHEDULE_PREFIX + schedule.clubId,
+    JSON.stringify(schedule)
+  );
+}
+
+export function readFanPostSchedule(
+  clubId: string | null | undefined
+): FanPostSchedule | null {
+  if (!clubId || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(FAN_POST_SCHEDULE_PREFIX + clubId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as FanPostSchedule;
+    if (!parsed?.postedAt || !parsed?.visibleAt) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function fanPostVisibility(options: {
+  clubId?: string | null;
+  votingOpens?: string | null;
+  postedAt?: string | null;
+  now?: number;
+}): { postedAt: string | null; visibleAt: string | null; isVisible: boolean } {
+  const scheduled = readFanPostSchedule(options.clubId);
+  const postedAt = options.postedAt || scheduled?.postedAt || null;
+  const visibleAt =
+    options.votingOpens ||
+    scheduled?.visibleAt ||
+    (postedAt ? fanPostVisibleAt(postedAt).toISOString() : null);
+  return {
+    postedAt,
+    visibleAt,
+    isVisible: true,
+  };
+}

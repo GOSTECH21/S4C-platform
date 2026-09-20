@@ -118,7 +118,7 @@ export default function MyS4PDashboardPage() {
           <p className="mt-3 text-slate-300">
             You support {teams.map((team) => team.displayName).join(", ")}.
             When one of those clubs posts its Match Day climate projects, they
-            appear here so you can vote.
+            appear here straight away so you can vote.
           </p>
           <Link
             href={SUPPORTER_TEAMS_PATH}

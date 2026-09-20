@@ -22,8 +22,10 @@ import {
   MATCH_DAY_PORTFOLIO_SELECTED,
   MATCH_DAY_PORTFOLIO_VOTED,
   fanTeamMatchesPostedClub,
+  fanPostVisibleAt,
   isVotedPortfolioStatus,
   matchDayCampaignTitle,
+  writeFanPostSchedule,
 } from "../lib/match-day-post";
 import {
   assignLookbackSponsors,
@@ -348,6 +350,7 @@ type OpenClubCampaign = {
   title: string | null;
   sponsorship_per_goal: number | null;
   club_id?: string | null;
+  voting_opens?: string | null;
 };
 
 export async function findOpenClubCampaign(
@@ -356,7 +359,7 @@ export async function findOpenClubCampaign(
 ): Promise<OpenClubCampaign | null> {
   const forClub = await supabase
     .from("match_campaigns")
-    .select("id, title, sponsorship_per_goal, club_id")
+    .select("id, title, sponsorship_per_goal, club_id, voting_opens")
     .eq("status", "open")
     .eq("club_id", clubId)
     .maybeSingle();
@@ -365,7 +368,7 @@ export async function findOpenClubCampaign(
 
   const { data: open } = await supabase
     .from("match_campaigns")
-    .select("id, title, sponsorship_per_goal, club_id")
+    .select("id, title, sponsorship_per_goal, club_id, voting_opens")
     .eq("status", "open");
 
   const match = (open ?? []).find((row) =>
@@ -429,10 +432,12 @@ async function writeCampaignProjects(
 export async function ensureOpenClubCampaign(
   clubId: string,
   clubName: string,
-  minAmount: number
+  minAmount: number,
+  options?: { votingOpens?: string | null }
 ): Promise<OpenClubCampaign> {
   const title = matchDayCampaignTitle(clubName);
   const amount = Math.max(0, Math.round(Number(minAmount) || 0));
+  const votingOpens = options?.votingOpens ?? null;
   const existing = await findOpenClubCampaign(clubId, clubName);
   if (existing) {
     await supabase
@@ -441,13 +446,19 @@ export async function ensureOpenClubCampaign(
         title: existing.title || title,
         sponsorship_per_goal: amount,
         status: "open",
+        ...(votingOpens ? { voting_opens: votingOpens } : {}),
       })
       .eq("id", existing.id);
-    return { ...existing, title: existing.title || title, sponsorship_per_goal: amount };
+    return {
+      ...existing,
+      title: existing.title || title,
+      sponsorship_per_goal: amount,
+      voting_opens: votingOpens ?? existing.voting_opens,
+    };
   }
 
   const matchId = await findClubFixtureId(clubId);
-  const votingOpens = new Date().toISOString();
+  const votingOpensAt = votingOpens ?? new Date().toISOString();
   const votingCloses = new Date(Date.now() + MATCH_DAY_LEAD_HOURS * 60 * 60 * 1000).toISOString();
   const attemptsFor = (fixtureId: string | null): Array<Record<string, unknown>> => [
     {
@@ -456,7 +467,7 @@ export async function ensureOpenClubCampaign(
       status: "open",
       sponsorship_per_goal: amount,
       maximum_votes: 3,
-      voting_opens: votingOpens,
+      voting_opens: votingOpensAt,
       voting_closes: votingCloses,
       ...(fixtureId ? { match_id: fixtureId } : {}),
     },
@@ -488,7 +499,7 @@ export async function ensureOpenClubCampaign(
     const inserted = await supabase
       .from("match_campaigns")
       .insert(payload)
-      .select("id, title, sponsorship_per_goal, club_id")
+      .select("id, title, sponsorship_per_goal, club_id, voting_opens")
       .single();
     if (!inserted.error && inserted.data) {
       return inserted.data as OpenClubCampaign;
@@ -503,7 +514,7 @@ export async function ensureOpenClubCampaign(
         const inserted = await supabase
           .from("match_campaigns")
           .insert(payload)
-          .select("id, title, sponsorship_per_goal, club_id")
+          .select("id, title, sponsorship_per_goal, club_id, voting_opens")
           .single();
         if (!inserted.error && inserted.data) {
           return inserted.data as OpenClubCampaign;
@@ -1152,13 +1163,21 @@ export async function postMatchDayProjectsToFans({
     (boardFloor > 0 ? boardFloor : 0) ||
     (campaignFloor > 0 ? campaignFloor : 0) ||
     DEFAULT_MINIMUM_SPONSORSHIP;
+  const postedAt = new Date();
+  const visibleAt = fanPostVisibleAt(postedAt);
+  writeFanPostSchedule({
+    clubId,
+    clubName,
+    postedAt: postedAt.toISOString(),
+    visibleAt: visibleAt.toISOString(),
+  });
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
     minAmount: minimumAmount,
     projectedVotes: stored?.projectedVotes,
     gbpPerVote: stored?.gbpPerVote,
     expectedSponsorship: stored?.expectedSponsorship,
-    savedAt: new Date().toISOString(),
+    savedAt: postedAt.toISOString(),
     campaignId: stored?.campaignId ?? existingCampaign?.id ?? null,
   });
   await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_POSTED);
@@ -1168,7 +1187,8 @@ export async function postMatchDayProjectsToFans({
     campaign = await ensureOpenClubCampaign(
       clubId,
       clubName,
-      auction.minAmount
+      auction.minAmount,
+      { votingOpens: visibleAt.toISOString() }
     );
     if (campaignBelongsToClub({ ...campaign, club_id: campaign.club_id ?? clubId }, clubId, clubName)) {
       await writeCampaignProjects(campaign.id, portfolioIds);
@@ -1180,7 +1200,7 @@ export async function postMatchDayProjectsToFans({
   const selection: MatchDaySelection = {
     ...auction,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    postedAt: new Date().toISOString(),
+    postedAt: postedAt.toISOString(),
   };
   writeStoredMatchDay(clubId, selection);
   writeCampaignAuction(selection.campaignId, selection);
@@ -1213,5 +1233,5 @@ export async function postMatchDayProjectsToFans({
 }
 
 export function matchDayWindowCopy(): string {
-  return `Select ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects at least ${MATCH_DAY_LEAD_HOURS} hours before kick-off. Global Schools Solar is included in every Match Day five.`;
+  return `Select ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects at least ${MATCH_DAY_LEAD_HOURS} hours before kick-off. Global Schools Solar is included in every Match Day five. After you post, fans see the five on My S4P and Climate Projects immediately.`;
 }

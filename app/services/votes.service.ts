@@ -17,6 +17,7 @@ import {
 import { seasonNamesMatch } from "../lib/current-season";
 import {
   MATCH_DAY_PORTFOLIO_VOTED,
+  fanPostVisibility,
   fanTeamMatchesPostedClub,
   isPostedPortfolioStatus,
   matchDayCampaignTitle,
@@ -402,6 +403,9 @@ export type S4PCampaign = {
   gbpPerVote: number;
   fansWhoVoted: number;
   projectedVotes: number;
+  postedAt: string | null;
+  visibleAt: string | null;
+  isVisible: boolean;
 };
 
 const DEFAULT_SPONSOR = "Budweiser";
@@ -423,13 +427,21 @@ export async function getMyS4PCampaigns(
   const { data: open } = await supabase
     .from("match_campaigns")
     .select(
-      "id, club_id, title, sponsorship_per_goal, maximum_votes, status, match_id"
+      "id, club_id, title, sponsorship_per_goal, maximum_votes, status, match_id, voting_opens"
     )
     .eq("status", "open");
+
+  const postedClubIds = await clubIdsWithPostedPortfolio(
+    [
+      ...(open ?? []).map((row) => String(row.club_id ?? "")),
+      ...teams.map((team) => team.id),
+    ].filter(Boolean)
+  );
 
   for (const row of open ?? []) {
     const matched = matchingSupportedTeams(row, teams);
     if (matched.length === 0) continue;
+    if (row.club_id && !postedClubIds.has(String(row.club_id))) continue;
     const built = await buildCampaignFromMatchRow(row, teams);
     if (!built) continue;
     const unseen = matched.filter((team) => !seenTeams.has(team.id));
@@ -460,6 +472,22 @@ export async function getMyS4PCampaign(
 ): Promise<S4PCampaign | null> {
   const campaigns = await getMyS4PCampaigns(supporter);
   return campaigns[0] ?? null;
+}
+
+async function clubIdsWithPostedPortfolio(clubIds: string[]): Promise<Set<string>> {
+  const ids = [...new Set(clubIds.filter((id) => isVoteUuid(id)))];
+  const posted = new Set<string>();
+  if (ids.length === 0) return posted;
+  const { data } = await supabase
+    .from("club_match_portfolio")
+    .select("club_id, status")
+    .in("club_id", ids);
+  for (const row of data ?? []) {
+    if (isPostedPortfolioStatus((row as { status?: unknown }).status)) {
+      posted.add(String(row.club_id));
+    }
+  }
+  return posted;
 }
 
 function matchingSupportedTeams(
@@ -623,6 +651,9 @@ async function campaignFromClubPortfolio(
     gbpPerVote: auction.gbpPerVote,
     fansWhoVoted: auction.fansWhoVoted,
     projectedVotes: auction.projectedVotes,
+    ...fanPostVisibility({
+      clubId: postedClubId,
+    }),
   };
 }
 
@@ -634,6 +665,7 @@ async function buildCampaignFromMatchRow(
     sponsorship_per_goal: number | string | null;
     maximum_votes: number | null;
     match_id?: string | null;
+    voting_opens?: string | null;
   },
   teams: TeamOption[]
 ): Promise<S4PCampaign | null> {
@@ -717,6 +749,10 @@ async function buildCampaignFromMatchRow(
     gbpPerVote: auction.gbpPerVote,
     fansWhoVoted: auction.fansWhoVoted,
     projectedVotes: auction.projectedVotes,
+    ...fanPostVisibility({
+      clubId: openCampaign.club_id,
+      votingOpens: openCampaign.voting_opens,
+    }),
   };
 }
 

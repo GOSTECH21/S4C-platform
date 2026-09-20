@@ -487,7 +487,8 @@ export default function ClubDashboardPage() {
                   ? ` Selected Climate Sponsors will see these five once they lock ${club.name} for this Match Day.`
                   : ". No Climate Sponsor was selected, so brand dashboards were not updated."}{" "}
               Supporters of {club.name} will see these {MATCH_DAY_PROJECT_COUNT}{" "}
-              projects when they open their page.
+              projects on My S4P and Climate Projects as soon as they open
+              those pages.
             </p>
           )}
 

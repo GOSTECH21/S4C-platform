@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  getMyS4PCampaigns,
   getOrCreateSupporter,
   getVotedAndFundedProjects,
   isFeaturedClimateProject,
   type ClimateProject,
+  type S4PCampaign,
 } from "@/app/services/votes.service";
 import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import FanNav from "../components/FanNav";
@@ -16,6 +18,7 @@ import { featuredClimateProjectCountryLabelForClubs } from "@/app/lib/featured-c
 export default function VotePage() {
   const [voted, setVoted] = useState<ClimateProject[]>([]);
   const [funded, setFunded] = useState<ClimateProject[]>([]);
+  const [campaigns, setCampaigns] = useState<S4PCampaign[]>([]);
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,10 +34,14 @@ export default function VotePage() {
         }
 
         const lists = await getVotedAndFundedProjects(supporter.id);
-        const supported = await getSupportedTeams(supporter);
+        const [supported, posted] = await Promise.all([
+          getSupportedTeams(supporter),
+          getMyS4PCampaigns(supporter),
+        ]);
         setVoted(votedProjectsOnly(lists.voted, lists.funded));
         setFunded(lists.funded);
         setTeams(supported);
+        setCampaigns(posted);
       } catch (err) {
         console.error("Failed to load climate projects:", err);
         setError(
@@ -71,7 +78,7 @@ export default function VotePage() {
           >
             My S4P
             <span className="rounded-full bg-green-500 px-2 py-0.5 text-sm text-slate-950">
-              {voted.length + funded.length}
+              {campaigns.length || voted.length + funded.length}
             </span>
           </Link>
         </div>
@@ -80,6 +87,21 @@ export default function VotePage() {
           <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
             {error}
           </div>
+        )}
+
+        {campaigns.length > 0 && (
+          <section className="mt-10 space-y-6">
+            <p className="max-w-2xl text-slate-300">
+              Climate Projects your club Sustainability Director has posted for
+              this Match Day
+            </p>
+            {campaigns.map((campaign) => (
+              <PostedCampaignPreview
+                key={campaign.campaignId ?? campaign.clubId}
+                campaign={campaign}
+              />
+            ))}
+          </section>
         )}
 
         <section className="mt-10">
@@ -129,6 +151,36 @@ export default function VotePage() {
         </section>
       </div>
     </main>
+  );
+}
+
+function PostedCampaignPreview({ campaign }: { campaign: S4PCampaign }) {
+  const projects = campaign.featuredProject
+    ? [campaign.featuredProject, ...campaign.projects]
+    : campaign.projects;
+
+  return (
+    <div className="rounded-2xl border border-green-500/30 bg-slate-900 p-6">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+            Posted for {campaign.clubName}
+          </p>
+          <h2 className="mt-2 text-2xl font-black">{campaign.matchTitle}</h2>
+        </div>
+        <Link
+          href={SUPPORTER_CAMPAIGN_PATH}
+          className="inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
+        >
+          Vote on My S4P
+        </Link>
+      </div>
+      <ul className="mt-4 space-y-1 text-slate-300">
+        {projects.map((project) => (
+          <li key={project.id}>• {project.name}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
