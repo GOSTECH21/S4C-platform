@@ -55,6 +55,18 @@ assert(
   seasonNamesMatch("Hearts of Midlothian FC", "Hearts"),
   "Hearts of Midlothian FC matches the short Hearts name"
 );
+assert(
+  seasonNamesMatch("Liverpool", "Liverpool Football Club"),
+  "Fan catalog Liverpool matches the club row Liverpool Football Club"
+);
+assert(
+  seasonNamesMatch("Liverpool FC", "Liverpool Football Club"),
+  "Liverpool FC matches Liverpool Football Club"
+);
+assert(
+  !seasonNamesMatch("Liverpool", "Manchester United"),
+  "Liverpool does not match Manchester United"
+);
 
 assert(
   clubInCurrentSeasonLeague("NFL", "New England Patriots"),

@@ -331,7 +331,10 @@ const CLUB_ALIASES: Record<string, string[]> = {
 export function normalizeSeasonName(value: string): string {
   return value
     .toLowerCase()
-    .replace(/fc\b/g, "")
+    .replace(/\bassociation football club\b/g, " ")
+    .replace(/\bfootball club\b/g, " ")
+    .replace(/\bafc\b/g, " ")
+    .replace(/\bfc\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -362,11 +365,7 @@ export function seasonNamesMatch(left: string, right: string): boolean {
   }
   const shorter = a.length <= b.length ? a : b;
   const longer = a.length <= b.length ? b : a;
-  const shortTokens = shorter.split(" ").filter(Boolean);
-  return (
-    shortTokens.length >= 2 &&
-    longer.startsWith(`${shorter} `)
-  );
+  return longer.startsWith(`${shorter} `);
 }
 
 export function clubInCurrentSeasonLeague(

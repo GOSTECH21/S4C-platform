@@ -63,6 +63,24 @@ export type FanPostSchedule = {
   clubName: string;
   postedAt: string;
   visibleAt: string;
+  projectIds?: string[];
+  campaignId?: string | null;
+};
+
+const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
+
+export type StoredMatchDay = {
+  clubId: string;
+  projectIds: string[];
+  campaignId?: string | null;
+  postedAt?: string | null;
+};
+
+export type PostedMatchDayForFan = {
+  clubId: string;
+  clubName: string;
+  projectIds: string[];
+  campaignId: string | null;
 };
 
 export function fanPostVisibleAt(postedAt: string | Date): Date {
@@ -98,6 +116,87 @@ export function readFanPostSchedule(
   } catch {
     return null;
   }
+}
+
+export function readAllFanPostSchedules(): FanPostSchedule[] {
+  if (typeof window === "undefined") return [];
+  const rows: FanPostSchedule[] = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key?.startsWith(FAN_POST_SCHEDULE_PREFIX)) continue;
+    try {
+      const parsed = JSON.parse(
+        window.localStorage.getItem(key) ?? ""
+      ) as FanPostSchedule;
+      if (parsed?.clubId && parsed?.clubName) rows.push(parsed);
+    } catch {
+      // Skip a malformed row and keep reading the rest.
+    }
+  }
+  return rows;
+}
+
+export function readAllMatchDayStores(): StoredMatchDay[] {
+  if (typeof window === "undefined") return [];
+  const rows: StoredMatchDay[] = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key?.startsWith(MATCH_DAY_STORAGE_PREFIX)) continue;
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(key) ?? "") as {
+        projectIds?: unknown;
+        campaignId?: string | null;
+        postedAt?: string | null;
+      };
+      const projectIds = Array.isArray(parsed?.projectIds)
+        ? parsed.projectIds.map((id) => String(id)).filter(Boolean)
+        : [];
+      if (projectIds.length === 0) continue;
+      rows.push({
+        clubId: key.slice(MATCH_DAY_STORAGE_PREFIX.length),
+        projectIds,
+        campaignId: parsed.campaignId ?? null,
+        postedAt: parsed.postedAt ?? null,
+      });
+    } catch {
+      // Skip a malformed row and keep reading the rest.
+    }
+  }
+  return rows;
+}
+
+/** Resolve a fan catalog club (often "Liverpool") to a posted Match Day five. */
+export function postedMatchDayForFanTeam(
+  team: { id: string; name: string; displayName: string },
+  schedules: FanPostSchedule[] = readAllFanPostSchedules(),
+  stores: StoredMatchDay[] = readAllMatchDayStores()
+): PostedMatchDayForFan | null {
+  const matchedSchedules = schedules.filter((schedule) =>
+    fanTeamMatchesPostedClub(team, {
+      clubId: schedule.clubId,
+      clubName: schedule.clubName,
+    })
+  );
+  const matchedClubIds = new Set(matchedSchedules.map((schedule) => schedule.clubId));
+  if (team.id) matchedClubIds.add(team.id);
+  const matchedStores = stores.filter((store) => matchedClubIds.has(store.clubId));
+  const schedule = matchedSchedules[0];
+  const store =
+    matchedStores[0] ??
+    stores.find((row) => schedule && row.clubId === schedule.clubId) ??
+    null;
+  const projectIds =
+    (schedule?.projectIds?.length ? schedule.projectIds : null) ??
+    store?.projectIds ??
+    [];
+  const clubId = schedule?.clubId || store?.clubId;
+  if (!clubId) return null;
+  return {
+    clubId,
+    clubName: schedule?.clubName || team.displayName || team.name,
+    projectIds,
+    campaignId: schedule?.campaignId ?? store?.campaignId ?? null,
+  };
 }
 
 export function fanPostVisibility(options: {

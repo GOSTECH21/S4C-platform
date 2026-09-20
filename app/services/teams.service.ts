@@ -185,13 +185,14 @@ export async function findClubByPreferenceName(
   for (const group of catalog) {
     for (const competition of group.competitions) {
       for (const team of competition.teams) {
-        const teamNames = [
-          normalizeName(team.name),
-          normalizeName(team.displayName),
-        ];
         if (
-          aliases.some((alias) => teamNames.includes(alias)) ||
-          teamNames.some((teamName) => aliases.includes(teamName))
+          seasonNamesMatch(team.name, name) ||
+          seasonNamesMatch(team.displayName, name) ||
+          aliases.some(
+            (alias) =>
+              seasonNamesMatch(team.name, alias) ||
+              seasonNamesMatch(team.displayName, alias)
+          )
         ) {
           return team;
         }
@@ -241,7 +242,21 @@ export async function getSupportedTeams(
 
   if (supporter.favourite_club_id) {
     const favourite = catalogById.get(supporter.favourite_club_id);
-    if (favourite) byId.set(favourite.id, favourite);
+    if (favourite) {
+      byId.set(favourite.id, favourite);
+    } else if (supporter.favourite_club_id.startsWith("season:")) {
+      const favouriteName = supporter.favourite_club_id.split(":").slice(2).join(":");
+      const fromName = catalog
+        .flatMap((group) =>
+          group.competitions.flatMap((competition) => competition.teams)
+        )
+        .find(
+          (option) =>
+            seasonNamesMatch(option.name, favouriteName) ||
+            seasonNamesMatch(option.displayName, favouriteName)
+        );
+      if (fromName) byId.set(fromName.id, fromName);
+    }
   }
 
   const {
@@ -258,7 +273,13 @@ export async function getSupportedTeams(
       const team =
         catalog.flatMap((group) =>
           group.competitions.flatMap((competition) => competition.teams)
-        ).find((option) => namesMatch(option.name, pref.club) || namesMatch(option.displayName, pref.club)) ??
+        ).find(
+          (option) =>
+            seasonNamesMatch(option.name, pref.club) ||
+            seasonNamesMatch(option.displayName, pref.club) ||
+            namesMatch(option.name, pref.club) ||
+            namesMatch(option.displayName, pref.club)
+        ) ??
         (await findClubByPreferenceName(pref.club));
       if (team) byId.set(team.id, team);
     }

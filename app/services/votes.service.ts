@@ -22,6 +22,8 @@ import {
   isPostedPortfolioStatus,
   matchDayCampaignTitle,
   portfolioProjectId,
+  postedMatchDayForFanTeam,
+  readAllFanPostSchedules,
 } from "../lib/match-day-post";
 import {
   MISSING_CAMPAIGN_VOTE_MESSAGE,
@@ -431,17 +433,9 @@ export async function getMyS4PCampaigns(
     )
     .eq("status", "open");
 
-  const postedClubIds = await clubIdsWithPostedPortfolio(
-    [
-      ...(open ?? []).map((row) => String(row.club_id ?? "")),
-      ...teams.map((team) => team.id),
-    ].filter(Boolean)
-  );
-
   for (const row of open ?? []) {
     const matched = matchingSupportedTeams(row, teams);
     if (matched.length === 0) continue;
-    if (row.club_id && !postedClubIds.has(String(row.club_id))) continue;
     const built = await buildCampaignFromMatchRow(row, teams);
     if (!built) continue;
     const unseen = matched.filter((team) => !seenTeams.has(team.id));
@@ -474,22 +468,6 @@ export async function getMyS4PCampaign(
   return campaigns[0] ?? null;
 }
 
-async function clubIdsWithPostedPortfolio(clubIds: string[]): Promise<Set<string>> {
-  const ids = [...new Set(clubIds.filter((id) => isVoteUuid(id)))];
-  const posted = new Set<string>();
-  if (ids.length === 0) return posted;
-  const { data } = await supabase
-    .from("club_match_portfolio")
-    .select("club_id, status")
-    .in("club_id", ids);
-  for (const row of data ?? []) {
-    if (isPostedPortfolioStatus((row as { status?: unknown }).status)) {
-      posted.add(String(row.club_id));
-    }
-  }
-  return posted;
-}
-
 function matchingSupportedTeams(
   row: { club_id: string | null; title: string | null },
   teams: TeamOption[]
@@ -510,6 +488,20 @@ async function resolveClubIdsForFanTeam(team: TeamOption): Promise<string[]> {
   const ids = new Set<string>();
   if (team.id && !team.id.startsWith("season:")) ids.add(team.id);
 
+  const posted = postedMatchDayForFanTeam(team);
+  if (posted?.clubId) ids.add(posted.clubId);
+
+  for (const schedule of readAllFanPostSchedules()) {
+    if (
+      fanTeamMatchesPostedClub(team, {
+        clubId: schedule.clubId,
+        clubName: schedule.clubName,
+      })
+    ) {
+      ids.add(schedule.clubId);
+    }
+  }
+
   const { data } = await supabase.from("clubs").select("id, name");
   for (const club of data ?? []) {
     const clubId = String(club.id);
@@ -528,24 +520,28 @@ async function resolveClubIdsForFanTeam(team: TeamOption): Promise<string[]> {
 async function campaignFromClubPortfolio(
   team: TeamOption
 ): Promise<S4PCampaign | null> {
+  const posted = postedMatchDayForFanTeam(team);
   const clubIds = await resolveClubIdsForFanTeam(team);
-  if (clubIds.length === 0) return null;
+  const dbClubIdsForQuery = clubIds.filter(isVoteUuid);
+  if (clubIds.length === 0 && !posted) return null;
 
-  const { data: portfolio } = await supabase
-    .from("club_match_portfolio")
-    .select("*")
-    .in("club_id", clubIds);
+  const { data: portfolio } = dbClubIdsForQuery.length
+    ? await supabase
+        .from("club_match_portfolio")
+        .select("*")
+        .in("club_id", dbClubIdsForQuery)
+    : { data: [] as Array<Record<string, unknown>> };
 
   const rows = (portfolio ?? []).filter((row) =>
     isPostedPortfolioStatus((row as { status?: unknown }).status)
   );
-  if (rows.length === 0) return null;
 
   const projectIds = [
     ...new Set(
-      rows
-        .map((row) => portfolioProjectId(row as Record<string, unknown>))
-        .filter(Boolean)
+      [
+        ...rows.map((row) => portfolioProjectId(row as Record<string, unknown>)),
+        ...(posted?.projectIds ?? []),
+      ].filter(Boolean)
     ),
   ];
   if (projectIds.length === 0) return null;
@@ -565,34 +561,40 @@ async function campaignFromClubPortfolio(
     .filter((project): project is ClimateProject => Boolean(project));
   if (projects.length === 0) return null;
 
-  const postedClubId = String(rows[0].club_id ?? team.id);
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("id, name")
-    .eq("id", postedClubId)
-    .maybeSingle();
+  const postedClubId = String(
+    rows[0]?.club_id ?? posted?.clubId ?? clubIds[0] ?? team.id
+  );
+  const dbClubIds = [...new Set([...clubIds, postedClubId].filter(isVoteUuid))];
+  const { data: club } = isVoteUuid(postedClubId)
+    ? await supabase
+        .from("clubs")
+        .select("id, name")
+        .eq("id", postedClubId)
+        .maybeSingle()
+    : { data: null };
 
   const fixtureId =
     rows.map((row) => row.fixture_id as string | null).find(Boolean) ?? null;
 
-  let matchTitle = club?.name ?? team.displayName;
-  const fixtureQuery = fixtureId
-    ? supabase
+  let matchTitle = club?.name ?? posted?.clubName ?? team.displayName;
+  const { data: fixture } = fixtureId
+    ? await supabase
         .from("fixtures")
         .select("home_club_id, away_club_id")
         .eq("id", fixtureId)
         .maybeSingle()
-    : supabase
-        .from("fixtures")
-        .select("home_club_id, away_club_id")
-        .or(
-          clubIds
-            .map((id) => `home_club_id.eq.${id},away_club_id.eq.${id}`)
-            .join(",")
-        )
-        .limit(1)
-        .maybeSingle();
-  const { data: fixture } = await fixtureQuery;
+    : dbClubIds.length > 0
+      ? await supabase
+          .from("fixtures")
+          .select("home_club_id, away_club_id")
+          .or(
+            dbClubIds
+              .map((id) => `home_club_id.eq.${id},away_club_id.eq.${id}`)
+              .join(",")
+          )
+          .limit(1)
+          .maybeSingle()
+      : { data: null };
   if (fixture) {
     const { data: names } = await supabase
       .from("clubs")

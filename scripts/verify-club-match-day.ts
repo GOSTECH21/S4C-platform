@@ -24,6 +24,7 @@ import {
   isPostedPortfolioStatus,
   isVotedPortfolioStatus,
   matchDayCampaignTitle,
+  postedMatchDayForFanTeam,
   FAN_POST_APPEAR_DELAY_MINUTES,
   fanPostVisibleAt,
   fanPostVisibility,
@@ -225,6 +226,55 @@ assert(
 assert(
   fanTeamMatchesPostedClub(unitedFan, { clubId: "fan-united", title: "Other" }),
   "A fan matches a posted campaign when the club id is the same"
+);
+const liverpoolFan = {
+  id: "season:Premier League:Liverpool",
+  name: "Liverpool",
+  displayName: "Liverpool",
+};
+assert(
+  fanTeamMatchesPostedClub(liverpoolFan, {
+    clubId: "sd-liverpool",
+    clubName: "Liverpool Football Club",
+  }),
+  "A Liverpool fan matches a posted Liverpool Football Club by club name"
+);
+assert(
+  fanTeamMatchesPostedClub(liverpoolFan, {
+    title: "Liverpool Football Club Climate Campaign",
+  }),
+  "A Liverpool fan matches a Liverpool Football Club Climate Campaign title"
+);
+assert(
+  !fanTeamMatchesPostedClub(liverpoolFan, {
+    clubId: "other",
+    title: "Arsenal vs Chelsea Climate Campaign",
+  }),
+  "A Liverpool fan does not match an Arsenal vs Chelsea campaign"
+);
+const liverpoolPosted = postedMatchDayForFanTeam(
+  liverpoolFan,
+  [
+    {
+      clubId: "sd-liverpool",
+      clubName: "Liverpool Football Club",
+      postedAt: "2026-09-20T13:00:00.000Z",
+      visibleAt: "2026-09-20T13:00:00.000Z",
+    },
+  ],
+  [
+    {
+      clubId: "sd-liverpool",
+      projectIds: ["gss", "southwark", "yorkshire", "edinburgh", "paws"],
+      campaignId: "liv-campaign",
+    },
+  ]
+);
+assert(
+  liverpoolPosted?.clubId === "sd-liverpool" &&
+    liverpoolPosted.projectIds.length === 5 &&
+    liverpoolPosted.projectIds.includes("southwark"),
+  "Posted Liverpool Match Day five is resolved for a catalog Liverpool fan"
 );
 assert(
   isPostedPortfolioStatus(MATCH_DAY_PORTFOLIO_POSTED) &&

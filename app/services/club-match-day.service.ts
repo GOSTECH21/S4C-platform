@@ -1170,6 +1170,8 @@ export async function postMatchDayProjectsToFans({
     clubName,
     postedAt: postedAt.toISOString(),
     visibleAt: visibleAt.toISOString(),
+    projectIds: portfolioIds,
+    campaignId: stored?.campaignId ?? existingCampaign?.id ?? null,
   });
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
@@ -1204,6 +1206,14 @@ export async function postMatchDayProjectsToFans({
   };
   writeStoredMatchDay(clubId, selection);
   writeCampaignAuction(selection.campaignId, selection);
+  writeFanPostSchedule({
+    clubId,
+    clubName,
+    postedAt: postedAt.toISOString(),
+    visibleAt: visibleAt.toISOString(),
+    projectIds: portfolioIds,
+    campaignId: selection.campaignId,
+  });
   const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
     clubId,
