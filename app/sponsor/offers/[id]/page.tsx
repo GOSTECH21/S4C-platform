@@ -21,8 +21,12 @@ import {
 } from "@/app/lib/routes";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
+import {
+  formatMoney,
+  formatStipulatedRate,
+} from "@/app/lib/sponsorship-auction";
 
-const TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor Goals scored by this club's players during the named match, at the posted minimum sponsorship amount per Goal, unlocking funding for the Climate Project that fans vote to fund. You may then display your brand name as SPONSORED BY on those five Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
+const TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor Goals scored by this club's players during the named match. The amount payable per Goal is the Sustainability Director's stipulated amount per Vote multiplied by the number of fans who voted, never less than the posted Minimum Amount. You pay that live amount for each Goal scored. If the club does not score, you pay nothing. You may then display your brand name as SPONSORED BY on those five Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
 export default function SponsorOfferPage() {
   const params = useParams<{ id: string }>();
@@ -116,7 +120,13 @@ export default function SponsorOfferPage() {
       <h1 className="mt-6 text-4xl font-black">{offer.headline}</h1>
       <p className="mt-4 text-slate-300">
         These are the 5 Climate Projects {offer.clubName} posted to fans.
-        Agree to be Goal Sponsor for this match, then add your brand name.
+        Agree to be Goal Sponsor for this match. You pay only for Goals scored
+        by {offer.clubName} players: live £/Goal is max(
+        {formatMoney(offer.sponsorshipAmountGbp)} Minimum,{" "}
+        {offer.gbpPerVote
+          ? formatStipulatedRate(offer.gbpPerVote)
+          : "the stipulated £/Vote"}{" "}
+        × fans who voted).
       </p>
 
       <div className="mt-8 space-y-4">

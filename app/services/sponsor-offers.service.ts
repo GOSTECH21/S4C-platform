@@ -42,6 +42,7 @@ export type SponsorMatchOffer = {
   postedAt: string;
   headline: string;
   sponsorshipAmountGbp: number;
+  gbpPerVote?: number | null;
   targetBrandNames?: string[] | null;
 };
 
@@ -167,6 +168,7 @@ export async function publishSponsorMatchOffer({
   clubEmail,
   projects,
   sponsorshipAmountGbp,
+  gbpPerVote,
   targetBrandNames,
 }: {
   clubId: string;
@@ -174,6 +176,7 @@ export async function publishSponsorMatchOffer({
   clubEmail?: string | null;
   projects: ClimateProject[];
   sponsorshipAmountGbp?: number | null;
+  gbpPerVote?: number | null;
   targetBrandNames?: string[] | null;
 }): Promise<SponsorMatchOffer> {
   const context = await lookupClubMatchContext(clubId, clubName);
@@ -196,6 +199,8 @@ export async function publishSponsorMatchOffer({
     }),
     sponsorshipAmountGbp:
       Number(sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+    gbpPerVote:
+      Number(gbpPerVote) > 0 ? Number(gbpPerVote) : null,
     targetBrandNames: (targetBrandNames ?? []).filter(Boolean),
   };
 
@@ -244,6 +249,8 @@ function mapOfferRow(row: Record<string, unknown>): SponsorMatchOffer {
       sponsorOfferHeadline({ clubName, matchTitle, matchDate, scoreLabel }),
     sponsorshipAmountGbp:
       Number(row.sponsorship_amount_gbp) || OPENING_SPONSORSHIP,
+    gbpPerVote:
+      Number(row.gbp_per_vote) > 0 ? Number(row.gbp_per_vote) : null,
     targetBrandNames: Array.isArray(row.target_brand_names)
       ? (row.target_brand_names as string[])
       : undefined,
@@ -262,6 +269,8 @@ export async function listSponsorMatchOffers(): Promise<SponsorMatchOffer[]> {
       ...offer,
       sponsorshipAmountGbp:
         Number(offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+      gbpPerVote:
+        Number(offer.gbpPerVote) > 0 ? Number(offer.gbpPerVote) : offer.gbpPerVote ?? null,
       targetBrandNames: offer.targetBrandNames,
     }))
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt));

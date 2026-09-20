@@ -6,12 +6,13 @@ import {
   formatMatchHeadline,
   formatSponsorshipBadge,
   formatSponsorshipRate,
+  formatStipulatedRate,
   gbpPerVoteFromExpected,
-  OPENING_SPONSORSHIP,
-  DEFAULT_MAX_SPONSORSHIP,
+  totalSponsorshipPayable,
+  votesToClearMinimum,
   DEFAULT_GBP_PER_VOTE,
+  DEFAULT_MINIMUM_SPONSORSHIP,
   DEFAULT_PROJECTED_VOTES,
-  VOTE_TARGET_FOR_MAX,
 } from "../app/lib/sponsorship-auction";
 
 const failures: string[] = [];
@@ -40,80 +41,150 @@ assert(
     "Man City v Man United Climate Campaign",
   "Man City v Man United heading follows the fixture"
 );
+
 assert(
-  currentSponsorshipAmount({ votesReceived: 0 }) === OPENING_SPONSORSHIP,
-  "Opening bid is £1,000/Goal at zero votes"
+  DEFAULT_GBP_PER_VOTE === 0.02,
+  "Stipulated amount/vote example is £0.02"
+);
+
+const arsenalVManCity = { gbpPerVote: 0.02, minimumAmount: 5000 };
+assert(
+  currentSponsorshipAmount({ votesReceived: 0, ...arsenalVManCity }) === 5000,
+  "Arsenal v Man City stays at the £5,000 minimum with no votes"
 );
 assert(
-  currentSponsorshipAmount({ votesReceived: VOTE_TARGET_FOR_MAX }) ===
-    DEFAULT_MAX_SPONSORSHIP,
-  "Sponsorship peaks at £5,000 when 500,000 votes are projected at £0.01/vote"
+  currentSponsorshipAmount({
+    votesReceived: 100_000,
+    ...arsenalVManCity,
+  }) === 5000,
+  "£0.02 × 100,000 fans = £2,000, so Arsenal v Man City stays at £5,000"
 );
 assert(
-  currentSponsorshipAmount({ votesReceived: 250_000 }) === 3000,
-  "Halfway to 500,000 votes is £3,000/Goal between £1,000 and £5,000"
+  currentSponsorshipAmount({
+    votesReceived: 250_000,
+    ...arsenalVManCity,
+  }) === 5000,
+  "£0.02 × 250,000 fans equals the £5,000 Arsenal v Man City floor"
 );
+assert(
+  currentSponsorshipAmount({
+    votesReceived: 300_000,
+    ...arsenalVManCity,
+  }) === 6000,
+  "£0.02 × 300,000 fans lifts Arsenal v Man City to £6,000/Goal"
+);
+assert(
+  totalSponsorshipPayable({ amountPerGoal: 6000, goalsScored: 3 }) === 18000,
+  "Sponsor pays £6,000/Goal × 3 Arsenal goals = £18,000"
+);
+assert(
+  totalSponsorshipPayable({ amountPerGoal: 6000, goalsScored: 0 }) === 0,
+  "If the sponsored club scores no Goals, the sponsor pays nothing"
+);
+
+const arsenalVCoventry = { gbpPerVote: 0.02, minimumAmount: 2000 };
+assert(
+  currentSponsorshipAmount({
+    votesReceived: 50_000,
+    ...arsenalVCoventry,
+  }) === 2000,
+  "Arsenal SD can set a £2,000 minimum vs Coventry when votes would only raise £1,000"
+);
+assert(
+  currentSponsorshipAmount({
+    votesReceived: 150_000,
+    ...arsenalVCoventry,
+  }) === 3000,
+  "Arsenal v Coventry rises to £3,000/Goal once 150,000 fans vote"
+);
+
+const coventryVArsenal = { gbpPerVote: 0.02, minimumAmount: 4000 };
+assert(
+  currentSponsorshipAmount({
+    votesReceived: 100_000,
+    ...coventryVArsenal,
+  }) === 4000,
+  "Coventry SD can set a £4,000 minimum because Arsenal is a big club coming to town"
+);
+assert(
+  currentSponsorshipAmount({
+    votesReceived: 250_000,
+    ...coventryVArsenal,
+  }) === 5000,
+  "Coventry v Arsenal rises to £5,000/Goal at 250,000 votes"
+);
+
+assert(
+  votesToClearMinimum(arsenalVManCity) === 250_000,
+  "Arsenal v Man City needs 250,000 votes at £0.02/Vote to clear the £5,000 floor"
+);
+
 assert(
   expectedSponsorshipFromVotes({
     projectedVotes: DEFAULT_PROJECTED_VOTES,
     gbpPerVote: DEFAULT_GBP_PER_VOTE,
-  }) === 5000,
-  "500,000 votes at £0.01/vote is £5,000 Sponsorship/Goal"
+  }) === 10_000,
+  "500,000 projected votes at £0.02/Vote is a £10,000 vote-based /Goal preview"
 );
 assert(
   expectedSponsorshipFromVotes({
     projectedVotes: 500_000,
-    gbpPerVote: 0.02,
-  }) === 10000,
-  "SD can set £0.02/vote so 500,000 votes become £10,000/Goal"
+    gbpPerVote: 0.01,
+  }) === 5000,
+  "SD can still stipulate £0.01/Vote so 500,000 votes preview £5,000/Goal"
 );
 assert(
   gbpPerVoteFromExpected({
     projectedVotes: 500_000,
     expectedSponsorship: 10000,
   }) === 0.02,
-  "Editing expected Sponsorship/Goal updates the £/vote rate"
+  "Editing the vote-based preview updates the stipulated £/Vote"
+);
+
+assert(
+  currentSponsorshipAmount({
+    votesReceived: 1_000_000,
+    gbpPerVote: 0.02,
+    minimumAmount: 5000,
+  }) === 20_000,
+  "Votes above any planning target keep raising £/Goal — there is no maximum cap"
 );
 assert(
   currentSponsorshipAmount({
-    votesReceived: 500_000,
-    openingAmount: OPENING_SPONSORSHIP,
-    maxAmount: 10000,
-    voteTarget: 500_000,
-  }) === 10000,
-  "Fans see £10,000/Goal when the SD sets £0.02/vote"
+    votesReceived: 0,
+    gbpPerVote: DEFAULT_GBP_PER_VOTE,
+    minimumAmount: DEFAULT_MINIMUM_SPONSORSHIP,
+  }) === DEFAULT_MINIMUM_SPONSORSHIP,
+  "With no SD match minimum stored, the live amount stays on the default floor"
 );
+
 assert(
-  currentSponsorshipAmount({ votesReceived: 1_000_000 }) ===
-    DEFAULT_MAX_SPONSORSHIP,
-  "Votes above the target stay capped at the max bid"
-);
-assert(
-  formatSponsorshipRate(1000, "Goal") === "£1,000/Goal",
+  formatSponsorshipRate(5000, "Goal") === "£5,000/Goal",
   "Live amount is labelled per scoring event"
 );
 assert(
-  formatSponsorshipBadge({ amount: 1000, scoreLabel: "Goal" }) ===
-    "£1,000/Goal (Min)",
-  "Opening amount is labelled as the minimum"
+  formatSponsorshipBadge({
+    amount: 5000,
+    scoreLabel: "Goal",
+    minimumAmount: 5000,
+  }) === "£5,000/Goal (Min)",
+  "Amount at the SD minimum is labelled as the minimum"
 );
 assert(
-  formatSponsorshipBadge({ amount: 5000, scoreLabel: "Goal" }) ===
-    "£5,000/Goal (Max)",
-  "Default peak is labelled as the maximum"
+  formatSponsorshipBadge({
+    amount: 6000,
+    scoreLabel: "Goal",
+    minimumAmount: 5000,
+  }) === "£6,000/Goal",
+  "Amount above the minimum is not labelled as a maximum"
 );
 assert(
-  formatGbpPerVote(DEFAULT_GBP_PER_VOTE) === "£0.01",
-  "Default rate is labelled as £0.01/vote"
+  formatGbpPerVote(DEFAULT_GBP_PER_VOTE) === "£0.02",
+  "Default stipulated rate is labelled as £0.02"
 );
 assert(
-  formatGbpPerVote(0.02) === "£0.02",
-  "SD can raise the rate to £0.02/vote"
-);
-assert(
-  formatSponsorshipBadge({ amount: 10000, scoreLabel: "Goal", maxAmount: 10000 }) ===
-    "£10,000/Goal (Max)",
-  "Peak amount is labelled as the maximum"
+  formatStipulatedRate(0.02) === "£0.02/Vote",
+  "SD rate is labelled as amount per Vote"
 );
 
 if (failures.length > 0) {
@@ -121,4 +192,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Sponsorship auction headlines and vote-scaled amounts passed.");
+console.log(
+  "Goal-scored funding: SD £/Vote × fans who voted, floored at match minimum."
+);

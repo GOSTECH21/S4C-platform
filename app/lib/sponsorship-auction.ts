@@ -1,11 +1,10 @@
-/** Highest-bidder sponsorship that rises with votes during the 72-hour window. */
+/** Goal-scored funding: the sponsor pays only for Goals scored by the club. */
 
-export const OPENING_SPONSORSHIP = 1000;
-export const DEFAULT_GBP_PER_VOTE = 0.01;
+export const DEFAULT_MINIMUM_SPONSORSHIP = 1000;
+/** Fallback when a Sustainability Director has not yet inserted a match minimum. */
+export const OPENING_SPONSORSHIP = DEFAULT_MINIMUM_SPONSORSHIP;
+export const DEFAULT_GBP_PER_VOTE = 0.02;
 export const DEFAULT_PROJECTED_VOTES = 500_000;
-/** Default peak: 500,000 votes × £0.01/vote. */
-export const DEFAULT_MAX_SPONSORSHIP = 5_000;
-export const VOTE_TARGET_FOR_MAX = DEFAULT_PROJECTED_VOTES;
 
 export function expectedSponsorshipFromVotes({
   projectedVotes,
@@ -29,6 +28,53 @@ export function gbpPerVoteFromExpected({
   const votes = Math.max(0, Number(projectedVotes) || 0);
   if (votes <= 0) return DEFAULT_GBP_PER_VOTE;
   return Math.round((Number(expectedSponsorship) / votes) * 10_000) / 10_000;
+}
+
+export function votesToClearMinimum({
+  gbpPerVote = DEFAULT_GBP_PER_VOTE,
+  minimumAmount = DEFAULT_MINIMUM_SPONSORSHIP,
+}: {
+  gbpPerVote?: number;
+  minimumAmount?: number;
+}): number {
+  const rate = Math.max(0, Number(gbpPerVote) || 0);
+  const floor = Math.max(0, Number(minimumAmount) || 0);
+  if (rate <= 0) return 0;
+  return Math.ceil(floor / rate);
+}
+
+/**
+ * Amount payable per Goal: stipulated £/Vote × fans who voted,
+ * never below the Sustainability Director's match Minimum Amount.
+ */
+export function currentSponsorshipAmount({
+  votesReceived,
+  gbpPerVote = DEFAULT_GBP_PER_VOTE,
+  minimumAmount = DEFAULT_MINIMUM_SPONSORSHIP,
+}: {
+  votesReceived: number;
+  gbpPerVote?: number;
+  minimumAmount?: number;
+}): number {
+  const voteBased = expectedSponsorshipFromVotes({
+    projectedVotes: votesReceived,
+    gbpPerVote,
+  });
+  const floor = Math.max(0, Number(minimumAmount) || 0);
+  return Math.max(floor, voteBased);
+}
+
+/** Final amount the sponsor pays: live £/Goal × Goals scored by the club. */
+export function totalSponsorshipPayable({
+  amountPerGoal,
+  goalsScored,
+}: {
+  amountPerGoal: number;
+  goalsScored: number;
+}): number {
+  const perGoal = Math.max(0, Math.round(Number(amountPerGoal) || 0));
+  const goals = Math.max(0, Math.round(Number(goalsScored) || 0));
+  return perGoal * goals;
 }
 
 /** Familiar match-day names. Catalog pages can still use the legal club title. */
@@ -71,33 +117,15 @@ export function campaignHeadline(title: string | null | undefined): string {
   return `${formatMatchHeadline(title)} Climate Campaign`;
 }
 
-export function currentSponsorshipAmount({
-  votesReceived,
-  openingAmount = OPENING_SPONSORSHIP,
-  maxAmount = DEFAULT_MAX_SPONSORSHIP,
-  voteTarget = VOTE_TARGET_FOR_MAX,
-}: {
-  votesReceived: number;
-  openingAmount?: number;
-  maxAmount?: number;
-  voteTarget?: number;
-}): number {
-  const opening = Math.max(0, openingAmount);
-  const peak = Math.max(opening, maxAmount);
-  if (voteTarget <= 0) return peak;
-  const progress = Math.min(1, Math.max(0, votesReceived / voteTarget));
-  return Math.round(opening + (peak - opening) * progress);
-}
-
 export function voteProgress({
   votesReceived,
-  voteTarget = VOTE_TARGET_FOR_MAX,
+  votesNeeded,
 }: {
   votesReceived: number;
-  voteTarget?: number;
+  votesNeeded: number;
 }): number {
-  if (voteTarget <= 0) return 1;
-  return Math.min(1, Math.max(0, votesReceived / voteTarget));
+  if (votesNeeded <= 0) return 1;
+  return Math.min(1, Math.max(0, votesReceived / votesNeeded));
 }
 
 export function formatMoney(amount: number): string {
@@ -111,6 +139,10 @@ export function formatGbpPerVote(rate: number): string {
   })}`;
 }
 
+export function formatStipulatedRate(rate: number): string {
+  return `${formatGbpPerVote(rate)}/Vote`;
+}
+
 export function formatSponsorshipRate(
   amount: number,
   scoreLabel: string
@@ -121,17 +153,14 @@ export function formatSponsorshipRate(
 export function formatSponsorshipBadge({
   amount,
   scoreLabel,
-  openingAmount = OPENING_SPONSORSHIP,
-  maxAmount = DEFAULT_MAX_SPONSORSHIP,
+  minimumAmount = DEFAULT_MINIMUM_SPONSORSHIP,
 }: {
   amount: number;
   scoreLabel: string;
-  openingAmount?: number;
-  maxAmount?: number;
+  minimumAmount?: number;
 }): string {
   const rate = formatSponsorshipRate(amount, scoreLabel);
-  if (amount <= openingAmount) return `${rate} (Min)`;
-  if (amount >= maxAmount) return `${rate} (Max)`;
+  if (amount <= minimumAmount) return `${rate} (Min)`;
   return rate;
 }
 

@@ -7,9 +7,10 @@ import {
   type TeamOption,
 } from "./teams.service";
 import {
-  OPENING_SPONSORSHIP,
-  DEFAULT_MAX_SPONSORSHIP,
+  DEFAULT_GBP_PER_VOTE,
+  DEFAULT_MINIMUM_SPONSORSHIP,
   DEFAULT_PROJECTED_VOTES,
+  OPENING_SPONSORSHIP,
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
@@ -378,10 +379,10 @@ export async function getVotedProjects(
 
 export type CampaignProject = ClimateProject & {
   votesReceived: number;
-  openingAmount: number;
-  maxAmount: number;
+  minimumAmount: number;
+  gbpPerVote: number;
   currentAmount: number;
-  voteTarget: number;
+  fansWhoVoted: number;
 };
 
 export type S4PCampaign = {
@@ -397,9 +398,10 @@ export type S4PCampaign = {
   projects: CampaignProject[];
   campaignId: string | null;
   postedClubId: string | null;
-  openingAmount: number;
-  maxAmount: number;
-  voteTarget: number;
+  minimumAmount: number;
+  gbpPerVote: number;
+  fansWhoVoted: number;
+  projectedVotes: number;
 };
 
 const DEFAULT_SPONSOR = "Budweiser";
@@ -589,7 +591,16 @@ async function campaignFromClubPortfolio(
     featuredProject?.id,
     ...clubProjects.map((project) => project.id),
   ]);
-  const auction = auctionSettingsForClub(postedClubId ?? team.id, campaignId);
+  const fansWhoVoted = await countFansWhoVoted(campaignId, [
+    featuredProject?.id,
+    ...clubProjects.map((project) => project.id),
+  ]);
+  const auction = auctionSettingsForClub(
+    postedClubId ?? team.id,
+    campaignId,
+    undefined,
+    fansWhoVoted
+  );
 
   return {
     clubId: postedClubId,
@@ -608,9 +619,10 @@ async function campaignFromClubPortfolio(
     ),
     campaignId,
     postedClubId,
-    openingAmount: auction.openingAmount,
-    maxAmount: auction.maxAmount,
-    voteTarget: auction.voteTarget,
+    minimumAmount: auction.minimumAmount,
+    gbpPerVote: auction.gbpPerVote,
+    fansWhoVoted: auction.fansWhoVoted,
+    projectedVotes: auction.projectedVotes,
   };
 }
 
@@ -673,10 +685,15 @@ async function buildCampaignFromMatchRow(
   ]);
   const votesFor = (projectId: string) =>
     Math.max(counted.get(projectId) ?? 0, storedVotes.get(projectId) ?? 0);
+  const fansWhoVoted = await countFansWhoVoted(openCampaign.id, [
+    featuredProject?.id,
+    ...clubProjects.map((project) => project.id),
+  ]);
   const auction = auctionSettingsForClub(
     openCampaign.club_id,
     openCampaign.id,
-    Number(openCampaign.sponsorship_per_goal)
+    Number(openCampaign.sponsorship_per_goal),
+    fansWhoVoted
   );
 
   return {
@@ -696,31 +713,35 @@ async function buildCampaignFromMatchRow(
     ),
     campaignId: openCampaign.id,
     postedClubId: openCampaign.club_id,
-    openingAmount: auction.openingAmount,
-    maxAmount: auction.maxAmount,
-    voteTarget: auction.voteTarget,
+    minimumAmount: auction.minimumAmount,
+    gbpPerVote: auction.gbpPerVote,
+    fansWhoVoted: auction.fansWhoVoted,
+    projectedVotes: auction.projectedVotes,
   };
 }
+
+type AuctionSettings = {
+  minimumAmount: number;
+  gbpPerVote: number;
+  projectedVotes: number;
+  fansWhoVoted: number;
+};
 
 function withAuction(
   project: ClimateProject,
   votesReceived: number,
-  auction: { openingAmount: number; maxAmount: number; voteTarget: number }
+  auction: AuctionSettings
 ): CampaignProject {
-  const openingAmount = auction.openingAmount;
-  const maxAmount = auction.maxAmount;
-  const voteTarget = auction.voteTarget;
   return {
     ...project,
     votesReceived,
-    openingAmount,
-    maxAmount,
-    voteTarget,
+    minimumAmount: auction.minimumAmount,
+    gbpPerVote: auction.gbpPerVote,
+    fansWhoVoted: auction.fansWhoVoted,
     currentAmount: currentSponsorshipAmount({
-      votesReceived,
-      openingAmount,
-      maxAmount,
-      voteTarget,
+      votesReceived: auction.fansWhoVoted,
+      gbpPerVote: auction.gbpPerVote,
+      minimumAmount: auction.minimumAmount,
     }),
   };
 }
@@ -728,26 +749,29 @@ function withAuction(
 function auctionSettingsForClub(
   clubId: string | null | undefined,
   campaignId: string | null | undefined,
-  sponsorshipPerGoal?: number
-): { openingAmount: number; maxAmount: number; voteTarget: number } {
+  sponsorshipPerGoal?: number,
+  fansWhoVoted = 0
+): AuctionSettings {
   const stored = readAuctionStore(campaignId, clubId);
-  const voteTarget =
+  const projectedVotes =
     Number(stored?.projectedVotes) > 0
       ? Number(stored?.projectedVotes)
       : DEFAULT_PROJECTED_VOTES;
-  const maxFromStore = Number(stored?.expectedSponsorship);
-  const maxFromCampaign =
-    Number(sponsorshipPerGoal) > OPENING_SPONSORSHIP
-      ? Number(sponsorshipPerGoal)
-      : 0;
-  const maxAmount =
-    maxFromStore > 0
-      ? maxFromStore
-      : maxFromCampaign || DEFAULT_MAX_SPONSORSHIP;
+  const gbpPerVote =
+    Number(stored?.gbpPerVote) > 0
+      ? Number(stored.gbpPerVote)
+      : DEFAULT_GBP_PER_VOTE;
+  const storedMin = Number(stored?.minAmount);
+  const campaignMin = Number(sponsorshipPerGoal);
+  const minimumAmount =
+    (storedMin > 0 ? storedMin : 0) ||
+    (campaignMin > 0 ? campaignMin : 0) ||
+    DEFAULT_MINIMUM_SPONSORSHIP;
   return {
-    openingAmount: OPENING_SPONSORSHIP,
-    maxAmount,
-    voteTarget,
+    minimumAmount,
+    gbpPerVote,
+    projectedVotes,
+    fansWhoVoted: Math.max(0, fansWhoVoted),
   };
 }
 
@@ -757,6 +781,8 @@ function readAuctionStore(
 ): {
   projectedVotes?: number;
   expectedSponsorship?: number;
+  gbpPerVote?: number;
+  minAmount?: number;
 } | null {
   if (typeof window === "undefined") return null;
   try {
@@ -774,6 +800,22 @@ function readAuctionStore(
     return null;
   }
   return null;
+}
+
+async function countFansWhoVoted(
+  campaignId: string | null,
+  projectIds: (string | null | undefined)[]
+): Promise<number> {
+  const ids = projectIds.filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return 0;
+
+  let query = supabase
+    .from("supporter_votes")
+    .select("supporter_id")
+    .in("climate_project_id", ids);
+  if (campaignId) query = query.eq("campaign_id", campaignId);
+  const { data } = await query;
+  return new Set((data ?? []).map((row) => String(row.supporter_id))).size;
 }
 
 async function countProjectVotes(

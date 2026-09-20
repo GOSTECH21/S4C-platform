@@ -7,8 +7,8 @@ import {
 } from "../lib/partner-projects";
 import {
   DEFAULT_GBP_PER_VOTE,
+  DEFAULT_MINIMUM_SPONSORSHIP,
   DEFAULT_PROJECTED_VOTES,
-  OPENING_SPONSORSHIP,
   expectedSponsorshipFromVotes,
 } from "../lib/sponsorship-auction";
 import { findClubOnRoster } from "../lib/current-season";
@@ -432,7 +432,7 @@ export async function ensureOpenClubCampaign(
   minAmount: number
 ): Promise<OpenClubCampaign> {
   const title = matchDayCampaignTitle(clubName);
-  const amount = Math.max(OPENING_SPONSORSHIP, Math.round(minAmount));
+  const amount = Math.max(0, Math.round(Number(minAmount) || 0));
   const existing = await findOpenClubCampaign(clubId, clubName);
   if (existing) {
     await supabase
@@ -650,7 +650,7 @@ export async function loadClubProjectBoard(
       const opened = await ensureOpenClubCampaign(
         clubId,
         clubName,
-        minAmount ?? OPENING_SPONSORSHIP
+        minAmount ?? DEFAULT_MINIMUM_SPONSORSHIP
       );
       campaignId = opened.id;
       await writeCampaignProjects(
@@ -976,7 +976,10 @@ function withAuctionDefaults(
       : expectedSponsorshipFromVotes({ projectedVotes, gbpPerVote });
   return {
     projectIds: parsed.projectIds,
-    minAmount: Number(parsed.minAmount) || OPENING_SPONSORSHIP,
+    minAmount:
+      Number(parsed.minAmount) > 0
+        ? Number(parsed.minAmount)
+        : DEFAULT_MINIMUM_SPONSORSHIP,
     projectedVotes,
     gbpPerVote,
     expectedSponsorship,
@@ -1034,7 +1037,7 @@ export async function saveMatchDaySelection({
   const campaign = await findOpenClubCampaign(clubId, clubName);
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
-    minAmount: Math.max(OPENING_SPONSORSHIP, Math.round(minAmount)),
+    minAmount: Math.max(0, Math.round(Number(minAmount) || 0)),
     projectedVotes,
     gbpPerVote,
     expectedSponsorship,
@@ -1047,7 +1050,7 @@ export async function saveMatchDaySelection({
     await supabase
       .from("match_campaigns")
       .update({
-        sponsorship_per_goal: auction.expectedSponsorship,
+        sponsorship_per_goal: auction.minAmount,
         status: "open",
       })
       .eq("id", campaign.id);
@@ -1070,7 +1073,7 @@ export async function saveMatchDaySelection({
     clubId,
     clubName,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    minAmount: auction.expectedSponsorship,
+    minAmount: auction.minAmount,
     selected: selectedProjects,
     voted: votedProjects,
   });
@@ -1141,19 +1144,20 @@ export async function postMatchDayProjectsToFans({
     (project) => project.id
   );
   const existingCampaign = await findOpenClubCampaign(clubId, clubName);
-  const peakFromCampaign = Number(existingCampaign?.sponsorship_per_goal);
-  const peakFromBoard = Number(board.minAmount);
+  const campaignFloor = Number(existingCampaign?.sponsorship_per_goal);
+  const boardFloor = Number(board.minAmount);
+  const storedFloor = Number(stored?.minAmount);
+  const minimumAmount =
+    (storedFloor > 0 ? storedFloor : 0) ||
+    (boardFloor > 0 ? boardFloor : 0) ||
+    (campaignFloor > 0 ? campaignFloor : 0) ||
+    DEFAULT_MINIMUM_SPONSORSHIP;
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
-    minAmount: OPENING_SPONSORSHIP,
+    minAmount: minimumAmount,
     projectedVotes: stored?.projectedVotes,
     gbpPerVote: stored?.gbpPerVote,
-    expectedSponsorship:
-      Math.max(
-        Number(stored?.expectedSponsorship) || 0,
-        peakFromCampaign > OPENING_SPONSORSHIP ? peakFromCampaign : 0,
-        peakFromBoard > OPENING_SPONSORSHIP ? peakFromBoard : 0
-      ) || undefined,
+    expectedSponsorship: stored?.expectedSponsorship,
     savedAt: new Date().toISOString(),
     campaignId: stored?.campaignId ?? existingCampaign?.id ?? null,
   });
@@ -1164,7 +1168,7 @@ export async function postMatchDayProjectsToFans({
     campaign = await ensureOpenClubCampaign(
       clubId,
       clubName,
-      auction.expectedSponsorship
+      auction.minAmount
     );
     if (campaignBelongsToClub({ ...campaign, club_id: campaign.club_id ?? clubId }, clubId, clubName)) {
       await writeCampaignProjects(campaign.id, portfolioIds);
@@ -1185,7 +1189,7 @@ export async function postMatchDayProjectsToFans({
     clubId,
     clubName,
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    minAmount: selection.expectedSponsorship,
+    minAmount: selection.minAmount,
     selected: selectedProjects,
     voted: board.voted,
   });
@@ -1198,7 +1202,8 @@ export async function postMatchDayProjectsToFans({
       clubId,
       clubName,
       projects: selectedProjects,
-      sponsorshipAmountGbp: selection.expectedSponsorship,
+      sponsorshipAmountGbp: selection.minAmount,
+      gbpPerVote: selection.gbpPerVote,
       targetBrandNames: selectedSponsors(roster).map((sponsor) => sponsor.brandName),
     });
   } catch {

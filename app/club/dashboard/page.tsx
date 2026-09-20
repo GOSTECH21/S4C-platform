@@ -37,11 +37,10 @@ import {
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
 import {
-  DEFAULT_GBP_PER_VOTE,
-  DEFAULT_PROJECTED_VOTES,
-  OPENING_SPONSORSHIP,
-  formatGbpPerVote,
+  DEFAULT_MINIMUM_SPONSORSHIP,
+  expectedSponsorshipFromVotes,
   formatMoney,
+  formatStipulatedRate,
 } from "@/app/lib/sponsorship-auction";
 import {
   lookbackSponsorForRecord,
@@ -122,20 +121,22 @@ export default function ClubDashboardPage() {
       setRecords(board.records);
       const stored = readStoredMatchDay(session.club.id);
       setPostedAt(stored?.postedAt ?? null);
-      const peak =
-        stored?.expectedSponsorship && stored.expectedSponsorship > OPENING_SPONSORSHIP
-          ? stored.expectedSponsorship
-          : board.minAmount && board.minAmount > OPENING_SPONSORSHIP
-            ? board.minAmount
-            : stored?.expectedSponsorship ?? null;
-      setProjectedVotes(stored?.projectedVotes ?? (peak ? DEFAULT_PROJECTED_VOTES : null));
-      setGbpPerVote(
-        stored?.gbpPerVote ??
-          (peak && (stored?.projectedVotes ?? DEFAULT_PROJECTED_VOTES)
-            ? peak / (stored?.projectedVotes ?? DEFAULT_PROJECTED_VOTES)
+      const storedMin =
+        stored?.minAmount && stored.minAmount > 0 ? stored.minAmount : null;
+      const boardMin =
+        board.minAmount && board.minAmount > 0 ? board.minAmount : null;
+      setMinAmount(storedMin ?? boardMin);
+      setProjectedVotes(stored?.projectedVotes ?? null);
+      setGbpPerVote(stored?.gbpPerVote ?? null);
+      setExpectedSponsorship(
+        stored?.expectedSponsorship ??
+          (stored?.gbpPerVote && stored?.projectedVotes
+            ? expectedSponsorshipFromVotes({
+                projectedVotes: stored.projectedVotes,
+                gbpPerVote: stored.gbpPerVote,
+              })
             : null)
       );
-      setExpectedSponsorship(peak);
       setProposals(
         await listClubSponsorProposals(session.club.id, session.club.name)
       );
@@ -278,7 +279,10 @@ export default function ClubDashboardPage() {
         clubName: club.name,
         country: club.country,
         projectIds: partnerIds,
-        minAmount: minAmount ?? OPENING_SPONSORSHIP,
+        minAmount: minAmount ?? DEFAULT_MINIMUM_SPONSORSHIP,
+        projectedVotes: projectedVotes ?? undefined,
+        gbpPerVote: gbpPerVote ?? undefined,
+        expectedSponsorship: expectedSponsorship ?? undefined,
       });
       const posted = await postMatchDayProjectsToFans({
         clubId: club.id,
@@ -491,14 +495,18 @@ export default function ClubDashboardPage() {
             <h3 className="text-2xl font-black">
               This Match Day — Selected Climate Projects
             </h3>
-            {(expectedSponsorship != null || minAmount != null) && (
+            {(minAmount != null || gbpPerVote != null) && (
               <p className="mt-2 text-sm text-green-300">
-                Base {formatMoney(OPENING_SPONSORSHIP)}/Goal (Min)
+                Sponsor pays only for Goals scored ·{" "}
+                {minAmount != null
+                  ? `${formatMoney(minAmount)}/Goal (Min)`
+                  : "insert a Minimum Amount"}
+                {gbpPerVote != null
+                  ? ` · ${formatStipulatedRate(gbpPerVote)} × fans who voted`
+                  : ""}
                 {expectedSponsorship != null && projectedVotes
-                  ? ` · proposed ${formatMoney(expectedSponsorship)}/Goal at ${projectedVotes.toLocaleString("en-GB")} votes (${formatGbpPerVote(gbpPerVote ?? 0.01)}/vote)`
-                  : minAmount != null
-                    ? ` · ${formatMoney(minAmount)}/Goal`
-                    : ""}
+                  ? ` · ${formatMoney(expectedSponsorship)}/Goal at ${projectedVotes.toLocaleString("en-GB")} projected fans`
+                  : ""}
               </p>
             )}
             <ProjectGrid
@@ -609,8 +617,14 @@ export default function ClubDashboardPage() {
                         Amount:{" "}
                         {formatMoney(
                           Number(copy.offer.sponsorshipAmountGbp) ||
-                            OPENING_SPONSORSHIP
+                            DEFAULT_MINIMUM_SPONSORSHIP
                         )}
+                        /Goal (Min)
+                        {copy.offer.gbpPerVote
+                          ? ` · ${formatStipulatedRate(Number(copy.offer.gbpPerVote))}`
+                          : gbpPerVote
+                            ? ` · ${formatStipulatedRate(gbpPerVote)}`
+                            : ""}
                       </p>
                     </div>
                     <button

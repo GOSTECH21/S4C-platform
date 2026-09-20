@@ -20,6 +20,7 @@ export type FolderOffer = {
   projects: FolderProject[];
   postedAt: string;
   sponsorshipAmountGbp?: number | null;
+  gbpPerVote?: number | null;
 };
 
 export type FolderSignature = {
@@ -357,6 +358,9 @@ export function signedCopyPayload(copy: SignedSponsorship) {
     termsAccepted: copy.signature.acceptedTerms,
     sponsorshipAmountGbp:
       Number(copy.offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+    gbpPerVote: copy.offer.gbpPerVote ?? null,
+    payablePerGoal:
+      "The sponsor pays the live £/Goal for each Goal scored by this club. Live £/Goal is max(Minimum Amount, stipulated £/Vote × fans who voted).",
     climateProjects: copy.offer.projects.map((project) => ({
       name: project.name,
       country: project.country,

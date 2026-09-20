@@ -10,7 +10,7 @@ export default function HowItWorks() {
       number: "02",
       title: "Climate Sponsors Step In",
       description:
-        "Sponsors commit funding (as Climate Credits) to sporting moments (e.g every Goal, or every Try scored) during a Match",
+        "Sponsors pay only for Goals (or Tries) scored by the club they sponsored. £/Goal is the Sustainability Director's stipulated amount per Vote times fans who voted, never below the Minimum Amount for that Match.",
     },
     {
       number: "03",

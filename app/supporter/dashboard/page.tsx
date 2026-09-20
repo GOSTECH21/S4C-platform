@@ -21,8 +21,10 @@ import {
   formatMatchHeadline,
   formatMoney,
   formatSponsorshipBadge,
+  formatStipulatedRate,
   formatVoteCount,
   voteProgress,
+  votesToClearMinimum,
 } from "@/app/lib/sponsorship-auction";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 
@@ -254,13 +256,13 @@ function CampaignPanel({
             Climate Projects you want funded if YOUR TEAM scores.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            The 72-hour voting window closes 2 hours before kick-off. Until then
-            the sponsorship amount per {campaign.scoreLabel} rises with votes,
-            from {formatMoney(campaign.openingAmount)} up to{" "}
-            {formatMoney(campaign.maxAmount)} at{" "}
-            {formatVoteCount(campaign.voteTarget)} votes. The highest-bidder
-            sponsor is then locked in. If your team does not score, they pay
-            nothing — but still reach every voter.
+            The 72-hour voting window closes 2 hours before kick-off. Amount
+            payable per {campaign.scoreLabel} is{" "}
+            {formatStipulatedRate(campaign.gbpPerVote)} × fans who voted, never
+            below {formatMoney(campaign.minimumAmount)} (the Sustainability
+            Director&apos;s Minimum Amount for this Match). The sponsor then
+            pays that amount for every {campaign.scoreLabel} your club scores —
+            and nothing if they do not score.
           </p>
         </div>
 
@@ -273,8 +275,9 @@ function CampaignPanel({
         {submitted && !error && (
           <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
             ✓ Your vote has been submitted. Watch the Vote Received counters —
-            as they rise, the live sponsorship amount per {campaign.scoreLabel}{" "}
-            rises with them and locks 2 hours before kick-off.
+            as more fans vote, live {campaign.scoreLabel} funding can rise above
+            the {formatMoney(campaign.minimumAmount)} minimum. The sponsor pays
+            that amount for every {campaign.scoreLabel} scored.
           </div>
         )}
 
@@ -391,9 +394,13 @@ function ProjectCard({
   disabled: boolean;
   onToggle: () => void;
 }) {
+  const votesNeeded = votesToClearMinimum({
+    gbpPerVote: project.gbpPerVote,
+    minimumAmount: project.minimumAmount,
+  });
   const progress = voteProgress({
-    votesReceived: project.votesReceived,
-    voteTarget: project.voteTarget,
+    votesReceived: project.fansWhoVoted,
+    votesNeeded,
   });
   const country = climateProjectCountryLabel(project, { clubName });
 
@@ -449,8 +456,7 @@ function ProjectCard({
             {formatSponsorshipBadge({
               amount: project.currentAmount,
               scoreLabel,
-              openingAmount: project.openingAmount,
-              maxAmount: project.maxAmount,
+              minimumAmount: project.minimumAmount,
             })}
           </p>
         </div>
@@ -473,9 +479,10 @@ function ProjectCard({
           />
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          Opens at {formatMoney(project.openingAmount)} · peaks at{" "}
-          {formatMoney(project.maxAmount)} / {scoreLabel} when votes reach{" "}
-          {formatVoteCount(project.voteTarget)}. Locked 2 hours before kick-off.
+          {formatVoteCount(project.fansWhoVoted)} fans voted. Live {scoreLabel}{" "}
+          funding is max({formatMoney(project.minimumAmount)},{" "}
+          {formatStipulatedRate(project.gbpPerVote)} × fans). Locked 2 hours
+          before kick-off.
         </p>
       </div>
 

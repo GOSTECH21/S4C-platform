@@ -24,11 +24,13 @@ import {
 import {
   DEFAULT_GBP_PER_VOTE,
   DEFAULT_PROJECTED_VOTES,
-  OPENING_SPONSORSHIP,
+  currentSponsorshipAmount,
   expectedSponsorshipFromVotes,
   formatGbpPerVote,
   formatMoney,
+  formatStipulatedRate,
   gbpPerVoteFromExpected,
+  votesToClearMinimum,
 } from "@/app/lib/sponsorship-auction";
 import {
   CLUB_DASHBOARD_PATH,
@@ -53,8 +55,14 @@ export default function SelectMatchDayProjectsPage() {
     String(DEFAULT_PROJECTED_VOTES)
   );
   const [gbpPerVote, setGbpPerVote] = useState(String(DEFAULT_GBP_PER_VOTE));
+  const [minAmount, setMinAmount] = useState("");
   const [expectedSponsorship, setExpectedSponsorship] = useState(
-    String(expectedSponsorshipFromVotes({ projectedVotes: DEFAULT_PROJECTED_VOTES }))
+    String(
+      expectedSponsorshipFromVotes({
+        projectedVotes: DEFAULT_PROJECTED_VOTES,
+        gbpPerVote: DEFAULT_GBP_PER_VOTE,
+      })
+    )
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -98,6 +106,7 @@ export default function SelectMatchDayProjectsPage() {
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
           setProjectedVotes(String(stored.projectedVotes));
           setGbpPerVote(String(stored.gbpPerVote));
+          setMinAmount(stored.minAmount ? String(stored.minAmount) : "");
           setExpectedSponsorship(String(stored.expectedSponsorship));
         }
       } catch (err) {
@@ -171,19 +180,24 @@ export default function SelectMatchDayProjectsPage() {
     }
     const votes = Number(projectedVotes);
     const rate = Number(gbpPerVote);
+    const minimum = Number(minAmount);
     const expected = Number(expectedSponsorship);
     if (!Number.isFinite(votes) || votes <= 0) {
-      setError("Enter a projected number of votes.");
+      setError("Enter a projected number of fans who will vote.");
       return;
     }
     if (!Number.isFinite(rate) || rate <= 0) {
-      setError("Enter a sponsorship amount per vote.");
+      setError("Insert the stipulated amount per Vote (for example £0.02/Vote).");
       return;
     }
-    if (!Number.isFinite(expected) || expected < OPENING_SPONSORSHIP) {
+    if (!Number.isFinite(minimum) || minimum <= 0) {
       setError(
-        `Expected Sponsorship/Goal must be at least ${formatMoney(OPENING_SPONSORSHIP)}.`
+        "Insert the Minimum Amount for this Match. Set it to the enormity of the fixture — a bigger match can carry a higher floor."
       );
+      return;
+    }
+    if (!Number.isFinite(expected) || expected < 0) {
+      setError("Vote-based Sponsorship/Goal could not be calculated.");
       return;
     }
     setSaving(true);
@@ -194,7 +208,7 @@ export default function SelectMatchDayProjectsPage() {
         clubName,
         country: clubCountry,
         projectIds: [...selected],
-        minAmount: OPENING_SPONSORSHIP,
+        minAmount: minimum,
         projectedVotes: votes,
         gbpPerVote: rate,
         expectedSponsorship: expected,
@@ -365,28 +379,19 @@ export default function SelectMatchDayProjectsPage() {
 
         <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8">
           <h3 className="text-2xl font-bold">
-            Votes married to Sponsorship/Goal
+            Goal-scored funding for this Match
           </h3>
           <p className="mt-2 text-slate-400">
-            Base sponsorship is {formatMoney(OPENING_SPONSORSHIP)} per Goal.
-            Projected votes times £/vote set the expected Sponsorship/Goal
-            proposed to the brand. Fans see the amount rise from the base as
-            votes come in.
+            The sponsor pays only for Goals scored by {clubName} players. Amount
+            payable per Goal is your stipulated amount per Vote multiplied by
+            the number of fans who voted — but never below the Minimum Amount
+            you insert for this Match. A bigger fixture can carry a higher
+            floor; a smaller club hosting a bigger visitor can also set a
+            higher floor because that club is coming to town.
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <label className="block text-sm text-slate-400">
-              Projected Number of Votes
-              <input
-                type="number"
-                min={1}
-                step={1000}
-                value={projectedVotes}
-                onChange={(event) => updateProjectedVotes(event.target.value)}
-                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
-            <label className="block text-sm text-slate-400">
-              £ / Vote
+              Stipulated amount / Vote
               <input
                 type="number"
                 min={0.01}
@@ -397,10 +402,33 @@ export default function SelectMatchDayProjectsPage() {
               />
             </label>
             <label className="block text-sm text-slate-400">
-              Expected Sponsorship/Goal
+              Minimum Amount (£ / Goal)
               <input
                 type="number"
-                min={OPENING_SPONSORSHIP}
+                min={1}
+                step={100}
+                value={minAmount}
+                onChange={(event) => setMinAmount(event.target.value)}
+                placeholder="e.g. 5000"
+                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+              />
+            </label>
+            <label className="block text-sm text-slate-400">
+              Projected fans who will vote
+              <input
+                type="number"
+                min={1}
+                step={1000}
+                value={projectedVotes}
+                onChange={(event) => updateProjectedVotes(event.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+              />
+            </label>
+            <label className="block text-sm text-slate-400">
+              Vote-based £/Goal at that turnout
+              <input
+                type="number"
+                min={0}
                 step={100}
                 value={expectedSponsorship}
                 onChange={(event) =>
@@ -410,12 +438,12 @@ export default function SelectMatchDayProjectsPage() {
               />
             </label>
           </div>
-          <p className="mt-4 text-sm text-green-300">
-            Opens at {formatMoney(OPENING_SPONSORSHIP)}/Goal (Min). Peaks at{" "}
-            {formatMoney(Number(expectedSponsorship) || 0)}/Goal when votes
-            reach             {Number(projectedVotes || 0).toLocaleString("en-GB")} (
-            {formatGbpPerVote(Number(gbpPerVote) || 0)}/vote).
-          </p>
+          <FundingPreview
+            gbpPerVote={Number(gbpPerVote) || 0}
+            minAmount={Number(minAmount) || 0}
+            projectedVotes={Number(projectedVotes) || 0}
+            expectedSponsorship={Number(expectedSponsorship) || 0}
+          />
           <button
             onClick={confirm}
             disabled={saving || selected.size !== MATCH_DAY_CHOICE_COUNT}
@@ -423,10 +451,60 @@ export default function SelectMatchDayProjectsPage() {
           >
             {saving
               ? "Saving..."
-              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects at ${formatMoney(OPENING_SPONSORSHIP)} rising to ${formatMoney(Number(expectedSponsorship) || 0)}/Goal`}
+              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects · ${
+                  Number(minAmount) > 0
+                    ? `${formatMoney(Number(minAmount))}/Goal (Min)`
+                    : "insert Minimum Amount"
+                } · ${formatStipulatedRate(Number(gbpPerVote) || 0)}`}
           </button>
         </div>
       </div>
     </main>
+  );
+}
+
+function FundingPreview({
+  gbpPerVote,
+  minAmount,
+  projectedVotes,
+  expectedSponsorship,
+}: {
+  gbpPerVote: number;
+  minAmount: number;
+  projectedVotes: number;
+  expectedSponsorship: number;
+}) {
+  if (!(gbpPerVote > 0) || !(minAmount > 0)) {
+    return (
+      <p className="mt-4 text-sm text-amber-300">
+        Insert the stipulated amount per Vote and the Minimum Amount for this
+        Match. Live £/Goal = max(Minimum, stipulated £/Vote × fans who voted).
+        The sponsor pays that amount for every Goal the club scores.
+      </p>
+    );
+  }
+
+  const liveAtProjection = currentSponsorshipAmount({
+    votesReceived: projectedVotes,
+    gbpPerVote,
+    minimumAmount: minAmount,
+  });
+  const votesNeeded = votesToClearMinimum({
+    gbpPerVote,
+    minimumAmount: minAmount,
+  });
+  const staysAtMin = expectedSponsorship <= minAmount;
+
+  return (
+    <p className="mt-4 text-sm text-green-300">
+      Live £/Goal = max({formatMoney(minAmount)}, {formatStipulatedRate(gbpPerVote)}{" "}
+      × fans who voted). At {projectedVotes.toLocaleString("en-GB")} fans that is{" "}
+      {formatMoney(liveAtProjection)}/Goal
+      {staysAtMin
+        ? ` — still the Minimum until ${votesNeeded.toLocaleString("en-GB")} fans vote (${formatGbpPerVote(gbpPerVote)} × votes then exceeds ${formatMoney(minAmount)}).`
+        : ` (${formatMoney(expectedSponsorship)} from votes, above the ${formatMoney(minAmount)} floor).`}{" "}
+      The sponsor pays that amount for every Goal scored, and nothing if the
+      club does not score.
+    </p>
   );
 }

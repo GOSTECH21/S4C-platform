@@ -43,7 +43,7 @@ import {
   SPONSOR_OFFERS_PATH,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
-import { formatMoney, formatVoteCount } from "@/app/lib/sponsorship-auction";
+import { formatMoney, formatStipulatedRate, formatVoteCount } from "@/app/lib/sponsorship-auction";
 import { votedProjectsOnSignedOffer } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
@@ -446,7 +446,7 @@ export default function SponsorDashboardPage() {
           value={`${formatVoteCount(Math.round(stats.carbonTonnes))} tCO₂e`}
         />
         <StatCard
-          label="Total expenditure"
+          label="Minimum /Goal committed"
           value={formatMoney(stats.expenditureGbp)}
         />
         <StatCard
@@ -596,6 +596,10 @@ export default function SponsorDashboardPage() {
                       {formatMoney(
                         Number(row.offer.sponsorshipAmountGbp) || 0
                       )}
+                      /Goal (Min)
+                      {row.offer.gbpPerVote
+                        ? ` · ${formatStipulatedRate(Number(row.offer.gbpPerVote))}`
+                        : ""}
                     </p>
                   </div>
                   <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
