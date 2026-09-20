@@ -10,7 +10,7 @@ export default function HowItWorks() {
       number: "02",
       title: "Climate Sponsors Step In",
       description:
-        "Sponsors pay only for Goals (or Tries) scored by the club they sponsored. £/Goal is the Sustainability Director's stipulated amount per Vote times fans who voted, never below the Minimum Amount for that Match.",
+        "Sponsors pay only for Goals scored by the club they sponsored, at stipulated £/Vote × fans who voted, never below that Match's Minimum Amount.",
     },
     {
       number: "03",
