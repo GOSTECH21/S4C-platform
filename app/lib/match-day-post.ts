@@ -1,4 +1,5 @@
 import { seasonNamesMatch } from "./current-season";
+import { isVoteUuid } from "./fan-votes";
 
 export const MATCH_DAY_PORTFOLIO_SELECTED = "selected";
 export const MATCH_DAY_PORTFOLIO_POSTED = "posted";
@@ -165,6 +166,20 @@ export function readAllMatchDayStores(): StoredMatchDay[] {
     }
   }
   return rows;
+}
+
+export function storedCampaignIdForClub(
+  clubId: string | null | undefined
+): string | null {
+  if (!clubId) return null;
+  const schedule = readFanPostSchedule(clubId);
+  if (isVoteUuid(schedule?.campaignId)) return schedule.campaignId;
+  const fromStore = readAllMatchDayStores().find((row) => row.clubId === clubId);
+  if (isVoteUuid(fromStore?.campaignId)) return fromStore.campaignId;
+  for (const row of readAllFanPostSchedules()) {
+    if (row.clubId === clubId && isVoteUuid(row.campaignId)) return row.campaignId;
+  }
+  return null;
 }
 
 /** Resolve a fan catalog club (often "Liverpool") to a posted Match Day five. */

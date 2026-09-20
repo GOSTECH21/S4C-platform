@@ -459,7 +459,8 @@ export async function ensureOpenClubCampaign(
     };
   }
 
-  const matchId = await findClubFixtureId(clubId);
+  const matchId =
+    (await findClubFixtureId(clubId)) ?? (await createClubFixtureId(clubId));
   const votingOpensAt = votingOpens ?? new Date().toISOString();
   const votingCloses = new Date(Date.now() + MATCH_DAY_LEAD_HOURS * 60 * 60 * 1000).toISOString();
   const attemptsFor = (fixtureId: string | null): Array<Record<string, unknown>> => [
@@ -497,7 +498,10 @@ export async function ensureOpenClubCampaign(
   ];
 
   let lastError = "Could not post the Match Day campaign for your fans.";
-  for (const payload of attemptsFor(matchId)) {
+  for (const payload of [
+    ...attemptsFor(matchId),
+    ...(matchId ? attemptsFor(null) : []),
+  ]) {
     const inserted = await supabase
       .from("match_campaigns")
       .insert(payload)

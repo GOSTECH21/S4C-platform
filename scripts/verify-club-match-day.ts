@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
@@ -34,6 +35,7 @@ import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
   isCampaignIdNotNullError,
   ownedCampaignId,
+  retainVoteCampaignId,
   voteRowsForInsert,
 } from "../app/lib/fan-votes";
 import {
@@ -349,6 +351,29 @@ const arsenalCampaign = {
 assert(
   ownedCampaignId(arsenalCampaign, villaId) === null,
   "Villa fan votes must not attach to the Arsenal vs Chelsea campaign"
+);
+assert(
+  retainVoteCampaignId(
+    "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051",
+    null,
+    villaId
+  ) === "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051",
+  "A vote keeps its campaign id when the fan cannot read match_campaigns"
+);
+assert(
+  retainVoteCampaignId(
+    "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051",
+    arsenalCampaign,
+    villaId
+  ) === null,
+  "A Villa vote still must not attach to the Arsenal campaign when that row is visible"
+);
+assert(
+  readFileSync(
+    "supabase/migrations/0010_open_match_day_campaign_for_votes.sql",
+    "utf8"
+  ).includes("open_match_day_campaign_for_club"),
+  "Hosted SQL can open a Match Day campaign so fan votes have a campaign_id"
 );
 assert(
   ownedCampaignId(

@@ -38,6 +38,19 @@ export function ownedCampaignId(
   return id;
 }
 
+/** Keep a known campaign id unless the loaded row is proven to belong to another club. */
+export function retainVoteCampaignId(
+  provided: string | null | undefined,
+  loaded: { id?: string | null; club_id?: string | null } | null | undefined,
+  postedClubId: string | null | undefined
+): string | null {
+  if (!isVoteUuid(provided)) {
+    return ownedCampaignId(loaded, postedClubId);
+  }
+  if (!loaded) return provided;
+  return ownedCampaignId({ ...loaded, id: loaded.id ?? provided }, postedClubId);
+}
+
 export function isCampaignIdNotNullError(error: {
   code?: string;
   message?: string;
