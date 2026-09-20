@@ -41,6 +41,7 @@ import {
   SPONSOR_CREATE_CAMPAIGN_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
+  sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import { formatMoney, formatStipulatedRate, formatVoteCount } from "@/app/lib/sponsorship-auction";
@@ -636,7 +637,7 @@ export default function SponsorDashboardPage() {
                     </ul>
                   )}
                   <Link
-                    href={`${SPONSOR_OFFERS_PATH}/${row.offer.id}`}
+                    href={sponsorOfferSignOffPath(row.offer.id)}
                     className="mt-4 inline-flex text-sm font-semibold text-green-400"
                   >
                     Open signed copy

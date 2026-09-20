@@ -11,24 +11,26 @@ import {
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
-  SPONSOR_OFFERS_PATH,
+  sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
-import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
-import { isFeaturedClimateProject } from "@/app/services/votes.service";
+import { OfferProjectList, OfferSignOffForm } from "./OfferSignOff";
 
 export default function NewSponsorshipOfferPage() {
   const router = useRouter();
   const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
+  const [brandDefault, setBrandDefault] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
         const sponsor = await getCurrentSponsor();
+        const brand = String(sponsor.name ?? "");
+        setBrandDefault(brand);
         const folder = await loadSponsorFolder({
           sponsorId: String(sponsor.id ?? ""),
-          brandName: String(sponsor.name ?? ""),
+          brandName: brand,
         });
         setPending(folder.pending);
       } catch {
@@ -70,7 +72,7 @@ export default function NewSponsorshipOfferPage() {
           appear here after the Sustainability Director posts them to you.
         </p>
       ) : (
-        <OfferPreview offer={offer} />
+        <OfferPreview offer={offer} brandDefault={brandDefault} />
       )}
 
       {pending.length > 1 && (
@@ -80,7 +82,7 @@ export default function NewSponsorshipOfferPage() {
             {pending.slice(1).map((row) => (
               <Link
                 key={row.id}
-                href={`${SPONSOR_OFFERS_PATH}/${row.id}`}
+                href={sponsorOfferSignOffPath(row.id)}
                 className="block rounded-2xl border border-slate-700 bg-slate-900 p-5 hover:border-green-500"
               >
                 <h3 className="text-lg font-bold">{row.headline}</h3>
@@ -96,42 +98,22 @@ export default function NewSponsorshipOfferPage() {
   );
 }
 
-function OfferPreview({ offer }: { offer: SponsorMatchOffer }) {
+function OfferPreview({
+  offer,
+  brandDefault,
+}: {
+  offer: SponsorMatchOffer;
+  brandDefault: string;
+}) {
   const when = formatLongMatchDate(offer.matchDate);
   return (
     <div className="mt-10">
       <h2 className="text-2xl font-black">{offer.headline}</h2>
       {when && <p className="mt-2 text-slate-400">{when}</p>}
-      <div className="mt-8 space-y-4">
-        {offer.projects.map((project) => (
-          <div
-            key={project.id}
-            className="rounded-2xl border border-slate-700 bg-slate-900 p-6"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-2xl font-bold">{project.name}</h3>
-              {isFeaturedClimateProject({
-                name: project.name,
-                featured: false,
-              }) && (
-                <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
-                  Featured
-                </span>
-              )}
-            </div>
-            <p className="mt-1 text-sm text-slate-400">
-              📍 {climateProjectCountryLabel(project, { clubName: offer.clubName })}
-            </p>
-            <p className="mt-3 text-slate-300">{project.description}</p>
-          </div>
-        ))}
+      <div className="mt-8">
+        <OfferProjectList offer={offer} />
       </div>
-      <Link
-        href={`${SPONSOR_OFFERS_PATH}/${offer.id}`}
-        className="mt-8 inline-flex rounded-xl bg-green-500 px-6 py-4 font-bold text-slate-950 hover:bg-green-400"
-      >
-        Agree and sign off
-      </Link>
+      <OfferSignOffForm offer={offer} brandDefault={brandDefault} />
     </div>
   );
 }

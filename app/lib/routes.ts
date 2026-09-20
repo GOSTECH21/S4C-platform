@@ -26,7 +26,12 @@ export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
+export const SPONSOR_OFFER_SIGN_OFF_PATH = "/sponsor/offers/sign-off";
 export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";
+
+export function sponsorOfferSignOffPath(offerId: string): string {
+  return `${SPONSOR_OFFER_SIGN_OFF_PATH}?id=${encodeURIComponent(offerId)}`;
+}
 export const ADMIN_LOGIN_PATH = "/admin/login";
 export const ADMIN_REGISTER_PATH = "/admin/register";
 export const ADMIN_PATH = "/admin";

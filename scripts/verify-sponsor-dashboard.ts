@@ -15,6 +15,8 @@ import {
   findCurrentLookbackRecord,
   lookbackSponsorForRecord,
 } from "../app/lib/sponsor-dashboard";
+import { sponsorOfferSignOffPath } from "../app/lib/routes";
+import { readFileSync } from "fs";
 
 const failures: string[] = [];
 
@@ -245,6 +247,31 @@ assert(
     logoFor
   )?.name === "Budweiser",
   "Stored sponsor name wins on a lookback card"
+);
+
+assert(
+  sponsorOfferSignOffPath("abc/def") ===
+    "/sponsor/offers/sign-off?id=abc%2Fdef",
+  "Agree and sign off uses a static route and encodes the offer id"
+);
+assert(
+  sponsorOfferSignOffPath("offer-1") ===
+    "/sponsor/offers/sign-off?id=offer-1",
+  "A normal offer id signs off at /sponsor/offers/sign-off"
+);
+assert(
+  !sponsorOfferSignOffPath("offer-1").startsWith("/sponsor/offers/offer-1"),
+  "Sign-off does not navigate to a missing /sponsor/offers/[id] page"
+);
+
+const offerListPage = readFileSync("app/sponsor/offers/page.tsx", "utf8");
+assert(
+  offerListPage.includes("OfferSignOffForm"),
+  "Agree and sign off stays on New Sponsorship/Score Offer"
+);
+assert(
+  !offerListPage.includes("${SPONSOR_OFFERS_PATH}/${"),
+  "The offer list does not link to /sponsor/offers/[id]"
 );
 
 if (failures.length > 0) {
