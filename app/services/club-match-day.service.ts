@@ -29,8 +29,10 @@ import {
 } from "../lib/match-day-post";
 import {
   assignLookbackSponsors,
+  dedupeLookbackRecords,
   findCurrentLookbackRecord,
-  sameLookbackProjectSet,
+  mergeLookbackProjects,
+  preferFullerLookbackSelected,
   votedProjectsOnSignedOffer,
 } from "../lib/sponsor-dashboard";
 import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
@@ -706,12 +708,15 @@ export async function loadClubProjectBoard(
   }
 
   const remote = await loadRemoteFileRecords(clubId);
-  const records = assignLookbackSponsors(
-    mergeRecordLists(readFileRecords(clubId), remote),
-    signed,
-    logoFor
+  const merged = mergeRecordLists(readFileRecords(clubId), remote);
+  const records = dedupeLookbackRecords(
+    assignLookbackSponsors(merged, signed, logoFor)
   );
   writeFileRecords(clubId, records);
+  await dropSupersededFileRecords(
+    [...merged, ...remote, ...readFileRecords(clubId)],
+    records
+  );
 
   return { selected, voted, funded, minAmount, records };
 }
@@ -758,11 +763,7 @@ function mergeVotedProjects(
   previous: ClubFileProject[] | undefined,
   next: ClubFileProject[]
 ): ClubFileProject[] {
-  if (!previous || previous.length === 0) return next;
-  if (next.length === 0) return previous;
-  const byId = new Map(previous.map((project) => [project.id, project]));
-  for (const project of next) byId.set(project.id, project);
-  return [...byId.values()];
+  return mergeLookbackProjects(previous, next);
 }
 
 function readFileRecords(clubId: string): ClubFileRecord[] {
@@ -802,9 +803,23 @@ function mergeRecordLists(
     const previous = byId.get(record.id);
     if (!previous || record.savedAt >= previous.savedAt) byId.set(record.id, record);
   }
-  return [...byId.values()]
-    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
-    .slice(0, 50);
+  return dedupeLookbackRecords([...byId.values()]).slice(0, 50);
+}
+
+async function dropSupersededFileRecords(
+  previous: { id: string }[],
+  kept: { id: string }[]
+) {
+  const keep = new Set(kept.map((row) => row.id));
+  const dropped = [...new Set(previous.map((row) => row.id))].filter(
+    (id) => id && !keep.has(id)
+  );
+  if (dropped.length === 0) return;
+  try {
+    await supabase.from("club_climate_file_records").delete().in("id", dropped);
+  } catch {
+    // Local lookbacks are already collapsed; remote cleanup is best-effort.
+  }
 }
 
 async function loadRemoteFileRecords(clubId: string): Promise<ClubFileRecord[]> {
@@ -883,45 +898,55 @@ export async function persistFileRecord({
     sponsorName,
   });
 
+  if (!current && selectedSnap.length < MATCH_DAY_PROJECT_COUNT) {
+    return null;
+  }
+
   const record: ClubFileRecord = {
     id: current?.id ?? crypto.randomUUID(),
     clubId,
-    campaignId,
+    campaignId: campaignId ?? current?.campaignId ?? null,
     savedAt: current?.savedAt ?? savedAt ?? new Date().toISOString(),
     matchLabel: current?.matchLabel ?? `${clubName} Match Day`,
-    minAmount,
-    selected: selectedSnap,
+    minAmount: minAmount ?? current?.minAmount ?? null,
+    selected: preferFullerLookbackSelected(current?.selected, selectedSnap),
     voted: mergeVotedProjects(current?.voted, votedSnap),
     sponsorName: sponsorName ?? current?.sponsorName ?? null,
     sponsorLogoUrl: sponsorLogoUrl ?? current?.sponsorLogoUrl ?? null,
   };
 
-  const next = mergeFileRecords(existing, record).map((row) => {
-    if (row.id === record.id) return row;
-    if (!sameLookbackProjectSet(row.selected, selectedSnap)) return row;
-    return { ...row, voted: mergeVotedProjects(row.voted, votedSnap) };
-  });
+  const next = mergeFileRecords(existing, record);
   writeFileRecords(clubId, next);
+  await dropSupersededFileRecords([...existing, record], next);
+
+  const stored =
+    next.find((row) => row.id === record.id) ??
+    findCurrentLookbackRecord(next, {
+      campaignId: record.campaignId,
+      selected: record.selected,
+      sponsorName: record.sponsorName,
+    }) ??
+    record;
 
   const payload = {
-    id: record.id,
+    id: stored.id,
     club_id: clubId,
-    campaign_id: campaignId,
-    saved_at: record.savedAt,
-    match_label: record.matchLabel,
-    min_amount: minAmount,
-    selected: selectedSnap,
-    voted: record.voted,
+    campaign_id: stored.campaignId,
+    saved_at: stored.savedAt,
+    match_label: stored.matchLabel,
+    min_amount: stored.minAmount,
+    selected: stored.selected,
+    voted: stored.voted,
   };
   const updated = await supabase
     .from("club_climate_file_records")
     .update(payload)
-    .eq("id", record.id);
+    .eq("id", stored.id);
   if (updated.error) {
     await supabase.from("club_climate_file_records").insert(payload);
   }
 
-  return record;
+  return stored;
 }
 
 export function fileRecordDownloadName(clubName: string): string {

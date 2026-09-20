@@ -714,11 +714,11 @@ export default function ClubDashboardPage() {
                 Selected and voted projects, kept for lookback
               </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
-                Every confirmed Match Day selection and every voted project is
-                stored in this club file record so the Sustainability Director
-                can look back later. When more than one brand signs the same
-                five, each lookback is stamped with that sponsor&apos;s name and
-                logo.
+                Every confirmed Match Day five is stored once in this club file
+                record so the Sustainability Director can look back later.
+                Incomplete or unstamped copies of the same five are merged into
+                that lookback. When a second brand signs those projects, that
+                brand gets its own stamped card.
               </p>
             </div>
             <button

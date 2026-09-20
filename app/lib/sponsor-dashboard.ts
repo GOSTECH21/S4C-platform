@@ -213,6 +213,69 @@ export function sameLookbackProjectSet(
   return right.every((project) => ids.has(project.id));
 }
 
+export function lookbackProjectSetsOverlap(
+  left: { id: string }[],
+  right: { id: string }[]
+) {
+  if (left.length === 0 || right.length === 0) {
+    return left.length === 0 && right.length === 0;
+  }
+  const smaller = left.length <= right.length ? left : right;
+  const larger = left.length <= right.length ? right : left;
+  const ids = new Set(larger.map((project) => project.id));
+  return smaller.every((project) => ids.has(project.id));
+}
+
+export function preferFullerLookbackSelected<T extends { id: string }>(
+  previous: T[] | undefined,
+  next: T[]
+): T[] {
+  if (!previous || previous.length === 0) return next;
+  if (next.length === 0) return previous;
+  if (!lookbackProjectSetsOverlap(previous, next)) return next;
+  return next.length >= previous.length ? next : previous;
+}
+
+export function mergeLookbackProjects<T extends { id: string }>(
+  previous: T[] | undefined,
+  next: T[]
+): T[] {
+  if (!previous || previous.length === 0) return next;
+  if (next.length === 0) return previous;
+  const byId = new Map(previous.map((project) => [project.id, project]));
+  for (const project of next) byId.set(project.id, project);
+  return [...byId.values()];
+}
+
+type LookbackMergeRecord = {
+  id?: string;
+  campaignId: string | null;
+  savedAt: string;
+  selected: { id: string }[];
+  voted?: { id: string }[];
+  sponsorName?: string | null;
+  sponsorLogoUrl?: string | null;
+};
+
+export function lookbackRecordsShouldMerge(
+  left: LookbackMergeRecord,
+  right: LookbackMergeRecord
+) {
+  const leftBrand = String(left.sponsorName ?? "").trim();
+  const rightBrand = String(right.sponsorName ?? "").trim();
+  if (leftBrand && rightBrand && !brandsMatch(leftBrand, rightBrand)) {
+    return false;
+  }
+  const sameCampaign = Boolean(
+    left.campaignId && left.campaignId === right.campaignId
+  );
+  const sameDay = left.savedAt.slice(0, 10) === right.savedAt.slice(0, 10);
+  return (
+    sameCampaign ||
+    (sameDay && lookbackProjectSetsOverlap(left.selected, right.selected))
+  );
+}
+
 export function findCurrentLookbackRecord<
   T extends {
     campaignId: string | null;
@@ -232,21 +295,23 @@ export function findCurrentLookbackRecord<
   const today = query.today ?? new Date().toISOString().slice(0, 10);
   const sameSet = (record: T) =>
     sameLookbackProjectSet(record.selected, query.selected);
+  const overlaps = (record: T) =>
+    lookbackProjectSetsOverlap(record.selected, query.selected);
   const sameDay = (record: T) => record.savedAt.slice(0, 10) === today;
   const sameCampaign = (record: T) =>
     Boolean(query.campaignId && record.campaignId === query.campaignId);
+  const sameLookback = (record: T) =>
+    sameCampaign(record) || (sameDay(record) && overlaps(record));
 
   if (query.sponsorName) {
     const named = existing.find(
       (record) =>
         brandsMatch(record.sponsorName, query.sponsorName) &&
-        (sameCampaign(record) || sameSet(record))
+        (sameCampaign(record) || sameSet(record) || sameLookback(record))
     );
     if (named) return named;
     return existing.find(
-      (record) =>
-        !record.sponsorName &&
-        (sameCampaign(record) || (sameSet(record) && sameDay(record)))
+      (record) => !record.sponsorName && sameLookback(record)
     );
   }
 
@@ -254,8 +319,67 @@ export function findCurrentLookbackRecord<
     existing.find((record) => sameCampaign(record) && !record.sponsorName) ??
     existing.find(
       (record) => sameSet(record) && sameDay(record) && !record.sponsorName
-    )
+    ) ??
+    existing.find((record) => sameCampaign(record)) ??
+    existing.find((record) => sameSet(record) && sameDay(record)) ??
+    existing.find(
+      (record) => sameDay(record) && overlaps(record) && !record.sponsorName
+    ) ??
+    existing.find((record) => sameDay(record) && overlaps(record))
   );
+}
+
+function rankLookbackCanonical<T extends LookbackMergeRecord>(left: T, right: T) {
+  const leftNamed = left.sponsorName ? 0 : 1;
+  const rightNamed = right.sponsorName ? 0 : 1;
+  if (leftNamed !== rightNamed) return leftNamed - rightNamed;
+  if (right.selected.length !== left.selected.length) {
+    return right.selected.length - left.selected.length;
+  }
+  return left.savedAt.localeCompare(right.savedAt);
+}
+
+function lookbackBrandKey(record: LookbackMergeRecord) {
+  return String(record.sponsorName ?? "").trim().toLowerCase();
+}
+
+function canJoinLookbackGroup<T extends LookbackMergeRecord>(
+  members: T[],
+  record: T
+) {
+  if (!members.some((member) => lookbackRecordsShouldMerge(member, record))) {
+    return false;
+  }
+  const brands = [...members, record].map(lookbackBrandKey).filter(Boolean);
+  return new Set(brands).size <= 1;
+}
+
+export function dedupeLookbackRecords<T extends LookbackMergeRecord>(
+  records: T[]
+): T[] {
+  const groups: T[][] = [];
+  for (const record of records) {
+    const group = groups.find((members) => canJoinLookbackGroup(members, record));
+    if (group) group.push(record);
+    else groups.push([record]);
+  }
+
+  return groups
+    .map((group) => {
+      const canonical = [...group].sort(rankLookbackCanonical)[0];
+      return group.reduce((merged, row) => {
+        const sponsorName = merged.sponsorName || row.sponsorName || null;
+        return {
+          ...merged,
+          campaignId: merged.campaignId ?? row.campaignId,
+          selected: preferFullerLookbackSelected(merged.selected, row.selected),
+          voted: mergeLookbackProjects(merged.voted, row.voted ?? []),
+          sponsorName,
+          sponsorLogoUrl: merged.sponsorLogoUrl ?? row.sponsorLogoUrl ?? null,
+        };
+      }, canonical);
+    })
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
 }
 
 export function lookbackSponsorForRecord(

@@ -12,8 +12,10 @@ import {
   normalizeClubName,
   votedProjectsOnSignedOffer,
   assignLookbackSponsors,
+  dedupeLookbackRecords,
   findCurrentLookbackRecord,
   lookbackSponsorForRecord,
+  preferFullerLookbackSelected,
 } from "../app/lib/sponsor-dashboard";
 import { sponsorOfferSignOffPath } from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
@@ -235,6 +237,101 @@ const named = findCurrentLookbackRecord(
 assert(
   named?.sponsorName === "Gillette",
   "Gillette lookback is not merged into the Budweiser file record"
+);
+
+const liverpoolFive = offer.projects;
+const liverpoolLookbacks = [
+  {
+    id: "liv-unsigned",
+    campaignId: "liv-campaign",
+    savedAt: "2026-09-20T16:15:50.000Z",
+    selected: liverpoolFive,
+    voted: [],
+  },
+  {
+    id: "liv-amex",
+    campaignId: "liv-campaign",
+    savedAt: "2026-09-20T12:06:00.000Z",
+    selected: liverpoolFive,
+    voted: [],
+    sponsorName: "American Express",
+    sponsorLogoUrl: "/sponsors/amex.svg",
+  },
+  {
+    id: "liv-gss",
+    campaignId: null,
+    savedAt: "2026-09-20T11:40:01.000Z",
+    selected: [liverpoolFive[0]],
+    voted: [],
+  },
+];
+const collapsed = dedupeLookbackRecords(liverpoolLookbacks);
+assert(collapsed.length === 1, "Liverpool Match Day lookbacks collapse to one card");
+assert(
+  collapsed[0].sponsorName === "American Express",
+  "The surviving Liverpool lookback keeps the American Express stamp"
+);
+assert(
+  collapsed[0].selected.map((project) => project.id).join(",") ===
+    liverpoolFive.map((project) => project.id).join(","),
+  "The surviving Liverpool lookback keeps the confirmed five"
+);
+
+assert(
+  findCurrentLookbackRecord(liverpoolLookbacks, {
+    campaignId: "liv-campaign",
+    selected: liverpoolFive,
+    today: "2026-09-20",
+  })?.id === "liv-unsigned",
+  "An unsigned save updates the existing unsigned Liverpool lookback"
+);
+assert(
+  findCurrentLookbackRecord(
+    liverpoolLookbacks.filter((row) => row.id !== "liv-unsigned"),
+    {
+      campaignId: "liv-campaign",
+      selected: liverpoolFive,
+      today: "2026-09-20",
+    }
+  )?.sponsorName === "American Express",
+  "An unsigned save does not create a second table next to a stamped American Express lookback"
+);
+assert(
+  preferFullerLookbackSelected([liverpoolFive[0]], liverpoolFive).length === 5,
+  "A later full five replaces an earlier GSS-only lookback"
+);
+assert(
+  preferFullerLookbackSelected(liverpoolFive, [liverpoolFive[0]]).length === 5,
+  "A later GSS-only save does not shrink the confirmed five"
+);
+
+const villaWithUnsigned = dedupeLookbackRecords([
+  {
+    id: "villa-unsigned",
+    campaignId: null,
+    savedAt: "2026-09-18T16:00:00.000Z",
+    selected: offer.projects,
+  },
+  {
+    id: "villa-bud",
+    campaignId: null,
+    savedAt: "2026-09-18T15:00:41.000Z",
+    selected: offer.projects,
+    sponsorName: "Budweiser",
+  },
+  {
+    id: "villa-gil",
+    campaignId: null,
+    savedAt: "2026-09-18T12:50:10.000Z",
+    selected: offer.projects,
+    sponsorName: "Gillette",
+  },
+]);
+assert(
+  villaWithUnsigned.length === 2 &&
+    villaWithUnsigned.some((row) => row.sponsorName === "Budweiser") &&
+    villaWithUnsigned.some((row) => row.sponsorName === "Gillette"),
+  "Budweiser and Gillette keep separate stamped lookbacks for the same five"
 );
 
 assert(
