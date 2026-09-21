@@ -90,7 +90,7 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
         ← Back to dashboard
       </Link>
       <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-        Option 1
+        Match Day five
       </p>
       <h1 className="mt-3 text-4xl font-black">{offer.headline}</h1>
       <p className="mt-4 text-slate-300">

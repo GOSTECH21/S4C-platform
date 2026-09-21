@@ -372,6 +372,32 @@ assert(
   "The offer list does not link to /sponsor/offers/[id]"
 );
 
+const sponsorDashboardPage = readFileSync(
+  "app/sponsor/dashboard/page.tsx",
+  "utf8"
+);
+assert(
+  sponsorDashboardPage.includes(
+    "Receive the club's 5 chosen Climate Projects"
+  ) ||
+    sponsorDashboardPage.includes(
+      "Receive the club&apos;s 5 chosen Climate Projects"
+    ),
+  "Sponsorship dashboard keeps Receive the club's 5 chosen Climate Projects"
+);
+assert(
+  !sponsorDashboardPage.includes("Create Your Sponsorship Campaign"),
+  "Sponsorship dashboard no longer shows Option 2 campaign creation"
+);
+assert(
+  !sponsorDashboardPage.includes("SPONSOR_CREATE_CAMPAIGN_PATH"),
+  "Sponsorship dashboard does not link to the Option 2 campaign picker"
+);
+assert(
+  !sponsorDashboardPage.includes("Option 2 campaigns you sent"),
+  "Sponsorship dashboard no longer lists Option 2 campaigns you sent"
+);
+
 assert(
   signedOrPostedBrandForClub(
     "Liverpool",
