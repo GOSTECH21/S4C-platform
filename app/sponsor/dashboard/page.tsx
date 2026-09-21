@@ -41,7 +41,7 @@ import {
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import { formatMoney, formatStipulatedRate, formatVoteCount } from "@/app/lib/sponsorship-auction";
-import { votedProjectsOnSignedOffer } from "@/app/lib/sponsor-dashboard";
+import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
@@ -106,7 +106,6 @@ export default function SponsorDashboardPage() {
         });
         setPending(folder.pending);
         setSigned(folder.signed);
-        setStats(folder.stats);
         const clubIds = [...new Set(folder.signed.map((row) => row.offer.clubId))];
         const votedEntries = await Promise.all(
           clubIds.map(async (clubId) => {
@@ -116,7 +115,16 @@ export default function SponsorDashboardPage() {
             return [clubId, voted] as const;
           })
         );
-        setVotedByClub(Object.fromEntries(votedEntries));
+        const votedMap = Object.fromEntries(votedEntries);
+        setVotedByClub(votedMap);
+        setStats({
+          ...folder.stats,
+          fanVotes: fanVotesOnSignedOffers(
+            folder.signed,
+            votedMap,
+            folder.stats.fanVotes
+          ),
+        });
       } catch (err) {
         if (!sponsorId) {
           router.replace(SPONSOR_LOGIN_PATH);
@@ -147,6 +155,14 @@ export default function SponsorDashboardPage() {
       })
     );
     setVotedByClub(Object.fromEntries(votedEntries));
+    setStats({
+      ...folder.stats,
+      fanVotes: fanVotesOnSignedOffers(
+        folder.signed,
+        Object.fromEntries(votedEntries),
+        folder.stats.fanVotes
+      ),
+    });
   }
 
   function applyMatchDayLock(clubName: string, matchLabel: string) {

@@ -195,6 +195,33 @@ export function votedProjectsOnSignedOffer<T extends { id: string }>(
   return offer.projects.filter((project) => votedIds.has(project.id));
 }
 
+/** Each fan submits 3 Climate Projects. Three voted projects from one Match Day five is one fan. */
+export function fanCountFromVotedProjects(
+  votedProjectCount: number,
+  requiredVotes = 3
+): number {
+  if (votedProjectCount <= 0) return 0;
+  const perFan = requiredVotes > 0 ? requiredVotes : 3;
+  return Math.max(1, Math.ceil(votedProjectCount / perFan));
+}
+
+export function fanVotesOnSignedOffers<
+  T extends { id: string },
+>(
+  signed: Array<{ offer: { clubId?: string; projectIds?: string[]; projects: T[] } }>,
+  votedByClub: Record<string, T[]>,
+  countedFans = 0
+): number {
+  const votedHits = signed.reduce((total, row) => {
+    const clubId = String(row.offer.clubId ?? "");
+    return (
+      total +
+      votedProjectsOnSignedOffer(row.offer, votedByClub[clubId] ?? []).length
+    );
+  }, 0);
+  return Math.max(countedFans, fanCountFromVotedProjects(votedHits));
+}
+
 export function brandsMatch(
   left: string | null | undefined,
   right: string | null | undefined

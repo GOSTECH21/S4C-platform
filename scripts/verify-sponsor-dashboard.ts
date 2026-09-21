@@ -16,6 +16,8 @@ import {
   findCurrentLookbackRecord,
   lookbackSponsorForRecord,
   preferFullerLookbackSelected,
+  fanCountFromVotedProjects,
+  fanVotesOnSignedOffers,
 } from "../app/lib/sponsor-dashboard";
 import { sponsorOfferSignOffPath } from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
@@ -165,6 +167,22 @@ const votedOnOffer = votedProjectsOnSignedOffer(offer, [
 assert(
   votedOnOffer.map((project) => project.id).join(",") === "gss,local-1,int-1",
   "Sponsor folder shows the 3 fan-voted projects from the signed five"
+);
+assert(
+  fanCountFromVotedProjects(3) === 1,
+  "Three voted Climate Projects from one Match Day five count as one fan"
+);
+assert(
+  fanCountFromVotedProjects(0) === 0,
+  "No voted projects means no fans who voted"
+);
+assert(
+  fanVotesOnSignedOffers(
+    [{ offer: { clubId: "club-united", projects: offer.projects } }],
+    { "club-united": [{ id: "gss" }, { id: "local-1" }, { id: "int-1" }] },
+    0
+  ) === 1,
+  "American Express sees 1 fan when Voted by fans lists 3 projects"
 );
 
 const budweiserSig = {
