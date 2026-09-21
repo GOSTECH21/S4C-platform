@@ -11,11 +11,12 @@ import { SPONSOR_DASHBOARD_PATH } from "@/app/lib/routes";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
-  formatMoney,
+  formatSponsorPayableCopy,
   formatStipulatedRate,
+  EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
 
-export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor Goals scored by this club's players during the named match. The amount payable per Goal is the Sustainability Director's stipulated amount per Vote multiplied by the number of fans who voted, never less than the posted Minimum Amount. You pay that live amount for each Goal scored. If the club does not score, you pay nothing. You may then display your brand name as SPONSORED BY on those five Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
+export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus the Sustainability Director's Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. The stipulated amount per Climate Project is a brand-exposure counter: each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures (the five Climate Projects), even if the fan chooses 3. You may then display your brand name as SPONSORED BY on those five Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
 export function OfferProjectList({ offer }: { offer: SponsorMatchOffer }) {
   return (
@@ -137,12 +138,16 @@ export function OfferSignOffForm({
         >
           <h2 className="text-2xl font-black">Agree to be Goal Sponsor</h2>
           <p className="text-slate-300">
-            Amount payable per Goal is max(
-            {formatMoney(offer.sponsorshipAmountGbp)} Minimum,{" "}
+            {formatSponsorPayableCopy({
+              baseAmount: offer.sponsorshipAmountGbp,
+              gbpPerGoal: offer.gbpPerGoal,
+              maxAmount: offer.maxAmount,
+              clubName: offer.clubName,
+            })}{" "}
             {offer.gbpPerVote
-              ? formatStipulatedRate(offer.gbpPerVote)
-              : "the stipulated £/Vote"}{" "}
-            × fans who voted). Terms and Conditions apply.
+              ? `${formatStipulatedRate(offer.gbpPerVote)} is the brand-exposure counter (${EXPOSURES_PER_POST} exposures per posted fan).`
+              : ""}{" "}
+            Terms and Conditions apply.
           </p>
           <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
             {GOAL_SPONSOR_TERMS}

@@ -40,7 +40,7 @@ import {
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
-import { formatMoney, formatStipulatedRate, formatVoteCount } from "@/app/lib/sponsorship-auction";
+import { formatMatchFundingLine, formatStipulatedRate, formatVoteCount } from "@/app/lib/sponsorship-auction";
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
@@ -534,10 +534,12 @@ export default function SponsorDashboardPage() {
                       </p>
                     </div>
                     <p className="font-semibold text-green-300">
-                      {formatMoney(
-                        Number(row.offer.sponsorshipAmountGbp) || 0
-                      )}
-                      /Goal (Min)
+                      {formatMatchFundingLine({
+                        baseAmount: Number(row.offer.sponsorshipAmountGbp) || 0,
+                        gbpPerGoal: row.offer.gbpPerGoal,
+                        maxAmount: row.offer.maxAmount,
+                      }) ||
+                        `${Number(row.offer.sponsorshipAmountGbp) || 0} Base`}
                       {row.offer.gbpPerVote
                         ? ` · ${formatStipulatedRate(Number(row.offer.gbpPerVote))}`
                         : ""}

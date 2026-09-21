@@ -9,8 +9,8 @@ import {
 import {
   DEFAULT_GBP_PER_VOTE,
   DEFAULT_MINIMUM_SPONSORSHIP,
-  DEFAULT_PROJECTED_VOTES,
   OPENING_SPONSORSHIP,
+  brandExposuresFromPosts,
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
@@ -461,8 +461,11 @@ export type CampaignProject = ClimateProject & {
   votesReceived: number;
   minimumAmount: number;
   gbpPerVote: number;
+  gbpPerGoal: number;
+  maxAmount: number;
   currentAmount: number;
   fansWhoVoted: number;
+  brandExposures: number;
 };
 
 export type S4PCampaign = {
@@ -480,8 +483,11 @@ export type S4PCampaign = {
   postedClubId: string | null;
   minimumAmount: number;
   gbpPerVote: number;
+  gbpPerGoal: number;
+  maxAmount: number;
   fansWhoVoted: number;
   projectedVotes: number;
+  brandExposures: number;
   postedAt: string | null;
   visibleAt: string | null;
   isVisible: boolean;
@@ -729,8 +735,11 @@ async function campaignFromClubPortfolio(
     postedClubId,
     minimumAmount: auction.minimumAmount,
     gbpPerVote: auction.gbpPerVote,
+    gbpPerGoal: auction.gbpPerGoal,
+    maxAmount: auction.maxAmount,
     fansWhoVoted: auction.fansWhoVoted,
     projectedVotes: auction.projectedVotes,
+    brandExposures: auction.brandExposures,
     ...fanPostVisibility({
       clubId: postedClubId,
     }),
@@ -827,8 +836,11 @@ async function buildCampaignFromMatchRow(
     postedClubId: openCampaign.club_id,
     minimumAmount: auction.minimumAmount,
     gbpPerVote: auction.gbpPerVote,
+    gbpPerGoal: auction.gbpPerGoal,
+    maxAmount: auction.maxAmount,
     fansWhoVoted: auction.fansWhoVoted,
     projectedVotes: auction.projectedVotes,
+    brandExposures: auction.brandExposures,
     ...fanPostVisibility({
       clubId: openCampaign.club_id,
       votingOpens: openCampaign.voting_opens,
@@ -839,8 +851,11 @@ async function buildCampaignFromMatchRow(
 type AuctionSettings = {
   minimumAmount: number;
   gbpPerVote: number;
+  gbpPerGoal: number;
+  maxAmount: number;
   projectedVotes: number;
   fansWhoVoted: number;
+  brandExposures: number;
 };
 
 function withAuction(
@@ -853,10 +868,12 @@ function withAuction(
     votesReceived,
     minimumAmount: auction.minimumAmount,
     gbpPerVote: auction.gbpPerVote,
+    gbpPerGoal: auction.gbpPerGoal,
+    maxAmount: auction.maxAmount,
     fansWhoVoted: auction.fansWhoVoted,
+    brandExposures: auction.brandExposures,
     currentAmount: currentSponsorshipAmount({
-      votesReceived: auction.fansWhoVoted,
-      gbpPerVote: auction.gbpPerVote,
+      gbpPerGoal: auction.gbpPerGoal,
       minimumAmount: auction.minimumAmount,
     }),
   };
@@ -869,10 +886,6 @@ function auctionSettingsForClub(
   fansWhoVoted = 0
 ): AuctionSettings {
   const stored = readAuctionStore(campaignId, clubId);
-  const projectedVotes =
-    Number(stored?.projectedVotes) > 0
-      ? Number(stored?.projectedVotes)
-      : DEFAULT_PROJECTED_VOTES;
   const gbpPerVote =
     Number(stored?.gbpPerVote) > 0
       ? Number(stored.gbpPerVote)
@@ -883,11 +896,17 @@ function auctionSettingsForClub(
     (storedMin > 0 ? storedMin : 0) ||
     (campaignMin > 0 ? campaignMin : 0) ||
     DEFAULT_MINIMUM_SPONSORSHIP;
+  const gbpPerGoal = Math.max(0, Math.round(Number(stored?.gbpPerGoal) || 0));
+  const maxAmount = Math.max(0, Math.round(Number(stored?.maxAmount) || 0));
+  const eyeballs = Math.max(0, fansWhoVoted);
   return {
     minimumAmount,
     gbpPerVote,
-    projectedVotes,
-    fansWhoVoted: Math.max(0, fansWhoVoted),
+    gbpPerGoal,
+    maxAmount,
+    projectedVotes: Math.max(0, Math.round(Number(stored?.projectedVotes) || 0)),
+    fansWhoVoted: eyeballs,
+    brandExposures: brandExposuresFromPosts(eyeballs),
   };
 }
 
@@ -898,6 +917,8 @@ function readAuctionStore(
   projectedVotes?: number;
   expectedSponsorship?: number;
   gbpPerVote?: number;
+  gbpPerGoal?: number;
+  maxAmount?: number;
   minAmount?: number;
 } | null {
   if (typeof window === "undefined") return null;

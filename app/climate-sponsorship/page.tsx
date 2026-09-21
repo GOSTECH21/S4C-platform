@@ -36,7 +36,7 @@ export default function ClimateSponsorshipPage() {
           <li>1. The Sponsorship Manager chooses clubs for their Goal Sponsorship Network.</li>
           <li>2. 72 hours before kick-off they lock in one club and the Match (Premier League, Champions League, FA Cup).</li>
           <li>3. That club&apos;s Sustainability Director posts five Climate Projects for fans to vote on.</li>
-          <li>4. The sponsor pays only for Goals scored by that club. £/Goal is the Sustainability Director&apos;s stipulated amount per Vote times fans who voted, never below the Minimum Amount they set for the enormity of the Match.</li>
+          <li>4. The sponsor pays a Base Match Sponsorship even if the club scores no Goals, plus the Sustainability Director&apos;s amount for each Goal scored, up to the Maximum they set for the Match. The stipulated amount per Climate Project is a brand-exposure counter: 1 post = 1 eyeball = 5 exposures.</li>
         </ol>
         <Link
           href={SPONSOR_REGISTER_PATH}

@@ -17,7 +17,7 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     exampleS2PS: "£10,000/Goal",
     icon: "⚽",
     summary:
-      "Each Goal scored by the sponsored club releases the live £/Goal — stipulated £/Vote times fans who voted, never below that Match's Minimum Amount.",
+      "Each Goal scored by the sponsored club adds the posted Sponsorship per Goal to the Base Match Sponsorship, never above that Match's Maximum.",
   },
   {
     name: "Rugby",

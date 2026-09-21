@@ -1,4 +1,4 @@
-import { OPENING_SPONSORSHIP } from "./sponsorship-auction";
+import { OPENING_SPONSORSHIP, formatMatchFundingLine } from "./sponsorship-auction";
 
 export type FolderProject = {
   id: string;
@@ -21,6 +21,8 @@ export type FolderOffer = {
   postedAt: string;
   sponsorshipAmountGbp?: number | null;
   gbpPerVote?: number | null;
+  gbpPerGoal?: number | null;
+  maxAmount?: number | null;
 };
 
 export type FolderSignature = {
@@ -510,8 +512,17 @@ export function signedCopyPayload(copy: SignedSponsorship) {
     sponsorshipAmountGbp:
       Number(copy.offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
     gbpPerVote: copy.offer.gbpPerVote ?? null,
+    gbpPerGoal: copy.offer.gbpPerGoal ?? null,
+    maxAmount: copy.offer.maxAmount ?? null,
+    payable:
+      formatMatchFundingLine({
+        baseAmount: Number(copy.offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
+        gbpPerGoal: copy.offer.gbpPerGoal,
+        maxAmount: copy.offer.maxAmount,
+      }) ||
+      "The sponsor pays the Base Match Sponsorship even if the club scores no Goals, plus the posted amount for each Goal scored, up to the Maximum.",
     payablePerGoal:
-      "The sponsor pays the live £/Goal for each Goal scored by this club. Live £/Goal is max(Minimum Amount, stipulated £/Vote × fans who voted).",
+      "The sponsor pays the Base Match Sponsorship even if the club scores no Goals, plus the posted amount for each Goal scored, up to the Maximum.",
     climateProjects: copy.offer.projects.map((project) => ({
       name: project.name,
       country: project.country,

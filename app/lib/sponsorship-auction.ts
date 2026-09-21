@@ -1,10 +1,15 @@
-/** Goal-scored funding: the sponsor pays only for Goals scored by the club. */
+/** Match Day sponsorship: Base Match Sponsorship + £/Goal, up to a cap. */
 
 export const DEFAULT_MINIMUM_SPONSORSHIP = 1000;
 /** Fallback when a Sustainability Director has not yet inserted a match minimum. */
 export const OPENING_SPONSORSHIP = DEFAULT_MINIMUM_SPONSORSHIP;
+/** Stipulated amount per Climate Project — brand-exposure counter, not payment. */
 export const DEFAULT_GBP_PER_VOTE = 0.02;
-export const DEFAULT_PROJECTED_VOTES = 500_000;
+export const DEFAULT_GBP_PER_GOAL = 3000;
+/** One post to a fan is 1 eyeball and this many brand exposures. */
+export const EXPOSURES_PER_POST = 5;
+/** Kept for stored-selection compatibility; the SD form no longer asks for a fan count. */
+export const DEFAULT_PROJECTED_VOTES = 0;
 
 export function expectedSponsorshipFromVotes({
   projectedVotes,
@@ -43,38 +48,83 @@ export function votesToClearMinimum({
   return Math.ceil(floor / rate);
 }
 
-/**
- * Amount payable per Goal: stipulated £/Vote × fans who voted,
- * never below the Sustainability Director's match Minimum Amount.
- */
-export function currentSponsorshipAmount({
-  votesReceived,
-  gbpPerVote = DEFAULT_GBP_PER_VOTE,
-  minimumAmount = DEFAULT_MINIMUM_SPONSORSHIP,
-}: {
-  votesReceived: number;
-  gbpPerVote?: number;
-  minimumAmount?: number;
-}): number {
-  const voteBased = expectedSponsorshipFromVotes({
-    projectedVotes: votesReceived,
-    gbpPerVote,
-  });
-  const floor = Math.max(0, Number(minimumAmount) || 0);
-  return Math.max(floor, voteBased);
+/** Each post to a fan is 1 eyeball and EXPOSURES_PER_POST brand exposures. */
+export function brandExposuresFromPosts(posts: number): number {
+  const eyeballs = Math.max(0, Math.round(Number(posts) || 0));
+  return eyeballs * EXPOSURES_PER_POST;
 }
 
-/** Final amount the sponsor pays: live £/Goal × Goals scored by the club. */
+/** Stipulated amount/Climate Project × exposures (5 per posted fan). */
+export function brandExposureValue({
+  posts,
+  gbpPerProject = DEFAULT_GBP_PER_VOTE,
+}: {
+  posts: number;
+  gbpPerProject?: number;
+}): number {
+  const rate = Math.max(0, Number(gbpPerProject) || 0);
+  return Math.round(brandExposuresFromPosts(posts) * rate * 100) / 100;
+}
+
+/**
+ * Amount payable per Goal: the Sustainability Director's posted figure.
+ * Votes no longer scale this amount.
+ */
+export function currentSponsorshipAmount({
+  gbpPerGoal,
+  minimumAmount = DEFAULT_MINIMUM_SPONSORSHIP,
+}: {
+  votesReceived?: number;
+  gbpPerVote?: number;
+  gbpPerGoal?: number;
+  minimumAmount?: number;
+}): number {
+  const perGoal = Math.max(0, Math.round(Number(gbpPerGoal) || 0));
+  if (perGoal > 0) return perGoal;
+  return Math.max(0, Math.round(Number(minimumAmount) || 0));
+}
+
+/**
+ * Final amount the sponsor pays: Base Match Sponsorship plus £/Goal × Goals,
+ * never above the SD cap, and never below the base (0–0 still pays the base).
+ */
+export function totalMatchSponsorshipPayable({
+  baseAmount,
+  gbpPerGoal,
+  goalsScored,
+  maxAmount,
+}: {
+  baseAmount: number;
+  gbpPerGoal: number;
+  goalsScored: number;
+  maxAmount?: number | null;
+}): number {
+  const base = Math.max(0, Math.round(Number(baseAmount) || 0));
+  const perGoal = Math.max(0, Math.round(Number(gbpPerGoal) || 0));
+  const goals = Math.max(0, Math.round(Number(goalsScored) || 0));
+  const payable = base + perGoal * goals;
+  const cap = Math.max(0, Math.round(Number(maxAmount) || 0));
+  if (cap <= 0) return payable;
+  return Math.min(payable, Math.max(cap, base));
+}
+
 export function totalSponsorshipPayable({
   amountPerGoal,
   goalsScored,
+  baseAmount = 0,
+  maxAmount,
 }: {
   amountPerGoal: number;
   goalsScored: number;
+  baseAmount?: number;
+  maxAmount?: number | null;
 }): number {
-  const perGoal = Math.max(0, Math.round(Number(amountPerGoal) || 0));
-  const goals = Math.max(0, Math.round(Number(goalsScored) || 0));
-  return perGoal * goals;
+  return totalMatchSponsorshipPayable({
+    baseAmount,
+    gbpPerGoal: amountPerGoal,
+    goalsScored,
+    maxAmount,
+  });
 }
 
 /** Familiar match-day names. Catalog pages can still use the legal club title. */
@@ -140,7 +190,7 @@ export function formatGbpPerVote(rate: number): string {
 }
 
 export function formatStipulatedRate(rate: number): string {
-  return `${formatGbpPerVote(rate)}/Vote`;
+  return `${formatGbpPerVote(rate)}/Climate Project`;
 }
 
 export function formatSponsorshipRate(
@@ -153,17 +203,66 @@ export function formatSponsorshipRate(
 export function formatSponsorshipBadge({
   amount,
   scoreLabel,
-  minimumAmount = DEFAULT_MINIMUM_SPONSORSHIP,
 }: {
   amount: number;
   scoreLabel: string;
   minimumAmount?: number;
 }): string {
-  const rate = formatSponsorshipRate(amount, scoreLabel);
-  if (amount <= minimumAmount) return `${rate} (Min)`;
-  return rate;
+  return formatSponsorshipRate(amount, scoreLabel);
 }
 
 export function formatVoteCount(votes: number): string {
   return votes.toLocaleString("en-GB");
+}
+
+export function formatBrandExposureLabel(posts?: number | null): string {
+  const eyeballs = Math.max(0, Math.round(Number(posts) || 0));
+  if (eyeballs > 0) {
+    return `${brandExposuresFromPosts(eyeballs).toLocaleString("en-GB")} (${eyeballs.toLocaleString("en-GB")} posted fan${eyeballs === 1 ? "" : "s"} × ${EXPOSURES_PER_POST})`;
+  }
+  return `${EXPOSURES_PER_POST} per posted fan`;
+}
+
+export function formatMatchFundingLine({
+  baseAmount,
+  gbpPerGoal,
+  maxAmount,
+}: {
+  baseAmount?: number | null;
+  gbpPerGoal?: number | null;
+  maxAmount?: number | null;
+}): string {
+  const parts: string[] = [];
+  if (Number(baseAmount) > 0) {
+    parts.push(`${formatMoney(Number(baseAmount))} Base Match Sponsorship`);
+  }
+  if (Number(gbpPerGoal) > 0) {
+    parts.push(`${formatMoney(Number(gbpPerGoal))}/Goal`);
+  }
+  if (Number(maxAmount) > 0) {
+    parts.push(`up to a maximum of ${formatMoney(Number(maxAmount))}`);
+  }
+  return parts.join(" · ");
+}
+
+export function formatSponsorPayableCopy({
+  baseAmount,
+  gbpPerGoal,
+  maxAmount,
+  clubName,
+}: {
+  baseAmount: number;
+  gbpPerGoal?: number | null;
+  maxAmount?: number | null;
+  clubName?: string;
+}): string {
+  const perGoal = Number(gbpPerGoal) > 0 ? Number(gbpPerGoal) : 0;
+  const cap = Number(maxAmount) > 0 ? Number(maxAmount) : 0;
+  const who = clubName ? `${clubName} players` : "the club";
+  const capBit =
+    cap > 0 ? `, up to a maximum of ${formatMoney(cap)}` : "";
+  if (perGoal > 0) {
+    return `You pay the ${formatMoney(baseAmount)} Base Match Sponsorship even if ${who} score no Goals, plus ${formatMoney(perGoal)} for each Goal scored${capBit}.`;
+  }
+  return `You pay the ${formatMoney(baseAmount)} Base Match Sponsorship even if ${who} score no Goals${capBit}.`;
 }

@@ -38,7 +38,9 @@ import {
 } from "@/app/lib/partner-projects";
 import {
   DEFAULT_MINIMUM_SPONSORSHIP,
-  expectedSponsorshipFromVotes,
+  EXPOSURES_PER_POST,
+  formatBrandExposureLabel,
+  formatMatchFundingLine,
   formatMoney,
   formatStipulatedRate,
 } from "@/app/lib/sponsorship-auction";
@@ -79,11 +81,9 @@ export default function ClubDashboardPage() {
   const [funded, setFunded] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<ClimateProject[]>([]);
   const [minAmount, setMinAmount] = useState<number | null>(null);
-  const [projectedVotes, setProjectedVotes] = useState<number | null>(null);
+  const [gbpPerGoal, setGbpPerGoal] = useState<number | null>(null);
+  const [maxAmount, setMaxAmount] = useState<number | null>(null);
   const [gbpPerVote, setGbpPerVote] = useState<number | null>(null);
-  const [expectedSponsorship, setExpectedSponsorship] = useState<number | null>(
-    null
-  );
   const [records, setRecords] = useState<ClubFileRecord[]>([]);
   const [unlinked, setUnlinked] = useState(false);
   const [signedInKind, setSignedInKind] = useState<SignedInKind>("unknown");
@@ -126,17 +126,9 @@ export default function ClubDashboardPage() {
       const boardMin =
         board.minAmount && board.minAmount > 0 ? board.minAmount : null;
       setMinAmount(storedMin ?? boardMin);
-      setProjectedVotes(stored?.projectedVotes ?? null);
+      setGbpPerGoal(stored?.gbpPerGoal && stored.gbpPerGoal > 0 ? stored.gbpPerGoal : null);
+      setMaxAmount(stored?.maxAmount && stored.maxAmount > 0 ? stored.maxAmount : null);
       setGbpPerVote(stored?.gbpPerVote ?? null);
-      setExpectedSponsorship(
-        stored?.expectedSponsorship ??
-          (stored?.gbpPerVote && stored?.projectedVotes
-            ? expectedSponsorshipFromVotes({
-                projectedVotes: stored.projectedVotes,
-                gbpPerVote: stored.gbpPerVote,
-              })
-            : null)
-      );
       setProposals(
         await listClubSponsorProposals(session.club.id, session.club.name)
       );
@@ -199,6 +191,9 @@ export default function ClubDashboardPage() {
       savedAt: new Date().toISOString(),
       thisMatchDay: {
         minAmount,
+        gbpPerGoal,
+        maxAmount,
+        gbpPerVote,
         selected,
         voted,
         funded,
@@ -280,9 +275,9 @@ export default function ClubDashboardPage() {
         country: club.country,
         projectIds: partnerIds,
         minAmount: minAmount ?? DEFAULT_MINIMUM_SPONSORSHIP,
-        projectedVotes: projectedVotes ?? undefined,
+        gbpPerGoal: gbpPerGoal ?? undefined,
+        maxAmount: maxAmount ?? undefined,
         gbpPerVote: gbpPerVote ?? undefined,
-        expectedSponsorship: expectedSponsorship ?? undefined,
       });
       const posted = await postMatchDayProjectsToFans({
         clubId: club.id,
@@ -496,18 +491,16 @@ export default function ClubDashboardPage() {
             <h3 className="text-2xl font-black">
               This Match Day — Selected Climate Projects
             </h3>
-            {(minAmount != null || gbpPerVote != null) && (
+            {(minAmount != null || gbpPerVote != null || gbpPerGoal != null) && (
               <p className="mt-2 text-sm text-green-300">
-                Sponsor pays only for Goals scored ·{" "}
-                {minAmount != null
-                  ? `${formatMoney(minAmount)}/Goal (Min)`
-                  : "insert a Minimum Amount"}
+                {formatMatchFundingLine({
+                  baseAmount: minAmount,
+                  gbpPerGoal,
+                  maxAmount,
+                }) || "Insert Base Match Sponsorship, £/Goal and Maximum"}
                 {gbpPerVote != null
-                  ? ` · ${formatStipulatedRate(gbpPerVote)} × fans who voted`
-                  : ""}
-                {expectedSponsorship != null && projectedVotes
-                  ? ` · ${formatMoney(expectedSponsorship)}/Goal at ${projectedVotes.toLocaleString("en-GB")} projected fans`
-                  : ""}
+                  ? ` · ${formatStipulatedRate(gbpPerVote)} exposure counter · Projected Sponsor/Brand Exposure: ${formatBrandExposureLabel()}`
+                  : ` · Projected Sponsor/Brand Exposure: ${EXPOSURES_PER_POST} per posted fan`}
               </p>
             )}
             <ProjectGrid
@@ -615,12 +608,17 @@ export default function ClubDashboardPage() {
                         )}
                       </p>
                       <p className="mt-1 text-sm text-green-300">
-                        Amount:{" "}
-                        {formatMoney(
-                          Number(copy.offer.sponsorshipAmountGbp) ||
-                            DEFAULT_MINIMUM_SPONSORSHIP
-                        )}
-                        /Goal (Min)
+                        {formatMatchFundingLine({
+                          baseAmount:
+                            Number(copy.offer.sponsorshipAmountGbp) ||
+                            DEFAULT_MINIMUM_SPONSORSHIP,
+                          gbpPerGoal: copy.offer.gbpPerGoal ?? gbpPerGoal,
+                          maxAmount: copy.offer.maxAmount ?? maxAmount,
+                        }) ||
+                          `${formatMoney(
+                            Number(copy.offer.sponsorshipAmountGbp) ||
+                              DEFAULT_MINIMUM_SPONSORSHIP
+                          )} Base Match Sponsorship`}
                         {copy.offer.gbpPerVote
                           ? ` · ${formatStipulatedRate(Number(copy.offer.gbpPerVote))}`
                           : gbpPerVote
@@ -770,7 +768,7 @@ export default function ClubDashboardPage() {
                   </div>
                   {record.minAmount != null && (
                     <p className="mt-2 text-sm text-green-300">
-                      Minimum sponsorship: {formatMoney(record.minAmount)}/Goal
+                      Base Match Sponsorship: {formatMoney(record.minAmount)}
                     </p>
                   )}
                   <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">

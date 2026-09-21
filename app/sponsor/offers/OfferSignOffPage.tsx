@@ -19,7 +19,8 @@ import {
   SPONSOR_OFFERS_PATH,
 } from "@/app/lib/routes";
 import {
-  formatMoney,
+  EXPOSURES_PER_POST,
+  formatSponsorPayableCopy,
   formatStipulatedRate,
 } from "@/app/lib/sponsorship-auction";
 import { OfferSignOffForm } from "./OfferSignOff";
@@ -95,13 +96,16 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
       <h1 className="mt-3 text-4xl font-black">{offer.headline}</h1>
       <p className="mt-4 text-slate-300">
         These are the 5 Climate Projects {offer.clubName} posted to fans.
-        Agree to be Goal Sponsor for this match. You pay only for Goals scored
-        by {offer.clubName} players: live £/Goal is max(
-        {formatMoney(offer.sponsorshipAmountGbp)} Minimum,{" "}
+        Agree to be Goal Sponsor for this match.{" "}
+        {formatSponsorPayableCopy({
+          baseAmount: offer.sponsorshipAmountGbp,
+          gbpPerGoal: offer.gbpPerGoal,
+          maxAmount: offer.maxAmount,
+          clubName: offer.clubName,
+        })}{" "}
         {offer.gbpPerVote
-          ? formatStipulatedRate(offer.gbpPerVote)
-          : "the stipulated £/Vote"}{" "}
-        × fans who voted).
+          ? `${formatStipulatedRate(offer.gbpPerVote)} is the brand-exposure counter: 1 post = 1 eyeball = ${EXPOSURES_PER_POST} exposures.`
+          : ""}
       </p>
       <OfferSignOffForm offer={offer} brandDefault={brandDefault} showProjects />
     </div>

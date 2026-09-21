@@ -1,18 +1,22 @@
+import { readFileSync } from "fs";
 import {
+  brandExposureValue,
+  brandExposuresFromPosts,
   campaignHeadline,
   currentSponsorshipAmount,
-  expectedSponsorshipFromVotes,
+  formatBrandExposureLabel,
   formatGbpPerVote,
+  formatMatchFundingLine,
   formatMatchHeadline,
   formatSponsorshipBadge,
   formatSponsorshipRate,
+  formatSponsorPayableCopy,
   formatStipulatedRate,
-  gbpPerVoteFromExpected,
+  totalMatchSponsorshipPayable,
   totalSponsorshipPayable,
-  votesToClearMinimum,
   DEFAULT_GBP_PER_VOTE,
   DEFAULT_MINIMUM_SPONSORSHIP,
-  DEFAULT_PROJECTED_VOTES,
+  EXPOSURES_PER_POST,
 } from "../app/lib/sponsorship-auction";
 
 const failures: string[] = [];
@@ -44,147 +48,156 @@ assert(
 
 assert(
   DEFAULT_GBP_PER_VOTE === 0.02,
-  "Stipulated amount/vote example is £0.02"
+  "Stipulated amount/Climate Project example is £0.02"
+);
+assert(
+  EXPOSURES_PER_POST === 5,
+  "Each post to a fan is recorded as 5 brand exposures"
 );
 
-const arsenalVManCity = { gbpPerVote: 0.02, minimumAmount: 5000 };
-assert(
-  currentSponsorshipAmount({ votesReceived: 0, ...arsenalVManCity }) === 5000,
-  "Arsenal v Man City stays at the £5,000 minimum with no votes"
-);
-assert(
-  currentSponsorshipAmount({
-    votesReceived: 100_000,
-    ...arsenalVManCity,
-  }) === 5000,
-  "£0.02 × 100,000 fans = £2,000, so Arsenal v Man City stays at £5,000"
-);
-assert(
-  currentSponsorshipAmount({
-    votesReceived: 250_000,
-    ...arsenalVManCity,
-  }) === 5000,
-  "£0.02 × 250,000 fans equals the £5,000 Arsenal v Man City floor"
-);
-assert(
-  currentSponsorshipAmount({
-    votesReceived: 300_000,
-    ...arsenalVManCity,
-  }) === 6000,
-  "£0.02 × 300,000 fans lifts Arsenal v Man City to £6,000/Goal"
-);
-assert(
-  totalSponsorshipPayable({ amountPerGoal: 6000, goalsScored: 3 }) === 18000,
-  "Sponsor pays £6,000/Goal × 3 Arsenal goals = £18,000"
-);
-assert(
-  totalSponsorshipPayable({ amountPerGoal: 6000, goalsScored: 0 }) === 0,
-  "If the sponsored club scores no Goals, the sponsor pays nothing"
-);
+const cityTerms = {
+  baseAmount: 3000,
+  gbpPerGoal: 3000,
+  maxAmount: 15000,
+};
 
-const arsenalVCoventry = { gbpPerVote: 0.02, minimumAmount: 2000 };
 assert(
-  currentSponsorshipAmount({
-    votesReceived: 50_000,
-    ...arsenalVCoventry,
-  }) === 2000,
-  "Arsenal SD can set a £2,000 minimum vs Coventry when votes would only raise £1,000"
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 0 }) === 3000,
+  "0–0 still pays the £3,000 Base Match Sponsorship"
 );
 assert(
-  currentSponsorshipAmount({
-    votesReceived: 150_000,
-    ...arsenalVCoventry,
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 1 }) === 6000,
+  "1–0 pays £3,000 base + £3,000 per Goal = £6,000"
+);
+assert(
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 2 }) === 9000,
+  "2–0 pays £6,000 + another £3,000 = £9,000"
+);
+assert(
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 5 }) === 15000,
+  "Five Goals would be £18,000 but the £15,000 cap binds"
+);
+assert(
+  totalSponsorshipPayable({
+    amountPerGoal: 3000,
+    goalsScored: 0,
+    baseAmount: 3000,
+    maxAmount: 15000,
   }) === 3000,
-  "Arsenal v Coventry rises to £3,000/Goal once 150,000 fans vote"
-);
-
-const coventryVArsenal = { gbpPerVote: 0.02, minimumAmount: 4000 };
-assert(
-  currentSponsorshipAmount({
-    votesReceived: 100_000,
-    ...coventryVArsenal,
-  }) === 4000,
-  "Coventry SD can set a £4,000 minimum because Arsenal is a big club coming to town"
-);
-assert(
-  currentSponsorshipAmount({
-    votesReceived: 250_000,
-    ...coventryVArsenal,
-  }) === 5000,
-  "Coventry v Arsenal rises to £5,000/Goal at 250,000 votes"
-);
-
-assert(
-  votesToClearMinimum(arsenalVManCity) === 250_000,
-  "Arsenal v Man City needs 250,000 votes at £0.02/Vote to clear the £5,000 floor"
-);
-
-assert(
-  expectedSponsorshipFromVotes({
-    projectedVotes: DEFAULT_PROJECTED_VOTES,
-    gbpPerVote: DEFAULT_GBP_PER_VOTE,
-  }) === 10_000,
-  "500,000 projected votes at £0.02/Vote is a £10,000 vote-based /Goal preview"
-);
-assert(
-  expectedSponsorshipFromVotes({
-    projectedVotes: 500_000,
-    gbpPerVote: 0.01,
-  }) === 5000,
-  "SD can still stipulate £0.01/Vote so 500,000 votes preview £5,000/Goal"
-);
-assert(
-  gbpPerVoteFromExpected({
-    projectedVotes: 500_000,
-    expectedSponsorship: 10000,
-  }) === 0.02,
-  "Editing the vote-based preview updates the stipulated £/Vote"
+  "totalSponsorshipPayable uses the same base-plus-goals formula"
 );
 
 assert(
   currentSponsorshipAmount({
-    votesReceived: 1_000_000,
-    gbpPerVote: 0.02,
-    minimumAmount: 5000,
-  }) === 20_000,
-  "Votes above any planning target keep raising £/Goal — there is no maximum cap"
+    gbpPerGoal: 3000,
+    minimumAmount: 3000,
+  }) === 3000,
+  "Posted £/Goal is the SD figure, not scaled by votes"
 );
 assert(
   currentSponsorshipAmount({
-    votesReceived: 0,
-    gbpPerVote: DEFAULT_GBP_PER_VOTE,
     minimumAmount: DEFAULT_MINIMUM_SPONSORSHIP,
   }) === DEFAULT_MINIMUM_SPONSORSHIP,
-  "With no SD match minimum stored, the live amount stays on the default floor"
+  "With no posted £/Goal, the badge falls back to the base"
 );
 
 assert(
-  formatSponsorshipRate(5000, "Goal") === "£5,000/Goal",
+  brandExposuresFromPosts(1) === 5,
+  "One post is 1 eyeball and 5 exposures"
+);
+assert(
+  brandExposuresFromPosts(0) === 0,
+  "No posts means no recorded brand exposure"
+);
+assert(
+  brandExposureValue({ posts: 1, gbpPerProject: 0.02 }) === 0.1,
+  "£0.02/Climate Project × 5 exposures is £0.10 per posted fan"
+);
+assert(
+  formatBrandExposureLabel() === "5 per posted fan",
+  "SD form shows exposure as 5 per posted fan, not a typed fan count"
+);
+assert(
+  formatBrandExposureLabel(1) === "5 (1 posted fan × 5)",
+  "One posted fan records 5 exposures"
+);
+
+assert(
+  formatMatchFundingLine(cityTerms) ===
+    "£3,000 Base Match Sponsorship · £3,000/Goal · up to a maximum of £15,000",
+  "Funding line lists base, per Goal, and the cap"
+);
+assert(
+  formatSponsorPayableCopy({
+    baseAmount: 3000,
+    gbpPerGoal: 3000,
+    maxAmount: 15000,
+    clubName: "Manchester City",
+  }).includes("even if Manchester City players score no Goals"),
+  "Sponsor copy states the base is payable at 0–0"
+);
+
+assert(
+  formatSponsorshipRate(3000, "Goal") === "£3,000/Goal",
   "Live amount is labelled per scoring event"
 );
 assert(
   formatSponsorshipBadge({
-    amount: 5000,
+    amount: 3000,
     scoreLabel: "Goal",
-    minimumAmount: 5000,
-  }) === "£5,000/Goal (Min)",
-  "Amount at the SD minimum is labelled as the minimum"
-);
-assert(
-  formatSponsorshipBadge({
-    amount: 6000,
-    scoreLabel: "Goal",
-    minimumAmount: 5000,
-  }) === "£6,000/Goal",
-  "Amount above the minimum is not labelled as a maximum"
+    minimumAmount: 3000,
+  }) === "£3,000/Goal",
+  "Posted £/Goal is not labelled as a vote-scaled minimum"
 );
 assert(
   formatGbpPerVote(DEFAULT_GBP_PER_VOTE) === "£0.02",
   "Default stipulated rate is labelled as £0.02"
 );
 assert(
-  formatStipulatedRate(0.02) === "£0.02/Vote",
-  "SD rate is labelled as amount per Vote"
+  formatStipulatedRate(0.02) === "£0.02/Climate Project",
+  "SD rate is labelled as amount per Climate Project"
+);
+
+const selectPage = readFileSync(
+  new URL("../app/club/projects/select/page.tsx", import.meta.url),
+  "utf8"
+);
+assert(
+  selectPage.includes("Base Match Sponsorship"),
+  "SD form asks for Base Match Sponsorship"
+);
+assert(
+  selectPage.includes("Sponsorship per Goal scored"),
+  "SD form asks for Sponsorship per Goal scored"
+);
+assert(
+  selectPage.includes("Up to a Maximum of"),
+  "SD form asks for the Maximum cap"
+);
+assert(
+  selectPage.includes("Projected Sponsor/Brand Exposure"),
+  "Projected fans who will vote is replaced by Projected Sponsor/Brand Exposure"
+);
+assert(
+  !selectPage.includes("Projected fans who will vote"),
+  "SD form no longer asks for a projected fan count"
+);
+assert(
+  selectPage.includes("Stipulated amount / Climate Project"),
+  "Stipulated amount is per Climate Project, not per Vote"
+);
+
+const terms = readFileSync(
+  new URL("../app/sponsor/offers/OfferSignOff.tsx", import.meta.url),
+  "utf8"
+);
+assert(
+  terms.includes("even if the club scores no Goals"),
+  "Sponsor terms keep the base payable at 0–0"
+);
+assert(
+  !terms.includes("you pay nothing"),
+  "Sponsor terms no longer say the sponsor pays nothing if there are no Goals"
 );
 
 if (failures.length > 0) {
@@ -193,5 +206,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Goal-scored funding: SD £/Vote × fans who voted, floored at match minimum."
+  "Match Day funding: Base + £/Goal, capped; stipulated rate is a 5-exposure counter."
 );

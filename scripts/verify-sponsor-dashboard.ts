@@ -106,6 +106,11 @@ assert(payload.brand === "Carbon Warriors Limited", "Signed copy names the brand
 assert(payload.signedBy === "Alex Manager", "Signed copy names the signer");
 assert(payload.climateProjects.length === 5, "Signed copy lists the five projects");
 assert(
+  String(payload.payable).includes("Base Match Sponsorship") ||
+    String(payload.payablePerGoal).includes("Base Match Sponsorship"),
+  "Signed copy states the Base Match Sponsorship"
+);
+assert(
   signedCopyDownloadName("Manchester United", "Carbon Warriors Limited").includes(
     "s4p-signed-sponsorship"
   ),

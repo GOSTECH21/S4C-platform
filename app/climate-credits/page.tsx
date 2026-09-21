@@ -9,11 +9,11 @@ import {
 const STEPS = [
   {
     title: "A score is recorded",
-    copy: "Whenever your Team scores — a Goal, a Try, a Touchdown or a 3-point — the Match Day sponsorship is released as Climate Credits. The sponsor pays only for those scores.",
+    copy: "Whenever your Team scores — a Goal, a Try, a Touchdown or a 3-point — extra Climate Credits are added to the Base Match Sponsorship, up to the posted Maximum.",
   },
   {
     title: "Supporters & Fans receive a share",
-    copy: "The funding is split with the people who follow that club. Credits appear on My S4P so you can see the live amount per Goal: the Sustainability Director's stipulated £/Vote times fans who voted, never below that Match's Minimum Amount.",
+    copy: "The funding is split with the people who follow that club. Credits appear on My S4P so you can see the Base Match Sponsorship, the amount added for each Goal, and the Maximum the sponsor can pay.",
   },
   {
     title: "You vote",
@@ -45,15 +45,16 @@ export default function ClimateCreditsPage() {
       </div>
 
       <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
-        <h2 className="text-3xl font-black">Paid only when the club scores</h2>
+        <h2 className="text-3xl font-black">Base plus Goals, up to a Maximum</h2>
         <p className="mt-4 max-w-3xl text-lg text-slate-300">
-          The Sustainability Director inserts a stipulated amount per Vote
-          (for example £0.02/Vote) and a Minimum Amount that reflects the
-          enormity of the Match — £5,000 for a high-profile fixture, or a
-          different floor when a bigger club is coming to town. Live £/Goal is
-          that £/Vote times the fans who voted, never below the Minimum. The
-          sponsor pays that amount for every Goal scored, and nothing if the
-          club does not score.
+          The Sustainability Director inserts a Base Match Sponsorship (the
+          Minimum Payment, for example £3,000), the amount payable per Goal
+          scored (for example another £3,000), and an &quot;Up to a Maximum
+          of&quot; cap. A 0–0 still pays the base; 1–0 pays base plus one Goal;
+          2–0 adds another Goal, never above the cap. The stipulated amount per
+          Climate Project is a counter for brand exposure: every post to a fan
+          is 1 eyeball and 5 exposures, even if the fan chooses 3 of the 5
+          Climate Projects.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Link

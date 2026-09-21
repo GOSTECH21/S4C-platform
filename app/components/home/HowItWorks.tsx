@@ -10,7 +10,7 @@ export default function HowItWorks() {
       number: "02",
       title: "Climate Sponsors Step In",
       description:
-        "Sponsors pay only for Goals scored by the club they sponsored, at stipulated £/Vote × fans who voted, never below that Match's Minimum Amount.",
+        "Sponsors pay a Base Match Sponsorship even if the club scores no Goals, plus a posted amount for each Goal, up to a Maximum set by the club Sustainability Director.",
     },
     {
       number: "03",

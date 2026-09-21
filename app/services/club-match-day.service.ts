@@ -8,8 +8,7 @@ import {
 import {
   DEFAULT_GBP_PER_VOTE,
   DEFAULT_MINIMUM_SPONSORSHIP,
-  DEFAULT_PROJECTED_VOTES,
-  expectedSponsorshipFromVotes,
+  brandExposureValue,
 } from "../lib/sponsorship-auction";
 import { findClubOnRoster } from "../lib/current-season";
 import type { ClimateCountryContext } from "../lib/featured-climate-country";
@@ -68,6 +67,8 @@ export type ClubProfile = {
 export type MatchDaySelection = {
   projectIds: string[];
   minAmount: number;
+  gbpPerGoal: number;
+  maxAmount: number;
   projectedVotes: number;
   gbpPerVote: number;
   expectedSponsorship: number;
@@ -978,7 +979,12 @@ export function readCampaignAuction(campaignId: string | null | undefined) {
     if (!raw) return null;
     return JSON.parse(raw) as Pick<
       MatchDaySelection,
-      "minAmount" | "projectedVotes" | "gbpPerVote" | "expectedSponsorship"
+      | "minAmount"
+      | "gbpPerGoal"
+      | "maxAmount"
+      | "projectedVotes"
+      | "gbpPerVote"
+      | "expectedSponsorship"
     >;
   } catch {
     return null;
@@ -994,6 +1000,8 @@ function writeCampaignAuction(
     CAMPAIGN_AUCTION_PREFIX + campaignId,
     JSON.stringify({
       minAmount: selection.minAmount,
+      gbpPerGoal: selection.gbpPerGoal,
+      maxAmount: selection.maxAmount,
       projectedVotes: selection.projectedVotes,
       gbpPerVote: selection.gbpPerVote,
       expectedSponsorship: selection.expectedSponsorship,
@@ -1004,23 +1012,23 @@ function writeCampaignAuction(
 function withAuctionDefaults(
   parsed: Partial<MatchDaySelection> & { projectIds: string[] }
 ): MatchDaySelection {
-  const projectedVotes =
-    Number(parsed.projectedVotes) > 0
-      ? Number(parsed.projectedVotes)
-      : DEFAULT_PROJECTED_VOTES;
   const gbpPerVote =
     Number(parsed.gbpPerVote) > 0 ? Number(parsed.gbpPerVote) : DEFAULT_GBP_PER_VOTE;
+  const gbpPerGoal = Math.max(0, Math.round(Number(parsed.gbpPerGoal) || 0));
+  const maxAmount = Math.max(0, Math.round(Number(parsed.maxAmount) || 0));
   const expectedSponsorship =
     Number(parsed.expectedSponsorship) > 0
       ? Number(parsed.expectedSponsorship)
-      : expectedSponsorshipFromVotes({ projectedVotes, gbpPerVote });
+      : brandExposureValue({ posts: 1, gbpPerProject: gbpPerVote });
   return {
     projectIds: parsed.projectIds,
     minAmount:
       Number(parsed.minAmount) > 0
         ? Number(parsed.minAmount)
         : DEFAULT_MINIMUM_SPONSORSHIP,
-    projectedVotes,
+    gbpPerGoal,
+    maxAmount,
+    projectedVotes: Math.max(0, Math.round(Number(parsed.projectedVotes) || 0)),
     gbpPerVote,
     expectedSponsorship,
     savedAt: parsed.savedAt ?? new Date().toISOString(),
@@ -1043,6 +1051,8 @@ export async function saveMatchDaySelection({
   country,
   projectIds,
   minAmount,
+  gbpPerGoal,
+  maxAmount,
   projectedVotes,
   gbpPerVote,
   expectedSponsorship,
@@ -1052,6 +1062,8 @@ export async function saveMatchDaySelection({
   country?: string | null;
   projectIds: string[];
   minAmount: number;
+  gbpPerGoal?: number;
+  maxAmount?: number;
   projectedVotes?: number;
   gbpPerVote?: number;
   expectedSponsorship?: number;
@@ -1078,6 +1090,8 @@ export async function saveMatchDaySelection({
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
     minAmount: Math.max(0, Math.round(Number(minAmount) || 0)),
+    gbpPerGoal,
+    maxAmount,
     projectedVotes,
     gbpPerVote,
     expectedSponsorship,
@@ -1216,6 +1230,8 @@ export async function postMatchDayProjectsToFans({
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,
     minAmount: minimumAmount,
+    gbpPerGoal: stored?.gbpPerGoal,
+    maxAmount: stored?.maxAmount,
     projectedVotes: stored?.projectedVotes,
     gbpPerVote: stored?.gbpPerVote,
     expectedSponsorship: stored?.expectedSponsorship,
@@ -1272,6 +1288,8 @@ export async function postMatchDayProjectsToFans({
       projects: selectedProjects,
       sponsorshipAmountGbp: selection.minAmount,
       gbpPerVote: selection.gbpPerVote,
+      gbpPerGoal: selection.gbpPerGoal,
+      maxAmount: selection.maxAmount,
       targetBrandNames: sponsorNames,
     });
   } catch {

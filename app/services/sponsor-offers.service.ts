@@ -44,6 +44,8 @@ export type SponsorMatchOffer = {
   headline: string;
   sponsorshipAmountGbp: number;
   gbpPerVote?: number | null;
+  gbpPerGoal?: number | null;
+  maxAmount?: number | null;
   targetBrandNames?: string[] | null;
 };
 
@@ -170,6 +172,8 @@ export async function publishSponsorMatchOffer({
   projects,
   sponsorshipAmountGbp,
   gbpPerVote,
+  gbpPerGoal,
+  maxAmount,
   targetBrandNames,
 }: {
   clubId: string;
@@ -178,6 +182,8 @@ export async function publishSponsorMatchOffer({
   projects: ClimateProject[];
   sponsorshipAmountGbp?: number | null;
   gbpPerVote?: number | null;
+  gbpPerGoal?: number | null;
+  maxAmount?: number | null;
   targetBrandNames?: string[] | null;
 }): Promise<SponsorMatchOffer> {
   const context = await lookupClubMatchContext(clubId, clubName);
@@ -202,6 +208,8 @@ export async function publishSponsorMatchOffer({
       Number(sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
     gbpPerVote:
       Number(gbpPerVote) > 0 ? Number(gbpPerVote) : null,
+    gbpPerGoal: Number(gbpPerGoal) > 0 ? Number(gbpPerGoal) : null,
+    maxAmount: Number(maxAmount) > 0 ? Number(maxAmount) : null,
     targetBrandNames: (targetBrandNames ?? []).filter(Boolean),
   };
 
@@ -255,6 +263,9 @@ function mapOfferRow(row: Record<string, unknown>): SponsorMatchOffer {
       Number(row.sponsorship_amount_gbp) || OPENING_SPONSORSHIP,
     gbpPerVote:
       Number(row.gbp_per_vote) > 0 ? Number(row.gbp_per_vote) : null,
+    gbpPerGoal:
+      Number(row.gbp_per_goal) > 0 ? Number(row.gbp_per_goal) : null,
+    maxAmount: Number(row.max_amount) > 0 ? Number(row.max_amount) : null,
     targetBrandNames: Array.isArray(row.target_brand_names)
       ? (row.target_brand_names as string[])
       : undefined,
@@ -275,6 +286,10 @@ export async function listSponsorMatchOffers(): Promise<SponsorMatchOffer[]> {
         Number(offer.sponsorshipAmountGbp) || OPENING_SPONSORSHIP,
       gbpPerVote:
         Number(offer.gbpPerVote) > 0 ? Number(offer.gbpPerVote) : offer.gbpPerVote ?? null,
+      gbpPerGoal:
+        Number(offer.gbpPerGoal) > 0 ? Number(offer.gbpPerGoal) : offer.gbpPerGoal ?? null,
+      maxAmount:
+        Number(offer.maxAmount) > 0 ? Number(offer.maxAmount) : offer.maxAmount ?? null,
       targetBrandNames: offer.targetBrandNames,
     }))
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
