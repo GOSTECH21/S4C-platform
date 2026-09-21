@@ -18,6 +18,7 @@ import {
   loadGoalNetwork,
   loadMatchDayLock,
 } from "./climate-sponsors.service";
+import { offersForLockedSponsor } from "../lib/climate-sponsors";
 import { signedOrPostedBrandForClub as brandFromPostedOffers } from "../lib/campaign-sponsor";
 
 export type SponsorOfferProject = {

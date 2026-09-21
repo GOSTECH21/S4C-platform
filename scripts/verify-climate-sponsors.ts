@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import {
   MATCH_DAY_PROJECT_COUNT,
 } from "../app/lib/partner-projects";
@@ -305,6 +306,42 @@ assert(
 assert(
   lockCopy().includes("72 hours"),
   "Sponsorship Managers are told to lock a club 72 hours before kick-off"
+);
+assert(
+  /import\s*\{\s*offersForLockedSponsor\s*\}/.test(
+    readFileSync("app/services/sponsor-offers.service.ts", "utf8")
+  ),
+  "Sponsor dashboard imports offersForLockedSponsor so the folder can load"
+);
+
+const amexLocked = offersForLockedSponsor(
+  [
+    {
+      clubName: "Liverpool Football Club",
+      targetBrandNames: ["American Express"],
+    },
+    { clubName: "Arsenal", targetBrandNames: ["American Express"] },
+  ],
+  {
+    brandName: "American Express",
+    network: {
+      brandKey: "american express",
+      brandName: "American Express",
+      email: null,
+      leagues: ["Premier League"],
+      clubNames: ["Liverpool", "Arsenal"],
+    },
+    lock: {
+      brandKey: "american express",
+      clubName: "Liverpool",
+      matchLabel: "Premier League Match",
+      lockedAt: new Date().toISOString(),
+    },
+  }
+);
+assert(
+  amexLocked.length === 1 && amexLocked[0].clubName === "Liverpool Football Club",
+  "American Express locked to Liverpool only loads that club's posted five"
 );
 
 if (failures.length > 0) {
