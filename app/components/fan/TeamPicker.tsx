@@ -108,11 +108,11 @@ export default function TeamPicker({
                       </span>
                     </summary>
                     <div className="mt-4 grid gap-3 md:grid-cols-3">
-                      {competition.teams.map((team) => {
+                      {competition.teams.map((team, index) => {
                         const active = selectedIds.has(team.id);
                         return (
                           <button
-                            key={team.id}
+                            key={`${team.id}:${team.displayName}:${index}`}
                             type="button"
                             onClick={() => toggle(team)}
                             className={`rounded-xl border p-4 text-left font-semibold ${

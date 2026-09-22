@@ -56,6 +56,14 @@ assert(
   "Hearts of Midlothian FC matches the short Hearts name"
 );
 assert(
+  !seasonNamesMatch("Dundee", "Dundee United"),
+  "Dundee and Dundee United are different clubs"
+);
+assert(
+  !seasonNamesMatch("Paris FC", "Paris Saint-Germain"),
+  "Paris FC and Paris Saint-Germain are different clubs"
+);
+assert(
   seasonNamesMatch("Liverpool", "Liverpool Football Club"),
   "Fan catalog Liverpool matches the club row Liverpool Football Club"
 );
@@ -186,6 +194,36 @@ function main() {
         if (!found) {
           throw new Error(`Live catalog is missing ${team} in ${league}.`);
         }
+      }
+      for (const group of catalog) {
+        for (const competition of group.competitions) {
+          const ids = competition.teams.map((team) => team.id);
+          if (new Set(ids).size !== ids.length) {
+            throw new Error(
+              `Live catalog has duplicate team ids in ${competition.name}.`
+            );
+          }
+        }
+      }
+      const scottish = football?.competitions.find(
+        (competition) => competition.name === "Scottish Premiership"
+      );
+      const ligue1 = football?.competitions.find(
+        (competition) => competition.name === "Ligue 1"
+      );
+      const scottishNames = (scottish?.teams ?? []).map((team) => team.displayName);
+      const ligueNames = (ligue1?.teams ?? []).map((team) => team.displayName);
+      if (scottishNames.filter((name) => /^dundee$/i.test(name)).length > 1) {
+        throw new Error("Dundee appears twice in the Scottish Premiership catalog.");
+      }
+      if (!scottishNames.some((name) => /dundee united/i.test(name))) {
+        throw new Error("Live catalog is missing Dundee United.");
+      }
+      if (ligueNames.filter((name) => /^paris fc$/i.test(name)).length > 1) {
+        throw new Error("Paris FC appears twice in the Ligue 1 catalog.");
+      }
+      if (!ligueNames.some((name) => /paris saint|psg/i.test(name))) {
+        throw new Error("Live catalog is missing Paris Saint-Germain.");
       }
       console.log(
         "Live catalog: Premier League",

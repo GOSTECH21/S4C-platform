@@ -86,7 +86,9 @@ export function groupTeams(teams: TeamOption[]): TeamGroup[] {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([name, list]) => ({
         name,
-        teams: list.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+        teams: uniqueTeamsById(
+          list.sort((a, b) => a.displayName.localeCompare(b.displayName))
+        ),
       })),
   }));
 }
@@ -145,7 +147,10 @@ export async function loadTeamCatalogFromDatabase(): Promise<TeamGroup[]> {
   for (const [league, names] of Object.entries(CURRENT_SEASON_LEAGUES)) {
     const sport = LEAGUE_SPORT[league] ?? "Football";
     for (const name of names) {
-      const club = findClubOnRoster(rows, name);
+      const club = findClubOnRoster(
+        rows.filter((row) => !usedIds.has(row.id)),
+        name
+      );
       const team: TeamOption = {
         id: club?.id ?? `season:${league}:${name}`,
         name: club?.name ?? name,
@@ -321,6 +326,17 @@ function normalizeName(value: string): string {
     .replace(/fc\b/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function uniqueTeamsById(teams: TeamOption[]): TeamOption[] {
+  const seen = new Set<string>();
+  const unique: TeamOption[] = [];
+  for (const team of teams) {
+    if (!team.id || seen.has(team.id)) continue;
+    seen.add(team.id);
+    unique.push(team);
+  }
+  return unique;
 }
 
 function namesMatch(a: string, b: string): boolean {

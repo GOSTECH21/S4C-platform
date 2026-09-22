@@ -335,6 +335,7 @@ export function normalizeSeasonName(value: string): string {
     .replace(/\bfootball club\b/g, " ")
     .replace(/\bafc\b/g, " ")
     .replace(/\bfc\b/g, " ")
+    .replace(/\bcf\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -363,9 +364,7 @@ export function seasonNamesMatch(left: string, right: string): boolean {
   for (const name of leftNames) {
     if (rightNames.has(name)) return true;
   }
-  const shorter = a.length <= b.length ? a : b;
-  const longer = a.length <= b.length ? b : a;
-  return longer.startsWith(`${shorter} `);
+  return false;
 }
 
 export function clubInCurrentSeasonLeague(
@@ -413,11 +412,16 @@ export function findClubOnRoster<T extends { name: string; competition_id?: stri
 ): T | undefined {
   const matches = clubs.filter((club) => seasonNamesMatch(club.name, name));
   if (matches.length === 0) return undefined;
-  return [...matches].sort((left, right) => {
+  const needle = normalizeSeasonName(name);
+  const exact = matches.filter(
+    (club) => normalizeSeasonName(club.name) === needle
+  );
+  const pool = exact.length > 0 ? exact : matches;
+  return [...pool].sort((left, right) => {
     const leftAssigned = left.competition_id ? 0 : 1;
     const rightAssigned = right.competition_id ? 0 : 1;
     if (leftAssigned !== rightAssigned) return leftAssigned - rightAssigned;
-    return left.name.length - right.name.length;
+    return right.name.length - left.name.length;
   })[0];
 }
 
