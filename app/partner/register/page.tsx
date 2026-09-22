@@ -54,17 +54,12 @@ export default function PartnerRegisterPage() {
     <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
       <div className="mx-auto max-w-2xl rounded-2xl bg-slate-900 p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          Climate Partner
+          Climate Projects Provider
         </p>
-        <h1 className="mt-3 text-3xl font-black">Register your climate programme</h1>
+        <h1 className="mt-3 text-3xl font-black">Register your climate project</h1>
         <p className="mt-3 text-slate-300">
-          Upload verified climate projects so Sustainability Directors can choose
-          five for match day, then invite brands to sponsor Goals before fans
-          vote. The MVP demo catalog is drawn from{" "}
-          <a href={SCCAN_SOURCE_URL} className="text-green-400 underline">
-            sccan.scot
-          </a>
-          .
+          Upload verified climate projects, attach the tCO₂e your work avoids,
+          and attract Match Day funding from fans, clubs and sponsors.
         </p>
 
         {error && (

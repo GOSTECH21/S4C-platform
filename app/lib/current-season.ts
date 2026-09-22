@@ -386,6 +386,14 @@ export function leagueForClubName(clubName: string): string | null {
   return null;
 }
 
+export function currentSeasonTeamCount(): number {
+  const names = new Set<string>();
+  for (const clubs of Object.values(CURRENT_SEASON_LEAGUES)) {
+    for (const name of clubs) names.add(normalizeSeasonName(name));
+  }
+  return names.size;
+}
+
 export function isCurrentSeasonLeagueFixture(
   leagueName: string | null | undefined,
   homeName: string,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
 import {
+  LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
@@ -75,7 +76,11 @@ export default function SponsorLoginPage() {
       <p className="mt-6 text-center text-sm text-slate-400">
         New brand?{" "}
         <Link href={SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
-          Register as Sponsor
+          Register as a National/Global Sponsor
+        </Link>
+        {" or "}
+        <Link href={LOCAL_SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
+          a Local Business Climate Sponsor
         </Link>
       </p>
     </div>

@@ -10,18 +10,22 @@ import {
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import {
-  LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
+  SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
+import {
+  LOCAL_SPONSOR_MIN_GBP,
+  writeLocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 
-export default function SponsorRegisterPage() {
+export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
-  const [jobTitle, setJobTitle] = useState("Sponsorship Manager");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [clubNames, setClubNames] = useState<string[]>([]);
+  const [clubName, setClubName] = useState("");
+  const [pledgeGbp, setPledgeGbp] = useState(String(LOCAL_SPONSOR_MIN_GBP));
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,9 +34,15 @@ export default function SponsorRegisterPage() {
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
     if (loading) return;
-    if (clubNames.length === 0) {
-      setError("Select at least one club whose Goals you want to sponsor.");
-      setLoading(false);
+    const pledge = Number(pledgeGbp);
+    if (!clubName) {
+      setError("Choose the local club whose stadium your business is near.");
+      return;
+    }
+    if (!Number.isFinite(pledge) || pledge < LOCAL_SPONSOR_MIN_GBP) {
+      setError(
+        `Local Business Climate Sponsors pay from £${LOCAL_SPONSOR_MIN_GBP}.`
+      );
       return;
     }
     setLoading(true);
@@ -41,16 +51,26 @@ export default function SponsorRegisterPage() {
       await registerSponsor({
         companyName,
         contactName,
-        jobTitle,
+        jobTitle: "Local Business Climate Sponsor",
         email,
         password,
         logoDataUrl: logoUrl,
+        tier: "local",
+        pledgeGbp: pledge,
+        clubName,
       });
       if (logoUrl) saveBrandLogo(companyName, logoUrl);
       ensureGoalNetwork({
         brandName: companyName,
         email,
-        clubNames,
+        clubNames: [clubName],
+      });
+      writeLocalSponsorRecord({
+        brandName: companyName,
+        email,
+        clubName,
+        pledgeGbp: pledge,
+        createdAt: new Date().toISOString(),
       });
       window.location.href = SPONSOR_DASHBOARD_PATH;
     } catch (err) {
@@ -62,16 +82,16 @@ export default function SponsorRegisterPage() {
   return (
     <div className="mx-auto max-w-lg py-10">
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-        Brand / Sponsor
+        Local Business Climate Sponsor
       </p>
-      <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            Create your Sponsorship Manager account and choose the clubs whose
-            Goals you want to sponsor at national or global scale. Those clubs
-            join your Goal Sponsorship Network. 72 hours before a Match Day you
-            lock in one club — and only that club&apos;s posted Climate Projects
-            appear here.
-          </p>
+      <h1 className="mt-3 text-4xl font-black">
+        Register as a Local Sponsor
+      </h1>
+      <p className="mt-4 text-slate-300">
+        From £{LOCAL_SPONSOR_MIN_GBP} your business name sits on the 2 Climate
+        Projects fans did not vote for, once Match Day voting closes. Fans still
+        choose 3 of the 5 posted projects — you sponsor the remaining two.
+      </p>
 
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -81,13 +101,13 @@ export default function SponsorRegisterPage() {
 
       <form onSubmit={handleRegister} className="mt-10 space-y-5">
         <label className="block text-sm text-slate-400">
-          Company / brand name
+          Business name
           <input
             type="text"
             value={companyName}
             onChange={(event) => setCompanyName(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            placeholder="Gillette UK"
+            placeholder="The Stadium Cafe"
             required
           />
         </label>
@@ -97,16 +117,6 @@ export default function SponsorRegisterPage() {
             type="text"
             value={contactName}
             onChange={(event) => setContactName(event.target.value)}
-            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            required
-          />
-        </label>
-        <label className="block text-sm text-slate-400">
-          Role
-          <input
-            type="text"
-            value={jobTitle}
-            onChange={(event) => setJobTitle(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             required
           />
@@ -131,6 +141,18 @@ export default function SponsorRegisterPage() {
             required
           />
         </label>
+        <label className="block text-sm text-slate-400">
+          Sponsorship from £{LOCAL_SPONSOR_MIN_GBP}
+          <input
+            type="number"
+            min={LOCAL_SPONSOR_MIN_GBP}
+            step={50}
+            value={pledgeGbp}
+            onChange={(event) => setPledgeGbp(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            required
+          />
+        </label>
         <BrandLogoField
           brandName={companyName}
           logoUrl={logoUrl}
@@ -142,13 +164,14 @@ export default function SponsorRegisterPage() {
         />
         <div>
           <p className="text-sm text-slate-400">
-            Clubs whose Goals you would like to sponsor
+            Local club (near the stadium)
           </p>
           <div className="mt-3">
             <ClubNetworkPicker
-              selected={clubNames}
-              onChange={setClubNames}
+              selected={clubName ? [clubName] : []}
+              onChange={(clubs) => setClubName(clubs[0] ?? "")}
               compact
+              single
             />
           </div>
         </div>
@@ -157,7 +180,7 @@ export default function SponsorRegisterPage() {
           disabled={loading}
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
-          {loading ? "Creating account..." : "Register as Sponsor"}
+          {loading ? "Saving..." : `Confirm from £${LOCAL_SPONSOR_MIN_GBP}`}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">
@@ -166,8 +189,8 @@ export default function SponsorRegisterPage() {
           Login
         </Link>
         {" · "}
-        <Link href={LOCAL_SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
-          Local Business instead?
+        <Link href={SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
+          National/Global instead?
         </Link>
       </p>
     </div>

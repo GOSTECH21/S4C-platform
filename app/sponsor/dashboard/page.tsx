@@ -48,6 +48,12 @@ import {
 } from "@/app/lib/sponsorship-auction";
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
+import { LocalLeftoverPanel } from "@/app/components/sponsor/LocalLeftoverPanel";
+import {
+  readLocalSponsorRecord,
+  readSponsorTier,
+  type LocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -77,6 +83,7 @@ export default function SponsorDashboardPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [localRecord, setLocalRecord] = useState<LocalSponsorRecord | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -90,6 +97,7 @@ export default function SponsorDashboardPage() {
         sponsorEmail = (sponsor.email as string | null) ?? null;
         setBrand(sponsorName);
         setEmail(sponsorEmail);
+        setLocalRecord(readLocalSponsorRecord());
         const uploaded = loadBrandLogo(sponsorName);
         const fromRecord = (sponsor.logo_url as string | null) ?? null;
         setLogoUrl(
@@ -248,6 +256,15 @@ export default function SponsorDashboardPage() {
         <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
           {error}
         </div>
+      )}
+
+      {(readSponsorTier() === "local" || localRecord) && localRecord && (
+        <LocalLeftoverPanel
+          local={localRecord}
+          pending={pending}
+          signed={signed}
+          votedByClub={votedByClub}
+        />
       )}
 
       {invites.some((row) => row.status === "pending") && (

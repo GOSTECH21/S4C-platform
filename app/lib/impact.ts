@@ -10,6 +10,10 @@ export type ImpactProject = {
 const CO2_PER_TREE_TONNES_PER_YEAR = 0.021; // ~21 kg CO2 absorbed per tree per year
 const CO2_PER_CAR_TONNES_PER_YEAR = 4.6; // ~4.6 tonnes CO2 emitted per car per year
 
+export function treesEquivalentFromCo2(totalCo2: number): number {
+  return Math.round(Math.max(0, Number(totalCo2) || 0) / CO2_PER_TREE_TONNES_PER_YEAR);
+}
+
 export type ImpactSummary = {
   projectCount: number;
   totalCo2: number;
@@ -34,7 +38,7 @@ export function summariseImpact(projects: ImpactProject[]): ImpactSummary {
     projectCount: projects.length,
     totalCo2,
     totalFunding,
-    treesEquivalent: Math.round(totalCo2 / CO2_PER_TREE_TONNES_PER_YEAR),
+    treesEquivalent: treesEquivalentFromCo2(totalCo2),
     carsOffRoad:
       Math.round((totalCo2 / CO2_PER_CAR_TONNES_PER_YEAR) * 10) / 10,
     categories: [

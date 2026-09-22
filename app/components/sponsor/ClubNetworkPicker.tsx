@@ -7,12 +7,14 @@ export function ClubNetworkPicker({
   selected,
   onChange,
   compact = false,
+  single = false,
   matchDayClub,
   onChooseMatchDayClub,
 }: {
   selected: string[];
   onChange: (clubs: string[]) => void;
   compact?: boolean;
+  single?: boolean;
   matchDayClub?: string;
   onChooseMatchDayClub?: (club: string) => void;
 }) {
@@ -40,7 +42,7 @@ export function ClubNetworkPicker({
       onChange(selected.filter((name) => name.toLowerCase() !== club.toLowerCase()));
       return;
     }
-    onChange([...selected, club]);
+    onChange(single ? [club] : [...selected, club]);
     onChooseMatchDayClub?.(club);
   }
 

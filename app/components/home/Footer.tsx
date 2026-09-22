@@ -54,11 +54,15 @@ export default function Footer() {
               </Link>
 
               <Link href="/sponsor/register" className="block text-slate-400 hover:text-white">
-                Climate Sponsors
+                National/Global Climate Sponsors
+              </Link>
+
+              <Link href="/sponsor/local/register" className="block text-slate-400 hover:text-white">
+                Local Business Climate Sponsors
               </Link>
 
               <Link href="/partner/register" className="block text-slate-400 hover:text-white">
-                Climate Partners
+                Climate Projects Providers
               </Link>
 
             </div>
@@ -117,7 +121,7 @@ export default function Footer() {
               </p>
 
               <p>
-                Built for Clubs, Fans, Sponsors and Climate Partners.
+              Built for Clubs, Fans, Local Businesses, Sponsors and Climate Project Providers.
               </p>
 
             </div>

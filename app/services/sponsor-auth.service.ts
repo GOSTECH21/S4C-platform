@@ -7,6 +7,9 @@ export async function registerSponsor({
   email,
   password,
   logoDataUrl,
+  tier = "national",
+  pledgeGbp,
+  clubName,
 }: {
   companyName: string;
   contactName: string;
@@ -14,6 +17,9 @@ export async function registerSponsor({
   email: string;
   password: string;
   logoDataUrl?: string | null;
+  tier?: "local" | "national";
+  pledgeGbp?: number;
+  clubName?: string;
 }) {
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -61,6 +67,9 @@ export async function registerSponsor({
         jobTitle: jobTitle || "Sponsorship Manager",
         email,
         logoDataUrl: logoDataUrl || null,
+        tier,
+        pledgeGbp: pledgeGbp ?? null,
+        clubName: clubName ?? null,
       })
     );
   }

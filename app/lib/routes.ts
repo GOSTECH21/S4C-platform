@@ -24,6 +24,7 @@ export const CLUB_SELECT_PROJECTS_PATH = "/club/projects/select";
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
+export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 export const SPONSOR_OFFER_SIGN_OFF_PATH = "/sponsor/offers/sign-off";
