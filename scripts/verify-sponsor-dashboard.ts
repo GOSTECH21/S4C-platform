@@ -420,6 +420,16 @@ assert(
   !sponsorDashboardPage.includes("Option 2 campaigns you sent"),
   "Sponsorship dashboard no longer lists Option 2 campaigns you sent"
 );
+assert(
+  /import \{[^}]*\bformatMoney\b[^}]*\} from ["']@\/app\/lib\/sponsorship-auction["']/.test(
+    sponsorDashboardPage.replace(/\n/g, " ")
+  ),
+  "Sponsorship dashboard imports formatMoney for the committed-spend tile"
+);
+assert(
+  sponsorDashboardPage.includes("formatMoney(stats.expenditureGbp)"),
+  "Committed-spend tile still formats expenditure with formatMoney"
+);
 
 assert(
   signedOrPostedBrandForClub(
