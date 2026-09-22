@@ -148,7 +148,7 @@ export default function HomeFrontPage() {
 
           <div className="relative min-h-[220px] overflow-hidden rounded-3xl lg:min-h-[360px] xl:min-h-[420px]">
             <Image
-              src="/images/home/hero-athletes.png"
+              src="/images/home/hero-athletes-v2.png"
               alt="Different sports, a bigger impact"
               fill
               className="object-contain object-center"
