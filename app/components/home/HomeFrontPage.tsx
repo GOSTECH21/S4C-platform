@@ -158,7 +158,7 @@ export default function HomeFrontPage() {
               alt="S4P Score-4-our-Planet"
               width={720}
               height={660}
-              className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[32rem]"
+              className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
               priority
             />
           </div>
@@ -168,7 +168,7 @@ export default function HomeFrontPage() {
               src="/images/home/hero-athletes.png"
               alt="Different sports, a bigger impact"
               fill
-              className="object-cover object-center"
+              className="object-contain object-center"
               priority
             />
           </div>
