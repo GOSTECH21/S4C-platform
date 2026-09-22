@@ -32,7 +32,10 @@ export function mergePlatformStats({
   climateProjects = 0,
   co2Avoided = 0,
 }: Partial<PlatformStats> = {}): PlatformStats {
-  const co2 = Math.max(0, Number(co2Avoided) || 0) || catalogCo2Avoided();
+  const co2 = Math.max(
+    Math.max(0, Number(co2Avoided) || 0),
+    catalogCo2Avoided()
+  );
   return {
     fansEngaged: Math.max(0, Math.round(Number(fansEngaged) || 0)),
     teamsInvolved: Math.max(

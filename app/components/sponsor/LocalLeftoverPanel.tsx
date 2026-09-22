@@ -1,6 +1,10 @@
 "use client";
 
-import { leftoverProjectsFromVotes, type LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import {
+  FAN_VOTE_PICK_COUNT,
+  leftoverProjectsForLocalSponsor,
+  type LocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import { clubsMatch } from "@/app/lib/sponsor-dashboard";
 import type { ClimateProject } from "@/app/services/votes.service";
@@ -27,11 +31,11 @@ export function LocalLeftoverPanel({
   const offer = offers[0];
   const posted = offer?.projects ?? [];
   const voted = offer ? votedByClub[offer.clubId] ?? [] : [];
-  const leftover = leftoverProjectsFromVotes({
+  const leftover = leftoverProjectsForLocalSponsor({
     posted,
     votedIds: voted.map((project) => project.id),
   });
-  const votingClosed = voted.length >= 3;
+  const votingClosed = voted.length >= FAN_VOTE_PICK_COUNT;
 
   return (
     <section className="rounded-3xl border border-amber-400/30 bg-slate-900 p-8">

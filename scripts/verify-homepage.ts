@@ -15,6 +15,7 @@ import {
   LOCAL_SPONSOR_LEFTOVER_COUNT,
   LOCAL_SPONSOR_MIN_GBP,
   leftoverProjectsByVoteCount,
+  leftoverProjectsForLocalSponsor,
   leftoverProjectsFromVotes,
 } from "../app/lib/local-sponsor";
 import {
@@ -54,8 +55,18 @@ assert(
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
+    ?.description.includes("Climate Impact Sponsor Table (CIST)"),
+  "National sponsor narrative mentions CIST"
+);
+assert(
+  HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
     ?.register === SPONSOR_REGISTER_PATH,
   "National sponsor keeps /sponsor/register"
+);
+assert(
+  HOME_STAKEHOLDERS.find((card) => card.title === "A Sports Club")
+    ?.description.includes("Climate-Sponsored-Projects"),
+  "Club narrative uses Climate-Sponsored-Projects"
 );
 
 assert(LOCAL_SPONSOR_MIN_GBP === 500, "Local businesses can sponsor from £500");
@@ -88,6 +99,20 @@ assert(
     .map((row) => row.id)
     .join(",") === "b,d",
   "Lowest vote counts also yield the two leftovers"
+);
+
+assert(
+  leftoverProjectsForLocalSponsor({
+    posted,
+    votedIds: ["gss", "a", "c"],
+  })
+    .map((row) => row.id)
+    .join(",") === "b,d",
+  "Local sponsor leftover helper attaches the 2 unvoted projects after fans pick 3"
+);
+assert(
+  leftoverProjectsForLocalSponsor({ posted, votedIds: ["gss"] }).length === 0,
+  "Local sponsor name is not attached until voting has 3 picks"
 );
 
 const before = mergePlatformStats({ fansEngaged: 3 });

@@ -71,6 +71,10 @@ import {
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
+import {
+  leftoverProjectsForLocalSponsor,
+  localSponsorForClub,
+} from "@/app/lib/local-sponsor";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -150,6 +154,11 @@ export default function ClubDashboardPage() {
       ),
     [funded, voted]
   );
+  const localBusiness = club ? localSponsorForClub(club.name) : null;
+  const leftoverProjects = leftoverProjectsForLocalSponsor({
+    posted: selected,
+    votedIds: voted.map((project) => project.id),
+  });
   const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
   const localCountry = club
     ? localCatalogCountryForClub({
@@ -701,6 +710,31 @@ export default function ClubDashboardPage() {
             clubCountry={club.country}
           />
         </section>
+
+        {localBusiness && leftoverProjects.length > 0 && (
+          <section className="mt-12 rounded-3xl border border-amber-400/30 bg-slate-900 p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">
+              Local Business Climate Sponsor
+            </p>
+            <h2 className="mt-2 text-3xl font-black">
+              Leftover Climate Projects
+            </h2>
+            <p className="mt-2 max-w-3xl text-slate-400">
+              Fans voted for 3 of the 5 posted projects. {localBusiness.brandName}{" "}
+              is attached to the 2 they did not vote for.
+            </p>
+            <ul className="mt-6 space-y-2 text-slate-200">
+              {leftoverProjects.map((project) => (
+                <li key={project.id}>
+                  • {project.name}
+                  <span className="ml-2 text-sm font-semibold text-amber-300">
+                    SPONSORED BY {localBusiness.brandName}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">

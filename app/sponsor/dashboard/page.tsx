@@ -50,8 +50,10 @@ import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sp
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { LocalLeftoverPanel } from "@/app/components/sponsor/LocalLeftoverPanel";
 import {
+  localRecordFromProfile,
   readLocalSponsorRecord,
   readSponsorTier,
+  writeLocalSponsorRecord,
   type LocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
@@ -97,7 +99,10 @@ export default function SponsorDashboardPage() {
         sponsorEmail = (sponsor.email as string | null) ?? null;
         setBrand(sponsorName);
         setEmail(sponsorEmail);
-        setLocalRecord(readLocalSponsorRecord());
+        const local =
+          readLocalSponsorRecord() ?? localRecordFromProfile();
+        if (local) writeLocalSponsorRecord(local);
+        setLocalRecord(local);
         const uploaded = loadBrandLogo(sponsorName);
         const fromRecord = (sponsor.logo_url as string | null) ?? null;
         setLogoUrl(
@@ -119,7 +124,14 @@ export default function SponsorDashboardPage() {
         });
         setPending(folder.pending);
         setSigned(folder.signed);
-        const clubIds = [...new Set(folder.signed.map((row) => row.offer.clubId))];
+        const clubIds = [
+          ...new Set(
+            [
+              ...folder.pending.map((offer) => offer.clubId),
+              ...folder.signed.map((row) => row.offer.clubId),
+            ].filter(Boolean)
+          ),
+        ];
         const votedEntries = await Promise.all(
           clubIds.map(async (clubId) => {
             const voted = clubId
@@ -160,7 +172,14 @@ export default function SponsorDashboardPage() {
     const folder = await loadSponsorFolder({ brandName: brand, brandEmail: email });
     setPending(folder.pending);
     setSigned(folder.signed);
-    const clubIds = [...new Set(folder.signed.map((row) => row.offer.clubId))];
+    const clubIds = [
+      ...new Set(
+        [
+          ...folder.pending.map((offer) => offer.clubId),
+          ...folder.signed.map((row) => row.offer.clubId),
+        ].filter(Boolean)
+      ),
+    ];
     const votedEntries = await Promise.all(
       clubIds.map(async (clubId) => {
         const voted = clubId ? await loadVotedPortfolioProjects(clubId) : [];

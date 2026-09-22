@@ -32,12 +32,12 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     registerText: "Register as a Fan →",
     loginText: "Already registered? Login",
     image: "/images/home/card-fan.png",
-    imageAlt: "Fans in a packed stadium",
+    imageAlt: "Fans celebrating in a packed stadium",
   },
   {
     title: "A Sports Club",
     description:
-      "Provide Fans your Climate-Sponsorship Projects; let them help address your Match Day Carbon Footprints & push you up the Climate Impact League Table (CILT).",
+      "Provide Fans your Climate-Sponsored-Projects; let them help address your Match Day Carbon Footprints & push you up the Climate Impact League Table (CILT).",
     register: CLUB_REGISTER_PATH,
     login: CLUB_LOGIN_PATH,
     registerText: "Register Your Club →",
@@ -47,7 +47,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
   },
   {
     title: "A Local Business Climate Sponsor",
-    description: `Put your business in front of Fans & Supporters of your local sports club; help them address their Match Day Carbon footprints and attract new climate-conscious sports Fans. Sponsor from £${LOCAL_SPONSOR_MIN_GBP} and, when voting closes, your name is attached to the 2 Climate Projects fans did not vote for.`,
+    description: `Put your business in front of Fans & Supporters of your local sports club; help them address their Match Day Carbon footprints and attract new climate-conscious sports Fans. From £${LOCAL_SPONSOR_MIN_GBP}, your name is attached to the 2 Climate Projects fans did not vote for once voting closes.`,
     register: LOCAL_SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Register as a Local Sponsor →",
@@ -58,7 +58,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
   {
     title: "A National/Global Climate Sponsor",
     description:
-      "Measure your environmental impact at scale, measure your environmental and financial impact on the Climate Impact Sponsor Table (CIST).",
+      "Sponsor sporting moments at scale, measure your environmental impact and feature on the Climate Impact Sponsor Table (CIST).",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Register as a Sponsor →",

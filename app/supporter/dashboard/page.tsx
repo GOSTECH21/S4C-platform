@@ -27,6 +27,10 @@ import {
   EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
+import {
+  leftoverProjectsForLocalSponsor,
+  localSponsorForClub,
+} from "@/app/lib/local-sponsor";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -242,6 +246,18 @@ function CampaignPanel({
   const impact = summariseImpact(selectedProjects);
   const canSubmit = selected.size === required && !submitting;
   const headline = campaignHeadline(campaign.matchTitle);
+  const localBusiness = localSponsorForClub(campaign.clubName);
+  const leftoverIds = new Set(
+    submitted
+      ? leftoverProjectsForLocalSponsor({
+          posted: voteable,
+          votedIds: selected,
+          voteCounts: Object.fromEntries(
+            voteable.map((project) => [project.id, project.votesReceived ?? 0])
+          ),
+        }).map((project) => project.id)
+      : []
+  );
 
   return (
     <main className="pb-8 text-white">
@@ -296,6 +312,11 @@ function CampaignPanel({
               featured
               clubName={campaign.clubName}
               sponsorName={campaign.sponsorName}
+              leftoverSponsor={
+                leftoverIds.has(campaign.featuredProject.id)
+                  ? localBusiness?.brandName ?? null
+                  : null
+              }
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(campaign.featuredProject.id)}
               disabled={
@@ -320,6 +341,9 @@ function CampaignPanel({
               project={project}
               clubName={campaign.clubName}
               sponsorName={campaign.sponsorName}
+              leftoverSponsor={
+                leftoverIds.has(project.id) ? localBusiness?.brandName ?? null : null
+              }
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(project.id)}
               disabled={!selected.has(project.id) && selected.size >= required}
@@ -388,6 +412,7 @@ function ProjectCard({
   featured = false,
   clubName,
   sponsorName,
+  leftoverSponsor = null,
   scoreLabel,
   isSelected,
   disabled,
@@ -397,6 +422,7 @@ function ProjectCard({
   featured?: boolean;
   clubName: string;
   sponsorName: string;
+  leftoverSponsor?: string | null;
   scoreLabel: string;
   isSelected: boolean;
   disabled: boolean;
@@ -461,6 +487,11 @@ function ProjectCard({
         </div>
         <SponsorMark name={sponsorName} />
       </div>
+      {leftoverSponsor && (
+        <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-amber-300">
+          SPONSORED BY {leftoverSponsor}
+        </p>
+      )}
 
       <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-3">
         <div className="flex items-baseline justify-between gap-3">
