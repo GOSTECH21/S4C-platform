@@ -135,7 +135,7 @@ export default function HomeFrontPage() {
           </p>
         </header>
 
-        <section className="grid items-center gap-6 px-5 pb-6 pt-2 md:px-10 lg:grid-cols-[1.15fr_0.85fr_1.15fr]">
+        <section className="grid items-center gap-6 px-5 pb-8 pt-2 md:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
           <div>
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
@@ -152,18 +152,18 @@ export default function HomeFrontPage() {
             </p>
           </div>
 
-          <div className="hidden justify-center lg:flex">
+          <div className="flex justify-center">
             <Image
               src="/images/home/s4p-mark.png"
               alt="S4P Score-4-our-Planet"
-              width={360}
-              height={330}
-              className="h-auto w-56 object-contain drop-shadow-2xl xl:w-72"
+              width={720}
+              height={660}
+              className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[32rem]"
               priority
             />
           </div>
 
-          <div className="relative min-h-[220px] overflow-hidden rounded-3xl">
+          <div className="relative min-h-[220px] overflow-hidden rounded-3xl lg:min-h-[360px] xl:min-h-[420px]">
             <Image
               src="/images/home/hero-athletes.png"
               alt="Different sports, a bigger impact"
