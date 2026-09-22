@@ -147,6 +147,14 @@ const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 assert(front.includes("Are You……?"), "New Are You heading is on the front page");
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
 assert(front.includes("/api/platform-stats"), "Stat windows refresh from live platform stats");
+assert(
+  !front.includes("Sport today"),
+  "Top-right Sport today slogan is removed from the hero"
+);
+assert(
+  !front.includes("Every score protects our planet"),
+  "Top-left S4P wordmark is removed from the hero"
+);
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(

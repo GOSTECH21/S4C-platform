@@ -118,24 +118,7 @@ export default function HomeFrontPage() {
       </div>
 
       <div className="relative">
-        <header className="flex items-start justify-between gap-4 px-5 py-4 md:px-10">
-          <div>
-            <p className="text-2xl font-black tracking-tight md:text-3xl">
-              <span className="text-emerald-400">S4P</span>{" "}
-              <span className="text-white">Score-4-our-Planet</span>
-            </p>
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-emerald-300/90">
-              Every score protects our planet
-            </p>
-          </div>
-          <p className="max-w-[9rem] text-right text-[0.65rem] font-black uppercase leading-tight tracking-[0.18em] text-emerald-200 md:max-w-none md:text-xs">
-            Sport today
-            <br />
-            A brighter tomorrow
-          </p>
-        </header>
-
-        <section className="grid items-center gap-6 px-5 pb-8 pt-2 md:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
+        <section className="grid items-center gap-6 px-5 pb-8 pt-8 md:px-10 md:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
           <div>
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
