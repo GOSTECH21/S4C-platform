@@ -54,6 +54,11 @@ assert(
   "Local sponsor card registers at /sponsor/local/register"
 );
 assert(
+  !HOME_STAKEHOLDERS.find((card) => card.title === "A Local Business Climate Sponsor")
+    ?.description.includes("From £"),
+  "Local sponsor homepage card does not mention the £500 leftover line"
+);
+assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
     ?.description.includes("Climate Impact Sponsor Table (CIST)"),
   "National sponsor narrative mentions CIST"

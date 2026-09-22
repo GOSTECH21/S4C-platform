@@ -9,7 +9,6 @@ import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
-import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 
 export type HomeStakeholder = {
   title: string;
@@ -47,7 +46,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
   },
   {
     title: "A Local Business Climate Sponsor",
-    description: `Put your business in front of Fans & Supporters of your local sports club; help them address their Match Day Carbon footprints and attract new climate-conscious sports Fans. From £${LOCAL_SPONSOR_MIN_GBP}, your name is attached to the 2 Climate Projects fans did not vote for once voting closes.`,
+    description:
+      "Put your business in front of Fans & Supporters of your local sports club; help them address their Match Day Carbon footprints and attract new climate-conscious sports Fans.",
     register: LOCAL_SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Register as a Local Sponsor →",
