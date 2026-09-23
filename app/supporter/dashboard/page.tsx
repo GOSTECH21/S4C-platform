@@ -27,10 +27,8 @@ import {
   EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
-import {
-  leftoverProjectsForLocalSponsor,
-  localSponsorForClub,
-} from "@/app/lib/local-sponsor";
+import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
+import { localSponsorForClub } from "@/app/lib/local-sponsor";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -247,17 +245,6 @@ function CampaignPanel({
   const canSubmit = selected.size === required && !submitting;
   const headline = campaignHeadline(campaign.matchTitle);
   const localBusiness = localSponsorForClub(campaign.clubName);
-  const leftoverIds = new Set(
-    submitted
-      ? leftoverProjectsForLocalSponsor({
-          posted: voteable,
-          votedIds: selected,
-          voteCounts: Object.fromEntries(
-            voteable.map((project) => [project.id, project.votesReceived ?? 0])
-          ),
-        }).map((project) => project.id)
-      : []
-  );
 
   return (
     <main className="pb-8 text-white">
@@ -312,11 +299,8 @@ function CampaignPanel({
               featured
               clubName={campaign.clubName}
               sponsorName={campaign.sponsorName}
-              leftoverSponsor={
-                leftoverIds.has(campaign.featuredProject.id)
-                  ? localBusiness?.brandName ?? null
-                  : null
-              }
+              sponsorLogoUrl={campaign.sponsorLogoUrl}
+              localSponsorName={localBusiness?.brandName ?? null}
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(campaign.featuredProject.id)}
               disabled={
@@ -341,9 +325,8 @@ function CampaignPanel({
               project={project}
               clubName={campaign.clubName}
               sponsorName={campaign.sponsorName}
-              leftoverSponsor={
-                leftoverIds.has(project.id) ? localBusiness?.brandName ?? null : null
-              }
+              sponsorLogoUrl={campaign.sponsorLogoUrl}
+              localSponsorName={localBusiness?.brandName ?? null}
               scoreLabel={campaign.scoreLabel}
               isSelected={selected.has(project.id)}
               disabled={!selected.has(project.id) && selected.size >= required}
@@ -412,7 +395,8 @@ function ProjectCard({
   featured = false,
   clubName,
   sponsorName,
-  leftoverSponsor = null,
+  sponsorLogoUrl = null,
+  localSponsorName = null,
   scoreLabel,
   isSelected,
   disabled,
@@ -422,7 +406,8 @@ function ProjectCard({
   featured?: boolean;
   clubName: string;
   sponsorName: string;
-  leftoverSponsor?: string | null;
+  sponsorLogoUrl?: string | null;
+  localSponsorName?: string | null;
   scoreLabel: string;
   isSelected: boolean;
   disabled: boolean;
@@ -465,33 +450,16 @@ function ProjectCard({
         </div>
       )}
 
-      <div className="mt-5 flex items-center gap-3">
-        <div
-          className={`shrink-0 rounded-xl bg-green-500 text-slate-950 ${
-            featured ? "px-4 py-3" : "px-3 py-2"
-          }`}
-        >
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em]">
-            Sponsorship:
-          </p>
-          <p
-            className={`font-black leading-tight ${
-              featured ? "text-2xl" : "text-lg"
-            }`}
-          >
-            {formatSponsorshipBadge({
-              amount: project.currentAmount,
-              scoreLabel,
-            })}
-          </p>
-        </div>
-        <SponsorMark name={sponsorName} />
-      </div>
-      {leftoverSponsor && (
-        <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-amber-300">
-          SPONSORED BY {leftoverSponsor}
-        </p>
-      )}
+      <DualSponsorStrip
+        leadName={sponsorName}
+        leadLogoUrl={sponsorLogoUrl}
+        localName={localSponsorName}
+        amountBadge={formatSponsorshipBadge({
+          amount: project.currentAmount,
+          scoreLabel,
+        })}
+        featured={featured}
+      />
 
       <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-3">
         <div className="flex items-baseline justify-between gap-3">
@@ -545,23 +513,6 @@ function ProjectCard({
       >
         {isSelected ? "✓ Selected" : "Select Project"}
       </button>
-    </div>
-  );
-}
-
-function SponsorMark({
-  name,
-  className = "",
-}: {
-  name: string;
-  className?: string;
-}) {
-  return (
-    <div className={`min-w-0 text-left ${className}`}>
-      <p className="text-[0.65rem] uppercase tracking-[0.25em] text-slate-500">
-        Sponsored by
-      </p>
-      <p className="text-sm font-bold text-amber-300">{name}</p>
     </div>
   );
 }

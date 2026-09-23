@@ -12,6 +12,8 @@ import {
 } from "@/app/services/votes.service";
 import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import FanNav from "../components/FanNav";
+import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
+import { localSponsorForClub } from "@/app/lib/local-sponsor";
 import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { featuredClimateProjectCountryLabelForClubs } from "@/app/lib/featured-climate-country";
 
@@ -121,7 +123,12 @@ export default function VotePage() {
           ) : (
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               {voted.map((project) => (
-                <HistoryCard key={project.id} project={project} teams={teams} />
+                <HistoryCard
+                  key={project.id}
+                  project={project}
+                  teams={teams}
+                  campaigns={campaigns}
+                />
               ))}
             </div>
           )}
@@ -144,7 +151,13 @@ export default function VotePage() {
           ) : (
             <div className="mt-8 grid gap-6 md:grid-cols-2">
               {funded.map((project) => (
-                <HistoryCard key={project.id} project={project} funded teams={teams} />
+                <HistoryCard
+                  key={project.id}
+                  project={project}
+                  funded
+                  teams={teams}
+                  campaigns={campaigns}
+                />
               ))}
             </div>
           )}
@@ -196,10 +209,12 @@ function HistoryCard({
   project,
   funded = false,
   teams,
+  campaigns,
 }: {
   project: ClimateProject;
   funded?: boolean;
   teams: TeamOption[];
+  campaigns: S4PCampaign[];
 }) {
   const country = isFeaturedClimateProject(project)
     ? featuredClimateProjectCountryLabelForClubs(
@@ -209,6 +224,12 @@ function HistoryCard({
         }))
       )
     : project.country;
+  const campaign = campaigns.find((item) =>
+    [item.featuredProject, ...item.projects].some((row) => row?.id === project.id)
+  );
+  const localName = campaign
+    ? localSponsorForClub(campaign.clubName)?.brandName ?? null
+    : null;
   return (
     <div className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-6">
       <div className="flex items-start justify-between gap-4">
@@ -229,6 +250,14 @@ function HistoryCard({
       )}
 
       <p className="mt-4 flex-1 text-slate-300">{project.description}</p>
+
+      {campaign && (
+        <DualSponsorStrip
+          leadName={campaign.sponsorName}
+          leadLogoUrl={campaign.sponsorLogoUrl}
+          localName={localName}
+        />
+      )}
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <Stat
