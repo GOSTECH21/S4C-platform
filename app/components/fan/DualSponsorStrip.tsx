@@ -75,42 +75,39 @@ export function DualSponsorStrip({
         }`}
         style={{ flex: LOCAL_BUSINESS_SPONSOR_SHARE }}
       >
-        <div
-          className="flex min-w-0 items-center gap-2"
-          style={{ width: `${Math.round(scale * 100)}%` }}
-        >
-          {localName ? (
+        {localName ? (
+          <span
+            className="block shrink-0 overflow-hidden rounded-xl"
+            style={{
+              width: `${Math.max(20, Math.round(48 * scale))}px`,
+              height: `${Math.max(20, Math.round(48 * scale))}px`,
+            }}
+          >
             <BrandMark
               name={localName}
               logoUrl={localLogo}
-              className={
-                scale >= 0.85
-                  ? "h-12 w-12 text-sm"
-                  : scale >= 0.55
-                    ? "h-9 w-9 text-xs"
-                    : "h-7 w-7 text-[0.65rem]"
-              }
+              className="h-full w-full text-[0.65rem]"
             />
-          ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-sm font-black text-amber-700">
-              LB
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-[0.52rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
-              {LOCAL_BUSINESS_SPONSOR_LABEL}
-            </p>
-            <p
-              className={`truncate font-black ${
-                localName ? "text-slate-950" : "text-slate-400"
-              } ${featured ? "text-sm" : "text-xs"}`}
-            >
-              {localName ?? `From £${LOCAL_SPONSOR_MIN_GBP} near this stadium`}
-            </p>
-            {localTagline ? (
-              <p className="truncate text-[0.65rem] text-slate-500">{localTagline}</p>
-            ) : null}
+          </span>
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-sm font-black text-amber-700">
+            LB
           </div>
+        )}
+        <div className="min-w-0">
+          <p className="text-[0.52rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            {LOCAL_BUSINESS_SPONSOR_LABEL}
+          </p>
+          <p
+            className={`truncate font-black ${
+              localName ? "text-slate-950" : "text-slate-400"
+            } ${featured ? "text-sm" : "text-xs"}`}
+          >
+            {localName ?? `From £${LOCAL_SPONSOR_MIN_GBP} near this stadium`}
+          </p>
+          {localTagline ? (
+            <p className="truncate text-[0.65rem] text-slate-500">{localTagline}</p>
+          ) : null}
         </div>
       </section>
     </div>
