@@ -120,6 +120,28 @@ assert(
   "Local sponsor name is not attached until voting has 3 picks"
 );
 
+const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
+assert(
+  localPage.includes("Local Business Climate Sponsor"),
+  "Local sponsor registration exists"
+);
+assert(
+  localPage.includes(String(LOCAL_SPONSOR_MIN_GBP)),
+  "Local registration states the £500 minimum"
+);
+assert(
+  localPage.includes("one of the five"),
+  "Local registration says the logo sits on one of the five Match Day cards"
+);
+assert(
+  localPage.includes("three times"),
+  "Local registration states that a £1,500 pledge is three times a £500 pledge"
+);
+assert(
+  !localPage.includes("2 Climate"),
+  "Local registration no longer promises leftover-only branding"
+);
+
 const before = mergePlatformStats({ fansEngaged: 3 });
 const after = mergePlatformStats({ fansEngaged: 4 });
 assert(after.fansEngaged === before.fansEngaged + 1, "Fans engaged rises when a fan registers");
@@ -159,16 +181,6 @@ assert(
 assert(
   !front.includes("Every score protects our planet"),
   "Top-left S4P wordmark is removed from the hero"
-);
-
-const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
-assert(
-  localPage.includes("Local Business Climate Sponsor"),
-  "Local sponsor registration exists"
-);
-assert(
-  localPage.includes(String(LOCAL_SPONSOR_MIN_GBP)),
-  "Local registration states the £500 minimum"
 );
 
 const sql = readFileSync(

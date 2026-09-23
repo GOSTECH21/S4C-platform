@@ -13,7 +13,8 @@ import {
 import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import FanNav from "../components/FanNav";
 import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
-import { localSponsorForClub } from "@/app/lib/local-sponsor";
+import { matchDayLocalPlacements } from "@/app/lib/match-day-local-sponsors";
+import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { featuredClimateProjectCountryLabelForClubs } from "@/app/lib/featured-climate-country";
 
@@ -227,8 +228,20 @@ function HistoryCard({
   const campaign = campaigns.find((item) =>
     [item.featuredProject, ...item.projects].some((row) => row?.id === project.id)
   );
-  const localName = campaign
-    ? localSponsorForClub(campaign.clubName)?.brandName ?? null
+  const schedule = campaign
+    ? readFanPostSchedule(campaign.postedClubId ?? campaign.clubId)
+    : null;
+  const ordered = campaign
+    ? campaign.featuredProject
+      ? [campaign.featuredProject, ...campaign.projects]
+      : campaign.projects
+    : [];
+  const placement = campaign
+    ? matchDayLocalPlacements({
+        projects: ordered,
+        clubName: campaign.clubName,
+        stored: schedule?.localAssignments,
+      }).find((row) => row.project.id === project.id) ?? null
     : null;
   return (
     <div className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-6">
@@ -253,9 +266,12 @@ function HistoryCard({
 
       {campaign && (
         <DualSponsorStrip
-          leadName={campaign.sponsorName}
-          leadLogoUrl={campaign.sponsorLogoUrl}
-          localName={localName}
+          leadName={schedule?.leadSponsorName || campaign.sponsorName}
+          leadLogoUrl={schedule?.leadSponsorLogoUrl || campaign.sponsorLogoUrl}
+          localName={placement?.local?.brandName ?? null}
+          localLogoUrl={placement?.local?.logoUrl}
+          localTagline={placement?.local?.tagline}
+          localScale={placement?.scale ?? 1}
         />
       )}
 

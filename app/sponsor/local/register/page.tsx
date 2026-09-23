@@ -71,6 +71,7 @@ export default function LocalSponsorRegisterPage() {
         clubName,
         pledgeGbp: pledge,
         createdAt: new Date().toISOString(),
+        logoUrl,
       });
       window.location.href = SPONSOR_DASHBOARD_PATH;
     } catch (err) {
@@ -88,9 +89,10 @@ export default function LocalSponsorRegisterPage() {
         Register as a Local Sponsor
       </h1>
       <p className="mt-4 text-slate-300">
-        From £{LOCAL_SPONSOR_MIN_GBP} your business name sits on the 2 Climate
-        Projects fans did not vote for, once Match Day voting closes. Fans still
-        choose 3 of the 5 posted projects — you sponsor the remaining two.
+        From £{LOCAL_SPONSOR_MIN_GBP} your logo appears on one of the five
+        Match Day Climate Project cards posted to fans. A £1,500 pledge receives
+        three times the fan exposures of a £{LOCAL_SPONSOR_MIN_GBP} pledge, and
+        takes a more prominent card — Global Schools Solar first.
       </p>
 
       {error && (

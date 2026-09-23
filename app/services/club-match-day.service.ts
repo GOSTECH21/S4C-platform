@@ -1209,12 +1209,39 @@ export async function postMatchDayProjectsToFans({
   const postedAt = new Date();
   const visibleAt = fanPostVisibleAt(postedAt);
   let sponsorNames: string[] = [];
+  let leadSponsorName: string | null = null;
+  let leadSponsorLogoUrl: string | null = null;
+  let localAssignments: Array<{
+    projectId: string;
+    cardIndex: number;
+    brandName: string;
+    pledgeGbp: number;
+    logoUrl?: string | null;
+    tagline?: string | null;
+    email?: string;
+  }> = [];
   try {
-    const { loadClubSponsorRoster } = await import("./climate-sponsors.service");
+    const { loadClubSponsorRoster, loadBrandLogo } = await import(
+      "./climate-sponsors.service"
+    );
     const { selectedSponsors } = await import("../lib/climate-sponsors");
-    sponsorNames = selectedSponsors(
+    const leadSponsors = selectedSponsors(
       loadClubSponsorRoster(clubId, clubName)
-    ).map((sponsor) => sponsor.brandName);
+    );
+    sponsorNames = leadSponsors.map((sponsor) => sponsor.brandName);
+    leadSponsorName = leadSponsors[0]?.brandName ?? sponsorNames[0] ?? null;
+    leadSponsorLogoUrl =
+      leadSponsors[0]?.logoUrl ||
+      (leadSponsorName ? loadBrandLogo(leadSponsorName) : null);
+    const { assignLocalSponsorsToProjects, assignmentsFromPlacements } =
+      await import("../lib/match-day-local-sponsors");
+    const { localSponsorsForClub } = await import("../lib/local-sponsor");
+    localAssignments = assignmentsFromPlacements(
+      assignLocalSponsorsToProjects(
+        selected.slice(0, MATCH_DAY_PROJECT_COUNT),
+        localSponsorsForClub(clubName)
+      )
+    );
   } catch {
     sponsorNames = [];
   }
@@ -1226,6 +1253,9 @@ export async function postMatchDayProjectsToFans({
     projectIds: portfolioIds,
     campaignId: stored?.campaignId ?? existingCampaign?.id ?? null,
     sponsorNames,
+    leadSponsorName,
+    leadSponsorLogoUrl,
+    localAssignments,
   });
   const auction = withAuctionDefaults({
     projectIds: portfolioIds,

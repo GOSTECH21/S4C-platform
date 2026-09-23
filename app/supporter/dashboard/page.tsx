@@ -19,16 +19,15 @@ import { FAN_LOGIN_PATH, SUPPORTER_TEAMS_PATH } from "@/app/lib/routes";
 import {
   campaignHeadline,
   formatMatchHeadline,
-  formatMatchFundingLine,
   formatMoney,
-  formatSponsorshipBadge,
   formatStipulatedRate,
-  formatVoteCount,
   EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
-import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
-import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
-import { localSponsorForClub } from "@/app/lib/local-sponsor";
+import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
+import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
+import { matchDayLocalPlacements } from "@/app/lib/match-day-local-sponsors";
+import { readFanPostSchedule } from "@/app/lib/match-day-post";
+import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -244,24 +243,41 @@ function CampaignPanel({
   const impact = summariseImpact(selectedProjects);
   const canSubmit = selected.size === required && !submitting;
   const headline = campaignHeadline(campaign.matchTitle);
-  const localBusiness = localSponsorForClub(campaign.clubName);
+  const schedule = readFanPostSchedule(
+    campaign.postedClubId ?? campaign.clubId
+  );
+  const leadName = schedule?.leadSponsorName || campaign.sponsorName;
+  const leadLogoUrl = schedule?.leadSponsorLogoUrl || campaign.sponsorLogoUrl;
+  const placements = matchDayLocalPlacements({
+    projects: voteable,
+    clubName: campaign.clubName,
+    stored: schedule?.localAssignments,
+  });
+  const rankedLocals = placements
+    .map((row) => row.local)
+    .filter((row): row is LocalSponsorRecord => Boolean(row));
 
   return (
     <main className="pb-8 text-white">
-      <div className="mx-auto max-w-5xl px-8">
+      <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         <div className="text-center">
-          <h1 className="text-3xl font-black md:text-4xl">{headline}</h1>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-300">
-            Vote for the{" "}
-            <span className="font-bold text-white">
-              {numberWord(required).toUpperCase()}
-            </span>{" "}
-            Climate Projects you want funded if YOUR TEAM scores.
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
+            {campaign.clubName} fans power climate action
           </p>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            The 72-hour voting window closes 2 hours before kick-off. The
-            sponsor pays the {formatMoney(campaign.minimumAmount)} Base Match
-            Sponsorship even if the match ends 0–0, plus{" "}
+          <h1 className="mt-2 text-3xl font-black md:text-5xl">{headline}</h1>
+          <p className="mx-auto mt-3 max-w-3xl text-slate-300">
+            Choose{" "}
+            <span className="font-bold text-white">
+              {numberWord(required)} Climate Projects
+            </span>
+            . These five projects were selected by the {campaign.clubName}{" "}
+            Sustainability Team. Your vote helps decide how Match Day climate
+            funding is allocated.
+          </p>
+          <p className="mx-auto mt-3 max-w-3xl text-sm text-slate-400">
+            The 72-hour voting window closes 2 hours before kick-off. The Lead
+            Climate Sponsor pays the {formatMoney(campaign.minimumAmount)} Base
+            Match Sponsorship even if the match ends 0–0, plus{" "}
             {campaign.gbpPerGoal > 0
               ? `${formatMoney(campaign.gbpPerGoal)} for every ${campaign.scoreLabel} scored`
               : `the posted amount for every ${campaign.scoreLabel} scored`}
@@ -269,8 +285,18 @@ function CampaignPanel({
               ? `, up to a maximum of ${formatMoney(campaign.maxAmount)}`
               : ""}
             . {formatStipulatedRate(campaign.gbpPerVote)} is the brand-exposure
-            counter: this post is 1 eyeball and {EXPOSURES_PER_POST} exposures.
+            counter: this post is 1 eyeball and {EXPOSURES_PER_POST} lead-sponsor
+            exposures. Local Business Climate Sponsors appear 1-each, with
+            exposures scaled to their pledge.
           </p>
+        </div>
+
+        <div className="mt-8">
+          <TodaysClimateSponsors
+            leadName={leadName}
+            leadLogoUrl={leadLogoUrl}
+            locals={rankedLocals}
+          />
         </div>
 
         {error && (
@@ -292,45 +318,22 @@ function CampaignPanel({
           </div>
         )}
 
-        {campaign.featuredProject && (
-          <div className="mt-10">
-            <ProjectCard
-              project={campaign.featuredProject}
-              featured
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {placements.map((row) => (
+            <MatchDayProjectCard
+              key={row.project.id}
+              project={row.project}
+              cardIndex={row.cardIndex}
               clubName={campaign.clubName}
-              sponsorName={campaign.sponsorName}
-              sponsorLogoUrl={campaign.sponsorLogoUrl}
-              localSponsorName={localBusiness?.brandName ?? null}
-              scoreLabel={campaign.scoreLabel}
-              isSelected={selected.has(campaign.featuredProject.id)}
+              leadName={leadName}
+              leadLogoUrl={leadLogoUrl}
+              local={row.local}
+              localScale={row.scale}
+              selected={selected.has(row.project.id)}
               disabled={
-                !selected.has(campaign.featuredProject.id) &&
-                selected.size >= required
+                !selected.has(row.project.id) && selected.size >= required
               }
-              onToggle={() => toggle(campaign.featuredProject!.id)}
-            />
-          </div>
-        )}
-
-        {campaign.projects.length > 0 && (
-          <h2 className="mt-10 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-            Club climate projects
-          </h2>
-        )}
-
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
-          {campaign.projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              clubName={campaign.clubName}
-              sponsorName={campaign.sponsorName}
-              sponsorLogoUrl={campaign.sponsorLogoUrl}
-              localSponsorName={localBusiness?.brandName ?? null}
-              scoreLabel={campaign.scoreLabel}
-              isSelected={selected.has(project.id)}
-              disabled={!selected.has(project.id) && selected.size >= required}
-              onToggle={() => toggle(project.id)}
+              onToggle={() => toggle(row.project.id)}
             />
           ))}
         </div>
@@ -388,133 +391,6 @@ function voteableProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
     ? [campaign.featuredProject, ...campaign.projects]
     : campaign.projects;
-}
-
-function ProjectCard({
-  project,
-  featured = false,
-  clubName,
-  sponsorName,
-  sponsorLogoUrl = null,
-  localSponsorName = null,
-  scoreLabel,
-  isSelected,
-  disabled,
-  onToggle,
-}: {
-  project: CampaignProject;
-  featured?: boolean;
-  clubName: string;
-  sponsorName: string;
-  sponsorLogoUrl?: string | null;
-  localSponsorName?: string | null;
-  scoreLabel: string;
-  isSelected: boolean;
-  disabled: boolean;
-  onToggle: () => void;
-}) {
-  const country = climateProjectCountryLabel(project, { clubName });
-
-  return (
-    <div
-      className={`flex flex-col rounded-2xl border p-6 md:p-8 ${
-        featured
-          ? "border-2 border-green-500 bg-slate-800"
-          : isSelected
-            ? "border-green-500 bg-slate-800"
-            : "border-slate-700 bg-slate-900"
-      }`}
-    >
-      {featured && (
-        <span className="inline-flex w-fit rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
-          ⭐ Featured Climate Project
-        </span>
-      )}
-
-      <h2 className={`font-bold ${featured ? "mt-6 text-3xl" : "text-xl"}`}>
-        {project.name}
-      </h2>
-      <p className={`mt-3 flex-1 text-slate-300 ${featured ? "text-lg leading-8" : "text-sm"}`}>
-        {project.description}
-      </p>
-
-      {featured && (
-        <div className="mt-5 space-y-1 text-sm text-slate-400">
-          {country && <p>📍 {country}</p>}
-          {project.estimated_co2 != null && (
-            <p>🌳 Estimated CO₂ Offset: {project.estimated_co2.toLocaleString()} tonnes</p>
-          )}
-          {project.funding_goal != null && (
-            <p>🎯 Funding Goal: £{project.funding_goal.toLocaleString()}</p>
-          )}
-        </div>
-      )}
-
-      <DualSponsorStrip
-        leadName={sponsorName}
-        leadLogoUrl={sponsorLogoUrl}
-        localName={localSponsorName}
-        amountBadge={formatSponsorshipBadge({
-          amount: project.currentAmount,
-          scoreLabel,
-        })}
-        featured={featured}
-      />
-
-      <div className="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-            Votes received
-          </p>
-          <p className="text-lg font-black text-white">
-            {formatVoteCount(project.votesReceived)}
-          </p>
-        </div>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
-          <div
-            className="h-full rounded-full bg-green-500 transition-all"
-            style={{
-              width: `${Math.min(
-                100,
-                Math.max(project.votesReceived > 0 ? 8 : 0, 0)
-              )}%`,
-            }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-slate-500">
-          {formatVoteCount(project.fansWhoVoted)} fans voted. Sponsor/brand
-          exposure from this post: {EXPOSURES_PER_POST} ({formatStipulatedRate(
-            project.gbpPerVote
-          )}{" "}
-          counter).{" "}
-          {formatMatchFundingLine({
-            baseAmount: project.minimumAmount,
-            gbpPerGoal: project.gbpPerGoal,
-            maxAmount: project.maxAmount,
-          }) || `${formatMoney(project.minimumAmount)} Base Match Sponsorship`}
-          . Locked 2 hours before kick-off.
-        </p>
-      </div>
-
-      <button
-        onClick={onToggle}
-        disabled={disabled}
-        className={`mt-6 w-full rounded-lg py-3 font-bold transition ${
-          featured ? "mt-8 py-4 text-lg" : ""
-        } ${
-          isSelected
-            ? "bg-green-500 text-slate-950 hover:bg-green-400"
-            : disabled
-              ? "cursor-not-allowed bg-slate-800 text-slate-500"
-              : featured
-                ? "bg-green-500 text-slate-950 hover:bg-green-400"
-                : "bg-slate-700 text-white hover:bg-slate-600"
-        }`}
-      >
-        {isSelected ? "✓ Selected" : "Select Project"}
-      </button>
-    </div>
-  );
 }
 
 function ImpactStat({ label, value }: { label: string; value: string }) {

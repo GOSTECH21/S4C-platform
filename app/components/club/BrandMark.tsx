@@ -4,12 +4,15 @@ export function BrandMark({
   name,
   logoUrl,
   large = false,
+  className,
 }: {
   name: string;
   logoUrl?: string | null;
   large?: boolean;
+  className?: string;
 }) {
-  const size = large ? "h-16 w-16 text-xl" : "h-12 w-12 text-sm";
+  const size =
+    className ?? (large ? "h-16 w-16 text-xl" : "h-12 w-12 text-sm");
   if (logoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element

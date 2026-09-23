@@ -67,6 +67,17 @@ export type FanPostSchedule = {
   projectIds?: string[];
   campaignId?: string | null;
   sponsorNames?: string[];
+  leadSponsorName?: string | null;
+  leadSponsorLogoUrl?: string | null;
+  localAssignments?: Array<{
+    projectId: string;
+    cardIndex: number;
+    brandName: string;
+    pledgeGbp: number;
+    logoUrl?: string | null;
+    tagline?: string | null;
+    email?: string;
+  }>;
 };
 
 const MATCH_DAY_STORAGE_PREFIX = "s4p.sd.matchDay.";
