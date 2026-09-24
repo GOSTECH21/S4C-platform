@@ -8,6 +8,7 @@ import {
   LOCAL_BUSINESS_SPONSOR_SHARE,
 } from "@/app/lib/dual-sponsor";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
+import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 
@@ -32,8 +33,15 @@ export function DualSponsorStrip({
 }) {
   const leadLogo =
     leadLogoUrl || loadBrandLogo(leadName) || sponsorLogoSrc(leadName, leadLogoUrl);
-  const localLogo = localName
-    ? localLogoUrl || loadBrandLogo(localName) || sponsorLogoSrc(localName, localLogoUrl)
+  const localIsLead =
+    Boolean(localName) &&
+    (isLeadClimateBrand(localName!) ||
+      localName!.trim().toLowerCase() === leadName.trim().toLowerCase());
+  const shownLocalName = localIsLead ? null : localName;
+  const localLogo = shownLocalName
+    ? localLogoUrl ||
+      loadBrandLogo(shownLocalName) ||
+      sponsorLogoSrc(shownLocalName, localLogoUrl)
     : null;
   const scale = Math.min(1, Math.max(0, Number(localScale) || 1));
 
@@ -70,12 +78,12 @@ export function DualSponsorStrip({
         </div>
       </section>
       <section
-        className={`flex min-w-0 items-center gap-2 bg-white ${
+        className={`flex min-w-0 items-center gap-2 border-t-2 border-amber-300 bg-amber-50 ${
           featured ? "px-3 py-2.5" : "px-2.5 py-2"
         }`}
         style={{ flex: LOCAL_BUSINESS_SPONSOR_SHARE }}
       >
-        {localName ? (
+        {shownLocalName ? (
           <span
             className="block shrink-0 overflow-hidden rounded-xl"
             style={{
@@ -84,7 +92,7 @@ export function DualSponsorStrip({
             }}
           >
             <BrandMark
-              name={localName}
+              name={shownLocalName}
               logoUrl={localLogo}
               className="h-full w-full text-[0.65rem]"
             />
@@ -100,12 +108,12 @@ export function DualSponsorStrip({
           </p>
           <p
             className={`truncate font-black ${
-              localName ? "text-slate-950" : "text-slate-400"
+              shownLocalName ? "text-slate-950" : "text-slate-400"
             } ${featured ? "text-sm" : "text-xs"}`}
           >
-            {localName ?? `From £${LOCAL_SPONSOR_MIN_GBP} near this stadium`}
+            {shownLocalName ?? `From £${LOCAL_SPONSOR_MIN_GBP} near this stadium`}
           </p>
-          {localTagline ? (
+          {shownLocalName && localTagline ? (
             <p className="truncate text-[0.65rem] text-slate-500">{localTagline}</p>
           ) : null}
         </div>

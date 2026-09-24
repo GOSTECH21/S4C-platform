@@ -16,12 +16,13 @@ export function localSlotScale(
   return Math.min(1, pledge / max);
 }
 
-/** Flex weight for a local logo in the Today's Climate Sponsors header. */
+/**
+ * The five local logos share the 35% header band equally so one pledge
+ * cannot spill into Lead Climate Sponsor space.
+ */
 export function localHeaderFlex(
-  pledgeGbp: number,
-  pledges: number[]
+  _pledgeGbp?: number,
+  _pledges?: number[]
 ): number {
-  const total = pledges.reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
-  if (total <= 0) return 1;
-  return Math.max(0.08, (Number(pledgeGbp) || 0) / total);
+  return 1;
 }

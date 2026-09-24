@@ -9,6 +9,7 @@ import {
   localHeaderFlex,
 } from "@/app/lib/dual-sponsor";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 
@@ -23,17 +24,25 @@ export function TodaysClimateSponsors({
 }) {
   const leadLogo =
     leadLogoUrl || loadBrandLogo(leadName) || sponsorLogoSrc(leadName, leadLogoUrl);
-  const pledges = locals.map((row) => row.pledgeGbp);
+  const localOnly = locals.filter(
+    (row) =>
+      !isLeadClimateBrand(row.brandName) &&
+      row.brandName.trim().toLowerCase() !== leadName.trim().toLowerCase()
+  );
 
   return (
     <section className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
       <p className="text-center text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-emerald-300">
         Today&apos;s Climate Sponsors
       </p>
-      <div className="mt-3 flex overflow-hidden rounded-xl border border-white/10 bg-white">
+      <div className="mt-3 flex overflow-hidden rounded-xl border border-white/10">
         <div
-          className="flex min-w-0 items-center gap-3 px-4 py-3"
-          style={{ width: `${LEAD_CLIMATE_SPONSOR_SHARE}%` }}
+          className="flex min-w-0 items-center gap-3 bg-white px-4 py-3"
+          style={{
+            flex: `0 0 ${LEAD_CLIMATE_SPONSOR_SHARE}%`,
+            width: `${LEAD_CLIMATE_SPONSOR_SHARE}%`,
+            maxWidth: `${LEAD_CLIMATE_SPONSOR_SHARE}%`,
+          }}
         >
           <BrandMark name={leadName} logoUrl={leadLogo} large />
           <div className="min-w-0">
@@ -44,15 +53,19 @@ export function TodaysClimateSponsors({
           </div>
         </div>
         <div
-          className="flex min-w-0 items-stretch border-l border-slate-200"
-          style={{ width: `${LOCAL_BUSINESS_SPONSOR_SHARE}%` }}
+          className="flex min-w-0 items-stretch border-l-2 border-amber-300 bg-amber-50"
+          style={{
+            flex: `0 0 ${LOCAL_BUSINESS_SPONSOR_SHARE}%`,
+            width: `${LOCAL_BUSINESS_SPONSOR_SHARE}%`,
+            maxWidth: `${LOCAL_BUSINESS_SPONSOR_SHARE}%`,
+          }}
         >
-          {locals.length === 0 ? (
-            <p className="flex items-center px-3 text-xs font-semibold text-slate-400">
-              Local Business Climate Sponsors
+          {localOnly.length === 0 ? (
+            <p className="flex items-center px-3 text-xs font-semibold text-amber-800/70">
+              Local Business Climate Sponsors — 35% logo space
             </p>
           ) : (
-            locals.map((local, index) => {
+            localOnly.map((local, index) => {
               const logo =
                 local.logoUrl ||
                 loadBrandLogo(local.brandName) ||
@@ -60,11 +73,11 @@ export function TodaysClimateSponsors({
               return (
                 <div
                   key={`${local.brandName}:${index}`}
-                  className="flex min-w-0 flex-col items-center justify-center gap-1 border-l border-slate-100 px-1.5 py-2 text-center"
-                  style={{ flex: localHeaderFlex(local.pledgeGbp, pledges) }}
+                  className="flex min-w-0 flex-col items-center justify-center gap-1 border-l border-amber-200 px-1 py-2 text-center"
+                  style={{ flex: localHeaderFlex(local.pledgeGbp) }}
                 >
                   {index === 0 ? (
-                    <p className="hidden text-[0.45rem] font-semibold uppercase tracking-[0.12em] text-slate-500 xl:block">
+                    <p className="hidden text-[0.45rem] font-semibold uppercase tracking-[0.12em] text-amber-800/80 xl:block">
                       {LOCAL_BUSINESS_SPONSOR_LABEL}
                     </p>
                   ) : (
@@ -75,15 +88,9 @@ export function TodaysClimateSponsors({
                   <BrandMark
                     name={local.brandName}
                     logoUrl={logo}
-                    className={
-                      local.pledgeGbp >= 1250
-                        ? "h-12 w-12 text-sm"
-                        : local.pledgeGbp >= 750
-                          ? "h-9 w-9 text-xs"
-                          : "h-7 w-7 text-[0.65rem]"
-                    }
+                    className="h-8 w-8 text-[0.6rem]"
                   />
-                  <p className="w-full truncate text-[0.6rem] font-black text-slate-800">
+                  <p className="w-full truncate text-[0.55rem] font-black text-slate-800">
                     {local.brandName}
                   </p>
                 </div>

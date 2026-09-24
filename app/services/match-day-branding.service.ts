@@ -6,6 +6,7 @@ import {
   resolveMatchDayBranding,
   resolveLeadClimateSponsor,
   uploadedLocalSponsorsForClub,
+  isLeadClimateBrand,
 } from "../lib/match-day-branding";
 import type { MatchDayLocalAssignment } from "../lib/match-day-local-sponsors";
 import {
@@ -60,11 +61,13 @@ export function liveLeadAndLocals(clubId: string, clubName: string): {
 } {
   const roster = loadClubSponsorRoster(clubId, clubName);
   const selected = selectedSponsors(roster);
+  const locals = uploadedLocalSponsorsForClub(clubName, roster.sponsors);
   const leadName = resolveLeadClimateSponsor({
     clubName,
     rosterSponsors: roster.sponsors,
     selected,
     lockedBrandName: lockedBrandNameForClub(clubName),
+    extraBrandNames: locals.map((row) => row.brandName),
   });
   const lead = roster.sponsors.find(
     (row) => row.brandName.trim().toLowerCase() === (leadName ?? "").toLowerCase()
@@ -73,7 +76,11 @@ export function liveLeadAndLocals(clubId: string, clubName: string): {
     leadName,
     leadLogoUrl:
       lead?.logoUrl || (leadName ? loadBrandLogo(leadName) : null) || null,
-    locals: uploadedLocalSponsorsForClub(clubName, roster.sponsors),
+    locals: locals.filter(
+      (row) =>
+        !isLeadClimateBrand(row.brandName) &&
+        row.brandName.trim().toLowerCase() !== (leadName ?? "").toLowerCase()
+    ),
     selected,
   };
 }

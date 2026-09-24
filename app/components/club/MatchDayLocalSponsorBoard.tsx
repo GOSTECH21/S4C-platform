@@ -21,7 +21,7 @@ import {
   exampleLocalSponsorsForClub,
   localExposureMultiplier,
 } from "@/app/lib/match-day-local-sponsors";
-import { isExampleLocalBrand } from "@/app/lib/match-day-branding";
+import { isExampleLocalBrand, isLeadClimateBrand } from "@/app/lib/match-day-branding";
 import { MATCH_DAY_PROJECT_COUNT } from "@/app/lib/partner-projects";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import { saveBrandLogo } from "@/app/services/climate-sponsors.service";
@@ -46,7 +46,11 @@ export function MatchDayLocalSponsorBoard({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLocals(localSponsorsForClub(clubName));
+    setLocals(
+      localSponsorsForClub(clubName).filter(
+        (row) => !isLeadClimateBrand(row.brandName)
+      )
+    );
   }, [clubName]);
 
   const placements = useMemo(
@@ -58,8 +62,13 @@ export function MatchDayLocalSponsorBoard({
     .filter((row): row is LocalSponsorRecord => Boolean(row));
 
   function persist(next: LocalSponsorRecord[]) {
-    replaceLocalSponsorsForClub(clubName, next);
-    setLocals(localSponsorsForClub(clubName));
+    const localsOnly = next.filter((row) => !isLeadClimateBrand(row.brandName));
+    replaceLocalSponsorsForClub(clubName, localsOnly);
+    setLocals(
+      localSponsorsForClub(clubName).filter(
+        (row) => !isLeadClimateBrand(row.brandName)
+      )
+    );
   }
 
   function addLocal(event: React.FormEvent) {
@@ -67,6 +76,12 @@ export function MatchDayLocalSponsorBoard({
     const pledge = Number(pledgeGbp);
     if (!brandName.trim()) {
       setError("Add the local business name.");
+      return;
+    }
+    if (isLeadClimateBrand(brandName)) {
+      setError(
+        "American Express and other Lead Climate Sponsors stay in the 65% lead slot — they cannot be attached as a Local Business Climate Sponsor."
+      );
       return;
     }
     if (!Number.isFinite(pledge) || pledge < LOCAL_SPONSOR_MIN_GBP) {
@@ -92,7 +107,11 @@ export function MatchDayLocalSponsorBoard({
     };
     if (logoUrl) saveBrandLogo(record.brandName, logoUrl);
     writeLocalSponsorForClub(record);
-    setLocals(localSponsorsForClub(clubName));
+    setLocals(
+      localSponsorsForClub(clubName).filter(
+        (row) => !isLeadClimateBrand(row.brandName)
+      )
+    );
     setBrandName("");
     setPledgeGbp(String(LOCAL_SPONSOR_MIN_GBP));
     setTagline("");
@@ -101,7 +120,10 @@ export function MatchDayLocalSponsorBoard({
 
   function loadExamples() {
     const existing = localSponsorsForClub(clubName);
-    const uploaded = existing.filter((row) => !isExampleLocalBrand(row.brandName));
+    const uploaded = existing.filter(
+      (row) =>
+        !isExampleLocalBrand(row.brandName) && !isLeadClimateBrand(row.brandName)
+    );
     const examples = exampleLocalSponsorsForClub(clubName).filter(
       (row) =>
         !uploaded.some(
@@ -127,13 +149,16 @@ export function MatchDayLocalSponsorBoard({
         Attach 5 local logos, one on each Climate Project card
       </h3>
       <p className="mt-3 max-w-4xl text-slate-300">
-        The Lead Climate Sponsor occupies {LEAD_CLIMATE_SPONSOR_SHARE}% of the logo space on every card.
-        Then attach {LOCAL_SPONSORS_PER_MATCH} Local Business Climate Sponsors
-        from £{LOCAL_SPONSOR_MIN_GBP}. Highest pledge is placed on card 1
-        (Global Schools Solar); lowest on card {MATCH_DAY_PROJECT_COUNT}. A £1,500
-        pledge receives {localExposureMultiplier(1500)}× the fan exposures of a
-        £{LOCAL_SPONSOR_MIN_GBP} pledge, and its logo is drawn larger in the
-        35% local slot and in Today&apos;s Climate Sponsors.
+        The Lead Climate Sponsor occupies {LEAD_CLIMATE_SPONSOR_SHARE}% of the logo space on every card
+        — only that brand and logo appear on all five. Then attach{" "}
+        {LOCAL_SPONSORS_PER_MATCH} Local Business Climate Sponsors from £
+        {LOCAL_SPONSOR_MIN_GBP}. Together they occupy the remaining{" "}
+        {100 - LEAD_CLIMATE_SPONSOR_SHARE}% of logo space, one local per card.
+        Highest pledge is placed on card 1 (Global Schools Solar); lowest on card{" "}
+        {MATCH_DAY_PROJECT_COUNT}. A £1,500 pledge receives{" "}
+        {localExposureMultiplier(1500)}× the fan exposures of a £
+        {LOCAL_SPONSOR_MIN_GBP} pledge, and its logo is drawn larger in the
+        35% local slot.
       </p>
 
       <div className="mt-6 overflow-x-auto">
@@ -175,7 +200,11 @@ export function MatchDayLocalSponsorBoard({
                       className="text-xs font-semibold text-slate-400 hover:text-red-300"
                       onClick={() => {
                         removeLocalSponsorForClub(clubName, row.local!.brandName);
-                        setLocals(localSponsorsForClub(clubName));
+                        setLocals(
+                          localSponsorsForClub(clubName).filter(
+                            (local) => !isLeadClimateBrand(local.brandName)
+                          )
+                        );
                       }}
                     >
                       Remove

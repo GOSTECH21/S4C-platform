@@ -3,52 +3,124 @@
 import { useState } from "react";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
-import {
-  assignLocalSponsorsToProjects,
-  exampleLocalSponsorsForClub,
-} from "@/app/lib/match-day-local-sponsors";
+import { assignLocalSponsorsToProjects } from "@/app/lib/match-day-local-sponsors";
+import { resolveMatchDayBranding } from "@/app/lib/match-day-branding";
+import { emptySponsor } from "@/app/lib/climate-sponsors";
+import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
 
 const PROJECTS = [
   {
     id: "gss",
     name: "Global Schools Solar",
     description:
-      "Install solar panels on schools across Edinburgh and the Lothians, cutting emissions and reducing energy costs for future generations.",
+      "Install rooftop solar systems in schools around the world so classrooms can run on clean energy.",
     category: "Solar Energy",
   },
   {
-    id: "wood",
-    name: "Scottish Woodland Restoration",
+    id: "wee",
+    name: "Wee Spoke Hub",
     description:
-      "Restore native woodlands in Scotland, creating wildlife habitats, capturing carbon and supporting rural communities.",
-    category: "Biodiversity",
+      "A community bike workshop that teaches repair skills so more people can cycle, run by Shrub Coop in Edinburgh.",
+    category: "Active Travel",
   },
   {
-    id: "coast",
-    name: "Cleaner Coasts Campaign",
+    id: "retrofit",
+    name: "Edinburgh Building Retrofit Collective",
     description:
-      "Support the removal of plastic pollution from Scotland's beaches and coastlines, protecting marine life and coastal communities.",
-    category: "Ocean Cleanup",
+      "Impartial retrofit advice and bulk-buy home improvements so neighbours can warm homes and cut emissions together.",
+    category: "Renewable Energy",
   },
   {
-    id: "peat",
-    name: "Peatland Recovery",
+    id: "porty",
+    name: "Porty Community Energy",
     description:
-      "Rewet and restore degraded peatlands, one of the most effective natural solutions for tackling climate change.",
-    category: "Resilience",
+      "Portobello neighbours cutting carbon through low-carbon heat, bike storage and active-travel projects people actually want to join.",
+    category: "Renewable Energy",
   },
   {
-    id: "trees",
-    name: "Urban Tree Planting in Edinburgh",
+    id: "craigshill",
+    name: "Growing Together Craigshill",
     description:
-      "Plant trees in urban communities to improve air quality, increase green space and create healthier, more resilient neighbourhoods.",
-    category: "Biodiversity",
+      "Intergenerational community growing in West Lothian, connecting all ages with soil, food and neighbourhood climate action.",
+    category: "Sustainable Agriculture",
+  },
+];
+
+const HIBS_LOCALS: LocalSponsorRecord[] = [
+  {
+    brandName: "Top Cellar",
+    email: "",
+    clubName: "Hibernian",
+    pledgeGbp: 500,
+    createdAt: "2026-09-24T10:00:00.000Z",
+    tagline: "Local hospitality with a climate pledge.",
+    source: "uploaded",
+  },
+  {
+    brandName: "Mash Tun",
+    email: "",
+    clubName: "Hibernian",
+    pledgeGbp: 500,
+    createdAt: "2026-09-24T10:01:00.000Z",
+    source: "uploaded",
+  },
+  {
+    brandName: "Kokobean Cafe",
+    email: "",
+    clubName: "Hibernian",
+    pledgeGbp: 500,
+    createdAt: "2026-09-24T10:02:00.000Z",
+    source: "uploaded",
+  },
+  {
+    brandName: "Interval",
+    email: "",
+    clubName: "Hibernian",
+    pledgeGbp: 500,
+    createdAt: "2026-09-24T10:03:00.000Z",
+    source: "uploaded",
+  },
+  {
+    brandName: "Tax Assist",
+    email: "",
+    clubName: "Hibernian",
+    pledgeGbp: 500,
+    createdAt: "2026-09-24T10:04:00.000Z",
+    source: "uploaded",
   },
 ];
 
 export default function MatchDayPreviewPage() {
-  const locals = exampleLocalSponsorsForClub("Heart of Midlothian");
-  const placements = assignLocalSponsorsToProjects(PROJECTS, locals);
+  const amex = emptySponsor({
+    brandName: "American Express",
+    jobTitle: "Sponsorship Manager",
+    spentGbp: 50000,
+  });
+  const topCellar = emptySponsor({
+    brandName: "Top Cellar",
+    jobTitle: "Sponsorship Manager",
+    spentGbp: 500,
+  });
+  const branding = resolveMatchDayBranding({
+    clubName: "Hibernian",
+    projects: PROJECTS,
+    rosterSponsors: [topCellar, amex],
+    selected: [topCellar, amex],
+    lockedBrandName: "Top Cellar",
+    storedLeadName: "Top Cellar",
+    campaignSponsorName: "Top Cellar",
+    storedLocals: [
+      { projectId: "gss", cardIndex: 1, brandName: "American Express", pledgeGbp: 50000 },
+      { projectId: "wee", cardIndex: 2, brandName: "Mash Tun", pledgeGbp: 500 },
+      { projectId: "retrofit", cardIndex: 3, brandName: "Kokobean Cafe", pledgeGbp: 500 },
+      { projectId: "porty", cardIndex: 4, brandName: "Interval", pledgeGbp: 500 },
+      { projectId: "craigshill", cardIndex: 5, brandName: "Tax Assist", pledgeGbp: 500 },
+    ],
+  });
+  const placements =
+    branding.placements[0]?.local != null
+      ? branding.placements
+      : assignLocalSponsorsToProjects(PROJECTS, HIBS_LOCALS);
   const ranked = placements
     .map((row) => row.local)
     .filter((row): row is NonNullable<typeof row> => Boolean(row));
@@ -67,19 +139,20 @@ export default function MatchDayPreviewPage() {
     <main className="min-h-screen bg-[#04140f] py-8 text-white">
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
-          Heart of Midlothian fans power climate action
+          Hibernian fans power climate action
         </p>
         <h1 className="mt-2 text-center text-4xl font-black md:text-5xl">
-          Hearts Match-Day Climate Campaign
+          Hibs Match-Day Climate Campaign
         </h1>
         <p className="mx-auto mt-3 max-w-3xl text-center text-slate-300">
-          Choose 3 Climate Projects. The Lead Climate Sponsor occupies 65% of
-          each card. Five Local Business Climate Sponsors appear 1-each, ranked
-          and sized by pledge — £1,500 is 3× £500.
+          Choose 3 Climate Projects. The Lead Climate Sponsor (American Express)
+          occupies 65% of each card and appears on all five. Five Local Business
+          Climate Sponsors occupy the remaining 35% — one each.
         </p>
         <div className="mt-8">
           <TodaysClimateSponsors
-            leadName="American Express"
+            leadName={branding.lead.name}
+            leadLogoUrl={branding.lead.logoUrl}
             locals={ranked}
           />
         </div>
@@ -89,8 +162,9 @@ export default function MatchDayPreviewPage() {
               key={row.project.id}
               project={row.project}
               cardIndex={row.cardIndex}
-              clubName="Heart of Midlothian"
-              leadName="American Express"
+              clubName="Hibernian"
+              leadName={branding.lead.name}
+              leadLogoUrl={branding.lead.logoUrl}
               local={row.local}
               localScale={row.scale}
               selected={selected.has(row.project.id)}

@@ -16,6 +16,8 @@ import {
 } from "../app/lib/match-day-local-sponsors";
 import {
   isExampleLocalBrand,
+  isLeadClimateBrand,
+  isLocalBusinessBrand,
   resolveLeadClimateSponsor,
   resolveMatchDayBranding,
 } from "../app/lib/match-day-branding";
@@ -74,12 +76,9 @@ assert(
   "The £500 logo is one-third the size of the £1,500 logo in the 35% slot"
 );
 assert(
-  Math.abs(
-    localHeaderFlex(1500, [500, 750, 1000, 1250, 1500]) /
-      localHeaderFlex(500, [500, 750, 1000, 1250, 1500]) -
-      3
-  ) < 1e-9,
-  "Today's Climate Sponsors header sizes local logos by pledge"
+  localHeaderFlex(1500, [500, 750, 1000, 1250, 1500]) === 1 &&
+    localHeaderFlex(500, [500, 750, 1000, 1250, 1500]) === 1,
+  "Today's Climate Sponsors header splits the 35% local band equally"
 );
 
 const kokobean = emptySponsor({
@@ -130,6 +129,114 @@ assert(
 assert(
   isExampleLocalBrand("Braidview Garage") && !isExampleLocalBrand("Kokobean Cafe"),
   "Demo local logos are distinct from uploaded Hibs locals"
+);
+
+const topCellar = emptySponsor({
+  brandName: "Top Cellar",
+  jobTitle: "Sponsorship Manager",
+  spentGbp: 800,
+});
+const mashTun = emptySponsor({
+  brandName: "Mash Tun",
+  jobTitle: "Local Business Climate Sponsor",
+  spentGbp: 500,
+});
+const interval = emptySponsor({
+  brandName: "Interval",
+  jobTitle: "Local Business Climate Sponsor",
+  spentGbp: 500,
+});
+const taxAssist = emptySponsor({
+  brandName: "Tax Assist",
+  jobTitle: "Local Business Climate Sponsor",
+  spentGbp: 500,
+});
+assert(
+  isLeadClimateBrand("American Express") &&
+    isLeadClimateBrand("Amex") &&
+    !isLocalBusinessBrand("American Express", "Hibernian", [topCellar, amex]),
+  "American Express is always the Lead Climate Sponsor, never a local"
+);
+assert(
+  isLocalBusinessBrand("Top Cellar", "Hibernian", [topCellar, amex]) &&
+    !isLeadClimateBrand("Top Cellar"),
+  "Top Cellar stays a Local Business Climate Sponsor even with a national job title"
+);
+assert(
+  resolveLeadClimateSponsor({
+    clubName: "Hibernian",
+    rosterSponsors: [topCellar, amex, mashTun, kokobean, interval, taxAssist],
+    selected: [topCellar, amex],
+    lockedBrandName: "Top Cellar",
+    storedLeadName: "Top Cellar",
+    campaignSponsorName: "Top Cellar",
+    extraBrandNames: [
+      "American Express",
+      "Mash Tun",
+      "Kokobean Cafe",
+      "Interval",
+      "Tax Assist",
+    ],
+  }) === "American Express",
+  "A misplaced Top Cellar lock cannot replace American Express as Lead Climate Sponsor"
+);
+
+const hibsCards = resolveMatchDayBranding({
+  clubName: "Hibernian",
+  projects,
+  rosterSponsors: [topCellar, amex, mashTun, kokobean, interval, taxAssist],
+  selected: [topCellar, amex],
+  lockedBrandName: "Top Cellar",
+  storedLeadName: "Top Cellar",
+  storedLeadLogoUrl: "top-cellar.png",
+  campaignSponsorName: "Top Cellar",
+  storedLocals: [
+    { projectId: "gss", cardIndex: 1, brandName: "American Express", pledgeGbp: 50000 },
+    { projectId: "wood", cardIndex: 2, brandName: "Mash Tun", pledgeGbp: 500 },
+    { projectId: "coast", cardIndex: 3, brandName: "Kokobean Cafe", pledgeGbp: 500 },
+    { projectId: "peat", cardIndex: 4, brandName: "Interval", pledgeGbp: 500 },
+    { projectId: "trees", cardIndex: 5, brandName: "Tax Assist", pledgeGbp: 500 },
+  ],
+});
+assert(
+  hibsCards.lead.name === "American Express",
+  "Only American Express occupies the Lead Climate Sponsor slot on Hibs cards"
+);
+assert(
+  hibsCards.placements.every((row) => row.local?.brandName !== "American Express"),
+  "American Express never appears in the 35% local slot"
+);
+const localNames = hibsCards.placements
+  .map((row) => row.local?.brandName)
+  .filter((name): name is string => Boolean(name))
+  .sort();
+assert(
+  localNames.join(",") ===
+    ["Interval", "Kokobean Cafe", "Mash Tun", "Tax Assist", "Top Cellar"].join(","),
+  "Hibs SD attaches Tax Assist, Top Cellar, Kokobean Cafe, Mash Tun and Interval 1-each"
+);
+assert(
+  hibsCards.placements.every((row) => row.local) &&
+    new Set(localNames).size === 5,
+  "Each of the five project cards has a different Local Business Climate Sponsor"
+);
+assert(
+  hibsCards.lead.logoUrl !== "top-cellar.png",
+  "The Lead Climate Sponsor strip does not reuse a local business logo"
+);
+
+const header = readFileSync("app/components/fan/TodaysClimateSponsors.tsx", "utf8");
+assert(
+  header.includes("LOCAL_BUSINESS_SPONSOR_SHARE") &&
+    header.includes("maxWidth") &&
+    header.includes("bg-amber-50"),
+  "Today's Climate Sponsors keeps local logos inside a distinct 35% band"
+);
+assert(
+  readFileSync("app/components/fan/DualSponsorStrip.tsx", "utf8").includes(
+    "isLeadClimateBrand"
+  ),
+  "Project cards refuse to draw the Lead Climate Sponsor in the 35% local slot"
 );
 
 const post = readFileSync("app/services/club-match-day.service.ts", "utf8");
@@ -186,11 +293,19 @@ assert(
   "The Sustainability Director attaches five local logos before posting"
 );
 
+assert(
+  readFileSync("app/preview/match-day/page.tsx", "utf8").includes(
+    'leadName={branding.lead.name}'
+  ) &&
+    readFileSync("app/preview/match-day/page.tsx", "utf8").includes("Hibernian"),
+  "The Match Day preview renders the live lead/local split for Hibs"
+);
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
 
 console.log(
-  "Fan vote cards: Lead 65% on all five; five locals 1-each, ranked and sized by pledge (£1,500 is 3× £500)."
+  "Fan vote cards: Lead American Express 65% on all five; five locals 1-each in the 35% band."
 );
