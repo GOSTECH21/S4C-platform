@@ -58,6 +58,16 @@ export function loadClubSponsorRoster(
       selectedIds: existing.selectedIds ?? [],
     };
   }
+  const byName = Object.values(store).find(
+    (roster) => roster.clubName && offerBelongsToClub(roster.clubName, clubName)
+  );
+  if (byName) {
+    return {
+      ...byName,
+      clubName: byName.clubName || clubName,
+      selectedIds: byName.selectedIds ?? [],
+    };
+  }
   return { clubId, clubName, sponsors: [], selectedIds: [] };
 }
 
@@ -223,6 +233,29 @@ export function ensureGoalNetwork({
   );
   saveGoalNetwork(next);
   return next;
+}
+
+export function lockedBrandNameForClub(clubName: string): string | null {
+  if (!clubName.trim() || typeof window === "undefined") return null;
+  const locks = readJson<LockStore>(LOCK_KEY, {});
+  const networks = readJson<NetworkStore>(NETWORK_KEY, {});
+  const rosters = readJson<RosterStore>(ROSTER_KEY, {});
+  for (const lock of Object.values(locks)) {
+    if (!lock?.clubName || !offerBelongsToClub(lock.clubName, clubName)) continue;
+    const fromNetwork = Object.values(networks).find(
+      (row) =>
+        row.brandKey === lock.brandKey ||
+        brandsMatch(row.brandName, lock.brandKey)
+    );
+    if (fromNetwork?.brandName) return fromNetwork.brandName;
+    for (const roster of Object.values(rosters)) {
+      const sponsor = roster.sponsors.find(
+        (row) => brandKey(row.brandName) === lock.brandKey
+      );
+      if (sponsor?.brandName) return sponsor.brandName;
+    }
+  }
+  return null;
 }
 
 export function loadMatchDayLock(brandName: string): MatchDayClubLock | null {

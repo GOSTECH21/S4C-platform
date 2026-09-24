@@ -1,3 +1,4 @@
+import { clubsMatch } from "./sponsor-dashboard";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
@@ -18,6 +19,7 @@ export type LocalSponsorRecord = {
   createdAt: string;
   logoUrl?: string | null;
   tagline?: string | null;
+  source?: "example" | "uploaded" | "registered";
 };
 
 function isLocalRecord(value: unknown): value is LocalSponsorRecord {
@@ -142,7 +144,20 @@ function writeLocalsStore(store: Record<string, unknown>) {
 
 export function localSponsorsForClub(clubName: string): LocalSponsorRecord[] {
   if (!clubName.trim()) return [];
-  return parseClubLocals(readLocalsStore()[clubKey(clubName)]);
+  const store = readLocalsStore();
+  const rows: LocalSponsorRecord[] = [];
+  for (const [key, value] of Object.entries(store)) {
+    if (key === clubKey(clubName) || clubsMatch(key, clubName)) {
+      rows.push(...parseClubLocals(value));
+    }
+  }
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const key = brandKey(row.brandName);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function replaceLocalSponsorsForClub(

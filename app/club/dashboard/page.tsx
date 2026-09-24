@@ -55,13 +55,11 @@ import {
   loadClubSponsorRoster,
   loadGoalNetwork,
   loadMatchDayLock,
-  loadBrandLogo,
   setMatchDaySponsorTargets,
 } from "@/app/services/climate-sponsors.service";
 import {
   selectedBrandsReadyToReceive,
   rankSponsorsBySpend,
-  selectedSponsors,
   type ClubSponsorRoster,
 } from "@/app/lib/climate-sponsors";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -74,6 +72,7 @@ import {
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
+import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -153,11 +152,11 @@ export default function ClubDashboardPage() {
       ),
     [funded, voted]
   );
-  const leadSponsor = roster ? selectedSponsors(roster)[0] : null;
-  const leadName = leadSponsor?.brandName || "Lead Climate Sponsor";
-  const leadLogoUrl =
-    leadSponsor?.logoUrl ||
-    (leadSponsor ? loadBrandLogo(leadSponsor.brandName) : null);
+  const branding = club
+    ? liveLeadAndLocals(club.id, club.name)
+    : { leadName: "Lead Climate Sponsor", leadLogoUrl: null };
+  const leadName = branding.leadName || "Lead Climate Sponsor";
+  const leadLogoUrl = branding.leadLogoUrl;
   const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
   const localCountry = club
     ? localCatalogCountryForClub({

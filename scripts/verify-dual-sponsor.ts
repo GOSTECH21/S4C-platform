@@ -14,6 +14,12 @@ import {
   localBrandExposuresFromPosts,
   localExposureMultiplier,
 } from "../app/lib/match-day-local-sponsors";
+import {
+  isExampleLocalBrand,
+  resolveLeadClimateSponsor,
+  resolveMatchDayBranding,
+} from "../app/lib/match-day-branding";
+import { emptySponsor } from "../app/lib/climate-sponsors";
 
 const failures: string[] = [];
 
@@ -76,6 +82,70 @@ assert(
   "Today's Climate Sponsors header sizes local logos by pledge"
 );
 
+const kokobean = emptySponsor({
+  brandName: "Kokobean Cafe",
+  jobTitle: "Local Business Climate Sponsor",
+  spentGbp: 500,
+});
+const amex = emptySponsor({
+  brandName: "American Express",
+  jobTitle: "Sponsorship Manager",
+  spentGbp: 50000,
+});
+assert(
+  resolveLeadClimateSponsor({
+    clubName: "Hibernian",
+    rosterSponsors: [kokobean, amex],
+    selected: [kokobean, amex],
+    lockedBrandName: "American Express",
+    storedLeadName: "Kokobean Cafe",
+    campaignSponsorName: "Kokobean Cafe",
+  }) === "American Express",
+  "A local cafe is never the Lead Climate Sponsor when American Express is locked in"
+);
+
+const hibs = resolveMatchDayBranding({
+  clubName: "Hibernian",
+  projects,
+  rosterSponsors: [kokobean, amex],
+  selected: [kokobean],
+  lockedBrandName: "American Express",
+  storedLeadName: "Kokobean Cafe",
+  campaignSponsorName: "Kokobean Cafe",
+  storedLocals: exampleLocalSponsorsForClub("Hibernian").map((row, index) => ({
+    projectId: projects[index].id,
+    cardIndex: index + 1,
+    brandName: row.brandName,
+    pledgeGbp: row.pledgeGbp,
+  })),
+});
+assert(
+  hibs.lead.name === "American Express",
+  "Hibs fans see American Express as the Lead Climate Sponsor"
+);
+assert(
+  hibs.placements.some((row) => row.local?.brandName === "Kokobean Cafe"),
+  "Kokobean Cafe stays a Local Business Climate Sponsor on one card"
+);
+assert(
+  isExampleLocalBrand("Braidview Garage") && !isExampleLocalBrand("Kokobean Cafe"),
+  "Demo local logos are distinct from uploaded Hibs locals"
+);
+
+const post = readFileSync("app/services/club-match-day.service.ts", "utf8");
+assert(
+  post.includes("leadSponsorName") &&
+    post.includes("localAssignments") &&
+    post.split("writeFanPostSchedule").length >= 3,
+  "Posting keeps the lead brand and local assignments on the fan schedule"
+);
+assert(
+  readFileSync("app/lib/match-day-post.ts", "utf8").includes(
+    "previous.localAssignments"
+  ),
+  "A later Match Day save does not wipe the five local assignments"
+);
+
 const strip = readFileSync("app/components/fan/DualSponsorStrip.tsx", "utf8");
 assert(
   strip.includes("LEAD_CLIMATE_SPONSOR_SHARE"),
@@ -102,7 +172,7 @@ assert(
 
 const vote = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
 assert(
-  vote.includes("MatchDayProjectCard") && vote.includes("TodaysClimateSponsors"),
+  vote.includes("liveMatchDayBranding"),
   "My S4P shows the Match Day five with both sponsors"
 );
 assert(

@@ -21,6 +21,7 @@ import {
   exampleLocalSponsorsForClub,
   localExposureMultiplier,
 } from "@/app/lib/match-day-local-sponsors";
+import { isExampleLocalBrand } from "@/app/lib/match-day-branding";
 import { MATCH_DAY_PROJECT_COUNT } from "@/app/lib/partner-projects";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import { saveBrandLogo } from "@/app/services/climate-sponsors.service";
@@ -87,6 +88,7 @@ export function MatchDayLocalSponsorBoard({
       createdAt: new Date().toISOString(),
       logoUrl,
       tagline: tagline.trim() || null,
+      source: "uploaded",
     };
     if (logoUrl) saveBrandLogo(record.brandName, logoUrl);
     writeLocalSponsorForClub(record);
@@ -98,11 +100,21 @@ export function MatchDayLocalSponsorBoard({
   }
 
   function loadExamples() {
-    const examples = exampleLocalSponsorsForClub(clubName);
-    for (const row of examples) {
+    const existing = localSponsorsForClub(clubName);
+    const uploaded = existing.filter((row) => !isExampleLocalBrand(row.brandName));
+    const examples = exampleLocalSponsorsForClub(clubName).filter(
+      (row) =>
+        !uploaded.some(
+          (local) =>
+            local.brandName.trim().toLowerCase() === row.brandName.trim().toLowerCase()
+        )
+    );
+    const needed = Math.max(0, LOCAL_SPONSORS_PER_MATCH - uploaded.length);
+    const next = [...uploaded, ...examples.slice(0, needed)];
+    for (const row of next) {
       if (row.logoUrl) saveBrandLogo(row.brandName, row.logoUrl);
     }
-    persist(examples);
+    persist(next);
     setError(null);
   }
 

@@ -1221,25 +1221,23 @@ export async function postMatchDayProjectsToFans({
     email?: string;
   }> = [];
   try {
-    const { loadClubSponsorRoster, loadBrandLogo } = await import(
-      "./climate-sponsors.service"
-    );
-    const { selectedSponsors } = await import("../lib/climate-sponsors");
-    const leadSponsors = selectedSponsors(
-      loadClubSponsorRoster(clubId, clubName)
-    );
-    sponsorNames = leadSponsors.map((sponsor) => sponsor.brandName);
-    leadSponsorName = leadSponsors[0]?.brandName ?? sponsorNames[0] ?? null;
-    leadSponsorLogoUrl =
-      leadSponsors[0]?.logoUrl ||
-      (leadSponsorName ? loadBrandLogo(leadSponsorName) : null);
+    const { liveLeadAndLocals } = await import("./match-day-branding.service");
     const { assignLocalSponsorsToProjects, assignmentsFromPlacements } =
       await import("../lib/match-day-local-sponsors");
-    const { localSponsorsForClub } = await import("../lib/local-sponsor");
+    const branding = liveLeadAndLocals(clubId, clubName);
+    leadSponsorName = branding.leadName;
+    leadSponsorLogoUrl = branding.leadLogoUrl;
+    sponsorNames = [leadSponsorName, ...branding.selected.map((row) => row.brandName)]
+      .filter((name): name is string => Boolean(name))
+      .filter((name, index, all) => all.indexOf(name) === index);
     localAssignments = assignmentsFromPlacements(
       assignLocalSponsorsToProjects(
         selected.slice(0, MATCH_DAY_PROJECT_COUNT),
-        localSponsorsForClub(clubName)
+        branding.locals.filter(
+          (row) =>
+            !leadSponsorName ||
+            row.brandName.trim().toLowerCase() !== leadSponsorName.trim().toLowerCase()
+        )
       )
     );
   } catch {
@@ -1300,6 +1298,9 @@ export async function postMatchDayProjectsToFans({
     projectIds: portfolioIds,
     campaignId: selection.campaignId,
     sponsorNames,
+    leadSponsorName,
+    leadSponsorLogoUrl,
+    localAssignments,
   });
   const selectedProjects = await loadProjectsByIds(portfolioIds);
   await persistFileRecord({
@@ -1320,7 +1321,7 @@ export async function postMatchDayProjectsToFans({
       gbpPerVote: selection.gbpPerVote,
       gbpPerGoal: selection.gbpPerGoal,
       maxAmount: selection.maxAmount,
-      targetBrandNames: sponsorNames,
+      targetBrandNames: leadSponsorName ? [leadSponsorName] : sponsorNames,
     });
   } catch {
     // Fans still receive the posted five even if the sponsor offer cannot be stored.

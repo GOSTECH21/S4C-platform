@@ -13,7 +13,7 @@ import {
 import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
 import FanNav from "../components/FanNav";
 import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
-import { matchDayLocalPlacements } from "@/app/lib/match-day-local-sponsors";
+import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { featuredClimateProjectCountryLabelForClubs } from "@/app/lib/featured-climate-country";
@@ -236,13 +236,20 @@ function HistoryCard({
       ? [campaign.featuredProject, ...campaign.projects]
       : campaign.projects
     : [];
-  const placement = campaign
-    ? matchDayLocalPlacements({
-        projects: ordered,
+  const branding = campaign
+    ? liveMatchDayBranding({
+        clubId: campaign.postedClubId ?? campaign.clubId,
         clubName: campaign.clubName,
-        stored: schedule?.localAssignments,
-      }).find((row) => row.project.id === project.id) ?? null
+        projects: ordered,
+        storedLeadName: schedule?.leadSponsorName,
+        storedLeadLogoUrl: schedule?.leadSponsorLogoUrl,
+        campaignSponsorName: campaign.sponsorName,
+        campaignSponsorLogoUrl: campaign.sponsorLogoUrl,
+        storedLocals: schedule?.localAssignments,
+      })
     : null;
+  const placement =
+    branding?.placements.find((row) => row.project.id === project.id) ?? null;
   return (
     <div className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-6">
       <div className="flex items-start justify-between gap-4">
@@ -264,10 +271,10 @@ function HistoryCard({
 
       <p className="mt-4 flex-1 text-slate-300">{project.description}</p>
 
-      {campaign && (
+      {campaign && branding && (
         <DualSponsorStrip
-          leadName={schedule?.leadSponsorName || campaign.sponsorName}
-          leadLogoUrl={schedule?.leadSponsorLogoUrl || campaign.sponsorLogoUrl}
+          leadName={branding.lead.name}
+          leadLogoUrl={branding.lead.logoUrl}
           localName={placement?.local?.brandName ?? null}
           localLogoUrl={placement?.local?.logoUrl}
           localTagline={placement?.local?.tagline}

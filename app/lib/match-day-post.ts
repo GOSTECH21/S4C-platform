@@ -111,9 +111,22 @@ export function isFanPostVisible(
 
 export function writeFanPostSchedule(schedule: FanPostSchedule) {
   if (typeof window === "undefined") return;
+  const previous = readFanPostSchedule(schedule.clubId);
+  const next: FanPostSchedule = { ...previous, ...schedule };
+  if (!schedule.leadSponsorName && previous?.leadSponsorName) {
+    next.leadSponsorName = previous.leadSponsorName;
+    next.leadSponsorLogoUrl =
+      schedule.leadSponsorLogoUrl ?? previous.leadSponsorLogoUrl ?? null;
+  }
+  if (
+    (!schedule.localAssignments || schedule.localAssignments.length === 0) &&
+    previous?.localAssignments?.length
+  ) {
+    next.localAssignments = previous.localAssignments;
+  }
   window.localStorage.setItem(
     FAN_POST_SCHEDULE_PREFIX + schedule.clubId,
-    JSON.stringify(schedule)
+    JSON.stringify(next)
   );
 }
 

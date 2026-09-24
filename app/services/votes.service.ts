@@ -1018,16 +1018,28 @@ async function resolveCampaignSponsor({
   const scoreLabel = scoreLabelForSport(sport);
   const postedName = (postedSponsorNames ?? [])
     .map((name) => name.trim())
-    .find(Boolean);
+    .find((name) => name);
   try {
+    const { isLocalBusinessBrand } = await import("../lib/match-day-branding");
+    const skipLocal = (name: string) => !isLocalBusinessBrand(name, clubName);
     const { signedOrPostedBrandForClub } = await import(
       "./sponsor-offers.service"
     );
     const signed = await signedOrPostedBrandForClub(clubName);
-    if (signed) {
+    if (signed && skipLocal(signed)) {
       return {
         name: signed,
         logoUrl: sponsorLogoSrc(signed, null),
+        scoreLabel,
+      };
+    }
+    const nationalPosted = (postedSponsorNames ?? [])
+      .map((name) => name.trim())
+      .find((name) => name && skipLocal(name));
+    if (nationalPosted) {
+      return {
+        name: nationalPosted,
+        logoUrl: sponsorLogoSrc(nationalPosted, null),
         scoreLabel,
       };
     }
@@ -1035,17 +1047,30 @@ async function resolveCampaignSponsor({
     // Fall through to the posted Match Day brand, then the campaign table.
   }
   if (postedName) {
-    return {
-      name: postedName,
-      logoUrl: sponsorLogoSrc(postedName, null),
-      scoreLabel,
-    };
+    try {
+      const { isLocalBusinessBrand } = await import("../lib/match-day-branding");
+      if (!isLocalBusinessBrand(postedName, clubName)) {
+        return {
+          name: postedName,
+          logoUrl: sponsorLogoSrc(postedName, null),
+          scoreLabel,
+        };
+      }
+    } catch {
+      return {
+        name: postedName,
+        logoUrl: sponsorLogoSrc(postedName, null),
+        scoreLabel,
+      };
+    }
   }
   try {
     const { selectedBrandNamesForClubName } = await import(
       "./climate-sponsors.service"
     );
-    const fromRoster = selectedBrandNamesForClubName(clubName)[0];
+    const names = selectedBrandNamesForClubName(clubName);
+    const { isLocalBusinessBrand } = await import("../lib/match-day-branding");
+    const fromRoster = names.find((name) => !isLocalBusinessBrand(name, clubName));
     if (fromRoster) {
       return {
         name: fromRoster,

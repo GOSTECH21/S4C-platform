@@ -158,6 +158,7 @@ export function exampleLocalSponsorsForClub(
       createdAt,
       tagline: "Keeping Edinburgh Moving. Cleaner.",
       logoUrl: demoLogo("Braidview Garage", "#0f172a"),
+      source: "example",
     },
     {
       brandName: "Thistle Energy",
@@ -167,6 +168,7 @@ export function exampleLocalSponsorsForClub(
       createdAt,
       tagline: "Local Energy. Lasting Impact.",
       logoUrl: demoLogo("Thistle Energy", "#14532d"),
+      source: "example",
     },
     {
       brandName: "Capital Homes Edinburgh",
@@ -176,6 +178,7 @@ export function exampleLocalSponsorsForClub(
       createdAt,
       tagline: "Building Greener Communities.",
       logoUrl: demoLogo("Capital Homes Edinburgh", "#1e3a5f"),
+      source: "example",
     },
     {
       brandName: "McLeod & Sons Solicitors",
@@ -185,6 +188,7 @@ export function exampleLocalSponsorsForClub(
       createdAt,
       tagline: "Local Advice. A Brighter Future.",
       logoUrl: demoLogo("McLeod & Sons Solicitors", "#3f3f46"),
+      source: "example",
     },
     {
       brandName: "Edinburgh Roasters",
@@ -194,6 +198,7 @@ export function exampleLocalSponsorsForClub(
       createdAt,
       tagline: "Good Coffee. A Greener Tomorrow.",
       logoUrl: demoLogo("Edinburgh Roasters", "#44403c"),
+      source: "example",
     },
   ];
 }

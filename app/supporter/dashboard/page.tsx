@@ -25,7 +25,7 @@ import {
 } from "@/app/lib/sponsorship-auction";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
-import { matchDayLocalPlacements } from "@/app/lib/match-day-local-sponsors";
+import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
 
@@ -246,13 +246,19 @@ function CampaignPanel({
   const schedule = readFanPostSchedule(
     campaign.postedClubId ?? campaign.clubId
   );
-  const leadName = schedule?.leadSponsorName || campaign.sponsorName;
-  const leadLogoUrl = schedule?.leadSponsorLogoUrl || campaign.sponsorLogoUrl;
-  const placements = matchDayLocalPlacements({
-    projects: voteable,
+  const branding = liveMatchDayBranding({
+    clubId: campaign.postedClubId ?? campaign.clubId,
     clubName: campaign.clubName,
-    stored: schedule?.localAssignments,
+    projects: voteable,
+    storedLeadName: schedule?.leadSponsorName,
+    storedLeadLogoUrl: schedule?.leadSponsorLogoUrl,
+    campaignSponsorName: campaign.sponsorName,
+    campaignSponsorLogoUrl: campaign.sponsorLogoUrl,
+    storedLocals: schedule?.localAssignments,
   });
+  const leadName = branding.lead.name;
+  const leadLogoUrl = branding.lead.logoUrl;
+  const placements = branding.placements;
   const rankedLocals = placements
     .map((row) => row.local)
     .filter((row): row is LocalSponsorRecord => Boolean(row));

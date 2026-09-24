@@ -20,17 +20,15 @@ export function offerBelongsToClub(offerClubName: string, clubName: string): boo
   return offer.includes(club) || club.includes(offer);
 }
 
-function firstBrand(names: string[] | null | undefined): string | null {
-  const brand = (names ?? []).map((name) => name.trim()).find(Boolean);
-  return brand || null;
-}
-
 /** Signed brand on the latest club offer, else the brand the SD posted that five to. */
 export function signedOrPostedBrandForClub(
   clubName: string,
   offers: SponsorOfferRef[],
-  signatures: SponsorSignatureRef[]
+  signatures: SponsorSignatureRef[],
+  isLeadCandidate?: (brandName: string) => boolean
 ): string | null {
+  const ok = (name: string) =>
+    Boolean(name.trim()) && (!isLeadCandidate || isLeadCandidate(name));
   const clubOffers = offers
     .filter((offer) => offerBelongsToClub(offer.clubName, clubName))
     .sort((left, right) =>
@@ -39,15 +37,17 @@ export function signedOrPostedBrandForClub(
   const latest = clubOffers[0];
   if (latest) {
     const signed = signatures.find(
-      (row) => row.offerId === latest.id && row.brandName.trim()
+      (row) => row.offerId === latest.id && ok(row.brandName)
     );
     if (signed?.brandName.trim()) return signed.brandName.trim();
-    const posted = firstBrand(latest.targetBrandNames);
+    const posted = (latest.targetBrandNames ?? [])
+      .map((name) => name.trim())
+      .find((name) => ok(name));
     if (posted) return posted;
   }
   for (const offer of clubOffers) {
     const signed = signatures.find(
-      (row) => row.offerId === offer.id && row.brandName.trim()
+      (row) => row.offerId === offer.id && ok(row.brandName)
     );
     if (signed?.brandName.trim()) return signed.brandName.trim();
   }

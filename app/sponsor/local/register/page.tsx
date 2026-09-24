@@ -72,6 +72,7 @@ export default function LocalSponsorRegisterPage() {
         pledgeGbp: pledge,
         createdAt: new Date().toISOString(),
         logoUrl,
+        source: "registered",
       });
       window.location.href = SPONSOR_DASHBOARD_PATH;
     } catch (err) {
