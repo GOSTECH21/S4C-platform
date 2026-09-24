@@ -127,7 +127,17 @@ assert(
   "Kokobean Cafe stays a Local Business Climate Sponsor on one card"
 );
 assert(
-  isExampleLocalBrand("Braidview Garage") && !isExampleLocalBrand("Kokobean Cafe"),
+  hibs.placements.every(
+    (row) => !row.local || !isExampleLocalBrand(row.local.brandName)
+  ) &&
+    !hibs.placements.some((row) => row.local?.brandName === "Braidview Garage"),
+  "Demo locals such as Braidview Garage never appear on posted Hibs cards"
+);
+assert(
+  isExampleLocalBrand("Braidview Garage") &&
+    isExampleLocalBrand("Capital Homes") &&
+    isExampleLocalBrand("McLeod & Sons") &&
+    !isExampleLocalBrand("Kokobean Cafe"),
   "Demo local logos are distinct from uploaded Hibs locals"
 );
 
@@ -225,6 +235,36 @@ assert(
   "The Lead Climate Sponsor strip does not reuse a local business logo"
 );
 
+const mashOnly = resolveMatchDayBranding({
+  clubName: "Hibernian",
+  projects,
+  rosterSponsors: [amex, mashTun],
+  selected: [mashTun],
+  lockedBrandName: "American Express",
+  storedLocals: [
+    { projectId: "gss", cardIndex: 1, brandName: "Braidview Garage", pledgeGbp: 1500 },
+    { projectId: "wood", cardIndex: 2, brandName: "Mash Tun", pledgeGbp: 500 },
+    { projectId: "coast", cardIndex: 3, brandName: "Thistle Energy", pledgeGbp: 1250 },
+    { projectId: "peat", cardIndex: 4, brandName: "Capital Homes Edinburgh", pledgeGbp: 1000 },
+    { projectId: "trees", cardIndex: 5, brandName: "McLeod & Sons Solicitors", pledgeGbp: 750 },
+  ],
+});
+assert(
+  mashOnly.placements.filter((row) => row.local).length === 1 &&
+    mashOnly.placements[0].local?.brandName === "Mash Tun",
+  "Only Mash Tun appears when it is the registered local among demo brands"
+);
+assert(
+  mashOnly.placements.every(
+    (row) =>
+      !row.local ||
+      !["Braidview Garage", "Thistle Energy", "Capital Homes Edinburgh", "McLeod & Sons Solicitors"].includes(
+        row.local.brandName
+      )
+  ),
+  "Braidview, Thistle Energy, Capital Homes and McLeod & Sons stay off Hibs project cards"
+);
+
 const header = readFileSync("app/components/fan/TodaysClimateSponsors.tsx", "utf8");
 assert(
   header.includes("LOCAL_BUSINESS_SPONSOR_SHARE") &&
@@ -291,6 +331,12 @@ const club = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
   club.includes("MatchDayLocalSponsorBoard"),
   "The Sustainability Director attaches five local logos before posting"
+);
+assert(
+  !readFileSync("app/components/club/MatchDayLocalSponsorBoard.tsx", "utf8").includes(
+    "Load £500"
+  ),
+  "The club board does not load demo locals onto live project cards"
 );
 
 assert(

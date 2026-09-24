@@ -524,6 +524,7 @@ export default function ClubDashboardPage() {
             />
             {selected.length >= MATCH_DAY_PROJECT_COUNT ? (
               <MatchDayLocalSponsorBoard
+                clubId={club.id}
                 clubName={club.name}
                 projects={orderedSelected}
                 leadName={leadName}

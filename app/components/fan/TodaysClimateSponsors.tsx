@@ -9,7 +9,7 @@ import {
   localHeaderFlex,
 } from "@/app/lib/dual-sponsor";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
-import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
+import { isLeadClimateBrand, isRegisteredLocalSponsor } from "@/app/lib/match-day-branding";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 
@@ -26,6 +26,7 @@ export function TodaysClimateSponsors({
     leadLogoUrl || loadBrandLogo(leadName) || sponsorLogoSrc(leadName, leadLogoUrl);
   const localOnly = locals.filter(
     (row) =>
+      isRegisteredLocalSponsor(row) &&
       !isLeadClimateBrand(row.brandName) &&
       row.brandName.trim().toLowerCase() !== leadName.trim().toLowerCase()
   );

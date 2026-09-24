@@ -8,7 +8,7 @@ import {
   LOCAL_BUSINESS_SPONSOR_SHARE,
 } from "@/app/lib/dual-sponsor";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
-import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
+import { isLeadClimateBrand, isExampleLocalBrand } from "@/app/lib/match-day-branding";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 
@@ -36,6 +36,7 @@ export function DualSponsorStrip({
   const localIsLead =
     Boolean(localName) &&
     (isLeadClimateBrand(localName!) ||
+      isExampleLocalBrand(localName!) ||
       localName!.trim().toLowerCase() === leadName.trim().toLowerCase());
   const shownLocalName = localIsLead ? null : localName;
   const localLogo = shownLocalName

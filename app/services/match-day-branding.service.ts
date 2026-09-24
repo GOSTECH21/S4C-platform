@@ -7,6 +7,7 @@ import {
   resolveLeadClimateSponsor,
   uploadedLocalSponsorsForClub,
   isLeadClimateBrand,
+  isRegisteredLocalSponsor,
 } from "../lib/match-day-branding";
 import type { MatchDayLocalAssignment } from "../lib/match-day-local-sponsors";
 import {
@@ -78,6 +79,7 @@ export function liveLeadAndLocals(clubId: string, clubName: string): {
       lead?.logoUrl || (leadName ? loadBrandLogo(leadName) : null) || null,
     locals: locals.filter(
       (row) =>
+        isRegisteredLocalSponsor(row) &&
         !isLeadClimateBrand(row.brandName) &&
         row.brandName.trim().toLowerCase() !== (leadName ?? "").toLowerCase()
     ),

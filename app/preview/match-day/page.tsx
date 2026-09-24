@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
-import { assignLocalSponsorsToProjects } from "@/app/lib/match-day-local-sponsors";
 import { resolveMatchDayBranding } from "@/app/lib/match-day-branding";
 import { emptySponsor } from "@/app/lib/climate-sponsors";
-import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
 
 const PROJECTS = [
   {
@@ -46,50 +44,6 @@ const PROJECTS = [
   },
 ];
 
-const HIBS_LOCALS: LocalSponsorRecord[] = [
-  {
-    brandName: "Top Cellar",
-    email: "",
-    clubName: "Hibernian",
-    pledgeGbp: 500,
-    createdAt: "2026-09-24T10:00:00.000Z",
-    tagline: "Local hospitality with a climate pledge.",
-    source: "uploaded",
-  },
-  {
-    brandName: "Mash Tun",
-    email: "",
-    clubName: "Hibernian",
-    pledgeGbp: 500,
-    createdAt: "2026-09-24T10:01:00.000Z",
-    source: "uploaded",
-  },
-  {
-    brandName: "Kokobean Cafe",
-    email: "",
-    clubName: "Hibernian",
-    pledgeGbp: 500,
-    createdAt: "2026-09-24T10:02:00.000Z",
-    source: "uploaded",
-  },
-  {
-    brandName: "Interval",
-    email: "",
-    clubName: "Hibernian",
-    pledgeGbp: 500,
-    createdAt: "2026-09-24T10:03:00.000Z",
-    source: "uploaded",
-  },
-  {
-    brandName: "Tax Assist",
-    email: "",
-    clubName: "Hibernian",
-    pledgeGbp: 500,
-    createdAt: "2026-09-24T10:04:00.000Z",
-    source: "uploaded",
-  },
-];
-
 export default function MatchDayPreviewPage() {
   const amex = emptySponsor({
     brandName: "American Express",
@@ -101,26 +55,43 @@ export default function MatchDayPreviewPage() {
     jobTitle: "Sponsorship Manager",
     spentGbp: 500,
   });
+  const mashTun = emptySponsor({
+    brandName: "Mash Tun",
+    jobTitle: "Local Business Climate Sponsor",
+    spentGbp: 500,
+  });
+  const kokobean = emptySponsor({
+    brandName: "Kokobean Cafe",
+    jobTitle: "Local Business Climate Sponsor",
+    spentGbp: 500,
+  });
+  const interval = emptySponsor({
+    brandName: "Interval",
+    jobTitle: "Local Business Climate Sponsor",
+    spentGbp: 500,
+  });
+  const taxAssist = emptySponsor({
+    brandName: "Tax Assist",
+    jobTitle: "Local Business Climate Sponsor",
+    spentGbp: 500,
+  });
   const branding = resolveMatchDayBranding({
     clubName: "Hibernian",
     projects: PROJECTS,
-    rosterSponsors: [topCellar, amex],
-    selected: [topCellar, amex],
+    rosterSponsors: [topCellar, amex, mashTun, kokobean, interval, taxAssist],
+    selected: [topCellar, amex, mashTun],
     lockedBrandName: "Top Cellar",
     storedLeadName: "Top Cellar",
     campaignSponsorName: "Top Cellar",
     storedLocals: [
-      { projectId: "gss", cardIndex: 1, brandName: "American Express", pledgeGbp: 50000 },
+      { projectId: "gss", cardIndex: 1, brandName: "Braidview Garage", pledgeGbp: 1500 },
       { projectId: "wee", cardIndex: 2, brandName: "Mash Tun", pledgeGbp: 500 },
-      { projectId: "retrofit", cardIndex: 3, brandName: "Kokobean Cafe", pledgeGbp: 500 },
-      { projectId: "porty", cardIndex: 4, brandName: "Interval", pledgeGbp: 500 },
-      { projectId: "craigshill", cardIndex: 5, brandName: "Tax Assist", pledgeGbp: 500 },
+      { projectId: "retrofit", cardIndex: 3, brandName: "Thistle Energy", pledgeGbp: 1250 },
+      { projectId: "porty", cardIndex: 4, brandName: "Capital Homes Edinburgh", pledgeGbp: 1000 },
+      { projectId: "craigshill", cardIndex: 5, brandName: "McLeod & Sons Solicitors", pledgeGbp: 750 },
     ],
   });
-  const placements =
-    branding.placements[0]?.local != null
-      ? branding.placements
-      : assignLocalSponsorsToProjects(PROJECTS, HIBS_LOCALS);
+  const placements = branding.placements;
   const ranked = placements
     .map((row) => row.local)
     .filter((row): row is NonNullable<typeof row> => Boolean(row));

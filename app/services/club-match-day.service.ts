@@ -1222,7 +1222,7 @@ export async function postMatchDayProjectsToFans({
   }> = [];
   try {
     const { liveLeadAndLocals } = await import("./match-day-branding.service");
-    const { isLeadClimateBrand } = await import("../lib/match-day-branding");
+    const { isLeadClimateBrand, isRegisteredLocalSponsor } = await import("../lib/match-day-branding");
     const { assignLocalSponsorsToProjects, assignmentsFromPlacements } =
       await import("../lib/match-day-local-sponsors");
     const branding = liveLeadAndLocals(clubId, clubName);
@@ -1236,6 +1236,7 @@ export async function postMatchDayProjectsToFans({
         selected.slice(0, MATCH_DAY_PROJECT_COUNT),
         branding.locals.filter(
           (row) =>
+            isRegisteredLocalSponsor(row) &&
             !isLeadClimateBrand(row.brandName) &&
             (!leadSponsorName ||
               row.brandName.trim().toLowerCase() !==

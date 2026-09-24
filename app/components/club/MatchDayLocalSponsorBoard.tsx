@@ -8,31 +8,38 @@ import {
   LOCAL_SPONSOR_MIN_GBP,
   LOCAL_SPONSORS_PER_MATCH,
   type LocalSponsorRecord,
-  localSponsorsForClub,
-  removeLocalSponsorForClub,
-  replaceLocalSponsorsForClub,
   writeLocalSponsorForClub,
+  removeLocalSponsorForClub,
 } from "@/app/lib/local-sponsor";
 import {
   LEAD_CLIMATE_SPONSOR_SHARE,
 } from "@/app/lib/dual-sponsor";
 import {
   assignLocalSponsorsToProjects,
-  exampleLocalSponsorsForClub,
   localExposureMultiplier,
 } from "@/app/lib/match-day-local-sponsors";
-import { isExampleLocalBrand, isLeadClimateBrand } from "@/app/lib/match-day-branding";
+import {
+  isLeadClimateBrand,
+  isRegisteredLocalSponsor,
+  uploadedLocalSponsorsForClub,
+} from "@/app/lib/match-day-branding";
 import { MATCH_DAY_PROJECT_COUNT } from "@/app/lib/partner-projects";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
-import { saveBrandLogo } from "@/app/services/climate-sponsors.service";
+import {
+  loadBrandLogo,
+  loadClubSponsorRoster,
+  saveBrandLogo,
+} from "@/app/services/climate-sponsors.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
 export function MatchDayLocalSponsorBoard({
+  clubId,
   clubName,
   projects,
   leadName,
   leadLogoUrl,
 }: {
+  clubId?: string;
   clubName: string;
   projects: ClimateProject[];
   leadName: string;
@@ -45,13 +52,18 @@ export function MatchDayLocalSponsorBoard({
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function refreshLocals() {
+    const roster = loadClubSponsorRoster(clubId || clubName, clubName);
     setLocals(
-      localSponsorsForClub(clubName).filter(
-        (row) => !isLeadClimateBrand(row.brandName)
+      uploadedLocalSponsorsForClub(clubName, roster.sponsors).filter(
+        (row) => isRegisteredLocalSponsor(row) && !isLeadClimateBrand(row.brandName)
       )
     );
-  }, [clubName]);
+  }
+
+  useEffect(() => {
+    refreshLocals();
+  }, [clubId, clubName]);
 
   const placements = useMemo(
     () => assignLocalSponsorsToProjects(projects, locals),
@@ -59,17 +71,8 @@ export function MatchDayLocalSponsorBoard({
   );
   const rankedLocals = placements
     .map((row) => row.local)
-    .filter((row): row is LocalSponsorRecord => Boolean(row));
-
-  function persist(next: LocalSponsorRecord[]) {
-    const localsOnly = next.filter((row) => !isLeadClimateBrand(row.brandName));
-    replaceLocalSponsorsForClub(clubName, localsOnly);
-    setLocals(
-      localSponsorsForClub(clubName).filter(
-        (row) => !isLeadClimateBrand(row.brandName)
-      )
-    );
-  }
+    .filter((row): row is LocalSponsorRecord => Boolean(row))
+    .filter(isRegisteredLocalSponsor);
 
   function addLocal(event: React.FormEvent) {
     event.preventDefault();
@@ -107,37 +110,11 @@ export function MatchDayLocalSponsorBoard({
     };
     if (logoUrl) saveBrandLogo(record.brandName, logoUrl);
     writeLocalSponsorForClub(record);
-    setLocals(
-      localSponsorsForClub(clubName).filter(
-        (row) => !isLeadClimateBrand(row.brandName)
-      )
-    );
+    refreshLocals();
     setBrandName("");
     setPledgeGbp(String(LOCAL_SPONSOR_MIN_GBP));
     setTagline("");
     setLogoUrl(null);
-  }
-
-  function loadExamples() {
-    const existing = localSponsorsForClub(clubName);
-    const uploaded = existing.filter(
-      (row) =>
-        !isExampleLocalBrand(row.brandName) && !isLeadClimateBrand(row.brandName)
-    );
-    const examples = exampleLocalSponsorsForClub(clubName).filter(
-      (row) =>
-        !uploaded.some(
-          (local) =>
-            local.brandName.trim().toLowerCase() === row.brandName.trim().toLowerCase()
-        )
-    );
-    const needed = Math.max(0, LOCAL_SPONSORS_PER_MATCH - uploaded.length);
-    const next = [...uploaded, ...examples.slice(0, needed)];
-    for (const row of next) {
-      if (row.logoUrl) saveBrandLogo(row.brandName, row.logoUrl);
-    }
-    persist(next);
-    setError(null);
   }
 
   return (
@@ -146,17 +123,17 @@ export function MatchDayLocalSponsorBoard({
         Local Business Climate Sponsors
       </p>
       <h3 className="mt-2 text-3xl font-black">
-        Attach 5 local logos, one on each Climate Project card
+        Attach registered local logos, one on each Climate Project card
       </h3>
       <p className="mt-3 max-w-4xl text-slate-300">
         The Lead Climate Sponsor occupies {LEAD_CLIMATE_SPONSOR_SHARE}% of the logo space on every card
-        — only that brand and logo appear on all five. Then attach{" "}
-        {LOCAL_SPONSORS_PER_MATCH} Local Business Climate Sponsors from £
-        {LOCAL_SPONSOR_MIN_GBP}. Together they occupy the remaining{" "}
-        {100 - LEAD_CLIMATE_SPONSOR_SHARE}% of logo space, one local per card.
-        Highest pledge is placed on card 1 (Global Schools Solar); lowest on card{" "}
-        {MATCH_DAY_PROJECT_COUNT}. A £1,500 pledge receives{" "}
-        {localExposureMultiplier(1500)}× the fan exposures of a £
+        — only that brand and logo appear on all five. Then attach Local Business
+        Climate Sponsors that have registered for this club, from £
+        {LOCAL_SPONSOR_MIN_GBP}. Demo brands are not shown. Together the registered
+        locals occupy the remaining {100 - LEAD_CLIMATE_SPONSOR_SHARE}% of logo
+        space, one local per card. Highest pledge is placed on card 1
+        (Global Schools Solar); lowest on card {MATCH_DAY_PROJECT_COUNT}. A £1,500
+        pledge receives {localExposureMultiplier(1500)}× the fan exposures of a £
         {LOCAL_SPONSOR_MIN_GBP} pledge, and its logo is drawn larger in the
         35% local slot.
       </p>
@@ -200,11 +177,7 @@ export function MatchDayLocalSponsorBoard({
                       className="text-xs font-semibold text-slate-400 hover:text-red-300"
                       onClick={() => {
                         removeLocalSponsorForClub(clubName, row.local!.brandName);
-                        setLocals(
-                          localSponsorsForClub(clubName).filter(
-                            (local) => !isLeadClimateBrand(local.brandName)
-                          )
-                        );
+                        refreshLocals();
                       }}
                     >
                       Remove
@@ -227,7 +200,7 @@ export function MatchDayLocalSponsorBoard({
             value={brandName}
             onChange={(event) => setBrandName(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            placeholder="Edinburgh Roasters"
+            placeholder="Mash Tun"
           />
         </label>
         <label className="block text-sm text-slate-400">
@@ -247,7 +220,7 @@ export function MatchDayLocalSponsorBoard({
             value={tagline}
             onChange={(event) => setTagline(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            placeholder="Good Coffee. A Greener Tomorrow."
+            placeholder="Local hospitality with a climate pledge."
           />
         </label>
         <div className="md:col-span-2">
@@ -267,13 +240,6 @@ export function MatchDayLocalSponsorBoard({
           >
             Attach local sponsor
           </button>
-          <button
-            type="button"
-            onClick={loadExamples}
-            className="rounded-xl border border-amber-400/40 px-5 py-3 font-semibold text-amber-200"
-          >
-            Load £500–£1,500 example locals
-          </button>
         </div>
       </form>
 
@@ -284,7 +250,7 @@ export function MatchDayLocalSponsorBoard({
           </p>
           <TodaysClimateSponsors
             leadName={leadName}
-            leadLogoUrl={leadLogoUrl}
+            leadLogoUrl={leadLogoUrl || loadBrandLogo(leadName)}
             locals={rankedLocals}
           />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

@@ -9,6 +9,7 @@ import {
   LOCAL_SPONSORS_PER_MATCH,
   type LocalSponsorRecord,
   localSponsorsForClub,
+  replaceLocalSponsorsForClub,
 } from "./local-sponsor";
 import {
   assignLocalSponsorsToProjects,
@@ -19,9 +20,12 @@ import {
 
 export const EXAMPLE_LOCAL_BRANDS = [
   "Braidview Garage",
+  "Broadview Garage",
   "Thistle Energy",
   "Capital Homes Edinburgh",
+  "Capital Homes",
   "McLeod & Sons Solicitors",
+  "McLeod & Sons",
   "Edinburgh Roasters",
 ];
 
@@ -61,7 +65,17 @@ function localJobTitle(value: string | null | undefined): boolean {
 }
 
 export function isExampleLocalBrand(brandName: string): boolean {
-  return listedBrandMatch(brandName, EXAMPLE_LOCAL_BRANDS);
+  const key = compactBrandKey(brandName);
+  if (!key) return false;
+  return EXAMPLE_LOCAL_BRANDS.some((row) => {
+    const listed = compactBrandKey(row);
+    if (!listed) return false;
+    if (key === listed) return true;
+    return (
+      listed.length >= 10 &&
+      (key.startsWith(listed) || listed.startsWith(key))
+    );
+  });
 }
 
 export function isLeadClimateBrand(brandName: string): boolean {
@@ -74,10 +88,18 @@ export function isLeadClimateBrand(brandName: string): boolean {
 }
 
 export function isKnownLocalBusinessBrand(brandName: string): boolean {
-  return (
-    listedBrandMatch(brandName, KNOWN_LOCAL_BUSINESS_BRANDS) ||
-    isExampleLocalBrand(brandName)
-  );
+  return listedBrandMatch(brandName, KNOWN_LOCAL_BUSINESS_BRANDS);
+}
+
+export function isRegisteredLocalSponsor(row: {
+  brandName: string;
+  source?: LocalSponsorRecord["source"];
+}): boolean {
+  if (!row.brandName.trim()) return false;
+  if (isLeadClimateBrand(row.brandName)) return false;
+  if (isExampleLocalBrand(row.brandName)) return false;
+  if (row.source === "example") return false;
+  return true;
 }
 
 export function isLocalBusinessBrand(
@@ -87,6 +109,7 @@ export function isLocalBusinessBrand(
 ): boolean {
   if (!brandName.trim()) return false;
   if (isLeadClimateBrand(brandName)) return false;
+  if (isExampleLocalBrand(brandName)) return true;
   if (isKnownLocalBusinessBrand(brandName)) return true;
   if (
     localSponsorsForClub(clubName).some((row) =>
@@ -132,6 +155,7 @@ function rosterLocalRecords(
     .filter(
       (row) =>
         !isLeadClimateBrand(row.brandName) &&
+        !isExampleLocalBrand(row.brandName) &&
         (localJobTitle(row.jobTitle) || isKnownLocalBusinessBrand(row.brandName))
     )
     .map((row) =>
@@ -171,31 +195,29 @@ function mergeLocalRecords(
       byBrand.set(key, { ...current, ...row, clubName });
     }
   }
-  const all = [...byBrand.values()].filter(
-    (row) => !isLeadClimateBrand(row.brandName)
-  );
-  const real = all.filter(
-    (row) => row.source !== "example" && !isExampleLocalBrand(row.brandName)
-  );
-  const examples = all.filter(
-    (row) => row.source === "example" || isExampleLocalBrand(row.brandName)
-  );
-  const preferred = real.length > 0 ? [...real, ...examples] : all;
-  return preferred
+  const registered = [...byBrand.values()].filter(isRegisteredLocalSponsor);
+  return registered
     .sort((left, right) => {
-      const leftExample = isExampleLocalBrand(left.brandName) ? 1 : 0;
-      const rightExample = isExampleLocalBrand(right.brandName) ? 1 : 0;
-      if (leftExample !== rightExample) return leftExample - rightExample;
       if (right.pledgeGbp !== left.pledgeGbp) return right.pledgeGbp - left.pledgeGbp;
       return left.brandName.localeCompare(right.brandName);
     })
     .slice(0, LOCAL_SPONSORS_PER_MATCH);
 }
 
+export function purgeExampleLocalSponsorsForClub(clubName: string): LocalSponsorRecord[] {
+  const existing = localSponsorsForClub(clubName);
+  const kept = existing.filter(isRegisteredLocalSponsor);
+  if (kept.length !== existing.length) {
+    replaceLocalSponsorsForClub(clubName, kept);
+  }
+  return kept;
+}
+
 export function uploadedLocalSponsorsForClub(
   clubName: string,
   rosterSponsors: ClubClimateSponsor[] = []
 ): LocalSponsorRecord[] {
+  purgeExampleLocalSponsorsForClub(clubName);
   return mergeLocalRecords(clubName, [
     ...localSponsorsForClub(clubName),
     ...rosterLocalRecords(clubName, rosterSponsors),
@@ -298,12 +320,14 @@ export function resolveMatchDayBranding<T extends { id: string }>({
     Boolean(name.trim()) &&
     !isLeadClimateBrand(name) &&
     !brandsMatch(name, leadName);
+  const registeredName = (name: string) =>
+    notLead(name) && !isExampleLocalBrand(name);
 
   const liveLocals = uploadedLocalSponsorsForClub(clubName, rosterSponsors)
     .concat(
       selected
         .filter((row) =>
-          notLead(row.brandName) &&
+          registeredName(row.brandName) &&
           isLocalBusinessBrand(row.brandName, clubName, rosterSponsors)
         )
         .map((row) =>
@@ -317,7 +341,7 @@ export function resolveMatchDayBranding<T extends { id: string }>({
         )
     )
     .concat(
-      storedLeadName && notLead(storedLeadName)
+      storedLeadName && registeredName(storedLeadName)
         ? [
             asLocalRecord(clubName, {
               brandName: storedLeadName,
@@ -330,7 +354,7 @@ export function resolveMatchDayBranding<T extends { id: string }>({
     )
     .concat(
       (storedLocals ?? [])
-        .filter((row) => notLead(row.brandName))
+        .filter((row) => registeredName(row.brandName))
         .map((row) =>
           asLocalRecord(clubName, {
             brandName: row.brandName,
@@ -342,45 +366,39 @@ export function resolveMatchDayBranding<T extends { id: string }>({
           })
         )
     )
-    .filter((row) => notLead(row.brandName));
+    .filter((row) => registeredName(row.brandName));
   const uniqueLive = mergeLocalRecords(clubName, liveLocals);
-  const storedAreExamples =
-    Boolean(storedLocals?.length) &&
-    storedLocals!.every((row) => isExampleLocalBrand(row.brandName));
-  const realLive = uniqueLive.filter((row) => !isExampleLocalBrand(row.brandName));
   const storedHasLead =
     Boolean(storedLocals?.length) &&
     storedLocals!.some(
       (row) => isLeadClimateBrand(row.brandName) || brandsMatch(row.brandName, leadName)
     );
-  const useStored =
+  const storedHasExamples =
     Boolean(storedLocals?.length) &&
-    !storedHasLead &&
-    !(storedAreExamples && realLive.length > 0);
+    storedLocals!.some((row) => isExampleLocalBrand(row.brandName));
+  const registeredStored = (storedLocals ?? []).filter((row) =>
+    registeredName(row.brandName)
+  );
+  const useStored =
+    registeredStored.length > 0 && !storedHasLead && !storedHasExamples;
 
   const locals = useStored
-    ? storedLocals!
-        .filter((row) => notLead(row.brandName))
-        .map((row) =>
-          asLocalRecord(clubName, {
-            brandName: row.brandName,
-            email: row.email,
-            pledgeGbp: row.pledgeGbp,
-            logoUrl: row.logoUrl,
-            tagline: row.tagline,
-          })
-        )
+    ? registeredStored.map((row) =>
+        asLocalRecord(clubName, {
+          brandName: row.brandName,
+          email: row.email,
+          pledgeGbp: row.pledgeGbp,
+          logoUrl: row.logoUrl,
+          tagline: row.tagline,
+        })
+      )
     : uniqueLive;
 
   return {
     lead: { name: leadName, logoUrl: leadLogo },
     placements:
       (useStored
-        ? placementsFromStoredAssignments(
-            projects,
-            storedLocals!.filter((row) => notLead(row.brandName)),
-            clubName
-          )
+        ? placementsFromStoredAssignments(projects, registeredStored, clubName)
         : null) ?? assignLocalSponsorsToProjects(projects, locals),
   };
 }
