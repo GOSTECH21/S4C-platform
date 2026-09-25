@@ -3,9 +3,14 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
+  DEFAULT_SPONSOR_LEADERBOARD_CATEGORY,
   DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
+  SPONSOR_LEADERBOARD_CATEGORY_OPTIONS,
   SPONSOR_LEADERBOARD_SCOPE_OPTIONS,
+  leaderboardForCategory,
   leaderboardForScope,
+  sponsorIndustryCategoryLabel,
+  type SponsorLeaderboardCategory,
   type SponsorLeaderboardRow,
   type SponsorLeaderboardScope,
 } from "@/app/lib/sponsor-leaderboard";
@@ -28,53 +33,89 @@ export function SponsorLeaderboard({
   const [scope, setScope] = useState<SponsorLeaderboardScope>(
     DEFAULT_SPONSOR_LEADERBOARD_SCOPE
   );
+  const [category, setCategory] = useState<SponsorLeaderboardCategory>(
+    DEFAULT_SPONSOR_LEADERBOARD_CATEGORY
+  );
   const ranked = useMemo(
-    () => leaderboardForScope(rows, scope, affiliateClubs),
-    [rows, scope, affiliateClubs]
+    () =>
+      leaderboardForCategory(
+        leaderboardForScope(rows, scope, affiliateClubs),
+        category
+      ),
+    [rows, scope, affiliateClubs, category]
   );
   const scopeLabel =
     SPONSOR_LEADERBOARD_SCOPE_OPTIONS.find((option) => option.value === scope)
       ?.label ?? "Global Leaderboard";
+  const categoryLabel =
+    SPONSOR_LEADERBOARD_CATEGORY_OPTIONS.find(
+      (option) => option.value === category
+    )?.label ?? "All Categories";
 
   return (
     <div className="space-y-4">
-      <label className="flex max-w-md flex-col gap-2 text-sm font-semibold text-slate-300">
-        Leaderboard
-        <select
-          aria-label="Select leaderboard"
-          value={scope}
-          onChange={(event) =>
-            setScope(event.target.value as SponsorLeaderboardScope)
-          }
-          className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-base font-bold text-white"
-        >
-          {SPONSOR_LEADERBOARD_SCOPE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <label className="flex min-w-[16rem] flex-1 flex-col gap-2 text-sm font-semibold text-slate-300">
+          Leaderboard
+          <select
+            aria-label="Select leaderboard"
+            value={scope}
+            onChange={(event) =>
+              setScope(event.target.value as SponsorLeaderboardScope)
+            }
+            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-base font-bold text-white"
+          >
+            {SPONSOR_LEADERBOARD_SCOPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex min-w-[16rem] flex-1 flex-col gap-2 text-sm font-semibold text-slate-300">
+          Sort-Selector
+          <select
+            aria-label="Sort-Selector"
+            value={category}
+            onChange={(event) =>
+              setCategory(event.target.value as SponsorLeaderboardCategory)
+            }
+            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-base font-bold text-white"
+          >
+            {SPONSOR_LEADERBOARD_CATEGORY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       {ranked.length === 0 ? (
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-          {scope === "affiliates"
-            ? affiliateClubs.length === 0
-              ? "Choose a club in My Teams to see Affiliates ranked by donation."
-              : "No sponsor donations are recorded for the club you support yet."
-            : scope === "local"
-            ? "No Local Business Climate Sponsor donations are recorded yet."
-            : "No Global Climate Sponsor donations are recorded yet."}
+          {scope === "affiliates" && affiliateClubs.length === 0
+            ? "Choose a club in My Teams to see Affiliates ranked by donation."
+            : category !== "all"
+              ? `No ${categoryLabel} on this leaderboard yet.`
+              : scope === "affiliates"
+                ? "No sponsor donations are recorded for the club you support yet."
+                : scope === "local"
+                  ? "No Local Business Climate Sponsor donations are recorded yet."
+                  : "No Global Climate Sponsor donations are recorded yet."}
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-800">
           <table className="w-full text-left">
-            <caption className="sr-only">{scopeLabel} by donation</caption>
+            <caption className="sr-only">
+              {scopeLabel} by donation
+              {category === "all" ? "" : `, ${categoryLabel}`}
+            </caption>
             <thead className="bg-slate-900 text-xs uppercase tracking-[0.16em] text-slate-400">
               <tr>
                 <th className="p-4">Rank</th>
                 <th className="p-4">Sponsor</th>
                 <th className="p-4">Type</th>
+                <th className="p-4">Category</th>
                 <th className="p-4">Club</th>
                 <th className="p-4 text-right">Donation</th>
               </tr>
@@ -82,7 +123,7 @@ export function SponsorLeaderboard({
             <tbody>
               {ranked.map((row) => (
                 <tr
-                  key={`${scope}:${row.rank}:${row.brandName}`}
+                  key={`${scope}:${category}:${row.rank}:${row.brandName}`}
                   className="border-t border-slate-800 bg-slate-950/60 hover:bg-slate-900"
                 >
                   <td className="p-4">
@@ -103,6 +144,9 @@ export function SponsorLeaderboard({
                     </div>
                   </td>
                   <td className="p-4 text-sm text-slate-300">{row.kind}</td>
+                  <td className="p-4 text-sm text-slate-300">
+                    {sponsorIndustryCategoryLabel(row.brandName)}
+                  </td>
                   <td className="p-4 text-sm text-slate-400">
                     {row.clubNames.join(", ") || "—"}
                   </td>

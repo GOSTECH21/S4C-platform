@@ -54,9 +54,11 @@ export default function SponsorLeaderboardPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Global
-          Leaderboard opens first. Affiliates ranks the sponsors of the sports
-          club you chose in My Teams, from the largest donation to the smallest.
+          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Use the
+          Sort-Selector beside the board to rank Restaurants, Car Companies,
+          Hotels, Fashion Retailers, or Others. Global Leaderboard opens first.
+          Affiliates ranks the sponsors of the sports club you chose in My Teams,
+          from the largest donation to the smallest.
         </p>
         {error ? (
           <p className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">

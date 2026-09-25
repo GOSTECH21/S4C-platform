@@ -4,10 +4,14 @@ import {
   LOCAL_BUSINESS_SPONSOR_LABEL,
 } from "../app/lib/dual-sponsor";
 import {
+  DEFAULT_SPONSOR_LEADERBOARD_CATEGORY,
   DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
+  SPONSOR_LEADERBOARD_CATEGORY_OPTIONS,
   SPONSOR_LEADERBOARD_SCOPE_OPTIONS,
+  leaderboardForCategory,
   leaderboardForScope,
   rankSponsorDonations,
+  sponsorIndustryCategory,
 } from "../app/lib/sponsor-leaderboard";
 
 const failures: string[] = [];
@@ -195,6 +199,112 @@ assert(
 assert(
   readFileSync("app/lib/routes.ts", "utf8").includes("SUPPORTER_SPONSOR_PATH"),
   "Sponsor tab has a supporter route"
+);
+
+assert(
+  sponsorIndustryCategory("Kokobean Cafe") === "restaurants" &&
+    sponsorIndustryCategory("Mash Tun") === "restaurants" &&
+    sponsorIndustryCategory("BMW") === "car-companies" &&
+    sponsorIndustryCategory("Marriott") === "hotels" &&
+    sponsorIndustryCategory("Puma") === "fashion-retailers" &&
+    sponsorIndustryCategory("American Express") === "others" &&
+    sponsorIndustryCategory("Tax Assist") === "others",
+  "Sponsors map to Restaurants, Car Companies, Hotels, Fashion Retailers, or Others"
+);
+assert(
+  DEFAULT_SPONSOR_LEADERBOARD_CATEGORY === "all" &&
+    SPONSOR_LEADERBOARD_CATEGORY_OPTIONS.map((option) => option.label).join(",") ===
+      "All Categories,Restaurants,Car Companies,Hotels,Fashion Retailers,Others",
+  "Sort-Selector lists the sponsor categories"
+);
+
+const mixedCategories = rankSponsorDonations([
+  {
+    brandName: "American Express",
+    donationGbp: 50000,
+    clubName: "Hibernian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "BMW",
+    donationGbp: 30000,
+    clubName: "Liverpool",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Puma",
+    donationGbp: 25000,
+    clubName: "Liverpool",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Marriott",
+    donationGbp: 12000,
+    clubName: "Hibernian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Mash Tun",
+    donationGbp: 750,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Kokobean Cafe",
+    donationGbp: 1000,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Tax Assist",
+    donationGbp: 500,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+]);
+const restaurants = leaderboardForCategory(mixedCategories, "restaurants");
+assert(
+  restaurants.map((row) => row.brandName).join(",") === "Kokobean Cafe,Mash Tun" &&
+    restaurants[0]?.rank === 1 &&
+    restaurants[1]?.rank === 2,
+  "Sort-Selector ranks Restaurants from the largest donation"
+);
+assert(
+  leaderboardForCategory(mixedCategories, "car-companies").map(
+    (row) => row.brandName
+  ).join(",") === "BMW",
+  "Sort-Selector ranks Car Companies"
+);
+assert(
+  leaderboardForCategory(mixedCategories, "hotels")[0]?.brandName === "Marriott",
+  "Sort-Selector ranks Hotels"
+);
+assert(
+  leaderboardForCategory(mixedCategories, "fashion-retailers")[0]?.brandName ===
+    "Puma",
+  "Sort-Selector ranks Fashion Retailers"
+);
+const others = leaderboardForCategory(
+  leaderboardForScope(mixedCategories, "global"),
+  "others"
+);
+assert(
+  others.map((row) => row.brandName).join(",") === "American Express" &&
+    others[0]?.rank === 1,
+  "Others on Global Leaderboard is re-ranked without car, hotel, or fashion brands"
+);
+assert(
+  leaderboardForCategory(mixedCategories, "all").length === mixedCategories.length,
+  "All Categories keeps the full leaderboard ranking"
+);
+assert(
+  readFileSync("app/components/fan/SponsorLeaderboard.tsx", "utf8").includes(
+    "Sort-Selector"
+  ) &&
+    readFileSync("app/components/fan/SponsorLeaderboard.tsx", "utf8").includes(
+      "sm:flex-row"
+    ),
+  "Sort-Selector sits beside the Leaderboard select"
 );
 
 if (failures.length > 0) {

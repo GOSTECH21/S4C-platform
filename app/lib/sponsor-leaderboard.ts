@@ -41,6 +41,93 @@ export const SPONSOR_LEADERBOARD_SCOPE_OPTIONS: Array<{
   { value: "affiliates", label: "Affiliates" },
 ];
 
+export type SponsorIndustryCategory =
+  | "restaurants"
+  | "car-companies"
+  | "hotels"
+  | "fashion-retailers"
+  | "others";
+
+export type SponsorLeaderboardCategory = "all" | SponsorIndustryCategory;
+
+export const DEFAULT_SPONSOR_LEADERBOARD_CATEGORY: SponsorLeaderboardCategory =
+  "all";
+
+export const SPONSOR_LEADERBOARD_CATEGORY_OPTIONS: Array<{
+  value: SponsorLeaderboardCategory;
+  label: string;
+}> = [
+  { value: "all", label: "All Categories" },
+  { value: "restaurants", label: "Restaurants" },
+  { value: "car-companies", label: "Car Companies" },
+  { value: "hotels", label: "Hotels" },
+  { value: "fashion-retailers", label: "Fashion Retailers" },
+  { value: "others", label: "Others" },
+];
+
+const RESTAURANT_BRANDS = [
+  "Mash Tun",
+  "Kokobean Cafe",
+  "Kokobean",
+  "Top Cellar",
+  "Interval",
+  "Edinburgh Roasters",
+];
+const CAR_COMPANY_BRANDS = [
+  "BMW",
+  "Braidview Garage",
+  "Broadview Garage",
+];
+const HOTEL_BRANDS = ["Marriott", "Hilton", "Premier Inn", "Travelodge"];
+const FASHION_RETAILER_BRANDS = ["Puma", "Nike", "Adidas"];
+
+function listedBrand(name: string, listed: string[]): boolean {
+  return listed.some((row) => brandsMatch(name, row));
+}
+
+export function sponsorIndustryCategory(
+  brandName: string
+): SponsorIndustryCategory {
+  if (listedBrand(brandName, RESTAURANT_BRANDS)) return "restaurants";
+  if (listedBrand(brandName, CAR_COMPANY_BRANDS)) return "car-companies";
+  if (listedBrand(brandName, HOTEL_BRANDS)) return "hotels";
+  if (listedBrand(brandName, FASHION_RETAILER_BRANDS)) return "fashion-retailers";
+  const key = brandName.trim().toLowerCase();
+  if (
+    /\b(cafe|café|restaurant|pub|bar|bistro|grill|diner|bakery|kitchen|tavern|eatery)\b/.test(
+      key
+    )
+  ) {
+    return "restaurants";
+  }
+  if (
+    /\b(garage|motors|motor|automotive|auto|bmw|toyota|ford|mercedes|volkswagen|honda|tesla|audi|nissan)\b/.test(
+      key
+    )
+  ) {
+    return "car-companies";
+  }
+  if (/\b(hotel|hotels|inn|resort|marriott|hilton|hyatt|travelodge)\b/.test(key)) {
+    return "hotels";
+  }
+  if (
+    /\b(fashion|clothing|apparel|boutique|nike|adidas|puma|zara|gucci|burberry|primark)\b/.test(
+      key
+    )
+  ) {
+    return "fashion-retailers";
+  }
+  return "others";
+}
+
+export function sponsorIndustryCategoryLabel(brandName: string): string {
+  const category = sponsorIndustryCategory(brandName);
+  return (
+    SPONSOR_LEADERBOARD_CATEGORY_OPTIONS.find((option) => option.value === category)
+      ?.label ?? "Others"
+  );
+}
+
 function clubIsChosen(clubName: string, chosenClubs: string[]): boolean {
   return chosenClubs.some((chosen) => clubsMatch(clubName, chosen));
 }
@@ -83,6 +170,16 @@ export function leaderboardForScope(
       : LEAD_CLIMATE_SPONSOR_LABEL;
   return rows
     .filter((row) => row.kind === kind)
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
+export function leaderboardForCategory(
+  rows: SponsorLeaderboardRow[],
+  category: SponsorLeaderboardCategory = DEFAULT_SPONSOR_LEADERBOARD_CATEGORY
+): SponsorLeaderboardRow[] {
+  if (category === "all") return rows;
+  return rows
+    .filter((row) => sponsorIndustryCategory(row.brandName) === category)
     .map((row, index) => ({ ...row, rank: index + 1 }));
 }
 

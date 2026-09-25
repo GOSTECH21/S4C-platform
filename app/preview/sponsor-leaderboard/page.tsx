@@ -51,6 +51,24 @@ const ROWS = rankSponsorDonations([
     clubName: "Liverpool",
     kind: LEAD_CLIMATE_SPONSOR_LABEL,
   },
+  {
+    brandName: "BMW",
+    donationGbp: 30000,
+    clubName: "Liverpool",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Puma",
+    donationGbp: 25000,
+    clubName: "Liverpool",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Marriott",
+    donationGbp: 12000,
+    clubName: "Hibernian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
 ]);
 
 export default function SponsorLeaderboardPreviewPage() {
@@ -63,8 +81,9 @@ export default function SponsorLeaderboardPreviewPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Global
-          Leaderboard opens first.
+          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Use the
+          Sort-Selector beside the board to rank Restaurants, Car Companies,
+          Hotels, Fashion Retailers, or Others. Global Leaderboard opens first.
         </p>
         <div className="mt-8">
           <SponsorLeaderboard rows={ROWS} affiliateClubs={["Hibernian"]} />
