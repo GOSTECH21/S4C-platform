@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import {
   adminDisplayName,
   groupFansByClub,
@@ -161,6 +162,16 @@ assert(kindFromProfileRole("club") === "club", "Club profile is a Sustainability
 assert(
   /sustainability director/i.test(fanLoginWrongRoleMessage("club")),
   "Fan login tells a Sustainability Director to use Club Login"
+);
+
+assert(
+  /from ["']\.\.\/lib\/s4p-admin["']/.test(
+    readFileSync("app/services/votes.service.ts", "utf8")
+  ) &&
+    readFileSync("app/services/votes.service.ts", "utf8").includes(
+      "resolvedFullName"
+    ),
+  "My Teams can resolve the supporter name"
 );
 
 if (failures.length > 0) {

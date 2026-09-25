@@ -34,6 +34,7 @@ import {
   retainVoteCampaignId,
   voteRowsForInsert,
 } from "../lib/fan-votes";
+import { resolvedFullName } from "../lib/s4p-admin";
 import {
   resolveVotingWindow,
   parseFixtureKickoff,
