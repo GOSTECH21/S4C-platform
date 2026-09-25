@@ -45,9 +45,10 @@ export default function SponsorLeaderboardPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Climate Sponsors ranked by donation, from the largest gift to the
-          smallest. Lead Climate Sponsors and Local Business Climate Sponsors
-          both appear here.
+          Choose Global Leaderboard or Local Leaderboard. Global Leaderboard
+          opens first and ranks Lead Climate Sponsors from the largest donation
+          to the smallest. Local Leaderboard ranks Local Business Climate
+          Sponsors the same way.
         </p>
         {error ? (
           <p className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">

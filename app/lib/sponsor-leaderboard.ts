@@ -25,6 +25,32 @@ export type SponsorLeaderboardRow = {
   kind: SponsorDonationKind;
 };
 
+export type SponsorLeaderboardScope = "global" | "local";
+
+export const DEFAULT_SPONSOR_LEADERBOARD_SCOPE: SponsorLeaderboardScope =
+  "global";
+
+export const SPONSOR_LEADERBOARD_SCOPE_OPTIONS: Array<{
+  value: SponsorLeaderboardScope;
+  label: string;
+}> = [
+  { value: "global", label: "Global Leaderboard" },
+  { value: "local", label: "Local Leaderboard" },
+];
+
+export function leaderboardForScope(
+  rows: SponsorLeaderboardRow[],
+  scope: SponsorLeaderboardScope = DEFAULT_SPONSOR_LEADERBOARD_SCOPE
+): SponsorLeaderboardRow[] {
+  const kind =
+    scope === "local"
+      ? LOCAL_BUSINESS_SPONSOR_LABEL
+      : LEAD_CLIMATE_SPONSOR_LABEL;
+  return rows
+    .filter((row) => row.kind === kind)
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
 function brandIndex(name: string, names: string[]): number {
   return names.findIndex((row) => brandsMatch(row, name));
 }

@@ -3,7 +3,11 @@ import {
   LEAD_CLIMATE_SPONSOR_LABEL,
   LOCAL_BUSINESS_SPONSOR_LABEL,
 } from "../app/lib/dual-sponsor";
-import { rankSponsorDonations } from "../app/lib/sponsor-leaderboard";
+import {
+  DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
+  leaderboardForScope,
+  rankSponsorDonations,
+} from "../app/lib/sponsor-leaderboard";
 
 const failures: string[] = [];
 
@@ -58,6 +62,34 @@ assert(
 assert(
   ranked.map((row) => row.donationGbp).join(",") === "50000,750,500",
   "Donations run from biggest to smallest"
+);
+
+assert(
+  DEFAULT_SPONSOR_LEADERBOARD_SCOPE === "global",
+  "The Sponsor tab opens on the Global Leaderboard"
+);
+const globalBoard = leaderboardForScope(ranked, "global");
+assert(
+  globalBoard.length === 1 &&
+    globalBoard[0]?.brandName === "American Express" &&
+    globalBoard[0]?.rank === 1,
+  "Global Leaderboard ranks Lead Climate Sponsors only"
+);
+const localBoard = leaderboardForScope(ranked, "local");
+assert(
+  localBoard[0]?.brandName === "Tax Assist" &&
+    localBoard[0]?.rank === 1 &&
+    localBoard.every((row) => row.brandName !== "American Express"),
+  "Local Leaderboard ranks Local Business Climate Sponsors from largest donation"
+);
+assert(
+  readFileSync("app/components/fan/SponsorLeaderboard.tsx", "utf8").includes(
+    "Select leaderboard"
+  ) &&
+    readFileSync("app/components/fan/SponsorLeaderboard.tsx", "utf8").includes(
+      "DEFAULT_SPONSOR_LEADERBOARD_SCOPE"
+    ),
+  "The Sponsor Leaderboard has a select menu that defaults to Global"
 );
 
 const nav = readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8");
