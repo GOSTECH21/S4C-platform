@@ -71,6 +71,13 @@ export function loadClubSponsorRoster(
   return { clubId, clubName, sponsors: [], selectedIds: [] };
 }
 
+export function listClubSponsorRosters(): ClubSponsorRoster[] {
+  if (typeof window === "undefined") return [];
+  return Object.values(readJson<RosterStore>(ROSTER_KEY, {})).filter(
+    (roster) => roster && Array.isArray(roster.sponsors)
+  );
+}
+
 export function selectedBrandNamesForClubName(clubName: string): string[] {
   if (!clubName.trim() || typeof window === "undefined") return [];
   const store = readJson<RosterStore>(ROSTER_KEY, {});

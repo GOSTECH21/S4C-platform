@@ -10,6 +10,7 @@ export const SUPPORTER_LOGIN_PATH = "/supporter/login";
 export const SUPPORTER_CAMPAIGN_PATH = "/supporter/dashboard";
 export const SUPPORTER_PROJECTS_PATH = "/dashboard/supporter/vote";
 export const SUPPORTER_TEAMS_PATH = "/dashboard/supporter/preferences";
+export const SUPPORTER_SPONSOR_PATH = "/dashboard/supporter/sponsors";
 
 export const SUPPORTER_CAMPAIGN_ALIASES = [
   "/supporter/dashboard",

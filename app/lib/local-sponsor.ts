@@ -160,6 +160,21 @@ export function localSponsorsForClub(clubName: string): LocalSponsorRecord[] {
   });
 }
 
+export function allLocalSponsors(): LocalSponsorRecord[] {
+  const store = readLocalsStore();
+  const rows: LocalSponsorRecord[] = [];
+  for (const value of Object.values(store)) {
+    rows.push(...parseClubLocals(value));
+  }
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const key = `${clubKey(row.clubName)}:${brandKey(row.brandName)}`;
+    if (!row.brandName.trim() || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function replaceLocalSponsorsForClub(
   clubName: string,
   records: LocalSponsorRecord[]
