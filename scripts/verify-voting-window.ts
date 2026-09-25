@@ -91,8 +91,14 @@ assert(
 assert(
   !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
     "72-hour voting window"
-  ),
-  "My S4P no longer says voting closes 2 hours before kick-off"
+  ) &&
+    !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+      "brand-exposure counter"
+    ) &&
+    !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+      "Lead Climate Sponsor pays"
+    ),
+  "My S4P no longer shows the Lead Climate Sponsor payment and exposure copy"
 );
 assert(
   readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(

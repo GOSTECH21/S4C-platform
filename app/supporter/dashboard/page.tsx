@@ -20,8 +20,6 @@ import {
   campaignHeadline,
   formatMatchHeadline,
   formatMoney,
-  formatStipulatedRate,
-  EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
@@ -309,19 +307,7 @@ function CampaignPanel({
             funding is allocated.
           </p>
           <p className="mx-auto mt-3 max-w-3xl text-sm text-slate-400">
-            {votingCopy} The Lead
-            Climate Sponsor pays the {formatMoney(campaign.minimumAmount)} Base
-            Match Sponsorship even if the match ends 0–0, plus{" "}
-            {campaign.gbpPerGoal > 0
-              ? `${formatMoney(campaign.gbpPerGoal)} for every ${campaign.scoreLabel} scored`
-              : `the posted amount for every ${campaign.scoreLabel} scored`}
-            {campaign.maxAmount > 0
-              ? `, up to a maximum of ${formatMoney(campaign.maxAmount)}`
-              : ""}
-            . {formatStipulatedRate(campaign.gbpPerVote)} is the brand-exposure
-            counter: this post is 1 eyeball and {EXPOSURES_PER_POST} lead-sponsor
-            exposures. Local Business Climate Sponsors appear 1-each, with
-            exposures scaled to their pledge.
+            {votingCopy}
           </p>
         </div>
 
