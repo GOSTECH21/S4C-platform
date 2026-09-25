@@ -26,6 +26,8 @@ export function ClimateProjectsLeaderboard({
   amountPerVote,
   onVote,
   busy = false,
+  votingOpen = true,
+  votingMessage,
 }: {
   clubName: string;
   projects: ClimateProjectVoteRow[];
@@ -35,6 +37,8 @@ export function ClimateProjectsLeaderboard({
   amountPerVote: number;
   onVote: (projectId: string) => void;
   busy?: boolean;
+  votingOpen?: boolean;
+  votingMessage?: string;
 }) {
   const ranked = rankClimateProjectsByVotes(projects);
   const votesCast = votedIds.size;
@@ -52,8 +56,8 @@ export function ClimateProjectsLeaderboard({
         <div>
           <h2 className="text-2xl font-black">Climate Projects Leaderboard</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Each Vote reduces the remaining amount by{" "}
-            {formatStipulatedRate(amountPerVote)}, as stipulated by {clubName}.
+            {votingMessage ??
+              `Each Vote reduces the remaining amount by ${formatStipulatedRate(amountPerVote)}, as stipulated by ${clubName}.`}
           </p>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-right">
@@ -93,6 +97,7 @@ export function ClimateProjectsLeaderboard({
                 const blocked =
                   busy ||
                   alreadyVoted ||
+                  !votingOpen ||
                   remainingVotes <= 0 ||
                   (cost > 0 && remainingAmount < cost);
                 return (

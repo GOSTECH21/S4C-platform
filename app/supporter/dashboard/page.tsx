@@ -28,6 +28,12 @@ import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsor
 import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import {
+  fanVotingWindowCopy,
+  fanVotingWindowForMatchCopy,
+  isVotingOpen,
+  resolveVotingWindow,
+} from "@/app/lib/voting-window";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -215,6 +221,18 @@ function CampaignPanel({
 
   async function submit() {
     if (!supporterId || selected.size !== required) return;
+    const open = isVotingOpen(
+      resolveVotingWindow({
+        kickoff: campaign.kickoffAt,
+        opensAt: campaign.votingOpens,
+        closesAt: campaign.votingCloses,
+        postedAt: campaign.postedAt,
+      })
+    );
+    if (!open) {
+      setError("Voting is not open for this match yet, or it has already closed.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -241,7 +259,17 @@ function CampaignPanel({
 
   const selectedProjects = voteable.filter((project) => selected.has(project.id));
   const impact = summariseImpact(selectedProjects);
-  const canSubmit = selected.size === required && !submitting;
+  const votingWindow = resolveVotingWindow({
+    kickoff: campaign.kickoffAt,
+    opensAt: campaign.votingOpens,
+    closesAt: campaign.votingCloses,
+    postedAt: campaign.postedAt,
+  });
+  const votingOpen = isVotingOpen(votingWindow);
+  const votingCopy = campaign.kickoffAt
+    ? fanVotingWindowForMatchCopy(votingWindow)
+    : fanVotingWindowCopy();
+  const canSubmit = selected.size === required && !submitting && votingOpen;
   const headline = campaignHeadline(campaign.matchTitle);
   const schedule = readFanPostSchedule(
     campaign.postedClubId ?? campaign.clubId
@@ -281,7 +309,7 @@ function CampaignPanel({
             funding is allocated.
           </p>
           <p className="mx-auto mt-3 max-w-3xl text-sm text-slate-400">
-            The 72-hour voting window closes 2 hours before kick-off. The Lead
+            {votingCopy} The Lead
             Climate Sponsor pays the {formatMoney(campaign.minimumAmount)} Base
             Match Sponsorship even if the match ends 0–0, plus{" "}
             {campaign.gbpPerGoal > 0
@@ -368,7 +396,9 @@ function CampaignPanel({
           <div>
             <p className="font-bold">Your Vote</p>
             <p className="text-sm text-slate-400">
-              {selected.size} of {required} projects selected
+              {votingOpen
+                ? `${selected.size} of ${required} projects selected`
+                : votingCopy}
             </p>
           </div>
 

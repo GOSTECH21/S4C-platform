@@ -15,6 +15,12 @@ import {
 import FanNav from "../components/FanNav";
 import { ClimateProjectsLeaderboard } from "@/app/components/fan/ClimateProjectsLeaderboard";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import {
+  fanVotingWindowCopy,
+  fanVotingWindowForMatchCopy,
+  isVotingOpen,
+  resolveVotingWindow,
+} from "@/app/lib/voting-window";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
@@ -63,6 +69,16 @@ export default function VotePage() {
 
   async function voteOnCampaign(campaign: S4PCampaign, projectId: string) {
     if (!supporter) return;
+    const window = resolveVotingWindow({
+      kickoff: campaign.kickoffAt,
+      opensAt: campaign.votingOpens,
+      closesAt: campaign.votingCloses,
+      postedAt: campaign.postedAt,
+    });
+    if (!isVotingOpen(window)) {
+      setError("Voting is not open for this match yet, or it has already closed.");
+      return;
+    }
     const projects = campaignProjects(campaign);
     const campaignIds = new Set(projects.map((project) => project.id));
     const already = [...votedIds].filter((id) => campaignIds.has(id));
@@ -118,9 +134,9 @@ export default function VotePage() {
             <h1 className="mt-2 text-4xl font-black">Climate Projects Leaderboard</h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               Projects you have voted for appear in the box. The leaderboard
-              ranks every posted Climate Project by votes. Press Vote to add
-              yours; the remaining amount reduces by the rate your club
-              stipulated.
+              ranks every posted Climate Project by votes. {fanVotingWindowCopy()}{" "}
+              Press Vote to add yours; the remaining amount reduces by the rate
+              your club stipulated.
             </p>
           </div>
 
@@ -182,6 +198,18 @@ function CampaignClimateBoard({
     () => projects.filter((project) => votedIds.has(project.id)),
     [projects, votedIds]
   );
+  const votingWindow = resolveVotingWindow({
+    kickoff: campaign.kickoffAt,
+    opensAt: campaign.votingOpens,
+    closesAt: campaign.votingCloses,
+    postedAt: campaign.postedAt,
+  });
+  const votingOpen = isVotingOpen(votingWindow);
+  const votingMessage = `${
+    campaign.kickoffAt
+      ? fanVotingWindowForMatchCopy(votingWindow)
+      : fanVotingWindowCopy()
+  } Each Vote reduces the remaining amount by the rate ${campaign.clubName} stipulated.`;
 
   return (
     <section className="mt-10 space-y-8">
@@ -218,6 +246,8 @@ function CampaignClimateBoard({
         amountPerVote={campaign.gbpPerVote}
         onVote={onVote}
         busy={busy}
+        votingOpen={votingOpen}
+        votingMessage={votingMessage}
       />
     </section>
   );

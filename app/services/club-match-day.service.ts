@@ -2,9 +2,13 @@ import { supabase } from "../lib/supabase";
 import {
   MATCH_DAY_PROJECT_COUNT,
   MATCH_DAY_CHOICE_COUNT,
-  MATCH_DAY_LEAD_HOURS,
   listsWithUploadsFirst,
 } from "../lib/partner-projects";
+import {
+  parseFixtureKickoff,
+  resolveVotingWindow,
+  clubVotingWindowCopy,
+} from "../lib/voting-window";
 import {
   DEFAULT_GBP_PER_VOTE,
   DEFAULT_MINIMUM_SPONSORSHIP,
@@ -380,14 +384,32 @@ export async function findOpenClubCampaign(
   return match ?? null;
 }
 
-async function findClubFixtureId(clubId: string): Promise<string | null> {
+async function findClubFixture(
+  clubId: string
+): Promise<{ id: string; kickoff: Date | null } | null> {
   const { data } = await supabase
     .from("fixtures")
-    .select("id")
+    .select("id, fixture_date, kickoff_time, kickoff_at")
     .or(`home_club_id.eq.${clubId},away_club_id.eq.${clubId}`)
-    .limit(1)
-    .maybeSingle();
-  return (data?.id as string | undefined) ?? null;
+    .order("fixture_date", { ascending: false })
+    .limit(10);
+  const rows = data ?? [];
+  if (rows.length === 0) return null;
+  const now = Date.now();
+  const parsed = rows.map((row) => ({
+    id: String(row.id),
+    kickoff: parseFixtureKickoff(row),
+  }));
+  const votable = parsed.find((row) => {
+    if (!row.kickoff) return false;
+    const window = resolveVotingWindow({ kickoff: row.kickoff });
+    return now <= window.closesAt.getTime();
+  });
+  if (votable) return votable;
+  const upcoming = parsed.find(
+    (row) => row.kickoff && row.kickoff.getTime() > now
+  );
+  return upcoming ?? parsed[0] ?? null;
 }
 
 async function createClubFixtureId(clubId: string): Promise<string | null> {
@@ -440,7 +462,14 @@ export async function ensureOpenClubCampaign(
 ): Promise<OpenClubCampaign> {
   const title = matchDayCampaignTitle(clubName);
   const amount = Math.max(0, Math.round(Number(minAmount) || 0));
-  const votingOpens = options?.votingOpens ?? null;
+  const fixture = await findClubFixture(clubId);
+  const window = resolveVotingWindow({
+    kickoff: fixture?.kickoff ?? null,
+    opensAt: options?.votingOpens ?? null,
+    postedAt: options?.votingOpens ?? new Date(),
+  });
+  const votingOpensAt = window.opensAt.toISOString();
+  const votingClosesAt = window.closesAt.toISOString();
   const existing = await findOpenClubCampaign(clubId, clubName);
   if (existing) {
     await supabase
@@ -449,21 +478,19 @@ export async function ensureOpenClubCampaign(
         title: existing.title || title,
         sponsorship_per_goal: amount,
         status: "open",
-        ...(votingOpens ? { voting_opens: votingOpens } : {}),
+        voting_opens: votingOpensAt,
+        voting_closes: votingClosesAt,
       })
       .eq("id", existing.id);
     return {
       ...existing,
       title: existing.title || title,
       sponsorship_per_goal: amount,
-      voting_opens: votingOpens ?? existing.voting_opens,
+      voting_opens: votingOpensAt,
     };
   }
 
-  const matchId =
-    (await findClubFixtureId(clubId)) ?? (await createClubFixtureId(clubId));
-  const votingOpensAt = votingOpens ?? new Date().toISOString();
-  const votingCloses = new Date(Date.now() + MATCH_DAY_LEAD_HOURS * 60 * 60 * 1000).toISOString();
+  const matchId = fixture?.id ?? (await createClubFixtureId(clubId));
   const attemptsFor = (fixtureId: string | null): Array<Record<string, unknown>> => [
     {
       club_id: clubId,
@@ -472,7 +499,7 @@ export async function ensureOpenClubCampaign(
       sponsorship_per_goal: amount,
       maximum_votes: 3,
       voting_opens: votingOpensAt,
-      voting_closes: votingCloses,
+      voting_closes: votingClosesAt,
       ...(fixtureId ? { match_id: fixtureId } : {}),
     },
     {
@@ -1334,5 +1361,5 @@ export async function postMatchDayProjectsToFans({
 }
 
 export function matchDayWindowCopy(): string {
-  return `Select ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects at least ${MATCH_DAY_LEAD_HOURS} hours before kick-off. Global Schools Solar is included in every Match Day five. After you post, fans see the five on My S4P and Climate Projects immediately.`;
+  return clubVotingWindowCopy(MATCH_DAY_CHOICE_COUNT);
 }

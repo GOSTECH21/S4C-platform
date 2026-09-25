@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { ClimateProjectsLeaderboard } from "@/app/components/fan/ClimateProjectsLeaderboard";
 import type { ClimateProjectVoteRow } from "@/app/lib/climate-projects-leaderboard";
+import { fanVotingWindowCopy } from "@/app/lib/voting-window";
 
 const INITIAL: ClimateProjectVoteRow[] = [
   { id: "gss", name: "Global Schools Solar", votesReceived: 7, fundingGoal: 80000 },
@@ -50,7 +51,7 @@ export default function ClimateProjectsPreviewPage() {
         <p className="mt-3 max-w-2xl text-slate-300">
           Projects you have voted for appear in the box. Press Vote on the
           leaderboard; the remaining amount reduces by the rate Hibernian
-          stipulated.
+          stipulated. {fanVotingWindowCopy()}
         </p>
 
         <section className="mt-10 space-y-8">

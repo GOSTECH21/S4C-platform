@@ -228,7 +228,9 @@ export default function SelectMatchDayProjectsPage() {
           only project classified as UK and International. Choose{" "}
           {MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate
           Partner projects in {localCountry}. List 2 is international projects,
-          including Ugandan Cookstove.
+          including Ugandan Cookstove. Post at least 3 days before kick-off so
+          fans can vote for 5 days: a Saturday 15:00 kick-off opens voting
+          Wednesday at 15:00 and closes Monday at 15:00.
         </p>
 
         {featured && (

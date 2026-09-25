@@ -34,7 +34,10 @@ import {
   retainVoteCampaignId,
   voteRowsForInsert,
 } from "../lib/fan-votes";
-import { resolvedFullName } from "../lib/s4p-admin";
+import {
+  resolveVotingWindow,
+  parseFixtureKickoff,
+} from "../lib/voting-window";
 import { identifySignedInKind } from "./signed-in-role.service";
 import { isFanFacingKind } from "../lib/signed-in-role";
 
@@ -239,6 +242,9 @@ async function ensureOpenCampaignIdForClub(
   const fixtureId =
     (await findExistingFixtureId(clubId)) ??
     (await createVoteFixtureId(clubId));
+  const window = campaignVotingFields({
+    kickoff: await loadFixtureKickoff(fixtureId),
+  });
   const attempts: Array<Record<string, unknown>> = [
     {
       club_id: clubId,
@@ -246,6 +252,8 @@ async function ensureOpenCampaignIdForClub(
       status: "open",
       sponsorship_per_goal: OPENING_SPONSORSHIP,
       maximum_votes: 3,
+      voting_opens: window.votingOpens,
+      voting_closes: window.votingCloses,
       ...(fixtureId ? { match_id: fixtureId } : {}),
     },
     {
@@ -491,6 +499,9 @@ export type S4PCampaign = {
   postedAt: string | null;
   visibleAt: string | null;
   isVisible: boolean;
+  votingOpens: string | null;
+  votingCloses: string | null;
+  kickoffAt: string | null;
 };
 
 const REQUIRED_VOTES = 3;
@@ -511,7 +522,7 @@ export async function getMyS4PCampaigns(
   const { data: open } = await supabase
     .from("match_campaigns")
     .select(
-      "id, club_id, title, sponsorship_per_goal, maximum_votes, status, match_id, voting_opens"
+      "id, club_id, title, sponsorship_per_goal, maximum_votes, status, match_id, voting_opens, voting_closes"
     )
     .eq("status", "open");
 
@@ -743,6 +754,10 @@ async function campaignFromClubPortfolio(
     ...fanPostVisibility({
       clubId: postedClubId,
     }),
+    ...campaignVotingFields({
+      kickoff: await loadFixtureKickoff(fixtureId),
+      postedAt: posted?.postedAt ?? null,
+    }),
   };
 }
 
@@ -755,6 +770,7 @@ async function buildCampaignFromMatchRow(
     maximum_votes: number | null;
     match_id?: string | null;
     voting_opens?: string | null;
+    voting_closes?: string | null;
   },
   teams: TeamOption[]
 ): Promise<S4PCampaign | null> {
@@ -845,6 +861,11 @@ async function buildCampaignFromMatchRow(
       clubId: openCampaign.club_id,
       votingOpens: openCampaign.voting_opens,
     }),
+    ...campaignVotingFields({
+      kickoff: await loadFixtureKickoff(openCampaign.match_id),
+      votingOpens: openCampaign.voting_opens,
+      votingCloses: openCampaign.voting_closes,
+    }),
   };
 }
 
@@ -857,6 +878,41 @@ type AuctionSettings = {
   fansWhoVoted: number;
   brandExposures: number;
 };
+
+function campaignVotingFields(options: {
+  kickoff?: Date | null;
+  votingOpens?: string | null;
+  votingCloses?: string | null;
+  postedAt?: string | null;
+}): {
+  votingOpens: string;
+  votingCloses: string;
+  kickoffAt: string | null;
+} {
+  const window = resolveVotingWindow({
+    kickoff: options.kickoff ?? null,
+    opensAt: options.votingOpens ?? null,
+    closesAt: options.votingCloses ?? null,
+    postedAt: options.postedAt ?? null,
+  });
+  return {
+    votingOpens: window.opensAt.toISOString(),
+    votingCloses: window.closesAt.toISOString(),
+    kickoffAt: window.kickoffAt?.toISOString() ?? null,
+  };
+}
+
+async function loadFixtureKickoff(
+  fixtureId: string | null | undefined
+): Promise<Date | null> {
+  if (!fixtureId) return null;
+  const { data } = await supabase
+    .from("fixtures")
+    .select("fixture_date, kickoff_time, kickoff_at")
+    .eq("id", fixtureId)
+    .maybeSingle();
+  return data ? parseFixtureKickoff(data) : null;
+}
 
 function withAuction(
   project: ClimateProject,

@@ -10,6 +10,7 @@ import {
   postMatchDayProjectsToFans,
   readStoredMatchDay,
   saveMatchDaySelection,
+  matchDayWindowCopy,
   type ClubAccount,
   type ClubFileRecord,
   type ClubProfile,
@@ -503,6 +504,9 @@ export default function ClubDashboardPage() {
             <h3 className="text-2xl font-black">
               This Match Day — Selected Climate Projects
             </h3>
+            <p className="mt-2 max-w-3xl text-sm text-slate-400">
+              {matchDayWindowCopy()}
+            </p>
             {(minAmount != null || gbpPerVote != null || gbpPerGoal != null) && (
               <p className="mt-2 text-sm text-green-300">
                 {formatMatchFundingLine({
