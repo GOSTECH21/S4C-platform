@@ -20,13 +20,18 @@ function rankTone(rank: number): string {
 
 export function SponsorLeaderboard({
   rows,
+  affiliateClubs = [],
 }: {
   rows: SponsorLeaderboardRow[];
+  affiliateClubs?: string[];
 }) {
   const [scope, setScope] = useState<SponsorLeaderboardScope>(
     DEFAULT_SPONSOR_LEADERBOARD_SCOPE
   );
-  const ranked = useMemo(() => leaderboardForScope(rows, scope), [rows, scope]);
+  const ranked = useMemo(
+    () => leaderboardForScope(rows, scope, affiliateClubs),
+    [rows, scope, affiliateClubs]
+  );
   const scopeLabel =
     SPONSOR_LEADERBOARD_SCOPE_OPTIONS.find((option) => option.value === scope)
       ?.label ?? "Global Leaderboard";
@@ -53,7 +58,11 @@ export function SponsorLeaderboard({
 
       {ranked.length === 0 ? (
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-          {scope === "local"
+          {scope === "affiliates"
+            ? affiliateClubs.length === 0
+              ? "Choose a club in My Teams to see Affiliates ranked by donation."
+              : "No sponsor donations are recorded for the club you support yet."
+            : scope === "local"
             ? "No Local Business Climate Sponsor donations are recorded yet."
             : "No Global Climate Sponsor donations are recorded yet."}
         </div>

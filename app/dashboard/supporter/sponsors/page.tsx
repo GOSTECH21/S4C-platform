@@ -5,11 +5,13 @@ import FanNav from "../components/FanNav";
 import { SponsorLeaderboard } from "@/app/components/fan/SponsorLeaderboard";
 import { loadSponsorLeaderboard } from "@/app/services/sponsor-leaderboard.service";
 import { getOrCreateSupporter } from "@/app/services/votes.service";
+import { getSupportedTeams } from "@/app/services/teams.service";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
 import type { SponsorLeaderboardRow } from "@/app/lib/sponsor-leaderboard";
 
 export default function SponsorLeaderboardPage() {
   const [rows, setRows] = useState<SponsorLeaderboardRow[]>([]);
+  const [affiliateClubs, setAffiliateClubs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +23,14 @@ export default function SponsorLeaderboardPage() {
           window.location.href = FAN_LOGIN_PATH;
           return;
         }
-        setRows(await loadSponsorLeaderboard());
+        const [leaderboard, teams] = await Promise.all([
+          loadSponsorLeaderboard(),
+          getSupportedTeams(supporter),
+        ]);
+        setRows(leaderboard);
+        setAffiliateClubs(
+          teams.flatMap((team) => [team.displayName, team.name]).filter(Boolean)
+        );
       } catch (err) {
         console.error("Failed to load sponsor leaderboard:", err);
         setError(
@@ -45,10 +54,9 @@ export default function SponsorLeaderboardPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Choose Global Leaderboard or Local Leaderboard. Global Leaderboard
-          opens first and ranks Lead Climate Sponsors from the largest donation
-          to the smallest. Local Leaderboard ranks Local Business Climate
-          Sponsors the same way.
+          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Global
+          Leaderboard opens first. Affiliates ranks the sponsors of the sports
+          club you chose in My Teams, from the largest donation to the smallest.
         </p>
         {error ? (
           <p className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
@@ -59,7 +67,7 @@ export default function SponsorLeaderboardPage() {
           {loading ? (
             <p className="text-slate-400">Loading sponsor donations...</p>
           ) : (
-            <SponsorLeaderboard rows={rows} />
+            <SponsorLeaderboard rows={rows} affiliateClubs={affiliateClubs} />
           )}
         </div>
       </div>

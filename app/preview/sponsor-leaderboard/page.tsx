@@ -45,6 +45,12 @@ const ROWS = rankSponsorDonations([
     clubName: "Hibernian",
     kind: LOCAL_BUSINESS_SPONSOR_LABEL,
   },
+  {
+    brandName: "Diageo",
+    donationGbp: 40000,
+    clubName: "Liverpool",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
 ]);
 
 export default function SponsorLeaderboardPreviewPage() {
@@ -57,11 +63,11 @@ export default function SponsorLeaderboardPreviewPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Choose Global Leaderboard or Local Leaderboard. Global Leaderboard
-          opens first.
+          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Global
+          Leaderboard opens first.
         </p>
         <div className="mt-8">
-          <SponsorLeaderboard rows={ROWS} />
+          <SponsorLeaderboard rows={ROWS} affiliateClubs={["Hibernian"]} />
         </div>
       </div>
     </main>

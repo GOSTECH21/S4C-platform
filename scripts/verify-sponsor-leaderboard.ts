@@ -5,6 +5,7 @@ import {
 } from "../app/lib/dual-sponsor";
 import {
   DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
+  SPONSOR_LEADERBOARD_SCOPE_OPTIONS,
   leaderboardForScope,
   rankSponsorDonations,
 } from "../app/lib/sponsor-leaderboard";
@@ -82,6 +83,88 @@ assert(
     localBoard.every((row) => row.brandName !== "American Express"),
   "Local Leaderboard ranks Local Business Climate Sponsors from largest donation"
 );
+
+const mixed = rankSponsorDonations([
+  {
+    brandName: "American Express",
+    donationGbp: 50000,
+    clubName: "Hibernian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Diageo",
+    donationGbp: 40000,
+    clubName: "Liverpool",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Mash Tun",
+    donationGbp: 500,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+]);
+const affiliates = leaderboardForScope(mixed, "affiliates", ["Hibernian"]);
+assert(
+  affiliates.map((row) => row.brandName).join(",") === "American Express,Mash Tun",
+  "Affiliates ranks only sponsors of the fan's chosen club"
+);
+assert(
+  affiliates.every((row) => row.brandName !== "Diageo"),
+  "Affiliates does not include sponsors of a club the fan did not choose"
+);
+assert(
+  affiliates[0]?.rank === 1 &&
+    affiliates[0]?.donationGbp === 50000 &&
+    affiliates[1]?.rank === 2 &&
+    affiliates[1]?.donationGbp === 500,
+  "Affiliates ranks chosen-club sponsors from largest donation to smallest"
+);
+assert(
+  affiliates.some((row) => row.kind === LEAD_CLIMATE_SPONSOR_LABEL) &&
+    affiliates.some((row) => row.kind === LOCAL_BUSINESS_SPONSOR_LABEL),
+  "Affiliates includes both lead and local sponsors of the chosen club"
+);
+assert(
+  leaderboardForScope(mixed, "affiliates", []).length === 0,
+  "Affiliates is empty until the fan chooses a club in My Teams"
+);
+
+const splitBrand = rankSponsorDonations([
+  {
+    brandName: "American Express",
+    donationGbp: 50000,
+    clubName: "Hibernian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "American Express",
+    donationGbp: 20000,
+    clubName: "Hearts of Midlothian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+]);
+const hibsAffiliates = leaderboardForScope(splitBrand, "affiliates", [
+  "Hibernian FC",
+]);
+assert(
+  hibsAffiliates.length === 1 &&
+    hibsAffiliates[0]?.donationGbp === 50000 &&
+    hibsAffiliates[0]?.clubNames.join(",") === "Hibernian",
+  "Affiliates counts only the donation to the fan's chosen club"
+);
+assert(
+  SPONSOR_LEADERBOARD_SCOPE_OPTIONS.find((option) => option.value === "affiliates")
+    ?.label === "Affiliates",
+  "The select menu labels the section Affiliates"
+);
+assert(
+  SPONSOR_LEADERBOARD_SCOPE_OPTIONS.some((option) => option.value === "affiliates") &&
+    readFileSync("app/components/fan/SponsorLeaderboard.tsx", "utf8").includes(
+      "affiliateClubs"
+    ),
+  "The select menu includes Affiliates"
+);
 assert(
   readFileSync("app/components/fan/SponsorLeaderboard.tsx", "utf8").includes(
     "Select leaderboard"
@@ -100,8 +183,14 @@ assert(
 assert(
   readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(
     "Sponsor Leaderboard"
-  ),
-  "The Sponsor tab shows the donation leaderboard"
+  ) &&
+    readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(
+      "getSupportedTeams"
+    ) &&
+    readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(
+      "affiliateClubs"
+    ),
+  "The Sponsor tab ranks Affiliates from the fan's chosen club in My Teams"
 );
 assert(
   readFileSync("app/lib/routes.ts", "utf8").includes("SUPPORTER_SPONSOR_PATH"),
