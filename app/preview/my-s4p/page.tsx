@@ -63,6 +63,11 @@ const PROJECTS = [
 
 const PREVIEW_CLUB = "preview-hibs";
 const PREVIEW_FAN = "preview-fan";
+const PREVIEW_WINDOW = {
+  postedAt: "2026-09-20T12:00:00.000Z",
+  matchDate: "2026-09-20",
+  windowId: "2026-09-20",
+};
 
 function seedProjects(): NumberedClimateProject[] {
   return loadFundedProjects(
@@ -73,7 +78,8 @@ function seedProjects(): NumberedClimateProject[] {
       number: index + 1,
       fundedGbp: 0,
       votesReceived: 0,
-    }))
+    })),
+    PREVIEW_WINDOW.windowId
   );
 }
 
@@ -151,7 +157,7 @@ export default function MyS4PPreviewPage() {
       prev.map((row) => (row.brandName === result.wallet.brandName ? result.wallet : row))
     );
     setFunded(result.projects);
-    writeProjectFunding(PREVIEW_CLUB, result.projects);
+    writeProjectFunding(PREVIEW_CLUB, result.projects, PREVIEW_WINDOW);
     setUsedSponsors(recordFanSponsorVote(PREVIEW_FAN, PREVIEW_CLUB, result.wallet.brandName));
     setNotice(
       split

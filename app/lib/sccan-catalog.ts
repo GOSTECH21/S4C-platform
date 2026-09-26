@@ -1058,3 +1058,23 @@ export function isSccanCatalogName(name: string | null | undefined): boolean {
     (project) => project.name.toLowerCase() === value
   );
 }
+
+export function catalogProjectByName(
+  name: string | null | undefined
+): PartnerCatalogProject | null {
+  const value = (name ?? "").trim().toLowerCase();
+  if (!value) return null;
+  const catalogs = [
+    FEATURED_GLOBAL_SCHOOLS_SOLAR,
+    ...SCCAN_CLIMATE_PROJECTS,
+    ...ALL_LOCAL_CLIMATE_PROJECTS,
+    ...INTERNATIONAL_CLIMATE_PROJECTS,
+  ];
+  return catalogs.find((project) => project.name.toLowerCase() === value) ?? null;
+}
+
+export function catalogCategoryForName(
+  name: string | null | undefined
+): string | null {
+  return catalogProjectByName(name)?.category ?? null;
+}
