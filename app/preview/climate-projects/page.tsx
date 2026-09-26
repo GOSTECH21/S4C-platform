@@ -2,41 +2,49 @@
 
 import { useMemo, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
-import { ClimateProjectsLeaderboard } from "@/app/components/fan/ClimateProjectsLeaderboard";
-import type { ClimateProjectVoteRow } from "@/app/lib/climate-projects-leaderboard";
+import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
+import {
+  allocateWalletVote,
+  createLocalWallet,
+  formatWalletGbp,
+  remainingGbp,
+  type ClimateWallet,
+  type NumberedClimateProject,
+} from "@/app/lib/sponsor-wallet";
 import { fanVotingWindowCopy } from "@/app/lib/voting-window";
 
-const INITIAL: ClimateProjectVoteRow[] = [
-  { id: "gss", name: "Global Schools Solar", votesReceived: 7, fundingGoal: 80000 },
-  { id: "wee", name: "Wee Spoke Hub", votesReceived: 12, fundingGoal: 65000 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", votesReceived: 4, fundingGoal: 90000 },
-  { id: "porty", name: "Porty Community Energy", votesReceived: 9, fundingGoal: 160000 },
-  { id: "craigshill", name: "Growing Together Craigshill", votesReceived: 2, fundingGoal: 40000 },
+const INITIAL: NumberedClimateProject[] = [
+  { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 7 },
+  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 12 },
+  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 4 },
+  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 9 },
+  { id: "craigshill", name: "Growing Together Craigshill", number: 5, fundedGbp: 0, votesReceived: 2 },
 ];
-
-const REQUIRED_VOTES = 3;
-const TOTAL_AMOUNT = 50000;
-const AMOUNT_PER_VOTE = 1000;
 
 export default function ClimateProjectsPreviewPage() {
   const [projects, setProjects] = useState(INITIAL);
-  const [votedIds, setVotedIds] = useState<Set<string>>(
-    () => new Set(["wee", "porty"])
+  const [wallet, setWallet] = useState<ClimateWallet>(() =>
+    createLocalWallet({
+      clubName: "Hibernian",
+      brandName: "Top Cellar",
+      sponsorshipGbp: 750,
+    })
   );
   const votedNames = useMemo(
-    () => projects.filter((project) => votedIds.has(project.id)).map((row) => row.name),
-    [projects, votedIds]
+    () => projects.filter((project) => project.fundedGbp > 0).map((row) => row.name),
+    [projects]
   );
 
-  function vote(projectId: string) {
-    if (votedIds.has(projectId) || votedIds.size >= REQUIRED_VOTES) return;
-    setVotedIds((prev) => new Set([...prev, projectId]));
+  function vote(_brandName: string, projectNumber: string) {
+    const result = allocateWalletVote({
+      wallet,
+      projects,
+      projectNumber: Number(projectNumber),
+    });
+    if (!result.ok) return;
+    setWallet(result.wallet);
     setProjects((prev) =>
-      prev.map((row) =>
-        row.id === projectId
-          ? { ...row, votesReceived: row.votesReceived + 1 }
-          : row
-      )
+      prev.map((row) => (row.id === result.project.id ? result.project : row))
     );
   }
 
@@ -47,11 +55,11 @@ export default function ClimateProjectsPreviewPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           Climate Projects
         </p>
-        <h1 className="mt-2 text-4xl font-black">Climate Projects Leaderboard</h1>
+        <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
         <p className="mt-3 max-w-2xl text-slate-300">
-          Projects you have voted for appear in the box. Press Vote on the
-          leaderboard; the remaining amount reduces by the rate Hibernian
-          stipulated. {fanVotingWindowCopy()}
+          Projects you have voted for appear in the box. Insert a project
+          number next to a sponsor wallet and press VOTE; {formatWalletGbp(0.1)}{" "}
+          moves from that wallet into the project. {fanVotingWindowCopy()}
         </p>
 
         <section className="mt-10 space-y-8">
@@ -60,20 +68,29 @@ export default function ClimateProjectsPreviewPage() {
               Projects Voted for
             </p>
             <h2 className="mt-2 text-2xl font-black">Hibernian</h2>
-            <ul className="mt-4 space-y-1 text-slate-300">
-              {votedNames.map((name) => (
-                <li key={name}>• {name}</li>
-              ))}
-            </ul>
+            {votedNames.length === 0 ? (
+              <p className="mt-4 text-slate-400">
+                You have not moved cash into any climate projects yet.
+              </p>
+            ) : (
+              <ul className="mt-4 space-y-1 text-slate-300">
+                {votedNames.map((name) => (
+                  <li key={name}>• {name}</li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          <ClimateProjectsLeaderboard
+          <MatchDayWalletVote
             clubName="Hibernian"
             projects={projects}
-            votedIds={votedIds}
-            requiredVotes={REQUIRED_VOTES}
-            totalAmount={TOTAL_AMOUNT}
-            amountPerVote={AMOUNT_PER_VOTE}
+            sponsors={[
+              {
+                brandName: wallet.brandName,
+                kind: wallet.kind,
+                remainingGbp: remainingGbp(wallet),
+              },
+            ]}
             onVote={vote}
           />
         </section>

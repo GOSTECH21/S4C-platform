@@ -7,7 +7,7 @@ import {
 import {
   parseFixtureKickoff,
   resolveVotingWindow,
-  clubVotingWindowCopy,
+  clubMatchDayFolderCopy,
 } from "../lib/voting-window";
 import {
   DEFAULT_GBP_PER_VOTE,
@@ -1361,5 +1361,5 @@ export async function postMatchDayProjectsToFans({
 }
 
 export function matchDayWindowCopy(): string {
-  return clubVotingWindowCopy(MATCH_DAY_CHOICE_COUNT);
+  return clubMatchDayFolderCopy();
 }

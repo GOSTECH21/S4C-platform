@@ -106,6 +106,10 @@ export function clubVotingWindowCopy(choiceCount: number): string {
   return `Select ${choiceCount} Climate Partner projects at least ${VOTING_OPENS_DAYS_BEFORE_KICKOFF} days before kick-off. ${fanVotingWindowCopy()} Global Schools Solar is included in every Match Day five. After you post, fans see the five on My S4P and Climate Projects immediately.`;
 }
 
+export function clubMatchDayFolderCopy(): string {
+  return `Three days before kick-off, save the Sponsors File and the Climate Projects File in the Match-Day folder, then press SUBMIT. ${fanVotingWindowCopy()} Registered fans then take cash from a sponsor wallet and put it on a numbered Climate Project.`;
+}
+
 export function formatVotingClock(value: Date): string {
   return value.toLocaleString("en-GB", {
     weekday: "long",

@@ -37,6 +37,7 @@ import { leagueForClubName } from "@/app/lib/current-season";
 import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
+  SPONSOR_WALLET_PATH,
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
@@ -259,8 +260,9 @@ export default function SponsorDashboardPage() {
           </h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Receive the club&apos;s 5 Climate Projects, sign them off, and keep
-            the settled sponsorships in your folder — including carbon impact,
-            spend, and fans who voted with your brand on screen.
+            the settled sponsorships in your folder. Top up your Climate
+            Sponsorship Wallet so fans can take cash from it and put that cash
+            into a numbered Climate Project.
           </p>
         </div>
         <button
@@ -276,6 +278,26 @@ export default function SponsorDashboardPage() {
           {error}
         </div>
       )}
+
+      <Link
+        href={SPONSOR_WALLET_PATH}
+        className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
+          Climate Sponsorship Wallet
+        </p>
+        <h2 className="mt-3 text-2xl font-black">
+          Top up the cash fans will put into Climate Projects
+        </h2>
+        <p className="mt-3 max-w-3xl text-slate-300">
+          {localRecord
+            ? "Pay a sponsorship amount plus 10% management fees into this wallet. Fans insert a project number next to it and press VOTE."
+            : "Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship Cash. Fans then take cash from this wallet and put it on a numbered Climate Project."}
+        </p>
+        <p className="mt-5 inline-flex rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950">
+          Open Climate Sponsorship Wallet
+        </p>
+      </Link>
 
       {(readSponsorTier() === "local" || localRecord) && localRecord && (
         <LocalLeftoverPanel

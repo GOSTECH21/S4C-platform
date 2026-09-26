@@ -73,7 +73,15 @@ import {
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
+import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
+import {
+  readMatchDayFolder,
+  saveClubProjectsFile,
+  saveClubSponsorsFile,
+  submitClubMatchDayFolder,
+} from "@/app/services/match-day-folder.service";
+import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -93,6 +101,9 @@ export default function ClubDashboardPage() {
   const [posting, setPosting] = useState(false);
   const [postedAt, setPostedAt] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
+  const [matchDate, setMatchDate] = useState("2026-10-10");
+  const [folder, setFolder] = useState<MatchDayFolder | null>(null);
+  const [folderNotice, setFolderNotice] = useState<string | null>(null);
   const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
@@ -139,6 +150,9 @@ export default function ClubDashboardPage() {
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
       setRoster(loadClubSponsorRoster(session.club.id, session.club.name));
+      const storedFolder = readMatchDayFolder(session.club.id);
+      setFolder(storedFolder);
+      if (storedFolder?.matchDate) setMatchDate(storedFolder.matchDate);
       setLoading(false);
     }
 
@@ -247,28 +261,77 @@ export default function ClubDashboardPage() {
   }
 
   async function handleMatchDayAction() {
-    if (selected.length < MATCH_DAY_PROJECT_COUNT) {
-      router.push(CLUB_SELECT_PROJECTS_PATH);
-      return;
-    }
+    router.push(CLUB_SELECT_PROJECTS_PATH);
+  }
+
+  function saveSponsorsFile() {
     if (!club) return;
-    setPosting(true);
     setPostError(null);
+    setFolderNotice(null);
     try {
-      const posted = await postMatchDayProjectsToFans({
+      const next = saveClubSponsorsFile({
         clubId: club.id,
         clubName: club.name,
-        country: club.country,
+        matchDate,
+        minAmount,
+        gbpPerGoal,
       });
-      setPostedAt(posted.postedAt ?? new Date().toISOString());
-      setSignedCopies(
-        await listClubSignedSponsorships(club.id, club.name)
+      setFolder(next);
+      setFolderNotice(`${next.sponsorsFile?.fileName} saved in the Match-Day folder.`);
+    } catch (err) {
+      setPostError(
+        err instanceof Error ? err.message : "Could not save the Sponsors File."
+      );
+    }
+  }
+
+  function saveProjectsFile() {
+    if (!club) return;
+    setPostError(null);
+    setFolderNotice(null);
+    try {
+      const next = saveClubProjectsFile({
+        clubId: club.id,
+        clubName: club.name,
+        matchDate,
+        projects: orderedSelected.slice(0, MATCH_DAY_PROJECT_COUNT),
+      });
+      setFolder(next);
+      setFolderNotice(
+        `${next.projectsFile?.fileName} saved in the Match-Day folder.`
       );
     } catch (err) {
       setPostError(
         err instanceof Error
           ? err.message
-          : "Could not post these projects to your fans."
+          : "Could not save the Climate Projects File."
+      );
+    }
+  }
+
+  async function submitMatchDayFolder() {
+    if (!club) return;
+    setPosting(true);
+    setPostError(null);
+    setFolderNotice(null);
+    try {
+      const next = submitClubMatchDayFolder(club.id);
+      const posted = await postMatchDayProjectsToFans({
+        clubId: club.id,
+        clubName: club.name,
+        country: club.country,
+      });
+      setFolder(readMatchDayFolder(club.id) ?? next);
+      setPostedAt(posted.postedAt ?? new Date().toISOString());
+      setSignedCopies(await listClubSignedSponsorships(club.id, club.name));
+      setFolderNotice(
+        "SUBMIT posted both Match-Day files. Registered fans of this club can now take cash from sponsor wallets and put it on a numbered Climate Project."
+      );
+    } catch (err) {
+      setPostError(
+        err instanceof Error
+          ? err.message
+          : "Could not submit the Match-Day folder."
       );
     } finally {
       setPosting(false);
@@ -456,7 +519,7 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? "These Projects will be voted for by your Fans/Supporters as to which project receives the sponsorship funding. Selected Climate Sponsors who have locked this club for the Match Day receive the same five on their dashboard."
+                ? "Save these five in the Match-Day folder as the Climate Projects File. Fans will fund them with cash taken from sponsor wallets — they no longer pick 3 of 5."
                 : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Global Schools Solar is included automatically and is UK and International.`}
             </p>
           </div>
@@ -466,26 +529,10 @@ export default function ClubDashboardPage() {
             disabled={posting}
             onClick={() => void handleMatchDayAction()}
           >
-            {posting
-              ? "Posting to your fans and brands..."
-              : selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? `Post Your ${MATCH_DAY_PROJECT_COUNT} Climate Projects to your Fans/Supporters to Vote on`
-                : "S4P Climate Projects"}
+            {selected.length >= MATCH_DAY_PROJECT_COUNT
+              ? "S4P Climate Projects — change List 1 and List 2"
+              : "S4P Climate Projects"}
           </button>
-          {selected.length >= MATCH_DAY_PROJECT_COUNT && (
-            <button
-              type="button"
-              className="mt-3 w-full rounded-xl border border-green-500/40 py-3 text-sm font-semibold text-green-400 hover:bg-green-500/10"
-              onClick={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
-            >
-              S4P Climate Projects — change List 1 and List 2
-            </button>
-          )}
-          {postError && (
-            <p className="mt-4 text-center text-sm font-semibold text-red-400">
-              {postError}
-            </p>
-          )}
           {postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
               Posted to your fans on My S4P
@@ -494,9 +541,10 @@ export default function ClubDashboardPage() {
                 : roster?.selectedIds.length
                   ? ` Selected Climate Sponsors will see these five once they lock ${club.name} for this Match Day.`
                   : ". No Climate Sponsor was selected, so brand dashboards were not updated."}{" "}
-              Supporters of {club.name} will see these {MATCH_DAY_PROJECT_COUNT}{" "}
-              projects on My S4P and Climate Projects as soon as they open
-              those pages.
+              Supporters of {club.name} will see the Sponsors File and Climate
+              Projects File on My S4P and Climate Projects as soon as they open
+              those pages. They take cash from a sponsor wallet and put it on a
+              numbered Climate Project.
             </p>
           )}
 
@@ -537,6 +585,20 @@ export default function ClubDashboardPage() {
             ) : null}
           </div>
         </section>
+
+        <MatchDayFolderPanel
+          clubName={club.name}
+          matchDate={matchDate}
+          onMatchDateChange={setMatchDate}
+          folder={folder}
+          selectedCount={selected.length}
+          onSaveSponsors={saveSponsorsFile}
+          onSaveProjects={saveProjectsFile}
+          onSubmit={() => void submitMatchDayFolder()}
+          busy={posting}
+          error={postError}
+          notice={folderNotice}
+        />
 
         <section id="sponsorship-selected" className="mt-12 rounded-3xl border border-blue-500/30 bg-slate-900 p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">

@@ -27,6 +27,7 @@ export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
+export const SPONSOR_WALLET_PATH = "/sponsor/wallet";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 export const SPONSOR_OFFER_SIGN_OFF_PATH = "/sponsor/offers/sign-off";
 export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";

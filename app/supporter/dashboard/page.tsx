@@ -19,9 +19,9 @@ import { FAN_LOGIN_PATH, SUPPORTER_TEAMS_PATH } from "@/app/lib/routes";
 import {
   campaignHeadline,
   formatMatchHeadline,
-  formatMoney,
 } from "@/app/lib/sponsorship-auction";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
+import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
 import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
@@ -32,6 +32,19 @@ import {
   isVotingOpen,
   resolveVotingWindow,
 } from "@/app/lib/voting-window";
+import {
+  applyFanWalletVote,
+  fanVisibleProjects,
+  fanVisibleSponsors,
+  visibleMatchDayFolderForClub,
+} from "@/app/services/match-day-folder.service";
+import {
+  DEFAULT_WALLET_VOTE_GBP,
+  formatWalletGbp,
+  remainingGbp,
+  type NumberedClimateProject,
+} from "@/app/lib/sponsor-wallet";
+import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -123,7 +136,8 @@ export default function MyS4PDashboardPage() {
           <p className="mt-3 text-slate-300">
             You support {teams.map((team) => team.displayName).join(", ")}.
             When one of those clubs posts its Match Day climate projects, they
-            appear here straight away so you can vote.
+            appear here straight away so you can take cash from a sponsor wallet
+            and put it on a numbered Climate Project.
           </p>
           <Link
             href={SUPPORTER_TEAMS_PATH}
@@ -157,8 +171,10 @@ export default function MyS4PDashboardPage() {
           </p>
           <p className="mt-2 text-lg font-bold text-white">{alertHeadline}</p>
           <p className="mt-2 text-sm text-slate-300">
-            The same alert is sent to your phone. Vote below, then review funded
-            value and carbon impact on Climate Projects.
+            The same alert is sent to your phone. Look up a sponsor wallet,
+            insert a project number, then press VOTE. Each vote takes{" "}
+            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet and
+            puts it into the Climate Project.
           </p>
         </div>
       </div>
@@ -189,74 +205,32 @@ function CampaignPanel({
   votedIds: Set<string>;
   onVotesChanged: () => Promise<void>;
 }) {
-  const required = campaign.requiredVotes;
   const voteable = voteableProjects(campaign);
-  const [selected, setSelected] = useState<Set<string>>(() => {
-    const preselected = voteable
-      .map((project) => project.id)
-      .filter((id) => votedIds.has(id));
-    return new Set(preselected.slice(0, required));
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(
-    voteable.some((project) => votedIds.has(project.id))
+  const clubId = campaign.postedClubId ?? campaign.clubId;
+  const [folder, setFolder] = useState<MatchDayFolder | null>(() =>
+    visibleMatchDayFolderForClub({ clubId, clubName: campaign.clubName })
   );
+  const [projects, setProjects] = useState<NumberedClimateProject[]>(() =>
+    fanVisibleProjects(folder).length
+      ? fanVisibleProjects(folder)
+      : voteable.map((project, index) => ({
+          id: project.id,
+          name: project.name,
+          number: index + 1,
+          fundedGbp: 0,
+          votesReceived: project.votesReceived,
+        }))
+  );
+  const [sponsors, setSponsors] = useState(() => fanVisibleSponsors(folder));
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function toggle(projectId: string) {
-    setSubmitted(false);
-    setError(null);
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(projectId)) {
-        next.delete(projectId);
-      } else if (next.size < required) {
-        next.add(projectId);
-      }
-      return next;
-    });
-  }
-
-  async function submit() {
-    if (!supporterId || selected.size !== required) return;
-    const open = isVotingOpen(
-      resolveVotingWindow({
-        kickoff: campaign.kickoffAt,
-        opensAt: campaign.votingOpens,
-        closesAt: campaign.votingCloses,
-        postedAt: campaign.postedAt,
-      })
-    );
-    if (!open) {
-      setError("Voting is not open for this match yet, or it has already closed.");
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      await submitCampaignVotes(
-        supporterId,
-        [...selected],
-        voteable.map((project) => project.id),
-        campaign.campaignId,
-        campaign.postedClubId ?? campaign.clubId
-      );
-      setSubmitted(true);
-      try {
-        await onVotesChanged();
-      } catch {
-        // The vote is saved even if the page refresh fails.
-      }
-    } catch (err) {
-      console.error("Failed to submit vote:", describeDataError(err));
-      setError(describeDataError(err, "Failed to submit your vote."));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  const selectedProjects = voteable.filter((project) => selected.has(project.id));
-  const impact = summariseImpact(selectedProjects);
+  const funded = voteable.filter((project) =>
+    projects.some((row) => row.id === project.id && row.fundedGbp > 0) ||
+    votedIds.has(project.id)
+  );
+  const impact = summariseImpact(funded.length ? funded : []);
   const votingWindow = resolveVotingWindow({
     kickoff: campaign.kickoffAt,
     opensAt: campaign.votingOpens,
@@ -267,13 +241,10 @@ function CampaignPanel({
   const votingCopy = campaign.kickoffAt
     ? fanVotingWindowForMatchCopy(votingWindow)
     : fanVotingWindowCopy();
-  const canSubmit = selected.size === required && !submitting && votingOpen;
   const headline = campaignHeadline(campaign.matchTitle);
-  const schedule = readFanPostSchedule(
-    campaign.postedClubId ?? campaign.clubId
-  );
+  const schedule = readFanPostSchedule(clubId);
   const branding = liveMatchDayBranding({
-    clubId: campaign.postedClubId ?? campaign.clubId,
+    clubId,
     clubName: campaign.clubName,
     projects: voteable,
     storedLeadName: schedule?.leadSponsorName,
@@ -289,6 +260,53 @@ function CampaignPanel({
     .map((row) => row.local)
     .filter((row): row is LocalSponsorRecord => Boolean(row));
 
+  async function voteFromWallet(brandName: string, projectNumber: string) {
+    if (!supporterId) return;
+    if (!votingOpen) {
+      setError("Voting is not open for this match yet, or it has already closed.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const result = applyFanWalletVote({
+        clubId,
+        clubName: campaign.clubName,
+        brandName,
+        projectNumber,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setFolder(result.folder ?? folder);
+      setProjects(fanVisibleProjects(result.folder ?? folder));
+      setSponsors(fanVisibleSponsors(result.folder ?? folder));
+      const nextIds = [...new Set([...votedIds, result.project.id])];
+      try {
+        await submitCampaignVotes(
+          supporterId,
+          nextIds,
+          voteable.map((project) => project.id),
+          campaign.campaignId,
+          clubId
+        );
+        await onVotesChanged();
+      } catch {
+        // Wallet cash has already moved even if the campaign vote row cannot be stored.
+      }
+      setNotice(
+        `VOTE moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s wallet into Project ${result.project.number}. ${result.wallet.brandName} now shows ${formatWalletGbp(remainingGbp(result.wallet))} Remaining; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
+      );
+    } catch (err) {
+      console.error("Failed to submit vote:", describeDataError(err));
+      setError(describeDataError(err, "Failed to submit your vote."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="pb-8 text-white">
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
@@ -298,13 +316,10 @@ function CampaignPanel({
           </p>
           <h1 className="mt-2 text-3xl font-black md:text-5xl">{headline}</h1>
           <p className="mx-auto mt-3 max-w-3xl text-slate-300">
-            Choose{" "}
-            <span className="font-bold text-white">
-              {numberWord(required)} Climate Projects
-            </span>
-            . These five projects were selected by the {campaign.clubName}{" "}
-            Sustainability Team. Your vote helps decide how Match Day climate
-            funding is allocated.
+            Take cash from a sponsor&apos;s Climate Wallet and put it into a
+            numbered Climate Project. These five projects were selected by the{" "}
+            {campaign.clubName} Sustainability Team. Each VOTE is worth{" "}
+            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
           </p>
           <p className="mx-auto mt-3 max-w-3xl text-sm text-slate-400">
             {votingCopy}
@@ -325,16 +340,9 @@ function CampaignPanel({
           </div>
         )}
 
-        {submitted && !error && (
+        {notice && !error && (
           <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
-            ✓ Your vote has been submitted. The sponsor still pays the{" "}
-            {formatMoney(campaign.minimumAmount)} Base Match Sponsorship if
-            the club does not score, plus the posted amount for every{" "}
-            {campaign.scoreLabel}
-            {campaign.maxAmount > 0
-              ? `, up to ${formatMoney(campaign.maxAmount)}`
-              : ""}
-            .
+            ✓ {notice}
           </div>
         )}
 
@@ -349,16 +357,26 @@ function CampaignPanel({
               leadLogoUrl={leadLogoUrl}
               local={row.local}
               localScale={row.scale}
-              selected={selected.has(row.project.id)}
-              disabled={
-                !selected.has(row.project.id) && selected.size >= required
-              }
-              onToggle={() => toggle(row.project.id)}
+              showVote={false}
             />
           ))}
         </div>
 
-        {submitted && selectedProjects.length > 0 && impact.totalCo2 > 0 && (
+        <div className="mt-10">
+          <MatchDayWalletVote
+            clubName={campaign.clubName}
+            projects={projects}
+            sponsors={sponsors}
+            onVote={(brandName, projectNumber) =>
+              void voteFromWallet(brandName, projectNumber)
+            }
+            busy={busy}
+            votingOpen={votingOpen}
+            votingMessage={`${votingCopy} Insert a project number next to a wallet and press VOTE. Each vote takes ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet.`}
+          />
+        </div>
+
+        {funded.length > 0 && impact.totalCo2 > 0 && (
           <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h3 className="text-lg font-bold">Estimated impact of your vote</h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -377,33 +395,6 @@ function CampaignPanel({
             </div>
           </div>
         )}
-
-        <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950/80 px-6 py-5 sm:flex-row sm:justify-between">
-          <div>
-            <p className="font-bold">Your Vote</p>
-            <p className="text-sm text-slate-400">
-              {votingOpen
-                ? `${selected.size} of ${required} projects selected`
-                : votingCopy}
-            </p>
-          </div>
-
-          <button
-            onClick={submit}
-            disabled={!canSubmit}
-            className={`rounded-lg px-6 py-3 font-bold transition ${
-              canSubmit
-                ? "bg-green-500 text-slate-950 hover:bg-green-400"
-                : "cursor-not-allowed bg-slate-700 text-slate-400"
-            }`}
-          >
-            {submitting
-              ? "Submitting..."
-              : submitted
-                ? "Update My Vote"
-                : "Submit My Vote"}
-          </button>
-        </div>
       </div>
     </main>
   );
@@ -422,9 +413,4 @@ function ImpactStat({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-2xl font-black text-green-400">{value}</p>
     </div>
   );
-}
-
-function numberWord(n: number): string {
-  const words = ["zero", "one", "two", "three", "four", "five"];
-  return words[n] ?? String(n);
 }

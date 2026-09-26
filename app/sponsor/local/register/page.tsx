@@ -18,6 +18,8 @@ import {
   LOCAL_SPONSOR_MIN_GBP,
   writeLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
+import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
+import { localWalletTopUp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -74,6 +76,11 @@ export default function LocalSponsorRegisterPage() {
         logoUrl,
         source: "registered",
       });
+      ensureLocalWallet({
+        clubName,
+        brandName: companyName,
+        sponsorshipGbp: pledge,
+      });
       window.location.href = SPONSOR_DASHBOARD_PATH;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
@@ -91,7 +98,10 @@ export default function LocalSponsorRegisterPage() {
       </h1>
       <p className="mt-4 text-slate-300">
         From £{LOCAL_SPONSOR_MIN_GBP} your logo appears on one of the five
-        Match Day Climate Project cards posted to fans. A £1,500 pledge receives
+        Match Day Climate Project cards posted to fans. Pay the amount you want
+        fans to take from your Climate Sponsorship Wallet; a 10% management fee
+        is added on top (for example £750 + 10% = {formatWalletGbp(localWalletTopUp(750).paidGbp)}
+        paid, with {formatWalletGbp(750)} remaining in the wallet). A £1,500 pledge receives
         three times the fan exposures of a £{LOCAL_SPONSOR_MIN_GBP} pledge, and
         takes a more prominent card — Global Schools Solar first.
       </p>

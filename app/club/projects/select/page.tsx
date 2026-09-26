@@ -431,8 +431,8 @@ export default function SelectMatchDayProjectsPage() {
               </p>
               <p className="mt-1 text-xs text-slate-500">
                 1 post = 1 eyeball = {EXPOSURES_PER_POST} exposures. Fans who
-                are asked to choose 3 of {MATCH_DAY_PROJECT_COUNT} Climate
-                Projects are still exposed {MATCH_DAY_PROJECT_COUNT} times.
+                take cash from a sponsor wallet and put it on a numbered Climate
+                Project are still exposed {MATCH_DAY_PROJECT_COUNT} times.
               </p>
             </div>
             <div className="rounded-lg bg-slate-800 p-4">

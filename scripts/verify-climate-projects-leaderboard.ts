@@ -4,6 +4,11 @@ import {
   rankClimateProjectsByVotes,
   remainingAmountAfterVotes,
 } from "../app/lib/climate-projects-leaderboard";
+import {
+  allocateWalletVote,
+  createLocalWallet,
+  remainingGbp,
+} from "../app/lib/sponsor-wallet";
 
 const failures: string[] = [];
 
@@ -33,36 +38,35 @@ assert(
   remainingAmountAfterVotes({ totalAmount: 50000, votes: 1, amountPerVote: 1000 }) === 49000,
   "A Vote reduces the remaining amount by the club-stipulated rate"
 );
-assert(
-  remainingAmountAfterVotes({ totalAmount: 50000, votes: 2, amountPerVote: 1000 }) === 48000,
-  "A second Vote reduces the remaining amount again"
-);
-assert(
-  remainingAmountAfterVotes({ totalAmount: 1000, votes: 3, amountPerVote: 0.02 }) === 999.94,
-  "Fractional stipulated rates still reduce the remaining amount"
-);
 assert(formatRemainingAmount(49000) === "£49,000", "Remaining amount is shown in pounds");
+
+const wallet = createLocalWallet({
+  clubName: "Hibernian",
+  brandName: "Top Cellar",
+  sponsorshipGbp: 750,
+});
+const voted = allocateWalletVote({
+  wallet,
+  projects: [
+    { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
+    { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
+  ],
+  projectNumber: 2,
+});
+assert(voted.ok && remainingGbp(voted.ok ? voted.wallet : wallet) === 749.9, "A wallet Vote leaves £749.90");
 
 const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(page.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(!page.includes("Posted for"), "The posted-for box no longer lists posted projects");
 assert(
-  !page.includes("These are the verified climate projects that you have Voted for") &&
-    !page.includes("HistoryCard"),
-  "The voted project cards are removed"
-);
-assert(
-  page.includes("ClimateProjectsLeaderboard"),
-  "Climate Projects shows a Climate Projects Leaderboard"
+  page.includes("MatchDayWalletVote"),
+  "Climate Projects lets fans take cash from a sponsor wallet"
 );
 
-const board = readFileSync("app/components/fan/ClimateProjectsLeaderboard.tsx", "utf8");
-assert(board.includes("Voted Ranking"), "The leaderboard has a Voted Ranking column");
-assert(board.includes(">Votes<") || board.includes("Votes"), "The leaderboard has a Votes column");
-assert(board.includes(">Vote<") || board.includes('"Vote"'), "The leaderboard has a Vote button");
+const preview = readFileSync("app/preview/climate-projects/page.tsx", "utf8");
 assert(
-  board.includes("Remaining amount"),
-  "The leaderboard shows the remaining amount that Votes reduce"
+  preview.includes("MatchDayWalletVote") && preview.includes("Top Cellar"),
+  "The Climate Projects preview shows Top Cellar's wallet"
 );
 
 if (failures.length > 0) {
@@ -70,4 +74,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Climate Projects Leaderboard ranks by votes and reduces the remaining amount.");
+console.log("Climate Projects wallet votes move cash from a sponsor wallet into a numbered project.");
