@@ -9,6 +9,7 @@ import {
   SCOTLAND_CLIMATE_PROJECTS,
   SELECTABLE_MATCH_DAY_CATALOG,
   selectableCatalogForCountry,
+  catalogCategoryForName,
 } from "../app/lib/sccan-catalog";
 
 const failures: string[] = [];
@@ -104,6 +105,14 @@ assert(
   new Set(PARTNER_MATCH_DAY_CATALOG.map((project) => project.name)).size ===
     PARTNER_MATCH_DAY_CATALOG.length,
   "Catalog names are unique"
+);
+assert(
+  catalogCategoryForName("Porty Community Energy") === "Renewable Energy",
+  "A posted project name maps back to its catalog category"
+);
+assert(
+  catalogCategoryForName("Growing Together Craigshill") === "Sustainable Agriculture",
+  "Agriculture projects keep their catalog category"
 );
 
 if (failures.length > 0) {

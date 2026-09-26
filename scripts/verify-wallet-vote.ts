@@ -259,15 +259,25 @@ assert(
 );
 
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
-assert(votePage.includes("ClimateProjectSponsors"), "Climate Projects uses Carbon Wallet votes");
-assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(
-  votePage.includes("Climate Project list"),
-  "Climate Projects still shows the numbered Climate Project list"
+  !votePage.includes("ClimateProjectSponsors"),
+  "Climate Projects no longer lists Climate Project Sponsors"
+);
+assert(
+  votePage.includes("Project Voted For this Match Day"),
+  "The Hibernian box is titled Project Voted For this Match Day"
+);
+assert(
+  votePage.includes("Current Climate Project List"),
+  "Climate Projects shows the Current Climate Project List"
+);
+assert(
+  votePage.includes("ClimateProjectGroupFolders"),
+  "Climate Projects has Folders of previous climate project groups"
 );
 assert(
   votePage.includes("formatWalletGbp(project.fundedGbp)"),
-  "Projects Voted for and Climate Project list show the cumulative Received amount"
+  "Project Voted For this Match Day and Current Climate Project List show the cumulative Received amount"
 );
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");

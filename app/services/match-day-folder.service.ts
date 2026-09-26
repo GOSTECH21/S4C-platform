@@ -227,7 +227,15 @@ export function submitClubMatchDayFolder(clubId: string): MatchDayFolder {
       "Save the Sponsors File and the Climate Projects File in the Match-Day folder before pressing SUBMIT."
     );
   }
-  return writeMatchDayFolder(stampSubmitted(folder));
+  const submitted = writeMatchDayFolder(stampSubmitted(folder));
+  if (submitted.projectsFile?.projects.length) {
+    writeProjectFunding(clubId, submitted.projectsFile.projects, {
+      postedAt: submitted.submittedAt,
+      matchDate: submitted.matchDate,
+      windowId: submitted.submittedAt || submitted.matchDate,
+    });
+  }
+  return submitted;
 }
 
 export function applyFanWalletVote({
@@ -260,7 +268,8 @@ export function applyFanWalletVote({
     clubId,
     folder?.projectsFile?.projects?.length
       ? folder.projectsFile.projects
-      : fallbackProjects
+      : fallbackProjects,
+    folder?.submittedAt || folder?.matchDate
   );
   if (projects.length === 0) {
     return {
@@ -291,7 +300,11 @@ export function applyFanWalletVote({
       });
   if (!result.ok) return result;
   writeClimateWallet(result.wallet);
-  writeProjectFunding(clubId, result.projects);
+  writeProjectFunding(clubId, result.projects, {
+    postedAt: folder?.submittedAt,
+    matchDate: folder?.matchDate,
+    windowId: folder?.submittedAt || folder?.matchDate,
+  });
   recordFanSponsorVote(supporterId, clubId, brandName);
   if (folder?.sponsorsFile && folder.projectsFile) {
     const nextFolder = writeMatchDayFolder({
@@ -316,7 +329,8 @@ export function fanVisibleProjects(
     folder?.projectsFile?.projects?.length
       ? folder.projectsFile.projects
       : fallback;
-  return clubId ? loadFundedProjects(clubId, base) : base;
+  const windowId = folder?.submittedAt || folder?.matchDate || null;
+  return clubId ? loadFundedProjects(clubId, base, windowId) : base;
 }
 
 export function fanVisibleSponsors(
