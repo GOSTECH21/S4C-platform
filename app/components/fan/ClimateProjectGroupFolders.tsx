@@ -17,22 +17,31 @@ import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
 export function ClimateProjectGroupFolders({
   clubName,
   archive,
+  currentWindowId = null,
 }: {
   clubName: string;
   archive: ArchivedClimateProject[];
+  currentWindowId?: string | null;
 }) {
   const [openGroupId, setOpenGroupId] = useState<string | null>(null);
+  const previous = useMemo(
+    () =>
+      currentWindowId
+        ? archive.filter((row) => row.windowId !== currentWindowId)
+        : archive,
+    [archive, currentWindowId]
+  );
   const counts = useMemo(() => {
     const next: Record<string, number> = {};
-    for (const row of archive) {
+    for (const row of previous) {
       next[row.groupId] = (next[row.groupId] ?? 0) + 1;
     }
     return next;
-  }, [archive]);
+  }, [previous]);
   const groups = visibleClimateProjectGroups(counts);
   const openGroup = climateProjectGroupById(openGroupId);
   const listed = openGroup
-    ? projectsInClimateGroup(archive, openGroup.id)
+    ? projectsInClimateGroup(previous, openGroup.id)
     : [];
 
   return (

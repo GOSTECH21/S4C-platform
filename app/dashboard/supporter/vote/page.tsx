@@ -129,6 +129,7 @@ function CampaignClimateBoard({ campaign }: { campaign: S4PCampaign }) {
   const clubId = campaign.postedClubId ?? campaign.clubId;
   const [numbered, setNumbered] = useState<NumberedClimateProject[]>([]);
   const [archive, setArchive] = useState<ArchivedClimateProject[]>([]);
+  const [currentWindowId, setCurrentWindowId] = useState<string | null>(null);
   const votingWindow = resolveVotingWindow({
     kickoff: campaign.kickoffAt,
     opensAt: campaign.votingOpens,
@@ -160,6 +161,7 @@ function CampaignClimateBoard({ campaign }: { campaign: S4PCampaign }) {
       if (clubId && projects.length > 0) {
         archivePostedProjects(clubId, projects, fundingWindow);
       }
+      setCurrentWindowId(fundingWindow.windowId ?? null);
       setArchive(clubId ? readProjectArchive(clubId) : []);
     }
     refresh();
@@ -225,6 +227,7 @@ function CampaignClimateBoard({ campaign }: { campaign: S4PCampaign }) {
       <ClimateProjectGroupFolders
         clubName={campaign.clubName}
         archive={archive}
+        currentWindowId={currentWindowId}
       />
     </section>
   );

@@ -138,7 +138,11 @@ export default function ClimateProjectsPreviewPage() {
             </ol>
           </div>
 
-          <ClimateProjectGroupFolders clubName="Hibernian" archive={archive} />
+          <ClimateProjectGroupFolders
+            clubName="Hibernian"
+            archive={archive}
+            currentWindowId={CURRENT_WINDOW.windowId}
+          />
         </section>
       </div>
     </main>
