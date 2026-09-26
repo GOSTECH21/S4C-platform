@@ -95,6 +95,7 @@ export function ClimateProjectSponsors({
               <span className="font-semibold">Checkbox 1</span>
               <input
                 id="lead-project-number"
+                data-testid="lead-project-number"
                 type="number"
                 min={1}
                 max={projectCount}
@@ -114,6 +115,7 @@ export function ClimateProjectSponsors({
               <span className="font-semibold">Checkbox 2</span>
               <input
                 type="checkbox"
+                data-testid="lead-split"
                 checked={leadSplit}
                 onChange={(event) => {
                   setLeadSplit(event.target.checked);
@@ -128,13 +130,16 @@ export function ClimateProjectSponsors({
             </label>
             <button
               type="button"
+              data-testid="lead-vote"
               disabled={leadBlocked}
-              onClick={() =>
+              onClick={() => {
                 onLeadVote({
                   projectNumber: leadNumber,
                   split: leadSplit,
-                })
-              }
+                });
+                setLeadNumber("");
+                setLeadSplit(false);
+              }}
               className={`rounded-xl px-6 py-3 text-sm font-bold ${
                 leadBlocked
                   ? "cursor-not-allowed bg-slate-800 text-slate-500"
@@ -214,13 +219,18 @@ export function ClimateProjectSponsors({
                       }))
                     }
                     className="w-16 rounded-lg border border-slate-700 bg-slate-900 p-2 text-center font-black text-white"
+                    data-testid={`local-project-${row.brandName}`}
                     aria-label={`Insert a project number next to ${row.brandName}'s Carbon Wallet`}
                   />
                 </label>
                 <button
                   type="button"
+                  data-testid={`local-vote-${row.brandName}`}
                   disabled={blocked}
-                  onClick={() => onLocalVote(row.brandName, value)}
+                  onClick={() => {
+                    onLocalVote(row.brandName, value);
+                    setLocalNumbers((prev) => ({ ...prev, [row.brandName]: "" }));
+                  }}
                   className={`rounded-xl px-5 py-3 text-sm font-bold ${
                     blocked
                       ? "cursor-not-allowed bg-slate-800 text-slate-500"
