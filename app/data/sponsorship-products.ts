@@ -44,10 +44,10 @@ export const sponsorshipProducts: SponsorshipProduct[] = [
 
   {
     id: "tpss",
-    name: "Three-Point Sponsorship",
+    name: "3-Point Score Sponsorship",
     acronym: "TPSS",
-    sport: "Basketball",
-    trigger: "3-Point Score",
+    sport: "NBA",
+    trigger: "3-Point",
     description:
       "Reward supporters every successful three-point score.",
     icon: "🏀",

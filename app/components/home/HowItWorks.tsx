@@ -10,19 +10,19 @@ export default function HowItWorks() {
       number: "02",
       title: "Climate Sponsors Step In",
       description:
-        "Sponsors commit funding to sporting moments, competitions and clubs.",
+        "Sponsors pay a Base Match Sponsorship even if the club scores no Goals, plus a posted amount for each Goal, up to a Maximum set by the club Sustainability Director.",
     },
     {
       number: "03",
       title: "Fans Earn Climate Credits",
       description:
-        "Supporters receive Climate Credits through their passion for sport.",
+        "Supporters & Fans receives a share of the Climate Credits (funding) whenever their Team scores",
     },
     {
       number: "04",
       title: "Climate Partners Benefit",
       description:
-        "Fans direct their Climate Credits towards verified Climate Partners and projects.",
+        "Fans direct their Climate Credits towards their preferred Climate Projects by Voting for them",
     },
     {
       number: "05",
@@ -47,7 +47,7 @@ export default function HowItWorks() {
 
       </div>
 
-      <div className="mt-24 flex items-start justify-between">
+      <div className="mt-24 flex items-stretch justify-between">
 
         {steps.map((step, index) => (
 
@@ -76,7 +76,9 @@ export default function HowItWorks() {
 
             {index < steps.length - 1 && (
 
-              <div className="mt-10 hidden h-1 w-full rounded-full bg-gradient-to-r from-green-500 to-green-300 xl:block" />
+              <div className="mt-auto hidden w-full pt-10 xl:block">
+                <div className="h-1 w-full rounded-full bg-gradient-to-r from-green-500 to-green-300" />
+              </div>
 
             )}
 

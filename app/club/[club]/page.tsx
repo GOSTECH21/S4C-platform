@@ -4,6 +4,7 @@ import NextFixture from "../../dashboard/NextFixture";
 import ClimateImpactSeason from "../../dashboard/ClimateImpactSeason";
 import ClimateTimeline from "../../dashboard/ClimateTimeline";
 import SupporterLeaderboard from "../../dashboard/SupporterLeaderboard";
+import { TopClimateSponsorsPromo } from "@/app/components/club/TopClimateSponsorsPromo";
 type Props = {
   params: Promise<{
     club: string;
@@ -75,6 +76,7 @@ const clubData = await getClubByName(clubName);
         </div>
 
       </div>
+      <TopClimateSponsorsPromo clubName={clubName} />
       <GlobalSchoolsSolar />
       <NextFixture />
       <ClimateImpactSeason />

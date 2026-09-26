@@ -11,12 +11,13 @@ const fixtures: Record<string, string[]> = {
     "Liverpool v Manchester United",
     "Manchester City v Aston Villa",
     "Tottenham v Newcastle",
+    "Coventry City v Ipswich Town",
   ],
 
   Championship: [
-    "Leeds United v Norwich",
-    "Southampton v Sunderland",
-    "Burnley v Middlesbrough",
+    "West Ham United v Burnley",
+    "Wolverhampton Wanderers v Middlesbrough",
+    "Southampton v Norwich",
   ],
 
   "FA Cup": [

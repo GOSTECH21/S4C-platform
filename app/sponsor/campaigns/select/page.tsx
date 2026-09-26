@@ -1,0 +1,296 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { ClimateProject } from "@/app/services/votes.service";
+import {
+  loadFeaturedMatchDayProject,
+  loadPartnerClimateProjectLists,
+} from "@/app/services/club-match-day.service";
+import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import {
+  proposalMailtoToDirector,
+  resolveClubForSponsor,
+  sendSponsorProposalToClub,
+  type SponsorProjectProposal,
+} from "@/app/services/sponsor-offers.service";
+import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
+import {
+  MATCH_DAY_CHOICE_COUNT,
+  MATCH_DAY_PROJECT_COUNT,
+  isPartnerUpload,
+} from "@/app/lib/partner-projects";
+import { localCatalogCountryForClub } from "@/app/lib/featured-climate-country";
+import { supabase } from "@/app/lib/supabase";
+import {
+  CLUB_LOGIN_PATH,
+  SPONSOR_DASHBOARD_PATH,
+  SPONSOR_LOGIN_PATH,
+} from "@/app/lib/routes";
+
+export default function SponsorCreateCampaignPage() {
+  const router = useRouter();
+  const [brand, setBrand] = useState("Sponsor");
+  const [email, setEmail] = useState<string | null>(null);
+  const [clubName, setClubName] = useState("Arsenal");
+  const [clubEmail, setClubEmail] = useState<string | null>(null);
+  const [localProjects, setLocalProjects] = useState<ClimateProject[]>([]);
+  const [internationalProjects, setInternationalProjects] = useState<
+    ClimateProject[]
+  >([]);
+  const [featured, setFeatured] = useState<ClimateProject | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [list, setList] = useState<1 | 2>(1);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sentMailto, setSentMailto] = useState<string | null>(null);
+  const [sentProposal, setSentProposal] = useState<SponsorProjectProposal | null>(
+    null
+  );
+
+  const clubs = Object.values(CURRENT_SEASON_LEAGUES).flat();
+  const localCountry = localCatalogCountryForClub({ clubName });
+  const visible = list === 1 ? localProjects : internationalProjects;
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const sponsor = await getCurrentSponsor();
+        setBrand(String(sponsor.name ?? "Sponsor"));
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setEmail(user?.email ?? null);
+      } catch {
+        router.replace(SPONSOR_LOGIN_PATH);
+        return;
+      }
+      setLoading(false);
+    }
+    load();
+  }, [router]);
+
+  useEffect(() => {
+    async function loadCatalog() {
+      const lists = await loadPartnerClimateProjectLists({ clubName });
+      setLocalProjects(lists.local);
+      setInternationalProjects(lists.international);
+      setFeatured(await loadFeaturedMatchDayProject());
+      const club = await resolveClubForSponsor(clubName);
+      setClubEmail(club.email);
+    }
+    if (!loading) void loadCatalog();
+  }, [clubName, loading]);
+
+  function toggle(projectId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectId)) next.delete(projectId);
+      else if (next.size < MATCH_DAY_CHOICE_COUNT) next.add(projectId);
+      return next;
+    });
+  }
+
+  async function send() {
+    if (selected.size !== MATCH_DAY_CHOICE_COUNT) {
+      setError(`Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects.`);
+      return;
+    }
+    setSending(true);
+    setError(null);
+    try {
+      const club = await resolveClubForSponsor(clubName);
+      setClubEmail(club.email);
+      const catalog = [...localProjects, ...internationalProjects];
+      const chosen = catalog.filter((project) => selected.has(project.id));
+      const five = featured ? [featured, ...chosen] : chosen;
+      const proposal = await sendSponsorProposalToClub({
+        clubId: club.id ?? `name:${club.name}`,
+        clubName: club.name,
+        sponsorName: brand,
+        sponsorEmail: email,
+        projects: five,
+      });
+      const mailto = proposalMailtoToDirector(club.email, proposal);
+      setSentProposal(proposal);
+      setSentMailto(mailto);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not send this list to the club."
+      );
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (loading) {
+    return <p className="text-slate-400">Loading S4P Climate Projects...</p>;
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <Link href={SPONSOR_DASHBOARD_PATH} className="text-sm font-semibold text-green-400">
+        ← Back to dashboard
+      </Link>
+      <h1 className="mt-6 text-4xl font-black">Create Your Sponsorship Campaign</h1>
+      <p className="mt-3 max-w-3xl text-slate-300">
+        Do the same thing the Sustainability Director does: Global Schools Solar
+        is included, then choose 4 from List 1 ({localCountry}) and List 2
+        (International). Send the 5 to the Sustainability Director so they can
+        push them to fans.
+      </p>
+
+      <label className="mt-8 block max-w-xl text-sm text-slate-400">
+        Club
+        <select
+          value={clubName}
+          onChange={(event) => {
+            setClubName(event.target.value);
+            setSelected(new Set());
+            setSentMailto(null);
+            setSentProposal(null);
+          }}
+          className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+        >
+          {clubs.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {featured && (
+        <div className="mt-8 rounded-2xl border border-green-500/40 bg-green-500/10 p-6">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
+            Included · UK and International
+          </p>
+          <h2 className="mt-2 text-2xl font-bold">{featured.name}</h2>
+          <p className="mt-2 text-slate-300">{featured.description}</p>
+        </div>
+      )}
+
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="font-bold">
+          {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setList(1)}
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${
+              list === 1 ? "bg-green-500 text-slate-950" : "border border-slate-700"
+            }`}
+          >
+            List 1 · {localCountry}
+          </button>
+          <button
+            type="button"
+            onClick={() => setList(2)}
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${
+              list === 2 ? "bg-green-500 text-slate-950" : "border border-slate-700"
+            }`}
+          >
+            List 2 · International
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {visible.map((project) => {
+          if (featured && project.id === featured.id) return null;
+          const isOn = selected.has(project.id);
+          const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
+          return (
+            <div
+              key={project.id}
+              className={`rounded-2xl border p-6 ${
+                isOn ? "border-green-500 bg-slate-800" : "border-slate-700 bg-slate-900"
+              }`}
+            >
+              {isPartnerUpload(project) ? (
+                <p className="text-xs font-semibold text-green-400">
+                  Uploaded climate project
+                </p>
+              ) : null}
+              <h2 className="text-xl font-bold">{project.name}</h2>
+              <p className="mt-2 text-sm text-slate-400">📍 {project.country}</p>
+              <p className="mt-3 text-slate-300">{project.description}</p>
+              <button
+                type="button"
+                disabled={full}
+                onClick={() => toggle(project.id)}
+                className={`mt-6 w-full rounded-xl py-3 font-bold ${
+                  isOn
+                    ? "bg-green-500 text-slate-950"
+                    : "bg-slate-700 text-white"
+                }`}
+              >
+                {isOn ? "✓ Selected" : "Select project"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => void send()}
+        disabled={sending || selected.size !== MATCH_DAY_CHOICE_COUNT}
+        className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold disabled:opacity-70"
+      >
+        {sending
+          ? "Sending to the Sustainability Director..."
+          : `Send these ${MATCH_DAY_PROJECT_COUNT} Climate Projects to the Sustainability Director`}
+      </button>
+      {sentProposal && (
+        <div className="mt-8 rounded-3xl border border-green-500/40 bg-green-500/10 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+            Sent to the Sustainability Director
+          </p>
+          <h2 className="mt-2 text-3xl font-black">
+            {sentProposal.clubName} now has your 5 Climate Projects
+          </h2>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            The Sponsorship Manager does not post to fans from this page. Log
+            in as the club Sustainability Director. Their dashboard shows
+            these under Sponsorship Selected Projects, with{" "}
+            <strong>Post these to fans</strong>.
+          </p>
+          <ul className="mt-4 space-y-1 text-slate-200">
+            {sentProposal.projects.map((project) => (
+              <li key={project.id}>• {project.name}</li>
+            ))}
+          </ul>
+          <Link
+            href={`${CLUB_LOGIN_PATH}#sponsorship-selected`}
+            className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-4 text-lg font-bold hover:bg-blue-500"
+          >
+            Post these to fans
+          </Link>
+          <p className="mt-3 text-sm text-slate-400">
+            That opens club login. Sign in as the {sentProposal.clubName}{" "}
+            Sustainability Director, then click Post these to fans on
+            Sponsorship Selected Projects.
+          </p>
+          {sentMailto && clubEmail && (
+            <a
+              href={sentMailto}
+              className="mt-4 inline-block text-sm font-semibold text-green-400"
+            >
+              Also email the Sustainability Director
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
