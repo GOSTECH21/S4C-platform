@@ -320,7 +320,15 @@ assert(
 const vote = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
 assert(
   vote.includes("liveMatchDayBranding"),
-  "My S4P shows the Match Day five with both sponsors"
+  "My S4P still resolves the Match Day five for the club"
+);
+assert(
+  vote.includes("showSponsors={false}"),
+  "My S4P Climate Projects List does not attach a sponsor logo or name"
+);
+assert(
+  vote.includes("ClimateProjectSponsors"),
+  "Lead and local Carbon Wallets sit under Climate Project Sponsor"
 );
 assert(
   !vote.includes("leftoverSponsor"),

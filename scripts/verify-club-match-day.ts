@@ -27,10 +27,12 @@ import {
   matchDayCampaignTitle,
   postedMatchDayForFanTeam,
   FAN_POST_APPEAR_DELAY_MINUTES,
+  fanPostExpiresAt,
   fanPostVisibleAt,
   fanPostVisibility,
   isFanPostVisible,
 } from "../app/lib/match-day-post";
+import { MS_PER_DAY } from "../app/lib/voting-window";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
   isCampaignIdNotNullError,
@@ -324,8 +326,27 @@ assert(
   "Visible-at is the moment the SD posts"
 );
 assert(
-  fanPostVisibility({ postedAt: "2026-09-20T12:00:00.000Z" }).isVisible,
+  fanPostVisibility({ postedAt: new Date().toISOString() }).isVisible,
   "Fan visibility is instant"
+);
+assert(
+  fanPostExpiresAt("2026-09-20T12:00:00.000Z").toISOString() ===
+    "2026-09-25T12:00:00.000Z",
+  "Climate Projects expire 5 days after the Sustainability Director posts them"
+);
+assert(
+  !isFanPostVisible(
+    "2026-09-20T12:00:00.000Z",
+    new Date("2026-09-25T12:00:01.000Z").getTime()
+  ),
+  "Posted Climate Projects disappear after 5 days"
+);
+assert(
+  isFanPostVisible(
+    "2026-09-20T12:00:00.000Z",
+    new Date("2026-09-20T12:00:00.000Z").getTime() + 4 * MS_PER_DAY
+  ),
+  "Posted Climate Projects stay visible before the 5th day ends"
 );
 assert(
   sponsorOfferHeadline({

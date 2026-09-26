@@ -6,6 +6,7 @@ import {
   type NumberedClimateProject,
   type SponsorWalletKind,
 } from "./sponsor-wallet";
+import { VOTING_PERIOD_DAYS, addDays } from "./voting-window";
 
 export const MATCH_DAY_FOLDER_NAME = "Match-Day";
 
@@ -179,18 +180,37 @@ export function submitMatchDayFolder(
   return { ...folder, submittedAt: asIso(now) };
 }
 
-export function isMatchDayFolderVisible(folder: MatchDayFolder | null | undefined) {
-  return Boolean(folder?.submittedAt && folder.sponsorsFile && folder.projectsFile);
+export function isMatchDayFolderVisible(
+  folder: MatchDayFolder | null | undefined,
+  now: Date | string = new Date()
+) {
+  if (!folder?.submittedAt || !folder.sponsorsFile || !folder.projectsFile) {
+    return false;
+  }
+  const posted = new Date(folder.submittedAt);
+  if (Number.isNaN(posted.getTime())) return false;
+  const expires = addDays(posted, VOTING_PERIOD_DAYS);
+  const current = now instanceof Date ? now : new Date(now);
+  return current.getTime() <= expires.getTime();
 }
 
 export function applyFundingToProjectsFile(
   file: MatchDayProjectsFile,
   project: NumberedClimateProject
 ): MatchDayProjectsFile {
+  return applyFundingListToProjectsFile(file, [project]);
+}
+
+export function applyFundingListToProjectsFile(
+  file: MatchDayProjectsFile,
+  projects: NumberedClimateProject[]
+): MatchDayProjectsFile {
+  const byId = new Map(projects.map((row) => [row.id, row]));
+  const byNumber = new Map(projects.map((row) => [row.number, row]));
   return {
     ...file,
-    projects: file.projects.map((row) =>
-      row.id === project.id || row.number === project.number ? project : row
+    projects: file.projects.map(
+      (row) => byId.get(row.id) ?? byNumber.get(row.number) ?? row
     ),
   };
 }

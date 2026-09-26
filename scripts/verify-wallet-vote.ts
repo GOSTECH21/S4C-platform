@@ -1,13 +1,16 @@
 import { readFileSync } from "fs";
 import {
+  allocateSplitWalletVote,
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
   DEFAULT_WALLET_VOTE_GBP,
   formatWalletGbp,
+  LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
   localWalletTopUp,
   remainingGbp,
+  walletVoteAmount,
 } from "../app/lib/sponsor-wallet";
 import {
   buildProjectsFile,
@@ -15,6 +18,7 @@ import {
   canSubmitMatchDayFolder,
   climateProjectsFileName,
   emptyMatchDayFolder,
+  isMatchDayFolderVisible,
   MATCH_DAY_FOLDER_NAME,
   saveProjectsIntoFolder,
   saveSponsorsIntoFolder,
@@ -22,6 +26,7 @@ import {
   sponsorsFileName,
   submitMatchDayFolder,
 } from "../app/lib/match-day-folder";
+import { MS_PER_DAY } from "../app/lib/voting-window";
 
 const failures: string[] = [];
 
@@ -29,7 +34,8 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(DEFAULT_WALLET_VOTE_GBP === 0.1, "Each vote is worth £0.10");
+assert(DEFAULT_WALLET_VOTE_GBP === 0.1, "Each local Vote is worth £0.10");
+assert(LEAD_WALLET_VOTE_GBP === 0.5, "Each Lead Climate Sponsor Vote is worth £0.50");
 assert(LOCAL_MANAGEMENT_FEE_RATE === 0.1, "Local wallets add a 10% management fee");
 
 const topUp = localWalletTopUp(750);
@@ -46,21 +52,23 @@ assert(
   remainingGbp(topCellar) === 750,
   "Top Cellar's wallet indicates £750 before any vote"
 );
+assert(walletVoteAmount(topCellar) === 0.1, "A local Vote takes £0.10");
 
 const amex = createLeadWallet({
   clubName: "Hibernian",
   brandName: "American Express",
-  commitmentFeeGbp: 1000,
+  commitmentFeeGbp: 3000,
   gbpPerGoal: 3000,
 });
 assert(
-  remainingGbp(amex) === 1000,
-  "A Lead Climate Project Sponsor deposits the Commitment Fee on Day 1"
+  remainingGbp(amex) === 3000,
+  "American Express deposits the Commitment Fee into the Carbon Wallet"
 );
 assert(
-  remainingGbp({ ...amex, goalsScored: 2 }) === 7000,
-  "Goals-scored Sponsorship Cash is added for each goal the sponsored team scores"
+  remainingGbp({ ...amex, goalsScored: 1 }) === 6000,
+  "The Carbon Wallet increases when the sponsored team scores"
 );
+assert(walletVoteAmount(amex) === 0.5, "An Amex Vote takes £0.50");
 
 const projects = [
   { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
@@ -88,6 +96,40 @@ if (voted.ok) {
   assert(
     formatWalletGbp(remainingGbp(voted.wallet)) === "£749.90",
     "Remaining cash is shown with pence"
+  );
+}
+
+const leadVoted = allocateWalletVote({
+  wallet: amex,
+  projects,
+  projectNumber: 2,
+});
+assert(leadVoted.ok, "Inserting 2 in Amex Checkbox 1 and pressing Vote succeeds");
+if (leadVoted.ok) {
+  assert(
+    remainingGbp(leadVoted.wallet) === 2999.5,
+    "Amex Carbon Wallet then displays £2,999.50"
+  );
+  assert(
+    leadVoted.project.number === 2 && leadVoted.project.fundedGbp === 0.5,
+    "Project 2 receives £0.50 from the Amex Carbon Wallet"
+  );
+}
+
+const split = allocateSplitWalletVote({
+  wallet: amex,
+  projects,
+});
+assert(split.ok, "Ticking Checkbox 2 shares the Amex Vote across all 5 projects");
+if (split.ok) {
+  assert(split.amount === 0.5, "Checkbox 2 takes £0.50 from the Amex Carbon Wallet");
+  assert(
+    split.projects.every((project) => project.fundedGbp === 0.1),
+    "Each Climate Project receives £0.10 from Checkbox 2"
+  );
+  assert(
+    remainingGbp(split.wallet) === 2999.5,
+    "The Amex Carbon Wallet falls by £0.50 after Checkbox 2"
   );
 }
 
@@ -133,14 +175,54 @@ assert(
     folder.projectsFile?.fileName === "Climate Projects File 10th October 2026",
   "SUBMIT stamps the Match-Day folder so fans can see both files"
 );
+assert(
+  isMatchDayFolderVisible(folder, "2026-10-10T15:00:00.000Z"),
+  "Posted Climate Projects stay on My S4P during the 5-day window"
+);
+assert(
+  !isMatchDayFolderVisible(
+    folder,
+    new Date(new Date("2026-10-07T15:00:00.000Z").getTime() + 5 * MS_PER_DAY + 1)
+  ),
+  "Posted Climate Projects disappear 5 days after they are uploaded"
+);
 
 const clubPage = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match-Day folder");
 assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");
 
 const fanPage = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
-assert(fanPage.includes("MatchDayWalletVote"), "My S4P lets fans take cash from a sponsor wallet");
+assert(
+  fanPage.includes("ClimateProjectSponsors"),
+  "My S4P lets fans take cash from a Carbon Wallet"
+);
+assert(
+  fanPage.includes("Climate Projects List"),
+  "My S4P uses the Climate Projects List heading"
+);
+assert(
+  !fanPage.includes("Climate Project list"),
+  "My S4P no longer duplicates Climate Project list"
+);
+assert(
+  fanPage.includes("showSponsors={false}"),
+  "My S4P Climate Projects List has no sponsor logo or name"
+);
+assert(!fanPage.includes("MatchDayWalletVote"), "My S4P no longer uses the mixed wallet list");
+assert(!fanPage.includes("TodaysClimateSponsors"), "My S4P does not mix local logos into the Amex bar");
 assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Projects");
+
+const sponsorsUi = readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8");
+assert(
+  sponsorsUi.includes("Carbon Wallet") &&
+    sponsorsUi.includes("Checkbox 1") &&
+    sponsorsUi.includes("Checkbox 2"),
+  "The Lead Climate Sponsor has a Carbon Wallet and two checkboxes"
+);
+assert(
+  !sponsorsUi.includes("TodaysClimateSponsors"),
+  "Local Business Climate Sponsor logos stay out of the Amex strip"
+);
 
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(votePage.includes("MatchDayWalletVote"), "Climate Projects uses wallet votes");
@@ -157,11 +239,19 @@ assert(localPage.includes("10%"), "Local registration states the 10% management 
 
 assert(MATCH_DAY_FOLDER_NAME === "Match-Day", "The folder is called Match-Day");
 
+const preview = readFileSync("app/preview/my-s4p/page.tsx", "utf8");
+assert(
+  preview.includes("Climate Projects List") &&
+    preview.includes("American Express") &&
+    preview.includes("showSponsors={false}"),
+  "The My S4P preview shows numbered Climate Projects without sponsor branding"
+);
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
 
 console.log(
-  "Wallet votes move £0.10 from a sponsor wallet into a numbered Climate Project; Match-Day files submit as Sponsors File and Climate Projects File."
+  "Lead Votes move £0.50 and local Votes move £0.10 from a Carbon Wallet into numbered Climate Projects; posts disappear after 5 days."
 );

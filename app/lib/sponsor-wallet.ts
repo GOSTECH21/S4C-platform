@@ -1,6 +1,9 @@
 /** Climate Sponsorship Wallets: fans take cash from a sponsor and put it on a project. */
 
+/** Local Business Climate Sponsor: one Vote moves this amount to one project. */
 export const DEFAULT_WALLET_VOTE_GBP = 0.1;
+/** Lead Climate Project Sponsor: Checkbox 1 or Checkbox 2 moves this amount. */
+export const LEAD_WALLET_VOTE_GBP = 0.5;
 export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
 
 export type SponsorWalletKind = "lead" | "local";
@@ -38,6 +41,7 @@ export type WalletVoteSuccess = {
   amount: number;
   wallet: ClimateWallet;
   project: NumberedClimateProject;
+  projects: NumberedClimateProject[];
 };
 
 export type WalletVoteFailure = {
@@ -226,11 +230,15 @@ export function parseProjectNumber(
   return number;
 }
 
+export function walletVoteAmount(wallet: Pick<ClimateWallet, "kind">): number {
+  return wallet.kind === "lead" ? LEAD_WALLET_VOTE_GBP : DEFAULT_WALLET_VOTE_GBP;
+}
+
 export function allocateWalletVote({
   wallet,
   projects,
   projectNumber,
-  amount = DEFAULT_WALLET_VOTE_GBP,
+  amount,
   now = new Date(),
 }: {
   wallet: ClimateWallet;
@@ -239,7 +247,9 @@ export function allocateWalletVote({
   amount?: number;
   now?: Date | string;
 }): WalletVoteResult {
-  const voteGbp = roundGbp(Math.max(0, Number(amount) || 0));
+  const voteGbp = roundGbp(
+    Math.max(0, Number(amount ?? walletVoteAmount(wallet)) || 0)
+  );
   if (!(voteGbp > 0)) {
     return { ok: false, error: "Each vote must move cash from a sponsor wallet." };
   }
@@ -264,6 +274,11 @@ export function allocateWalletVote({
       error: `Project ${number} is not on this Match Day list.`,
     };
   }
+  const nextProject = {
+    ...project,
+    fundedGbp: roundGbp(Math.max(0, Number(project.fundedGbp) || 0) + voteGbp),
+    votesReceived: Math.max(0, Math.round(Number(project.votesReceived) || 0)) + 1,
+  };
   return {
     ok: true,
     amount: voteGbp,
@@ -272,11 +287,55 @@ export function allocateWalletVote({
       allocatedGbp: roundGbp(Math.max(0, Number(wallet.allocatedGbp) || 0) + voteGbp),
       updatedAt: asIso(now),
     },
-    project: {
-      ...project,
-      fundedGbp: roundGbp(Math.max(0, Number(project.fundedGbp) || 0) + voteGbp),
-      votesReceived: Math.max(0, Math.round(Number(project.votesReceived) || 0)) + 1,
+    project: nextProject,
+    projects: projects.map((row) =>
+      row.number === nextProject.number ? nextProject : row
+    ),
+  };
+}
+
+/** Checkbox 2: take the lead Vote amount and share it equally across every project. */
+export function allocateSplitWalletVote({
+  wallet,
+  projects,
+  amount = LEAD_WALLET_VOTE_GBP,
+  now = new Date(),
+}: {
+  wallet: ClimateWallet;
+  projects: NumberedClimateProject[];
+  amount?: number;
+  now?: Date | string;
+}): WalletVoteResult {
+  if (projects.length === 0) {
+    return { ok: false, error: "No Climate Projects are posted for this Match Day." };
+  }
+  const share = roundGbp(Math.max(0, Number(amount) || 0) / projects.length);
+  const total = roundGbp(share * projects.length);
+  if (!(total > 0)) {
+    return { ok: false, error: "Each vote must move cash from a Carbon Wallet." };
+  }
+  const left = remainingGbp(wallet);
+  if (left < total) {
+    return {
+      ok: false,
+      error: `${wallet.brandName}'s Carbon Wallet does not have ${formatWalletGbp(total)} remaining.`,
+    };
+  }
+  const nextProjects = projects.map((project) => ({
+    ...project,
+    fundedGbp: roundGbp(Math.max(0, Number(project.fundedGbp) || 0) + share),
+    votesReceived: Math.max(0, Math.round(Number(project.votesReceived) || 0)) + 1,
+  }));
+  return {
+    ok: true,
+    amount: total,
+    wallet: {
+      ...wallet,
+      allocatedGbp: roundGbp(Math.max(0, Number(wallet.allocatedGbp) || 0) + total),
+      updatedAt: asIso(now),
     },
+    project: nextProjects[0],
+    projects: nextProjects,
   };
 }
 

@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
-import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
+import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
+import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import {
+  allocateSplitWalletVote,
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
+  DEFAULT_WALLET_VOTE_GBP,
   formatWalletGbp,
   remainingGbp,
   type ClimateWallet,
@@ -39,7 +42,7 @@ function seedWallets(): ClimateWallet[] {
     createLeadWallet({
       clubName: "Hibernian",
       brandName: "American Express",
-      commitmentFeeGbp: 1000,
+      commitmentFeeGbp: 3000,
       gbpPerGoal: 3000,
     }),
     createLocalWallet({
@@ -85,14 +88,16 @@ export default function WalletVotePreviewPage() {
     [wallets]
   );
 
-  function vote(brandName: string, projectNumber: string) {
+  function vote(brandName: string, projectNumber: string, split = false) {
     const wallet = wallets.find((row) => row.brandName === brandName);
     if (!wallet) return;
-    const result = allocateWalletVote({
-      wallet,
-      projects,
-      projectNumber: Number(projectNumber),
-    });
+    const result = split
+      ? allocateSplitWalletVote({ wallet, projects })
+      : allocateWalletVote({
+          wallet,
+          projects,
+          projectNumber: Number(projectNumber),
+        });
     if (!result.ok) {
       setError(result.error);
       setNotice(null);
@@ -102,11 +107,11 @@ export default function WalletVotePreviewPage() {
     setWallets((prev) =>
       prev.map((row) => (row.brandName === result.wallet.brandName ? result.wallet : row))
     );
-    setProjects((prev) =>
-      prev.map((row) => (row.id === result.project.id ? result.project : row))
-    );
+    setProjects(result.projects);
     setNotice(
-      `${result.wallet.brandName}'s wallet now shows ${formatWalletGbp(remainingGbp(result.wallet))} Remaining; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
+      split
+        ? `${result.wallet.brandName}'s Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}; each project received ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.`
+        : `${result.wallet.brandName}'s Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
     );
   }
 
@@ -173,12 +178,49 @@ export default function WalletVotePreviewPage() {
                 ✓ {notice}
               </div>
             )}
-            <MatchDayWalletVote
-              clubName="Hibernian"
-              projects={projects}
-              sponsors={sponsors}
-              onVote={vote}
-            />
+            <section className="mt-10">
+              <h2 className="text-3xl font-black">Climate Projects List</h2>
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                {projects.map((project) => (
+                  <MatchDayProjectCard
+                    key={project.id}
+                    project={project}
+                    cardIndex={project.number}
+                    clubName="Hibernian"
+                    showVote={false}
+                    showSponsors={false}
+                    fundedGbp={project.fundedGbp}
+                  />
+                ))}
+              </div>
+            </section>
+            <div className="mt-12">
+              <ClimateProjectSponsors
+                lead={
+                  sponsors
+                    .filter((row) => row.kind === "lead")
+                    .map((row) => ({
+                      brandName: row.brandName,
+                      kind: "lead" as const,
+                      remainingGbp: row.remainingGbp,
+                    }))[0] ?? null
+                }
+                locals={sponsors
+                  .filter((row) => row.kind === "local")
+                  .map((row) => ({
+                    brandName: row.brandName,
+                    kind: "local" as const,
+                    remainingGbp: row.remainingGbp,
+                  }))}
+                projectCount={projects.length}
+                onLeadVote={({ projectNumber, split }) =>
+                  vote("American Express", projectNumber ?? "", split)
+                }
+                onLocalVote={(brandName, projectNumber) =>
+                  vote(brandName, projectNumber)
+                }
+              />
+            </div>
           </section>
         )}
       </div>

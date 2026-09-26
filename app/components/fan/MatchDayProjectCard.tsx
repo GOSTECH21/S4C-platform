@@ -6,6 +6,7 @@ import {
   climateProjectHeroClass,
 } from "@/app/lib/match-day-local-sponsors";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export function MatchDayProjectCard({
   project,
@@ -19,6 +20,8 @@ export function MatchDayProjectCard({
   disabled = false,
   onToggle,
   showVote = true,
+  showSponsors = true,
+  fundedGbp,
 }: {
   project: {
     id: string;
@@ -29,7 +32,7 @@ export function MatchDayProjectCard({
   };
   cardIndex: number;
   clubName?: string;
-  leadName: string;
+  leadName?: string;
   leadLogoUrl?: string | null;
   local?: LocalSponsorRecord | null;
   localScale?: number;
@@ -37,6 +40,8 @@ export function MatchDayProjectCard({
   disabled?: boolean;
   onToggle?: () => void;
   showVote?: boolean;
+  showSponsors?: boolean;
+  fundedGbp?: number;
 }) {
   const tags = climateImpactTags(project);
   const hero = climateProjectHeroClass(project);
@@ -58,26 +63,41 @@ export function MatchDayProjectCard({
         ) : (
           <div className={`h-full w-full bg-gradient-to-br ${hero}`} />
         )}
-        <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-rose-700 text-sm font-black text-white">
+        <span className="absolute right-3 top-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-700 text-2xl font-black text-white shadow-lg">
           {cardIndex}
         </span>
       </div>
       <div className="flex flex-1 flex-col px-4 pb-4 pt-4">
-        <h3 className="text-lg font-black leading-tight">{project.name}</h3>
+        <h3 className="flex items-start gap-3 text-lg font-black leading-tight">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-700 text-xl font-black text-white">
+            {cardIndex}
+          </span>
+          <span>{project.name}</span>
+        </h3>
         <p className="mt-2 flex-1 text-sm leading-6 text-slate-300">
           {project.description ||
             (clubName
               ? `A Match Day Climate Project posted by ${clubName}.`
               : "A Match Day Climate Project.")}
         </p>
-        <DualSponsorStrip
-          leadName={leadName}
-          leadLogoUrl={leadLogoUrl}
-          localName={local?.brandName ?? null}
-          localLogoUrl={local?.logoUrl}
-          localTagline={local?.tagline}
-          localScale={localScale}
-        />
+        {showSponsors && leadName ? (
+          <DualSponsorStrip
+            leadName={leadName}
+            leadLogoUrl={leadLogoUrl}
+            localName={local?.brandName ?? null}
+            localLogoUrl={local?.logoUrl}
+            localTagline={local?.tagline}
+            localScale={localScale}
+          />
+        ) : null}
+        {typeof fundedGbp === "number" ? (
+          <p className="mt-3 text-sm">
+            <span className="text-slate-400">Received </span>
+            <span className="font-black text-green-400">
+              {formatWalletGbp(fundedGbp)}
+            </span>
+          </p>
+        ) : null}
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] font-semibold text-emerald-300">
           {tags.map((tag) => (
             <span key={tag}>{tag}</span>

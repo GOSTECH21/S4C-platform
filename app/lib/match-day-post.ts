@@ -1,5 +1,6 @@
 import { seasonNamesMatch } from "./current-season";
 import { isVoteUuid } from "./fan-votes";
+import { VOTING_PERIOD_DAYS, MS_PER_DAY, addDays } from "./voting-window";
 
 export const MATCH_DAY_PORTFOLIO_SELECTED = "selected";
 export const MATCH_DAY_PORTFOLIO_POSTED = "posted";
@@ -102,11 +103,18 @@ export function fanPostVisibleAt(postedAt: string | Date): Date {
   return new Date(Number.isFinite(start) ? start : Date.now());
 }
 
+export function fanPostExpiresAt(postedAt: string | Date): Date {
+  return addDays(fanPostVisibleAt(postedAt), VOTING_PERIOD_DAYS);
+}
+
 export function isFanPostVisible(
-  _visibleAt?: string | Date | null,
-  _now = Date.now()
+  visibleAt?: string | Date | null,
+  now = Date.now()
 ): boolean {
-  return true;
+  if (!visibleAt) return true;
+  const start = new Date(visibleAt).getTime();
+  if (!Number.isFinite(start)) return true;
+  return now <= start + VOTING_PERIOD_DAYS * MS_PER_DAY;
 }
 
 export function writeFanPostSchedule(schedule: FanPostSchedule) {
@@ -253,6 +261,6 @@ export function fanPostVisibility(options: {
   return {
     postedAt,
     visibleAt,
-    isVisible: true,
+    isVisible: isFanPostVisible(postedAt || visibleAt, options.now ?? Date.now()),
   };
 }

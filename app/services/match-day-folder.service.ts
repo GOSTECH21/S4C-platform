@@ -1,6 +1,6 @@
 import { MATCH_DAY_PROJECT_COUNT } from "../lib/partner-projects";
 import {
-  applyFundingToProjectsFile,
+  applyFundingListToProjectsFile,
   applyRemainingToSponsorsFile,
   buildProjectsFile,
   buildSponsorsFile,
@@ -14,10 +14,11 @@ import {
   type MatchDayFolder,
 } from "../lib/match-day-folder";
 import {
+  allocateSplitWalletVote,
   allocateWalletVote,
   numberClimateProjects,
-  parseProjectNumber,
   remainingGbp,
+  walletVoteAmount,
   type ClimateWallet,
   type NumberedClimateProject,
   type WalletVoteResult,
@@ -228,60 +229,104 @@ export function applyFanWalletVote({
   clubName,
   brandName,
   projectNumber,
+  split = false,
+  amount,
+  projects: fallbackProjects = [],
 }: {
   clubId: string;
   clubName: string;
   brandName: string;
-  projectNumber: string | number;
+  projectNumber?: string | number;
+  split?: boolean;
+  amount?: number;
+  projects?: NumberedClimateProject[];
 }): WalletVoteResult & { folder?: MatchDayFolder } {
   const folder = visibleMatchDayFolderForClub({ clubId, clubName });
-  if (!folder?.projectsFile || !folder.sponsorsFile) {
+  const projects =
+    folder?.projectsFile?.projects?.length
+      ? folder.projectsFile.projects
+      : fallbackProjects;
+  if (projects.length === 0) {
     return {
       ok: false,
       error:
-        "The Sustainability Director has not submitted the Match-Day Sponsors File and Climate Projects File yet.",
+        "The Sustainability Director has not posted Climate Projects for this Match Day yet.",
     };
   }
-  const number = parseProjectNumber(
-    projectNumber,
-    folder.projectsFile.projects.length
-  );
-  if (number == null) {
-    return {
-      ok: false,
-      error: `Insert a project number from 1 to ${folder.projectsFile.projects.length} next to the wallet.`,
-    };
+  let wallets = listClimateWalletsForClub(folder?.clubName || clubName);
+  if (wallets.length === 0) {
+    wallets = identifyClubSponsorWallets({ clubId, clubName });
   }
-  const wallets = listClimateWalletsForClub(folder.clubName);
   const wallet =
     wallets.find(
       (row) => row.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
     ) ?? null;
   if (!wallet) {
-    return { ok: false, error: `No Climate Sponsorship Wallet found for ${brandName}.` };
+    return { ok: false, error: `No Carbon Wallet found for ${brandName}.` };
   }
-  const result = allocateWalletVote({
-    wallet,
-    projects: folder.projectsFile.projects,
-    projectNumber: number,
-  });
+  const voteAmount = amount ?? walletVoteAmount(wallet);
+  const result = split
+    ? allocateSplitWalletVote({ wallet, projects, amount: voteAmount })
+    : allocateWalletVote({
+        wallet,
+        projects,
+        projectNumber: Number(projectNumber),
+        amount: voteAmount,
+      });
   if (!result.ok) return result;
   writeClimateWallet(result.wallet);
-  const nextFolder = writeMatchDayFolder({
-    ...folder,
-    sponsorsFile: applyRemainingToSponsorsFile(folder.sponsorsFile, result.wallet),
-    projectsFile: applyFundingToProjectsFile(folder.projectsFile, result.project),
-  });
-  return { ...result, folder: nextFolder, wallet: result.wallet };
+  if (folder?.sponsorsFile && folder.projectsFile) {
+    const nextFolder = writeMatchDayFolder({
+      ...folder,
+      sponsorsFile: applyRemainingToSponsorsFile(folder.sponsorsFile, result.wallet),
+      projectsFile: applyFundingListToProjectsFile(
+        folder.projectsFile,
+        result.projects
+      ),
+    });
+    return { ...result, folder: nextFolder };
+  }
+  return result;
 }
 
 export function fanVisibleProjects(folder: MatchDayFolder | null): NumberedClimateProject[] {
   return folder?.projectsFile?.projects ?? [];
 }
 
-export function fanVisibleSponsors(folder: MatchDayFolder | null) {
+export function fanVisibleSponsors(
+  folder: MatchDayFolder | null,
+  options?: {
+    clubId?: string;
+    clubName?: string;
+    minAmount?: number | null;
+    gbpPerGoal?: number | null;
+  }
+) {
   const rows = folder?.sponsorsFile?.sponsors ?? [];
-  const wallets = folder ? listClimateWalletsForClub(folder.clubName) : [];
+  const clubName = folder?.clubName || options?.clubName || "";
+  let wallets = clubName ? listClimateWalletsForClub(clubName) : [];
+  if (
+    wallets.length === 0 &&
+    options?.clubId &&
+    options.clubName
+  ) {
+    wallets = identifyClubSponsorWallets({
+      clubId: options.clubId,
+      clubName: options.clubName,
+      minAmount: options.minAmount,
+      gbpPerGoal: options.gbpPerGoal,
+    });
+  }
+  if (rows.length === 0) {
+    return wallets.map((wallet) => ({
+      brandName: wallet.brandName,
+      kind: wallet.kind,
+      remainingGbp: remainingGbp(wallet),
+      committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
+      commitmentFeeGbp: wallet.commitmentFeeGbp,
+      gbpPerGoal: wallet.gbpPerGoal,
+    }));
+  }
   return rows.map((row) => {
     const wallet = wallets.find(
       (item) => item.brandName.trim().toLowerCase() === row.brandName.trim().toLowerCase()

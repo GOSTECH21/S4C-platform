@@ -552,7 +552,7 @@ export async function getMyS4PCampaigns(
     campaigns.push(fromPortfolio);
   }
 
-  return campaigns;
+  return campaigns.filter((campaign) => campaign.isVisible !== false);
 }
 
 export async function getMyS4PCampaign(
@@ -754,6 +754,7 @@ async function campaignFromClubPortfolio(
     brandExposures: auction.brandExposures,
     ...fanPostVisibility({
       clubId: postedClubId,
+      postedAt: posted?.postedAt ?? null,
     }),
     ...campaignVotingFields({
       kickoff: await loadFixtureKickoff(fixtureId),
