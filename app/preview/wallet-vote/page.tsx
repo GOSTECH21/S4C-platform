@@ -213,11 +213,8 @@ export default function WalletVotePreviewPage() {
                     remainingGbp: row.remainingGbp,
                   }))}
                 projectCount={projects.length}
-                onLeadVote={({ projectNumber, split }) =>
-                  vote("American Express", projectNumber ?? "", split)
-                }
-                onLocalVote={(brandName, projectNumber) =>
-                  vote(brandName, projectNumber)
+                onVote={({ brandName, projectNumber, split }) =>
+                  vote(brandName, projectNumber ?? "", split)
                 }
               />
             </div>

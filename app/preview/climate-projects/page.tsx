@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
 import {
@@ -30,10 +30,6 @@ export default function ClimateProjectsPreviewPage() {
       sponsorshipGbp: 750,
     })
   );
-  const votedNames = useMemo(
-    () => projects.filter((project) => project.fundedGbp > 0).map((row) => row.name),
-    [projects]
-  );
 
   function vote(_brandName: string, projectNumber: string) {
     const result = allocateWalletVote({
@@ -43,9 +39,7 @@ export default function ClimateProjectsPreviewPage() {
     });
     if (!result.ok) return;
     setWallet(result.wallet);
-    setProjects((prev) =>
-      prev.map((row) => (row.id === result.project.id ? result.project : row))
-    );
+    setProjects(result.projects);
   }
 
   return (
@@ -68,17 +62,14 @@ export default function ClimateProjectsPreviewPage() {
               Projects Voted for
             </p>
             <h2 className="mt-2 text-2xl font-black">Hibernian</h2>
-            {votedNames.length === 0 ? (
-              <p className="mt-4 text-slate-400">
-                You have not moved cash into any climate projects yet.
-              </p>
-            ) : (
-              <ul className="mt-4 space-y-1 text-slate-300">
-                {votedNames.map((name) => (
-                  <li key={name}>• {name}</li>
-                ))}
-              </ul>
-            )}
+            <ul className="mt-4 space-y-1 text-slate-300">
+              {projects.map((project) => (
+                <li key={project.id}>
+                  • Project {project.number}: {project.name} —{" "}
+                  {formatWalletGbp(project.fundedGbp)}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <MatchDayWalletVote

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   getMyS4PCampaigns,
@@ -13,8 +13,9 @@ import {
   type Supporter,
 } from "@/app/services/votes.service";
 import FanNav from "../components/FanNav";
-import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
+import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import {
   fanVotingWindowCopy,
   fanVotingWindowForMatchCopy,
@@ -28,7 +29,6 @@ import {
   visibleMatchDayFolderForClub,
 } from "@/app/services/match-day-folder.service";
 import {
-  DEFAULT_WALLET_VOTE_GBP,
   formatWalletGbp,
   remainingGbp,
   type NumberedClimateProject,
@@ -91,10 +91,9 @@ export default function VotePage() {
             </p>
             <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
             <p className="mt-3 max-w-2xl text-slate-300">
-              Projects you have funded appear in the box. Look up a sponsor
-              wallet, insert a project number, then press VOTE. Each vote takes{" "}
-              {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet and
-              puts it into the Climate Project. {fanVotingWindowCopy()}
+              Received amounts are cumulative for the 5-day Vote. Check them
+              here at any time. You can take money once from each sponsor.{" "}
+              {fanVotingWindowCopy()}
             </p>
           </div>
 
@@ -121,8 +120,8 @@ export default function VotePage() {
           <div className="mt-10 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8">
             <p className="text-slate-300">
               No Match Day climate projects are posted yet. When your club
-              submits the Match-Day folder, the project list and sponsor wallets
-              appear here.
+              Sustainability Director posts Climate Projects, the running
+              Received totals appear here for 5 days.
             </p>
           </div>
         ) : (
@@ -154,33 +153,35 @@ function CampaignClimateBoard({
   votedIds: Set<string>;
   onVoted: (projectId: string) => void;
 }) {
-  const projects = campaignProjects(campaign);
+  const listed = campaignProjects(campaign);
   const clubId = campaign.postedClubId ?? campaign.clubId;
   const [folder, setFolder] = useState<MatchDayFolder | null>(() =>
     visibleMatchDayFolderForClub({ clubId, clubName: campaign.clubName })
   );
+  const fallback = listed.map((project, index) => ({
+    id: project.id,
+    name: project.name,
+    number: index + 1,
+    fundedGbp: 0,
+    votesReceived: project.votesReceived,
+  }));
   const [numbered, setNumbered] = useState<NumberedClimateProject[]>(() =>
-    fanVisibleProjects(folder).length
-      ? fanVisibleProjects(folder)
-      : projects.map((project, index) => ({
-          id: project.id,
-          name: project.name,
-          number: index + 1,
-          fundedGbp: 0,
-          votesReceived: project.votesReceived,
-        }))
+    fanVisibleProjects(folder, clubId, fallback)
   );
-  const [sponsors, setSponsors] = useState(() => fanVisibleSponsors(folder));
+  const [sponsors, setSponsors] = useState(() =>
+    fanVisibleSponsors(folder, {
+      clubId,
+      clubName: campaign.clubName,
+      minAmount: campaign.minimumAmount,
+      gbpPerGoal: campaign.gbpPerGoal,
+    })
+  );
+  const [usedSponsors, setUsedSponsors] = useState<string[]>(() =>
+    fanVotedSponsorNames(supporterId, clubId)
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const campaignVoted = useMemo(
-    () =>
-      numbered.filter(
-        (project) => votedIds.has(project.id) || project.fundedGbp > 0
-      ),
-    [numbered, votedIds]
-  );
   const votingWindow = resolveVotingWindow({
     kickoff: campaign.kickoffAt,
     opensAt: campaign.votingOpens,
@@ -188,13 +189,43 @@ function CampaignClimateBoard({
     postedAt: campaign.postedAt,
   });
   const votingOpen = isVotingOpen(votingWindow);
-  const votingMessage = `${
-    campaign.kickoffAt
-      ? fanVotingWindowForMatchCopy(votingWindow)
-      : fanVotingWindowCopy()
-  } Insert a project number next to a wallet and press VOTE. Each vote takes ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet.`;
 
-  async function voteFromWallet(brandName: string, projectNumber: string) {
+  useEffect(() => {
+    function refresh() {
+      const next = visibleMatchDayFolderForClub({
+        clubId,
+        clubName: campaign.clubName,
+      });
+      setFolder(next);
+      setNumbered((prev) => fanVisibleProjects(next, clubId, prev));
+      setSponsors(
+        fanVisibleSponsors(next, {
+          clubId,
+          clubName: campaign.clubName,
+          minAmount: campaign.minimumAmount,
+          gbpPerGoal: campaign.gbpPerGoal,
+        })
+      );
+      setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
+    }
+    refresh();
+    const timer = window.setInterval(refresh, 5000);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
+
+  async function voteFromWallet({
+    brandName,
+    projectNumber,
+    split = false,
+  }: {
+    brandName: string;
+    projectNumber?: string;
+    split?: boolean;
+  }) {
     if (!supporterId) return;
     if (!votingOpen) {
       setError("Voting is not open for this match yet, or it has already closed.");
@@ -209,21 +240,34 @@ function CampaignClimateBoard({
         clubName: campaign.clubName,
         brandName,
         projectNumber,
+        split,
+        supporterId,
+        projects: numbered,
       });
       if (!result.ok) {
         setError(result.error);
         return;
       }
       setFolder(result.folder ?? folder);
-      setNumbered(fanVisibleProjects(result.folder ?? folder));
-      setSponsors(fanVisibleSponsors(result.folder ?? folder));
-      onVoted(result.project.id);
+      setNumbered(result.projects);
+      setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
+      setSponsors(
+        fanVisibleSponsors(result.folder ?? folder, {
+          clubId,
+          clubName: campaign.clubName,
+          minAmount: campaign.minimumAmount,
+          gbpPerGoal: campaign.gbpPerGoal,
+        })
+      );
+      const votedNow = split
+        ? result.projects.map((project) => project.id)
+        : [result.project.id];
+      votedNow.forEach(onVoted);
       try {
-        const nextIds = [...new Set([...votedIds, result.project.id])];
         await submitCampaignVotes(
           supporterId,
-          nextIds,
-          projects.map((project) => project.id),
+          [...new Set([...votedIds, ...votedNow])],
+          listed.map((project) => project.id),
           campaign.campaignId,
           clubId
         );
@@ -231,7 +275,9 @@ function CampaignClimateBoard({
         // Wallet cash has already moved.
       }
       setNotice(
-        `${result.wallet.brandName}'s wallet now shows ${formatWalletGbp(remainingGbp(result.wallet))} Remaining; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
+        split
+          ? `Vote shared ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
+          : `${result.wallet.brandName}'s Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
       );
     } catch (err) {
       setError(describeDataError(err, "Could not save your vote."));
@@ -240,6 +286,9 @@ function CampaignClimateBoard({
     }
   }
 
+  const lead = sponsors.find((row) => row.kind === "lead") ?? null;
+  const locals = sponsors.filter((row) => row.kind === "local");
+
   return (
     <section className="mt-10 space-y-8">
       <div className="rounded-2xl border border-green-500/30 bg-slate-900 p-6">
@@ -247,21 +296,21 @@ function CampaignClimateBoard({
           Projects Voted for
         </p>
         <h2 className="mt-2 text-2xl font-black">{campaign.clubName}</h2>
-        {campaignVoted.length === 0 ? (
-          <p className="mt-4 text-slate-400">
-            You have not moved cash into any climate projects for{" "}
-            {campaign.clubName} yet.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-1 text-slate-300">
-            {campaignVoted.map((project) => (
-              <li key={project.id}>
-                • Project {project.number}: {project.name} —{" "}
-                {formatWalletGbp(project.fundedGbp)}
-              </li>
-            ))}
-          </ul>
-        )}
+        <p className="mt-1 text-sm text-slate-400">
+          Cumulative Received for the 5-day Vote
+          {campaign.kickoffAt
+            ? `. ${fanVotingWindowForMatchCopy(votingWindow)}`
+            : ""}
+          .
+        </p>
+        <ul className="mt-4 space-y-1 text-slate-300">
+          {numbered.map((project) => (
+            <li key={project.id}>
+              • Project {project.number}: {project.name} —{" "}
+              {formatWalletGbp(project.fundedGbp)}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {error && (
@@ -275,16 +324,57 @@ function CampaignClimateBoard({
         </div>
       )}
 
-      <MatchDayWalletVote
-        clubName={campaign.clubName}
-        projects={numbered}
-        sponsors={sponsors}
-        onVote={(brandName, projectNumber) =>
-          void voteFromWallet(brandName, projectNumber)
+      <div>
+        <h2 className="text-2xl font-black">Climate Project list</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          The Received amount on each project is the running total from every
+          fan during this 5-day Vote.
+        </p>
+        <ol className="mt-4 grid gap-3 md:grid-cols-5">
+          {numbered.map((project) => (
+            <li
+              key={project.id}
+              className="rounded-2xl border border-slate-800 bg-slate-900 p-4"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-green-400">
+                Project {project.number}
+              </p>
+              <h3 className="mt-2 font-bold leading-tight text-white">
+                {project.name}
+              </h3>
+              <p className="mt-3 text-sm text-slate-400">Received</p>
+              <p className="text-xl font-black text-green-400">
+                {formatWalletGbp(project.fundedGbp)}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <ClimateProjectSponsors
+        lead={
+          lead
+            ? {
+                brandName: lead.brandName,
+                kind: "lead",
+                remainingGbp: lead.remainingGbp,
+              }
+            : null
         }
+        locals={locals.map((row) => ({
+          brandName: row.brandName,
+          kind: "local" as const,
+          remainingGbp: row.remainingGbp,
+        }))}
+        projectCount={numbered.length || 5}
         busy={busy}
         votingOpen={votingOpen}
-        votingMessage={votingMessage}
+        usedSponsorNames={usedSponsors}
+        clubId={clubId}
+        clubName={campaign.clubName}
+        onVote={({ brandName, projectNumber, split }) =>
+          void voteFromWallet({ brandName, projectNumber, split })
+        }
       />
     </section>
   );

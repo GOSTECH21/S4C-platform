@@ -59,8 +59,13 @@ const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(page.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(!page.includes("Posted for"), "The posted-for box no longer lists posted projects");
 assert(
-  page.includes("MatchDayWalletVote"),
+  page.includes("ClimateProjectSponsors"),
   "Climate Projects lets fans take cash from a sponsor wallet"
+);
+assert(
+  page.includes("Climate Project list") &&
+    page.includes("formatWalletGbp(project.fundedGbp)"),
+  "Climate Project list shows the cumulative Received amount"
 );
 
 const preview = readFileSync("app/preview/climate-projects/page.tsx", "utf8");

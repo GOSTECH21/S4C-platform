@@ -13,6 +13,10 @@ import {
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
 import { storedFullName } from "@/app/lib/s4p-admin";
+import {
+  captureClimateInviteFromSearch,
+  readInvitedClubs,
+} from "@/app/lib/climate-funding";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -24,8 +28,12 @@ export default function RegisterPage() {
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invitedClub, setInvitedClub] = useState(() =>
+    typeof window === "undefined" ? null : captureClimateInviteFromSearch()
+  );
 
   useEffect(() => {
+    setInvitedClub(captureClimateInviteFromSearch() ?? readInvitedClubs()[0] ?? null);
     getTeamCatalog()
       .then(setCatalog)
       .catch((err) =>
@@ -42,7 +50,7 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return;
     }
-    if (teams.length === 0) {
+    if (teams.length === 0 && !invitedClub) {
       setError("Select at least one team you want to support.");
       return;
     }
@@ -96,7 +104,7 @@ export default function RegisterPage() {
         full_name: fullName,
         email: user.email,
         auth_user_id: user.id,
-        favourite_club_id: teams[0].id,
+        favourite_club_id: teams[0]?.id ?? uuidOrNull(invitedClub?.clubId),
         notification_enabled: true,
       })
       .select("id")
@@ -123,7 +131,9 @@ export default function RegisterPage() {
     }
 
     try {
-      await saveSupportedTeams(user.id, supporterId, teams);
+      if (teams.length > 0) {
+        await saveSupportedTeams(user.id, supporterId, teams);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your teams.");
       setBusy(false);
@@ -146,12 +156,14 @@ export default function RegisterPage() {
         </p>
         <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
         <p className="mt-2 text-slate-400">
-          Create your account with your real name and email, then choose the
+          {invitedClub
+            ? `You've been invited to help put remaining Carbon Wallet funds into ${invitedClub.clubName} Climate Projects. You do not need to support that club — register and you can take money once from each remaining sponsor.`
+            : `Create your account with your real name and email, then choose the
           teams you support across the four sports categories: Football (Goal
           scored), Rugby (Try scored), NFL (Touchdown scored) and NBA (3-Point
           Score Sponsorship). You will only see sponsored climate projects when
           those teams are playing — and you will get a match-day alert when a
-          sponsored match is live.
+          sponsored match is live.`}
         </p>
 
         {error && (
@@ -250,4 +262,13 @@ export default function RegisterPage() {
       </div>
     </main>
   );
+}
+
+function uuidOrNull(value?: string | null): string | null {
+  if (!value) return null;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  )
+    ? value
+    : null;
 }

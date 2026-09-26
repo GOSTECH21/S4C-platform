@@ -298,7 +298,7 @@ export function allocateWalletVote({
 export function allocateSplitWalletVote({
   wallet,
   projects,
-  amount = LEAD_WALLET_VOTE_GBP,
+  amount,
   now = new Date(),
 }: {
   wallet: ClimateWallet;
@@ -309,7 +309,10 @@ export function allocateSplitWalletVote({
   if (projects.length === 0) {
     return { ok: false, error: "No Climate Projects are posted for this Match Day." };
   }
-  const share = roundGbp(Math.max(0, Number(amount) || 0) / projects.length);
+  const voteGbp = roundGbp(
+    Math.max(0, Number(amount ?? walletVoteAmount(wallet)) || 0)
+  );
+  const share = roundGbp(voteGbp / projects.length);
   const total = roundGbp(share * projects.length);
   if (!(total > 0)) {
     return { ok: false, error: "Each vote must move cash from a Carbon Wallet." };

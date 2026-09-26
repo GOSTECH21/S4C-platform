@@ -1,5 +1,11 @@
 import { MATCH_DAY_PROJECT_COUNT } from "../lib/partner-projects";
 import {
+  hasFanVotedSponsor,
+  loadFundedProjects,
+  recordFanSponsorVote,
+  writeProjectFunding,
+} from "../lib/climate-funding";
+import {
   applyFundingListToProjectsFile,
   applyRemainingToSponsorsFile,
   buildProjectsFile,
@@ -231,6 +237,7 @@ export function applyFanWalletVote({
   projectNumber,
   split = false,
   amount,
+  supporterId,
   projects: fallbackProjects = [],
 }: {
   clubId: string;
@@ -239,13 +246,22 @@ export function applyFanWalletVote({
   projectNumber?: string | number;
   split?: boolean;
   amount?: number;
+  supporterId?: string | null;
   projects?: NumberedClimateProject[];
 }): WalletVoteResult & { folder?: MatchDayFolder } {
+  if (hasFanVotedSponsor(supporterId, clubId, brandName)) {
+    return {
+      ok: false,
+      error: `You can only take money once from ${brandName} during this 5-day Vote.`,
+    };
+  }
   const folder = visibleMatchDayFolderForClub({ clubId, clubName });
-  const projects =
+  const projects = loadFundedProjects(
+    clubId,
     folder?.projectsFile?.projects?.length
       ? folder.projectsFile.projects
-      : fallbackProjects;
+      : fallbackProjects
+  );
   if (projects.length === 0) {
     return {
       ok: false,
@@ -275,6 +291,8 @@ export function applyFanWalletVote({
       });
   if (!result.ok) return result;
   writeClimateWallet(result.wallet);
+  writeProjectFunding(clubId, result.projects);
+  recordFanSponsorVote(supporterId, clubId, brandName);
   if (folder?.sponsorsFile && folder.projectsFile) {
     const nextFolder = writeMatchDayFolder({
       ...folder,
@@ -289,8 +307,16 @@ export function applyFanWalletVote({
   return result;
 }
 
-export function fanVisibleProjects(folder: MatchDayFolder | null): NumberedClimateProject[] {
-  return folder?.projectsFile?.projects ?? [];
+export function fanVisibleProjects(
+  folder: MatchDayFolder | null,
+  clubId?: string | null,
+  fallback: NumberedClimateProject[] = []
+): NumberedClimateProject[] {
+  const base =
+    folder?.projectsFile?.projects?.length
+      ? folder.projectsFile.projects
+      : fallback;
+  return clubId ? loadFundedProjects(clubId, base) : base;
 }
 
 export function fanVisibleSponsors(

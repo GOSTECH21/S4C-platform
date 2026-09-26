@@ -5,14 +5,20 @@ import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import {
+  fanVotedSponsorNames,
+  loadFundedProjects,
+  recordFanSponsorVote,
+  writeProjectFunding,
+} from "@/app/lib/climate-funding";
+import {
   applyLeadCommitment,
   allocateSplitWalletVote,
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
-  DEFAULT_WALLET_VOTE_GBP,
   formatWalletGbp,
   remainingGbp,
+  walletVoteAmount,
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
@@ -55,6 +61,22 @@ const PROJECTS = [
   },
 ];
 
+const PREVIEW_CLUB = "preview-hibs";
+const PREVIEW_FAN = "preview-fan";
+
+function seedProjects(): NumberedClimateProject[] {
+  return loadFundedProjects(
+    PREVIEW_CLUB,
+    PROJECTS.map((project, index) => ({
+      id: project.id,
+      name: project.name,
+      number: index + 1,
+      fundedGbp: 0,
+      votesReceived: 0,
+    }))
+  );
+}
+
 function seedWallets(): ClimateWallet[] {
   return [
     createLeadWallet({
@@ -78,14 +100,9 @@ function seedWallets(): ClimateWallet[] {
 
 export default function MyS4PPreviewPage() {
   const [wallets, setWallets] = useState(seedWallets);
-  const [funded, setFunded] = useState<NumberedClimateProject[]>(
-    PROJECTS.map((project, index) => ({
-      id: project.id,
-      name: project.name,
-      number: index + 1,
-      fundedGbp: 0,
-      votesReceived: 0,
-    }))
+  const [funded, setFunded] = useState<NumberedClimateProject[]>(seedProjects);
+  const [usedSponsors, setUsedSponsors] = useState<string[]>(() =>
+    fanVotedSponsorNames(PREVIEW_FAN, PREVIEW_CLUB)
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +140,8 @@ export default function MyS4PPreviewPage() {
       prev.map((row) => (row.brandName === result.wallet.brandName ? result.wallet : row))
     );
     setFunded(result.projects);
+    writeProjectFunding(PREVIEW_CLUB, result.projects);
+    setUsedSponsors(recordFanSponsorVote(PREVIEW_FAN, PREVIEW_CLUB, result.wallet.brandName));
     setNotice(
       split
         ? `Vote shared ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
@@ -209,30 +228,25 @@ export default function MyS4PPreviewPage() {
             lead={leadRow}
             locals={localRows}
             projectCount={5}
-            onLeadVote={({ projectNumber, split }) => {
-              if (!lead) return;
+            usedSponsorNames={usedSponsors}
+            clubId={PREVIEW_CLUB}
+            clubName="Hibernian"
+            onVote={({ brandName, projectNumber, split }) => {
+              const wallet = wallets.find((row) => row.brandName === brandName);
+              if (!wallet) return;
               applyResult(
                 split
-                  ? allocateSplitWalletVote({ wallet: lead, projects: funded })
+                  ? allocateSplitWalletVote({
+                      wallet,
+                      projects: funded,
+                      amount: walletVoteAmount(wallet),
+                    })
                   : allocateWalletVote({
-                      wallet: lead,
+                      wallet,
                       projects: funded,
                       projectNumber: Number(projectNumber),
                     }),
                 Boolean(split)
-              );
-            }}
-            onLocalVote={(brandName, projectNumber) => {
-              const wallet = wallets.find((row) => row.brandName === brandName);
-              if (!wallet) return;
-              applyResult(
-                allocateWalletVote({
-                  wallet,
-                  projects: funded,
-                  projectNumber: Number(projectNumber),
-                  amount: DEFAULT_WALLET_VOTE_GBP,
-                }),
-                false
               );
             }}
           />

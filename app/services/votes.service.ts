@@ -15,6 +15,7 @@ import {
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
 import { seasonNamesMatch } from "../lib/current-season";
+import { readInvitedClubs } from "../lib/climate-funding";
 import {
   MATCH_DAY_PORTFOLIO_VOTED,
   fanPostVisibility,
@@ -514,7 +515,28 @@ const REQUIRED_VOTES = 3;
 export async function getMyS4PCampaigns(
   supporter: Supporter & { favourite_club_id?: string | null }
 ): Promise<S4PCampaign[]> {
-  const teams = await getSupportedTeams(supporter);
+  const teams = [
+    ...(await getSupportedTeams(supporter)),
+    ...readInvitedClubs()
+      .filter(
+        (invited) =>
+          invited.clubId || invited.clubName
+      )
+      .map((invited) => ({
+        id: invited.clubId,
+        name: invited.clubName || invited.clubId,
+        displayName: invited.clubName || invited.clubId,
+        sport: "Football",
+        competition: "Invite",
+      })),
+  ].filter((team, index, rows) => {
+    const key = `${team.id}:${team.name}`.toLowerCase();
+    return (
+      rows.findIndex(
+        (row) => `${row.id}:${row.name}`.toLowerCase() === key
+      ) === index
+    );
+  });
   if (teams.length === 0) return [];
 
   const campaigns: S4PCampaign[] = [];

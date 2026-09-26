@@ -27,6 +27,10 @@ import {
   submitMatchDayFolder,
 } from "../app/lib/match-day-folder";
 import { MS_PER_DAY } from "../app/lib/voting-window";
+import {
+  fanInviteRegisterPath,
+  mergeNumberedFunding,
+} from "../app/lib/climate-funding";
 
 const failures: string[] = [];
 
@@ -113,6 +117,19 @@ if (leadVoted.ok) {
   assert(
     leadVoted.project.number === 2 && leadVoted.project.fundedGbp === 0.5,
     "Project 2 receives £0.50 from the Amex Carbon Wallet"
+  );
+}
+
+const splitLocal = allocateSplitWalletVote({
+  wallet: topCellar,
+  projects,
+});
+assert(splitLocal.ok, "Local Checkbox 2 shares £0.10 across the five projects");
+if (splitLocal.ok) {
+  assert(splitLocal.amount === 0.1, "Local Checkbox 2 takes £0.10");
+  assert(
+    splitLocal.projects.every((project) => project.fundedGbp === 0.02),
+    "Each Climate Project receives £0.02 from a local Checkbox 2"
   );
 }
 
@@ -220,13 +237,38 @@ assert(
   "The Lead Climate Sponsor has a Carbon Wallet and two checkboxes"
 );
 assert(
-  !sponsorsUi.includes("TodaysClimateSponsors"),
-  "Local Business Climate Sponsor logos stay out of the Amex strip"
+  sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
+  "Fans can invite friends to drain remaining wallets and only vote once per sponsor"
+);
+
+const kept = mergeNumberedFunding(
+  [
+    { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
+  ],
+  [
+    { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0.7, votesReceived: 3 },
+  ]
+);
+assert(
+  kept[0]?.fundedGbp === 0.7,
+  "Received amounts stay cumulative and are not erased on reload"
+);
+assert(
+  fanInviteRegisterPath("hibs", "Hibernian").includes("club=hibs"),
+  "The invite link sends friends to fan registration for this club"
 );
 
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
-assert(votePage.includes("MatchDayWalletVote"), "Climate Projects uses wallet votes");
+assert(votePage.includes("ClimateProjectSponsors"), "Climate Projects uses Carbon Wallet votes");
 assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
+assert(
+  votePage.includes("Climate Project list"),
+  "Climate Projects still shows the numbered Climate Project list"
+);
+assert(
+  votePage.includes("formatWalletGbp(project.fundedGbp)"),
+  "Projects Voted for and Climate Project list show the cumulative Received amount"
+);
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 assert(

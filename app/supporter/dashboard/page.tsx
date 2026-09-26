@@ -37,6 +37,7 @@ import {
   remainingGbp,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
+import { captureClimateInviteFromSearch, fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
 
@@ -71,6 +72,7 @@ export default function MyS4PDashboardPage() {
   }
 
   useEffect(() => {
+    captureClimateInviteFromSearch();
     async function load() {
       try {
         const current = await getOrCreateSupporter();
@@ -101,7 +103,7 @@ export default function MyS4PDashboardPage() {
     );
   }
 
-  if (teams.length === 0) {
+  if (teams.length === 0 && campaigns.length === 0) {
     return (
       <main className="px-8 pb-16 text-white">
         <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
@@ -128,8 +130,11 @@ export default function MyS4PDashboardPage() {
         <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
           <h2 className="text-2xl font-bold">No posted climate projects right now</h2>
           <p className="mt-3 text-slate-300">
-            You support {teams.map((team) => team.displayName).join(", ")}.
-            When a club Sustainability Director posts Climate Projects, they
+            You support{" "}
+            {teams.length
+              ? teams.map((team) => team.displayName).join(", ")
+              : "an invited club"}
+            . When a club Sustainability Director posts Climate Projects, they
             appear here for 5 days.
           </p>
           <Link
@@ -185,15 +190,17 @@ function CampaignPanel({
     visibleMatchDayFolderForClub({ clubId, clubName: campaign.clubName })
   );
   const [projects, setProjects] = useState<NumberedClimateProject[]>(() =>
-    fanVisibleProjects(folder).length
-      ? fanVisibleProjects(folder)
-      : voteable.map((project, index) => ({
-          id: project.id,
-          name: project.name,
-          number: index + 1,
-          fundedGbp: 0,
-          votesReceived: project.votesReceived,
-        }))
+    fanVisibleProjects(
+      folder,
+      clubId,
+      voteable.map((project, index) => ({
+        id: project.id,
+        name: project.name,
+        number: index + 1,
+        fundedGbp: 0,
+        votesReceived: project.votesReceived,
+      }))
+    )
   );
   const [sponsors, setSponsors] = useState(() =>
     fanVisibleSponsors(folder, {
@@ -202,6 +209,9 @@ function CampaignPanel({
       minAmount: campaign.minimumAmount,
       gbpPerGoal: campaign.gbpPerGoal,
     })
+  );
+  const [usedSponsors, setUsedSponsors] = useState<string[]>(() =>
+    fanVotedSponsorNames(supporterId, clubId)
   );
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -240,6 +250,7 @@ function CampaignPanel({
         clubName: campaign.clubName,
       });
       setFolder(next);
+      setProjects((prev) => fanVisibleProjects(next, clubId, prev));
       setSponsors(
         fanVisibleSponsors(next, {
           clubId,
@@ -248,6 +259,7 @@ function CampaignPanel({
           gbpPerGoal: campaign.gbpPerGoal,
         })
       );
+      setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
     }
     const timer = window.setInterval(refreshWallets, 5000);
     window.addEventListener("storage", refreshWallets);
@@ -255,7 +267,7 @@ function CampaignPanel({
       window.clearInterval(timer);
       window.removeEventListener("storage", refreshWallets);
     };
-  }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal]);
+  }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
 
   const leadSponsor = useMemo(() => {
     const fromWallets = sponsors.find((row) => row.kind === "lead");
@@ -334,6 +346,7 @@ function CampaignPanel({
         brandName,
         projectNumber,
         split,
+        supporterId,
         projects,
       });
       if (!result.ok) {
@@ -342,6 +355,7 @@ function CampaignPanel({
       }
       setFolder(result.folder ?? folder);
       setProjects(result.projects);
+      setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
       setSponsors(
         fanVisibleSponsors(result.folder ?? folder, {
           clubId,
@@ -350,13 +364,13 @@ function CampaignPanel({
           gbpPerGoal: campaign.gbpPerGoal,
         })
       );
-      const fundedIds = result.projects
-        .filter((project) => project.fundedGbp > 0)
-        .map((project) => project.id);
+      const votedNow = split
+        ? result.projects.map((project) => project.id)
+        : [result.project.id];
       try {
         await submitCampaignVotes(
           supporterId,
-          [...new Set([...votedIds, ...fundedIds])],
+          [...new Set([...votedIds, ...votedNow])],
           voteable.map((project) => project.id),
           campaign.campaignId,
           clubId
@@ -435,15 +449,15 @@ function CampaignPanel({
             projectCount={projects.length || 5}
             busy={busy}
             votingOpen={votingOpen}
-            onLeadVote={({ projectNumber, split }) =>
+            usedSponsorNames={usedSponsors}
+            clubId={clubId}
+            clubName={campaign.clubName}
+            onVote={({ brandName, projectNumber, split }) =>
               void voteFromWallet({
-                brandName: leadSponsor?.brandName ?? leadName,
+                brandName,
                 projectNumber,
                 split,
               })
-            }
-            onLocalVote={(brandName, projectNumber) =>
-              void voteFromWallet({ brandName, projectNumber })
             }
           />
         </div>
