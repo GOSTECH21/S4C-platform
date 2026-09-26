@@ -28,9 +28,9 @@ export default function RegisterPage() {
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [invitedClub, setInvitedClub] = useState(() =>
-    typeof window === "undefined" ? null : captureClimateInviteFromSearch()
-  );
+  const [invitedClub, setInvitedClub] = useState<
+    ReturnType<typeof captureClimateInviteFromSearch>
+  >(null);
 
   useEffect(() => {
     setInvitedClub(captureClimateInviteFromSearch() ?? readInvitedClubs()[0] ?? null);

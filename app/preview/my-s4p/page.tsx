@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
@@ -100,12 +100,23 @@ function seedWallets(): ClimateWallet[] {
 
 export default function MyS4PPreviewPage() {
   const [wallets, setWallets] = useState(seedWallets);
-  const [funded, setFunded] = useState<NumberedClimateProject[]>(seedProjects);
-  const [usedSponsors, setUsedSponsors] = useState<string[]>(() =>
-    fanVotedSponsorNames(PREVIEW_FAN, PREVIEW_CLUB)
+  const [funded, setFunded] = useState<NumberedClimateProject[]>(() =>
+    PROJECTS.map((project, index) => ({
+      id: project.id,
+      name: project.name,
+      number: index + 1,
+      fundedGbp: 0,
+      votesReceived: 0,
+    }))
   );
+  const [usedSponsors, setUsedSponsors] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFunded(seedProjects());
+    setUsedSponsors(fanVotedSponsorNames(PREVIEW_FAN, PREVIEW_CLUB));
+  }, []);
   const lead = wallets.find((wallet) => wallet.kind === "lead") ?? null;
   const locals = wallets.filter((wallet) => wallet.kind === "local");
 

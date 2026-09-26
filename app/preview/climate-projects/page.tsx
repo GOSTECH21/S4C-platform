@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
 import {
@@ -11,7 +11,10 @@ import {
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
+import { loadFundedProjects, writeProjectFunding } from "@/app/lib/climate-funding";
 import { fanVotingWindowCopy } from "@/app/lib/voting-window";
+
+const PREVIEW_CLUB = "preview-hibs";
 
 const INITIAL: NumberedClimateProject[] = [
   { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 7 },
@@ -31,6 +34,10 @@ export default function ClimateProjectsPreviewPage() {
     })
   );
 
+  useEffect(() => {
+    setProjects(loadFundedProjects(PREVIEW_CLUB, INITIAL));
+  }, []);
+
   function vote(_brandName: string, projectNumber: string) {
     const result = allocateWalletVote({
       wallet,
@@ -40,6 +47,7 @@ export default function ClimateProjectsPreviewPage() {
     if (!result.ok) return;
     setWallet(result.wallet);
     setProjects(result.projects);
+    writeProjectFunding(PREVIEW_CLUB, result.projects);
   }
 
   return (
@@ -51,9 +59,8 @@ export default function ClimateProjectsPreviewPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
         <p className="mt-3 max-w-2xl text-slate-300">
-          Projects you have voted for appear in the box. Insert a project
-          number next to a sponsor wallet and press VOTE; {formatWalletGbp(0.1)}{" "}
-          moves from that wallet into the project. {fanVotingWindowCopy()}
+          Received amounts are the running 5-day total. Check them here at any
+          time. {fanVotingWindowCopy()}
         </p>
 
         <section className="mt-10 space-y-8">
