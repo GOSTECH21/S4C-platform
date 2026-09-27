@@ -157,13 +157,13 @@ export default function HomeFrontPage() {
           </div>
         </section>
 
-        <p className="mx-4 mb-6 px-3 text-center text-base font-black uppercase leading-[1.35] tracking-[0.12em] sm:text-lg md:mx-10 md:text-xl lg:text-2xl xl:whitespace-nowrap xl:text-[1.55rem] xl:tracking-[0.14em]">
-          <span className="block xl:inline">
+        <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl 2xl:whitespace-nowrap 2xl:text-[2.35rem] 2xl:tracking-[0.12em]">
+          <span className="block 2xl:inline">
             <span className="text-emerald-400">Sport</span>
             <span className="text-white"> creates the moment.</span>
           </span>
-          <span className="hidden xl:inline text-white"> </span>
-          <span className="block xl:inline">
+          <span className="hidden 2xl:inline text-white"> </span>
+          <span className="block 2xl:inline">
             <span className="text-emerald-400">Sponsors</span>
             <span className="text-white"> fund it. </span>
             <span className="text-emerald-400">Fans</span>
@@ -172,7 +172,7 @@ export default function HomeFrontPage() {
           </span>
         </p>
 
-        <section className="mx-4 mb-10 md:mx-10">
+        <section className="mx-4 mb-20 md:mx-10 md:mb-24 lg:mb-28">
           <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-6">
             {STATS.map((stat) => (
               <div key={stat.key} className="bg-slate-950/40 px-3 py-5 text-center">
