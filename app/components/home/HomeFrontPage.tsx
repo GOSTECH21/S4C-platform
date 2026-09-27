@@ -157,6 +157,21 @@ export default function HomeFrontPage() {
           </div>
         </section>
 
+        <p className="mx-4 mb-6 px-3 text-center text-base font-black uppercase leading-[1.35] tracking-[0.12em] sm:text-lg md:mx-10 md:text-xl lg:text-2xl xl:whitespace-nowrap xl:text-[1.55rem] xl:tracking-[0.14em]">
+          <span className="block xl:inline">
+            <span className="text-emerald-400">Sport</span>
+            <span className="text-white"> creates the moment.</span>
+          </span>
+          <span className="hidden xl:inline text-white"> </span>
+          <span className="block xl:inline">
+            <span className="text-emerald-400">Sponsors</span>
+            <span className="text-white"> fund it. </span>
+            <span className="text-emerald-400">Fans</span>
+            <span className="text-white"> direct the </span>
+            <span className="text-emerald-400">Impact</span>
+          </span>
+        </p>
+
         <section className="mx-4 mb-10 md:mx-10">
           <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-6">
             {STATS.map((stat) => (

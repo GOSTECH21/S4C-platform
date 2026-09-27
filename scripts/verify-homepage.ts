@@ -182,6 +182,39 @@ assert(
   !front.includes("Every score protects our planet"),
   "Top-left S4P wordmark is removed from the hero"
 );
+assert(
+  front.includes("creates the moment") &&
+    front.includes("text-emerald-400\">Sport") &&
+    front.includes("text-emerald-400\">Sponsors") &&
+    front.includes("text-emerald-400\">Fans") &&
+    front.includes("text-emerald-400\">Impact"),
+  "Hero statement sits between the S4P mark and the Trees Planted bar, with Sport, Sponsors, Fans and Impact in green"
+);
+
+const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
+assert(
+  howItWorks.includes("Every GOAL; Every TRY; Every TOUCHDOWN; Every 3-POINT"),
+  "Step 01 describes every score as a Climate Impact Moment"
+);
+assert(
+  howItWorks.includes("Global brands sponsor Climate Impact Moments") &&
+    howItWorks.includes("Local businesses sponsor Fans/Supporters participation"),
+  "Step 02 explains global and local sponsor roles"
+);
+assert(
+  howItWorks.includes("Fans & Supporters Participation") &&
+    howItWorks.includes("allocate real sponsor-funded Climate Monies"),
+  "Step 03 is Fans & Supporters Participation directing Climate Monies"
+);
+assert(
+  howItWorks.includes("Climate Partners Benefit") &&
+    howItWorks.includes("Match Day Carbon Footprint sorted"),
+  "Step 04 says Climate Partners receive Climate Monies and sort the Match Day footprint"
+);
+assert(
+  howItWorks.includes("Everyone Wins"),
+  "Step 05 Everyone Wins stays in place"
+);
 
 const sql = readFileSync(
   "supabase/migrations/0011_platform_stats.sql",
