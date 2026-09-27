@@ -157,13 +157,12 @@ export default function HomeFrontPage() {
           </div>
         </section>
 
-        <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl 2xl:whitespace-nowrap 2xl:text-[2.35rem] 2xl:tracking-[0.12em]">
-          <span className="block 2xl:inline">
+        <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl">
+          <span className="block">
             <span className="text-emerald-400">Sport</span>
             <span className="text-white"> creates the moment.</span>
           </span>
-          <span className="hidden 2xl:inline text-white"> </span>
-          <span className="block 2xl:inline">
+          <span className="block">
             <span className="text-emerald-400">Sponsors</span>
             <span className="text-white"> fund it. </span>
             <span className="text-emerald-400">Fans</span>
