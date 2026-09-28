@@ -188,7 +188,7 @@ assert(
   front.includes('id={JOIN_SECTION_ID}') || front.includes('id="are-you"'),
   "Are You has an anchor the Login and Register tabs can scroll to"
 );
-assert(front.includes("Are You……?"), "New Are You heading is on the front page");
+assert(front.includes("Are You...?"), "New Are You heading is on the front page");
 assert(
   front.includes('showJoin("login")') &&
     front.includes('showJoin("register")') &&
@@ -203,7 +203,7 @@ assert(
 );
 assert(
   front.includes("{children}") &&
-    front.indexOf("{children}") < front.indexOf("Are You……?"),
+    front.indexOf("{children}") < front.indexOf("Are You...?"),
   "How Score-For-Our-Planet Works is rendered above Are You"
 );
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");

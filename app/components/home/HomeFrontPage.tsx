@@ -273,7 +273,7 @@ export default function HomeFrontPage({
           className="scroll-mt-24 px-5 pb-16 md:px-10"
         >
           <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
-            Are You……?
+            Are You...?
           </h2>
           <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-slate-300 md:text-base">
             {joinIntent === "login"
