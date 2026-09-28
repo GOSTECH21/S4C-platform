@@ -20,6 +20,9 @@ async function loadCistRows() {
         name: row.brandName,
         metric: formatFundingGbp(row.donationGbp),
         sortValue: row.donationGbp,
+        impactMoments: "0",
+        funding: formatFundingGbp(row.donationGbp),
+        climateImpact: "—",
       }))
     );
   } catch {
@@ -64,6 +67,9 @@ async function loadCiftRows() {
         name: names.get(id) || "Fan",
         metric: formatFundingGbp(votesCast * DEFAULT_WALLET_VOTE_GBP),
         sortValue: votesCast,
+        impactMoments: votesCast.toLocaleString("en-GB"),
+        funding: formatFundingGbp(votesCast * DEFAULT_WALLET_VOTE_GBP),
+        climateImpact: "—",
       }))
     );
   } catch {
