@@ -18,7 +18,7 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(IMPACT_TABLE_TOP_COUNT === 5, "Homepage shows five performers");
+assert(IMPACT_TABLE_TOP_COUNT === 10, "Homepage shows ten performers");
 assert(IMPACT_TABLE_FULL_LIMIT === 20, "Full table is capped at 20 entries");
 assert(IMPACT_TABLE_PAGE_SIZE === 5, "Full table is viewed in batches of five");
 assert(parseImpactTableId("cist") === "cist", "CIST tab is a valid impact table");
@@ -38,7 +38,7 @@ assert(
 
 const cilt = overallClimateImpactLeagueRows();
 assert(cilt.length === IMPACT_TABLE_FULL_LIMIT, "CILT full table has 20 clubs");
-assert(cilt[0].rank === 1 && cilt[4].rank === 5, "CILT top five is numbered 1 to 5");
+assert(cilt[0].rank === 1 && cilt[9].rank === 10, "CILT top ten is numbered 1 to 10");
 
 const page = readFileSync("app/s4p-impact-tables/page.tsx", "utf8");
 assert(

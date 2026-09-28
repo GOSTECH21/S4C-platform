@@ -18,10 +18,10 @@ export default function S4pImpactTables({
   const tables = impactTablesOrEmpty(boards);
   const [active, setActive] = useState<ImpactTableId>("cilt");
   const board = tables.find((table) => table.id === active) ?? tables[0];
-  const topFive = board.rows.slice(0, IMPACT_TABLE_TOP_COUNT);
+  const topRows = board.rows.slice(0, IMPACT_TABLE_TOP_COUNT);
 
   return (
-    <aside className="flex h-full min-h-[320px] flex-col rounded-3xl border border-emerald-400/30 bg-slate-950/85 p-4 shadow-xl backdrop-blur md:p-5 lg:min-h-[360px]">
+    <aside className="flex h-full flex-col rounded-3xl border border-emerald-400/30 bg-slate-950/85 p-4 shadow-xl backdrop-blur md:p-5">
       <h2 className="text-center text-lg font-black tracking-[0.14em] text-white md:text-xl">
         S4P IMPACT TABLES
       </h2>
@@ -54,27 +54,27 @@ export default function S4pImpactTables({
           </span>
         ))}
       </div>
-      <p className="mt-4 text-center text-xs font-semibold uppercase tracking-[0.22em] text-emerald-400">
+      <p className="mt-3 text-center text-[0.82rem] font-semibold leading-snug text-emerald-300">
         {board.topHeading}
       </p>
-      <ol className="mt-3 flex-1 space-y-1.5">
-        {topFive.length === 0 ? (
+      <ol className="mt-3 space-y-1">
+        {topRows.length === 0 ? (
           <li className="py-6 text-center text-sm text-slate-400">
             {board.emptyLabel}
           </li>
         ) : (
-          topFive.map((row) => (
+          topRows.map((row) => (
             <li
               key={`${board.id}-${row.rank}-${row.name}`}
               className="flex items-baseline justify-between gap-3 rounded-lg bg-slate-900/70 px-3 py-1.5"
             >
-              <span className="min-w-0 truncate text-sm font-semibold text-white">
+              <span className="min-w-0 truncate text-base font-bold text-white">
                 <span className="mr-2 font-black text-emerald-400">
                   {row.rank}.
                 </span>
                 {row.name}
               </span>
-              <span className="shrink-0 text-[0.7rem] text-slate-400">
+              <span className="shrink-0 text-sm font-semibold text-amber-300">
                 {row.metric}
               </span>
             </li>

@@ -256,6 +256,7 @@ assert(
     impactLib.includes('shortName: "CILT"') &&
     impactLib.includes('shortName: "CIST"') &&
     impactLib.includes('shortName: "CIFT"') &&
+    impactLib.includes("Top 10 Climate Impact League Table (CILT)") &&
     impactLib.includes("View Full Climate Impact League Table →") &&
     impactLib.includes("View Full Climate Impact Sponsorship Table →") &&
     impactLib.includes("View Full Climate Impact Fans Table →"),
