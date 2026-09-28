@@ -54,7 +54,6 @@ export default function S4pImpactTables({
           </span>
         ))}
       </div>
-      <p className="sr-only">{board.title}</p>
       <p className="mt-4 text-center text-xs font-semibold uppercase tracking-[0.22em] text-emerald-400">
         {board.topHeading}
       </p>
