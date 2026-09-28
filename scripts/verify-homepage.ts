@@ -166,12 +166,26 @@ assert(formatStatCount(1230000) === "1,230,000", "Stat windows use grouped thous
 const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
 assert(
+  homePage.indexOf("<HowItWorks") < homePage.indexOf("<Footer"),
+  "How Score-For-Our-Planet Works is composed on the front page"
+);
+assert(
+  homePage.includes("<HowItWorks") &&
+    homePage.indexOf("<HomeFrontPage") < homePage.indexOf("<HowItWorks"),
+  "How Score-For-Our-Planet Works sits inside the front page, above Are You"
+);
+assert(
   !homePage.includes("WHO ARE YOU?"),
   "Old WHO ARE YOU heading is replaced"
 );
 
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 assert(front.includes("Are You……?"), "New Are You heading is on the front page");
+assert(
+  front.includes("{children}") &&
+    front.indexOf("{children}") < front.indexOf("Are You……?"),
+  "How Score-For-Our-Planet Works is rendered above Are You"
+);
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
 assert(front.includes("/api/platform-stats"), "Stat windows refresh from live platform stats");
 assert(

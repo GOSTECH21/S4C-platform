@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -72,7 +72,11 @@ function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] | "leaf" }) {
   );
 }
 
-export default function HomeFrontPage() {
+export default function HomeFrontPage({
+  children,
+}: {
+  children?: ReactNode;
+}) {
   const [stats, setStats] = useState<PlatformStats>(() => mergePlatformStats());
 
   useEffect(() => {
@@ -171,7 +175,7 @@ export default function HomeFrontPage() {
           </span>
         </p>
 
-        <section className="mx-4 mb-20 md:mx-10 md:mb-24 lg:mb-28">
+        <section className="mx-4 md:mx-10">
           <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-6">
             {STATS.map((stat) => (
               <div key={stat.key} className="bg-slate-950/40 px-3 py-5 text-center">
@@ -199,6 +203,8 @@ export default function HomeFrontPage() {
             </div>
           </div>
         </section>
+
+        {children}
 
         <section className="px-5 pb-16 md:px-10">
           <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
