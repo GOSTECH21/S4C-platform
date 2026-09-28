@@ -11,6 +11,8 @@ import {
 } from "@/app/lib/platform-stats";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import { loadPlatformStats } from "@/app/services/platform-stats.service";
+import S4pImpactTables from "@/app/components/home/S4pImpactTables";
+import type { ImpactTableBoard } from "@/app/lib/s4p-impact-tables";
 
 const JOIN_SECTION_ID = "are-you";
 
@@ -89,8 +91,10 @@ function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] }) {
 
 export default function HomeFrontPage({
   children,
+  impactTables,
 }: {
   children?: ReactNode;
+  impactTables?: ImpactTableBoard[];
 }) {
   const [stats, setStats] = useState<PlatformStats>(() => mergePlatformStats());
   const [joinIntent, setJoinIntent] = useState<JoinIntent>("register");
@@ -223,15 +227,7 @@ export default function HomeFrontPage({
             </p>
           </div>
 
-          <div className="relative min-h-[220px] overflow-hidden rounded-3xl lg:min-h-[360px] xl:min-h-[420px]">
-            <Image
-              src="/images/home/hero-athletes-v2.png"
-              alt="Different sports, a bigger impact"
-              fill
-              className="object-contain object-center"
-              priority
-            />
-          </div>
+          <S4pImpactTables boards={impactTables} />
         </section>
 
         <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl">

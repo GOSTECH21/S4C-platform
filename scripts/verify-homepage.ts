@@ -243,6 +243,24 @@ assert(
     !front.includes("A Brighter"),
   "Catalog Trees Planted / tCO2e / Brighter Tomorrow windows are removed"
 );
+assert(
+  front.includes("S4pImpactTables") &&
+    !front.includes("hero-athletes-v2"),
+  "Right-hand hero image is replaced by S4P Impact Tables"
+);
+
+const impactWidget = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
+const impactLib = readFileSync("app/lib/s4p-impact-tables.ts", "utf8");
+assert(
+  impactWidget.includes("S4P IMPACT TABLES") &&
+    impactLib.includes('shortName: "CILT"') &&
+    impactLib.includes('shortName: "CIST"') &&
+    impactLib.includes('shortName: "CIFT"') &&
+    impactLib.includes("View Full Climate Impact League Table →") &&
+    impactLib.includes("View Full Climate Impact Sponsorship Table →") &&
+    impactLib.includes("View Full Climate Impact Fans Table →"),
+  "Impact Tables widget has CILT, CIST and CIFT tabs and a View Full link"
+);
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(

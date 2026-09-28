@@ -45,6 +45,7 @@ export const PARTNER_DASHBOARD_PATH = "/partner/dashboard";
 export const CLIMATE_SPONSORSHIP_PATH = "/climate-sponsorship";
 export const CLIMATE_CREDITS_PATH = "/climate-credits";
 export const CLIMATE_IMPACT_LEAGUE_PATH = "/climate-impact-league";
+export const S4P_IMPACT_TABLES_PATH = "/s4p-impact-tables";
 export const GLOBAL_SCHOOLS_SOLAR_PATH = "/global-schools-solar";
 
 export function isMyS4PPath(pathname: string | null): boolean {
