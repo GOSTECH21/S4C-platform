@@ -3,13 +3,11 @@ import {
   HOME_STAKEHOLDERS,
 } from "../app/lib/home-stakeholders";
 import {
-  catalogClimateProjectCount,
-  catalogCo2Avoided,
+  formatFundingGbp,
   formatStatCount,
   mergePlatformStats,
 } from "../app/lib/platform-stats";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
-import { treesEquivalentFromCo2 } from "../app/lib/impact";
 import {
   FAN_VOTE_PICK_COUNT,
   LOCAL_SPONSOR_LEFTOVER_COUNT,
@@ -146,22 +144,28 @@ const before = mergePlatformStats({ fansEngaged: 3 });
 const after = mergePlatformStats({ fansEngaged: 4 });
 assert(after.fansEngaged === before.fansEngaged + 1, "Fans engaged rises when a fan registers");
 assert(
-  after.teamsInvolved >= currentSeasonTeamCount(),
-  "Teams involved includes the current-season roster"
+  after.sportsTeams >= currentSeasonTeamCount(),
+  "Sports Teams is the real current-season roster"
 );
 assert(
-  after.climateProjects >= catalogClimateProjectCount(),
-  "Climate Projects include every provider catalog project"
+  mergePlatformStats({ climateProjectsFunded: 0 }).climateProjectsFunded === 0,
+  "Climate Projects Funded stays at zero until a project actually receives a vote"
 );
 assert(
-  after.co2Avoided === catalogCo2Avoided() || after.co2Avoided >= catalogCo2Avoided(),
-  "tCO2e avoided is the cumulative provider estimated_co2 figures"
+  mergePlatformStats({ climateProjects: 115 }).climateProjectsFunded === 115,
+  "Legacy climateProjects counts still map onto Climate Projects Funded"
 );
 assert(
-  after.treesPlanted === treesEquivalentFromCo2(after.co2Avoided),
-  "Trees planted is derived from cumulative tCO2e"
+  mergePlatformStats({ fundingMobilisedGbp: 1250.4 }).fundingMobilisedGbp === 1250.4,
+  "£ Climate Funding Mobilised keeps the recorded pounds"
+);
+assert(
+  mergePlatformStats({ impactMomentsCreated: 7 }).impactMomentsCreated === 7,
+  "Impact Moments Created uses recorded scores and credits"
 );
 assert(formatStatCount(1230000) === "1,230,000", "Stat windows use grouped thousands");
+assert(formatFundingGbp(0) === "£0", "Zero funding displays as £0");
+assert(formatFundingGbp(12500) === "£12,500", "Funding uses a pound sign and grouped thousands");
 
 const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
@@ -218,50 +222,65 @@ assert(
     front.includes("text-emerald-400\">Sponsors") &&
     front.includes("text-emerald-400\">Fans") &&
     front.includes("text-emerald-400\">Impact"),
-  "Hero statement sits between the S4P mark and the Trees Planted bar, with Sport, Sponsors, Fans and Impact in green"
+  "Hero statement sits between the S4P mark and the stats bar, with Sport, Sponsors, Fans and Impact in green"
 );
 
 assert(
-  front.includes("We help sports clubs address their Match-Day Carbon emissions"),
-  "The S4P logo carries the Match-Day Carbon emissions line underneath"
+  front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
+  "The S4P logo carries the Funded Climate Action line underneath"
+);
+assert(
+  front.includes("£ Climate Funding Mobilised") &&
+    front.includes("Impact Moments Created") &&
+    front.includes("Fans Engaged") &&
+    front.includes("Sports Teams") &&
+    front.includes("Climate Projects Funded"),
+  "Stats bar shows funding, impact moments, fans, sports teams and funded projects"
+);
+assert(
+  !front.includes("Trees Planted") &&
+    !front.includes("tCO₂e Avoided") &&
+    !front.includes("A Brighter"),
+  "Catalog Trees Planted / tCO2e / Brighter Tomorrow windows are removed"
 );
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
-  howItWorks.includes("Compile Climate Projects List") &&
-    howItWorks.includes("list of 5 Climate Projects"),
-  "Step 01 is Compile Climate Projects List"
+  howItWorks.includes("CLUBS CHOOSE PROJECTS") &&
+    howItWorks.includes("five eligible Climate Projects"),
+  "Step 01 is CLUBS CHOOSE PROJECTS"
 );
 assert(
-  howItWorks.includes("Sports Creates Excitement") &&
-    howItWorks.includes("CLIMATE IMPACT MOMENT") &&
-    howItWorks.includes("WICKET"),
-  "Step 02 is Sports Creates Excitement and names the scores that release cash"
+  howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS") &&
+    howItWorks.includes("Local Businesses fund fan participation") &&
+    howItWorks.includes("Goals-Scored"),
+  "Step 02 is SPONSORS FUND THE IMPACT MOMENTS"
 );
 assert(
-  howItWorks.includes("Fans & Supporters Participation") &&
-    howItWorks.includes("Sponsor-funded-monies"),
-  "Step 03 is Fans & Supporters Participation allocating cash from the list"
+  howItWorks.includes("FANS DIRECT THE FUNDING") &&
+    howItWorks.includes("Fans allocate real Sponsor-funded money"),
+  "Step 03 is FANS DIRECT THE FUNDING"
 );
 assert(
-  howItWorks.includes("Climate Project Partners Participation") &&
-    howItWorks.includes("Match-Day's Carbon emissions"),
-  "Step 04 is Climate Project Partners Participation implementing the project"
+  howItWorks.includes("PROJECTS DELIVER THE IMPACT") &&
+    howItWorks.includes("Climate Project Providers receive funding"),
+  "Step 04 is PROJECTS DELIVER THE IMPACT"
 );
 assert(
-  howItWorks.includes("Everyone Wins") &&
-    howItWorks.includes("Climate Impact League Table") &&
-    howItWorks.includes("text-emerald-400"),
-  "Step 05 Everyone Wins highlights Climate Impact League Table in green"
+  howItWorks.includes("EVERYONE CREATES IMPACT") &&
+    howItWorks.includes("Clubs address Match-Day carbon footprints"),
+  "Step 05 is EVERYONE CREATES IMPACT"
 );
 
 const sql = readFileSync(
-  "supabase/migrations/0011_platform_stats.sql",
+  "supabase/migrations/0012_platform_stats_funding.sql",
   "utf8"
 );
 assert(
-  sql.includes("platform_stats"),
-  "Hosted SQL can return public homepage counters"
+  sql.includes("fundingMobilisedGbp") &&
+    sql.includes("impactMomentsCreated") &&
+    sql.includes("climateProjectsFunded"),
+  "Hosted SQL returns real funding, impact moments and funded-project counts"
 );
 
 if (failures.length > 0) {

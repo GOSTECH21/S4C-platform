@@ -1,47 +1,38 @@
-import type { ReactNode } from "react";
-
 export default function HowItWorks() {
   const steps: Array<{
     number: string;
     title: string;
-    description: ReactNode;
+    description: string;
   }> = [
     {
       number: "01",
-      title: "Compile Climate Projects List",
+      title: "CLUBS CHOOSE PROJECTS",
       description:
-        "Clubs compile & publish a list of 5 Climate Projects that helps to address their Match-Day Carbon footprints",
+        "Clubs select five eligible Climate Projects for supporters to fund",
     },
     {
       number: "02",
-      title: "Sports Creates Excitement",
+      title: "SPONSORS FUND THE IMPACT MOMENTS",
       description:
-        "Every Score (e.g a GOAL; a TRY; a TOUCHDOWN; a WICKET; a 3-POINT-SCORE) during a Match creates a CLIMATE IMPACT MOMENT & releases Sponsorship Cash",
+        "Local Businesses fund fan participation. Lead Sponsors fund the Goals-Scored & unlock additional funding through Impact Moments",
     },
     {
       number: "03",
-      title: "Fans & Supporters Participation",
+      title: "FANS DIRECT THE FUNDING",
       description:
-        "Fans & Supporters allocates real cash from Sponsor-funded-monies into any preferred Climate Project chosen from the List",
+        "Fans allocate real Sponsor-funded money to the Climate Projects they want to support",
     },
     {
       number: "04",
-      title: "Climate Project Partners Participation",
+      title: "PROJECTS DELIVER THE IMPACT",
       description:
-        "Project Partners receives their allocated cash; Implements the Project on behalf of the Club to mitigate some OR all of that Match-Day's Carbon emissions",
+        "Climate Project Providers receive funding and deliver measurable climate action",
     },
     {
       number: "05",
-      title: "Everyone Wins",
-      description: (
-        <>
-          Sponsors gain direct engagement with Fans/Supporters; Clubs address
-          their Match-Day Carbon emissions; Fans see their Club climb up our{" "}
-          <span className="font-semibold text-emerald-400">
-            Climate Impact League Table
-          </span>
-        </>
-      ),
+      title: "EVERYONE CREATES IMPACT",
+      description:
+        "Clubs address Match-Day carbon footprints, Sponsors engage supporters, Fans direct funding & Climate Projects turn it into action",
     },
   ];
 
@@ -65,7 +56,7 @@ export default function HowItWorks() {
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-500 text-3xl font-black text-black shadow-xl">
               {step.number}
             </div>
-            <h3 className="mt-8 text-xl font-bold text-white md:text-2xl">
+            <h3 className="mt-8 text-xl font-bold uppercase text-white md:text-2xl">
               {step.title}
             </h3>
             <p className="mt-5 text-sm leading-7 text-slate-400 md:text-[0.95rem] md:leading-8">

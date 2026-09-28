@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import {
+  formatFundingGbp,
   formatStatCount,
   mergePlatformStats,
   PLATFORM_STATS_POLL_MS,
@@ -25,34 +26,36 @@ function joinIntentFromLocation(): JoinIntent | null {
 }
 
 const STATS: Array<{
-  key: keyof Pick<
-    PlatformStats,
-    "treesPlanted" | "co2Avoided" | "fansEngaged" | "teamsInvolved" | "climateProjects"
-  >;
+  key: keyof PlatformStats;
   label: string;
-  suffix?: string;
-  icon: "tree" | "clover" | "fans" | "stadium" | "globe";
+  icon: "pound" | "bolt" | "fans" | "stadium" | "globe";
+  format?: (value: number) => string;
 }> = [
-  { key: "treesPlanted", label: "Trees Planted", icon: "tree" },
-  { key: "co2Avoided", label: "tCO₂e Avoided", suffix: " t", icon: "clover" },
+  {
+    key: "fundingMobilisedGbp",
+    label: "£ Climate Funding Mobilised",
+    icon: "pound",
+    format: formatFundingGbp,
+  },
+  { key: "impactMomentsCreated", label: "Impact Moments Created", icon: "bolt" },
   { key: "fansEngaged", label: "Fans Engaged", icon: "fans" },
-  { key: "teamsInvolved", label: "Teams involved", icon: "stadium" },
-  { key: "climateProjects", label: "Climate Projects", icon: "globe" },
+  { key: "sportsTeams", label: "Sports Teams", icon: "stadium" },
+  { key: "climateProjectsFunded", label: "Climate Projects Funded", icon: "globe" },
 ];
 
-function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] | "leaf" }) {
+function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] }) {
   const common = "h-7 w-7 text-emerald-400";
-  if (name === "tree") {
+  if (name === "pound") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
-        <path d="M12 2c2.8 2.4 4.5 5 4.8 8.2A4.6 4.6 0 0 1 14 19h-1v3h-2v-3H10a4.6 4.6 0 0 1-2.8-8.8C7.5 7 9.2 4.4 12 2Z" />
+        <path d="M7 20h11v-2H9.4c.4-.7.6-1.5.6-2.4V13h7v-2h-7V8.6C10 6 11.6 4 14.2 4c1.4 0 2.6.5 3.4 1.3l1.3-1.5C17.7 2.6 16 2 14.2 2 10.4 2 8 4.8 8 8.6V11H5v2h3v2.6c0 1.2-.3 2.2-.8 2.4H5V20h2Z" />
       </svg>
     );
   }
-  if (name === "clover") {
+  if (name === "bolt") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
-        <path d="M12 3.2c1.5-1.7 4.3-1.4 5.4.7 1.1 2.1-.3 4.4-2.5 5.1 2.2.7 3.6 3 2.5 5.1-1.1 2.1-3.9 2.4-5.4.7-1.5 1.7-4.3 1.4-5.4-.7-1.1-2.1.3-4.4 2.5-5.1C6.9 8.3 5.5 6 6.6 3.9 7.7 1.8 10.5 1.5 12 3.2Z" />
+        <path d="M13 2 4 14h7l-1 8 10-14h-7l1-6Z" />
       </svg>
     );
   }
@@ -215,8 +218,8 @@ export default function HomeFrontPage({
               className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
               priority
             />
-            <p className="mt-1 max-w-md text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-lg lg:text-[1.35rem]">
-              We help sports clubs address their Match-Day Carbon emissions
+            <p className="mt-1 max-w-xl text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-2xl lg:text-[1.35rem]">
+              Turning Match-Day Sporting Moments into Funded Climate Action
             </p>
           </div>
 
@@ -246,31 +249,22 @@ export default function HomeFrontPage({
         </p>
 
         <section className="mx-4 md:mx-10">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-5">
             {STATS.map((stat) => (
               <div key={stat.key} className="bg-slate-950/40 px-3 py-5 text-center">
                 <div className="flex justify-center">
                   <StatIcon name={stat.icon} />
                 </div>
                 <p className="mt-2 text-xl font-black text-white md:text-2xl">
-                  {formatStatCount(stats[stat.key])}
-                  {stat.suffix ?? ""}
+                  {stat.format
+                    ? stat.format(stats[stat.key])
+                    : formatStatCount(stats[stat.key])}
                 </p>
                 <p className="mt-1 text-[0.7rem] font-semibold uppercase tracking-wide text-slate-300">
                   {stat.label}
                 </p>
               </div>
             ))}
-            <div className="bg-slate-950/40 px-3 py-5 text-center">
-              <div className="flex justify-center">
-                <StatIcon name="leaf" />
-              </div>
-              <p className="mt-2 text-sm font-black uppercase leading-tight text-emerald-300 md:text-base">
-                A Brighter
-                <br />
-                Tomorrow
-              </p>
-            </div>
           </div>
         </section>
 
