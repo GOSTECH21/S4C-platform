@@ -21,7 +21,7 @@ export default function S4pImpactTables({
   const topRows = board.rows.slice(0, IMPACT_TABLE_TOP_COUNT);
 
   return (
-    <aside className="flex h-full flex-col rounded-3xl border border-emerald-400/30 bg-slate-950/85 p-4 shadow-xl backdrop-blur md:p-5">
+    <aside className="flex h-fit flex-col self-center rounded-3xl border border-emerald-400/30 bg-slate-950/85 p-4 shadow-xl backdrop-blur md:p-5">
       <h2 className="text-center text-lg font-black tracking-[0.14em] text-white md:text-xl">
         S4P IMPACT TABLES
       </h2>
@@ -83,7 +83,7 @@ export default function S4pImpactTables({
       </ol>
       <a
         href={`${S4P_IMPACT_TABLES_PATH}?tab=${board.id}`}
-        className="mt-4 block text-center text-xs font-bold text-emerald-300 hover:text-white"
+        className="mt-3 block text-center text-xs font-bold text-emerald-300 hover:text-white"
       >
         {board.viewFullLabel}
       </a>

@@ -256,11 +256,14 @@ assert(
     impactLib.includes('shortName: "CILT"') &&
     impactLib.includes('shortName: "CIST"') &&
     impactLib.includes('shortName: "CIFT"') &&
-    impactLib.includes("Top 10 Climate Impact League Table (CILT)") &&
+    impactLib.includes("Top 5 Climate Impact League Table (CILT)") &&
     impactLib.includes("View Full Climate Impact League Table →") &&
     impactLib.includes("View Full Climate Impact Sponsorship Table →") &&
-    impactLib.includes("View Full Climate Impact Fans Table →"),
-  "Impact Tables widget has CILT, CIST and CIFT tabs and a View Full link"
+    impactLib.includes("View Full Climate Impact Fans Table →") &&
+    impactWidget.includes("h-fit") &&
+    !impactWidget.includes("h-full") &&
+    !impactWidget.includes("flex-1"),
+  "Impact Tables widget has CILT, CIST and CIFT tabs and a compact View Full link"
 );
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");

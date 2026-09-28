@@ -1,7 +1,7 @@
 import { climateImpactLeagueTable } from "./cilt";
 import { CURRENT_SEASON_LEAGUES } from "./current-season";
 
-export const IMPACT_TABLE_TOP_COUNT = 10;
+export const IMPACT_TABLE_TOP_COUNT = 5;
 export const IMPACT_TABLE_FULL_LIMIT = 20;
 export const IMPACT_TABLE_PAGE_SIZE = 5;
 
@@ -36,7 +36,7 @@ export const IMPACT_TABLES: Array<{
     id: "cilt",
     shortName: "CILT",
     title: "Climate Impact League Table",
-    topHeading: "Top 10 Climate Impact League Table (CILT)",
+    topHeading: "Top 5 Climate Impact League Table (CILT)",
     viewFullLabel: "View Full Climate Impact League Table →",
     emptyLabel: "No clubs have recorded climate impact yet.",
   },
@@ -44,7 +44,7 @@ export const IMPACT_TABLES: Array<{
     id: "cist",
     shortName: "CIST",
     title: "Climate Impact Sponsorship Table",
-    topHeading: "Top 10 Climate Impact Sponsorship Table (CIST)",
+    topHeading: "Top 5 Climate Impact Sponsorship Table (CIST)",
     viewFullLabel: "View Full Climate Impact Sponsorship Table →",
     emptyLabel: "No sponsors have recorded spend yet.",
   },
@@ -52,7 +52,7 @@ export const IMPACT_TABLES: Array<{
     id: "cift",
     shortName: "CIFT",
     title: "Climate Impact Fans Table",
-    topHeading: "Top 10 Climate Impact Fans Table (CIFT)",
+    topHeading: "Top 5 Climate Impact Fans Table (CIFT)",
     viewFullLabel: "View Full Climate Impact Fans Table →",
     emptyLabel: "No fans have allocated sponsor-funded money yet.",
   },

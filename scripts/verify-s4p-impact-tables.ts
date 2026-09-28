@@ -18,7 +18,7 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(IMPACT_TABLE_TOP_COUNT === 10, "Homepage shows ten performers");
+assert(IMPACT_TABLE_TOP_COUNT === 5, "Homepage shows five performers");
 assert(IMPACT_TABLE_FULL_LIMIT === 20, "Full table is capped at 20 entries");
 assert(IMPACT_TABLE_PAGE_SIZE === 5, "Full table is viewed in batches of five");
 assert(parseImpactTableId("cist") === "cist", "CIST tab is a valid impact table");
@@ -51,6 +51,14 @@ assert(
   widget.includes("Table sponsored by") &&
     widget.includes(S4P_IMPACT_TABLES_PATH),
   "Each table can be sponsored by a brand later"
+);
+assert(
+  widget.includes("h-fit") &&
+    widget.includes("self-center") &&
+    !widget.includes("h-full") &&
+    !widget.includes("flex-1") &&
+    !widget.includes("min-h-["),
+  "Homepage table box shrinks to the five rows so View Full sits under the list"
 );
 
 if (failures.length > 0) {
