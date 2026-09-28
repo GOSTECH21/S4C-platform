@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   formatStatCount,
   mergePlatformStats,
@@ -16,9 +15,12 @@ const JOIN_SECTION_ID = "are-you";
 
 type JoinIntent = "login" | "register";
 
-function joinIntentFromHash(hash: string): JoinIntent | null {
-  if (hash === "#login") return "login";
-  if (hash === "#register") return "register";
+function joinIntentFromLocation(): JoinIntent | null {
+  if (typeof window === "undefined") return null;
+  const join = new URLSearchParams(window.location.search).get("join");
+  if (join === "login" || join === "register") return join;
+  if (window.location.hash === "#login") return "login";
+  if (window.location.hash === "#register") return "register";
   return null;
 }
 
@@ -92,14 +94,11 @@ export default function HomeFrontPage({
 
   function showJoin(intent: JoinIntent) {
     setJoinIntent(intent);
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", `#${intent}`);
-      window.requestAnimationFrame(() => {
-        document
-          .getElementById(JOIN_SECTION_ID)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(JOIN_SECTION_ID)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   useEffect(() => {
@@ -131,9 +130,9 @@ export default function HomeFrontPage({
   }, []);
 
   useEffect(() => {
-    const fromHash = joinIntentFromHash(window.location.hash);
-    if (!fromHash) return;
-    setJoinIntent(fromHash);
+    const fromLocation = joinIntentFromLocation();
+    if (!fromLocation) return;
+    setJoinIntent(fromLocation);
     window.requestAnimationFrame(() => {
       document
         .getElementById(JOIN_SECTION_ID)
@@ -322,18 +321,18 @@ export default function HomeFrontPage({
                   <p className="mt-3 flex-1 text-sm leading-6 text-slate-300">
                     {card.description}
                   </p>
-                  <Link
+                  <a
                     href={primaryHref}
                     className="mt-5 block rounded-xl bg-emerald-500 px-2 py-3 text-center text-[0.8rem] font-bold leading-snug text-slate-950 hover:bg-emerald-400"
                   >
                     {primaryText}
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href={secondaryHref}
                     className="mt-2 block text-center text-xs font-semibold text-slate-400 hover:text-white"
                   >
                     {secondaryText}
-                  </Link>
+                  </a>
                 </div>
               </article>
               );

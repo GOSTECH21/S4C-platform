@@ -193,6 +193,11 @@ assert(
   "Top-right Login and Register tabs take visitors to the role cards"
 );
 assert(
+  !front.includes("history.replaceState") &&
+    !front.includes("`#${intent}`"),
+  "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
+);
+assert(
   front.includes("{children}") &&
     front.indexOf("{children}") < front.indexOf("Are You……?"),
   "How Score-For-Our-Planet Works is rendered above Are You"
