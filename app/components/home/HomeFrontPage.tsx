@@ -204,12 +204,13 @@ export default function HomeFrontPage({
               <span className="text-emerald-400">a brighter planet</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-emerald-50 md:text-base">
-              Every <span className="font-black text-white">GOAL</span>; every{" "}
-              <span className="font-black text-white">TRY</span>; every{" "}
-              <span className="font-black text-white">TOUCHDOWN</span> on every{" "}
-              <span className="font-black text-white">MATCH-DAY</span> creates a
-              funded <span className="font-black text-white">IMPACT MOMENT</span>{" "}
-              by Sponsors for addressing Match-Day Carbon Footprint.
+              Every <span className="font-black text-white">GOAL</span>, every{" "}
+              <span className="font-black text-white">TRY</span>, every{" "}
+              <span className="font-black text-white">TOUCHDOWN</span> and every{" "}
+              <span className="font-black text-white">WICKET</span> can unlock a
+              Sponsor-funded{" "}
+              <span className="font-black text-white">IMPACT MOMENT</span> to help
+              address a Club&apos;s Match-Day Carbon Footprints
             </p>
           </div>
 
