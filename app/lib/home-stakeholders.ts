@@ -79,7 +79,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     login: PARTNER_LOGIN_PATH,
     registerText: "Register Your Project →",
     loginText: "Already registered? Login",
-    loginButtonText: "Login as a Climate Projects Provider →",
+    loginButtonText: "Login as a Provider →",
     image: "/images/home/card-provider.png",
     imageAlt: "Climate projects in the field",
   },
