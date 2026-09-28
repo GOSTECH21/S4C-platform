@@ -59,7 +59,7 @@ export default function S4pImpactTables({
       </p>
       <ol className="mt-3 space-y-1">
         {topRows.length === 0 ? (
-          <li className="py-6 text-center text-sm text-slate-400">
+          <li className="py-6 text-center text-sm font-semibold text-amber-300">
             {board.emptyLabel}
           </li>
         ) : (

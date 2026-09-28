@@ -51,7 +51,7 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
           S4P Impact Tables
         </p>
         <h1 className="mt-3 text-center text-4xl font-black">{board.title}</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-slate-400">
+        <p className="mx-auto mt-4 max-w-2xl text-center font-semibold text-amber-300">
           Top 20 {board.title} entries, shown five at a time. Click CILT, CIST or
           CIFT to switch tables.
         </p>
@@ -85,7 +85,7 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-slate-800 bg-slate-900">
           {rows.length === 0 ? (
-            <p className="p-8 text-center text-slate-400">{board.emptyLabel}</p>
+            <p className="p-8 text-center font-semibold text-amber-300">{board.emptyLabel}</p>
           ) : (
             <ol>
               {rows.map((row) => (
@@ -99,14 +99,16 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
                     </span>
                     {row.name}
                   </span>
-                  <span className="shrink-0 text-sm text-slate-400">{row.metric}</span>
+                  <span className="shrink-0 text-sm font-semibold text-amber-300">
+                    {row.metric}
+                  </span>
                 </li>
               ))}
             </ol>
           )}
         </div>
 
-        <p className="mt-4 text-center text-sm text-slate-500">
+        <p className="mt-4 text-center text-sm font-semibold text-amber-300">
           {rows.length
             ? `Showing ${start}–${end} of ${Math.min(board.rows.length, IMPACT_TABLE_FULL_LIMIT)}`
             : "No entries yet"}

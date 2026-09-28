@@ -261,9 +261,10 @@ assert(
     impactLib.includes("View Full Climate Impact Sponsorship Table →") &&
     impactLib.includes("View Full Climate Impact Fans Table →") &&
     impactWidget.includes("h-fit") &&
+    impactWidget.includes("text-amber-300") &&
     !impactWidget.includes("h-full") &&
     !impactWidget.includes("flex-1"),
-  "Impact Tables widget has CILT, CIST and CIFT tabs and a compact View Full link"
+  "Impact Tables widget has CILT, CIST and CIFT tabs, gold metrics and a compact View Full link"
 );
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");

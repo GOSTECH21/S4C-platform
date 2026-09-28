@@ -45,12 +45,19 @@ assert(
   page.includes("Previous") && page.includes("Next") && page.includes("tab=${board.id}"),
   "Full table pages CILT, CIST and CIFT in batches"
 );
+assert(
+  page.includes("text-amber-300") &&
+    page.includes("{row.metric}") &&
+    page.includes("{board.emptyLabel}"),
+  "Full CILT, CIST and CIFT subtexts use the gold metric colour"
+);
 
 const widget = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
 assert(
   widget.includes("Table sponsored by") &&
-    widget.includes(S4P_IMPACT_TABLES_PATH),
-  "Each table can be sponsored by a brand later"
+    widget.includes(S4P_IMPACT_TABLES_PATH) &&
+    widget.includes("text-amber-300"),
+  "Each table can be sponsored by a brand later and uses gold metric text"
 );
 assert(
   widget.includes("h-fit") &&
