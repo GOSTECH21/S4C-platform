@@ -12,6 +12,16 @@ import {
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import { loadPlatformStats } from "@/app/services/platform-stats.service";
 
+const JOIN_SECTION_ID = "are-you";
+
+type JoinIntent = "login" | "register";
+
+function joinIntentFromHash(hash: string): JoinIntent | null {
+  if (hash === "#login") return "login";
+  if (hash === "#register") return "register";
+  return null;
+}
+
 const STATS: Array<{
   key: keyof Pick<
     PlatformStats,
@@ -78,6 +88,19 @@ export default function HomeFrontPage({
   children?: ReactNode;
 }) {
   const [stats, setStats] = useState<PlatformStats>(() => mergePlatformStats());
+  const [joinIntent, setJoinIntent] = useState<JoinIntent>("register");
+
+  function showJoin(intent: JoinIntent) {
+    setJoinIntent(intent);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${intent}`);
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(JOIN_SECTION_ID)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -107,9 +130,20 @@ export default function HomeFrontPage({
     };
   }, []);
 
+  useEffect(() => {
+    const fromHash = joinIntentFromHash(window.location.hash);
+    if (!fromHash) return;
+    setJoinIntent(fromHash);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(JOIN_SECTION_ID)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
   return (
-    <div className="relative overflow-hidden bg-[#04140f] text-white">
-      <div className="absolute inset-0">
+    <div className="relative bg-[#04140f] text-white">
+      <div className="absolute inset-0 overflow-hidden">
         <Image
           src="/images/home/hero.png"
           alt=""
@@ -122,7 +156,41 @@ export default function HomeFrontPage({
       </div>
 
       <div className="relative">
-        <section className="grid items-center gap-6 px-5 pb-8 pt-8 md:px-10 md:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
+        <div className="sticky top-0 z-50 flex justify-end px-5 py-3 md:px-10">
+          <div
+            role="tablist"
+            aria-label="Login or Register"
+            className="inline-flex rounded-xl border border-emerald-400/30 bg-slate-950/85 p-1 shadow-lg backdrop-blur"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={joinIntent === "login"}
+              onClick={() => showJoin("login")}
+              className={`rounded-lg px-5 py-2 text-sm font-bold ${
+                joinIntent === "login"
+                  ? "bg-emerald-500 text-slate-950"
+                  : "text-white hover:bg-slate-800"
+              }`}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={joinIntent === "register"}
+              onClick={() => showJoin("register")}
+              className={`rounded-lg px-5 py-2 text-sm font-bold ${
+                joinIntent === "register"
+                  ? "bg-emerald-500 text-slate-950"
+                  : "text-white hover:bg-slate-800"
+              }`}
+            >
+              Register
+            </button>
+          </div>
+        </div>
+        <section className="grid items-center gap-6 px-5 pb-8 pt-4 md:px-10 md:pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
           <div>
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
@@ -209,17 +277,34 @@ export default function HomeFrontPage({
 
         {children}
 
-        <section className="px-5 pb-16 md:px-10">
+        <section
+          id={JOIN_SECTION_ID}
+          className="scroll-mt-24 px-5 pb-16 md:px-10"
+        >
           <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
             Are You……?
           </h2>
           <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-slate-300 md:text-base">
-            Join a global movement where sport creates climate action. Choose
-            your role and be part of a cleaner, fairer, healthier planet.
+            {joinIntent === "login"
+              ? "Choose your role to Login as a Fan, Club, Sponsor or Climate Projects Provider."
+              : "Choose your role to Register as a Fan, Club, Sponsor or Climate Projects Provider."}
           </p>
 
           <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
-            {HOME_STAKEHOLDERS.map((card) => (
+            {HOME_STAKEHOLDERS.map((card) => {
+              const primaryHref =
+                joinIntent === "login" ? card.login : card.register;
+              const primaryText =
+                joinIntent === "login"
+                  ? card.loginButtonText
+                  : card.registerText;
+              const secondaryHref =
+                joinIntent === "login" ? card.register : card.login;
+              const secondaryText =
+                joinIntent === "login"
+                  ? card.registerText.replace(" →", "")
+                  : card.loginText;
+              return (
               <article
                 key={card.title}
                 className="flex h-full flex-col overflow-hidden rounded-3xl border border-slate-700/80 bg-[#07150f] shadow-xl"
@@ -238,20 +323,21 @@ export default function HomeFrontPage({
                     {card.description}
                   </p>
                   <Link
-                    href={card.register}
+                    href={primaryHref}
                     className="mt-5 block rounded-xl bg-emerald-500 py-3 text-center text-sm font-bold text-slate-950 hover:bg-emerald-400"
                   >
-                    {card.registerText}
+                    {primaryText}
                   </Link>
                   <Link
-                    href={card.login}
+                    href={secondaryHref}
                     className="mt-2 block text-center text-xs font-semibold text-slate-400 hover:text-white"
                   >
-                    {card.loginText}
+                    {secondaryText}
                   </Link>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-12 grid gap-5 text-center text-sm text-slate-300 sm:grid-cols-2 lg:grid-cols-5">

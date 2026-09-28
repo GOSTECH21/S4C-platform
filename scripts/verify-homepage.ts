@@ -180,7 +180,18 @@ assert(
 );
 
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
+assert(
+  front.includes('id={JOIN_SECTION_ID}') || front.includes('id="are-you"'),
+  "Are You has an anchor the Login and Register tabs can scroll to"
+);
 assert(front.includes("Are You……?"), "New Are You heading is on the front page");
+assert(
+  front.includes('showJoin("login")') &&
+    front.includes('showJoin("register")') &&
+    front.includes("scrollIntoView") &&
+    front.includes("role=\"tablist\""),
+  "Top-right Login and Register tabs take visitors to the role cards"
+);
 assert(
   front.includes("{children}") &&
     front.indexOf("{children}") < front.indexOf("Are You……?"),

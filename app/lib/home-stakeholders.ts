@@ -17,6 +17,7 @@ export type HomeStakeholder = {
   login: string;
   registerText: string;
   loginText: string;
+  loginButtonText: string;
   image: string;
   imageAlt: string;
 };
@@ -30,6 +31,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     login: FAN_LOGIN_PATH,
     registerText: "Register as a Fan →",
     loginText: "Already registered? Login",
+    loginButtonText: "Login as a Fan →",
     image: "/images/home/card-fan.png",
     imageAlt: "Fans celebrating in a packed stadium",
   },
@@ -41,6 +43,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     login: CLUB_LOGIN_PATH,
     registerText: "Register Your Club →",
     loginText: "Already registered? Login",
+    loginButtonText: "Login as a Club →",
     image: "/images/home/card-club.png",
     imageAlt: "A floodlit football pitch",
   },
@@ -52,6 +55,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     login: SPONSOR_LOGIN_PATH,
     registerText: "Register as a Local Sponsor →",
     loginText: "Already registered? Login",
+    loginButtonText: "Login as a Local Sponsor →",
     image: "/images/home/card-local.png",
     imageAlt: "A local business near a stadium",
   },
@@ -63,6 +67,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     login: SPONSOR_LOGIN_PATH,
     registerText: "Register as a Sponsor →",
     loginText: "Already registered? Login",
+    loginButtonText: "Login as a Sponsor →",
     image: "/images/home/card-national.png",
     imageAlt: "A national climate sponsor headquarters",
   },
@@ -74,6 +79,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     login: PARTNER_LOGIN_PATH,
     registerText: "Register Your Project →",
     loginText: "Already registered? Login",
+    loginButtonText: "Login as a Climate Projects Provider →",
     image: "/images/home/card-provider.png",
     imageAlt: "Climate projects in the field",
   },
