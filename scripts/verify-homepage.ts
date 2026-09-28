@@ -231,10 +231,11 @@ assert(
 );
 assert(
   front.includes("WICKET") &&
+    front.includes("&amp; every") &&
     front.includes("can unlock a") &&
     front.includes("Sponsor-funded") &&
     front.includes("Match-Day Carbon Footprints"),
-  "Top-left hero line covers GOAL, TRY, TOUCHDOWN and WICKET unlocking an IMPACT MOMENT"
+  "Top-left hero line covers GOAL, TRY, TOUCHDOWN & WICKET unlocking an IMPACT MOMENT"
 );
 assert(
   front.includes("£ Climate Funding Mobilised") &&

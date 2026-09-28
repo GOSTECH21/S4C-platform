@@ -206,7 +206,7 @@ export default function HomeFrontPage({
             <p className="mt-6 max-w-xl text-sm leading-7 text-emerald-50 md:text-base">
               Every <span className="font-black text-white">GOAL</span>, every{" "}
               <span className="font-black text-white">TRY</span>, every{" "}
-              <span className="font-black text-white">TOUCHDOWN</span> and every{" "}
+              <span className="font-black text-white">TOUCHDOWN</span> &amp; every{" "}
               <span className="font-black text-white">WICKET</span> can unlock a
               Sponsor-funded{" "}
               <span className="font-black text-white">IMPACT MOMENT</span> to help
