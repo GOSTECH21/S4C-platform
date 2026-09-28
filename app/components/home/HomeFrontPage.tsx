@@ -209,8 +209,9 @@ export default function HomeFrontPage({
               <span className="font-black text-white">TOUCHDOWN</span> &amp; every{" "}
               <span className="font-black text-white">WICKET</span> can unlock a
               Sponsor-funded{" "}
-              <span className="font-black text-white">IMPACT MOMENT</span> to help
-              address a Club&apos;s Match-Day Carbon Footprints
+              <span className="font-black text-white">IMPACT MOMENT</span>
+              {" "}
+              to help address a Club&apos;s Match-Day Carbon Footprints
             </p>
           </div>
 
