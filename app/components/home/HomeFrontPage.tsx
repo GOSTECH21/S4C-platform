@@ -139,7 +139,7 @@ export default function HomeFrontPage({
             </p>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center justify-center">
             <Image
               src="/images/home/s4p-mark.png"
               alt="S4P Score-4-our-Planet"
@@ -148,6 +148,9 @@ export default function HomeFrontPage({
               className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
               priority
             />
+            <p className="mt-4 max-w-sm text-center text-sm font-semibold leading-6 text-white sm:max-w-md md:text-base lg:mt-5 lg:text-lg">
+              We help sports clubs address their Match-Day Carbon emissions
+            </p>
           </div>
 
           <div className="relative min-h-[220px] overflow-hidden rounded-3xl lg:min-h-[360px] xl:min-h-[420px]">

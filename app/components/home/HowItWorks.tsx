@@ -1,34 +1,47 @@
+import type { ReactNode } from "react";
+
 export default function HowItWorks() {
-  const steps = [
+  const steps: Array<{
+    number: string;
+    title: string;
+    description: ReactNode;
+  }> = [
     {
       number: "01",
-      title: "Sport Creates Excitement",
+      title: "Compile Climate Projects List",
       description:
-        "Every GOAL; Every TRY; Every TOUCHDOWN; Every 3-POINT scored during a Match creates a Climate Impact Moment",
+        "Clubs compile & publish a list of 5 Climate Projects that helps to address their Match-Day Carbon footprints",
     },
     {
       number: "02",
-      title: "Climate Sponsors Step In",
+      title: "Sports Creates Excitement",
       description:
-        "Global brands sponsor Climate Impact Moments. Local businesses sponsor Fans/Supporters participation. Both Sponsors gain direct Fans engagement",
+        "Every Score (e.g a GOAL; a TRY; a TOUCHDOWN; a WICKET; a 3-POINT-SCORE) during a Match creates a CLIMATE IMPACT MOMENT & releases Sponsorship Cash",
     },
     {
       number: "03",
       title: "Fans & Supporters Participation",
       description:
-        "Fans & Supporters allocate real sponsor-funded Climate Monies into Climate Projects",
+        "Fans & Supporters allocates real cash from Sponsor-funded-monies into any preferred Climate Project chosen from the List",
     },
     {
       number: "04",
-      title: "Climate Partners Benefit",
+      title: "Climate Project Partners Participation",
       description:
-        "Climate Partners receive sponsor-funded Climate Monies; implements project on Club's behalf; Match Day Carbon Footprint sorted",
+        "Project Partners receives their allocated cash; Implements the Project on behalf of the Club to mitigate some OR all of that Match-Day's Carbon emissions",
     },
     {
       number: "05",
       title: "Everyone Wins",
-      description:
-        "Together we create measurable climate action while strengthening sport.",
+      description: (
+        <>
+          Sponsors gain direct engagement with Fans/Supporters; Clubs address
+          their Match-Day Carbon emissions; Fans see their Club climb up our{" "}
+          <span className="font-semibold text-emerald-400">
+            Climate Impact League Table
+          </span>
+        </>
+      ),
     },
   ];
 

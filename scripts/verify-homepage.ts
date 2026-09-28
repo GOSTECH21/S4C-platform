@@ -205,29 +205,38 @@ assert(
   "Hero statement sits between the S4P mark and the Trees Planted bar, with Sport, Sponsors, Fans and Impact in green"
 );
 
+assert(
+  front.includes("We help sports clubs address their Match-Day Carbon emissions"),
+  "The S4P logo carries the Match-Day Carbon emissions line underneath"
+);
+
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
-  howItWorks.includes("Every GOAL; Every TRY; Every TOUCHDOWN; Every 3-POINT"),
-  "Step 01 describes every score as a Climate Impact Moment"
+  howItWorks.includes("Compile Climate Projects List") &&
+    howItWorks.includes("list of 5 Climate Projects"),
+  "Step 01 is Compile Climate Projects List"
 );
 assert(
-  howItWorks.includes("Global brands sponsor Climate Impact Moments") &&
-    howItWorks.includes("Local businesses sponsor Fans/Supporters participation"),
-  "Step 02 explains global and local sponsor roles"
+  howItWorks.includes("Sports Creates Excitement") &&
+    howItWorks.includes("CLIMATE IMPACT MOMENT") &&
+    howItWorks.includes("WICKET"),
+  "Step 02 is Sports Creates Excitement and names the scores that release cash"
 );
 assert(
   howItWorks.includes("Fans & Supporters Participation") &&
-    howItWorks.includes("allocate real sponsor-funded Climate Monies"),
-  "Step 03 is Fans & Supporters Participation directing Climate Monies"
+    howItWorks.includes("Sponsor-funded-monies"),
+  "Step 03 is Fans & Supporters Participation allocating cash from the list"
 );
 assert(
-  howItWorks.includes("Climate Partners Benefit") &&
-    howItWorks.includes("Match Day Carbon Footprint sorted"),
-  "Step 04 says Climate Partners receive Climate Monies and sort the Match Day footprint"
+  howItWorks.includes("Climate Project Partners Participation") &&
+    howItWorks.includes("Match-Day's Carbon emissions"),
+  "Step 04 is Climate Project Partners Participation implementing the project"
 );
 assert(
-  howItWorks.includes("Everyone Wins"),
-  "Step 05 Everyone Wins stays in place"
+  howItWorks.includes("Everyone Wins") &&
+    howItWorks.includes("Climate Impact League Table") &&
+    howItWorks.includes("text-emerald-400"),
+  "Step 05 Everyone Wins highlights Climate Impact League Table in green"
 );
 
 const sql = readFileSync(
