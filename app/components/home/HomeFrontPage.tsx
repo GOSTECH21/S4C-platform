@@ -148,7 +148,7 @@ export default function HomeFrontPage({
               className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
               priority
             />
-            <p className="-mt-5 max-w-md text-center text-[1.05rem] font-semibold leading-snug text-white md:-mt-7 md:text-[1.2rem] lg:-mt-9 lg:max-w-lg lg:text-[1.35rem] xl:-mt-10">
+            <p className="mt-1 max-w-md text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-lg lg:text-[1.35rem]">
               We help sports clubs address their Match-Day Carbon emissions
             </p>
           </div>
