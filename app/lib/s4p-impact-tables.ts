@@ -220,7 +220,9 @@ export function impactTablesHref({
 export function ciltFilterOptions() {
   const sports = [...new Set(Object.values(LEAGUE_SPORT))].sort();
   const competitions = Object.keys(CURRENT_SEASON_LEAGUES);
-  const countries = [...new Set(Object.values(LEAGUE_COUNTRY))].sort();
+  const countries = [...new Set(Object.values(LEAGUE_COUNTRY))]
+    .filter((country) => country !== "Europe")
+    .sort();
   return {
     sports,
     competitions,

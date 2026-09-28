@@ -4,6 +4,7 @@ import {
   IMPACT_TABLE_INTRO,
   IMPACT_TABLE_PAGE_SIZE,
   IMPACT_TABLE_TOP_COUNT,
+  ciltFilterOptions,
   climateImpactLeagueRowsFor,
   impactTableHeading,
   impactTablePageCount,
@@ -112,6 +113,11 @@ assert(
 assert(
   IMPACT_TABLE_INTRO.includes("Sports Clubs, Climate Sponsors and Fans"),
   "Shared intro explains clubs, sponsors and fans"
+);
+assert(
+  !ciltFilterOptions().countries.includes("Europe") &&
+    ciltFilterOptions().countries.includes("England"),
+  "CILT country list omits Europe"
 );
 
 const page = readFileSync("app/s4p-impact-tables/page.tsx", "utf8");
