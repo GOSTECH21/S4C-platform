@@ -4,6 +4,7 @@ export const PLATFORM_STATS_POLL_MS = 15_000;
 
 export type PlatformStats = {
   fundingMobilisedGbp: number;
+  walletTakesGbp: number;
   impactMomentsCreated: number;
   fansEngaged: number;
   sportsTeams: number;
@@ -20,6 +21,7 @@ function asGbp(value: unknown): number {
 
 export function mergePlatformStats({
   fundingMobilisedGbp = 0,
+  walletTakesGbp = 0,
   impactMomentsCreated = 0,
   fansEngaged = 0,
   sportsTeams = 0,
@@ -32,6 +34,7 @@ export function mergePlatformStats({
 } = {}): PlatformStats {
   return {
     fundingMobilisedGbp: asGbp(fundingMobilisedGbp),
+    walletTakesGbp: asGbp(walletTakesGbp),
     impactMomentsCreated: asCount(impactMomentsCreated),
     fansEngaged: asCount(fansEngaged),
     sportsTeams: Math.max(
@@ -47,6 +50,10 @@ export function formatStatCount(value: number): string {
 }
 
 export function formatFundingGbp(value: number): string {
-  const pounds = Math.max(0, Math.round(Number(value) || 0));
-  return `£${pounds.toLocaleString("en-GB")}`;
+  const amount = asGbp(value);
+  const hasPence = Math.round(amount * 100) % 100 !== 0;
+  return `£${amount.toLocaleString("en-GB", {
+    minimumFractionDigits: hasPence ? 2 : 0,
+    maximumFractionDigits: 2,
+  })}`;
 }

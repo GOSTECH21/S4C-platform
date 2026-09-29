@@ -56,6 +56,17 @@ async function impactMomentsCreated(): Promise<number> {
   }, 0);
 }
 
+async function climateWalletTakesGbp(): Promise<number> {
+  const { data, error } = await supabase
+    .from("climate_wallet_takes")
+    .select("amount_gbp");
+  if (error || !data) return 0;
+  return data.reduce(
+    (sum, row) => sum + (Number((row as { amount_gbp?: number }).amount_gbp) || 0),
+    0
+  );
+}
+
 async function climateProjectsFunded(): Promise<number> {
   const { data, error } = await supabase
     .from("supporter_votes")
@@ -69,7 +80,20 @@ async function climateProjectsFunded(): Promise<number> {
   return ids.size;
 }
 
+function withTakes(
+  stats: Partial<PlatformStats>,
+  extraTakes: number
+): PlatformStats {
+  return mergePlatformStats({
+    ...stats,
+    fundingMobilisedGbp: (Number(stats.fundingMobilisedGbp) || 0) + extraTakes,
+    walletTakesGbp: (Number(stats.walletTakesGbp) || 0) + extraTakes,
+  });
+}
+
 export async function loadPlatformStats(): Promise<PlatformStats> {
+  const takes = await climateWalletTakesGbp().catch(() => 0);
+
   try {
     const { data, error } = await supabase.rpc("platform_stats");
     if (!error && data && typeof data === "object") {
@@ -82,19 +106,25 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
         "impactMomentsCreated" in row ||
         "impact_moments_created" in row;
       if (hasLiveFundingKeys) {
-        return mergePlatformStats({
-          fundingMobilisedGbp:
-            Number(row.fundingMobilisedGbp ?? row.funding_mobilised_gbp) || 0,
-          impactMomentsCreated:
-            Number(row.impactMomentsCreated ?? row.impact_moments_created) || 0,
-          fansEngaged: Number(row.fansEngaged ?? row.fans_engaged) || 0,
-          sportsTeams:
-            Number(
-              row.sportsTeams ?? row.sports_teams ?? row.teamsInvolved ?? row.teams_involved
-            ) || 0,
-          climateProjectsFunded:
-            Number(row.climateProjectsFunded ?? row.climate_projects_funded) || 0,
-        });
+        const rpcTakes = Number(row.walletTakesGbp ?? row.wallet_takes_gbp);
+        const rpcIncludesTakes = "walletTakesGbp" in row || "wallet_takes_gbp" in row;
+        return withTakes(
+          {
+            fundingMobilisedGbp:
+              Number(row.fundingMobilisedGbp ?? row.funding_mobilised_gbp) || 0,
+            impactMomentsCreated:
+              Number(row.impactMomentsCreated ?? row.impact_moments_created) || 0,
+            fansEngaged: Number(row.fansEngaged ?? row.fans_engaged) || 0,
+            sportsTeams:
+              Number(
+                row.sportsTeams ?? row.sports_teams ?? row.teamsInvolved ?? row.teams_involved
+              ) || 0,
+            climateProjectsFunded:
+              Number(row.climateProjectsFunded ?? row.climate_projects_funded) || 0,
+            walletTakesGbp: rpcIncludesTakes ? rpcTakes || 0 : 0,
+          },
+          rpcIncludesTakes ? 0 : takes
+        );
       }
     }
   } catch {
@@ -117,11 +147,14 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
     impactMomentsCreated().catch(() => 0),
   ]);
 
-  return mergePlatformStats({
-    fansEngaged,
-    sportsTeams,
-    climateProjectsFunded: fundedProjects,
-    fundingMobilisedGbp: offerFunding + creditFunding,
-    impactMomentsCreated: moments,
-  });
+  return withTakes(
+    {
+      fansEngaged,
+      sportsTeams,
+      climateProjectsFunded: fundedProjects,
+      fundingMobilisedGbp: offerFunding + creditFunding,
+      impactMomentsCreated: moments,
+    },
+    takes
+  );
 }

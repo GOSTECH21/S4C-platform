@@ -37,6 +37,7 @@ import {
   listClimateWalletsForClub,
   writeClimateWallet,
 } from "./sponsor-wallet.service";
+import { persistClimateWalletTake } from "./climate-wallet-takes.service";
 
 const FOLDER_STORAGE_PREFIX = "s4p.sd.matchDayFolder.";
 
@@ -293,6 +294,14 @@ export function applyFanWalletVote({
   writeClimateWallet(result.wallet);
   writeProjectFunding(clubId, result.projects);
   recordFanSponsorVote(supporterId, clubId, brandName);
+  void persistClimateWalletTake({
+    amountGbp: result.amount,
+    projectName: split
+      ? result.projects.map((project) => project.name).join(", ")
+      : result.project.name,
+    brandName: result.wallet.brandName,
+    clubName: result.wallet.clubName,
+  });
   if (folder?.sponsorsFile && folder.projectsFile) {
     const nextFolder = writeMatchDayFolder({
       ...folder,

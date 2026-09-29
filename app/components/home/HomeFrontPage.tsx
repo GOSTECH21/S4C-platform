@@ -11,6 +11,12 @@ import {
 } from "@/app/lib/platform-stats";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import { loadPlatformStats } from "@/app/services/platform-stats.service";
+import { listClimateWallets } from "@/app/services/sponsor-wallet.service";
+import {
+  WALLET_TAKE_EVENT,
+  localWalletTakesGbp,
+  withWalletTakes,
+} from "@/app/lib/climate-wallet-takes";
 import S4pImpactTables from "@/app/components/home/S4pImpactTables";
 import type { ImpactTableBoard } from "@/app/lib/s4p-impact-tables";
 
@@ -115,7 +121,11 @@ export default function HomeFrontPage({
         const fromApi = await fetch("/api/platform-stats", { cache: "no-store" });
         if (fromApi.ok) {
           const next = (await fromApi.json()) as PlatformStats;
-          if (!cancelled) setStats(mergePlatformStats(next));
+          if (!cancelled) {
+            setStats(
+              withWalletTakes(mergePlatformStats(next), localWalletTakesGbp(listClimateWallets()))
+            );
+          }
           return;
         }
       } catch {
@@ -123,16 +133,24 @@ export default function HomeFrontPage({
       }
       try {
         const next = await loadPlatformStats();
-        if (!cancelled) setStats(next);
+        if (!cancelled) {
+          setStats(withWalletTakes(next, localWalletTakesGbp(listClimateWallets())));
+        }
       } catch {
-        if (!cancelled) setStats(mergePlatformStats());
+        if (!cancelled) {
+          setStats(
+            withWalletTakes(mergePlatformStats(), localWalletTakesGbp(listClimateWallets()))
+          );
+        }
       }
     }
     void refresh();
     const timer = window.setInterval(() => void refresh(), PLATFORM_STATS_POLL_MS);
+    window.addEventListener(WALLET_TAKE_EVENT, refresh);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
+      window.removeEventListener(WALLET_TAKE_EVENT, refresh);
     };
   }, []);
 

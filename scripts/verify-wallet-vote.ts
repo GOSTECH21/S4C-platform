@@ -11,6 +11,7 @@ import {
   localWalletTopUp,
   remainingGbp,
   walletVoteAmount,
+  totalAllocatedGbp,
 } from "../app/lib/sponsor-wallet";
 import {
   buildProjectsFile,
@@ -31,6 +32,8 @@ import {
   fanInviteRegisterPath,
   mergeNumberedFunding,
 } from "../app/lib/climate-funding";
+import { mergePlatformStats, formatFundingGbp } from "../app/lib/platform-stats";
+import { withWalletTakes } from "../app/lib/climate-wallet-takes";
 
 const failures: string[] = [];
 
@@ -117,6 +120,17 @@ if (leadVoted.ok) {
   assert(
     leadVoted.project.number === 2 && leadVoted.project.fundedGbp === 0.5,
     "Project 2 receives £0.50 from the Amex Carbon Wallet"
+  );
+  assert(
+    totalAllocatedGbp([leadVoted.wallet]) === 0.5,
+    "Allocated Carbon Wallet cash is the amount taken by fans"
+  );
+  assert(
+    formatFundingGbp(
+      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+        .fundingMobilisedGbp
+    ) === "£1,816,000.50",
+    "The homepage bar becomes £1,816,000.50 after a Lead £0.50 take"
   );
 }
 
@@ -287,6 +301,12 @@ assert(
     preview.includes("American Express") &&
     preview.includes("showSponsors={false}"),
   "The My S4P preview shows numbered Climate Projects without sponsor branding"
+);
+
+const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");
+assert(
+  folderService.includes("persistClimateWalletTake"),
+  "Match Day Votes record the cash taken from a Carbon Wallet"
 );
 
 if (failures.length > 0) {

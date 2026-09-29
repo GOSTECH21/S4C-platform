@@ -7,6 +7,7 @@ import {
   formatStatCount,
   mergePlatformStats,
 } from "../app/lib/platform-stats";
+import { withWalletTakes } from "../app/lib/climate-wallet-takes";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
 import {
   FAN_VOTE_PICK_COUNT,
@@ -166,6 +167,19 @@ assert(
 assert(formatStatCount(1230000) === "1,230,000", "Stat windows use grouped thousands");
 assert(formatFundingGbp(0) === "£0", "Zero funding displays as £0");
 assert(formatFundingGbp(12500) === "£12,500", "Funding uses a pound sign and grouped thousands");
+assert(
+  formatFundingGbp(1816000.5) === "£1,816,000.50",
+  "A £0.50 wallet take keeps pence on the Climate Funding Mobilised bar"
+);
+assert(
+  withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+    .fundingMobilisedGbp === 1816000.5 &&
+    formatFundingGbp(
+      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+        .fundingMobilisedGbp
+    ) === "£1,816,000.50",
+  "Taking £0.50 from a Lead Carbon Wallet raises the bar from £1,816,000 to £1,816,000.50"
+);
 
 const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
@@ -208,6 +222,10 @@ assert(
 );
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
 assert(front.includes("/api/platform-stats"), "Stat windows refresh from live platform stats");
+assert(
+  front.includes("withWalletTakes") && front.includes("WALLET_TAKE_EVENT"),
+  "The funding bar adds Carbon Wallet takes as soon as a fan allocates them"
+);
 assert(
   !front.includes("Sport today"),
   "Top-right Sport today slogan is removed from the hero"
@@ -312,6 +330,19 @@ assert(
     sql.includes("impactMomentsCreated") &&
     sql.includes("climateProjectsFunded"),
   "Hosted SQL returns real funding, impact moments and funded-project counts"
+);
+const takeSql = readFileSync(
+  "supabase/migrations/0013_climate_wallet_takes.sql",
+  "utf8"
+);
+assert(
+  takeSql.includes("climate_wallet_takes") && takeSql.includes("amount_gbp"),
+  "Hosted SQL stores each fan take from a Carbon Wallet"
+);
+const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");
+assert(
+  folderService.includes("persistClimateWalletTake"),
+  "Fan Carbon Wallet votes are recorded as Climate Funding Mobilised"
 );
 
 if (failures.length > 0) {

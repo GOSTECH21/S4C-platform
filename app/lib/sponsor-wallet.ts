@@ -106,6 +106,17 @@ export function remainingGbp(wallet: ClimateWallet): number {
   );
 }
 
+export function totalAllocatedGbp(
+  wallets: Array<Pick<ClimateWallet, "allocatedGbp">>
+): number {
+  return roundGbp(
+    wallets.reduce(
+      (sum, wallet) => sum + Math.max(0, Number(wallet.allocatedGbp) || 0),
+      0
+    )
+  );
+}
+
 export function committedGbp(wallet: ClimateWallet): number {
   return spendableGbp(wallet);
 }
