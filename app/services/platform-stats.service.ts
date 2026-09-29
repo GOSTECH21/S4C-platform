@@ -1,4 +1,11 @@
 import { supabase } from "../lib/supabase";
+import {
+  compactIdentity,
+  emailKey,
+  engagedFanCount,
+  storedFullName,
+  type RegisteredFan,
+} from "../lib/s4p-admin";
 import { mergePlatformStats, type PlatformStats } from "../lib/platform-stats";
 
 async function countRows(table: string): Promise<number> {
@@ -63,6 +70,72 @@ async function fansEngagedFromRoster(): Promise<number | null> {
   }
 }
 
+async function fansEngagedFromTables(): Promise<number | null> {
+  try {
+    const [supporters, directors, sponsors] = await Promise.all([
+      supabase
+        .from("supporters")
+        .select("id, full_name, email, auth_user_id, clubs(name)"),
+      supabase
+        .from("club_accounts")
+        .select("first_name, last_name, email, auth_user_id"),
+      supabase.from("sponsors").select("website, user_id"),
+    ]);
+    if (supporters.error || !supporters.data) return null;
+
+    const fans: RegisteredFan[] = supporters.data.map((row) => {
+      const club = (row as { clubs?: { name?: string } | null }).clubs;
+      return {
+        id: String(row.id),
+        fullName: String(row.full_name ?? "").trim() || "Unnamed fan",
+        email: String(row.email ?? "").trim() || "No email",
+        clubName: String(club?.name ?? "").trim() || "No club selected",
+        authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
+      };
+    });
+
+    const mappedDirectors = (directors.error ? [] : directors.data ?? []).map((row) => ({
+      email: String(row.email ?? "").trim(),
+      fullName: storedFullName(
+        String(row.first_name ?? ""),
+        String(row.last_name ?? "")
+      ),
+    }));
+    const mappedSponsors = (sponsors.error ? [] : sponsors.data ?? []).map((row) => ({
+      contactName: String(row.website ?? "").trim() || "No contact name",
+      userId: row.user_id ? String(row.user_id) : null,
+    }));
+
+    if (mappedDirectors.length === 0 && mappedSponsors.length === 0) {
+      return null;
+    }
+
+    return engagedFanCount(fans, {
+      emails: mappedDirectors.map((row) => emailKey(row.email)).filter(Boolean),
+      authUserIds: mappedSponsors
+        .map((row) => row.userId)
+        .filter((id): id is string => Boolean(id)),
+      contactKeys: [
+        ...mappedDirectors.map((row) => compactIdentity(row.fullName)),
+        ...mappedSponsors.map((row) => compactIdentity(row.contactName)),
+      ].filter((key) => key.length >= 6),
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function loadFansEngaged(
+  rpcFans = 0,
+  rpcFansAreRoster = false
+): Promise<number> {
+  const fromSql = await fansEngagedFromRoster();
+  if (fromSql != null) return fromSql;
+  const fromTables = await fansEngagedFromTables();
+  if (fromTables != null) return fromTables;
+  return rpcFansAreRoster ? rpcFans : 0;
+}
+
 function asFundingTakes(...amounts: Array<number | null | undefined>): number {
   return amounts.reduce<number>(
     (highest, amount) => Math.max(highest, Number(amount) || 0),
@@ -72,7 +145,6 @@ function asFundingTakes(...amounts: Array<number | null | undefined>): number {
 
 export async function loadPlatformStats(): Promise<PlatformStats> {
   const tableTakes = await climateWalletTakesGbp().catch(() => 0);
-  const rosterFans = await fansEngagedFromRoster();
 
   try {
     const { data, error } = await supabase.rpc("platform_stats");
@@ -98,7 +170,7 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
           walletTakesGbp: takes,
           impactMomentsCreated:
             Number(row.impactMomentsCreated ?? row.impact_moments_created) || 0,
-          fansEngaged: rosterFans ?? (rpcFansAreRoster ? rpcFans : 0),
+          fansEngaged: await loadFansEngaged(rpcFans, rpcFansAreRoster),
           sportsTeams:
             Number(
               row.sportsTeams ?? row.sports_teams ?? row.teamsInvolved ?? row.teams_involved
@@ -112,14 +184,15 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
     // Fall through to table counts when the RPC is not on the hosted DB yet.
   }
 
-  const [sportsTeams, fundedProjects, moments] = await Promise.all([
+  const [sportsTeams, fundedProjects, moments, fansEngaged] = await Promise.all([
     countRows("clubs"),
     climateProjectsFunded(),
     impactMomentsCreated().catch(() => 0),
+    loadFansEngaged(),
   ]);
 
   return mergePlatformStats({
-    fansEngaged: rosterFans ?? 0,
+    fansEngaged,
     sportsTeams,
     climateProjectsFunded: fundedProjects,
     fundingMobilisedGbp: tableTakes,

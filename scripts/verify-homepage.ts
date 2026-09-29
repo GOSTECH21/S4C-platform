@@ -369,9 +369,11 @@ const statsService = readFileSync("app/services/platform-stats.service.ts", "utf
 assert(
   statsService.includes("s4p_fans_engaged") &&
     statsService.includes("fansCountedAsRoster") &&
+    statsService.includes("engagedFanCount") &&
+    statsService.includes("club_accounts") &&
     !statsService.includes("signedOfferFundingGbp") &&
     !statsService.includes("sponsor_match_offers"),
-  "Platform stats do not add signed sponsorship onto Climate Funding Mobilised"
+  "Platform stats count unique fans like Admin and do not add signed sponsorship onto Climate Funding Mobilised"
 );
 const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");
 assert(
@@ -387,3 +389,25 @@ if (failures.length > 0) {
 console.log(
   "Homepage: five stakeholders including Local Business Climate Sponsor; live stats; leftover projects."
 );
+
+if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  import("../app/services/platform-stats.service")
+    .then(({ loadPlatformStats }) => loadPlatformStats())
+    .then((stats) => {
+      if (stats.fansEngaged === 18) {
+        throw new Error("Live Fans Engaged is still the raw supporter-row count of 18");
+      }
+      if (stats.fundingMobilisedGbp >= 1_000_000) {
+        throw new Error(
+          `Live Climate Funding Mobilised is still £${stats.fundingMobilisedGbp} (signed credits, not wallet takes)`
+        );
+      }
+      console.log(
+        `Live homepage stats: ${stats.fansEngaged} fans engaged, £${stats.fundingMobilisedGbp} mobilised.`
+      );
+    })
+    .catch((error) => {
+      console.error(error instanceof Error ? error.message : error);
+      process.exit(1);
+    });
+}
