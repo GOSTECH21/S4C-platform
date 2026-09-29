@@ -7,7 +7,10 @@ import {
   formatStatCount,
   mergePlatformStats,
 } from "../app/lib/platform-stats";
-import { withWalletTakes } from "../app/lib/climate-wallet-takes";
+import {
+  fundingMobilisedFromTakes,
+  withWalletTakes,
+} from "../app/lib/climate-wallet-takes";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
 import {
   FAN_VOTE_PICK_COUNT,
@@ -169,16 +172,28 @@ assert(formatFundingGbp(0) === "£0", "Zero funding displays as £0");
 assert(formatFundingGbp(12500) === "£12,500", "Funding uses a pound sign and grouped thousands");
 assert(
   formatFundingGbp(1816000.5) === "£1,816,000.50",
-  "A £0.50 wallet take keeps pence on the Climate Funding Mobilised bar"
+  "Pence still display when a funding amount includes 50p"
 );
 assert(
-  withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
-    .fundingMobilisedGbp === 1816000.5 &&
+  formatFundingGbp(3) === "£3" && formatFundingGbp(3.5) === "£3.50",
+  "A few pounds of wallet-to-project takes display as pounds, with pence when needed"
+);
+assert(
+  fundingMobilisedFromTakes(0, 0.5) === 0.5 &&
+    withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+      .fundingMobilisedGbp === 0.5 &&
     formatFundingGbp(
-      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 3)
         .fundingMobilisedGbp
-    ) === "£1,816,000.50",
-  "Taking £0.50 from a Lead Carbon Wallet raises the bar from £1,816,000 to £1,816,000.50"
+    ) === "£3",
+  "The funding bar is wallet-to-project takes only and ignores signed-offer totals"
+);
+assert(
+  withWalletTakes(
+    mergePlatformStats({ fundingMobilisedGbp: 1816000, walletTakesGbp: 3 }),
+    3.5
+  ).fundingMobilisedGbp === 3.5,
+  "Local Carbon Wallet takes raise the bar from the hosted take ledger, not from £1.8m"
 );
 
 const homePage = readFileSync("app/page.tsx", "utf8");
@@ -224,7 +239,7 @@ assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page
 assert(front.includes("/api/platform-stats"), "Stat windows refresh from live platform stats");
 assert(
   front.includes("withWalletTakes") && front.includes("WALLET_TAKE_EVENT"),
-  "The funding bar adds Carbon Wallet takes as soon as a fan allocates them"
+  "The funding bar shows Carbon Wallet takes as soon as a fan allocates them"
 );
 assert(
   !front.includes("Sport today"),
@@ -338,6 +353,25 @@ const takeSql = readFileSync(
 assert(
   takeSql.includes("climate_wallet_takes") && takeSql.includes("amount_gbp"),
   "Hosted SQL stores each fan take from a Carbon Wallet"
+);
+const liveSql = readFileSync(
+  "supabase/migrations/0014_platform_stats_wallet_takes.sql",
+  "utf8"
+);
+assert(
+  liveSql.includes("s4p_fans_engaged") &&
+    liveSql.includes("fansCountedAsRoster") &&
+    liveSql.includes("climate_wallet_takes") &&
+    !liveSql.includes("sponsor_match_offers"),
+  "Hosted SQL counts unique fans like Admin and funds the bar from wallet takes only"
+);
+const statsService = readFileSync("app/services/platform-stats.service.ts", "utf8");
+assert(
+  statsService.includes("s4p_fans_engaged") &&
+    statsService.includes("fansCountedAsRoster") &&
+    !statsService.includes("signedOfferFundingGbp") &&
+    !statsService.includes("sponsor_match_offers"),
+  "Platform stats do not add signed sponsorship onto Climate Funding Mobilised"
 );
 const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");
 assert(

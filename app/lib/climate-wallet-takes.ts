@@ -63,17 +63,28 @@ export function localWalletTakesGbp(
   );
 }
 
-/** Homepage bar = existing mobilised £ plus fan takes not already counted by the API. */
+/** Cash actually taken from Carbon Wallets into Climate Projects. */
+export function fundingMobilisedFromTakes(
+  serverTakesGbp: number,
+  localTakesGbp: number
+) {
+  return roundGbp(
+    Math.max(Number(serverTakesGbp) || 0, roundGbp(localTakesGbp))
+  );
+}
+
+/** Homepage bar is wallet-to-project takes only — never signed-offer totals. */
 export function withWalletTakes(
   stats: PlatformStats,
   localTakesGbp: number
 ): PlatformStats {
-  const extra = roundGbp(
-    Math.max(0, roundGbp(localTakesGbp) - (Number(stats.walletTakesGbp) || 0))
+  const takes = fundingMobilisedFromTakes(
+    Number(stats.walletTakesGbp) || 0,
+    localTakesGbp
   );
   return mergePlatformStats({
     ...stats,
-    fundingMobilisedGbp: roundGbp(stats.fundingMobilisedGbp + extra),
-    walletTakesGbp: roundGbp((Number(stats.walletTakesGbp) || 0) + extra),
+    fundingMobilisedGbp: takes,
+    walletTakesGbp: takes,
   });
 }

@@ -129,8 +129,8 @@ if (leadVoted.ok) {
     formatFundingGbp(
       withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
         .fundingMobilisedGbp
-    ) === "£1,816,000.50",
-    "The homepage bar becomes £1,816,000.50 after a Lead £0.50 take"
+    ) === "£0.50",
+    "The homepage bar becomes £0.50 after a Lead £0.50 take from a Carbon Wallet"
   );
 }
 

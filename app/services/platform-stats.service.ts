@@ -9,33 +9,6 @@ async function countRows(table: string): Promise<number> {
   return Number(count) || 0;
 }
 
-async function signedOfferFundingGbp(): Promise<number> {
-  const [{ data: offers }, { data: signatures }] = await Promise.all([
-    supabase.from("sponsor_match_offers").select("id, sponsorship_amount_gbp"),
-    supabase.from("sponsor_offer_signatures").select("offer_id"),
-  ]);
-  const signedIds = new Set(
-    (signatures ?? []).map((row) => String((row as { offer_id?: string }).offer_id ?? ""))
-  );
-  signedIds.delete("");
-  return (offers ?? []).reduce((sum, row) => {
-    const offer = row as { id?: string; sponsorship_amount_gbp?: number | null };
-    if (!offer.id || !signedIds.has(String(offer.id))) return sum;
-    return sum + (Number(offer.sponsorship_amount_gbp) || 0);
-  }, 0);
-}
-
-async function climateCreditFundingGbp(): Promise<number> {
-  const { data, error } = await supabase
-    .from("sponsor_climate_credits")
-    .select("total_value");
-  if (error || !data) return 0;
-  return data.reduce(
-    (sum, row) => sum + (Number((row as { total_value?: number }).total_value) || 0),
-    0
-  );
-}
-
 async function impactMomentsCreated(): Promise<number> {
   const { count, error: creditError } = await supabase
     .from("sponsor_climate_credits")
@@ -80,19 +53,26 @@ async function climateProjectsFunded(): Promise<number> {
   return ids.size;
 }
 
-function withTakes(
-  stats: Partial<PlatformStats>,
-  extraTakes: number
-): PlatformStats {
-  return mergePlatformStats({
-    ...stats,
-    fundingMobilisedGbp: (Number(stats.fundingMobilisedGbp) || 0) + extraTakes,
-    walletTakesGbp: (Number(stats.walletTakesGbp) || 0) + extraTakes,
-  });
+async function fansEngagedFromRoster(): Promise<number | null> {
+  try {
+    const { data, error } = await supabase.rpc("s4p_fans_engaged");
+    if (error || data == null) return null;
+    return Math.max(0, Math.round(Number(data) || 0));
+  } catch {
+    return null;
+  }
+}
+
+function asFundingTakes(...amounts: Array<number | null | undefined>): number {
+  return amounts.reduce<number>(
+    (highest, amount) => Math.max(highest, Number(amount) || 0),
+    0
+  );
 }
 
 export async function loadPlatformStats(): Promise<PlatformStats> {
-  const takes = await climateWalletTakesGbp().catch(() => 0);
+  const tableTakes = await climateWalletTakesGbp().catch(() => 0);
+  const rosterFans = await fansEngagedFromRoster();
 
   try {
     const { data, error } = await supabase.rpc("platform_stats");
@@ -108,53 +88,42 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
       if (hasLiveFundingKeys) {
         const rpcTakes = Number(row.walletTakesGbp ?? row.wallet_takes_gbp);
         const rpcIncludesTakes = "walletTakesGbp" in row || "wallet_takes_gbp" in row;
-        return withTakes(
-          {
-            fundingMobilisedGbp:
-              Number(row.fundingMobilisedGbp ?? row.funding_mobilised_gbp) || 0,
-            impactMomentsCreated:
-              Number(row.impactMomentsCreated ?? row.impact_moments_created) || 0,
-            fansEngaged: Number(row.fansEngaged ?? row.fans_engaged) || 0,
-            sportsTeams:
-              Number(
-                row.sportsTeams ?? row.sports_teams ?? row.teamsInvolved ?? row.teams_involved
-              ) || 0,
-            climateProjectsFunded:
-              Number(row.climateProjectsFunded ?? row.climate_projects_funded) || 0,
-            walletTakesGbp: rpcIncludesTakes ? rpcTakes || 0 : 0,
-          },
-          rpcIncludesTakes ? 0 : takes
-        );
+        const rpcFansAreRoster =
+          row.fansCountedAsRoster === true ||
+          row.fans_counted_as_roster === true;
+        const rpcFans = Number(row.fansEngaged ?? row.fans_engaged) || 0;
+        const takes = asFundingTakes(tableTakes, rpcIncludesTakes ? rpcTakes : 0);
+        return mergePlatformStats({
+          fundingMobilisedGbp: takes,
+          walletTakesGbp: takes,
+          impactMomentsCreated:
+            Number(row.impactMomentsCreated ?? row.impact_moments_created) || 0,
+          fansEngaged: rosterFans ?? (rpcFansAreRoster ? rpcFans : 0),
+          sportsTeams:
+            Number(
+              row.sportsTeams ?? row.sports_teams ?? row.teamsInvolved ?? row.teams_involved
+            ) || 0,
+          climateProjectsFunded:
+            Number(row.climateProjectsFunded ?? row.climate_projects_funded) || 0,
+        });
       }
     }
   } catch {
     // Fall through to table counts when the RPC is not on the hosted DB yet.
   }
 
-  const [
-    fansEngaged,
-    sportsTeams,
-    fundedProjects,
-    offerFunding,
-    creditFunding,
-    moments,
-  ] = await Promise.all([
-    countRows("supporters"),
+  const [sportsTeams, fundedProjects, moments] = await Promise.all([
     countRows("clubs"),
     climateProjectsFunded(),
-    signedOfferFundingGbp().catch(() => 0),
-    climateCreditFundingGbp().catch(() => 0),
     impactMomentsCreated().catch(() => 0),
   ]);
 
-  return withTakes(
-    {
-      fansEngaged,
-      sportsTeams,
-      climateProjectsFunded: fundedProjects,
-      fundingMobilisedGbp: offerFunding + creditFunding,
-      impactMomentsCreated: moments,
-    },
-    takes
-  );
+  return mergePlatformStats({
+    fansEngaged: rosterFans ?? 0,
+    sportsTeams,
+    climateProjectsFunded: fundedProjects,
+    fundingMobilisedGbp: tableTakes,
+    walletTakesGbp: tableTakes,
+    impactMomentsCreated: moments,
+  });
 }

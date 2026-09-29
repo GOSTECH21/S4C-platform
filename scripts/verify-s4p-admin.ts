@@ -4,8 +4,10 @@ import {
   groupFansByClub,
   guessPersonNameFromEmailLocal,
   looksLikeEmailLocalPart,
+  personKey,
   resolvedFullName,
   staffFanRoster,
+  engagedFanCount,
   storedFullName,
   uniqueClubNames,
   welcomeBackMessage,
@@ -127,6 +129,23 @@ const staffFans = staffFanRoster(rawFans, {
 const groups = groupFansByClub(staffFans);
 const villa = groups.find((group) => group.clubName === "Aston Villa");
 const fulham = groups.find((group) => group.clubName === "Fulham");
+assert(
+  engagedFanCount(rawFans, {
+    emails: ["johnsmithvillafc@gmail.com"],
+    authUserIds: ["sponsor-bud"],
+    contactKeys: ["johnsmith", "jamesstewart"],
+  }) === staffFans.length,
+  "Fans Engaged is the admin Fans by club roster length"
+);
+assert(
+  staffFans.length === groups.reduce((sum, group) => sum + group.count, 0),
+  "Club group totals add up to Fans Engaged"
+);
+assert(
+  personKey("jacobramsey22", "jacobramsey22@gmail.com") ===
+    personKey("Jacob Ramsey", "jacobramseyful@gmail.com"),
+  "Two supporter rows for Jacob Ramsey count as one engaged fan"
+);
 assert(villa?.count === 1, "Aston Villa has one fan after removing SD/sponsor rows");
 assert(
   villa?.members[0]?.fullName === "Paul Adam" &&

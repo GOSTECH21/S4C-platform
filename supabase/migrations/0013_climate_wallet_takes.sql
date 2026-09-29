@@ -3,8 +3,8 @@
 -- Safe to run more than once.
 --
 -- Each fan take from a Carbon Wallet (Checkbox 1 / Checkbox 2) is a row.
--- The homepage £ Climate Funding Mobilised bar adds this sum to signed
--- sponsorship so £0.50 taken from a Lead wallet becomes £1,816,000.50.
+-- The homepage £ Climate Funding Mobilised bar is this sum only — cash
+-- that has left a sponsor wallet and gone into Climate Projects.
 
 create table if not exists public.climate_wallet_takes (
   id uuid primary key default gen_random_uuid(),
