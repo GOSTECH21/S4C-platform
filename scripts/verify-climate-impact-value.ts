@@ -170,14 +170,40 @@ assert(
   "PIP keeps a fully funded project in Implementation until it is Live"
 );
 
+const partnerForm = readFileSync(
+  "app/components/climate/ClimateProjectListingForm.tsx",
+  "utf8"
+);
+assert(
+  partnerForm.includes("Climate Project Form") &&
+    partnerForm.includes("Projected CIV") &&
+    partnerForm.includes("Funding Amount Sought") &&
+    partnerForm.includes("PIP (days after full funding)") &&
+    partnerForm.includes("CIV_UNDERTAKING") &&
+    partnerForm.includes("Sign off and list on S4P"),
+  "Climate Project Form collects CIV, funding, PIP and a signed undertaking"
+);
+
 const partnerPage = readFileSync("app/partner/dashboard/page.tsx", "utf8");
 assert(
-  partnerPage.includes("Projected CIV") &&
-    partnerPage.includes("Funding Amount Sought") &&
-    partnerPage.includes("PIP (days after full funding)") &&
-    partnerPage.includes("CIV_UNDERTAKING") &&
-    partnerPage.includes("Sign off and list on S4P"),
-  "Partner upload collects CIV, funding, PIP and a signed undertaking"
+  partnerPage.includes("ClimateProjectListingForm") &&
+    partnerPage.includes("List your Climate Project") &&
+    !partnerPage.includes("Select project") &&
+    !partnerPage.includes("publishSccanCatalog"),
+  "Partner dashboard opens the Climate Project Form, not a catalog to pick from"
+);
+assert(
+  partnerPage.indexOf("ClimateProjectListingForm") <
+    partnerPage.indexOf("Your listed Climate Projects"),
+  "The Climate Project Form is the first action on the Partner dashboard"
+);
+
+const partnerRegister = readFileSync("app/partner/register/page.tsx", "utf8");
+assert(
+  partnerRegister.includes("ClimateProjectListingForm") &&
+    partnerRegister.includes("Climate Project Form") &&
+    !partnerRegister.includes("SCCAN_PARTNER_NAME"),
+  "Registering as a Climate Partner presents the Climate Project Form"
 );
 
 const partnerService = readFileSync("app/services/partner.service.ts", "utf8");
@@ -186,6 +212,14 @@ assert(
     partnerService.includes("encodePartnerLocation") &&
     partnerService.includes('status: "listed"'),
   "Upload refuses incomplete CIV and lists only signed-off projects"
+);
+const registerFn = partnerService.slice(
+  partnerService.indexOf("export async function registerClimatePartner"),
+  partnerService.indexOf("export async function loginClimatePartner")
+);
+assert(
+  !registerFn.includes("publishSccanCatalog"),
+  "Climate Partner registration does not load a catalog of projects to pick"
 );
 
 const card = readFileSync("app/components/fan/MatchDayProjectCard.tsx", "utf8");

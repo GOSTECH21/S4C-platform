@@ -70,7 +70,6 @@ export async function registerClimatePartner({
     country,
   });
 
-  await publishSccanCatalog();
   return user;
 }
 
@@ -218,6 +217,17 @@ export async function loadPartnerLibrary(): Promise<ClimateProject[]> {
     (project) => !mine.some((row) => row.id === project.id)
   );
   return [...mine, ...others, ...published];
+}
+
+export async function loadMyListedClimateProjects(): Promise<ClimateProject[]> {
+  const session = await loadPartnerSession();
+  const uploaded = await loadUploadedPartnerProjects();
+  if (!session) return uploaded;
+  const org = session.profile.organisationName.trim().toLowerCase();
+  if (!org) return uploaded;
+  return uploaded.filter((project) =>
+    String(project.location ?? "").toLowerCase().includes(org)
+  );
 }
 
 export async function uploadPartnerProject(

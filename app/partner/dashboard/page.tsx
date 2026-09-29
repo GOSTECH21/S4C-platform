@@ -4,47 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import type { ClimateProject } from "@/app/services/votes.service";
-import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
-  loadPartnerLibrary,
+  loadMyListedClimateProjects,
   loadPartnerSession,
-  publishSccanCatalog,
-  uploadPartnerProject,
   type PartnerProfile,
 } from "@/app/services/partner.service";
 import {
   HOME_PATH,
   PARTNER_LOGIN_PATH,
 } from "@/app/lib/routes";
-import {
-  FEATURED_PROJECT_NAME,
-  INTERNATIONAL_CLIMATE_PROJECTS,
-  LOCAL_CLIMATE_PROJECTS_BY_COUNTRY,
-  SCCAN_SOURCE_URL,
-} from "@/app/lib/sccan-catalog";
-import {
-  CIV_PERIODS,
-  CIV_UNDERTAKING,
-  CIV_VERIFICATION,
-  DEFAULT_CIV_PERIOD,
-  DEFAULT_PIP_DAYS,
-  DEFAULT_PROJECT_LIFE_YEARS,
-  civForProject,
-} from "@/app/lib/climate-impact-value";
+import { civForProject } from "@/app/lib/climate-impact-value";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
-
-const CATEGORIES = [
-  "Solar Energy",
-  "Renewable Energy",
-  "Biodiversity",
-  "Sustainable Agriculture",
-  "Active Travel",
-  "Recycling",
-  "Ocean Cleanup",
-  "Community Climate Action",
-  "Resilience",
-  "Education",
-];
+import { ClimateProjectListingForm } from "@/app/components/climate/ClimateProjectListingForm";
 
 export default function PartnerDashboardPage() {
   const router = useRouter();
@@ -52,26 +23,7 @@ export default function PartnerDashboardPage() {
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [projects, setProjects] = useState<ClimateProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    category: "Community Climate Action",
-    country: "Scotland",
-    fundingAmountSought: "",
-    projectedCiv: "",
-    civPeriod: DEFAULT_CIV_PERIOD as string,
-    projectLifeYears: String(DEFAULT_PROJECT_LIFE_YEARS),
-    pipDays: String(DEFAULT_PIP_DAYS),
-    methodology: "",
-    evidence: "",
-    verificationStatus: CIV_VERIFICATION[0] as string,
-    signerName: "",
-    undertakingSigned: false,
-  });
 
   async function refresh() {
     const session = await loadPartnerSession();
@@ -81,74 +33,16 @@ export default function PartnerDashboardPage() {
     }
     setEmail(session.email);
     setProfile(session.profile);
-    await publishSccanCatalog();
-    setProjects(await loadPartnerLibrary());
-  }
-
-  function handleSelectProject(project: ClimateProject) {
-    setSelectedId(project.id);
-    setError(null);
-    setNotice(
-      `“${project.name}” is ready for club matching. Sustainability Directors and Sponsorship Managers can select it from S4P Climate Projects — uploaded partner projects sit at the top of each list.`
-    );
+    setProjects(await loadMyListedClimateProjects());
   }
 
   useEffect(() => {
     refresh()
       .catch((err) =>
-        setError(err instanceof Error ? err.message : "Could not load projects.")
+        setError(err instanceof Error ? err.message : "Could not load your projects.")
       )
       .finally(() => setLoading(false));
   }, [router]);
-
-  async function handleUpload(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setNotice(null);
-    setSaving(true);
-    try {
-      await uploadPartnerProject({
-        name: form.name,
-        description: form.description,
-        category: form.category,
-        country: form.country,
-        fundingAmountSought: Number(form.fundingAmountSought) || 0,
-        projectedCiv: Number(form.projectedCiv) || 0,
-        civPeriod: form.civPeriod,
-        projectLifeYears: Number(form.projectLifeYears) || 0,
-        pipDays: Number(form.pipDays) || 0,
-        methodology: form.methodology,
-        evidence: form.evidence,
-        verificationStatus: form.verificationStatus,
-        undertakingSigned: form.undertakingSigned,
-        signerName: form.signerName,
-      });
-      setForm({
-        name: "",
-        description: "",
-        category: form.category,
-        country: form.country,
-        fundingAmountSought: "",
-        projectedCiv: "",
-        civPeriod: DEFAULT_CIV_PERIOD,
-        projectLifeYears: String(DEFAULT_PROJECT_LIFE_YEARS),
-        pipDays: String(DEFAULT_PIP_DAYS),
-        methodology: "",
-        evidence: "",
-        verificationStatus: CIV_VERIFICATION[0],
-        signerName: "",
-        undertakingSigned: false,
-      });
-      setNotice(
-        "Project signed off and listed. It now sits at the top of the matching country or international list so Sustainability Directors and Sponsorship Managers can select it."
-      );
-      setProjects(await loadPartnerLibrary());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function logout() {
     await supabase.auth.signOut();
@@ -163,72 +57,28 @@ export default function PartnerDashboardPage() {
     );
   }
 
-  const featured = projects.filter(isFeaturedClimateProject);
-  const localByCountry = Object.entries(LOCAL_CLIMATE_PROJECTS_BY_COUNTRY).map(
-    ([country, catalog]) => ({
-      country,
-      catalog,
-      projects: projects.filter(
-        (project) =>
-          !isFeaturedClimateProject(project) &&
-          catalog.some(
-            (item) => item.name.toLowerCase() === project.name.toLowerCase()
-          )
-      ),
-    })
-  );
-  const international = projects.filter(
-    (project) =>
-      !isFeaturedClimateProject(project) &&
-      INTERNATIONAL_CLIMATE_PROJECTS.some(
-        (item) => item.name.toLowerCase() === project.name.toLowerCase()
-      )
-  );
-  const uploaded = projects.filter(
-    (project) =>
-      !isFeaturedClimateProject(project) &&
-      !localByCountry.some((group) =>
-        group.catalog.some(
-          (item) => item.name.toLowerCase() === project.name.toLowerCase()
-        )
-      ) &&
-      !INTERNATIONAL_CLIMATE_PROJECTS.some(
-        (item) => item.name.toLowerCase() === project.name.toLowerCase()
-      )
-  );
-  const uploadedInternational = uploaded.filter(
-    (project) =>
-      !localByCountry.some(
-        (group) =>
-          (project.country ?? "").toLowerCase() === group.country.toLowerCase()
-      )
-  );
-  const listedInternational = [...uploadedInternational, ...international];
-
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-3xl">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
               Climate Partner
             </p>
             <h1 className="mt-2 text-4xl font-black">
-              {profile?.organisationName ?? "Your climate programme"}
+              List your Climate Project
             </h1>
             <p className="mt-2 max-w-2xl text-slate-300">
-              Publish projects for Sustainability Directors to choose from before
-              they invite brands and send match-day votes to fans. Demo catalog:{" "}
-              <a href={SCCAN_SOURCE_URL} className="text-green-400 underline">
-                sccan.scot
-              </a>{" "}
-              local projects by country (Scotland, England, Italy and more) plus
-              international projects, with featured {FEATURED_PROJECT_NAME}{" "}
-              included in every Match Day five. Global Schools Solar is the
-              only project classified as UK and International. List 1 is the
-              club&apos;s country. List 2 is international.
+              You are a Project Partner with a Climate Project to put on S4P.
+              Fill in the Climate Project Form, sign the undertaking, and list
+              it. Clubs’ Sustainability Directors can then select it. S4P will
+              not list a project without CIV, Funding Amount Sought, PIP and
+              this sign-off.
             </p>
-            <p className="mt-2 text-sm text-slate-500">{email}</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {profile?.organisationName}
+              {email ? ` · ${email}` : ""}
+            </p>
           </div>
           <div className="flex gap-3">
             <a href={HOME_PATH} className="rounded-xl border border-slate-700 px-4 py-3">
@@ -248,345 +98,56 @@ export default function PartnerDashboardPage() {
             {error}
           </div>
         )}
-        {notice && (
-          <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-300">
-            {notice}
-          </div>
-        )}
 
-        <section className="mt-10">
-          <h2 className="text-2xl font-black">Featured project</h2>
-          <div className="mt-4 grid gap-6">
-            {featured.map((project) => (
-              <ProjectRow
-                key={project.id}
-                project={project}
-                featured
-                selected={selectedId === project.id}
-                onSelect={handleSelectProject}
-              />
-            ))}
-          </div>
-        </section>
-
-        {localByCountry.map(({ country, catalog, projects: localProjects }) => {
-          const uploadedHere = uploaded.filter(
-            (project) =>
-              (project.country ?? "").toLowerCase() === country.toLowerCase()
-          );
-          const listed = [...uploadedHere, ...localProjects];
-          return (
-          <section key={country} className="mt-12">
-            <h2 className="text-2xl font-black">
-              {country} Climate Projects ({listed.length} of{" "}
-              {catalog.length}
-              {uploadedHere.length ? ` + ${uploadedHere.length} uploaded` : ""})
-            </h2>
-            <p className="mt-2 text-slate-400">
-              Uploaded projects sit at the top. Generic {country} catalog
-              projects follow. Sustainability Directors and Sponsorship
-              Managers can select any of these.
-            </p>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {listed.map((project) => (
-                <ProjectRow
-                  key={project.id}
-                  project={project}
-                  uploaded={uploadedHere.some((row) => row.id === project.id)}
-                  selected={selectedId === project.id}
-                  onSelect={handleSelectProject}
-                />
-              ))}
-            </div>
-          </section>
-          );
-        })}
+        <div className="mt-10">
+          <ClimateProjectListingForm
+            defaultCountry={profile?.country ?? ""}
+            defaultSignerName={profile?.contactName ?? ""}
+            onListed={async () => setProjects(await loadMyListedClimateProjects())}
+          />
+        </div>
 
         <section className="mt-12">
-          <h2 className="text-2xl font-black">
-            International Climate Projects ({international.length} of{" "}
-            {INTERNATIONAL_CLIMATE_PROJECTS.length}
-            {uploadedInternational.length
-              ? ` + ${uploadedInternational.length} uploaded`
-              : ""}
-            )
-          </h2>
+          <h2 className="text-2xl font-black">Your listed Climate Projects</h2>
           <p className="mt-2 text-slate-400">
-            Uploaded international projects sit at the top of this list,
-            including anything not tied to a local catalog country.
+            These are the projects you have signed off and listed. They are
+            visible to Sustainability Directors. A club cannot add tCO₂e until
+            a project is Live.
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {listedInternational.map((project) => (
-              <ProjectRow
-                key={project.id}
-                project={project}
-                uploaded={uploadedInternational.some((row) => row.id === project.id)}
-                selected={selectedId === project.id}
-                onSelect={handleSelectProject}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12">
-          <h2 className="text-2xl font-black">Upload a climate project</h2>
-          <p className="mt-2 max-w-3xl text-sm text-slate-400">
-            Every Climate Project listed on S4P must have a Climate Impact Value
-            (CIV), Funding Amount Sought, Project Implementation Period and a
-            signed Climate Partner undertaking. Incomplete projects are not listed.
-          </p>
-          <form
-            onSubmit={handleUpload}
-            className="mt-6 grid gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6"
-          >
-            <input
-              required
-              placeholder="Project, e.g. School Rooftop Solar"
-              value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
-              className="rounded-lg bg-slate-800 p-4"
-            />
-            <textarea
-              required
-              placeholder="Description"
-              value={form.description}
-              onChange={(event) =>
-                setForm({ ...form, description: event.target.value })
-              }
-              className="h-28 rounded-lg bg-slate-800 p-4"
-            />
-            <select
-              value={form.category}
-              onChange={(event) =>
-                setForm({ ...form, category: event.target.value })
-              }
-              className="rounded-lg bg-slate-800 p-4"
-            >
-              {CATEGORIES.map((category) => (
-                <option key={category}>{category}</option>
+          {projects.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8 text-slate-400">
+              You have not listed a Climate Project yet. Use the Climate Project
+              Form above to fill, sign and list one.
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-4">
+              {projects.map((project) => (
+                <ListedProjectCard key={project.id} project={project} />
               ))}
-            </select>
-            <input
-              placeholder="Country"
-              value={form.country}
-              onChange={(event) =>
-                setForm({ ...form, country: event.target.value })
-              }
-              className="rounded-lg bg-slate-800 p-4"
-            />
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="text-sm text-slate-400">
-                Funding Amount Sought (£)
-                <input
-                  required
-                  type="number"
-                  min={1}
-                  placeholder="10000"
-                  value={form.fundingAmountSought}
-                  onChange={(event) =>
-                    setForm({ ...form, fundingAmountSought: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-              </label>
-              <label className="text-sm text-slate-400">
-                Projected CIV (tCO₂e)
-                <input
-                  required
-                  type="number"
-                  min={0.01}
-                  step="any"
-                  placeholder="25"
-                  value={form.projectedCiv}
-                  onChange={(event) =>
-                    setForm({ ...form, projectedCiv: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-              </label>
-              <label className="text-sm text-slate-400">
-                CIV period
-                <select
-                  value={form.civPeriod}
-                  onChange={(event) =>
-                    setForm({ ...form, civPeriod: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-                >
-                  {CIV_PERIODS.map((period) => (
-                    <option key={period}>{period}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-sm text-slate-400">
-                Expected project life (years)
-                <input
-                  required
-                  type="number"
-                  min={1}
-                  placeholder="20"
-                  value={form.projectLifeYears}
-                  onChange={(event) =>
-                    setForm({ ...form, projectLifeYears: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-              </label>
-              <label className="text-sm text-slate-400">
-                PIP (days after full funding)
-                <input
-                  required
-                  type="number"
-                  min={1}
-                  placeholder="90"
-                  value={form.pipDays}
-                  onChange={(event) =>
-                    setForm({ ...form, pipDays: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-              </label>
-              <label className="text-sm text-slate-400">
-                Verification status
-                <select
-                  value={form.verificationStatus}
-                  onChange={(event) =>
-                    setForm({ ...form, verificationStatus: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-                >
-                  {CIV_VERIFICATION.map((status) => (
-                    <option key={status}>{status}</option>
-                  ))}
-                </select>
-              </label>
             </div>
-            <label className="text-sm text-slate-400">
-              CIV methodology
-              <input
-                required
-                placeholder="Solar generation × applicable emissions factor"
-                value={form.methodology}
-                onChange={(event) =>
-                  setForm({ ...form, methodology: event.target.value })
-                }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
-            <label className="text-sm text-slate-400">
-              Evidence (technical specification / baseline / calculations)
-              <textarea
-                required
-                placeholder="Technical specification / baseline / calculations"
-                value={form.evidence}
-                onChange={(event) =>
-                  setForm({ ...form, evidence: event.target.value })
-                }
-                className="mt-2 h-24 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
-            <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
-              <h3 className="text-lg font-black">Climate Partner sign-off</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-300">{CIV_UNDERTAKING}</p>
-              <label className="mt-4 flex items-start gap-3 text-sm text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={form.undertakingSigned}
-                  onChange={(event) =>
-                    setForm({ ...form, undertakingSigned: event.target.checked })
-                  }
-                  className="mt-1"
-                  required
-                />
-                I sign off this Climate Project and give this undertaking to S4P.
-              </label>
-              <label className="mt-4 block text-sm text-slate-400">
-                Signature (type your full name)
-                <input
-                  required
-                  value={form.signerName}
-                  onChange={(event) =>
-                    setForm({ ...form, signerName: event.target.value })
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-3 font-serif text-2xl text-white"
-                />
-              </label>
-            </div>
-            <button
-              type="submit"
-              disabled={saving || !form.undertakingSigned}
-              className="rounded-xl bg-green-500 py-4 font-bold text-slate-950 disabled:opacity-70"
-            >
-              {saving ? "Signing off..." : "Sign off and list on S4P"}
-            </button>
-          </form>
+          )}
         </section>
       </div>
     </main>
   );
 }
 
-function ProjectRow({
-  project,
-  featured = false,
-  uploaded = false,
-  selected = false,
-  onSelect,
-}: {
-  project: ClimateProject;
-  featured?: boolean;
-  uploaded?: boolean;
-  selected?: boolean;
-  onSelect: (project: ClimateProject) => void;
-}) {
+function ListedProjectCard({ project }: { project: ClimateProject }) {
   const civ = civForProject(project);
   return (
-    <div
-      className={`rounded-2xl border p-5 ${
-        selected
-          ? "border-green-500 bg-slate-800"
-          : "border-slate-800 bg-slate-900"
-      }`}
-    >
-      {featured && (
-        <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-bold">
-          Featured
-        </span>
-      )}
-      {uploaded && (
-        <span className="ml-2 rounded-full bg-blue-600 px-3 py-1 text-xs font-bold">
-          Uploaded
-        </span>
-      )}
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
       {civ.undertakingSigned ? (
-        <span className="ml-2 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
+        <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
           Signed
         </span>
       ) : null}
-      <h3 className={`font-bold ${featured || uploaded ? "mt-3 text-2xl" : "text-xl"}`}>
-        {project.name}
-      </h3>
+      <h3 className="mt-3 text-2xl font-bold">{project.name}</h3>
       <p className="mt-2 text-sm text-slate-300">{project.description}</p>
       <p className="mt-3 text-xs text-slate-500">
-        {featured ? "Home country and International" : project.country}
+        {project.country}
         {` · ${civ.verificationStatus}`}
       </p>
       <ClimateProjectCivBlock project={project} compact={false} />
-      <button
-        type="button"
-        onClick={() => onSelect(project)}
-        className={`mt-4 w-full rounded-xl py-3 font-bold ${
-          selected
-            ? "bg-green-500 text-slate-950"
-            : "bg-slate-700 text-white hover:bg-slate-600"
-        }`}
-      >
-        {selected
-          ? "✓ Selected"
-          : uploaded
-            ? "Select project — listed first for clubs"
-            : "Select project"}
-      </button>
     </div>
   );
 }
