@@ -33,6 +33,8 @@ import {
   ciltPositionLabel,
   climateImpactLeagueTable,
 } from "@/app/lib/cilt";
+import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
@@ -162,7 +164,7 @@ export default function ClubDashboardPage() {
   const extraTonnes = useMemo(
     () =>
       [...funded, ...voted].reduce(
-        (sum, project) => sum + (Number(project.estimated_co2) || 0),
+        (sum, project) => sum + qualifyingCivTonnes(project),
         0
       ),
     [funded, voted]
@@ -972,9 +974,10 @@ function proposalAsProjects(
     category: project.category,
     country: project.country,
     estimated_co2: project.estimated_co2,
-    funding_goal: null,
+    funding_goal: project.funding_goal ?? null,
     image_url: null,
-    status: "active",
+    status: project.status ?? null,
+    location: project.location ?? null,
   }));
 }
 
@@ -1029,11 +1032,7 @@ function ProjectGrid({
             <p className="mt-1 text-sm text-slate-400">📍 {country}</p>
           )}
           <p className="mt-3 text-slate-300">{project.description}</p>
-          {project.estimated_co2 != null && (
-            <p className="mt-4 text-sm font-semibold text-green-400">
-              {project.estimated_co2.toLocaleString("en-GB")} t CO₂
-            </p>
-          )}
+          <ClimateProjectCivBlock project={project} compact={false} />
         </div>
         );
       })}

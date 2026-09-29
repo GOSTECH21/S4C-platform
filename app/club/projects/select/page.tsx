@@ -38,6 +38,7 @@ import {
 } from "@/app/lib/routes";
 import { clubGateCopy } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -245,10 +246,8 @@ export default function SelectMatchDayProjectsPage() {
                 clubName,
                 country: clubCountry,
               })}
-              {featured.estimated_co2 != null
-                ? ` · ${featured.estimated_co2.toLocaleString("en-GB")} t CO₂`
-                : ""}
             </p>
+            <ClimateProjectCivBlock project={featured} compact={false} />
           </div>
         )}
 
@@ -319,12 +318,8 @@ export default function SelectMatchDayProjectsPage() {
                 <div className="mt-4 space-y-1 text-sm text-slate-400">
                   {project.category && <p>{project.category}</p>}
                   {project.country && <p>📍 {project.country}</p>}
-                  {project.estimated_co2 != null && (
-                    <p>
-                      {project.estimated_co2.toLocaleString("en-GB")} t CO₂
-                    </p>
-                  )}
                 </div>
+                <ClimateProjectCivBlock project={project} compact={false} />
                 <button
                   onClick={() => toggle(project.id)}
                   disabled={full}

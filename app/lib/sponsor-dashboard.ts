@@ -1,3 +1,4 @@
+import { qualifyingCivTonnes } from "./climate-impact-value";
 import { OPENING_SPONSORSHIP, formatMatchFundingLine } from "./sponsorship-auction";
 
 export type FolderProject = {
@@ -7,6 +8,10 @@ export type FolderProject = {
   country?: string | null;
   category?: string | null;
   estimated_co2?: number | null;
+  funding_goal?: number | null;
+  location?: string | null;
+  status?: string | null;
+  fundedGbp?: number | null;
 };
 
 export type FolderOffer = {
@@ -178,7 +183,7 @@ export function sponsorshipFolderStats(
     for (const project of row.offer.projects) {
       if (projectIds.has(project.id)) continue;
       projectIds.add(project.id);
-      carbonTonnes += Number(project.estimated_co2) || 0;
+      carbonTonnes += qualifyingCivTonnes(project);
     }
   }
   return {

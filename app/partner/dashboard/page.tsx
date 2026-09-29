@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import type { ClimateProject } from "@/app/services/votes.service";
+import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
   loadPartnerLibrary,
   loadPartnerSession,
@@ -21,7 +22,16 @@ import {
   LOCAL_CLIMATE_PROJECTS_BY_COUNTRY,
   SCCAN_SOURCE_URL,
 } from "@/app/lib/sccan-catalog";
-import { isFeaturedClimateProject } from "@/app/services/votes.service";
+import {
+  CIV_PERIODS,
+  CIV_UNDERTAKING,
+  CIV_VERIFICATION,
+  DEFAULT_CIV_PERIOD,
+  DEFAULT_PIP_DAYS,
+  DEFAULT_PROJECT_LIFE_YEARS,
+  civForProject,
+} from "@/app/lib/climate-impact-value";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 
 const CATEGORIES = [
   "Solar Energy",
@@ -51,8 +61,16 @@ export default function PartnerDashboardPage() {
     description: "",
     category: "Community Climate Action",
     country: "Scotland",
-    estimated_co2: "",
-    funding_goal: "",
+    fundingAmountSought: "",
+    projectedCiv: "",
+    civPeriod: DEFAULT_CIV_PERIOD as string,
+    projectLifeYears: String(DEFAULT_PROJECT_LIFE_YEARS),
+    pipDays: String(DEFAULT_PIP_DAYS),
+    methodology: "",
+    evidence: "",
+    verificationStatus: CIV_VERIFICATION[0] as string,
+    signerName: "",
+    undertakingSigned: false,
   });
 
   async function refresh() {
@@ -94,19 +112,35 @@ export default function PartnerDashboardPage() {
         description: form.description,
         category: form.category,
         country: form.country,
-        estimated_co2: Number(form.estimated_co2) || 0,
-        funding_goal: Number(form.funding_goal) || 0,
+        fundingAmountSought: Number(form.fundingAmountSought) || 0,
+        projectedCiv: Number(form.projectedCiv) || 0,
+        civPeriod: form.civPeriod,
+        projectLifeYears: Number(form.projectLifeYears) || 0,
+        pipDays: Number(form.pipDays) || 0,
+        methodology: form.methodology,
+        evidence: form.evidence,
+        verificationStatus: form.verificationStatus,
+        undertakingSigned: form.undertakingSigned,
+        signerName: form.signerName,
       });
       setForm({
         name: "",
         description: "",
         category: form.category,
         country: form.country,
-        estimated_co2: "",
-        funding_goal: "",
+        fundingAmountSought: "",
+        projectedCiv: "",
+        civPeriod: DEFAULT_CIV_PERIOD,
+        projectLifeYears: String(DEFAULT_PROJECT_LIFE_YEARS),
+        pipDays: String(DEFAULT_PIP_DAYS),
+        methodology: "",
+        evidence: "",
+        verificationStatus: CIV_VERIFICATION[0],
+        signerName: "",
+        undertakingSigned: false,
       });
       setNotice(
-        "Project uploaded. It now sits at the top of the matching country or international list so Sustainability Directors and Sponsorship Managers can select it."
+        "Project signed off and listed. It now sits at the top of the matching country or international list so Sustainability Directors and Sponsorship Managers can select it."
       );
       setProjects(await loadPartnerLibrary());
     } catch (err) {
@@ -296,13 +330,18 @@ export default function PartnerDashboardPage() {
 
         <section className="mt-12">
           <h2 className="text-2xl font-black">Upload a climate project</h2>
+          <p className="mt-2 max-w-3xl text-sm text-slate-400">
+            Every Climate Project listed on S4P must have a Climate Impact Value
+            (CIV), Funding Amount Sought, Project Implementation Period and a
+            signed Climate Partner undertaking. Incomplete projects are not listed.
+          </p>
           <form
             onSubmit={handleUpload}
             className="mt-6 grid gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6"
           >
             <input
               required
-              placeholder="Project name"
+              placeholder="Project, e.g. School Rooftop Solar"
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
               className="rounded-lg bg-slate-800 p-4"
@@ -336,35 +375,149 @@ export default function PartnerDashboardPage() {
               className="rounded-lg bg-slate-800 p-4"
             />
             <div className="grid gap-4 md:grid-cols-2">
+              <label className="text-sm text-slate-400">
+                Funding Amount Sought (£)
+                <input
+                  required
+                  type="number"
+                  min={1}
+                  placeholder="10000"
+                  value={form.fundingAmountSought}
+                  onChange={(event) =>
+                    setForm({ ...form, fundingAmountSought: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+                />
+              </label>
+              <label className="text-sm text-slate-400">
+                Projected CIV (tCO₂e)
+                <input
+                  required
+                  type="number"
+                  min={0.01}
+                  step="any"
+                  placeholder="25"
+                  value={form.projectedCiv}
+                  onChange={(event) =>
+                    setForm({ ...form, projectedCiv: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+                />
+              </label>
+              <label className="text-sm text-slate-400">
+                CIV period
+                <select
+                  value={form.civPeriod}
+                  onChange={(event) =>
+                    setForm({ ...form, civPeriod: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+                >
+                  {CIV_PERIODS.map((period) => (
+                    <option key={period}>{period}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm text-slate-400">
+                Expected project life (years)
+                <input
+                  required
+                  type="number"
+                  min={1}
+                  placeholder="20"
+                  value={form.projectLifeYears}
+                  onChange={(event) =>
+                    setForm({ ...form, projectLifeYears: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+                />
+              </label>
+              <label className="text-sm text-slate-400">
+                PIP (days after full funding)
+                <input
+                  required
+                  type="number"
+                  min={1}
+                  placeholder="90"
+                  value={form.pipDays}
+                  onChange={(event) =>
+                    setForm({ ...form, pipDays: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+                />
+              </label>
+              <label className="text-sm text-slate-400">
+                Verification status
+                <select
+                  value={form.verificationStatus}
+                  onChange={(event) =>
+                    setForm({ ...form, verificationStatus: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+                >
+                  {CIV_VERIFICATION.map((status) => (
+                    <option key={status}>{status}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className="text-sm text-slate-400">
+              CIV methodology
               <input
                 required
-                type="number"
-                min={0}
-                placeholder="Estimated t CO₂"
-                value={form.estimated_co2}
+                placeholder="Solar generation × applicable emissions factor"
+                value={form.methodology}
                 onChange={(event) =>
-                  setForm({ ...form, estimated_co2: event.target.value })
+                  setForm({ ...form, methodology: event.target.value })
                 }
-                className="rounded-lg bg-slate-800 p-4"
+                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
               />
-              <input
+            </label>
+            <label className="text-sm text-slate-400">
+              Evidence (technical specification / baseline / calculations)
+              <textarea
                 required
-                type="number"
-                min={0}
-                placeholder="Funding goal (£)"
-                value={form.funding_goal}
+                placeholder="Technical specification / baseline / calculations"
+                value={form.evidence}
                 onChange={(event) =>
-                  setForm({ ...form, funding_goal: event.target.value })
+                  setForm({ ...form, evidence: event.target.value })
                 }
-                className="rounded-lg bg-slate-800 p-4"
+                className="mt-2 h-24 w-full rounded-lg bg-slate-800 p-4 text-white"
               />
+            </label>
+            <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
+              <h3 className="text-lg font-black">Climate Partner sign-off</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-300">{CIV_UNDERTAKING}</p>
+              <label className="mt-4 flex items-start gap-3 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={form.undertakingSigned}
+                  onChange={(event) =>
+                    setForm({ ...form, undertakingSigned: event.target.checked })
+                  }
+                  className="mt-1"
+                  required
+                />
+                I sign off this Climate Project and give this undertaking to S4P.
+              </label>
+              <label className="mt-4 block text-sm text-slate-400">
+                Signature (type your full name)
+                <input
+                  required
+                  value={form.signerName}
+                  onChange={(event) =>
+                    setForm({ ...form, signerName: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-3 font-serif text-2xl text-white"
+                />
+              </label>
             </div>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !form.undertakingSigned}
               className="rounded-xl bg-green-500 py-4 font-bold text-slate-950 disabled:opacity-70"
             >
-              {saving ? "Uploading..." : "Upload climate project"}
+              {saving ? "Signing off..." : "Sign off and list on S4P"}
             </button>
           </form>
         </section>
@@ -386,6 +539,7 @@ function ProjectRow({
   selected?: boolean;
   onSelect: (project: ClimateProject) => void;
 }) {
+  const civ = civForProject(project);
   return (
     <div
       className={`rounded-2xl border p-5 ${
@@ -404,16 +558,20 @@ function ProjectRow({
           Uploaded
         </span>
       )}
+      {civ.undertakingSigned ? (
+        <span className="ml-2 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
+          Signed
+        </span>
+      ) : null}
       <h3 className={`font-bold ${featured || uploaded ? "mt-3 text-2xl" : "text-xl"}`}>
         {project.name}
       </h3>
       <p className="mt-2 text-sm text-slate-300">{project.description}</p>
       <p className="mt-3 text-xs text-slate-500">
         {featured ? "Home country and International" : project.country}
-        {project.estimated_co2 != null
-          ? ` · ${project.estimated_co2.toLocaleString("en-GB")} t CO₂`
-          : ""}
+        {` · ${civ.verificationStatus}`}
       </p>
+      <ClimateProjectCivBlock project={project} compact={false} />
       <button
         type="button"
         onClick={() => onSelect(project)}

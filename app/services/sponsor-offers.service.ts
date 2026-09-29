@@ -28,6 +28,9 @@ export type SponsorOfferProject = {
   country: string | null;
   category: string | null;
   estimated_co2: number | null;
+  funding_goal?: number | null;
+  status?: string | null;
+  location?: string | null;
 };
 
 export type SponsorMatchOffer = {
@@ -84,6 +87,9 @@ function snapshotProject(project: ClimateProject): SponsorOfferProject {
     country: project.country ?? null,
     category: project.category ?? null,
     estimated_co2: project.estimated_co2 ?? null,
+    funding_goal: project.funding_goal ?? null,
+    status: project.status ?? null,
+    location: project.location ?? null,
   };
 }
 

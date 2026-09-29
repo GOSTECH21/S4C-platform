@@ -1,12 +1,12 @@
 "use client";
 
 import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
   climateImpactTags,
   climateProjectHeroClass,
 } from "@/app/lib/match-day-local-sponsors";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
-import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export function MatchDayProjectCard({
   project,
@@ -29,6 +29,10 @@ export function MatchDayProjectCard({
     description?: string | null;
     category?: string | null;
     image_url?: string | null;
+    estimated_co2?: number | null;
+    funding_goal?: number | null;
+    location?: string | null;
+    status?: string | null;
   };
   cardIndex: number;
   clubName?: string;
@@ -90,14 +94,10 @@ export function MatchDayProjectCard({
             localScale={localScale}
           />
         ) : null}
-        {typeof fundedGbp === "number" ? (
-          <p className="mt-3 text-sm">
-            <span className="text-slate-400">Received </span>
-            <span className="font-black text-green-400">
-              {formatWalletGbp(fundedGbp)}
-            </span>
-          </p>
-        ) : null}
+        <ClimateProjectCivBlock
+          project={project}
+          fundedGbp={typeof fundedGbp === "number" ? fundedGbp : 0}
+        />
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] font-semibold text-emerald-300">
           {tags.map((tag) => (
             <span key={tag}>{tag}</span>
