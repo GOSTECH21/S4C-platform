@@ -98,11 +98,15 @@ function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] }) {
 export default function HomeFrontPage({
   children,
   impactTables,
+  initialStats,
 }: {
   children?: ReactNode;
   impactTables?: ImpactTableBoard[];
+  initialStats?: PlatformStats;
 }) {
-  const [stats, setStats] = useState<PlatformStats>(() => mergePlatformStats());
+  const [stats, setStats] = useState<PlatformStats>(() =>
+    mergePlatformStats(initialStats)
+  );
   const [joinIntent, setJoinIntent] = useState<JoinIntent>("register");
 
   function showJoin(intent: JoinIntent) {
@@ -117,31 +121,30 @@ export default function HomeFrontPage({
   useEffect(() => {
     let cancelled = false;
     async function refresh() {
+      const localTakes = localWalletTakesGbp(listClimateWallets());
+      try {
+        const live = await loadPlatformStats();
+        if (!cancelled) {
+          setStats(withWalletTakes(live, localTakes));
+        }
+        return;
+      } catch {
+        // Fall through to the API if the browser cannot read the roster tables.
+      }
       try {
         const fromApi = await fetch("/api/platform-stats", { cache: "no-store" });
         if (fromApi.ok) {
           const next = (await fromApi.json()) as PlatformStats;
           if (!cancelled) {
-            setStats(
-              withWalletTakes(mergePlatformStats(next), localWalletTakesGbp(listClimateWallets()))
-            );
+            setStats(withWalletTakes(mergePlatformStats(next), localTakes));
           }
           return;
         }
       } catch {
-        // Browser can still count what the anon key can read.
+        // Keep the server-rendered bar if refresh fails.
       }
-      try {
-        const next = await loadPlatformStats();
-        if (!cancelled) {
-          setStats(withWalletTakes(next, localWalletTakesGbp(listClimateWallets())));
-        }
-      } catch {
-        if (!cancelled) {
-          setStats(
-            withWalletTakes(mergePlatformStats(), localWalletTakesGbp(listClimateWallets()))
-          );
-        }
+      if (!cancelled) {
+        setStats(withWalletTakes(mergePlatformStats(initialStats), localTakes));
       }
     }
     void refresh();
@@ -152,7 +155,7 @@ export default function HomeFrontPage({
       window.clearInterval(timer);
       window.removeEventListener(WALLET_TAKE_EVENT, refresh);
     };
-  }, []);
+  }, [initialStats]);
 
   useEffect(() => {
     const fromLocation = joinIntentFromLocation();

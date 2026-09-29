@@ -3,7 +3,11 @@ import { loadPlatformStats } from "@/app/services/platform-stats.service";
 export async function GET() {
   try {
     const stats = await loadPlatformStats();
-    return Response.json(stats);
+    return Response.json(stats, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     return Response.json(
       {

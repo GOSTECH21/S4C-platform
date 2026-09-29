@@ -236,7 +236,17 @@ assert(
   "How Score-For-Our-Planet Works is rendered above Are You"
 );
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
-assert(front.includes("/api/platform-stats"), "Stat windows refresh from live platform stats");
+assert(
+  front.includes("loadPlatformStats") &&
+    front.includes("initialStats") &&
+    front.includes("/api/platform-stats"),
+  "Stat windows render server stats then refresh from the live roster"
+);
+assert(
+  readFileSync("app/page.tsx", "utf8").includes("initialStats") &&
+    readFileSync("app/page.tsx", "utf8").includes("loadPlatformStats"),
+  "The homepage HTML includes the live Fans Engaged and funding counts"
+);
 assert(
   front.includes("withWalletTakes") && front.includes("WALLET_TAKE_EVENT"),
   "The funding bar shows Carbon Wallet takes as soon as a fan allocates them"
