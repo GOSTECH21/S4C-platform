@@ -115,11 +115,11 @@ export function ClimateProjectCivBlock({
   const sought = Number(project.funding_goal) || 0;
   return (
     <>
-      {tonnes > 0 ? (
-        <CivSummary tonnes={tonnes} period={civ.civPeriod} pipDays={civ.pipDays} />
-      ) : null}
       {sought > 0 ? (
         <FundingProgressPanel receivedGbp={fundedGbp} soughtGbp={sought} />
+      ) : null}
+      {tonnes > 0 ? (
+        <CivSummary tonnes={tonnes} period={civ.civPeriod} pipDays={civ.pipDays} />
       ) : null}
       <ProjectLifecycleStrip stage={stage} compact={compact} />
     </>
