@@ -321,7 +321,10 @@ assert(
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
   howItWorks.includes("CLUBS CHOOSE PROJECTS") &&
-    howItWorks.includes("five eligible Climate Projects"),
+    howItWorks.includes("five eligible Climate Projects") &&
+    howItWorks.includes(
+      "The selected Projects help to mitigate the Club's Match-Day Carbon emissions"
+    ),
   "Step 01 is CLUBS CHOOSE PROJECTS"
 );
 assert(

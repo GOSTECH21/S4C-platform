@@ -8,7 +8,7 @@ export default function HowItWorks() {
       number: "01",
       title: "CLUBS CHOOSE PROJECTS",
       description:
-        "Clubs select five eligible Climate Projects for supporters to fund",
+        "Clubs select five eligible Climate Projects for supporters to fund. The selected Projects help to mitigate the Club's Match-Day Carbon emissions",
     },
     {
       number: "02",
