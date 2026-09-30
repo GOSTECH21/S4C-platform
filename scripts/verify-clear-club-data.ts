@@ -154,8 +154,14 @@ const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
   dashboard.includes("Start this club afresh") &&
     dashboard.includes("clearClubProjectsAndSponsors") &&
-    dashboard.includes("clubShouldStartBlank"),
+  dashboard.includes("clubShouldStartBlank"),
   "The club dashboard starts Arsenal from a blank Match Day"
+);
+const preview = readFileSync("app/preview/clear-arsenal/page.tsx", "utf8");
+assert(
+  preview.includes("blank Match Day") &&
+    preview.includes("clearClubProjectsAndSponsors"),
+  "The Arsenal reset preview describes the blank Sustainability Director start"
 );
 const board = readFileSync("app/services/club-match-day.service.ts", "utf8");
 assert(
