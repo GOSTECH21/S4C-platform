@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import {
   loadClubSession,
@@ -291,10 +292,6 @@ export default function ClubDashboardPage() {
     }
   }
 
-  async function handleMatchDayAction() {
-    router.push(CLUB_SELECT_PROJECTS_PATH);
-  }
-
   function saveSponsorsFile() {
     if (!club) return;
     setPostError(null);
@@ -565,15 +562,16 @@ export default function ClubDashboardPage() {
             </p>
           </div>
 
-          <button
-            className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500 disabled:cursor-wait disabled:opacity-70"
-            disabled={posting}
-            onClick={() => void handleMatchDayAction()}
+          <Link
+            href={CLUB_SELECT_PROJECTS_PATH}
+            className={`mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500 ${
+              posting ? "pointer-events-none cursor-wait opacity-70" : ""
+            }`}
           >
             {selected.length >= MATCH_DAY_PROJECT_COUNT
               ? "S4P Climate Projects — change List 1 and List 2"
               : "S4P Climate Projects"}
-          </button>
+          </Link>
           {postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
               Posted to your fans on My S4P
