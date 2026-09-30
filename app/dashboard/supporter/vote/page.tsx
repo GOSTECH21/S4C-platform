@@ -29,6 +29,7 @@ import {
   visibleMatchDayFolderForClub,
 } from "@/app/services/match-day-folder.service";
 import {
+  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
   type NumberedClimateProject,
@@ -259,9 +260,7 @@ function CampaignClimateBoard({
           gbpPerGoal: campaign.gbpPerGoal,
         })
       );
-      const votedNow = split
-        ? result.projects.map((project) => project.id)
-        : [result.project.id];
+      const votedNow = [result.project.id];
       votedNow.forEach(onVoted);
       try {
         await submitCampaignVotes(
@@ -275,9 +274,7 @@ function CampaignClimateBoard({
         // Wallet cash has already moved.
       }
       setNotice(
-        split
-          ? `Vote shared ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-          : `${result.wallet.brandName}'s Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
+        `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
       );
     } catch (err) {
       setError(describeDataError(err, "Could not save your vote."));

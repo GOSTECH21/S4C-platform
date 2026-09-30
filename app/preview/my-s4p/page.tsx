@@ -12,13 +12,12 @@ import {
 } from "@/app/lib/climate-funding";
 import {
   applyLeadCommitment,
-  allocateSplitWalletVote,
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
+  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
-  walletVoteAmount,
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
@@ -138,8 +137,7 @@ export default function MyS4PPreviewPage() {
   );
 
   function applyResult(
-    result: ReturnType<typeof allocateWalletVote>,
-    split: boolean
+    result: ReturnType<typeof allocateWalletVote>
   ) {
     if (!result.ok) {
       setError(result.error);
@@ -154,9 +152,7 @@ export default function MyS4PPreviewPage() {
     writeProjectFunding(PREVIEW_CLUB, result.projects);
     setUsedSponsors(recordFanSponsorVote(PREVIEW_FAN, PREVIEW_CLUB, result.wallet.brandName));
     setNotice(
-      split
-        ? `Vote shared ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-        : `Vote moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
+      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
     );
   }
 
@@ -215,7 +211,7 @@ export default function MyS4PPreviewPage() {
         <section className="mt-10">
           <h2 className="text-3xl font-black">Climate Projects List</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Use the bold project number in Checkbox 1 when you Vote.
+            Use the bold project number in the Checkbox, then press FUND-IT.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {PROJECTS.map((project, index) => (
@@ -242,22 +238,15 @@ export default function MyS4PPreviewPage() {
             usedSponsorNames={usedSponsors}
             clubId={PREVIEW_CLUB}
             clubName="Hibernian"
-            onVote={({ brandName, projectNumber, split }) => {
+            onVote={({ brandName, projectNumber }) => {
               const wallet = wallets.find((row) => row.brandName === brandName);
               if (!wallet) return;
               applyResult(
-                split
-                  ? allocateSplitWalletVote({
-                      wallet,
-                      projects: funded,
-                      amount: walletVoteAmount(wallet),
-                    })
-                  : allocateWalletVote({
-                      wallet,
-                      projects: funded,
-                      projectNumber: Number(projectNumber),
-                    }),
-                Boolean(split)
+                allocateWalletVote({
+                  wallet,
+                  projects: funded,
+                  projectNumber: Number(projectNumber),
+                })
               );
             }}
           />

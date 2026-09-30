@@ -33,6 +33,7 @@ import {
   visibleMatchDayFolderForClub,
 } from "@/app/services/match-day-folder.service";
 import {
+  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
   type NumberedClimateProject,
@@ -383,9 +384,7 @@ function CampaignPanel({
           gbpPerGoal: campaign.gbpPerGoal,
         })
       );
-      const votedNow = split
-        ? result.projects.map((project) => project.id)
-        : [result.project.id];
+      const votedNow = [result.project.id];
       try {
         await submitCampaignVotes(
           supporterId,
@@ -399,9 +398,7 @@ function CampaignPanel({
         // Wallet cash has already moved even if the campaign vote row cannot be stored.
       }
       setNotice(
-        split
-          ? `Vote shared ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet across all 5 Climate Projects. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-          : `Vote moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
+        `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
       );
     } catch (err) {
       console.error("Failed to submit vote:", describeDataError(err));
@@ -441,7 +438,7 @@ function CampaignPanel({
         <section className="mt-10">
           <h2 className="text-3xl font-black">Climate Projects List</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Use the bold project number in Checkbox 1 when you Vote.
+            Use the bold project number in the Checkbox, then press FUND-IT.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {voteable.map((project, index) => {

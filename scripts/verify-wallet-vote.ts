@@ -1,17 +1,17 @@
 import { readFileSync } from "fs";
 import {
-  allocateSplitWalletVote,
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
   DEFAULT_WALLET_VOTE_GBP,
-  formatWalletGbp,
+  FUND_IT_LABEL,
   LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
   localWalletTopUp,
   remainingGbp,
   walletVoteAmount,
   totalAllocatedGbp,
+  formatWalletGbp,
 } from "../app/lib/sponsor-wallet";
 import {
   buildProjectsFile,
@@ -41,9 +41,13 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(DEFAULT_WALLET_VOTE_GBP === 0.1, "Each local Vote is worth £0.10");
-assert(LEAD_WALLET_VOTE_GBP === 0.5, "Each Lead Climate Sponsor Vote is worth £0.50");
+assert(DEFAULT_WALLET_VOTE_GBP === 0.2, "Each FUND-IT is worth £0.20");
+assert(
+  LEAD_WALLET_VOTE_GBP === DEFAULT_WALLET_VOTE_GBP,
+  "Lead and Local Business Climate Sponsors use the same £0.20 FUND-IT"
+);
 assert(LOCAL_MANAGEMENT_FEE_RATE === 0.1, "Local wallets add a 10% management fee");
+assert(FUND_IT_LABEL === "FUND-IT", "The action tab is labelled FUND-IT");
 
 const topUp = localWalletTopUp(750);
 assert(topUp.sponsorshipGbp === 750, "£750 stays as spendable cash in the wallet");
@@ -59,7 +63,7 @@ assert(
   remainingGbp(topCellar) === 750,
   "Top Cellar's wallet indicates £750 before any vote"
 );
-assert(walletVoteAmount(topCellar) === 0.1, "A local Vote takes £0.10");
+assert(walletVoteAmount(topCellar) === 0.2, "A local FUND-IT takes £0.20");
 
 const amex = createLeadWallet({
   clubName: "Hibernian",
@@ -75,7 +79,7 @@ assert(
   remainingGbp({ ...amex, goalsScored: 1 }) === 6000,
   "The Carbon Wallet increases when the sponsored team scores"
 );
-assert(walletVoteAmount(amex) === 0.5, "An Amex Vote takes £0.50");
+assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
 const projects = [
   { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
@@ -90,18 +94,18 @@ const voted = allocateWalletVote({
   projects,
   projectNumber: 2,
 });
-assert(voted.ok, "Inserting 2 next to Top Cellar and pressing VOTE succeeds");
+assert(voted.ok, "Inserting 2 next to Top Cellar and pressing FUND-IT succeeds");
 if (voted.ok) {
   assert(
-    remainingGbp(voted.wallet) === 749.9,
-    "Top Cellar's wallet then displays £749.90 Remaining"
+    remainingGbp(voted.wallet) === 749.8,
+    "Top Cellar's wallet then displays £749.80 Remaining"
   );
   assert(
-    voted.project.number === 2 && voted.project.fundedGbp === 0.1,
-    "Project 2 displays that it has received £0.10 in Climate funding"
+    voted.project.number === 2 && voted.project.fundedGbp === 0.2,
+    "Project 2 displays that it has received £0.20 in Climate funding"
   );
   assert(
-    formatWalletGbp(remainingGbp(voted.wallet)) === "£749.90",
+    formatWalletGbp(remainingGbp(voted.wallet)) === "£749.80",
     "Remaining cash is shown with pence"
   );
 }
@@ -111,56 +115,26 @@ const leadVoted = allocateWalletVote({
   projects,
   projectNumber: 2,
 });
-assert(leadVoted.ok, "Inserting 2 in Amex Checkbox 1 and pressing Vote succeeds");
+assert(leadVoted.ok, "Inserting 2 in the Puma Checkbox and pressing FUND-IT succeeds");
 if (leadVoted.ok) {
   assert(
-    remainingGbp(leadVoted.wallet) === 2999.5,
-    "Amex Carbon Wallet then displays £2,999.50"
+    remainingGbp(leadVoted.wallet) === 2999.8,
+    "Amex Carbon Wallet then displays £2,999.80"
   );
   assert(
-    leadVoted.project.number === 2 && leadVoted.project.fundedGbp === 0.5,
-    "Project 2 receives £0.50 from the Amex Carbon Wallet"
+    leadVoted.project.number === 2 && leadVoted.project.fundedGbp === 0.2,
+    "Project 2 receives £0.20 from the Amex Carbon Wallet"
   );
   assert(
-    totalAllocatedGbp([leadVoted.wallet]) === 0.5,
+    totalAllocatedGbp([leadVoted.wallet]) === 0.2,
     "Allocated Carbon Wallet cash is the amount taken by fans"
   );
   assert(
     formatFundingGbp(
-      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.2)
         .fundingMobilisedGbp
-    ) === "£0.50",
-    "The homepage bar becomes £0.50 after a Lead £0.50 take from a Carbon Wallet"
-  );
-}
-
-const splitLocal = allocateSplitWalletVote({
-  wallet: topCellar,
-  projects,
-});
-assert(splitLocal.ok, "Local Checkbox 2 shares £0.10 across the five projects");
-if (splitLocal.ok) {
-  assert(splitLocal.amount === 0.1, "Local Checkbox 2 takes £0.10");
-  assert(
-    splitLocal.projects.every((project) => project.fundedGbp === 0.02),
-    "Each Climate Project receives £0.02 from a local Checkbox 2"
-  );
-}
-
-const split = allocateSplitWalletVote({
-  wallet: amex,
-  projects,
-});
-assert(split.ok, "Ticking Checkbox 2 shares the Amex Vote across all 5 projects");
-if (split.ok) {
-  assert(split.amount === 0.5, "Checkbox 2 takes £0.50 from the Amex Carbon Wallet");
-  assert(
-    split.projects.every((project) => project.fundedGbp === 0.1),
-    "Each Climate Project receives £0.10 from Checkbox 2"
-  );
-  assert(
-    remainingGbp(split.wallet) === 2999.5,
-    "The Amex Carbon Wallet falls by £0.50 after Checkbox 2"
+    ) === "£0.20",
+    "The homepage bar becomes £0.20 after a £0.20 take from a Carbon Wallet"
   );
 }
 
@@ -246,9 +220,18 @@ assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Pr
 const sponsorsUi = readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8");
 assert(
   sponsorsUi.includes("Carbon Wallet") &&
-    sponsorsUi.includes("Checkbox 1") &&
-    sponsorsUi.includes("Checkbox 2"),
-  "The Lead Climate Sponsor has a Carbon Wallet and two checkboxes"
+    sponsorsUi.includes(">Checkbox<") &&
+    !sponsorsUi.includes("Checkbox 1") &&
+    !sponsorsUi.includes("Checkbox 2") &&
+    sponsorsUi.includes("FUND-IT") &&
+    !sponsorsUi.includes(">Vote<"),
+  "Each Carbon Wallet has one Checkbox and a FUND-IT tab"
+);
+assert(
+  sponsorsUi.includes(
+    "Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press"
+  ) && sponsorsUi.includes("goes from Wallet to Project"),
+  "Local Business Climate Sponsors use the single FUND-IT instruction"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
@@ -315,5 +298,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Lead Votes move £0.50 and local Votes move £0.10 from a Carbon Wallet into numbered Climate Projects; posts disappear after 5 days."
+  "FUND-IT moves £0.20 from any Carbon Wallet into one numbered Climate Project; posts disappear after 5 days."
 );

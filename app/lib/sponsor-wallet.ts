@@ -1,9 +1,10 @@
 /** Climate Sponsorship Wallets: fans take cash from a sponsor and put it on a project. */
 
-/** Local Business Climate Sponsor: one Vote moves this amount to one project. */
-export const DEFAULT_WALLET_VOTE_GBP = 0.1;
-/** Lead Climate Project Sponsor: Checkbox 1 or Checkbox 2 moves this amount. */
-export const LEAD_WALLET_VOTE_GBP = 0.5;
+/** Standard amount taken from any Carbon Wallet when a fan presses FUND-IT. */
+export const DEFAULT_WALLET_VOTE_GBP = 0.2;
+/** Lead and Local Business Climate Sponsors use the same FUND-IT amount. */
+export const LEAD_WALLET_VOTE_GBP = DEFAULT_WALLET_VOTE_GBP;
+export const FUND_IT_LABEL = "FUND-IT";
 export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
 
 export type SponsorWalletKind = "lead" | "local";
@@ -241,8 +242,10 @@ export function parseProjectNumber(
   return number;
 }
 
-export function walletVoteAmount(wallet: Pick<ClimateWallet, "kind">): number {
-  return wallet.kind === "lead" ? LEAD_WALLET_VOTE_GBP : DEFAULT_WALLET_VOTE_GBP;
+export function walletVoteAmount(
+  _wallet?: Pick<ClimateWallet, "kind">
+): number {
+  return DEFAULT_WALLET_VOTE_GBP;
 }
 
 export function allocateWalletVote({
@@ -262,7 +265,7 @@ export function allocateWalletVote({
     Math.max(0, Number(amount ?? walletVoteAmount(wallet)) || 0)
   );
   if (!(voteGbp > 0)) {
-    return { ok: false, error: "Each vote must move cash from a sponsor wallet." };
+    return { ok: false, error: "Each FUND-IT must move cash from a sponsor wallet." };
   }
   const number = parseProjectNumber(projectNumber, projects.length);
   if (number == null) {
@@ -305,7 +308,7 @@ export function allocateWalletVote({
   };
 }
 
-/** Checkbox 2: take the lead Vote amount and share it equally across every project. */
+/** Legacy split take: no longer shown in the fan UI. */
 export function allocateSplitWalletVote({
   wallet,
   projects,
