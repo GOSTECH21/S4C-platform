@@ -77,6 +77,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
+import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import {
   readMatchDayFolder,
   saveClubProjectsFile,
@@ -109,6 +110,7 @@ export default function ClubDashboardPage() {
   const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -260,6 +262,25 @@ export default function ClubDashboardPage() {
     const href = clubGateCopy(signedInKind).logoutHref;
     await supabase.auth.signOut();
     router.push(href);
+  }
+
+  async function startClubAfresh() {
+    if (!club) return;
+    const ok = window.confirm(
+      `Remove every Climate Project and every sponsor attached to ${club.name}? Shared catalog projects stay in the library. This lets you start ${club.name} Match Day from a blank slate.`
+    );
+    if (!ok) return;
+    setClearing(true);
+    setPostError(null);
+    try {
+      await clearClubProjectsAndSponsors(club.name);
+      window.location.reload();
+    } catch (err) {
+      setPostError(
+        err instanceof Error ? err.message : "Could not clear this club's projects and sponsors."
+      );
+      setClearing(false);
+    }
   }
 
   async function handleMatchDayAction() {
@@ -422,12 +443,22 @@ export default function ClubDashboardPage() {
               Welcome to your Score-4-Our-Planet Club Dashboard
             </p>
           </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => void startClubAfresh()}
+              disabled={clearing}
+              className="rounded-xl border border-amber-400/50 px-5 py-3 font-semibold text-amber-200 disabled:opacity-50"
+            >
+              {clearing ? "Clearing…" : "Start this club afresh"}
+            </button>
           <button
             onClick={logout}
             className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
           >
             Logout
           </button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
