@@ -40,6 +40,8 @@ import {
 import { captureClimateInviteFromSearch, fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
+import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -95,6 +97,15 @@ export default function MyS4PDashboardPage() {
     load();
   }, []);
 
+  const clubNames = useMemo(
+    () => [
+      ...teams.map((team) => team.displayName),
+      ...teams.map((team) => team.name),
+      ...campaigns.map((campaign) => campaign.clubName),
+    ].filter(Boolean),
+    [teams, campaigns]
+  );
+
   if (loading) {
     return (
       <main className="px-8 pb-16 text-white">
@@ -127,7 +138,9 @@ export default function MyS4PDashboardPage() {
   if (campaigns.length === 0) {
     return (
       <main className="px-8 pb-16 text-white">
-        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <FanGoalAlertBanner clubNames={clubNames} />
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8">
           <h2 className="text-2xl font-bold">No posted climate projects right now</h2>
           <p className="mt-3 text-slate-300">
             You support{" "}
@@ -144,12 +157,16 @@ export default function MyS4PDashboardPage() {
             Update my teams
           </Link>
         </div>
+        </div>
       </main>
     );
   }
 
   return (
     <div className="space-y-16 pb-16">
+      <div className="mx-auto max-w-5xl px-8">
+        <FanGoalAlertBanner clubNames={clubNames} />
+      </div>
       {error && (
         <div className="mx-auto max-w-5xl px-8">
           <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
@@ -263,9 +280,11 @@ function CampaignPanel({
     }
     const timer = window.setInterval(refreshWallets, 5000);
     window.addEventListener("storage", refreshWallets);
+    window.addEventListener(SPONSORED_GOAL_EVENT, refreshWallets);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener("storage", refreshWallets);
+      window.removeEventListener(SPONSORED_GOAL_EVENT, refreshWallets);
     };
   }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
 

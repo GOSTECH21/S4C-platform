@@ -71,11 +71,20 @@ export async function updateFixtureScore({
     .select();
   if (error) throw error;
 
-  await processSponsorTrigger({
-    fixtureId: fixtureId,
-    clubId: clubId,
-  });
-await updateLeagueTable(fixtureId);
+  try {
+    await processSponsorTrigger({
+      fixtureId: fixtureId,
+      clubId: clubId,
+    });
+  } catch {
+    // Older hosted DBs have no sponsorship_campaigns.fixture_id; the goal
+    // and Impact Moment are still recorded.
+  }
+  try {
+    await updateLeagueTable(fixtureId);
+  } catch {
+    // League table update is optional for a simulated goal.
+  }
   return data;
 }
 export async function deleteFixtures(competitionId: string) {

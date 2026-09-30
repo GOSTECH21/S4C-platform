@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import AppLayout from "../../layout/AppLayout";
 import { getCompetitions } from "../../services/competitions.service";
 import { getClubs } from "../../services/clubs.service";
-import { processSponsorTrigger } from "../../services/sponsor-trigger.service";
 import {
   createFixture,
   getFixtures,
   updateFixtureScore,
   deleteFixtures,
 } from "../../services/fixtures.service";
+import { runClientSponsoredGoal } from "../../services/sponsored-goal.service";
+import { goalScoreline } from "../../lib/sponsored-goal";
 
 type Competition = {
   id: string;
@@ -134,6 +135,20 @@ async function loadData() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleSimulateArsenalGoal = async () => {
+    try {
+      const { scored } = await runClientSponsoredGoal("Arsenal");
+      await loadData();
+      alert(
+        `GOAL! ${goalScoreline(scored)}\n${scored.brandName} released £${scored.amountGbp.toLocaleString("en-GB")} into the Carbon Wallet.\nArsenal fans alerted: ${scored.alertedFans}`
+      );
+    } catch (error: unknown) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : "Failed to simulate the Arsenal goal.");
+    }
+  };
+
   const handleDeleteFixtures = async () => {
   if (!competitionId) {
     alert("Please select a competition.");
@@ -185,12 +200,20 @@ setFixtures(refreshed);
             Create and manage fixtures that can generate S4C impact opportunities.
           </p>
         </div>
+        <div className="flex flex-wrap gap-3">
 <button
       onClick={handleGenerateFixtures}
       className="rounded bg-green-600 px-4 py-2 text-white"
     >
       Test Fixture Generator
     </button>
+          <button
+            onClick={() => void handleSimulateArsenalGoal()}
+            className="rounded bg-emerald-500 px-4 py-2 font-semibold text-slate-950"
+          >
+            Simulate Arsenal Goal
+          </button>
+        </div>
         <div className="grid gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 md:grid-cols-3">
           <select className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white" value={competitionId} onChange={(e) => setCompetitionId(e.target.value)}>
             <option value="">Select competition</option>

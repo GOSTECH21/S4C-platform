@@ -17,6 +17,7 @@ import {
   localWalletTakesGbp,
   withWalletTakes,
 } from "@/app/lib/climate-wallet-takes";
+import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 import S4pImpactTables from "@/app/components/home/S4pImpactTables";
 import type { ImpactTableBoard } from "@/app/lib/s4p-impact-tables";
 
@@ -150,10 +151,12 @@ export default function HomeFrontPage({
     void refresh();
     const timer = window.setInterval(() => void refresh(), PLATFORM_STATS_POLL_MS);
     window.addEventListener(WALLET_TAKE_EVENT, refresh);
+    window.addEventListener(SPONSORED_GOAL_EVENT, refresh);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
       window.removeEventListener(WALLET_TAKE_EVENT, refresh);
+      window.removeEventListener(SPONSORED_GOAL_EVENT, refresh);
     };
   }, [initialStats]);
 
