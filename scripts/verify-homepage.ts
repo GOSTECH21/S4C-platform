@@ -3,13 +3,15 @@ import {
   HOME_STAKEHOLDERS,
 } from "../app/lib/home-stakeholders";
 import {
-  catalogClimateProjectCount,
-  catalogCo2Avoided,
+  formatFundingGbp,
   formatStatCount,
   mergePlatformStats,
 } from "../app/lib/platform-stats";
+import {
+  fundingMobilisedFromTakes,
+  withWalletTakes,
+} from "../app/lib/climate-wallet-takes";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
-import { treesEquivalentFromCo2 } from "../app/lib/impact";
 import {
   FAN_VOTE_PICK_COUNT,
   LOCAL_SPONSOR_LEFTOVER_COUNT,
@@ -146,34 +148,116 @@ const before = mergePlatformStats({ fansEngaged: 3 });
 const after = mergePlatformStats({ fansEngaged: 4 });
 assert(after.fansEngaged === before.fansEngaged + 1, "Fans engaged rises when a fan registers");
 assert(
-  after.teamsInvolved >= currentSeasonTeamCount(),
-  "Teams involved includes the current-season roster"
+  after.sportsTeams === currentSeasonTeamCount(),
+  "Sports Teams is exactly the current-season catalog, not leftover club rows"
 );
 assert(
-  after.climateProjects >= catalogClimateProjectCount(),
-  "Climate Projects include every provider catalog project"
+  mergePlatformStats({ sportsTeams: 221, teamsInvolved: 221 }).sportsTeams ===
+    currentSeasonTeamCount(),
+  "A clubs-table count of 221 must not leak onto the Sports Teams window"
 );
 assert(
-  after.co2Avoided === catalogCo2Avoided() || after.co2Avoided >= catalogCo2Avoided(),
-  "tCO2e avoided is the cumulative provider estimated_co2 figures"
+  mergePlatformStats({ climateProjectsFunded: 0 }).climateProjectsFunded === 0,
+  "Climate Projects Funded stays at zero until a project actually receives a vote"
 );
 assert(
-  after.treesPlanted === treesEquivalentFromCo2(after.co2Avoided),
-  "Trees planted is derived from cumulative tCO2e"
+  mergePlatformStats({ climateProjects: 115 }).climateProjectsFunded === 115,
+  "Legacy climateProjects counts still map onto Climate Projects Funded"
+);
+assert(
+  mergePlatformStats({ fundingMobilisedGbp: 1250.4 }).fundingMobilisedGbp === 1250.4,
+  "£ Climate Funding Mobilised keeps the recorded pounds"
+);
+assert(
+  mergePlatformStats({ impactMomentsCreated: 7 }).impactMomentsCreated === 7,
+  "Impact Moments Created uses recorded score events"
 );
 assert(formatStatCount(1230000) === "1,230,000", "Stat windows use grouped thousands");
+assert(formatFundingGbp(0) === "£0", "Zero funding displays as £0");
+assert(formatFundingGbp(12500) === "£12,500", "Funding uses a pound sign and grouped thousands");
+assert(
+  formatFundingGbp(1816000.5) === "£1,816,000.50",
+  "Pence still display when a funding amount includes 50p"
+);
+assert(
+  formatFundingGbp(3) === "£3" && formatFundingGbp(3.5) === "£3.50",
+  "A few pounds of wallet-to-project takes display as pounds, with pence when needed"
+);
+assert(
+  fundingMobilisedFromTakes(0, 0.5) === 0.5 &&
+    withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 0.5)
+      .fundingMobilisedGbp === 0.5 &&
+    formatFundingGbp(
+      withWalletTakes(mergePlatformStats({ fundingMobilisedGbp: 1816000 }), 3)
+        .fundingMobilisedGbp
+    ) === "£3",
+  "The funding bar is wallet-to-project takes only and ignores signed-offer totals"
+);
+assert(
+  withWalletTakes(
+    mergePlatformStats({ fundingMobilisedGbp: 1816000, walletTakesGbp: 3 }),
+    3.5
+  ).fundingMobilisedGbp === 3.5,
+  "Local Carbon Wallet takes raise the bar from the hosted take ledger, not from £1.8m"
+);
 
 const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
+assert(
+  homePage.indexOf("<HowItWorks") < homePage.indexOf("<Footer"),
+  "How Score-For-Our-Planet Works is composed on the front page"
+);
+assert(
+  homePage.includes("<HowItWorks") &&
+    homePage.indexOf("<HomeFrontPage") < homePage.indexOf("<HowItWorks"),
+  "How Score-For-Our-Planet Works sits inside the front page, above Are You"
+);
 assert(
   !homePage.includes("WHO ARE YOU?"),
   "Old WHO ARE YOU heading is replaced"
 );
 
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
-assert(front.includes("Are You……?"), "New Are You heading is on the front page");
+assert(
+  front.includes('id={JOIN_SECTION_ID}') || front.includes('id="are-you"'),
+  "Are You has an anchor the Login and Register tabs can scroll to"
+);
+assert(front.includes("Are You...?"), "New Are You heading is on the front page");
+assert(
+  front.includes('showJoin("login")') &&
+    front.includes('showJoin("register")') &&
+    front.includes("scrollIntoView") &&
+    front.includes("role=\"tablist\""),
+  "Top-right Login and Register tabs take visitors to the role cards"
+);
+assert(
+  !front.includes("history.replaceState") &&
+    !front.includes("`#${intent}`"),
+  "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
+);
+assert(
+  front.includes("{children}") &&
+    front.indexOf("{children}") < front.indexOf("Are You...?"),
+  "How Score-For-Our-Planet Works is rendered above Are You"
+);
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
-assert(front.includes("/api/platform-stats"), "Stat windows refresh from live platform stats");
+assert(
+  front.includes("loadPlatformStats") &&
+    front.includes("initialStats") &&
+    front.includes("/api/platform-stats"),
+  "Stat windows render server stats then refresh from the live roster"
+);
+assert(
+  readFileSync("app/page.tsx", "utf8").includes("initialStats") &&
+    readFileSync("app/page.tsx", "utf8").includes("loadPlatformStats"),
+  "The homepage HTML includes the live Fans Engaged and funding counts"
+);
+assert(
+  front.includes("withWalletTakes") &&
+    front.includes("WALLET_TAKE_EVENT") &&
+    front.includes("SPONSORED_GOAL_EVENT"),
+  "The funding bar shows Carbon Wallet takes as soon as a fan allocates them, and Impact Moments refresh when a sponsored goal is posted"
+);
 assert(
   !front.includes("Sport today"),
   "Top-right Sport today slogan is removed from the hero"
@@ -182,14 +266,152 @@ assert(
   !front.includes("Every score protects our planet"),
   "Top-left S4P wordmark is removed from the hero"
 );
+assert(
+  front.includes("creates the moment") &&
+    front.includes("text-emerald-400\">Sport") &&
+    front.includes("text-emerald-400\">Sponsors") &&
+    front.includes("text-emerald-400\">Fans") &&
+    front.includes("text-emerald-400\">Impact"),
+  "Hero statement sits between the S4P mark and the stats bar, with Sport, Sponsors, Fans and Impact in green"
+);
+
+assert(
+  front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
+  "The S4P logo carries the Funded Climate Action line underneath"
+);
+assert(
+  front.includes("WICKET") &&
+    front.includes("&amp; every") &&
+    front.includes("can unlock a") &&
+    front.includes("Sponsor-funded") &&
+    front.includes("Match-Day Carbon Footprints"),
+  "Top-left hero line covers GOAL, TRY, TOUCHDOWN & WICKET unlocking an IMPACT MOMENT"
+);
+assert(
+  front.includes("£ Climate Funding Mobilised") &&
+    front.includes("Impact Moments Created") &&
+    front.includes("Fans Engaged") &&
+    front.includes("Sports Teams") &&
+    front.includes("Climate Projects Funded"),
+  "Stats bar shows funding, impact moments, fans, sports teams and funded projects"
+);
+assert(
+  !front.includes("Trees Planted") &&
+    !front.includes("tCO₂e Avoided") &&
+    !front.includes("A Brighter"),
+  "Catalog Trees Planted / tCO2e / Brighter Tomorrow windows are removed"
+);
+assert(
+  front.includes("S4pImpactTables") &&
+    !front.includes("hero-athletes-v2"),
+  "Right-hand hero image is replaced by S4P Impact Tables"
+);
+
+const impactWidget = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
+const impactLib = readFileSync("app/lib/s4p-impact-tables.ts", "utf8");
+assert(
+  impactWidget.includes("S4P IMPACT TABLES") &&
+    impactLib.includes('shortName: "CILT"') &&
+    impactLib.includes('shortName: "CIST"') &&
+    impactLib.includes('shortName: "CIFT"') &&
+    impactLib.includes("Top 5 Climate Impact League Table (CILT)") &&
+    impactLib.includes("View Full Climate Impact League Table →") &&
+    impactLib.includes("View Full Climate Impact Sponsorship Table →") &&
+    impactLib.includes("View Full Climate Impact Fans Table →") &&
+    impactWidget.includes("h-fit") &&
+    impactWidget.includes("text-amber-300") &&
+    !impactWidget.includes("h-full") &&
+    !impactWidget.includes("flex-1"),
+  "Impact Tables widget has CILT, CIST and CIFT tabs, gold metrics and a compact View Full link"
+);
+
+const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
+assert(
+  howItWorks.includes("CLUBS CHOOSE PROJECTS") &&
+    howItWorks.includes("five eligible Climate Projects") &&
+    howItWorks.includes(
+      "The selected Projects help to mitigate the Club's Match-Day Carbon emissions"
+    ),
+  "Step 01 is CLUBS CHOOSE PROJECTS"
+);
+assert(
+  howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS") &&
+    howItWorks.includes("Local Businesses fund fan participation") &&
+    howItWorks.includes("Goals-Scored"),
+  "Step 02 is SPONSORS FUND THE IMPACT MOMENTS"
+);
+assert(
+  howItWorks.includes("FANS DIRECT THE FUNDING") &&
+    howItWorks.includes("Fans allocate real Sponsor-funded money"),
+  "Step 03 is FANS DIRECT THE FUNDING"
+);
+assert(
+  howItWorks.includes("PROJECTS DELIVER THE IMPACT") &&
+    howItWorks.includes("Climate Project Providers receive funding"),
+  "Step 04 is PROJECTS DELIVER THE IMPACT"
+);
+assert(
+  howItWorks.includes("EVERYONE CREATES IMPACT") &&
+    howItWorks.includes("Clubs address Match-Day carbon footprints"),
+  "Step 05 is EVERYONE CREATES IMPACT"
+);
 
 const sql = readFileSync(
-  "supabase/migrations/0011_platform_stats.sql",
+  "supabase/migrations/0012_platform_stats_funding.sql",
   "utf8"
 );
 assert(
-  sql.includes("platform_stats"),
-  "Hosted SQL can return public homepage counters"
+  sql.includes("fundingMobilisedGbp") &&
+    sql.includes("impactMomentsCreated") &&
+    sql.includes("climateProjectsFunded"),
+  "Hosted SQL returns real funding, impact moments and funded-project counts"
+);
+const takeSql = readFileSync(
+  "supabase/migrations/0013_climate_wallet_takes.sql",
+  "utf8"
+);
+assert(
+  takeSql.includes("climate_wallet_takes") && takeSql.includes("amount_gbp"),
+  "Hosted SQL stores each fan take from a Carbon Wallet"
+);
+const liveSql = readFileSync(
+  "supabase/migrations/0014_platform_stats_wallet_takes.sql",
+  "utf8"
+);
+assert(
+  liveSql.includes("s4p_fans_engaged") &&
+    liveSql.includes("fansCountedAsRoster") &&
+    liveSql.includes("climate_wallet_takes") &&
+    !liveSql.includes("sponsor_match_offers"),
+  "Hosted SQL counts unique fans like Admin and funds the bar from wallet takes only"
+);
+const momentsSql = readFileSync(
+  "supabase/migrations/0015_platform_stats_score_events.sql",
+  "utf8"
+);
+assert(
+  momentsSql.includes("score_events") &&
+    momentsSql.includes("sportsTeams") &&
+    !momentsSql.includes("sponsor_climate_credits") &&
+    !momentsSql.includes("from public.clubs"),
+  "Hosted SQL counts Impact Moments from score events and does not count leftover club rows"
+);
+const statsService = readFileSync("app/services/platform-stats.service.ts", "utf8");
+assert(
+  statsService.includes("s4p_fans_engaged") &&
+    statsService.includes("fansCountedAsRoster") &&
+    statsService.includes("engagedFanCount") &&
+    statsService.includes("club_accounts") &&
+    statsService.includes("score_events") &&
+    statsService.includes("currentSeasonTeamCount") &&
+    !statsService.includes("signedOfferFundingGbp") &&
+    !statsService.includes("sponsor_match_offers"),
+  "Platform stats count unique fans like Admin, teams from the season catalog, and Impact Moments from score events"
+);
+const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");
+assert(
+  folderService.includes("persistClimateWalletTake"),
+  "Fan Carbon Wallet votes are recorded as Climate Funding Mobilised"
 );
 
 if (failures.length > 0) {
@@ -200,3 +422,35 @@ if (failures.length > 0) {
 console.log(
   "Homepage: five stakeholders including Local Business Climate Sponsor; live stats; leftover projects."
 );
+
+if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  import("../app/services/platform-stats.service")
+    .then(({ loadPlatformStats }) => loadPlatformStats())
+    .then((stats) => {
+      if (stats.fansEngaged === 18) {
+        throw new Error("Live Fans Engaged is still the raw supporter-row count of 18");
+      }
+      if (stats.fundingMobilisedGbp >= 1_000_000) {
+        throw new Error(
+          `Live Climate Funding Mobilised is still £${stats.fundingMobilisedGbp} (signed credits, not wallet takes)`
+        );
+      }
+      if (stats.sportsTeams !== currentSeasonTeamCount()) {
+        throw new Error(
+          `Live Sports Teams is ${stats.sportsTeams}, expected exactly ${currentSeasonTeamCount()} current-season clubs`
+        );
+      }
+      if (stats.impactMomentsCreated >= 500) {
+        throw new Error(
+          `Live Impact Moments Created is still ${stats.impactMomentsCreated} (climate credits, not score events)`
+        );
+      }
+      console.log(
+        `Live homepage stats: ${stats.fansEngaged} fans engaged, £${stats.fundingMobilisedGbp} mobilised, ${stats.sportsTeams} teams, ${stats.impactMomentsCreated} impact moments.`
+      );
+    })
+    .catch((error) => {
+      console.error(error instanceof Error ? error.message : error);
+      process.exit(1);
+    });
+}

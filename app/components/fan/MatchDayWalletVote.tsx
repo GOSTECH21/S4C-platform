@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   DEFAULT_WALLET_VOTE_GBP,
+  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
   type ClimateWallet,
@@ -49,7 +50,7 @@ export function MatchDayWalletVote({
         <h2 className="text-2xl font-black">Climate Project list</h2>
         <p className="mt-1 text-sm text-slate-400">
           {votingMessage ??
-            `Look up a sponsor wallet, insert a project number (1–${projects.length || 5}) next to it, then press VOTE. Each vote takes ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet and puts it into the chosen ${clubName} Climate Project.`}
+            `Look up a sponsor wallet, insert a project number (1–${projects.length || 5}) next to it, then press ${FUND_IT_LABEL}. Each FUND-IT takes ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet and puts it into the chosen ${clubName} Climate Project.`}
         </p>
       </div>
 
@@ -82,8 +83,8 @@ export function MatchDayWalletVote({
       <div>
         <h2 className="text-2xl font-black">Sponsor Climate Wallets</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Insert the project number in the box next to a wallet, then press
-          VOTE.
+          Insert the project number in the box next to a wallet, then press{" "}
+          {FUND_IT_LABEL}.
         </p>
       </div>
 
@@ -103,7 +104,7 @@ export function MatchDayWalletVote({
                 <th className="p-4">Kind</th>
                 <th className="p-4 text-right">Remaining</th>
                 <th className="p-4">Project number</th>
-                <th className="p-4 text-right">Vote</th>
+                <th className="p-4 text-right">{FUND_IT_LABEL}</th>
               </tr>
             </thead>
             <tbody>
@@ -156,7 +157,7 @@ export function MatchDayWalletVote({
                             : "bg-green-500 text-slate-950 hover:bg-green-400"
                         }`}
                       >
-                        VOTE
+                        {FUND_IT_LABEL}
                       </button>
                     </td>
                   </tr>

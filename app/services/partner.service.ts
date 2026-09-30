@@ -6,6 +6,14 @@ import {
   SCCAN_PARTNER_NAME,
   type PartnerCatalogProject,
 } from "../lib/sccan-catalog";
+import {
+  assertCanListClimateProject,
+  catalogClimateImpactValue,
+  civRecordFromListing,
+  encodeLocationCiv,
+  encodePartnerLocation,
+  type ClimateProjectCivInput,
+} from "../lib/climate-impact-value";
 import type { ClimateProject } from "./votes.service";
 
 const PROJECT_FIELDS =
@@ -20,13 +28,10 @@ export type PartnerProfile = {
   country: string;
 };
 
-export type PartnerProjectInput = {
-  name: string;
+export type PartnerProjectInput = ClimateProjectCivInput & {
   description: string;
   category: string;
   country: string;
-  estimated_co2: number;
-  funding_goal: number;
 };
 
 export async function registerClimatePartner({
@@ -65,7 +70,6 @@ export async function registerClimatePartner({
     country,
   });
 
-  await publishSccanCatalog();
   return user;
 }
 
@@ -215,11 +219,25 @@ export async function loadPartnerLibrary(): Promise<ClimateProject[]> {
   return [...mine, ...others, ...published];
 }
 
+export async function loadMyListedClimateProjects(): Promise<ClimateProject[]> {
+  const session = await loadPartnerSession();
+  const uploaded = await loadUploadedPartnerProjects();
+  if (!session) return uploaded;
+  const org = session.profile.organisationName.trim().toLowerCase();
+  if (!org) return uploaded;
+  return uploaded.filter((project) =>
+    String(project.location ?? "").toLowerCase().includes(org)
+  );
+}
+
 export async function uploadPartnerProject(
   input: PartnerProjectInput
 ): Promise<ClimateProject> {
   const session = await loadPartnerSession();
   if (!session) throw new Error("Sign in as a Climate Partner to upload a project.");
+
+  assertCanListClimateProject(input);
+  const civ = civRecordFromListing(input);
 
   const { data, error } = await supabase
     .from("climate_projects")
@@ -228,12 +246,12 @@ export async function uploadPartnerProject(
       description: input.description.trim(),
       category: input.category,
       country: input.country.trim() || session.profile.country,
-      location: `${session.profile.organisationName} · Climate Partner`,
-      estimated_co2: input.estimated_co2,
-      funding_goal: input.funding_goal,
+      location: encodePartnerLocation(session.profile.organisationName, civ),
+      estimated_co2: civ.projectedCiv,
+      funding_goal: input.fundingAmountSought,
       featured: false,
-      verified: false,
-      status: "active",
+      verified: /independently verified/i.test(civ.verificationStatus),
+      status: "listed",
       club_id: null,
     })
     .select(PROJECT_FIELDS)
@@ -244,12 +262,13 @@ export async function uploadPartnerProject(
 }
 
 function catalogPayload(project: PartnerCatalogProject) {
+  const civ = catalogClimateImpactValue(project);
   return {
     name: project.name,
     description: project.description,
     category: project.category,
     country: project.country,
-    location: project.location,
+    location: encodeLocationCiv(project.location, civ),
     estimated_co2: project.estimated_co2,
     funding_goal: project.funding_goal,
     featured: project.featured,

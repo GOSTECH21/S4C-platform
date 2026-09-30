@@ -10,6 +10,7 @@ import {
 import { SPONSOR_DASHBOARD_PATH } from "@/app/lib/routes";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
   formatSponsorPayableCopy,
   formatStipulatedRate,
@@ -41,6 +42,7 @@ export function OfferProjectList({ offer }: { offer: SponsorMatchOffer }) {
             📍 {climateProjectCountryLabel(project, { clubName: offer.clubName })}
           </p>
           <p className="mt-3 text-slate-300">{project.description}</p>
+          <ClimateProjectCivBlock project={project} />
         </div>
       ))}
     </div>

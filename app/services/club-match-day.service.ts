@@ -45,6 +45,10 @@ import {
   isFeaturedClimateProject,
   type ClimateProject,
 } from "./votes.service";
+import {
+  clubShouldStartBlank,
+  markClubSelectionLive,
+} from "../lib/clear-club-data";
 
 const PROJECT_FIELDS =
   "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured, location";
@@ -665,6 +669,19 @@ export async function loadClubProjectBoard(
   records: ClubFileRecord[];
 }> {
   await publishSccanCatalog();
+  if (clubShouldStartBlank(clubId, clubName)) {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(MATCH_DAY_STORAGE_PREFIX + clubId);
+      window.localStorage.removeItem(FILE_RECORD_STORAGE_PREFIX + clubId);
+    }
+    return {
+      selected: [],
+      voted: [],
+      funded: [],
+      minAmount: null,
+      records: [],
+    };
+  }
   const stored = readStoredMatchDay(clubId);
   const campaign = await findOpenClubCampaign(clubId, clubName);
   const lists = await loadCampaignProjectLists(
@@ -765,6 +782,7 @@ function uniqueProjects(projects: ClimateProject[]): ClimateProject[] {
 async function ensureFeaturedSelection(
   selected: ClimateProject[]
 ): Promise<ClimateProject[]> {
+  if (selected.length === 0) return [];
   const featured = await loadFeaturedMatchDayProject();
   if (!featured) return uniqueProjects(selected).slice(0, MATCH_DAY_PROJECT_COUNT);
   const others = selected.filter(
@@ -1158,6 +1176,7 @@ export async function saveMatchDaySelection({
     selected: selectedProjects,
     voted: votedProjects,
   });
+  markClubSelectionLive(clubId);
   return auction;
 }
 

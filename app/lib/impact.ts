@@ -1,8 +1,13 @@
+import { qualifyingCivTonnes } from "./climate-impact-value";
+
 export type ImpactProject = {
   estimated_co2?: number | null;
   funding_goal?: number | null;
   category?: string | null;
   country?: string | null;
+  status?: string | null;
+  location?: string | null;
+  fundedGbp?: number | null;
 };
 
 // Rough, clearly-labelled equivalence factors used to translate estimated
@@ -26,7 +31,7 @@ export type ImpactSummary = {
 
 export function summariseImpact(projects: ImpactProject[]): ImpactSummary {
   const totalCo2 = projects.reduce(
-    (sum, p) => sum + (Number(p.estimated_co2) || 0),
+    (sum, p) => sum + qualifyingCivTonnes(p),
     0
   );
   const totalFunding = projects.reduce(

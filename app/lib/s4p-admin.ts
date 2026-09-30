@@ -186,6 +186,18 @@ export function staffFanRoster(
   }));
 }
 
+/** Homepage Fans Engaged must equal Admin → Fans by club. */
+export function engagedFanCount(
+  fans: RegisteredFan[],
+  excluded: {
+    emails: string[];
+    authUserIds: string[];
+    contactKeys: string[];
+  }
+) {
+  return staffFanRoster(fans, excluded).length;
+}
+
 export function uniqueClubNames(clubNames: string[]): string[] {
   const seen = new Map<string, string>();
   for (const name of clubNames) {

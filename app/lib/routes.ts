@@ -21,7 +21,12 @@ export const SUPPORTER_CAMPAIGN_ALIASES = [
 export const CLUB_LOGIN_PATH = "/club/login";
 export const CLUB_REGISTER_PATH = "/club/register";
 export const CLUB_DASHBOARD_PATH = "/club/dashboard";
-export const CLUB_SELECT_PROJECTS_PATH = "/club/projects/select";
+export const CLUB_SELECT_PROJECTS_PATH = "/club/s4p-climate-projects";
+export const CLUB_SELECT_PROJECTS_ALIASES = [
+  "/club/s4p-climate-projects",
+  "/club/projects/select",
+  "/club/dashboard/s4p-climate-projects",
+];
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
@@ -45,6 +50,7 @@ export const PARTNER_DASHBOARD_PATH = "/partner/dashboard";
 export const CLIMATE_SPONSORSHIP_PATH = "/climate-sponsorship";
 export const CLIMATE_CREDITS_PATH = "/climate-credits";
 export const CLIMATE_IMPACT_LEAGUE_PATH = "/climate-impact-league";
+export const S4P_IMPACT_TABLES_PATH = "/s4p-impact-tables";
 export const GLOBAL_SCHOOLS_SOLAR_PATH = "/global-schools-solar";
 
 export function isMyS4PPath(pathname: string | null): boolean {

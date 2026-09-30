@@ -36,8 +36,11 @@ import {
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
 } from "@/app/lib/routes";
+import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
+import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import { clubGateCopy } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -89,8 +92,15 @@ export default function SelectMatchDayProjectsPage() {
         const featuredProject = await loadFeaturedMatchDayProject();
         setFeatured(featuredProject);
         const validIds = new Set(catalog.map((project) => project.id));
+        if (clubShouldStartBlank(session.club.id, session.club.name)) {
+          try {
+            await clearClubProjectsAndSponsors(session.club.name);
+          } catch {
+            // Local blank-slate still hides old campaigns if hosted delete is blocked.
+          }
+        }
         const stored = readStoredMatchDay(session.club.id);
-        if (stored) {
+        if (stored && !clubShouldStartBlank(session.club.id, session.club.name)) {
           const chosen = stored.projectIds.filter(
             (id) => id !== featuredProject?.id && validIds.has(id)
           );
@@ -245,10 +255,8 @@ export default function SelectMatchDayProjectsPage() {
                 clubName,
                 country: clubCountry,
               })}
-              {featured.estimated_co2 != null
-                ? ` · ${featured.estimated_co2.toLocaleString("en-GB")} t CO₂`
-                : ""}
             </p>
+            <ClimateProjectCivBlock project={featured} compact={false} />
           </div>
         )}
 
@@ -319,12 +327,8 @@ export default function SelectMatchDayProjectsPage() {
                 <div className="mt-4 space-y-1 text-sm text-slate-400">
                   {project.category && <p>{project.category}</p>}
                   {project.country && <p>📍 {project.country}</p>}
-                  {project.estimated_co2 != null && (
-                    <p>
-                      {project.estimated_co2.toLocaleString("en-GB")} t CO₂
-                    </p>
-                  )}
                 </div>
+                <ClimateProjectCivBlock project={project} compact={false} />
                 <button
                   onClick={() => toggle(project.id)}
                   disabled={full}

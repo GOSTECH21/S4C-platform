@@ -126,6 +126,43 @@ export function topUpLocalClimateWallet({
   return writeClimateWallet(applyLocalTopUp(existing, sponsorshipGbp));
 }
 
+export function creditLeadWalletsForSponsoredGoal({
+  clubName,
+  brandName = "American Express",
+  gbpPerGoal = 3000,
+  commitmentFeeGbp = 3000,
+}: {
+  clubName: string;
+  brandName?: string;
+  gbpPerGoal?: number;
+  commitmentFeeGbp?: number;
+}): ClimateWallet[] {
+  const leads = listClimateWalletsForClub(clubName).filter(
+    (wallet) => wallet.kind === "lead"
+  );
+  if (leads.length === 0) {
+    return [
+      writeClimateWallet(
+        createLeadWallet({
+          clubName,
+          brandName,
+          commitmentFeeGbp,
+          gbpPerGoal,
+          goalsScored: 1,
+        })
+      ),
+    ];
+  }
+  return leads.map((wallet) =>
+    writeClimateWallet(
+      applyLeadCommitment(wallet, {
+        gbpPerGoal: wallet.gbpPerGoal || gbpPerGoal,
+        goalsScored: Math.max(0, Math.round(Number(wallet.goalsScored) || 0)) + 1,
+      })
+    )
+  );
+}
+
 export function depositLeadClimateWallet({
   clubName,
   brandName,

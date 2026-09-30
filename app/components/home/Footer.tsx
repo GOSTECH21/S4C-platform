@@ -4,6 +4,7 @@ import {
   CLIMATE_IMPACT_LEAGUE_PATH,
   CLIMATE_SPONSORSHIP_PATH,
   GLOBAL_SCHOOLS_SOLAR_PATH,
+  S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
 
 export default function Footer() {
@@ -89,6 +90,12 @@ export default function Footer() {
                 className="block text-slate-400 hover:text-white"
               >
                 Climate Credits
+              </Link>
+              <Link
+                href={S4P_IMPACT_TABLES_PATH}
+                className="block text-slate-400 hover:text-white"
+              >
+                S4P Impact Tables
               </Link>
               <Link
                 href={CLIMATE_IMPACT_LEAGUE_PATH}

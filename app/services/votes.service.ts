@@ -66,7 +66,7 @@ export type Supporter = {
 };
 
 const PROJECT_FIELDS =
-  "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured";
+  "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured, location";
 
 const FEATURED_PROJECT_NAME = "Global Schools Solar";
 

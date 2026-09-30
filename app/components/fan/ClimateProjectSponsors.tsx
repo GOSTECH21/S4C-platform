@@ -8,7 +8,7 @@ import { fanInviteRegisterPath } from "@/app/lib/climate-funding";
 import { FAN_REGISTER_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_WALLET_VOTE_GBP,
-  LEAD_WALLET_VOTE_GBP,
+  FUND_IT_LABEL,
   formatWalletGbp,
   normalizeKey,
   type SponsorWalletKind,
@@ -26,8 +26,11 @@ export type CarbonWalletSponsor = {
 export type WalletVoteInput = {
   brandName: string;
   projectNumber?: string;
-  split: boolean;
+  split?: boolean;
 };
+
+const FUND_IT_COPY =
+  `Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press FUND-IT; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
 
 export function ClimateProjectSponsors({
   lead,
@@ -47,7 +50,7 @@ export function ClimateProjectSponsors({
   locals: CarbonWalletSponsor[];
   projectCount?: number;
   onVote?: (input: WalletVoteInput) => void;
-  onLeadVote?: (input: { projectNumber?: string; split: boolean }) => void;
+  onLeadVote?: (input: { projectNumber?: string; split?: boolean }) => void;
   onLocalVote?: (brandName: string, projectNumber: string, split?: boolean) => void;
   busy?: boolean;
   votingOpen?: boolean;
@@ -57,9 +60,7 @@ export function ClimateProjectSponsors({
   showInvite?: boolean;
 }) {
   const [leadNumber, setLeadNumber] = useState("");
-  const [leadSplit, setLeadSplit] = useState(false);
   const [localNumbers, setLocalNumbers] = useState<Record<string, string>>({});
-  const [localSplits, setLocalSplits] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState(false);
   const used = useMemo(
     () => new Set(usedSponsorNames.map((name) => normalizeKey(name))),
@@ -74,12 +75,8 @@ export function ClimateProjectSponsors({
     !votingOpen ||
     !lead ||
     leadUsed ||
-    lead.remainingGbp < LEAD_WALLET_VOTE_GBP ||
-    (!leadSplit && !leadNumber);
-  const leadShare = formatWalletGbp(LEAD_WALLET_VOTE_GBP / Math.max(1, projectCount));
-  const localShare = formatWalletGbp(
-    DEFAULT_WALLET_VOTE_GBP / Math.max(1, projectCount)
-  );
+    lead.remainingGbp < DEFAULT_WALLET_VOTE_GBP ||
+    !leadNumber;
   const localRows = locals.filter(
     (row) => row.kind !== "lead" && !isLeadClimateBrand(row.brandName)
   );
@@ -89,25 +86,22 @@ export function ClimateProjectSponsors({
   );
   const inviteHref = fanInviteRegisterPath(clubId, clubName);
 
-  function voteLead() {
+  function fundLead() {
     if (!lead) return;
     onVote?.({
       brandName: lead.brandName,
       projectNumber: leadNumber,
-      split: leadSplit,
+      split: false,
     });
-    onLeadVote?.({ projectNumber: leadNumber, split: leadSplit });
+    onLeadVote?.({ projectNumber: leadNumber, split: false });
     setLeadNumber("");
-    setLeadSplit(false);
   }
 
-  function voteLocal(row: CarbonWalletSponsor) {
-    const split = Boolean(localSplits[row.brandName]);
+  function fundLocal(row: CarbonWalletSponsor) {
     const projectNumber = localNumbers[row.brandName] ?? "";
-    onVote?.({ brandName: row.brandName, projectNumber, split });
-    onLocalVote?.(row.brandName, projectNumber, split);
+    onVote?.({ brandName: row.brandName, projectNumber, split: false });
+    onLocalVote?.(row.brandName, projectNumber, false);
     setLocalNumbers((prev) => ({ ...prev, [row.brandName]: "" }));
-    setLocalSplits((prev) => ({ ...prev, [row.brandName]: false }));
   }
 
   async function copyInvite() {
@@ -128,9 +122,8 @@ export function ClimateProjectSponsors({
       <div>
         <h2 className="text-3xl font-black">Climate Project Sponsor</h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          You can take money once from each sponsor during the 5-day Vote.
-          Insert a project number in Checkbox 1, or tick Checkbox 2, then press
-          Vote. By the end of Day 5 every Carbon Wallet should show{" "}
+          You can take money once from each sponsor during the 5-day Vote.{" "}
+          {FUND_IT_COPY}. By the end of Day 5 every Carbon Wallet should show{" "}
           {formatWalletGbp(0)}.
         </p>
       </div>
@@ -153,28 +146,18 @@ export function ClimateProjectSponsors({
               </div>
             </div>
             <CarbonWalletBox amount={lead.remainingGbp} />
-            <VoteCheckboxes
+            <FundCheckbox
               brandName={lead.brandName}
               projectCount={projectCount}
               numberValue={leadNumber}
-              splitValue={leadSplit}
-              amountLabel={formatWalletGbp(LEAD_WALLET_VOTE_GBP)}
-              shareLabel={leadShare}
               used={leadUsed}
-              onNumber={(value) => {
-                setLeadNumber(value);
-                setLeadSplit(false);
-              }}
-              onSplit={(value) => {
-                setLeadSplit(value);
-                if (value) setLeadNumber("");
-              }}
+              onNumber={setLeadNumber}
               testIdPrefix="lead"
             />
-            <VoteButton
+            <FundItButton
               disabled={leadBlocked}
               used={leadUsed}
-              onClick={voteLead}
+              onClick={fundLead}
               testId="lead-vote"
             />
           </div>
@@ -188,11 +171,7 @@ export function ClimateProjectSponsors({
 
       <div>
         <h3 className="text-2xl font-black">Local Business Climate Sponsors</h3>
-        <p className="mt-1 text-sm text-slate-400">
-          Same two checkboxes as the Lead Climate Sponsor. Checkbox 1 sends{" "}
-          {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} to one project. Checkbox 2
-          shares {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} ({localShare} each).
-        </p>
+        <p className="mt-1 text-sm text-slate-400">{FUND_IT_COPY}</p>
       </div>
 
       {localRows.length === 0 ? (
@@ -204,7 +183,6 @@ export function ClimateProjectSponsors({
         <div className="space-y-3">
           {localRows.map((row) => {
             const value = localNumbers[row.brandName] ?? "";
-            const split = Boolean(localSplits[row.brandName]);
             const already = used.has(normalizeKey(row.brandName));
             const logo =
               row.logoUrl ||
@@ -215,7 +193,7 @@ export function ClimateProjectSponsors({
               !votingOpen ||
               already ||
               row.remainingGbp < DEFAULT_WALLET_VOTE_GBP ||
-              (!split && !value);
+              !value;
             return (
               <div
                 key={row.brandName}
@@ -231,13 +209,10 @@ export function ClimateProjectSponsors({
                   </div>
                 </div>
                 <CarbonWalletBox amount={row.remainingGbp} compact />
-                <VoteCheckboxes
+                <FundCheckbox
                   brandName={row.brandName}
                   projectCount={projectCount}
                   numberValue={value}
-                  splitValue={split}
-                  amountLabel={formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}
-                  shareLabel={localShare}
                   used={already}
                   onNumber={(next) =>
                     setLocalNumbers((prev) => ({
@@ -245,18 +220,12 @@ export function ClimateProjectSponsors({
                       [row.brandName]: next,
                     }))
                   }
-                  onSplit={(next) =>
-                    setLocalSplits((prev) => ({
-                      ...prev,
-                      [row.brandName]: next,
-                    }))
-                  }
                   testIdPrefix={`local-${row.brandName}`}
                 />
-                <VoteButton
+                <FundItButton
                   disabled={blocked}
                   used={already}
-                  onClick={() => voteLocal(row)}
+                  onClick={() => fundLocal(row)}
                   testId={`local-vote-${row.brandName}`}
                 />
               </div>
@@ -318,73 +287,44 @@ function CarbonWalletBox({
   );
 }
 
-function VoteCheckboxes({
+function FundCheckbox({
   brandName,
   projectCount,
   numberValue,
-  splitValue,
-  amountLabel,
-  shareLabel,
   used,
   onNumber,
-  onSplit,
   testIdPrefix,
 }: {
   brandName: string;
   projectCount: number;
   numberValue: string;
-  splitValue: boolean;
-  amountLabel: string;
-  shareLabel: string;
   used: boolean;
   onNumber: (value: string) => void;
-  onSplit: (value: boolean) => void;
   testIdPrefix: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 text-sm text-slate-300 xl:flex-row xl:items-center">
-      <label className="flex items-center gap-2">
-        <span className="font-semibold">Checkbox 1</span>
-        <input
-          id={testIdPrefix === "lead" ? "lead-project-number" : undefined}
-          type="number"
-          min={1}
-          max={projectCount}
-          value={numberValue}
-          disabled={used}
-          onChange={(event) => {
-            onNumber(event.target.value);
-            onSplit(false);
-          }}
-          className="h-10 w-16 rounded-md border-2 border-white/70 bg-slate-950 text-center text-lg font-black text-white disabled:opacity-40"
-          data-testid={`${testIdPrefix}-project-number`}
-          aria-label={`Insert a project number next to ${brandName}'s Carbon Wallet`}
-        />
-        <span className="text-slate-500">{amountLabel} to that project</span>
-      </label>
-      <label className="flex items-center gap-2">
-        <span className="font-semibold">Checkbox 2</span>
-        <input
-          type="checkbox"
-          checked={splitValue}
-          disabled={used}
-          onChange={(event) => {
-            onSplit(event.target.checked);
-            if (event.target.checked) onNumber("");
-          }}
-          className="h-8 w-8 accent-green-500 disabled:opacity-40"
-          data-testid={`${testIdPrefix}-split`}
-          aria-label={`Share ${amountLabel} across all Climate Projects from ${brandName}`}
-        />
-        <span className="text-slate-500">
-          Share {amountLabel} ({shareLabel} each)
-        </span>
-      </label>
-    </div>
+    <label className="flex items-center gap-2 text-sm text-slate-300">
+      <span className="font-semibold">Checkbox</span>
+      <input
+        id={testIdPrefix === "lead" ? "lead-project-number" : undefined}
+        type="number"
+        min={1}
+        max={projectCount}
+        value={numberValue}
+        disabled={used}
+        onChange={(event) => onNumber(event.target.value)}
+        className="h-10 w-16 rounded-md border-2 border-white/70 bg-slate-950 text-center text-lg font-black text-white disabled:opacity-40"
+        data-testid={`${testIdPrefix}-project-number`}
+        aria-label={`Insert a Climate Project Number next to ${brandName}'s Carbon Wallet`}
+      />
+      <span className="text-slate-500">
+        {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} to that project
+      </span>
+    </label>
   );
 }
 
-function VoteButton({
+function FundItButton({
   disabled,
   used,
   onClick,
@@ -407,7 +347,7 @@ function VoteButton({
           : "bg-green-500 text-slate-950 hover:bg-green-400"
       }`}
     >
-      {used ? "Already used" : "Vote"}
+      {used ? "Already used" : FUND_IT_LABEL}
     </button>
   );
 }

@@ -20,6 +20,7 @@ import {
 } from "./climate-sponsors.service";
 import { offersForLockedSponsor } from "../lib/climate-sponsors";
 import { signedOrPostedBrandForClub as brandFromPostedOffers } from "../lib/campaign-sponsor";
+import { clubShouldStartBlank } from "../lib/clear-club-data";
 
 export type SponsorOfferProject = {
   id: string;
@@ -28,6 +29,9 @@ export type SponsorOfferProject = {
   country: string | null;
   category: string | null;
   estimated_co2: number | null;
+  funding_goal?: number | null;
+  status?: string | null;
+  location?: string | null;
 };
 
 export type SponsorMatchOffer = {
@@ -84,6 +88,9 @@ function snapshotProject(project: ClimateProject): SponsorOfferProject {
     country: project.country ?? null,
     category: project.category ?? null,
     estimated_co2: project.estimated_co2 ?? null,
+    funding_goal: project.funding_goal ?? null,
+    status: project.status ?? null,
+    location: project.location ?? null,
   };
 }
 
@@ -540,6 +547,7 @@ export async function listClubSponsorProposals(
   clubId: string,
   clubName: string
 ): Promise<SponsorProjectProposal[]> {
+  if (clubShouldStartBlank(clubId, clubName)) return [];
   const all = await listAllSponsorProposals();
   return all.filter((row) => proposalMatchesClub(row, clubId, clubName));
 }
@@ -612,6 +620,7 @@ export async function listClubSignedSponsorships(
   clubId: string,
   clubName: string
 ): Promise<SignedSponsorship[]> {
+  if (clubShouldStartBlank(clubId, clubName)) return [];
   const [offers, signatures] = await Promise.all([
     listSponsorMatchOffers(),
     listOfferSignatures(),

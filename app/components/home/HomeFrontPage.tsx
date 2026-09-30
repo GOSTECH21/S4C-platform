@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
+  formatFundingGbp,
   formatStatCount,
   mergePlatformStats,
   PLATFORM_STATS_POLL_MS,
@@ -11,36 +11,60 @@ import {
 } from "@/app/lib/platform-stats";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import { loadPlatformStats } from "@/app/services/platform-stats.service";
+import { listClimateWallets } from "@/app/services/sponsor-wallet.service";
+import {
+  WALLET_TAKE_EVENT,
+  localWalletTakesGbp,
+  withWalletTakes,
+} from "@/app/lib/climate-wallet-takes";
+import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
+import S4pImpactTables from "@/app/components/home/S4pImpactTables";
+import type { ImpactTableBoard } from "@/app/lib/s4p-impact-tables";
+
+const JOIN_SECTION_ID = "are-you";
+
+type JoinIntent = "login" | "register";
+
+function joinIntentFromLocation(): JoinIntent | null {
+  if (typeof window === "undefined") return null;
+  const join = new URLSearchParams(window.location.search).get("join");
+  if (join === "login" || join === "register") return join;
+  if (window.location.hash === "#login") return "login";
+  if (window.location.hash === "#register") return "register";
+  return null;
+}
 
 const STATS: Array<{
-  key: keyof Pick<
-    PlatformStats,
-    "treesPlanted" | "co2Avoided" | "fansEngaged" | "teamsInvolved" | "climateProjects"
-  >;
+  key: keyof PlatformStats;
   label: string;
-  suffix?: string;
-  icon: "tree" | "clover" | "fans" | "stadium" | "globe";
+  icon: "pound" | "bolt" | "fans" | "stadium" | "globe";
+  format?: (value: number) => string;
 }> = [
-  { key: "treesPlanted", label: "Trees Planted", icon: "tree" },
-  { key: "co2Avoided", label: "tCO₂e Avoided", suffix: " t", icon: "clover" },
+  {
+    key: "fundingMobilisedGbp",
+    label: "£ Climate Funding Mobilised",
+    icon: "pound",
+    format: formatFundingGbp,
+  },
+  { key: "impactMomentsCreated", label: "Impact Moments Created", icon: "bolt" },
   { key: "fansEngaged", label: "Fans Engaged", icon: "fans" },
-  { key: "teamsInvolved", label: "Teams involved", icon: "stadium" },
-  { key: "climateProjects", label: "Climate Projects", icon: "globe" },
+  { key: "sportsTeams", label: "Sports Teams", icon: "stadium" },
+  { key: "climateProjectsFunded", label: "Climate Projects Funded", icon: "globe" },
 ];
 
-function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] | "leaf" }) {
+function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] }) {
   const common = "h-7 w-7 text-emerald-400";
-  if (name === "tree") {
+  if (name === "pound") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
-        <path d="M12 2c2.8 2.4 4.5 5 4.8 8.2A4.6 4.6 0 0 1 14 19h-1v3h-2v-3H10a4.6 4.6 0 0 1-2.8-8.8C7.5 7 9.2 4.4 12 2Z" />
+        <path d="M7 20h11v-2H9.4c.4-.7.6-1.5.6-2.4V13h7v-2h-7V8.6C10 6 11.6 4 14.2 4c1.4 0 2.6.5 3.4 1.3l1.3-1.5C17.7 2.6 16 2 14.2 2 10.4 2 8 4.8 8 8.6V11H5v2h3v2.6c0 1.2-.3 2.2-.8 2.4H5V20h2Z" />
       </svg>
     );
   }
-  if (name === "clover") {
+  if (name === "bolt") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
-        <path d="M12 3.2c1.5-1.7 4.3-1.4 5.4.7 1.1 2.1-.3 4.4-2.5 5.1 2.2.7 3.6 3 2.5 5.1-1.1 2.1-3.9 2.4-5.4.7-1.5 1.7-4.3 1.4-5.4-.7-1.1-2.1.3-4.4 2.5-5.1C6.9 8.3 5.5 6 6.6 3.9 7.7 1.8 10.5 1.5 12 3.2Z" />
+        <path d="M13 2 4 14h7l-1 8 10-14h-7l1-6Z" />
       </svg>
     );
   }
@@ -72,40 +96,84 @@ function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] | "leaf" }) {
   );
 }
 
-export default function HomeFrontPage() {
-  const [stats, setStats] = useState<PlatformStats>(() => mergePlatformStats());
+export default function HomeFrontPage({
+  children,
+  impactTables,
+  initialStats,
+}: {
+  children?: ReactNode;
+  impactTables?: ImpactTableBoard[];
+  initialStats?: PlatformStats;
+}) {
+  const [stats, setStats] = useState<PlatformStats>(() =>
+    mergePlatformStats(initialStats)
+  );
+  const [joinIntent, setJoinIntent] = useState<JoinIntent>("register");
+
+  function showJoin(intent: JoinIntent) {
+    setJoinIntent(intent);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(JOIN_SECTION_ID)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
     async function refresh() {
+      const localTakes = localWalletTakesGbp(listClimateWallets());
+      try {
+        const live = await loadPlatformStats();
+        if (!cancelled) {
+          setStats(withWalletTakes(live, localTakes));
+        }
+        return;
+      } catch {
+        // Fall through to the API if the browser cannot read the roster tables.
+      }
       try {
         const fromApi = await fetch("/api/platform-stats", { cache: "no-store" });
         if (fromApi.ok) {
           const next = (await fromApi.json()) as PlatformStats;
-          if (!cancelled) setStats(mergePlatformStats(next));
+          if (!cancelled) {
+            setStats(withWalletTakes(mergePlatformStats(next), localTakes));
+          }
           return;
         }
       } catch {
-        // Browser can still count what the anon key can read.
+        // Keep the server-rendered bar if refresh fails.
       }
-      try {
-        const next = await loadPlatformStats();
-        if (!cancelled) setStats(next);
-      } catch {
-        if (!cancelled) setStats(mergePlatformStats());
+      if (!cancelled) {
+        setStats(withWalletTakes(mergePlatformStats(initialStats), localTakes));
       }
     }
     void refresh();
     const timer = window.setInterval(() => void refresh(), PLATFORM_STATS_POLL_MS);
+    window.addEventListener(WALLET_TAKE_EVENT, refresh);
+    window.addEventListener(SPONSORED_GOAL_EVENT, refresh);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
+      window.removeEventListener(WALLET_TAKE_EVENT, refresh);
+      window.removeEventListener(SPONSORED_GOAL_EVENT, refresh);
     };
+  }, [initialStats]);
+
+  useEffect(() => {
+    const fromLocation = joinIntentFromLocation();
+    if (!fromLocation) return;
+    setJoinIntent(fromLocation);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(JOIN_SECTION_ID)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }, []);
 
   return (
-    <div className="relative overflow-hidden bg-[#04140f] text-white">
-      <div className="absolute inset-0">
+    <div className="relative bg-[#04140f] text-white">
+      <div className="absolute inset-0 overflow-hidden">
         <Image
           src="/images/home/hero.png"
           alt=""
@@ -118,7 +186,41 @@ export default function HomeFrontPage() {
       </div>
 
       <div className="relative">
-        <section className="grid items-center gap-6 px-5 pb-8 pt-8 md:px-10 md:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
+        <div className="sticky top-0 z-50 flex justify-end px-5 py-3 md:px-10">
+          <div
+            role="tablist"
+            aria-label="Login or Register"
+            className="inline-flex rounded-xl border border-emerald-400/30 bg-slate-950/85 p-1 shadow-lg backdrop-blur"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={joinIntent === "login"}
+              onClick={() => showJoin("login")}
+              className={`rounded-lg px-5 py-2 text-sm font-bold ${
+                joinIntent === "login"
+                  ? "bg-emerald-500 text-slate-950"
+                  : "text-white hover:bg-slate-800"
+              }`}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={joinIntent === "register"}
+              onClick={() => showJoin("register")}
+              className={`rounded-lg px-5 py-2 text-sm font-bold ${
+                joinIntent === "register"
+                  ? "bg-emerald-500 text-slate-950"
+                  : "text-white hover:bg-slate-800"
+              }`}
+            >
+              Register
+            </button>
+          </div>
+        </div>
+        <section className="grid items-center gap-6 px-5 pb-8 pt-4 md:px-10 md:pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
           <div>
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
@@ -126,16 +228,18 @@ export default function HomeFrontPage() {
               <span className="text-emerald-400">a brighter planet</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-emerald-50 md:text-base">
-              Every <span className="font-black text-white">GOAL</span>; every{" "}
-              <span className="font-black text-white">TRY</span>; every{" "}
-              <span className="font-black text-white">TOUCHDOWN</span> on every{" "}
-              <span className="font-black text-white">MATCH-DAY</span> creates a
-              funded <span className="font-black text-white">IMPACT MOMENT</span>{" "}
-              by Sponsors for addressing Match-Day Carbon Footprint.
+              Every <span className="font-black text-white">GOAL</span>, every{" "}
+              <span className="font-black text-white">TRY</span>, every{" "}
+              <span className="font-black text-white">TOUCHDOWN</span> &amp; every{" "}
+              <span className="font-black text-white">WICKET</span> can unlock a
+              Sponsor-funded{" "}
+              <span className="font-black text-white">IMPACT MOMENT</span>
+              {" "}
+              to help address a Club&apos;s Match-Day Carbon Footprints
             </p>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center justify-center">
             <Image
               src="/images/home/s4p-mark.png"
               alt="S4P Score-4-our-Planet"
@@ -144,59 +248,78 @@ export default function HomeFrontPage() {
               className="h-auto w-[16rem] object-contain drop-shadow-2xl sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
               priority
             />
+            <p className="mt-1 max-w-xl text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-2xl lg:text-[1.35rem]">
+              Turning Match-Day Sporting Moments into Funded Climate Action
+            </p>
           </div>
 
-          <div className="relative min-h-[220px] overflow-hidden rounded-3xl lg:min-h-[360px] xl:min-h-[420px]">
-            <Image
-              src="/images/home/hero-athletes-v2.png"
-              alt="Different sports, a bigger impact"
-              fill
-              className="object-contain object-center"
-              priority
-            />
-          </div>
+          <S4pImpactTables boards={impactTables} />
         </section>
 
-        <section className="mx-4 mb-10 md:mx-10">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-6">
+        <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl">
+          <span className="block">
+            <span className="text-emerald-400">Sport</span>
+            <span className="text-white"> creates the moment.</span>
+          </span>
+          <span className="block">
+            <span className="text-emerald-400">Sponsors</span>
+            <span className="text-white"> fund it. </span>
+            <span className="text-emerald-400">Fans</span>
+            <span className="text-white"> direct the </span>
+            <span className="text-emerald-400">Impact</span>
+          </span>
+        </p>
+
+        <section className="mx-4 md:mx-10">
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-5">
             {STATS.map((stat) => (
               <div key={stat.key} className="bg-slate-950/40 px-3 py-5 text-center">
                 <div className="flex justify-center">
                   <StatIcon name={stat.icon} />
                 </div>
                 <p className="mt-2 text-xl font-black text-white md:text-2xl">
-                  {formatStatCount(stats[stat.key])}
-                  {stat.suffix ?? ""}
+                  {stat.format
+                    ? stat.format(stats[stat.key])
+                    : formatStatCount(stats[stat.key])}
                 </p>
                 <p className="mt-1 text-[0.7rem] font-semibold uppercase tracking-wide text-slate-300">
                   {stat.label}
                 </p>
               </div>
             ))}
-            <div className="bg-slate-950/40 px-3 py-5 text-center">
-              <div className="flex justify-center">
-                <StatIcon name="leaf" />
-              </div>
-              <p className="mt-2 text-sm font-black uppercase leading-tight text-emerald-300 md:text-base">
-                A Brighter
-                <br />
-                Tomorrow
-              </p>
-            </div>
           </div>
         </section>
 
-        <section className="px-5 pb-16 md:px-10">
+        {children}
+
+        <section
+          id={JOIN_SECTION_ID}
+          className="scroll-mt-24 px-5 pb-16 md:px-10"
+        >
           <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
-            Are You……?
+            Are You...?
           </h2>
           <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-slate-300 md:text-base">
-            Join a global movement where sport creates climate action. Choose
-            your role and be part of a cleaner, fairer, healthier planet.
+            {joinIntent === "login"
+              ? "Choose your role to Login as a Fan, Club, Sponsor or Climate Projects Provider."
+              : "Choose your role to Register as a Fan, Club, Sponsor or Climate Projects Provider."}
           </p>
 
           <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
-            {HOME_STAKEHOLDERS.map((card) => (
+            {HOME_STAKEHOLDERS.map((card) => {
+              const primaryHref =
+                joinIntent === "login" ? card.login : card.register;
+              const primaryText =
+                joinIntent === "login"
+                  ? card.loginButtonText
+                  : card.registerText;
+              const secondaryHref =
+                joinIntent === "login" ? card.register : card.login;
+              const secondaryText =
+                joinIntent === "login"
+                  ? card.registerText.replace(" →", "")
+                  : card.loginText;
+              return (
               <article
                 key={card.title}
                 className="flex h-full flex-col overflow-hidden rounded-3xl border border-slate-700/80 bg-[#07150f] shadow-xl"
@@ -214,21 +337,22 @@ export default function HomeFrontPage() {
                   <p className="mt-3 flex-1 text-sm leading-6 text-slate-300">
                     {card.description}
                   </p>
-                  <Link
-                    href={card.register}
-                    className="mt-5 block rounded-xl bg-emerald-500 py-3 text-center text-sm font-bold text-slate-950 hover:bg-emerald-400"
+                  <a
+                    href={primaryHref}
+                    className="mt-5 block rounded-xl bg-emerald-500 px-2 py-3 text-center text-[0.8rem] font-bold leading-snug text-slate-950 hover:bg-emerald-400"
                   >
-                    {card.registerText}
-                  </Link>
-                  <Link
-                    href={card.login}
+                    {primaryText}
+                  </a>
+                  <a
+                    href={secondaryHref}
                     className="mt-2 block text-center text-xs font-semibold text-slate-400 hover:text-white"
                   >
-                    {card.loginText}
-                  </Link>
+                    {secondaryText}
+                  </a>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-12 grid gap-5 text-center text-sm text-slate-300 sm:grid-cols-2 lg:grid-cols-5">

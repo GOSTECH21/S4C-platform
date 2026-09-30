@@ -42,7 +42,11 @@ export async function createScoreEvent({
       },
     ]);
 
-  if (opportunityError) throw opportunityError;
+  if (opportunityError) {
+    // The score event is the Impact Moment. Older hosted schemas can reject
+    // the opportunity row without undoing the posted goal.
+    console.error(opportunityError);
+  }
 
   return scoreEvent;
 }

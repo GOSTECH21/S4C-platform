@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import {
   loadClubSession,
@@ -33,6 +34,8 @@ import {
   ciltPositionLabel,
   climateImpactLeagueTable,
 } from "@/app/lib/cilt";
+import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
+import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
@@ -75,6 +78,8 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
+import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
+import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import {
   readMatchDayFolder,
   saveClubProjectsFile,
@@ -107,6 +112,7 @@ export default function ClubDashboardPage() {
   const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -126,6 +132,13 @@ export default function ClubDashboardPage() {
       }
       setAccount(session.account);
       setClub(session.club);
+      if (clubShouldStartBlank(session.club.id, session.club.name)) {
+        try {
+          await clearClubProjectsAndSponsors(session.club.name);
+        } catch {
+          // Local blank-slate still hides old campaigns if hosted delete is blocked.
+        }
+      }
 
       const board = await loadClubProjectBoard(session.club.id, session.club.name);
       setVoted(board.voted);
@@ -162,7 +175,7 @@ export default function ClubDashboardPage() {
   const extraTonnes = useMemo(
     () =>
       [...funded, ...voted].reduce(
-        (sum, project) => sum + (Number(project.estimated_co2) || 0),
+        (sum, project) => sum + qualifyingCivTonnes(project),
         0
       ),
     [funded, voted]
@@ -260,8 +273,23 @@ export default function ClubDashboardPage() {
     router.push(href);
   }
 
-  async function handleMatchDayAction() {
-    router.push(CLUB_SELECT_PROJECTS_PATH);
+  async function startClubAfresh() {
+    if (!club) return;
+    const ok = window.confirm(
+      `Remove every Climate Project and every sponsor attached to ${club.name}? Shared catalog projects stay in the library. This lets you start ${club.name} Match Day from a blank slate.`
+    );
+    if (!ok) return;
+    setClearing(true);
+    setPostError(null);
+    try {
+      await clearClubProjectsAndSponsors(club.name);
+      window.location.reload();
+    } catch (err) {
+      setPostError(
+        err instanceof Error ? err.message : "Could not clear this club's projects and sponsors."
+      );
+      setClearing(false);
+    }
   }
 
   function saveSponsorsFile() {
@@ -420,12 +448,22 @@ export default function ClubDashboardPage() {
               Welcome to your Score-4-Our-Planet Club Dashboard
             </p>
           </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => void startClubAfresh()}
+              disabled={clearing}
+              className="rounded-xl border border-amber-400/50 px-5 py-3 font-semibold text-amber-200 disabled:opacity-50"
+            >
+              {clearing ? "Clearing…" : "Start this club afresh"}
+            </button>
           <button
             onClick={logout}
             className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
           >
             Logout
           </button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -524,15 +562,16 @@ export default function ClubDashboardPage() {
             </p>
           </div>
 
-          <button
-            className="mt-10 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white hover:bg-blue-500 disabled:cursor-wait disabled:opacity-70"
-            disabled={posting}
-            onClick={() => void handleMatchDayAction()}
+          <Link
+            href={CLUB_SELECT_PROJECTS_PATH}
+            className={`mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500 ${
+              posting ? "pointer-events-none cursor-wait opacity-70" : ""
+            }`}
           >
             {selected.length >= MATCH_DAY_PROJECT_COUNT
               ? "S4P Climate Projects — change List 1 and List 2"
               : "S4P Climate Projects"}
-          </button>
+          </Link>
           {postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
               Posted to your fans on My S4P
@@ -972,9 +1011,10 @@ function proposalAsProjects(
     category: project.category,
     country: project.country,
     estimated_co2: project.estimated_co2,
-    funding_goal: null,
+    funding_goal: project.funding_goal ?? null,
     image_url: null,
-    status: "active",
+    status: project.status ?? null,
+    location: project.location ?? null,
   }));
 }
 
@@ -1029,11 +1069,7 @@ function ProjectGrid({
             <p className="mt-1 text-sm text-slate-400">📍 {country}</p>
           )}
           <p className="mt-3 text-slate-300">{project.description}</p>
-          {project.estimated_co2 != null && (
-            <p className="mt-4 text-sm font-semibold text-green-400">
-              {project.estimated_co2.toLocaleString("en-GB")} t CO₂
-            </p>
-          )}
+          <ClimateProjectCivBlock project={project} compact={false} />
         </div>
         );
       })}

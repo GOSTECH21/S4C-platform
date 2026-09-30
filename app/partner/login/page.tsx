@@ -10,7 +10,7 @@ export default function PartnerLoginPage() {
   return (
     <RoleLoginForm
       title="Climate Partner Login"
-      subtitle="Sign in to publish and upload climate projects for Sustainability Directors."
+      subtitle="Sign in to fill, sign and list your Climate Project on S4P."
       destination={PARTNER_DASHBOARD_PATH}
       registerHref={PARTNER_REGISTER_PATH}
     />
