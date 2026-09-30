@@ -1,6 +1,7 @@
 import {
   CURRENT_SEASON_LEAGUES,
   clubInCurrentSeasonLeague,
+  currentSeasonTeamCount,
   isCurrentSeasonLeagueFixture,
   seasonNamesMatch,
 } from "../app/lib/current-season";
@@ -20,6 +21,10 @@ const scottish = CURRENT_SEASON_LEAGUES["Scottish Premiership"];
 assert(premierLeague.length === 20, "Premier League must have 20 clubs");
 assert(championship.length === 24, "EFL Championship must have 24 clubs");
 assert(scottish.length === 12, "Scottish Premiership must have 12 clubs");
+assert(
+  currentSeasonTeamCount() === 200,
+  "Sports Teams must be exactly 200 unique current-season clubs"
+);
 
 for (const relegated of [
   "West Ham United",

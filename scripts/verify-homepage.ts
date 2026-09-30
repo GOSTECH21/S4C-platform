@@ -148,8 +148,13 @@ const before = mergePlatformStats({ fansEngaged: 3 });
 const after = mergePlatformStats({ fansEngaged: 4 });
 assert(after.fansEngaged === before.fansEngaged + 1, "Fans engaged rises when a fan registers");
 assert(
-  after.sportsTeams >= currentSeasonTeamCount(),
-  "Sports Teams is the real current-season roster"
+  after.sportsTeams === currentSeasonTeamCount(),
+  "Sports Teams is exactly the current-season catalog, not leftover club rows"
+);
+assert(
+  mergePlatformStats({ sportsTeams: 221, teamsInvolved: 221 }).sportsTeams ===
+    currentSeasonTeamCount(),
+  "A clubs-table count of 221 must not leak onto the Sports Teams window"
 );
 assert(
   mergePlatformStats({ climateProjectsFunded: 0 }).climateProjectsFunded === 0,
@@ -165,7 +170,7 @@ assert(
 );
 assert(
   mergePlatformStats({ impactMomentsCreated: 7 }).impactMomentsCreated === 7,
-  "Impact Moments Created uses recorded scores and credits"
+  "Impact Moments Created uses recorded score events"
 );
 assert(formatStatCount(1230000) === "1,230,000", "Stat windows use grouped thousands");
 assert(formatFundingGbp(0) === "£0", "Zero funding displays as £0");
@@ -248,8 +253,10 @@ assert(
   "The homepage HTML includes the live Fans Engaged and funding counts"
 );
 assert(
-  front.includes("withWalletTakes") && front.includes("WALLET_TAKE_EVENT"),
-  "The funding bar shows Carbon Wallet takes as soon as a fan allocates them"
+  front.includes("withWalletTakes") &&
+    front.includes("WALLET_TAKE_EVENT") &&
+    front.includes("SPONSORED_GOAL_EVENT"),
+  "The funding bar shows Carbon Wallet takes as soon as a fan allocates them, and Impact Moments refresh when a sponsored goal is posted"
 );
 assert(
   !front.includes("Sport today"),
@@ -378,15 +385,28 @@ assert(
     !liveSql.includes("sponsor_match_offers"),
   "Hosted SQL counts unique fans like Admin and funds the bar from wallet takes only"
 );
+const momentsSql = readFileSync(
+  "supabase/migrations/0015_platform_stats_score_events.sql",
+  "utf8"
+);
+assert(
+  momentsSql.includes("score_events") &&
+    momentsSql.includes("sportsTeams") &&
+    !momentsSql.includes("sponsor_climate_credits") &&
+    !momentsSql.includes("from public.clubs"),
+  "Hosted SQL counts Impact Moments from score events and does not count leftover club rows"
+);
 const statsService = readFileSync("app/services/platform-stats.service.ts", "utf8");
 assert(
   statsService.includes("s4p_fans_engaged") &&
     statsService.includes("fansCountedAsRoster") &&
     statsService.includes("engagedFanCount") &&
     statsService.includes("club_accounts") &&
+    statsService.includes("score_events") &&
+    statsService.includes("currentSeasonTeamCount") &&
     !statsService.includes("signedOfferFundingGbp") &&
     !statsService.includes("sponsor_match_offers"),
-  "Platform stats count unique fans like Admin and do not add signed sponsorship onto Climate Funding Mobilised"
+  "Platform stats count unique fans like Admin, teams from the season catalog, and Impact Moments from score events"
 );
 const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");
 assert(
@@ -415,8 +435,18 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANO
           `Live Climate Funding Mobilised is still £${stats.fundingMobilisedGbp} (signed credits, not wallet takes)`
         );
       }
+      if (stats.sportsTeams !== currentSeasonTeamCount()) {
+        throw new Error(
+          `Live Sports Teams is ${stats.sportsTeams}, expected exactly ${currentSeasonTeamCount()} current-season clubs`
+        );
+      }
+      if (stats.impactMomentsCreated >= 500) {
+        throw new Error(
+          `Live Impact Moments Created is still ${stats.impactMomentsCreated} (climate credits, not score events)`
+        );
+      }
       console.log(
-        `Live homepage stats: ${stats.fansEngaged} fans engaged, £${stats.fundingMobilisedGbp} mobilised.`
+        `Live homepage stats: ${stats.fansEngaged} fans engaged, £${stats.fundingMobilisedGbp} mobilised, ${stats.sportsTeams} teams, ${stats.impactMomentsCreated} impact moments.`
       );
     })
     .catch((error) => {

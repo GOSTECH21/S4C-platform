@@ -24,23 +24,22 @@ export function mergePlatformStats({
   walletTakesGbp = 0,
   impactMomentsCreated = 0,
   fansEngaged = 0,
-  sportsTeams = 0,
-  teamsInvolved = 0,
+  sportsTeams: _ignoredClubRowCount = 0,
+  teamsInvolved: _ignoredTeamsInvolved = 0,
   climateProjectsFunded = 0,
   climateProjects = 0,
 }: Partial<PlatformStats> & {
   teamsInvolved?: number;
   climateProjects?: number;
 } = {}): PlatformStats {
+  void _ignoredClubRowCount;
+  void _ignoredTeamsInvolved;
   return {
     fundingMobilisedGbp: asGbp(fundingMobilisedGbp),
     walletTakesGbp: asGbp(walletTakesGbp),
     impactMomentsCreated: asCount(impactMomentsCreated),
     fansEngaged: asCount(fansEngaged),
-    sportsTeams: Math.max(
-      asCount(sportsTeams || teamsInvolved),
-      currentSeasonTeamCount()
-    ),
+    sportsTeams: currentSeasonTeamCount(),
     climateProjectsFunded: asCount(climateProjectsFunded || climateProjects),
   };
 }

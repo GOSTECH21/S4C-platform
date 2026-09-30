@@ -6,34 +6,15 @@ import {
   storedFullName,
   type RegisteredFan,
 } from "../lib/s4p-admin";
+import { currentSeasonTeamCount } from "../lib/current-season";
 import { mergePlatformStats, type PlatformStats } from "../lib/platform-stats";
 
-async function countRows(table: string): Promise<number> {
-  const { count, error } = await supabase
-    .from(table)
-    .select("*", { count: "exact", head: true });
-  if (error) return 0;
-  return Number(count) || 0;
-}
-
 async function impactMomentsCreated(): Promise<number> {
-  const { count, error: creditError } = await supabase
-    .from("sponsor_climate_credits")
+  const { count, error } = await supabase
+    .from("score_events")
     .select("*", { count: "exact", head: true });
-  if (!creditError && Number(count) > 0) return Number(count);
-
-  const { data, error } = await supabase
-    .from("fixtures")
-    .select("home_score, away_score");
-  if (error || !data) return 0;
-  return data.reduce((sum, row) => {
-    const fixture = row as { home_score?: number | null; away_score?: number | null };
-    return (
-      sum +
-      Math.max(0, Math.round(Number(fixture.home_score) || 0)) +
-      Math.max(0, Math.round(Number(fixture.away_score) || 0))
-    );
-  }, 0);
+  if (!error && count != null) return Number(count) || 0;
+  return 0;
 }
 
 async function climateWalletTakesGbp(): Promise<number> {
@@ -165,16 +146,13 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
           row.fans_counted_as_roster === true;
         const rpcFans = Number(row.fansEngaged ?? row.fans_engaged) || 0;
         const takes = asFundingTakes(tableTakes, rpcIncludesTakes ? rpcTakes : 0);
+        const moments = await impactMomentsCreated().catch(() => 0);
         return mergePlatformStats({
           fundingMobilisedGbp: takes,
           walletTakesGbp: takes,
-          impactMomentsCreated:
-            Number(row.impactMomentsCreated ?? row.impact_moments_created) || 0,
+          impactMomentsCreated: moments,
           fansEngaged: await loadFansEngaged(rpcFans, rpcFansAreRoster),
-          sportsTeams:
-            Number(
-              row.sportsTeams ?? row.sports_teams ?? row.teamsInvolved ?? row.teams_involved
-            ) || 0,
+          sportsTeams: currentSeasonTeamCount(),
           climateProjectsFunded:
             Number(row.climateProjectsFunded ?? row.climate_projects_funded) || 0,
         });
@@ -184,8 +162,7 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
     // Fall through to table counts when the RPC is not on the hosted DB yet.
   }
 
-  const [sportsTeams, fundedProjects, moments, fansEngaged] = await Promise.all([
-    countRows("clubs"),
+  const [fundedProjects, moments, fansEngaged] = await Promise.all([
     climateProjectsFunded(),
     impactMomentsCreated().catch(() => 0),
     loadFansEngaged(),
@@ -193,7 +170,7 @@ export async function loadPlatformStats(): Promise<PlatformStats> {
 
   return mergePlatformStats({
     fansEngaged,
-    sportsTeams,
+    sportsTeams: currentSeasonTeamCount(),
     climateProjectsFunded: fundedProjects,
     fundingMobilisedGbp: tableTakes,
     walletTakesGbp: tableTakes,
