@@ -77,6 +77,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
+import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import {
   readMatchDayFolder,
@@ -130,6 +131,13 @@ export default function ClubDashboardPage() {
       }
       setAccount(session.account);
       setClub(session.club);
+      if (clubShouldStartBlank(session.club.id, session.club.name)) {
+        try {
+          await clearClubProjectsAndSponsors(session.club.name);
+        } catch {
+          // Local blank-slate still hides old campaigns if hosted delete is blocked.
+        }
+      }
 
       const board = await loadClubProjectBoard(session.club.id, session.club.name);
       setVoted(board.voted);

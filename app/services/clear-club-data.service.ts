@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { seasonNamesMatch } from "../lib/current-season";
 import { clearClubLocalProjectsAndSponsors } from "../lib/clear-club-data";
+import { fanTeamMatchesPostedClub } from "../lib/match-day-post";
 
 export type ClearedClubData = {
   clubIds: string[];
@@ -28,26 +29,50 @@ async function deleteWhereClubId(table: string, clubIds: string[]) {
   return data?.length ?? 0;
 }
 
+async function loadClubCampaigns(clubIds: string[], clubName: string) {
+  const byId = clubIds.length
+    ? await supabase.from("match_campaigns").select("id, title, club_id, status").in("club_id", clubIds)
+    : { data: [] as Array<{ id: string; title?: string | null; club_id?: string | null; status?: string | null }> };
+  const open = await supabase
+    .from("match_campaigns")
+    .select("id, title, club_id, status")
+    .eq("status", "open");
+  const rows = [...(byId.data ?? []), ...(open.data ?? [])];
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const id = String(row.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    if (clubIds.includes(String(row.club_id ?? ""))) return true;
+    return clubIds.some((clubId) =>
+      fanTeamMatchesPostedClub(
+        { id: clubId, name: clubName, displayName: clubName },
+        { clubId: row.club_id, title: row.title }
+      )
+    );
+  });
+}
+
 export async function clearClubProjectsAndSponsors(
   clubName = "Arsenal"
 ): Promise<ClearedClubData> {
   const clubs = await arsenalClubRows(clubName);
   const clubIds = clubs.map((row) => String(row.id));
   const clubNames = clubs.map((row) => String(row.name));
+  const hostedCampaigns = await loadClubCampaigns(clubIds, clubName);
+  const campaignIds = hostedCampaigns.map((row) => String(row.id));
 
   const rpc = await supabase.rpc("clear_club_projects_and_sponsors", {
     p_club_name: clubName,
   });
   if (!rpc.error && rpc.data && typeof rpc.data === "object") {
     const row = rpc.data as Record<string, unknown>;
-    const local = clearClubLocalProjectsAndSponsors({ clubName, clubIds });
-    const remaining = clubIds.length
-      ? await supabase
-          .from("match_campaigns")
-          .select("id")
-          .in("club_id", clubIds)
-          .eq("status", "open")
-      : { data: [] };
+    const local = clearClubLocalProjectsAndSponsors({
+      clubName,
+      clubIds,
+      campaignIds,
+    });
+    const remaining = await loadClubCampaigns(clubIds, clubName);
     return {
       clubIds,
       clubNames,
@@ -58,47 +83,24 @@ export async function clearClubProjectsAndSponsors(
       sponsorshipCampaigns: Number(row.sponsorshipCampaigns) || 0,
       walletsRemoved: local.walletsRemoved,
       sponsorsRemoved: local.sponsorsRemoved,
-      remainingCampaigns: remaining.data?.length ?? 0,
+      remainingCampaigns: remaining.filter((item) => item.status === "open").length,
     };
   }
 
-  const campaigns = clubIds.length
-    ? await supabase
-        .from("match_campaigns")
-        .select("id, title, club_id")
-        .in("club_id", clubIds)
-    : { data: [], error: null };
-  const campaignIds = (campaigns.data ?? []).map((row) => String(row.id));
-
-  let campaignProjects = 0;
   if (campaignIds.length > 0) {
-    const votes = await supabase
-      .from("supporter_votes")
-      .delete()
-      .in("campaign_id", campaignIds)
-      .select("id");
-    void votes;
-    const deleted = await supabase
-      .from("campaign_projects")
-      .delete()
-      .in("campaign_id", campaignIds)
-      .select("id");
-    campaignProjects = deleted.data?.length ?? 0;
+    await supabase.from("supporter_votes").delete().in("campaign_id", campaignIds);
+    await supabase.from("campaign_projects").delete().in("campaign_id", campaignIds);
+    await supabase.from("match_campaigns").update({ status: "closed" }).in("id", campaignIds);
+    await supabase.from("match_campaigns").delete().in("id", campaignIds);
   }
 
-  const matchCampaigns =
-    campaignIds.length > 0
-      ? (
-          await supabase
-            .from("match_campaigns")
-            .delete()
-            .in("id", campaignIds)
-            .select("id")
-        ).data?.length ?? 0
-      : 0;
-
+  const campaignProjects = campaignIds.length;
+  const matchCampaigns = campaignIds.length;
   const portfolios = await deleteWhereClubId("club_match_portfolio", clubIds);
   const clubProjects = await deleteWhereClubId("climate_projects", clubIds);
+  await deleteWhereClubId("club_climate_file_records", clubIds);
+  await deleteWhereClubId("sponsor_match_offers", clubIds);
+  await deleteWhereClubId("sponsor_project_proposals", clubIds);
 
   const allSponsorship = await supabase
     .from("sponsorship_campaigns")
@@ -119,15 +121,13 @@ export async function clearClubProjectsAndSponsors(
     sponsorshipCampaigns = deleted.data?.length ?? 0;
   }
 
-  const local = clearClubLocalProjectsAndSponsors({ clubName, clubIds });
+  const local = clearClubLocalProjectsAndSponsors({
+    clubName,
+    clubIds,
+    campaignIds,
+  });
 
-  const remaining = clubIds.length
-    ? await supabase
-        .from("match_campaigns")
-        .select("id")
-        .in("club_id", clubIds)
-        .eq("status", "open")
-    : { data: [] };
+  const remaining = await loadClubCampaigns(clubIds, clubName);
 
   return {
     clubIds,
@@ -139,6 +139,6 @@ export async function clearClubProjectsAndSponsors(
     sponsorshipCampaigns,
     walletsRemoved: local.walletsRemoved,
     sponsorsRemoved: local.sponsorsRemoved,
-    remainingCampaigns: remaining.data?.length ?? 0,
+    remainingCampaigns: remaining.filter((item) => item.status === "open").length,
   };
 }

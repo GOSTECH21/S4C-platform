@@ -81,6 +81,29 @@ begin
     get diagnostics club_projects = row_count;
   end if;
 
+  if to_regclass('public.club_climate_file_records') is not null then
+    delete from public.club_climate_file_records
+    where club_id = any (club_ids);
+  end if;
+
+  if to_regclass('public.sponsor_project_proposals') is not null then
+    delete from public.sponsor_project_proposals
+    where club_id = any (club_ids)
+       or btrim(regexp_replace(
+            regexp_replace(lower(coalesce(club_name, '')), '[^a-z0-9]+', ' ', 'g'),
+            '\m(fc|football club)\M', ' ', 'g'
+          )) = needle;
+  end if;
+
+  if to_regclass('public.sponsor_match_offers') is not null then
+    delete from public.sponsor_match_offers
+    where club_id = any (club_ids)
+       or btrim(regexp_replace(
+            regexp_replace(lower(coalesce(club_name, '')), '[^a-z0-9]+', ' ', 'g'),
+            '\m(fc|football club)\M', ' ', 'g'
+          )) = needle;
+  end if;
+
   if to_regclass('public.sponsorship_campaigns') is not null then
     select coalesce(array_agg(id), '{}')
       into sponsorship_ids
