@@ -474,6 +474,26 @@ assert(
   "Generic catalog projects are not treated as form uploads"
 );
 
+const clubDashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
+assert(
+  !clubDashboard.includes("From the Sponsorship Manager"),
+  "Club dashboard no longer shows From the Sponsorship Manager"
+);
+assert(
+  !clubDashboard.includes("Sponsorship Funded Projects"),
+  "Club dashboard no longer shows the Sponsorship Funded Projects block"
+);
+assert(
+  !clubDashboard.includes("Sponsorship Selected Projects"),
+  "Club dashboard no longer shows the Sponsorship Selected Projects block"
+);
+assert(
+  clubDashboard.includes("Signed copy of the sponsorship") &&
+    clubDashboard.includes("Voted-For Projects") &&
+    clubDashboard.includes("Funded Projects"),
+  "Club dashboard keeps signed copy, voted-for, and Goal-funded projects"
+);
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);

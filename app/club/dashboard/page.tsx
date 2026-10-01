@@ -10,18 +10,14 @@ import {
   fileRecordDownloadName,
   postMatchDayProjectsToFans,
   readStoredMatchDay,
-  saveMatchDaySelection,
   matchDayWindowCopy,
   type ClubAccount,
   type ClubFileRecord,
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import {
-  listClubSponsorProposals,
   listClubSignedSponsorships,
-  markSponsorProposalPosted,
   type SignedSponsorship,
-  type SponsorProjectProposal,
 } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
@@ -52,8 +48,6 @@ import {
   lookbackSponsorForRecord,
   signedCopyDownloadName,
   signedCopyPayload,
-  sponsorshipFundedProposals,
-  sponsorshipSelectedProposals,
 } from "@/app/lib/sponsor-dashboard";
 import {
   loadClubSponsorRoster,
@@ -109,7 +103,6 @@ export default function ClubDashboardPage() {
   const [matchDate, setMatchDate] = useState("2026-10-10");
   const [folder, setFolder] = useState<MatchDayFolder | null>(null);
   const [folderNotice, setFolderNotice] = useState<string | null>(null);
-  const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
   const [clearing, setClearing] = useState(false);
@@ -156,9 +149,6 @@ export default function ClubDashboardPage() {
       setGbpPerGoal(stored?.gbpPerGoal && stored.gbpPerGoal > 0 ? stored.gbpPerGoal : null);
       setMaxAmount(stored?.maxAmount && stored.maxAmount > 0 ? stored.maxAmount : null);
       setGbpPerVote(stored?.gbpPerVote ?? null);
-      setProposals(
-        await listClubSponsorProposals(session.club.id, session.club.name)
-      );
       setSignedCopies(
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
@@ -197,14 +187,6 @@ export default function ClubDashboardPage() {
       ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
       : [];
   const clubRow = cilt.find((row) => row.isClub);
-  const selectedProposals = useMemo(
-    () => sponsorshipSelectedProposals(proposals),
-    [proposals]
-  );
-  const fundedProposals = useMemo(
-    () => sponsorshipFundedProposals(proposals),
-    [proposals]
-  );
   const orderedSelected = useMemo(() => {
     const featured = selected.find(isFeaturedClimateProject);
     if (!featured) return selected;
@@ -360,44 +342,6 @@ export default function ClubDashboardPage() {
         err instanceof Error
           ? err.message
           : "Could not submit the Match-Day folder."
-      );
-    } finally {
-      setPosting(false);
-    }
-  }
-
-  async function pushSponsorProposal(proposal: SponsorProjectProposal) {
-    if (!club) return;
-    setPosting(true);
-    setPostError(null);
-    try {
-      const featuredId = selected.find(isFeaturedClimateProject)?.id;
-      const partnerIds = proposal.projectIds.filter((id) => id !== featuredId);
-      await saveMatchDaySelection({
-        clubId: club.id,
-        clubName: club.name,
-        country: club.country,
-        projectIds: partnerIds,
-        minAmount: minAmount ?? DEFAULT_MINIMUM_SPONSORSHIP,
-        gbpPerGoal: gbpPerGoal ?? undefined,
-        maxAmount: maxAmount ?? undefined,
-        gbpPerVote: gbpPerVote ?? undefined,
-      });
-      const posted = await postMatchDayProjectsToFans({
-        clubId: club.id,
-        clubName: club.name,
-        country: club.country,
-      });
-      const board = await loadClubProjectBoard(club.id, club.name);
-      setSelected(board.selected);
-      setPostedAt(posted.postedAt ?? new Date().toISOString());
-      await markSponsorProposalPosted(proposal.id);
-      setProposals(await listClubSponsorProposals(club.id, club.name));
-    } catch (err) {
-      setPostError(
-        err instanceof Error
-          ? err.message
-          : "Could not push the sponsor's Climate Projects to your fans."
       );
     } finally {
       setPosting(false);
@@ -639,62 +583,6 @@ export default function ClubDashboardPage() {
           notice={folderNotice}
         />
 
-        <section id="sponsorship-selected" className="mt-12 rounded-3xl border border-blue-500/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
-            From the Sponsorship Manager
-          </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Sponsorship Selected Projects
-          </h2>
-          <p className="mt-2 max-w-3xl text-slate-300">
-            When a Sponsorship Manager chooses 5 Climate Projects and sends
-            them with the blue button, those projects appear here — not the
-            five you selected yourself.
-          </p>
-          {selectedProposals.length === 0 ? (
-            <p className="mt-6 text-slate-500">
-              No Sponsorship Manager has sent a list yet. Their 5 Climate
-              Projects will show here as soon as they click Send these 5
-              Climate Projects to the Sustainability Director.
-            </p>
-          ) : (
-            <div className="mt-8 space-y-8">
-              {selectedProposals.map((proposal) => (
-                <div
-                  key={proposal.id}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-                    <div>
-                      <p className="text-sm font-semibold text-amber-300">
-                        Chosen by {proposal.sponsorName}
-                      </p>
-                      <p className="text-sm text-slate-400">
-                        {new Date(proposal.createdAt).toLocaleString("en-GB")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={posting}
-                      onClick={() => void pushSponsorProposal(proposal)}
-                      className="rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500 disabled:opacity-70"
-                    >
-                      Post these to fans
-                    </button>
-                  </div>
-                  <ProjectGrid
-                    projects={proposalAsProjects(proposal)}
-                    empty="This list has no Climate Projects."
-                    badge="Sponsor selected"
-                    clubName={club.name}
-                    clubCountry={club.country}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
         <section className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
             Sponsorship record
@@ -765,48 +653,6 @@ export default function ClubDashboardPage() {
                       <li key={project.id}>• {project.name}</li>
                     ))}
                   </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-12 rounded-3xl border border-emerald-500/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
-            From the Sponsorship Manager
-          </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Sponsorship Funded Projects
-          </h2>
-          <p className="mt-2 max-w-3xl text-slate-300">
-            After you post a Sponsorship Manager&apos;s 5 Climate Projects to
-            fans, that list is kept here as the funded sponsorship campaign.
-          </p>
-          {fundedProposals.length === 0 ? (
-            <p className="mt-6 text-slate-500">
-              No sponsor-chosen list has been posted to fans yet. Post a
-              Sponsorship Selected list and it moves here.
-            </p>
-          ) : (
-            <div className="mt-8 space-y-8">
-              {fundedProposals.map((proposal) => (
-                <div
-                  key={proposal.id}
-                  className="rounded-2xl border border-emerald-500/30 bg-slate-950 p-6"
-                >
-                  <p className="text-sm font-semibold text-amber-300">
-                    Funded by {proposal.sponsorName}
-                  </p>
-                  <p className="text-sm text-slate-400">
-                    Posted {new Date(proposal.createdAt).toLocaleString("en-GB")}
-                  </p>
-                  <ProjectGrid
-                    projects={proposalAsProjects(proposal)}
-                    empty="This funded list has no Climate Projects."
-                    funded
-                    clubName={club.name}
-                    clubCountry={club.country}
-                  />
                 </div>
               ))}
             </div>
@@ -999,23 +845,6 @@ export default function ClubDashboardPage() {
       </div>
     </main>
   );
-}
-
-function proposalAsProjects(
-  proposal: SponsorProjectProposal
-): ClimateProject[] {
-  return proposal.projects.map((project) => ({
-    id: project.id,
-    name: project.name,
-    description: project.description,
-    category: project.category,
-    country: project.country,
-    estimated_co2: project.estimated_co2,
-    funding_goal: project.funding_goal ?? null,
-    image_url: null,
-    status: project.status ?? null,
-    location: project.location ?? null,
-  }));
 }
 
 function ProjectGrid({
