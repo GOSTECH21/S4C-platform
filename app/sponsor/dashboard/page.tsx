@@ -272,6 +272,86 @@ export default function SponsorDashboardPage() {
         </div>
       )}
 
+      <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+          Match Day lock-in
+        </p>
+        <h2 className="mt-2 text-3xl font-black">
+          Select the club whose Goals you will sponsor
+        </h2>
+        <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
+        <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
+          <p className="text-sm uppercase tracking-[0.2em] text-green-300">
+            {lockClub ? "Locked in" : "Choose a club"}
+          </p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="block text-sm text-slate-400">
+              Club
+              <select
+                value={lockClub}
+                onChange={(event) =>
+                  applyMatchDayLock(event.target.value, lockLabel)
+                }
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+              >
+                <option value="">Select a club</option>
+                {(
+                  Array.from(
+                    new Set([...(network?.clubNames ?? []), lockClub].filter(Boolean))
+                  ) as string[]
+                ).map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  )
+                )}
+              </select>
+            </label>
+            <label className="block text-sm text-slate-400">
+              Match
+              <select
+                value={lockLabel}
+                onChange={(event) =>
+                  applyMatchDayLock(lockClub, event.target.value)
+                }
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+              >
+                {MATCH_DAY_LOCK_LABELS.map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {lockClub ? (
+            <>
+              <p className="mt-4 text-2xl font-black">
+                {lockClub} · {lockLabel}
+              </p>
+              <p className="mt-2 text-sm text-slate-400">
+                Posted Climate Projects from other clubs will not appear on this
+                dashboard until you change this lock.
+              </p>
+            </>
+          ) : (
+            <p className="mt-4 text-sm text-slate-400">
+              Unlock cleared the club from this box. Pick a club on the left and
+              the Match Day on the right — or tap a club in your Goal
+              Sponsorship Network.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={unlockMatchDay}
+            disabled={!lockClub}
+            className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm disabled:opacity-40"
+          >
+            Unlock
+          </button>
+        </div>
+      </section>
+
       <Link
         href={SPONSOR_WALLET_PATH}
         className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
@@ -382,86 +462,6 @@ export default function SponsorDashboardPage() {
           </div>
         </section>
       )}
-
-      <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-          Match Day lock-in
-        </p>
-        <h2 className="mt-2 text-3xl font-black">
-          Select the club whose Goals you will sponsor
-        </h2>
-        <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
-        <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
-          <p className="text-sm uppercase tracking-[0.2em] text-green-300">
-            {lockClub ? "Locked in" : "Choose a club"}
-          </p>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="block text-sm text-slate-400">
-              Club
-              <select
-                value={lockClub}
-                onChange={(event) =>
-                  applyMatchDayLock(event.target.value, lockLabel)
-                }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-              >
-                <option value="">Select a club</option>
-                {(
-                  Array.from(
-                    new Set([...(network?.clubNames ?? []), lockClub].filter(Boolean))
-                  ) as string[]
-                ).map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
-            <label className="block text-sm text-slate-400">
-              Match
-              <select
-                value={lockLabel}
-                onChange={(event) =>
-                  applyMatchDayLock(lockClub, event.target.value)
-                }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-              >
-                {MATCH_DAY_LOCK_LABELS.map((label) => (
-                  <option key={label} value={label}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {lockClub ? (
-            <>
-              <p className="mt-4 text-2xl font-black">
-                {lockClub} · {lockLabel}
-              </p>
-              <p className="mt-2 text-sm text-slate-400">
-                Posted Climate Projects from other clubs will not appear on this
-                dashboard until you change this lock.
-              </p>
-            </>
-          ) : (
-            <p className="mt-4 text-sm text-slate-400">
-              Unlock cleared the club from this box. Pick a club on the left and
-              the Match Day on the right — or tap a club in your Goal
-              Sponsorship Network.
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={unlockMatchDay}
-            disabled={!lockClub}
-            className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm disabled:opacity-40"
-          >
-            Unlock
-          </button>
-        </div>
-      </section>
 
       <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
         <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>

@@ -413,6 +413,11 @@ assert(
   "The S4P Sponsorship Dashboard is reserved for Lead Climate Sponsors"
 );
 assert(
+  sponsorDashboardPage.indexOf("Select the club whose Goals you will sponsor") <
+    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
+  "Match Day lock-in sits above the Climate Sponsorship Wallet"
+);
+assert(
   sponsorDashboardPage.includes(
     "Receive the club's 5 chosen Climate Projects"
   ) ||
