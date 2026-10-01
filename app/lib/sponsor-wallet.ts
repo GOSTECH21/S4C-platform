@@ -80,24 +80,68 @@ export function localWalletTopUp(sponsorshipGbp: number): {
   };
 }
 
-export function leadSponsorshipFromGoalsGbp(wallet: Pick<
-  ClimateWallet,
-  "gbpPerGoal" | "goalsScored"
->): number {
-  return roundGbp(
-    Math.max(0, Number(wallet.gbpPerGoal) || 0) *
-      Math.max(0, Math.round(Number(wallet.goalsScored) || 0))
-  );
+/** Match goals never reach this; leftover Maximum amounts were stored here. */
+export const UNREALISTIC_GOALS_SCORED = 30;
+
+export function liveGoalsScored(wallet: Pick<ClimateWallet, "goalsScored">): number {
+  return Math.max(0, Math.round(Number(wallet.goalsScored) || 0));
 }
 
-export function leadSpendableGbp(wallet: Pick<
+export function leadSponsorshipFromGoalsGbp(wallet: Pick<
   ClimateWallet,
-  "commitmentFeeGbp" | "gbpPerGoal" | "goalsScored"
+  "gbpPerGoal" | "goalsScored" | "maximumSponsorshipGbp"
+>): number {
+  const product = roundGbp(
+    Math.max(0, Number(wallet.gbpPerGoal) || 0) * liveGoalsScored(wallet)
+  );
+  const maximum = roundGbp(
+    Math.max(0, Number(wallet.maximumSponsorshipGbp) || 0)
+  );
+  if (maximum > 0) return roundGbp(Math.min(product, maximum));
+  return product;
+}
+
+export function leadCarbonWalletGbp(wallet: Pick<
+  ClimateWallet,
+  "commitmentFeeGbp" | "gbpPerGoal" | "goalsScored" | "maximumSponsorshipGbp"
 >): number {
   return roundGbp(
     Math.max(0, Number(wallet.commitmentFeeGbp) || 0) +
       leadSponsorshipFromGoalsGbp(wallet)
   );
+}
+
+export function leadSpendableGbp(wallet: Pick<
+  ClimateWallet,
+  "commitmentFeeGbp" | "gbpPerGoal" | "goalsScored" | "maximumSponsorshipGbp"
+>): number {
+  return leadCarbonWalletGbp(wallet);
+}
+
+export function formatLeadSponsorshipGbp(amount: number): string {
+  const value = roundGbp(amount);
+  if (value === 0) return "£0.0";
+  return formatWalletGbp(value);
+}
+
+export function normalizeClimateWallet(wallet: ClimateWallet): ClimateWallet {
+  let goalsScored = liveGoalsScored(wallet);
+  let maximumSponsorshipGbp = roundGbp(
+    Math.max(0, Number(wallet.maximumSponsorshipGbp) || 0)
+  );
+  if (
+    wallet.kind === "lead" &&
+    goalsScored > UNREALISTIC_GOALS_SCORED &&
+    maximumSponsorshipGbp === 0
+  ) {
+    maximumSponsorshipGbp = roundGbp(goalsScored);
+    goalsScored = 0;
+  }
+  return {
+    ...wallet,
+    goalsScored,
+    maximumSponsorshipGbp,
+  };
 }
 
 export function localSpendableGbp(
@@ -179,7 +223,7 @@ export function createLeadWallet({
   maximumSponsorshipGbp?: number;
   now?: Date | string;
 }): ClimateWallet {
-  return {
+  return normalizeClimateWallet({
     id: walletIdFor(clubName, brandName),
     clubName,
     brandName,
@@ -195,7 +239,7 @@ export function createLeadWallet({
     paidGbp: 0,
     allocatedGbp: 0,
     updatedAt: asIso(now),
-  };
+  });
 }
 
 export function applyLocalTopUp(
@@ -232,27 +276,28 @@ export function applyLeadCommitment(
     now?: Date | string;
   }
 ): ClimateWallet {
-  return {
-    ...wallet,
+  const current = normalizeClimateWallet(wallet);
+  return normalizeClimateWallet({
+    ...current,
     kind: "lead",
     commitmentFeeGbp:
       commitmentFeeGbp == null
-        ? wallet.commitmentFeeGbp
+        ? current.commitmentFeeGbp
         : roundGbp(Math.max(0, Number(commitmentFeeGbp) || 0)),
     gbpPerGoal:
       gbpPerGoal == null
-        ? wallet.gbpPerGoal
+        ? current.gbpPerGoal
         : roundGbp(Math.max(0, Number(gbpPerGoal) || 0)),
     goalsScored:
       goalsScored == null
-        ? wallet.goalsScored
+        ? current.goalsScored
         : Math.max(0, Math.round(Number(goalsScored) || 0)),
     maximumSponsorshipGbp:
       maximumSponsorshipGbp == null
-        ? roundGbp(Math.max(0, Number(wallet.maximumSponsorshipGbp) || 0))
+        ? current.maximumSponsorshipGbp
         : roundGbp(Math.max(0, Number(maximumSponsorshipGbp) || 0)),
     updatedAt: asIso(now),
-  };
+  });
 }
 
 export function parseProjectNumber(

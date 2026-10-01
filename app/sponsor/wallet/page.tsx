@@ -19,6 +19,7 @@ import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
 import { isLeadSponsorHome, sponsorHomePath } from "@/app/lib/sponsor-home";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { remainingGbp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
+import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 
 export default function SponsorWalletPage() {
   const router = useRouter();
@@ -61,6 +62,19 @@ export default function SponsorWalletPage() {
     }
     void load();
   }, [router]);
+
+  useEffect(() => {
+    if (!clubName || !brand) return;
+    function refreshWallet() {
+      setWallet(readClimateWallet(clubName, brand));
+    }
+    window.addEventListener(SPONSORED_GOAL_EVENT, refreshWallet);
+    window.addEventListener("storage", refreshWallet);
+    return () => {
+      window.removeEventListener(SPONSORED_GOAL_EVENT, refreshWallet);
+      window.removeEventListener("storage", refreshWallet);
+    };
+  }, [clubName, brand]);
 
   if (loading) {
     return <p className="text-slate-400">Loading Climate Sponsorship Wallet...</p>;

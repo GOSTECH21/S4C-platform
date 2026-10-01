@@ -8,6 +8,9 @@ import {
   LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
   leadSponsorshipFromGoalsGbp,
+  leadCarbonWalletGbp,
+  formatLeadSponsorshipGbp,
+  normalizeClimateWallet,
   localWalletTopUp,
   remainingGbp,
   walletVoteAmount,
@@ -91,6 +94,69 @@ assert(
 assert(
   leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 2 }) === 6000,
   "A second goal doubles Sponsorship/Goal-Scored"
+);
+assert(
+  formatLeadSponsorshipGbp(0) === "£0.0",
+  "Sponsorship/Goal-Scored reads £0.0 when Goals-Scored is 0"
+);
+assert(
+  leadCarbonWalletGbp(amex) === 3000,
+  "Amount in CARBON WALLET starts as the Commitment Fee"
+);
+assert(
+  leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 6000,
+  "Amount in CARBON WALLET is Commitment Fee plus Sponsorship/Goal-Scored"
+);
+
+const puma = createLeadWallet({
+  clubName: "Arsenal",
+  brandName: "Puma",
+  commitmentFeeGbp: 3000,
+  gbpPerGoal: 4000,
+  maximumSponsorshipGbp: 12000,
+});
+assert(
+  leadSponsorshipFromGoalsGbp(puma) === 0,
+  "Puma Sponsorship/Goal-Scored is £0 before a live goal"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 1 }) === 4000,
+  "One Arsenal goal copies the Sponsorship/Goal-Scored rate"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 2 }) === 8000,
+  "Two Arsenal goals multiply the rate by 2"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 3 }) === 12000,
+  "Three Arsenal goals reach the Maximum Sponsorship Amount"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 4 }) === 12000,
+  "Further goals stay at the Maximum Sponsorship Amount"
+);
+assert(
+  leadCarbonWalletGbp({ ...puma, goalsScored: 1 }) === 7000,
+  "CARBON WALLET is £3,000 + £4,000 after one goal"
+);
+
+const leftoverMax = normalizeClimateWallet({
+  ...createLeadWallet({
+    clubName: "Arsenal",
+    brandName: "Puma",
+    commitmentFeeGbp: 3000,
+    gbpPerGoal: 4000,
+  }),
+  goalsScored: 12000,
+  maximumSponsorshipGbp: 0,
+});
+assert(
+  leftoverMax.goalsScored === 0 && leftoverMax.maximumSponsorshipGbp === 12000,
+  "A leftover 12000 goal count is restored as Maximum Sponsorship Amount"
+);
+assert(
+  leadSponsorshipFromGoalsGbp(leftoverMax) === 0,
+  "After restoring Maximum Sponsorship Amount, Sponsorship/Goal-Scored is £0.0"
 );
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
@@ -307,8 +373,21 @@ assert(
   "Lead wallet shows a Goals-Scored block"
 );
 assert(
-  walletForm.includes("leadSponsorshipFromGoalsGbp"),
-  "Sponsorship/Goal-Scored is rate times goals scored"
+  walletForm.includes("Amount in CARBON WALLET"),
+  "Lead wallet shows Amount in CARBON WALLET"
+);
+assert(
+  walletForm.includes("formatLeadSponsorshipGbp"),
+  "Sponsorship/Goal-Scored reads £0.0 before a live goal"
+);
+assert(
+  walletForm.includes("readOnly") &&
+    walletForm.includes("Stays at 0 until a live broadcast goal is received."),
+  "Goals-Scored is not typed in; it waits for a live goal"
+);
+assert(
+  walletPage.includes("SPONSORED_GOAL_EVENT"),
+  "The wallet refreshes when a live sponsored goal is posted"
 );
 assert(
   walletForm.includes("maximumSponsorshipGbp"),

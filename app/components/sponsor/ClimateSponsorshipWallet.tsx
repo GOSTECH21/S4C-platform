@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   DEFAULT_WALLET_VOTE_GBP,
+  formatLeadSponsorshipGbp,
   formatWalletGbp,
+  leadCarbonWalletGbp,
   leadSponsorshipFromGoalsGbp,
+  liveGoalsScored,
   localWalletTopUp,
   remainingGbp,
   type ClimateWallet,
@@ -40,6 +43,7 @@ export function ClimateSponsorshipWallet({
   const [gbpPerGoal, setGbpPerGoal] = useState("3000");
   const [maximumSponsorship, setMaximumSponsorship] = useState("0");
   const preview = localWalletTopUp(Number(sponsorship) || 0);
+  const liveGoals = wallet ? liveGoalsScored(wallet) : 0;
 
   useEffect(() => {
     if (!wallet || kind !== "lead") return;
@@ -61,22 +65,23 @@ export function ClimateSponsorshipWallet({
       </p>
 
       {wallet && kind === "lead" ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <WalletStat
             label="Commitment Fee"
             value={formatWalletGbp(wallet.commitmentFeeGbp)}
           />
           <WalletStat
             label="Sponsorship/Goal-Scored"
-            value={formatWalletGbp(leadSponsorshipFromGoalsGbp(wallet))}
+            value={formatLeadSponsorshipGbp(leadSponsorshipFromGoalsGbp(wallet))}
           />
-          <WalletStat
-            label="Goals-Scored"
-            value={String(Math.max(0, Math.round(Number(wallet.goalsScored) || 0)))}
-          />
+          <WalletStat label="Goals-Scored" value={String(liveGoals)} />
           <WalletStat
             label="Maximum Sponsorship Amount"
             value={formatWalletGbp(wallet.maximumSponsorshipGbp ?? 0)}
+          />
+          <WalletStat
+            label="Amount in CARBON WALLET"
+            value={formatWalletGbp(leadCarbonWalletGbp(wallet))}
           />
         </div>
       ) : null}
@@ -132,7 +137,7 @@ export function ClimateSponsorshipWallet({
         </form>
       ) : (
         <form
-          className="mt-8 grid gap-4 md:grid-cols-3"
+          className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
           onSubmit={(event) => {
             event.preventDefault();
             onLeadDeposit({
@@ -154,7 +159,7 @@ export function ClimateSponsorshipWallet({
             />
           </label>
           <label className="block text-sm text-slate-400">
-            Goals-scored Sponsorship Cash
+            Sponsorship/Goal-Scored
             <input
               type="number"
               min={0}
@@ -163,6 +168,21 @@ export function ClimateSponsorshipWallet({
               onChange={(event) => setGbpPerGoal(event.target.value)}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             />
+          </label>
+          <label className="block text-sm text-slate-400">
+            Goals-Scored
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={liveGoals}
+              readOnly
+              aria-readonly="true"
+              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white opacity-90"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              Stays at 0 until a live broadcast goal is received.
+            </span>
           </label>
           <label className="block text-sm text-slate-400">
             Maximum Sponsorship Amount
@@ -178,7 +198,7 @@ export function ClimateSponsorshipWallet({
           <button
             type="submit"
             disabled={busy}
-            className="md:col-span-3 rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
+            className="xl:col-span-4 md:col-span-2 rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
           >
             {busy ? "Saving..." : "Deposit into Climate Sponsorship Wallet"}
           </button>

@@ -1,6 +1,7 @@
 import { seasonNamesMatch } from "./current-season";
 import {
   applyLeadCommitment,
+  normalizeClimateWallet,
   remainingGbp,
   type ClimateWallet,
 } from "./sponsor-wallet";
@@ -43,8 +44,9 @@ export function clubNamesMatchForGoal(clubName: string, otherName: string) {
 
 export function creditLeadWalletForGoal(wallet: ClimateWallet): ClimateWallet {
   if (wallet.kind !== "lead") return wallet;
-  return applyLeadCommitment(wallet, {
-    goalsScored: Math.max(0, Math.round(Number(wallet.goalsScored) || 0)) + 1,
+  const current = normalizeClimateWallet(wallet);
+  return applyLeadCommitment(current, {
+    goalsScored: current.goalsScored + 1,
   });
 }
 
