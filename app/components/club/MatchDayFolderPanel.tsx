@@ -5,6 +5,8 @@ import {
   uniqueSponsorRows,
   type MatchDayFolder,
 } from "@/app/lib/match-day-folder";
+import { MATCH_DAY_PROJECT_COUNT } from "@/app/lib/partner-projects";
+import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export function MatchDayFolderPanel({
   clubName,
