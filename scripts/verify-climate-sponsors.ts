@@ -304,8 +304,10 @@ assert(
   "Posted portfolio remains five climate projects"
 );
 assert(
-  lockCopy().includes("72 hours"),
-  "Sponsorship Managers are told to lock a club 72 hours before kick-off"
+  lockCopy().includes("72 hours") &&
+    lockCopy().includes("choose a Club you wish to sponsor") &&
+    lockCopy().includes("available for sign-off"),
+  "Sponsorship Managers are told to lock a club 72 hours before kick-off for Goal-Sponsorship"
 );
 assert(
   /import\s*\{\s*offersForLockedSponsor\s*\}/.test(

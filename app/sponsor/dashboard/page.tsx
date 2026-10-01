@@ -50,7 +50,6 @@ import {
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { isLeadSponsorHome } from "@/app/lib/sponsor-home";
-import { LEAD_CLIMATE_SPONSOR_LABEL } from "@/app/lib/dual-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -251,12 +250,6 @@ export default function SponsorDashboardPage() {
           <h1 className="mt-3 text-4xl font-black tracking-tight">
             S4P SPONSORSHIP DASHBOARD
           </h1>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            {LEAD_CLIMATE_SPONSOR_LABEL} only. Receive the club&apos;s 5 Climate
-            Projects, sign them off, and keep the settled sponsorships in your
-            folder. Top up your Climate Sponsorship Wallet so fans can take cash
-            from it and put that cash into a numbered Climate Project.
-          </p>
         </div>
         <button
           onClick={() => void logout()}
@@ -466,11 +459,8 @@ export default function SponsorDashboardPage() {
       <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
         <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>
         <p className="mt-2 text-slate-400">
-          Clubs you chose at registration plus any you accepted from a
-          Sustainability Director. Add more at any time. Tap a club already in
-          your network to put it in the lock box above — that replaces the
-          previous club. Choose the Match (Premier League, Champions League,
-          FA Cup) on the right of that box.
+          Choose the Club. Future Matches to be played in Competitions (League,
+          Cups and Europe) will be visible. Choose the Match
         </p>
         <div className="mt-6">
           <ClubNetworkPicker

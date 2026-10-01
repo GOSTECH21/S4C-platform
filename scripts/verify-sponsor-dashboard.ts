@@ -22,6 +22,7 @@ import {
 import { sponsorOfferSignOffPath } from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
+import { lockCopy } from "../app/lib/climate-sponsors";
 import { SPONSOR_DASHBOARD_PATH } from "../app/lib/routes";
 import { readFileSync } from "fs";
 
@@ -408,9 +409,26 @@ assert(
   "The S4P Sponsorship Dashboard no longer shows the Local Business Climate Sponsor block"
 );
 assert(
-  sponsorDashboardPage.includes("LEAD_CLIMATE_SPONSOR_LABEL") &&
-    sponsorDashboardPage.includes("{LEAD_CLIMATE_SPONSOR_LABEL} only."),
-  "The S4P Sponsorship Dashboard is reserved for Lead Climate Sponsors"
+  !sponsorDashboardPage.includes("{LEAD_CLIMATE_SPONSOR_LABEL} only.") &&
+    !sponsorDashboardPage.includes(
+      "Top up your Climate Sponsorship Wallet so fans can take cash"
+    ),
+  "The S4P Sponsorship Dashboard heading no longer explains Lead-only wallet copy"
+);
+assert(
+  sponsorDashboardPage.includes(
+    "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
+  ) ||
+    lockCopy().includes(
+      "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
+    ),
+  "Match Day lock-in tells sponsors to lock a club for Goal-Sponsorship"
+);
+assert(
+  sponsorDashboardPage.includes(
+    "Choose the Club. Future Matches to be played in Competitions"
+  ),
+  "Goal Sponsorship Network tells sponsors to choose the Club and the Match"
 );
 assert(
   sponsorDashboardPage.indexOf("Select the club whose Goals you will sponsor") <
