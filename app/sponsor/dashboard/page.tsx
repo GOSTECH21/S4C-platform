@@ -28,6 +28,8 @@ import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   MATCH_DAY_LOCK_LABELS,
   lockCopy,
+  leagueFromMatchLabel,
+  clubNetworkLeagueId,
   unlockedMatchDay,
   type GoalSponsorshipNetwork,
   type MatchDayClubLock,
@@ -215,6 +217,19 @@ export default function SponsorDashboardPage() {
     applyMatchDayLock(cleared.clubName, cleared.matchLabel);
   }
 
+  function scrollToClubTable() {
+    const league = leagueFromMatchLabel(lockLabel);
+    const targetId = league
+      ? clubNetworkLeagueId(league)
+      : "goal-sponsorship-network";
+    window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
   if (loading) {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
   }
@@ -282,10 +297,16 @@ export default function SponsorDashboardPage() {
               Club
               <select
                 value={lockClub}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  scrollToClubTable();
+                }}
+                onFocus={scrollToClubTable}
                 onChange={(event) =>
                   applyMatchDayLock(event.target.value, lockLabel)
                 }
                 className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+                aria-label="Select a club, then choose from the teams table"
               >
                 <option value="">Select a club</option>
                 {(
@@ -456,7 +477,10 @@ export default function SponsorDashboardPage() {
         </section>
       )}
 
-      <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+      <section
+        id="goal-sponsorship-network"
+        className="scroll-mt-6 rounded-3xl border border-slate-700 bg-slate-900 p-8"
+      >
         <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>
         <p className="mt-2 text-slate-400">
           Choose the Club. Future Matches to be played in Competitions (League,
@@ -466,6 +490,7 @@ export default function SponsorDashboardPage() {
           <ClubNetworkPicker
             selected={networkClubs}
             matchDayClub={lockClub}
+            highlightLeague={leagueFromMatchLabel(lockLabel)}
             onChooseMatchDayClub={(club) => applyMatchDayLock(club, lockLabel)}
             onChange={(clubs) => {
               setNetworkClubs(clubs);
@@ -475,7 +500,6 @@ export default function SponsorDashboardPage() {
               });
               setNetwork(next);
             }}
-            compact
           />
         </div>
       </section>

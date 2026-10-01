@@ -22,6 +22,18 @@ export const MATCH_DAY_LOCK_LABELS = [
   "Other Match Day",
 ];
 
+export function leagueFromMatchLabel(matchLabel: string): string | null {
+  const name = String(matchLabel ?? "")
+    .replace(/\s+Match$/i, "")
+    .trim();
+  return name && CURRENT_SEASON_LEAGUES[name] ? name : null;
+}
+
+export function clubNetworkLeagueId(league: string): string {
+  const key = brandKey(league).replace(/\s+/g, "-");
+  return key ? `club-network-${key}` : "goal-sponsorship-network";
+}
+
 export type ClubClimateSponsor = {
   id: string;
   brandName: string;

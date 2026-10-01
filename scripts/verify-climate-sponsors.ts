@@ -9,6 +9,8 @@ import {
   brandsMatch,
   emptySponsor,
   lockCopy,
+  leagueFromMatchLabel,
+  clubNetworkLeagueId,
   networkHasClub,
   offersForLockedSponsor,
   rankSponsorsBySpend,
@@ -308,6 +310,15 @@ assert(
     lockCopy().includes("choose a Club you wish to sponsor") &&
     lockCopy().includes("available for sign-off"),
   "Sponsorship Managers are told to lock a club 72 hours before kick-off for Goal-Sponsorship"
+);
+assert(
+  leagueFromMatchLabel("Premier League Match") === "Premier League" &&
+    clubNetworkLeagueId("Premier League") === "club-network-premier-league",
+  "Premier League Match lock-in points at the Premier League teams table"
+);
+assert(
+  leagueFromMatchLabel("Champions League Match") == null,
+  "Cup competitions without a league table still fall back to the network block"
 );
 assert(
   /import\s*\{\s*offersForLockedSponsor\s*\}/.test(

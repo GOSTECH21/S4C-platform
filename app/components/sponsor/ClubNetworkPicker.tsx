@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
+import { clubNetworkLeagueId } from "@/app/lib/climate-sponsors";
 
 export function ClubNetworkPicker({
   selected,
@@ -10,6 +11,7 @@ export function ClubNetworkPicker({
   single = false,
   matchDayClub,
   onChooseMatchDayClub,
+  highlightLeague = null,
 }: {
   selected: string[];
   onChange: (clubs: string[]) => void;
@@ -17,6 +19,7 @@ export function ClubNetworkPicker({
   single?: boolean;
   matchDayClub?: string;
   onChooseMatchDayClub?: (club: string) => void;
+  highlightLeague?: string | null;
 }) {
   const [query, setQuery] = useState("");
   const selectedSet = new Set(selected.map((name) => name.toLowerCase()));
@@ -64,8 +67,14 @@ export function ClubNetworkPicker({
         {groups.map((group) => (
           <details
             key={group.league}
-            open={Boolean(query) || group.league === "Premier League" || group.league === "Scottish Premiership"}
-            className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+            id={clubNetworkLeagueId(group.league)}
+            open={
+              Boolean(query) ||
+              group.league === highlightLeague ||
+              group.league === "Premier League" ||
+              group.league === "Scottish Premiership"
+            }
+            className="scroll-mt-6 rounded-xl border border-slate-800 bg-slate-950 p-4"
           >
             <summary className="cursor-pointer font-semibold">
               {group.league}

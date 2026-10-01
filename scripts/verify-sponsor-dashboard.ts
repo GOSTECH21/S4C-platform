@@ -436,6 +436,12 @@ assert(
   "Match Day lock-in sits above the Climate Sponsorship Wallet"
 );
 assert(
+  sponsorDashboardPage.includes("scrollToClubTable") &&
+    sponsorDashboardPage.includes("onMouseDown") &&
+    sponsorDashboardPage.includes("goal-sponsorship-network"),
+  "Clicking Select a club scrolls to the Goal Sponsorship Network teams table"
+);
+assert(
   sponsorDashboardPage.includes(
     "Receive the club's 5 chosen Climate Projects"
   ) ||
