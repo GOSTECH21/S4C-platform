@@ -33,6 +33,7 @@ import {
   visibleMatchDayFolderForClub,
 } from "@/app/services/match-day-folder.service";
 import {
+  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
   type NumberedClimateProject,
@@ -40,6 +41,8 @@ import {
 import { captureClimateInviteFromSearch, fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
+import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -95,6 +98,15 @@ export default function MyS4PDashboardPage() {
     load();
   }, []);
 
+  const clubNames = useMemo(
+    () => [
+      ...teams.map((team) => team.displayName),
+      ...teams.map((team) => team.name),
+      ...campaigns.map((campaign) => campaign.clubName),
+    ].filter(Boolean),
+    [teams, campaigns]
+  );
+
   if (loading) {
     return (
       <main className="px-8 pb-16 text-white">
@@ -127,7 +139,9 @@ export default function MyS4PDashboardPage() {
   if (campaigns.length === 0) {
     return (
       <main className="px-8 pb-16 text-white">
-        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900 p-8">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <FanGoalAlertBanner clubNames={clubNames} />
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8">
           <h2 className="text-2xl font-bold">No posted climate projects right now</h2>
           <p className="mt-3 text-slate-300">
             You support{" "}
@@ -144,12 +158,16 @@ export default function MyS4PDashboardPage() {
             Update my teams
           </Link>
         </div>
+        </div>
       </main>
     );
   }
 
   return (
     <div className="space-y-16 pb-16">
+      <div className="mx-auto max-w-5xl px-8">
+        <FanGoalAlertBanner clubNames={clubNames} />
+      </div>
       {error && (
         <div className="mx-auto max-w-5xl px-8">
           <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
@@ -263,9 +281,11 @@ function CampaignPanel({
     }
     const timer = window.setInterval(refreshWallets, 5000);
     window.addEventListener("storage", refreshWallets);
+    window.addEventListener(SPONSORED_GOAL_EVENT, refreshWallets);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener("storage", refreshWallets);
+      window.removeEventListener(SPONSORED_GOAL_EVENT, refreshWallets);
     };
   }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
 
@@ -364,9 +384,7 @@ function CampaignPanel({
           gbpPerGoal: campaign.gbpPerGoal,
         })
       );
-      const votedNow = split
-        ? result.projects.map((project) => project.id)
-        : [result.project.id];
+      const votedNow = [result.project.id];
       try {
         await submitCampaignVotes(
           supporterId,
@@ -380,9 +398,7 @@ function CampaignPanel({
         // Wallet cash has already moved even if the campaign vote row cannot be stored.
       }
       setNotice(
-        split
-          ? `Vote shared ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet across all 5 Climate Projects. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-          : `Vote moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
+        `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
       );
     } catch (err) {
       console.error("Failed to submit vote:", describeDataError(err));
@@ -422,7 +438,7 @@ function CampaignPanel({
         <section className="mt-10">
           <h2 className="text-3xl font-black">Climate Projects List</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Use the bold project number in Checkbox 1 when you Vote.
+            Use the bold project number in the Checkbox, then press FUND-IT.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {voteable.map((project, index) => {

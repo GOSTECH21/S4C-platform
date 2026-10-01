@@ -291,7 +291,7 @@ export default function SponsorDashboardPage() {
         </h2>
         <p className="mt-3 max-w-3xl text-slate-300">
           {localRecord
-            ? "Pay a sponsorship amount plus 10% management fees into this wallet. Fans insert a project number next to it and press VOTE."
+            ? "Pay a sponsorship amount plus 10% management fees into this wallet. Fans insert a project number next to it and press FUND-IT."
             : "Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship Cash. Fans then take cash from this wallet and put it on a numbered Climate Project."}
         </p>
         <p className="mt-5 inline-flex rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950">

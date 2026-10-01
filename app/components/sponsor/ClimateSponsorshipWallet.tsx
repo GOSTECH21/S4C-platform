@@ -97,7 +97,7 @@ export function ClimateSponsorshipWallet({
           <p className="text-sm text-green-300">
             You pay {formatWalletGbp(preview.paidGbp)} ({formatWalletGbp(preview.sponsorshipGbp)}{" "}
             + 10% management fee). Fans then take {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}{" "}
-            per vote from the {formatWalletGbp(preview.sponsorshipGbp)} remaining.
+            per FUND-IT from the {formatWalletGbp(preview.sponsorshipGbp)} remaining.
           </p>
           <button
             type="submit"

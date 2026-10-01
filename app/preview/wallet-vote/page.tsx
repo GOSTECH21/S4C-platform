@@ -6,11 +6,11 @@ import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import {
-  allocateSplitWalletVote,
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
   DEFAULT_WALLET_VOTE_GBP,
+  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
   type ClimateWallet,
@@ -88,16 +88,14 @@ export default function WalletVotePreviewPage() {
     [wallets]
   );
 
-  function vote(brandName: string, projectNumber: string, split = false) {
+  function vote(brandName: string, projectNumber: string) {
     const wallet = wallets.find((row) => row.brandName === brandName);
     if (!wallet) return;
-    const result = split
-      ? allocateSplitWalletVote({ wallet, projects })
-      : allocateWalletVote({
-          wallet,
-          projects,
-          projectNumber: Number(projectNumber),
-        });
+    const result = allocateWalletVote({
+      wallet,
+      projects,
+      projectNumber: Number(projectNumber),
+    });
     if (!result.ok) {
       setError(result.error);
       setNotice(null);
@@ -109,9 +107,7 @@ export default function WalletVotePreviewPage() {
     );
     setProjects(result.projects);
     setNotice(
-      split
-        ? `${result.wallet.brandName}'s Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}; each project received ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.`
-        : `${result.wallet.brandName}'s Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}; Project ${result.project.number} has received ${formatWalletGbp(result.project.fundedGbp)}.`
+      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
     );
   }
 
@@ -126,8 +122,9 @@ export default function WalletVotePreviewPage() {
           <h1 className="mt-2 text-4xl font-black">Wallet vote · 10th October 2026</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Top Cellar pays £750 + 10% into the Climate Sponsorship Wallet.
-            Insert 2 next to that wallet and press VOTE: the wallet shows
-            £749.90 Remaining and Project 2 receives £0.10.
+            Insert 2 next to that wallet and press {FUND_IT_LABEL}: the wallet
+            shows {formatWalletGbp(750 - DEFAULT_WALLET_VOTE_GBP)} Remaining and
+            Project 2 receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
           </p>
         </div>
 
@@ -213,8 +210,8 @@ export default function WalletVotePreviewPage() {
                     remainingGbp: row.remainingGbp,
                   }))}
                 projectCount={projects.length}
-                onVote={({ brandName, projectNumber, split }) =>
-                  vote(brandName, projectNumber ?? "", split)
+                onVote={({ brandName, projectNumber }) =>
+                  vote(brandName, projectNumber ?? "")
                 }
               />
             </div>
