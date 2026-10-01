@@ -1,70 +1,75 @@
-import { leagueTable } from "../services/climate-impact-league.service";
+import Link from "next/link";
+import { SolutionPage } from "@/app/components/home/SolutionPage";
+import { climateImpactLeagueTable } from "@/app/lib/cilt";
+import { CLUB_REGISTER_PATH, CLIMATE_IMPACT_LEAGUE_PATH } from "@/app/lib/routes";
 
-export default function ClimateImpactLeaguePage() {
+const LEAGUES = ["Premier League", "Scottish Premiership", "La Liga"] as const;
+
+export default function ClimateImpactLeagueTablePage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white px-6 py-12">
-      <div className="mx-auto max-w-6xl">
-
-        <h1 className="text-5xl font-black text-green-400 text-center">
-          🏆 Climate Impact League
-        </h1>
-
-        <p className="mt-4 text-center text-slate-300">
-          Clubs competing to create the greatest climate impact through sport.
-        </p>
-
-        <div className="mt-10 space-y-6">
-          {leagueTable.map((club) => (
-            <div
-              key={club.rank}
-              className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
+    <SolutionPage
+      kicker="Solutions"
+      title="Climate Impact League Table"
+      intro="Clubs compete on climate impact as well as points. The table ranks every club in a league by tonnes of CO₂e linked to Climate Credits, fan votes and funded Climate Projects — including Global Schools Solar."
+      currentPath={CLIMATE_IMPACT_LEAGUE_PATH}
+    >
+      <div className="space-y-12">
+        {LEAGUES.map((league) => {
+          const rows = climateImpactLeagueTable(league, "");
+          return (
+            <section
+              key={league}
+              className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900"
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-3xl font-bold">
-                    #{club.rank} {club.club}
-                  </h2>
-
-                  <p className="mt-2 text-slate-300">
-                    Climate Credits: £{club.credits.toLocaleString()}
-                  </p>
-
-                  <p className="text-slate-300">
-                    Projects Funded: {club.projects}
-                  </p>
-
-                  <p className="text-slate-300">
-                    Global Schools Solar: {club.gss}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-green-400 text-4xl font-black">
-                    {club.impact}
-                  </p>
-
-                  <p className="text-slate-400">
-                    Impact Score
-                  </p>
-                </div>
+              <div className="border-b border-slate-800 px-8 py-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+                  Current season
+                </p>
+                <h2 className="mt-2 text-3xl font-black">{league}</h2>
               </div>
-
-              {club.club === "Hearts" && (
-                <div className="mt-6 rounded-xl bg-green-900/30 border border-green-600 p-4">
-                  <h3 className="text-green-400 font-bold">
-                    🌞 Global Schools Solar Pilot
-                  </h3>
-
-                  <p className="text-slate-300 mt-2">
-                    Tynecastle High School, Edinburgh
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="text-sm uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="px-8 py-4">Pos</th>
+                      <th className="px-4 py-4">Club</th>
+                      <th className="px-8 py-4 text-right">tCO₂e</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row) => (
+                      <tr key={row.club} className="border-t border-slate-800">
+                        <td className="px-8 py-3 font-bold text-green-400">
+                          {row.position}
+                        </td>
+                        <td className="px-4 py-3 font-semibold">{row.club}</td>
+                        <td className="px-8 py-3 text-right text-slate-300">
+                          {row.tonnes.toLocaleString("en-GB")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          );
+        })}
       </div>
-    </main>
+
+      <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
+        <h2 className="text-3xl font-black">Get your club on the table</h2>
+        <p className="mt-4 max-w-3xl text-lg text-slate-300">
+          Sustainability Directors post five Climate Projects each Match Day.
+          Fan votes and Climate Sponsor funding move the club up the Climate
+          Impact League Table.
+        </p>
+        <Link
+          href={CLUB_REGISTER_PATH}
+          className="mt-8 inline-flex rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950"
+        >
+          Register your club
+        </Link>
+      </div>
+    </SolutionPage>
   );
 }
