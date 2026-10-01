@@ -448,6 +448,11 @@ assert(
   "Selecting a club from the teams table scrolls back up to Match Day lock-in"
 );
 assert(
+  sponsorDashboardPage.includes("fixturesForClub") &&
+    sponsorDashboardPage.includes("Select the Match"),
+  "Lead Climate Sponsors select a named Match after choosing the club"
+);
+assert(
   sponsorDashboardPage.includes(
     "Receive the club's 5 chosen Climate Projects"
   ) ||

@@ -75,12 +75,174 @@ export type GoalSponsorshipNetwork = {
   leagues: string[];
 };
 
+export type ChosenMatch = {
+  clubName: string;
+  fixtureName: string;
+  competition?: string;
+  lockedAt: string;
+};
+
 export type MatchDayClubLock = {
   brandKey: string;
   clubName: string;
   matchLabel: string;
+  fixtureName?: string;
+  competition?: string;
+  matches?: ChosenMatch[];
   lockedAt: string;
 };
+
+export type LeadClubSponsorRow = {
+  brandKey: string;
+  brandName: string;
+  email: string | null;
+  matches: string[];
+  lockedAt: string | null;
+  inNetwork: boolean;
+  logoUrl?: string | null;
+};
+
+export function isNamedFixture(label: string | null | undefined): boolean {
+  return /\sv\s/i.test(String(label ?? "").trim());
+}
+
+export function displayLockFixture(lock: MatchDayClubLock): string {
+  if (lock.fixtureName?.trim()) return lock.fixtureName.trim();
+  if (isNamedFixture(lock.matchLabel)) return lock.matchLabel.trim();
+  return lock.matchLabel;
+}
+
+export function chosenMatchesForClub(
+  lock: MatchDayClubLock | null | undefined,
+  clubName: string
+): ChosenMatch[] {
+  if (!lock || !clubName.trim()) return [];
+  const rows = [...(lock.matches ?? [])];
+  const current = lock.fixtureName || lock.matchLabel;
+  if (current && clubsMatch(lock.clubName, clubName)) {
+    rows.push({
+      clubName: lock.clubName,
+      fixtureName: displayLockFixture(lock),
+      competition: lock.competition,
+      lockedAt: lock.lockedAt,
+    });
+  }
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    if (!clubsMatch(row.clubName, clubName)) return false;
+    const key = row.fixtureName.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export function appendChosenMatch(
+  existing: MatchDayClubLock | null,
+  next: MatchDayClubLock
+): MatchDayClubLock {
+  const fixtureName = displayLockFixture(next);
+  const row: ChosenMatch = {
+    clubName: next.clubName,
+    fixtureName,
+    competition: next.competition,
+    lockedAt: next.lockedAt,
+  };
+  const previous = existing?.matches ?? [];
+  const matches = [
+    ...previous.filter(
+      (item) =>
+        !(
+          clubsMatch(item.clubName, row.clubName) &&
+          item.fixtureName.trim().toLowerCase() ===
+            row.fixtureName.trim().toLowerCase()
+        )
+    ),
+    row,
+  ];
+  return { ...next, fixtureName, matches };
+}
+
+export function leadSponsorsForClubFromStores({
+  clubName,
+  networks,
+  locks,
+  excludeBrandKeys = [],
+}: {
+  clubName: string;
+  networks: GoalSponsorshipNetwork[];
+  locks: MatchDayClubLock[];
+  excludeBrandKeys?: string[];
+}): LeadClubSponsorRow[] {
+  if (!clubName.trim()) return [];
+  const excluded = new Set(
+    excludeBrandKeys.map((key) => brandKey(key)).filter(Boolean)
+  );
+  const byBrand = new Map<string, LeadClubSponsorRow>();
+
+  function upsert(row: {
+    brandName: string;
+    email?: string | null;
+    matches?: string[];
+    lockedAt?: string | null;
+    inNetwork?: boolean;
+  }) {
+    const key = brandKey(row.brandName);
+    if (!key || excluded.has(key)) return;
+    const current = byBrand.get(key);
+    const matches = [...(current?.matches ?? [])];
+    for (const name of row.matches ?? []) {
+      const trimmed = name.trim();
+      if (
+        trimmed &&
+        !matches.some((existing) => existing.toLowerCase() === trimmed.toLowerCase())
+      ) {
+        matches.push(trimmed);
+      }
+    }
+    byBrand.set(key, {
+      brandKey: key,
+      brandName: current?.brandName || row.brandName,
+      email: row.email ?? current?.email ?? null,
+      matches,
+      lockedAt: row.lockedAt || current?.lockedAt || null,
+      inNetwork: Boolean(row.inNetwork || current?.inNetwork),
+    });
+  }
+
+  for (const network of networks) {
+    if (!networkHasClub(network, clubName)) continue;
+    upsert({
+      brandName: network.brandName,
+      email: network.email,
+      inNetwork: true,
+    });
+  }
+
+  for (const lock of locks) {
+    const matches = chosenMatchesForClub(lock, clubName);
+    if (matches.length === 0 && !clubsMatch(lock.clubName, clubName)) continue;
+    const network = networks.find(
+      (row) =>
+        row.brandKey === lock.brandKey ||
+        brandsMatch(row.brandName, lock.brandKey)
+    );
+    upsert({
+      brandName: network?.brandName || lock.brandKey,
+      email: network?.email ?? null,
+      matches: matches.map((row) => row.fixtureName),
+      lockedAt: matches[matches.length - 1]?.lockedAt ?? lock.lockedAt,
+      inNetwork: Boolean(network && networkHasClub(network, clubName)),
+    });
+  }
+
+  return [...byBrand.values()].sort((left, right) => {
+    if (right.matches.length !== left.matches.length) {
+      return right.matches.length - left.matches.length;
+    }
+    return left.brandName.localeCompare(right.brandName);
+  });
+}
 
 export function brandKey(name: string): string {
   return normalizeClubName(name);

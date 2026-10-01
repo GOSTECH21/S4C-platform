@@ -2,10 +2,12 @@ import { supabase } from "../lib/supabase";
 import {
   addClubsToNetwork,
   acceptInviteIntoNetwork,
+  appendChosenMatch,
   brandKey,
   brandsMatch,
   emptySponsor,
   inviteMatchesSponsor,
+  leadSponsorsForClubFromStores,
   removeSponsor,
   selectedSponsors,
   toggleSelectedSponsor,
@@ -13,11 +15,13 @@ import {
   type ClubClimateSponsor,
   type ClubSponsorRoster,
   type GoalSponsorshipNetwork,
+  type LeadClubSponsorRow,
   type MatchDayClubLock,
   type NetworkInvite,
 } from "../lib/climate-sponsors";
 import { uniqueClubNames } from "../lib/s4p-admin";
 import { offerBelongsToClub } from "../lib/campaign-sponsor";
+import { allLocalSponsors } from "../lib/local-sponsor";
 
 const ROSTER_KEY = "s4p.club.climateSponsors";
 const NETWORK_KEY = "s4p.sponsor.goalNetwork";
@@ -152,6 +156,33 @@ export function rosterForClubName(clubName: string): ClubSponsorRoster | null {
   );
 }
 
+export function listGoalNetworks(): GoalSponsorshipNetwork[] {
+  if (typeof window === "undefined") return [];
+  return Object.values(readJson<NetworkStore>(NETWORK_KEY, {})).filter(
+    (row) => row && row.brandName
+  );
+}
+
+export function listMatchDayLocks(): MatchDayClubLock[] {
+  if (typeof window === "undefined") return [];
+  return Object.values(readJson<LockStore>(LOCK_KEY, {})).filter(
+    (row) => row && (row.brandKey || row.clubName)
+  );
+}
+
+export function leadClimateSponsorsForClub(clubName: string): LeadClubSponsorRow[] {
+  const excluded = allLocalSponsors().map((row) => row.brandName);
+  return leadSponsorsForClubFromStores({
+    clubName,
+    networks: listGoalNetworks(),
+    locks: listMatchDayLocks(),
+    excludeBrandKeys: excluded,
+  }).map((row) => ({
+    ...row,
+    logoUrl: loadBrandLogo(row.brandName),
+  }));
+}
+
 export function loadGoalNetwork(
   brandName: string,
   email?: string | null
@@ -274,18 +305,27 @@ export function lockMatchDayClub({
   brandName,
   clubName,
   matchLabel,
+  fixtureName,
+  competition,
 }: {
   brandName: string;
   clubName: string;
   matchLabel: string;
+  fixtureName?: string;
+  competition?: string;
 }): MatchDayClubLock {
-  const lock: MatchDayClubLock = {
+  const lockedAt = new Date().toISOString();
+  const next: MatchDayClubLock = {
     brandKey: brandKey(brandName),
     clubName,
     matchLabel,
-    lockedAt: new Date().toISOString(),
+    fixtureName,
+    competition: competition || matchLabel,
+    lockedAt,
   };
   const store = readJson<LockStore>(LOCK_KEY, {});
+  const existing = store[brandKey(brandName)] ?? null;
+  const lock = appendChosenMatch(existing, next);
   store[brandKey(brandName)] = lock;
   writeJson(LOCK_KEY, store);
   return lock;
@@ -300,7 +340,14 @@ export function clearMatchDayLock(brandName: string) {
       brandsMatch(key, brandName) ||
       brandsMatch(row.brandKey, brandName)
     ) {
-      delete store[key];
+      store[key] = {
+        ...row,
+        clubName: "",
+        matchLabel: row.competition || row.matchLabel,
+        fixtureName: undefined,
+        lockedAt: new Date().toISOString(),
+        matches: row.matches ?? [],
+      };
     }
   }
   writeJson(LOCK_KEY, store);

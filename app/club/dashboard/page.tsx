@@ -52,22 +52,26 @@ import {
   signedCopyPayload,
 } from "@/app/lib/sponsor-dashboard";
 import {
+  leadClimateSponsorsForClub,
   loadClubSponsorRoster,
   loadGoalNetwork,
   loadMatchDayLock,
-  setMatchDaySponsorTargets,
 } from "@/app/services/climate-sponsors.service";
 import {
   selectedBrandsReadyToReceive,
-  rankSponsorsBySpend,
   type ClubSponsorRoster,
+  type LeadClubSponsorRow,
 } from "@/app/lib/climate-sponsors";
 import { BrandMark } from "@/app/components/club/BrandMark";
+import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
+import {
+  submittedLocalSponsorsForClub,
+  type LocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
-  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
@@ -107,6 +111,8 @@ export default function ClubDashboardPage() {
   const [folderNotice, setFolderNotice] = useState<string | null>(null);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
+  const [leadSponsors, setLeadSponsors] = useState<LeadClubSponsorRow[]>([]);
+  const [localSponsors, setLocalSponsors] = useState<LocalSponsorRecord[]>([]);
   const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
@@ -155,6 +161,8 @@ export default function ClubDashboardPage() {
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
       setRoster(loadClubSponsorRoster(session.club.id, session.club.name));
+      setLeadSponsors(leadClimateSponsorsForClub(session.club.name));
+      setLocalSponsors(submittedLocalSponsorsForClub(session.club.name));
       const storedFolder = readMatchDayFolder(session.club.id);
       setFolder(storedFolder);
       if (storedFolder?.matchDate) setMatchDate(storedFolder.matchDate);
@@ -431,65 +439,11 @@ export default function ClubDashboardPage() {
           </div>
         </div>
 
-        <section id="our-climate-sponsors" className="mt-12 rounded-3xl border border-amber-400/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
-            Brands
-          </p>
-          <h2 className="mt-2 text-4xl font-black">Our Climate Sponsors</h2>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            Add decision-maker contacts, branding and climate-project spend.
-            Select who should receive this Match Day five. They only see it if
-            they chose {club.name} at registration or accepted your network
-            request, and have locked {club.name} for this Match Day.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push(CLUB_SPONSORS_PATH)}
-            className="mt-6 rounded-xl bg-amber-400 px-6 py-4 text-lg font-bold text-slate-950"
-          >
-            Our Climate Sponsors
-          </button>
-          {roster && roster.sponsors.length > 0 && (
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
-              {rankSponsorsBySpend(roster.sponsors).map((sponsor) => {
-                const on = roster.selectedIds.includes(sponsor.id);
-                const ready = readySponsorBrands.some((row) => row.id === sponsor.id);
-                return (
-                  <button
-                    key={sponsor.id}
-                    type="button"
-                    onClick={() =>
-                      setRoster(
-                        setMatchDaySponsorTargets(club.id, club.name, sponsor.id)
-                      )
-                    }
-                    className={`flex items-start gap-3 rounded-2xl border p-4 text-left ${
-                      on
-                        ? "border-green-500 bg-slate-800"
-                        : "border-slate-700 bg-slate-950"
-                    }`}
-                  >
-                    <BrandMark name={sponsor.brandName} logoUrl={sponsor.logoUrl} />
-                    <div>
-                      <p className="font-bold">{sponsor.brandName}</p>
-                      <p className="text-sm text-slate-400">
-                        {sponsor.contactName || "Decision maker not set"}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {formatMoney(sponsor.spentGbp)} climate spend
-                        {ready
-                          ? " · locked in — will receive this post"
-                          : on
-                            ? " · selected, waiting for lock-in"
-                            : ""}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        <ClubClimateSponsorTabs
+          clubName={club.name}
+          leadSponsors={leadSponsors}
+          localSponsors={localSponsors}
+        />
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">

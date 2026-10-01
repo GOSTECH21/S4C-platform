@@ -27,6 +27,7 @@ import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   MATCH_DAY_LOCK_LABELS,
+  displayLockFixture,
   lockCopy,
   leagueFromMatchLabel,
   clubNetworkLeagueId,
@@ -35,6 +36,7 @@ import {
   type MatchDayClubLock,
   type NetworkInvite,
 } from "@/app/lib/climate-sponsors";
+import { fixturesForClub, fixtureByName } from "@/app/lib/club-fixtures";
 import { leagueForClubName } from "@/app/lib/current-season";
 import {
   SPONSOR_LOGIN_PATH,
@@ -75,6 +77,7 @@ export default function SponsorDashboardPage() {
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
   const [invites, setInvites] = useState<NetworkInvite[]>([]);
   const [lockClub, setLockClub] = useState("");
+  const [lockFixture, setLockFixture] = useState("");
   const [lockLabel, setLockLabel] = useState(MATCH_DAY_LOCK_LABELS[0]);
   const [networkClubs, setNetworkClubs] = useState<string[]>([]);
   const [email, setEmail] = useState<string | null>(null);
@@ -109,7 +112,13 @@ export default function SponsorDashboardPage() {
         const currentLock = loadMatchDayLock(sponsorName);
         setLock(currentLock);
         setLockClub(currentLock?.clubName ?? "");
-        if (currentLock?.matchLabel) setLockLabel(currentLock.matchLabel);
+        setLockFixture(
+          currentLock ? displayLockFixture(currentLock) : ""
+        );
+        if (currentLock?.competition) setLockLabel(currentLock.competition);
+        else if (currentLock?.matchLabel && !currentLock.fixtureName) {
+          setLockLabel(currentLock.matchLabel);
+        }
         setInvites(listInvitesForSponsor(sponsorName, sponsorEmail));
         setLoading(false);
         const folder = await loadSponsorFolder({
@@ -192,29 +201,39 @@ export default function SponsorDashboardPage() {
     });
   }
 
-  function applyMatchDayLock(clubName: string, matchLabel: string) {
+  function applyMatchDayLock(clubName: string, fixtureName: string) {
     const club = clubName.trim();
-    setLockLabel(matchLabel);
+    const fixture = club ? fixtureByName(club, fixtureName) : null;
+    setLockFixture(fixture?.fixtureName ?? fixtureName);
+    if (fixture?.competition) setLockLabel(fixture.competition);
     if (!club) {
       clearMatchDayLock(brand);
       setLock(null);
       setLockClub("");
+      setLockFixture("");
       void refreshFolder();
+      return;
+    }
+    if (!fixture) {
+      setLockClub(club);
       return;
     }
     const next = lockMatchDayClub({
       brandName: brand,
       clubName: club,
-      matchLabel,
+      matchLabel: fixture.competition,
+      fixtureName: fixture.fixtureName,
+      competition: fixture.competition,
     });
     setLock(next);
     setLockClub(club);
+    setLockFixture(fixture.fixtureName);
     void refreshFolder();
   }
 
   function unlockMatchDay() {
     const cleared = unlockedMatchDay(lockLabel);
-    applyMatchDayLock(cleared.clubName, cleared.matchLabel);
+    applyMatchDayLock(cleared.clubName, "");
   }
 
   function scrollToClubTable() {
@@ -240,7 +259,8 @@ export default function SponsorDashboardPage() {
   }
 
   function lockClubFromNetwork(club: string) {
-    applyMatchDayLock(club, lockLabel);
+    setLockClub(club);
+    setLockFixture("");
     scrollToLockIn();
   }
 
@@ -319,9 +339,15 @@ export default function SponsorDashboardPage() {
                   scrollToClubTable();
                 }}
                 onFocus={scrollToClubTable}
-                onChange={(event) =>
-                  applyMatchDayLock(event.target.value, lockLabel)
-                }
+                onChange={(event) => {
+                  const club = event.target.value;
+                  if (!club) {
+                    applyMatchDayLock("", "");
+                    return;
+                  }
+                  setLockClub(club);
+                  setLockFixture("");
+                }}
                 className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
                 aria-label="Select a club, then choose from the teams table"
               >
@@ -341,34 +367,41 @@ export default function SponsorDashboardPage() {
             <label className="block text-sm text-slate-400">
               Match
               <select
-                value={lockLabel}
+                value={lockFixture}
+                disabled={!lockClub}
                 onChange={(event) =>
                   applyMatchDayLock(lockClub, event.target.value)
                 }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white disabled:opacity-50"
               >
-                {MATCH_DAY_LOCK_LABELS.map((label) => (
-                  <option key={label} value={label}>
-                    {label}
+                <option value="">Select the Match</option>
+                {fixturesForClub(lockClub).map((fixture) => (
+                  <option key={fixture.id} value={fixture.fixtureName}>
+                    {fixture.fixtureName}
                   </option>
                 ))}
               </select>
             </label>
           </div>
-          {lockClub ? (
+          {lockClub && lockFixture ? (
             <>
               <p className="mt-4 text-2xl font-black">
-                {lockClub} · {lockLabel}
+                {lockClub} · {lockFixture}
               </p>
               <p className="mt-2 text-sm text-slate-400">
                 Posted Climate Projects from other clubs will not appear on this
                 dashboard until you change this lock.
               </p>
             </>
+          ) : lockClub ? (
+            <p className="mt-4 text-sm text-slate-400">
+              {lockClub} is selected. Choose the Match you wish to be Lead
+              Climate Sponsor for — for example Arsenal v Chelsea.
+            </p>
           ) : (
             <p className="mt-4 text-sm text-slate-400">
               Unlock cleared the club from this box. Pick a club on the left and
-              the Match Day on the right — or tap a club in your Goal
+              the Match on the right — or tap a club in your Goal
               Sponsorship Network.
             </p>
           )}

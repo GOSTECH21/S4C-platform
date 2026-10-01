@@ -9,6 +9,7 @@ import {
 } from "@/app/services/climate-sponsors.service";
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
+import { MatchSponsorshipPicker } from "@/app/components/sponsor/MatchSponsorshipPicker";
 import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
@@ -17,6 +18,7 @@ import {
 import {
   LOCAL_SPONSOR_MIN_GBP,
   writeLocalSponsorRecord,
+  type LocalMatchSponsorship,
 } from "@/app/lib/local-sponsor";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import { localWalletTopUp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
@@ -27,26 +29,51 @@ export default function LocalSponsorRegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clubName, setClubName] = useState("");
-  const [pledgeGbp, setPledgeGbp] = useState(String(LOCAL_SPONSOR_MIN_GBP));
+  const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function toggleMatch(fixtureName: string) {
+    setSelectedMatches((current) =>
+      current.includes(fixtureName)
+        ? current.filter((name) => name !== fixtureName)
+        : [...current, fixtureName]
+    );
+    setAmounts((current) => ({
+      ...current,
+      [fixtureName]: current[fixtureName] ?? String(LOCAL_SPONSOR_MIN_GBP),
+    }));
+  }
+
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
     if (loading) return;
-    const pledge = Number(pledgeGbp);
     if (!clubName) {
       setError("Choose the local club whose stadium your business is near.");
       return;
     }
-    if (!Number.isFinite(pledge) || pledge < LOCAL_SPONSOR_MIN_GBP) {
-      setError(
-        `Local Business Climate Sponsors pay from £${LOCAL_SPONSOR_MIN_GBP}.`
-      );
+    if (selectedMatches.length === 0) {
+      setError("Select the Match or Matches you wish to sponsor.");
       return;
     }
+    const matchSponsorships: LocalMatchSponsorship[] = [];
+    for (const fixtureName of selectedMatches) {
+      const amount = Number(amounts[fixtureName]);
+      if (!Number.isFinite(amount) || amount < LOCAL_SPONSOR_MIN_GBP) {
+        setError(
+          `Enter at least £${LOCAL_SPONSOR_MIN_GBP} for each selected Match.`
+        );
+        return;
+      }
+      matchSponsorships.push({ fixtureName, amountGbp: amount });
+    }
+    const pledge = matchSponsorships.reduce(
+      (sum, row) => sum + row.amountGbp,
+      0
+    );
     setLoading(true);
     setError(null);
     try {
@@ -75,6 +102,8 @@ export default function LocalSponsorRegisterPage() {
         createdAt: new Date().toISOString(),
         logoUrl,
         source: "registered",
+        matchSponsorships,
+        submittedAt: new Date().toISOString(),
       });
       ensureLocalWallet({
         clubName,
@@ -97,13 +126,16 @@ export default function LocalSponsorRegisterPage() {
         Register as a Local Sponsor
       </h1>
       <p className="mt-4 text-slate-300">
-        From £{LOCAL_SPONSOR_MIN_GBP} your logo appears on one of the five
-        Match Day Climate Project cards posted to fans. Pay the amount you want
-        fans to take from your Climate Sponsorship Wallet; a 10% management fee
-        is added on top (for example £750 + 10% = {formatWalletGbp(localWalletTopUp(750).paidGbp)}
-        paid, with {formatWalletGbp(750)} remaining in the wallet). A £1,500 pledge receives
-        three times the fan exposures of a £{LOCAL_SPONSOR_MIN_GBP} pledge, and
-        takes a more prominent card — Global Schools Solar first.
+        Choose the club, select the Match or Matches you wish to sponsor, enter
+        your sponsorship amounts, then SUBMIT. From £{LOCAL_SPONSOR_MIN_GBP} per
+        Match your logo appears on one of the five Match Day Climate Project
+        cards posted to fans. Pay the amount you want fans to take from your
+        Climate Sponsorship Wallet; a 10% management fee is added on top (for
+        example £750 + 10% = {formatWalletGbp(localWalletTopUp(750).paidGbp)}{" "}
+        paid, with {formatWalletGbp(750)} remaining in the wallet). A £1,500
+        pledge receives three times the fan exposures of a £
+        {LOCAL_SPONSOR_MIN_GBP} pledge, and takes a more prominent card —
+        Global Schools Solar first.
       </p>
 
       {error && (
@@ -154,18 +186,6 @@ export default function LocalSponsorRegisterPage() {
             required
           />
         </label>
-        <label className="block text-sm text-slate-400">
-          Sponsorship from £{LOCAL_SPONSOR_MIN_GBP}
-          <input
-            type="number"
-            min={LOCAL_SPONSOR_MIN_GBP}
-            step={50}
-            value={pledgeGbp}
-            onChange={(event) => setPledgeGbp(event.target.value)}
-            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            required
-          />
-        </label>
         <BrandLogoField
           brandName={companyName}
           logoUrl={logoUrl}
@@ -182,9 +202,30 @@ export default function LocalSponsorRegisterPage() {
           <div className="mt-3">
             <ClubNetworkPicker
               selected={clubName ? [clubName] : []}
-              onChange={(clubs) => setClubName(clubs[0] ?? "")}
+              onChange={(clubs) => {
+                const next = clubs[0] ?? "";
+                setClubName(next);
+                setSelectedMatches([]);
+                setAmounts({});
+              }}
               compact
               single
+            />
+          </div>
+        </div>
+        <div>
+          <p className="text-sm text-slate-400">
+            Select the Match / Matches you wish to sponsor
+          </p>
+          <div className="mt-3">
+            <MatchSponsorshipPicker
+              clubName={clubName}
+              selected={selectedMatches}
+              amounts={amounts}
+              onToggle={toggleMatch}
+              onAmount={(fixtureName, amount) =>
+                setAmounts((current) => ({ ...current, [fixtureName]: amount }))
+              }
             />
           </div>
         </div>
@@ -193,7 +234,7 @@ export default function LocalSponsorRegisterPage() {
           disabled={loading}
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
-          {loading ? "Saving..." : `Confirm from £${LOCAL_SPONSOR_MIN_GBP}`}
+          {loading ? "Submitting..." : "SUBMIT sponsorship"}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">
