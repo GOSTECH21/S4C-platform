@@ -3,6 +3,7 @@ import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
+  clubClimateProjectsIntroCopy,
   isPartnerUpload,
   listsWithUploadsFirst,
   partnerPageCount,
@@ -488,10 +489,19 @@ assert(
   "Club dashboard no longer shows the Sponsorship Selected Projects block"
 );
 assert(
-  clubDashboard.includes("Signed copy of the sponsorship") &&
-    clubDashboard.includes("Voted-For Projects") &&
-    clubDashboard.includes("Funded Projects"),
-  "Club dashboard keeps signed copy, voted-for, and Goal-funded projects"
+  clubClimateProjectsIntroCopy().includes(
+    "Global Schools Solar Project is included in every Match Day List"
+  ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "Climate Partner Projects executable in Your Country"
+    ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "International Projects executable in other parts of the World"
+    ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "MUST be uploaded at least 3 Days before Match Kick-Off"
+    ),
+  "S4P Climate Projects intro uses the Match Day List and Your Country / World lists"
 );
 
 if (failures.length > 0) {

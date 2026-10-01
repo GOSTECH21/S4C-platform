@@ -9,6 +9,7 @@ import {
   deriveProjectLifecycle,
   encodeLocationCiv,
   encodePartnerLocation,
+  formatCivPipSummary,
   formatPipDays,
   formatProjectedCiv,
   fundingProgress,
@@ -75,12 +76,22 @@ assert(progress.throughS4p === "75% funded through S4P", "Funding progress shows
 assert(progress.remainingCopy === "£250 remaining", "Funding progress shows remaining");
 
 assert(
-  formatProjectedCiv(25, "Annual") === "25 tCO₂e/year",
-  "Projected CIV uses tCO2e per year"
+  formatProjectedCiv(25, "Annual") === "25 tCO2e/Yr",
+  "Projected Climate Impact Value uses tCO2e/Yr"
 );
 assert(
-  formatPipDays(DEFAULT_PIP_DAYS) === "90 days after full funding",
-  "PIP is counted from full funding"
+  formatPipDays(DEFAULT_PIP_DAYS) === "90 Days after funding",
+  "Projected Implementation Period is counted in days after funding"
+);
+assert(
+  formatCivPipSummary(9600, 90) ===
+    "Projected Climate Impact Value 9,600 tCO2e/Yr. Projected Implementation Period 90 Days after funding",
+  "Catalog GSS shows the partner CIV number between Value and tCO2e/Yr and PIP days between Period and Days after funding"
+);
+assert(
+  formatCivPipSummary(25, 45) ===
+    "Projected Climate Impact Value 25 tCO2e/Yr. Projected Implementation Period 45 Days after funding",
+  "A Climate Partner form CIV of 25 and PIP of 45 fills those gaps exactly"
 );
 
 const civ = civRecordFromListing(valid, "2026-09-29T00:00:00.000Z");
@@ -176,9 +187,9 @@ const partnerForm = readFileSync(
 );
 assert(
   partnerForm.includes("Climate Project Form") &&
-    partnerForm.includes("Projected CIV") &&
+    partnerForm.includes("Projected Climate Impact Value") &&
     partnerForm.includes("Funding Amount Sought") &&
-    partnerForm.includes("PIP (days after full funding)") &&
+    partnerForm.includes("Projected Implementation Period") &&
     partnerForm.includes("CIV_UNDERTAKING") &&
     partnerForm.includes("Sign off and list on S4P"),
   "Climate Project Form collects CIV, funding, PIP and a signed undertaking"
@@ -230,8 +241,14 @@ assert(
 
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
-  clubSelect.includes("ClimateProjectCivBlock"),
-  "Club project lists show CIV, funding sought and PIP lifecycle"
+  clubSelect.includes("ClimateProjectCivBlock") &&
+    clubSelect.includes("clubClimateProjectsIntroCopy"),
+  "Club project lists show CIV, funding sought and the Match Day List intro"
+);
+assert(
+  !clubSelect.includes("only project classified as UK and International") &&
+    !clubSelect.includes("Ugandan Cookstove. Post at least 3 days"),
+  "Club Climate Projects intro no longer uses the old five / voting-window statement"
 );
 
 const clubDash = readFileSync("app/club/dashboard/page.tsx", "utf8");

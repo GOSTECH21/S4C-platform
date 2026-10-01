@@ -319,16 +319,20 @@ export function qualifyingCivTonnes(project: {
 
 export function formatProjectedCiv(
   tonnes: number,
-  period: string = DEFAULT_CIV_PERIOD
+  _period: string = DEFAULT_CIV_PERIOD
 ): string {
-  return `${asPositiveAmount(tonnes).toLocaleString("en-GB")} tCO₂e/${
-    /year|annual/i.test(period) ? "year" : period.toLowerCase()
-  }`;
+  return `${asPositiveAmount(tonnes).toLocaleString("en-GB")} tCO2e/Yr`;
 }
 
 export function formatPipDays(days: number): string {
   const value = Math.max(0, Math.round(asPositiveAmount(days)));
-  return `${value} day${value === 1 ? "" : "s"} after full funding`;
+  return `${value} Days after funding`;
+}
+
+export function formatCivPipSummary(tonnes: number, pipDays: number): string {
+  const civ = asPositiveAmount(tonnes).toLocaleString("en-GB");
+  const days = Math.max(0, Math.round(asPositiveAmount(pipDays)));
+  return `Projected Climate Impact Value ${civ} tCO2e/Yr. Projected Implementation Period ${days} Days after funding`;
 }
 
 export function lifecycleIndex(stage: ProjectLifecycleStage): number {

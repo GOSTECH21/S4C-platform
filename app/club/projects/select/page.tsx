@@ -14,6 +14,7 @@ import {
 import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
+  clubClimateProjectsIntroCopy,
   isPartnerUpload,
 } from "@/app/lib/partner-projects";
 import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
@@ -148,7 +149,7 @@ export default function SelectMatchDayProjectsPage() {
     if (!clubId) return;
     if (selected.size !== MATCH_DAY_CHOICE_COUNT) {
       setError(
-        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar is included in every Match Day five.`
+        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar Project is included in every Match Day List.`
       );
       return;
     }
@@ -234,13 +235,7 @@ export default function SelectMatchDayProjectsPage() {
 
         <h1 className="mt-6 text-4xl font-black">S4P Climate Projects</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Global Schools Solar is included in every Match Day five and is the
-          only project classified as UK and International. Choose{" "}
-          {MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate
-          Partner projects in {localCountry}. List 2 is international projects,
-          including Ugandan Cookstove. Post at least 3 days before kick-off so
-          fans can vote for 5 days: a Saturday 15:00 kick-off opens voting
-          Wednesday at 15:00 and closes Monday at 15:00.
+          {clubClimateProjectsIntroCopy()}
         </p>
 
         {featured && (
