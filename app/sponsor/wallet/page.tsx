@@ -131,7 +131,7 @@ export default function SponsorWalletPage() {
             });
             setWallet(next);
             setNotice(
-              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet (${formatWalletGbp(remainingGbp(next))} Remaining).`
+              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet.`
             );
           } catch (err) {
             setError(err instanceof Error ? err.message : "Could not update the wallet.");

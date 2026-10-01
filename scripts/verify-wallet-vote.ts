@@ -295,6 +295,22 @@ assert(
   !walletForm.includes("Goals scored so far"),
   "Lead wallet no longer uses Goals scored so far"
 );
+assert(
+  walletForm.includes('kind === "local"') && walletForm.includes('label="Remaining"'),
+  "Remaining is only shown on the local wallet"
+);
+assert(
+  walletPage.includes(
+    "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet."
+  ),
+  "Lead deposit notice does not show Remaining"
+);
+assert(
+  !walletPage.includes(
+    "is in the wallet (${formatWalletGbp(remainingGbp(next))} Remaining)"
+  ),
+  "Lead deposit notice no longer appends Remaining"
+);
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(localPage.includes("10%"), "Local registration states the 10% management fee");

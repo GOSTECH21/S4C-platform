@@ -53,11 +53,15 @@ export function ClimateSponsorshipWallet({
       </p>
 
       {wallet && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <WalletStat
-            label="Remaining"
-            value={`${formatWalletGbp(remainingGbp(wallet))} Remaining`}
-          />
+        <div
+          className={`mt-6 grid gap-4 ${kind === "lead" ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
+        >
+          {kind === "local" ? (
+            <WalletStat
+              label="Remaining"
+              value={`${formatWalletGbp(remainingGbp(wallet))} Remaining`}
+            />
+          ) : null}
           <WalletStat
             label={kind === "lead" ? "Commitment Fee" : "Sponsorship in wallet"}
             value={formatWalletGbp(
