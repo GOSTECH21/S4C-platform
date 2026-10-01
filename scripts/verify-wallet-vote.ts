@@ -7,6 +7,7 @@ import {
   FUND_IT_LABEL,
   LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
+  leadSponsorshipFromGoalsGbp,
   localWalletTopUp,
   remainingGbp,
   walletVoteAmount,
@@ -78,6 +79,18 @@ assert(
 assert(
   remainingGbp({ ...amex, goalsScored: 1 }) === 6000,
   "The Carbon Wallet increases when the sponsored team scores"
+);
+assert(
+  leadSponsorshipFromGoalsGbp(amex) === 0,
+  "Sponsorship/Goal-Scored starts at £0 before any goal"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 1 }) === 3000,
+  "One goal multiplies Goals-scored Sponsorship Cash by 1"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 2 }) === 6000,
+  "A second goal doubles Sponsorship/Goal-Scored"
 );
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
@@ -283,7 +296,27 @@ const walletForm = readFileSync(
 );
 assert(
   walletForm.includes("Maximum Sponsorship Amount"),
-  "Lead wallet labels the third field Maximum Sponsorship Amount"
+  "Lead wallet labels the Maximum Sponsorship Amount field"
+);
+assert(
+  walletForm.includes("Sponsorship/Goal-Scored"),
+  "Lead wallet shows a Sponsorship/Goal-Scored block"
+);
+assert(
+  walletForm.includes("Goals-Scored"),
+  "Lead wallet shows a Goals-Scored block"
+);
+assert(
+  walletForm.includes("leadSponsorshipFromGoalsGbp"),
+  "Sponsorship/Goal-Scored is rate times goals scored"
+);
+assert(
+  walletForm.includes("maximumSponsorshipGbp"),
+  "Maximum Sponsorship Amount is stored separately from goals scored"
+);
+assert(
+  !walletForm.includes("goalsScored: Number(goalsScored)"),
+  "Depositing the lead wallet does not overwrite Goals-Scored from the form"
 );
 assert(
   walletForm.includes(

@@ -82,19 +82,26 @@ export function ensureLeadWallet({
   commitmentFeeGbp,
   gbpPerGoal = 0,
   goalsScored = 0,
+  maximumSponsorshipGbp = 0,
 }: {
   clubName: string;
   brandName: string;
   commitmentFeeGbp: number;
   gbpPerGoal?: number;
   goalsScored?: number;
+  maximumSponsorshipGbp?: number;
 }): ClimateWallet {
   const existing = readClimateWallet(clubName, brandName);
   if (existing) {
     if (existing.kind !== "lead") return existing;
     if (existing.commitmentFeeGbp > 0) return existing;
     return writeClimateWallet(
-      applyLeadCommitment(existing, { commitmentFeeGbp, gbpPerGoal, goalsScored })
+      applyLeadCommitment(existing, {
+        commitmentFeeGbp,
+        gbpPerGoal,
+        goalsScored,
+        maximumSponsorshipGbp,
+      })
     );
   }
   return writeClimateWallet(
@@ -104,6 +111,7 @@ export function ensureLeadWallet({
       commitmentFeeGbp,
       gbpPerGoal,
       goalsScored,
+      maximumSponsorshipGbp,
     })
   );
 }
@@ -168,13 +176,13 @@ export function depositLeadClimateWallet({
   brandName,
   commitmentFeeGbp,
   gbpPerGoal,
-  goalsScored,
+  maximumSponsorshipGbp,
 }: {
   clubName: string;
   brandName: string;
   commitmentFeeGbp: number;
   gbpPerGoal?: number;
-  goalsScored?: number;
+  maximumSponsorshipGbp?: number;
 }): ClimateWallet {
   const existing = readClimateWallet(clubName, brandName);
   if (!existing) {
@@ -184,11 +192,15 @@ export function depositLeadClimateWallet({
         brandName,
         commitmentFeeGbp,
         gbpPerGoal,
-        goalsScored,
+        maximumSponsorshipGbp,
       })
     );
   }
   return writeClimateWallet(
-    applyLeadCommitment(existing, { commitmentFeeGbp, gbpPerGoal, goalsScored })
+    applyLeadCommitment(existing, {
+      commitmentFeeGbp,
+      gbpPerGoal,
+      maximumSponsorshipGbp,
+    })
   );
 }

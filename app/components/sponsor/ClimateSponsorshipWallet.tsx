@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   formatWalletGbp,
+  leadSponsorshipFromGoalsGbp,
   localWalletTopUp,
   remainingGbp,
   type ClimateWallet,
@@ -28,7 +29,7 @@ export function ClimateSponsorshipWallet({
   onLeadDeposit: (input: {
     commitmentFeeGbp: number;
     gbpPerGoal: number;
-    goalsScored: number;
+    maximumSponsorshipGbp: number;
   }) => void;
   busy?: boolean;
   notice?: string | null;
@@ -37,8 +38,15 @@ export function ClimateSponsorshipWallet({
   const [sponsorship, setSponsorship] = useState("750");
   const [commitmentFee, setCommitmentFee] = useState("1000");
   const [gbpPerGoal, setGbpPerGoal] = useState("3000");
-  const [goalsScored, setGoalsScored] = useState("0");
+  const [maximumSponsorship, setMaximumSponsorship] = useState("0");
   const preview = localWalletTopUp(Number(sponsorship) || 0);
+
+  useEffect(() => {
+    if (!wallet || kind !== "lead") return;
+    setCommitmentFee(String(wallet.commitmentFeeGbp));
+    setGbpPerGoal(String(wallet.gbpPerGoal));
+    setMaximumSponsorship(String(wallet.maximumSponsorshipGbp ?? 0));
+  }, [wallet, kind]);
 
   return (
     <div className="rounded-3xl border border-emerald-400/30 bg-slate-900 p-8">
@@ -52,32 +60,43 @@ export function ClimateSponsorshipWallet({
           : `Pay the sponsorship amount you want fans of ${clubName || "your club"} to take from this wallet. A 10% management fee is added on top (for example £750 + 10% = ${formatWalletGbp(preview.paidGbp)} paid; the wallet then shows ${formatWalletGbp(preview.sponsorshipGbp)}).`}
       </p>
 
-      {wallet && (
-        <div
-          className={`mt-6 grid gap-4 ${kind === "lead" ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
-        >
-          {kind === "local" ? (
-            <WalletStat
-              label="Remaining"
-              value={`${formatWalletGbp(remainingGbp(wallet))} Remaining`}
-            />
-          ) : null}
+      {wallet && kind === "lead" ? (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <WalletStat
-            label={kind === "lead" ? "Commitment Fee" : "Sponsorship in wallet"}
-            value={formatWalletGbp(
-              kind === "lead" ? wallet.commitmentFeeGbp : wallet.sponsorshipGbp
-            )}
+            label="Commitment Fee"
+            value={formatWalletGbp(wallet.commitmentFeeGbp)}
           />
           <WalletStat
-            label={kind === "lead" ? "Goals-scored rate" : "Management fee paid"}
-            value={
-              kind === "lead"
-                ? `${formatWalletGbp(wallet.gbpPerGoal)} / Goal`
-                : formatWalletGbp(wallet.managementFeeGbp)
-            }
+            label="Sponsorship/Goal-Scored"
+            value={formatWalletGbp(leadSponsorshipFromGoalsGbp(wallet))}
+          />
+          <WalletStat
+            label="Goals-Scored"
+            value={String(Math.max(0, Math.round(Number(wallet.goalsScored) || 0)))}
+          />
+          <WalletStat
+            label="Maximum Sponsorship Amount"
+            value={formatWalletGbp(wallet.maximumSponsorshipGbp ?? 0)}
           />
         </div>
-      )}
+      ) : null}
+
+      {wallet && kind === "local" ? (
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <WalletStat
+            label="Remaining"
+            value={`${formatWalletGbp(remainingGbp(wallet))} Remaining`}
+          />
+          <WalletStat
+            label="Sponsorship in wallet"
+            value={formatWalletGbp(wallet.sponsorshipGbp)}
+          />
+          <WalletStat
+            label="Management fee paid"
+            value={formatWalletGbp(wallet.managementFeeGbp)}
+          />
+        </div>
+      ) : null}
 
       {kind === "local" ? (
         <form
@@ -119,7 +138,7 @@ export function ClimateSponsorshipWallet({
             onLeadDeposit({
               commitmentFeeGbp: Number(commitmentFee) || 0,
               gbpPerGoal: Number(gbpPerGoal) || 0,
-              goalsScored: Number(goalsScored) || 0,
+              maximumSponsorshipGbp: Number(maximumSponsorship) || 0,
             });
           }}
         >
@@ -150,9 +169,9 @@ export function ClimateSponsorshipWallet({
             <input
               type="number"
               min={0}
-              step={1}
-              value={goalsScored}
-              onChange={(event) => setGoalsScored(event.target.value)}
+              step={50}
+              value={maximumSponsorship}
+              onChange={(event) => setMaximumSponsorship(event.target.value)}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             />
           </label>
