@@ -277,6 +277,25 @@ assert(
   "Sponsors have a Climate Sponsorship Wallet page"
 );
 
+const walletForm = readFileSync(
+  "app/components/sponsor/ClimateSponsorshipWallet.tsx",
+  "utf8"
+);
+assert(
+  walletForm.includes("Maximum Sponsorship Amount"),
+  "Lead wallet labels the third field Maximum Sponsorship Amount"
+);
+assert(
+  walletForm.includes(
+    "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
+  ),
+  "Lead wallet explains the Day 1 Commitment Fee and Goals-scored cash"
+);
+assert(
+  !walletForm.includes("Goals scored so far"),
+  "Lead wallet no longer uses Goals scored so far"
+);
+
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(localPage.includes("10%"), "Local registration states the 10% management fee");
 

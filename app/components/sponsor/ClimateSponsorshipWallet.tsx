@@ -48,7 +48,7 @@ export function ClimateSponsorshipWallet({
       <h2 className="mt-2 text-3xl font-black">Climate Sponsorship Wallet</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "lead"
-          ? `A Lead Climate Project Sponsor deposits a Commitment Fee on Day 1, well before kick-off, and agrees Goals-scored Sponsorship Cash for every goal ${clubName || "the sponsored team"} players score.`
+          ? "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
           : `Pay the sponsorship amount you want fans of ${clubName || "your club"} to take from this wallet. A 10% management fee is added on top (for example £750 + 10% = ${formatWalletGbp(preview.paidGbp)} paid; the wallet then shows ${formatWalletGbp(preview.sponsorshipGbp)}).`}
       </p>
 
@@ -142,7 +142,7 @@ export function ClimateSponsorshipWallet({
             />
           </label>
           <label className="block text-sm text-slate-400">
-            Goals scored so far
+            Maximum Sponsorship Amount
             <input
               type="number"
               min={0}
