@@ -230,6 +230,20 @@ export default function SponsorDashboardPage() {
     });
   }
 
+  function scrollToLockIn() {
+    window.setTimeout(() => {
+      document.getElementById("match-day-lock-in")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
+
+  function lockClubFromNetwork(club: string) {
+    applyMatchDayLock(club, lockLabel);
+    scrollToLockIn();
+  }
+
   if (loading) {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
   }
@@ -280,7 +294,10 @@ export default function SponsorDashboardPage() {
         </div>
       )}
 
-      <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
+      <section
+        id="match-day-lock-in"
+        className="scroll-mt-6 rounded-3xl border border-green-500/30 bg-slate-900 p-8"
+      >
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
           Match Day lock-in
         </p>
@@ -491,7 +508,7 @@ export default function SponsorDashboardPage() {
             selected={networkClubs}
             matchDayClub={lockClub}
             highlightLeague={leagueFromMatchLabel(lockLabel)}
-            onChooseMatchDayClub={(club) => applyMatchDayLock(club, lockLabel)}
+            onChooseMatchDayClub={lockClubFromNetwork}
             onChange={(clubs) => {
               setNetworkClubs(clubs);
               const next = ensureGoalNetwork({

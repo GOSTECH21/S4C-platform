@@ -442,6 +442,12 @@ assert(
   "Clicking Select a club scrolls to the Goal Sponsorship Network teams table"
 );
 assert(
+  sponsorDashboardPage.includes("scrollToLockIn") &&
+    sponsorDashboardPage.includes("lockClubFromNetwork") &&
+    sponsorDashboardPage.includes('id="match-day-lock-in"'),
+  "Selecting a club from the teams table scrolls back up to Match Day lock-in"
+);
+assert(
   sponsorDashboardPage.includes(
     "Receive the club's 5 chosen Climate Projects"
   ) ||
