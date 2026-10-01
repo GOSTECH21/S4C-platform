@@ -53,7 +53,7 @@ const voted = allocateWalletVote({
   ],
   projectNumber: 2,
 });
-assert(voted.ok && remainingGbp(voted.ok ? voted.wallet : wallet) === 749.9, "A wallet Vote leaves £749.90");
+assert(voted.ok && remainingGbp(voted.ok ? voted.wallet : wallet) === 749.8, "A FUND-IT leaves £749.80");
 
 const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(page.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
