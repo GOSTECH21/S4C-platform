@@ -223,14 +223,18 @@ assert(
     sponsorsUi.includes(">Checkbox<") &&
     !sponsorsUi.includes("Checkbox 1") &&
     !sponsorsUi.includes("Checkbox 2") &&
-    sponsorsUi.includes("FUND-IT") &&
+    sponsorsUi.includes("FUND_IT_LABEL") &&
     !sponsorsUi.includes(">Vote<"),
   "Each Carbon Wallet has one Checkbox and a FUND-IT tab"
 );
 assert(
-  sponsorsUi.includes(
-    "Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press"
-  ) && sponsorsUi.includes("goes from Wallet to Project"),
+  sponsorsUi.includes("fundItCopy") &&
+    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press"
+    ) &&
+    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "goes from Wallet to Project"
+    ),
   "Local Business Climate Sponsors use the single FUND-IT instruction"
 );
 assert(

@@ -23,16 +23,16 @@ import {
   localCatalogCountryForClub,
 } from "@/app/lib/featured-climate-country";
 import {
-  DEFAULT_GBP_PER_VOTE,
-  EXPOSURES_PER_POST,
-  brandExposureValue,
-  formatBrandExposureLabel,
-  formatGbpPerVote,
   formatMatchFundingLine,
   formatMoney,
-  formatStipulatedRate,
   totalMatchSponsorshipPayable,
 } from "@/app/lib/sponsorship-auction";
+import {
+  DEFAULT_WALLET_VOTE_GBP,
+  FUND_IT_LABEL,
+  formatWalletGbp,
+  fundItCopy,
+} from "@/app/lib/sponsor-wallet";
 import {
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
@@ -55,7 +55,6 @@ export default function SelectMatchDayProjectsPage() {
   const [featured, setFeatured] = useState<ClimateProject | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
-  const [gbpPerVote, setGbpPerVote] = useState(String(DEFAULT_GBP_PER_VOTE));
   const [minAmount, setMinAmount] = useState("");
   const [gbpPerGoal, setGbpPerGoal] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
@@ -106,7 +105,6 @@ export default function SelectMatchDayProjectsPage() {
             (id) => id !== featuredProject?.id && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
-          setGbpPerVote(String(stored.gbpPerVote));
           setMinAmount(stored.minAmount ? String(stored.minAmount) : "");
           setGbpPerGoal(stored.gbpPerGoal ? String(stored.gbpPerGoal) : "");
           setMaxAmount(stored.maxAmount ? String(stored.maxAmount) : "");
@@ -127,10 +125,6 @@ export default function SelectMatchDayProjectsPage() {
     country: clubCountry,
   });
   const visible = page === 0 ? localProjects : internationalProjects;
-
-  function updateGbpPerVote(value: string) {
-    setGbpPerVote(value);
-  }
 
   function toggle(projectId: string) {
     setError(null);
@@ -153,16 +147,10 @@ export default function SelectMatchDayProjectsPage() {
       );
       return;
     }
-    const rate = Number(gbpPerVote);
+    const rate = DEFAULT_WALLET_VOTE_GBP;
     const minimum = Number(minAmount);
     const perGoal = Number(gbpPerGoal);
     const cap = Number(maxAmount);
-    if (!Number.isFinite(rate) || rate <= 0) {
-      setError(
-        "Insert the stipulated amount per Climate Project (for example £0.02). This is the brand-exposure counter, not the amount the sponsor pays."
-      );
-      return;
-    }
     if (!Number.isFinite(minimum) || minimum <= 0) {
       setError(
         "Insert the Base Match Sponsorship for this Match. This is the Minimum Payment even if the club scores no Goals."
@@ -200,10 +188,7 @@ export default function SelectMatchDayProjectsPage() {
         maxAmount: cap,
         projectedVotes: 0,
         gbpPerVote: rate,
-        expectedSponsorship: brandExposureValue({
-          posts: 1,
-          gbpPerProject: rate,
-        }),
+        expectedSponsorship: rate,
       });
       router.push(CLUB_DASHBOARD_PATH);
     } catch (err) {
@@ -366,23 +351,11 @@ export default function SelectMatchDayProjectsPage() {
           <p className="mt-2 text-slate-400">
             Set a Base Match Sponsorship — the Minimum Payment the brand
             sponsor pays even if {clubName} scores no Goals — then the amount
-            added for each Goal scored, and a cap. The stipulated amount per
-            Climate Project is a counter for brand exposure: every post to a
-            fan is 1 eyeball and {EXPOSURES_PER_POST} exposures (the five
-            Climate Projects), even if that fan chooses 3.
+            added for each Goal scored, and a cap. Fans press {FUND_IT_LABEL};{" "}
+            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from a Climate
+            Sponsorship Wallet to a numbered Climate Project.
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <label className="block text-sm text-slate-400">
-              Stipulated amount / Climate Project
-              <input
-                type="number"
-                min={0.01}
-                step={0.01}
-                value={gbpPerVote}
-                onChange={(event) => updateGbpPerVote(event.target.value)}
-                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             <label className="block text-sm text-slate-400">
               Base Match Sponsorship
               <input
@@ -420,39 +393,14 @@ export default function SelectMatchDayProjectsPage() {
               />
             </label>
           </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg bg-slate-800 p-4">
-              <p className="text-sm text-slate-400">
-                Projected Sponsor/Brand Exposure
-              </p>
-              <p className="mt-2 text-lg font-bold text-white">
-                {formatBrandExposureLabel()}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                1 post = 1 eyeball = {EXPOSURES_PER_POST} exposures. Fans who
-                take cash from a sponsor wallet and put it on a numbered Climate
-                Project are still exposed {MATCH_DAY_PROJECT_COUNT} times.
-              </p>
-            </div>
-            <div className="rounded-lg bg-slate-800 p-4">
-              <p className="text-sm text-slate-400">
-                Exposure counter per posted fan
-              </p>
-              <p className="mt-2 text-lg font-bold text-white">
-                {formatGbpPerVote(
-                  brandExposureValue({
-                    posts: 1,
-                    gbpPerProject: Number(gbpPerVote) || 0,
-                  })
-                )}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {EXPOSURES_PER_POST} × {formatStipulatedRate(Number(gbpPerVote) || 0)}
-              </p>
-            </div>
+          <div className="mt-4 rounded-lg bg-slate-800 p-4">
+            <p className="text-sm text-slate-400">{FUND_IT_LABEL}</p>
+            <p className="mt-2 text-lg font-bold text-white">
+              {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">{fundItCopy()}</p>
           </div>
           <FundingPreview
-            gbpPerVote={Number(gbpPerVote) || 0}
             minAmount={Number(minAmount) || 0}
             gbpPerGoal={Number(gbpPerGoal) || 0}
             maxAmount={Number(maxAmount) || 0}
@@ -479,22 +427,22 @@ export default function SelectMatchDayProjectsPage() {
 }
 
 function FundingPreview({
-  gbpPerVote,
   minAmount,
   gbpPerGoal,
   maxAmount,
 }: {
-  gbpPerVote: number;
   minAmount: number;
   gbpPerGoal: number;
   maxAmount: number;
 }) {
-  if (!(gbpPerVote > 0) || !(minAmount > 0) || !(gbpPerGoal > 0) || !(maxAmount > 0)) {
+  if (!(minAmount > 0) || !(gbpPerGoal > 0) || !(maxAmount > 0)) {
     return (
       <p className="mt-4 text-sm text-amber-300">
-        Insert the stipulated amount per Climate Project, the Base Match
-        Sponsorship, the amount payable per Goal, and the Maximum. A 0–0 still
-        pays the base. Each Goal adds the per-Goal amount, never above the cap.
+        Insert the Base Match Sponsorship, the amount payable per Goal, and the
+        Maximum. A 0–0 still pays the base. Each Goal adds the per-Goal amount,
+        never above the cap. Each {FUND_IT_LABEL} takes{" "}
+        {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from a Climate Sponsorship
+        Wallet.
       </p>
     );
   }
@@ -522,9 +470,9 @@ function FundingPreview({
     <p className="mt-4 text-sm text-green-300">
       0–0 pays {formatMoney(nilNil)} (the Base Match Sponsorship). 1–0 pays{" "}
       {formatMoney(oneNil)}. 2–0 pays {formatMoney(twoNil)}. The sponsor cannot
-      pay more than {formatMoney(maxAmount)}, however many Goals are scored.{" "}
-      {formatStipulatedRate(gbpPerVote)} is the brand-exposure counter: 1 post
-      = 1 eyeball = {EXPOSURES_PER_POST} exposures.
+      pay more than {formatMoney(maxAmount)}, however many Goals are scored.
+      Each {FUND_IT_LABEL} takes {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from
+      a Climate Sponsorship Wallet to a numbered Climate Project.
     </p>
   );
 }

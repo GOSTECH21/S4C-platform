@@ -47,8 +47,8 @@ assert(
 );
 
 assert(
-  DEFAULT_GBP_PER_VOTE === 0.02,
-  "Stipulated amount/Climate Project example is £0.02"
+  DEFAULT_GBP_PER_VOTE === 0.2,
+  "Each FUND-IT from a Climate Sponsorship Wallet is £0.20"
 );
 assert(
   EXPOSURES_PER_POST === 5,
@@ -150,12 +150,12 @@ assert(
   "Posted £/Goal is not labelled as a vote-scaled minimum"
 );
 assert(
-  formatGbpPerVote(DEFAULT_GBP_PER_VOTE) === "£0.02",
-  "Default stipulated rate is labelled as £0.02"
+  formatGbpPerVote(DEFAULT_GBP_PER_VOTE) === "£0.20",
+  "Default FUND-IT amount is labelled as £0.20"
 );
 assert(
-  formatStipulatedRate(0.02) === "£0.02/Climate Project",
-  "SD rate is labelled as amount per Climate Project"
+  formatStipulatedRate(0.2) === "£0.20/Climate Project",
+  "FUND-IT is labelled as £0.20 per Climate Project"
 );
 
 const selectPage = readFileSync(
@@ -175,16 +175,20 @@ assert(
   "SD form asks for the Maximum cap"
 );
 assert(
-  selectPage.includes("Projected Sponsor/Brand Exposure"),
-  "Projected fans who will vote is replaced by Projected Sponsor/Brand Exposure"
+  !selectPage.includes("Projected Sponsor/Brand Exposure") &&
+    !selectPage.includes("Stipulated amount / Climate Project") &&
+    !selectPage.includes("Exposure counter per posted fan"),
+  "SD form no longer uses the old 0.02 exposure-counter Goal-scored block"
+);
+assert(
+  selectPage.includes("FUND_IT_LABEL") &&
+    selectPage.includes("DEFAULT_WALLET_VOTE_GBP") &&
+    selectPage.includes("fundItCopy"),
+  "SD Goal-scored funding uses the £0.20 FUND-IT amount"
 );
 assert(
   !selectPage.includes("Projected fans who will vote"),
   "SD form no longer asks for a projected fan count"
-);
-assert(
-  selectPage.includes("Stipulated amount / Climate Project"),
-  "Stipulated amount is per Climate Project, not per Vote"
 );
 
 const terms = readFileSync(
@@ -206,5 +210,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Match Day funding: Base + £/Goal, capped; stipulated rate is a 5-exposure counter."
+  "Match Day funding: Base + £/Goal, capped; each FUND-IT is £0.20."
 );

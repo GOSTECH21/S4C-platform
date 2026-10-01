@@ -10,6 +10,7 @@ import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
   formatWalletGbp,
+  fundItCopy,
   normalizeKey,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
@@ -29,8 +30,7 @@ export type WalletVoteInput = {
   split?: boolean;
 };
 
-const FUND_IT_COPY =
-  `Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press FUND-IT; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+const FUND_IT_COPY = fundItCopy();
 
 export function ClimateProjectSponsors({
   lead,

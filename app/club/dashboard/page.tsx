@@ -38,12 +38,14 @@ import {
 } from "@/app/lib/partner-projects";
 import {
   DEFAULT_MINIMUM_SPONSORSHIP,
-  EXPOSURES_PER_POST,
-  formatBrandExposureLabel,
   formatMatchFundingLine,
   formatMoney,
-  formatStipulatedRate,
 } from "@/app/lib/sponsorship-auction";
+import {
+  DEFAULT_WALLET_VOTE_GBP,
+  FUND_IT_LABEL,
+  formatWalletGbp,
+} from "@/app/lib/sponsor-wallet";
 import {
   lookbackSponsorForRecord,
   signedCopyDownloadName,
@@ -545,9 +547,7 @@ export default function ClubDashboardPage() {
                   gbpPerGoal,
                   maxAmount,
                 }) || "Insert Base Match Sponsorship, £/Goal and Maximum"}
-                {gbpPerVote != null
-                  ? ` · ${formatStipulatedRate(gbpPerVote)} exposure counter · Projected Sponsor/Brand Exposure: ${formatBrandExposureLabel()}`
-                  : ` · Projected Sponsor/Brand Exposure: ${EXPOSURES_PER_POST} per posted fan`}
+                {` · ${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}`}
               </p>
             )}
             <ProjectGrid
@@ -633,11 +633,7 @@ export default function ClubDashboardPage() {
                             Number(copy.offer.sponsorshipAmountGbp) ||
                               DEFAULT_MINIMUM_SPONSORSHIP
                           )} Base Match Sponsorship`}
-                        {copy.offer.gbpPerVote
-                          ? ` · ${formatStipulatedRate(Number(copy.offer.gbpPerVote))}`
-                          : gbpPerVote
-                            ? ` · ${formatStipulatedRate(gbpPerVote)}`
-                            : ""}
+                        {` · ${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}`}
                       </p>
                     </div>
                     <button

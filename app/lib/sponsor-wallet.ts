@@ -365,6 +365,10 @@ export function formatWalletGbp(amount: number): string {
   })}`;
 }
 
+export function fundItCopy(): string {
+  return `Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+}
+
 export function numberClimateProjects<T extends { id: string; name: string }>(
   projects: T[],
   funding: Record<string, { fundedGbp?: number; votesReceived?: number }> = {}
