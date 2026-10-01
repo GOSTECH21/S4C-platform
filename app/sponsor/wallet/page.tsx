@@ -12,11 +12,11 @@ import {
 import {
   localRecordFromProfile,
   readLocalSponsorRecord,
-  readSponsorTier,
   writeLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
-import { SPONSOR_DASHBOARD_PATH, SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
+import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
+import { isLeadSponsorHome, sponsorHomePath } from "@/app/lib/sponsor-home";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { remainingGbp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
@@ -42,11 +42,15 @@ export default function SponsorWalletPage() {
         }
         setBrand(brandName);
         const local = readLocalSponsorRecord() ?? localRecordFromProfile();
-        const tier = readSponsorTier();
+        const localForBrand =
+          local &&
+          local.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
+            ? local
+            : null;
         const lock = loadMatchDayLock(brandName);
-        const club = local?.clubName || lock?.clubName || "";
+        const club = localForBrand?.clubName || lock?.clubName || "";
         setClubName(club);
-        setKind(tier === "local" || Boolean(local) ? "local" : "lead");
+        setKind(!isLeadSponsorHome(brandName) || Boolean(localForBrand) ? "local" : "lead");
         if (club) setWallet(readClimateWallet(club, brandName));
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
@@ -137,13 +141,15 @@ export default function SponsorWalletPage() {
         }}
       />
 
-      <button
-        type="button"
-        onClick={() => router.push(SPONSOR_DASHBOARD_PATH)}
-        className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
-      >
-        Back to dashboard
-      </button>
+      {isLeadSponsorHome(brand) ? (
+        <button
+          type="button"
+          onClick={() => router.push(sponsorHomePath(brand))}
+          className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
+        >
+          Back to dashboard
+        </button>
+      ) : null}
     </div>
   );
 }

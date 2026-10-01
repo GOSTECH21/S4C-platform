@@ -49,14 +49,8 @@ import {
 } from "@/app/lib/sponsorship-auction";
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
-import { LocalLeftoverPanel } from "@/app/components/sponsor/LocalLeftoverPanel";
-import {
-  localRecordFromProfile,
-  readLocalSponsorRecord,
-  readSponsorTier,
-  writeLocalSponsorRecord,
-  type LocalSponsorRecord,
-} from "@/app/lib/local-sponsor";
+import { isLeadSponsorHome } from "@/app/lib/sponsor-home";
+import { LEAD_CLIMATE_SPONSOR_LABEL } from "@/app/lib/dual-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -86,7 +80,6 @@ export default function SponsorDashboardPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [localRecord, setLocalRecord] = useState<LocalSponsorRecord | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -100,10 +93,10 @@ export default function SponsorDashboardPage() {
         sponsorEmail = (sponsor.email as string | null) ?? null;
         setBrand(sponsorName);
         setEmail(sponsorEmail);
-        const local =
-          readLocalSponsorRecord() ?? localRecordFromProfile();
-        if (local) writeLocalSponsorRecord(local);
-        setLocalRecord(local);
+        if (!isLeadSponsorHome(sponsorName)) {
+          router.replace(SPONSOR_WALLET_PATH);
+          return;
+        }
         const uploaded = loadBrandLogo(sponsorName);
         const fromRecord = (sponsor.logo_url as string | null) ?? null;
         setLogoUrl(
@@ -259,10 +252,10 @@ export default function SponsorDashboardPage() {
             S4P SPONSORSHIP DASHBOARD
           </h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Receive the club&apos;s 5 Climate Projects, sign them off, and keep
-            the settled sponsorships in your folder. Top up your Climate
-            Sponsorship Wallet so fans can take cash from it and put that cash
-            into a numbered Climate Project.
+            {LEAD_CLIMATE_SPONSOR_LABEL} only. Receive the club&apos;s 5 Climate
+            Projects, sign them off, and keep the settled sponsorships in your
+            folder. Top up your Climate Sponsorship Wallet so fans can take cash
+            from it and put that cash into a numbered Climate Project.
           </p>
         </div>
         <button
@@ -290,23 +283,14 @@ export default function SponsorDashboardPage() {
           Top up the cash fans will put into Climate Projects
         </h2>
         <p className="mt-3 max-w-3xl text-slate-300">
-          {localRecord
-            ? "Pay a sponsorship amount plus 10% management fees into this wallet. Fans insert a project number next to it and press FUND-IT."
-            : "Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship Cash. Fans then take cash from this wallet and put it on a numbered Climate Project."}
+          Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship
+          Cash. Fans then take cash from this wallet and put it on a numbered
+          Climate Project.
         </p>
         <p className="mt-5 inline-flex rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950">
           Open Climate Sponsorship Wallet
         </p>
       </Link>
-
-      {(readSponsorTier() === "local" || localRecord) && localRecord && (
-        <LocalLeftoverPanel
-          local={localRecord}
-          pending={pending}
-          signed={signed}
-          votedByClub={votedByClub}
-        />
-      )}
 
       {invites.some((row) => row.status === "pending") && (
         <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">

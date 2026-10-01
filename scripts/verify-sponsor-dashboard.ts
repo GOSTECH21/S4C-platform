@@ -21,6 +21,8 @@ import {
 } from "../app/lib/sponsor-dashboard";
 import { sponsorOfferSignOffPath } from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
+import { sponsorHomePath } from "../app/lib/sponsor-home";
+import { SPONSOR_DASHBOARD_PATH } from "../app/lib/routes";
 import { readFileSync } from "fs";
 
 const failures: string[] = [];
@@ -400,6 +402,17 @@ const sponsorDashboardPage = readFileSync(
   "utf8"
 );
 assert(
+  !sponsorDashboardPage.includes("LocalLeftoverPanel") &&
+    !sponsorDashboardPage.includes("Match Day card") &&
+    !sponsorDashboardPage.includes("Local Business Climate Sponsor"),
+  "The S4P Sponsorship Dashboard no longer shows the Local Business Climate Sponsor block"
+);
+assert(
+  sponsorDashboardPage.includes("LEAD_CLIMATE_SPONSOR_LABEL") &&
+    sponsorDashboardPage.includes("{LEAD_CLIMATE_SPONSOR_LABEL} only."),
+  "The S4P Sponsorship Dashboard is reserved for Lead Climate Sponsors"
+);
+assert(
   sponsorDashboardPage.includes(
     "Receive the club's 5 chosen Climate Projects"
   ) ||
@@ -475,6 +488,22 @@ assert(
     [{ offerId: "liv-offer", brandName: "American Express" }]
   ) === "American Express",
   "A signed American Express offer stays American Express"
+);
+
+assert(
+  sponsorHomePath("Puma") === SPONSOR_DASHBOARD_PATH,
+  "Puma as a Lead Climate Sponsor lands on the S4P Sponsorship Dashboard"
+);
+assert(
+  sponsorHomePath("American Express") === SPONSOR_DASHBOARD_PATH,
+  "American Express stays on the Lead Climate Sponsor dashboard"
+);
+
+const localRegisterPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
+assert(
+  localRegisterPage.includes("SPONSOR_WALLET_PATH") &&
+    !localRegisterPage.includes("SPONSOR_DASHBOARD_PATH"),
+  "Local Business Climate Sponsors register into the Climate Sponsorship Wallet, not the Lead dashboard"
 );
 
 if (failures.length > 0) {
