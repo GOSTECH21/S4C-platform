@@ -5,7 +5,11 @@ import {
   type GoalSponsorshipNetwork,
   type MatchDayClubLock,
 } from "../app/lib/climate-sponsors";
-import { fixturesForClub } from "../app/lib/club-fixtures";
+import {
+  clubFixtureFromUpcoming,
+  fixtureByIdOrName,
+  matchDetailsLines,
+} from "../app/lib/club-fixtures";
 import {
   LOCAL_SPONSOR_MIN_GBP,
   isSubmittedLocalSponsor,
@@ -20,12 +24,34 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-const arsenalFixtures = fixturesForClub("Arsenal").map((row) => row.fixtureName);
+const arsenalLeeds = clubFixtureFromUpcoming({
+  id: "list-arsenal-leeds",
+  date: "2026-10-10",
+  kickoff: "12:30",
+  homeName: "Arsenal",
+  awayName: "Leeds United",
+  venue: "Emirates Stadium",
+  competition: "England - Premier League",
+  source: "fixtures-list",
+  sourceUrl: "https://www.bbc.co.uk/sport/football/teams/arsenal/scores-fixtures",
+});
 assert(
-  arsenalFixtures.includes("Arsenal v Chelsea") &&
-    arsenalFixtures.includes("Bayern Munich v Arsenal") &&
-    arsenalFixtures.includes("Arsenal v Manchester United"),
-  "Arsenal fixtures include Arsenal v Chelsea, Bayern Munich v Arsenal and Arsenal v Manchester United"
+  arsenalLeeds.fixtureName === "Arsenal v Leeds United" &&
+    arsenalLeeds.date === "2026-10-10" &&
+    arsenalLeeds.venue === "Emirates Stadium" &&
+    arsenalLeeds.kickoff === "12:30",
+  "Lock-in fixtures keep the published date, venue and kick-off"
+);
+assert(
+  fixtureByIdOrName([arsenalLeeds], "Bournemouth v Arsenal") === null,
+  "Invented catalog matches such as Bournemouth v Arsenal are not treated as published fixtures"
+);
+const details = matchDetailsLines(arsenalLeeds);
+assert(
+  details.date.includes("10") &&
+    details.venue === "Emirates Stadium" &&
+    details.kickoff === "12:30 pm",
+  "See Match details formats Date, Venue and Kick-off"
 );
 
 const diageo: GoalSponsorshipNetwork = {
@@ -154,6 +180,19 @@ assert(
   "Example local brands do not appear as submitted Local Business Climate Sponsors"
 );
 
+const nextFixtures = readFileSync("app/services/next-fixtures.service.ts", "utf8");
+assert(
+  nextFixtures.includes("getPublishedFixturesForClub") &&
+    !readFileSync("app/lib/club-fixtures.ts", "utf8").includes("FEATURED_FIXTURES"),
+  "Lock-in uses published fixtures instead of a generated catalog"
+);
+assert(
+  readFileSync("app/api/sponsor/club-fixtures/route.ts", "utf8").includes(
+    "getPublishedFixturesForClub"
+  ),
+  "Sponsors load club fixtures from the published fixtures API"
+);
+
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
   dashboard.includes("ClubClimateSponsorTabs") &&
@@ -171,10 +210,10 @@ assert(
 
 const sponsorDash = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
 assert(
-  sponsorDash.includes("fixturesForClub") &&
+  sponsorDash.includes("loadClubFixtures") &&
     sponsorDash.includes("Select the Match") &&
-    sponsorDash.includes("Arsenal v Chelsea"),
-  "Lead Climate Sponsors pick a named fixture such as Arsenal v Chelsea"
+    sponsorDash.includes("SeeMatchDetails"),
+  "Lead Climate Sponsors pick a published fixture and can See Match details"
 );
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");

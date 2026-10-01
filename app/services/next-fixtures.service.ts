@@ -620,3 +620,31 @@ export async function getUpcomingFixturesForTeams(
 
   return result;
 }
+
+/** Published upcoming fixtures for lock-in — BBC, club lists, and S4P, not a generated catalog. */
+export async function getPublishedFixturesForClub(
+  clubName: string
+): Promise<UpcomingMatch[]> {
+  const name = clubName.trim();
+  if (!name) return [];
+  const team: TeamRef = {
+    id: `name:${normalizeClubName(name)}`,
+    name,
+    displayName: name,
+    sport: "football",
+  };
+  const { data: clubs } = await supabase.from("clubs").select("id, name");
+  const clubRows = (clubs ?? []) as { id: string; name: string }[];
+  const [fromSite, fromBbc, fromFeed, fromDb] = await Promise.all([
+    fetchClubWebsiteFixtures(team),
+    fetchBbcFixtures(team),
+    fetchFeedFixtures(team),
+    fetchS4pFixtures(team, clubRows),
+  ]);
+  const extras = [...fromBbc, ...fromFeed, ...fromDb];
+  const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed, fromDb]);
+  return enrichVenues(live, extras)
+    .filter((match) => Boolean(match.date) && match.date >= todayStamp())
+    .sort((left, right) => matchSortKey(left).localeCompare(matchSortKey(right)))
+    .slice(0, 16);
+}

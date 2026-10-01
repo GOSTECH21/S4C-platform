@@ -1,10 +1,16 @@
-/** Demo Match Day fixtures a Lead or Local Business Climate Sponsor can pick. */
+/** Published Match Day fixtures a Lead or Local Business Climate Sponsor can pick. */
 
 import {
-  CURRENT_SEASON_LEAGUES,
-  leagueForClubName,
-  seasonNamesMatch,
-} from "./current-season";
+  displayCompetition,
+  formatKickoff,
+  formatMatchDate,
+  normalizeClubName,
+  type UpcomingMatch,
+} from "./upcoming-matches";
+
+export function fixtureDisplayName(home: string, away: string): string {
+  return `${home.trim()} v ${away.trim()}`;
+}
 
 export type ClubFixture = {
   id: string;
@@ -12,132 +18,97 @@ export type ClubFixture = {
   awayName: string;
   fixtureName: string;
   competition: string;
+  date: string;
+  kickoff: string | null;
+  venue: string | null;
+  sourceUrl: string | null;
 };
-
-const EUROPEAN_OPPONENTS = [
-  "Bayern Munich",
-  "Real Madrid",
-  "Barcelona",
-  "Inter Milan",
-];
-
-const FEATURED_FIXTURES: Record<
-  string,
-  { home: string; away: string; competition: string }[]
-> = {
-  arsenal: [
-    { home: "Arsenal", away: "Chelsea", competition: "Premier League Match" },
-    {
-      home: "Bayern Munich",
-      away: "Arsenal",
-      competition: "Champions League Match",
-    },
-    {
-      home: "Arsenal",
-      away: "Manchester United",
-      competition: "Premier League Match",
-    },
-  ],
-};
-
-function clubKey(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/fc\b/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-export function fixtureDisplayName(home: string, away: string): string {
-  return `${home.trim()} v ${away.trim()}`;
-}
 
 export function isNamedFixture(label: string | null | undefined): boolean {
   return /\sv\s/i.test(String(label ?? "").trim());
 }
 
-export function clubFixtureId(
-  home: string,
-  away: string,
-  competition: string
+export function competitionLockLabel(
+  competition: string | null | undefined
 ): string {
-  return `${clubKey(home)}-${clubKey(away)}-${clubKey(competition)}`.replace(
-    /\s+/g,
-    "-"
-  );
+  const name = displayCompetition(competition) || String(competition ?? "").trim();
+  if (/premier league/i.test(name)) return "Premier League Match";
+  if (/champions league/i.test(name)) return "Champions League Match";
+  if (/\bfa cup\b/i.test(name)) return "FA Cup Match";
+  if (/scottish premiership/i.test(name)) return "Scottish Premiership Match";
+  if (/la liga/i.test(name)) return "La Liga Match";
+  if (/league cup|carabao/i.test(name)) return "Other Match Day";
+  if (!name) return "Other Match Day";
+  return /match$/i.test(name) ? name : `${name} Match`;
 }
 
-function toFixture(
-  home: string,
-  away: string,
-  competition: string
-): ClubFixture {
+export function clubFixtureFromUpcoming(match: UpcomingMatch): ClubFixture {
   return {
-    id: clubFixtureId(home, away, competition),
-    homeName: home,
-    awayName: away,
-    fixtureName: fixtureDisplayName(home, away),
-    competition,
+    id: match.id,
+    homeName: match.homeName,
+    awayName: match.awayName,
+    fixtureName: fixtureDisplayName(match.homeName, match.awayName),
+    competition: competitionLockLabel(match.competition),
+    date: match.date,
+    kickoff: match.kickoff,
+    venue: match.venue,
+    sourceUrl: match.sourceUrl,
   };
 }
 
-function featuredFor(clubName: string): ClubFixture[] {
-  const rows = FEATURED_FIXTURES[clubKey(clubName)] ?? [];
-  return rows.map((row) => toFixture(row.home, row.away, row.competition));
-}
-
-function generatedFor(clubName: string): ClubFixture[] {
-  const league = leagueForClubName(clubName);
-  const clubs = league ? CURRENT_SEASON_LEAGUES[league] ?? [] : [];
-  const self =
-    clubs.find((club) => seasonNamesMatch(club, clubName)) ?? clubName.trim();
-  if (!self) return [];
-  const competition = league ? `${league} Match` : "Other Match Day";
-  const opponents = clubs.filter((club) => !seasonNamesMatch(club, self));
-  const fixtures: ClubFixture[] = [];
-  opponents.slice(0, 6).forEach((opponent, index) => {
-    fixtures.push(
-      index % 2 === 0
-        ? toFixture(self, opponent, competition)
-        : toFixture(opponent, self, competition)
-    );
-  });
-  if (
-    league === "Premier League" ||
-    league === "Bundesliga" ||
-    league === "La Liga" ||
-    league === "Serie A"
-  ) {
-    const euro =
-      EUROPEAN_OPPONENTS.find((name) => !seasonNamesMatch(name, self)) ??
-      "Bayern Munich";
-    fixtures.push(toFixture(euro, self, "Champions League Match"));
-  }
-  return fixtures;
-}
-
-export function fixturesForClub(clubName: string): ClubFixture[] {
-  if (!clubName.trim()) return [];
+export function fixturesFromUpcoming(matches: UpcomingMatch[]): ClubFixture[] {
   const seen = new Set<string>();
   const rows: ClubFixture[] = [];
-  for (const row of [...featuredFor(clubName), ...generatedFor(clubName)]) {
-    const key = clubKey(row.fixtureName);
-    if (!key || seen.has(key)) continue;
+  for (const match of matches) {
+    const fixture = clubFixtureFromUpcoming(match);
+    const key = `${fixture.date}|${normalizeClubName(fixture.homeName)}|${normalizeClubName(fixture.awayName)}`;
+    if (seen.has(key)) continue;
     seen.add(key);
-    rows.push(row);
+    rows.push(fixture);
   }
-  return rows.slice(0, 8);
+  return rows;
 }
 
-export function fixtureByName(
-  clubName: string,
-  fixtureName: string
+export function fixtureByIdOrName(
+  fixtures: ClubFixture[],
+  value: string
 ): ClubFixture | null {
-  const needle = clubKey(fixtureName);
+  const needle = value.trim();
   if (!needle) return null;
+  const byId = fixtures.find((row) => row.id === needle);
+  if (byId) return byId;
+  const key = normalizeClubName(needle);
   return (
-    fixturesForClub(clubName).find(
-      (row) => clubKey(row.fixtureName) === needle
+    fixtures.find(
+      (row) =>
+        normalizeClubName(row.fixtureName) === key ||
+        normalizeClubName(`${row.homeName} vs ${row.awayName}`) === key
     ) ?? null
   );
+}
+
+export type MatchDetails = {
+  date: string;
+  venue: string;
+  kickoff: string;
+};
+
+export function matchDetailsLines(fixture: {
+  date?: string | null;
+  venue?: string | null;
+  kickoff?: string | null;
+}): MatchDetails {
+  return {
+    date: fixture.date ? formatMatchDate(fixture.date) : "TBC",
+    venue: fixture.venue?.trim() || "TBC",
+    kickoff: formatKickoff(fixture.kickoff ?? null),
+  };
+}
+
+export function hasMatchDetails(fixture: {
+  date?: string | null;
+  venue?: string | null;
+  kickoff?: string | null;
+}): boolean {
+  return Boolean(fixture.date || fixture.venue || fixture.kickoff);
 }

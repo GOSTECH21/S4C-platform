@@ -79,6 +79,10 @@ export type ChosenMatch = {
   clubName: string;
   fixtureName: string;
   competition?: string;
+  fixtureDate?: string;
+  kickoff?: string | null;
+  venue?: string | null;
+  sourceUrl?: string | null;
   lockedAt: string;
 };
 
@@ -88,6 +92,10 @@ export type MatchDayClubLock = {
   matchLabel: string;
   fixtureName?: string;
   competition?: string;
+  fixtureDate?: string;
+  kickoff?: string | null;
+  venue?: string | null;
+  sourceUrl?: string | null;
   matches?: ChosenMatch[];
   lockedAt: string;
 };
@@ -146,6 +154,10 @@ export function appendChosenMatch(
     clubName: next.clubName,
     fixtureName,
     competition: next.competition,
+    fixtureDate: next.fixtureDate,
+    kickoff: next.kickoff,
+    venue: next.venue,
+    sourceUrl: next.sourceUrl,
     lockedAt: next.lockedAt,
   };
   const previous = existing?.matches ?? [];

@@ -307,12 +307,20 @@ export function lockMatchDayClub({
   matchLabel,
   fixtureName,
   competition,
+  fixtureDate,
+  kickoff,
+  venue,
+  sourceUrl,
 }: {
   brandName: string;
   clubName: string;
   matchLabel: string;
   fixtureName?: string;
   competition?: string;
+  fixtureDate?: string;
+  kickoff?: string | null;
+  venue?: string | null;
+  sourceUrl?: string | null;
 }): MatchDayClubLock {
   const lockedAt = new Date().toISOString();
   const next: MatchDayClubLock = {
@@ -321,6 +329,10 @@ export function lockMatchDayClub({
     matchLabel,
     fixtureName,
     competition: competition || matchLabel,
+    fixtureDate,
+    kickoff,
+    venue,
+    sourceUrl,
     lockedAt,
   };
   const store = readJson<LockStore>(LOCK_KEY, {});
@@ -345,6 +357,10 @@ export function clearMatchDayLock(brandName: string) {
         clubName: "",
         matchLabel: row.competition || row.matchLabel,
         fixtureName: undefined,
+        fixtureDate: undefined,
+        kickoff: undefined,
+        venue: undefined,
+        sourceUrl: undefined,
         lockedAt: new Date().toISOString(),
         matches: row.matches ?? [],
       };

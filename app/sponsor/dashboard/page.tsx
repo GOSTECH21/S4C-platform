@@ -36,7 +36,9 @@ import {
   type MatchDayClubLock,
   type NetworkInvite,
 } from "@/app/lib/climate-sponsors";
-import { fixturesForClub, fixtureByName } from "@/app/lib/club-fixtures";
+import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
+import { loadClubFixtures } from "@/app/services/club-fixtures.service";
+import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
 import { leagueForClubName } from "@/app/lib/current-season";
 import {
   SPONSOR_LOGIN_PATH,
@@ -79,6 +81,9 @@ export default function SponsorDashboardPage() {
   const [lockClub, setLockClub] = useState("");
   const [lockFixture, setLockFixture] = useState("");
   const [lockLabel, setLockLabel] = useState(MATCH_DAY_LOCK_LABELS[0]);
+  const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
+  const [fixturesLoading, setFixturesLoading] = useState(false);
+  const [fixtureNotice, setFixtureNotice] = useState<string | null>(null);
   const [networkClubs, setNetworkClubs] = useState<string[]>([]);
   const [email, setEmail] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -167,6 +172,71 @@ export default function SponsorDashboardPage() {
     load();
   }, [router]);
 
+  useEffect(() => {
+    if (!lockClub) {
+      setClubFixtures([]);
+      setFixturesLoading(false);
+      setFixtureNotice(null);
+      return;
+    }
+    let cancelled = false;
+    setFixturesLoading(true);
+    void loadClubFixtures(lockClub)
+      .then((rows) => {
+        if (cancelled) return;
+        setClubFixtures(rows);
+        const current = lockFixture || (lock ? displayLockFixture(lock) : "");
+        if (!current) {
+          setFixtureNotice(null);
+          return;
+        }
+        const published = fixtureByIdOrName(rows, current);
+        if (published) {
+          setLockFixture(published.fixtureName);
+          setLockLabel(published.competition);
+          setFixtureNotice(null);
+          if (
+            lock &&
+            (lock.fixtureDate !== published.date ||
+              lock.venue !== published.venue ||
+              lock.kickoff !== published.kickoff)
+          ) {
+            const next = lockMatchDayClub({
+              brandName: brand,
+              clubName: lockClub,
+              matchLabel: published.competition,
+              fixtureName: published.fixtureName,
+              competition: published.competition,
+              fixtureDate: published.date,
+              kickoff: published.kickoff,
+              venue: published.venue,
+              sourceUrl: published.sourceUrl,
+            });
+            setLock(next);
+          }
+          return;
+        }
+        if (rows.length > 0) {
+          setLockFixture("");
+          setFixtureNotice(
+            `${current} is not a published fixture. Select a listed Match.`
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setClubFixtures([]);
+          setFixtureNotice("Could not load published fixtures for this club.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFixturesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lockClub, brand]);
+
   async function logout() {
     await logoutSponsor();
     router.push(SPONSOR_LOGIN_PATH);
@@ -201,11 +271,12 @@ export default function SponsorDashboardPage() {
     });
   }
 
-  function applyMatchDayLock(clubName: string, fixtureName: string) {
+  function applyMatchDayLock(clubName: string, fixtureValue: string) {
     const club = clubName.trim();
-    const fixture = club ? fixtureByName(club, fixtureName) : null;
-    setLockFixture(fixture?.fixtureName ?? fixtureName);
+    const fixture = club ? fixtureByIdOrName(clubFixtures, fixtureValue) : null;
+    setLockFixture(fixture?.fixtureName ?? "");
     if (fixture?.competition) setLockLabel(fixture.competition);
+    setFixtureNotice(null);
     if (!club) {
       clearMatchDayLock(brand);
       setLock(null);
@@ -224,6 +295,10 @@ export default function SponsorDashboardPage() {
       matchLabel: fixture.competition,
       fixtureName: fixture.fixtureName,
       competition: fixture.competition,
+      fixtureDate: fixture.date,
+      kickoff: fixture.kickoff,
+      venue: fixture.venue,
+      sourceUrl: fixture.sourceUrl,
     });
     setLock(next);
     setLockClub(club);
@@ -367,23 +442,34 @@ export default function SponsorDashboardPage() {
             <label className="block text-sm text-slate-400">
               Match
               <select
-                value={lockFixture}
-                disabled={!lockClub}
+                value={
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.id ?? ""
+                }
+                disabled={!lockClub || fixturesLoading}
                 onChange={(event) =>
                   applyMatchDayLock(lockClub, event.target.value)
                 }
                 className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white disabled:opacity-50"
               >
-                <option value="">Select the Match</option>
-                {fixturesForClub(lockClub).map((fixture) => (
-                  <option key={fixture.id} value={fixture.fixtureName}>
+                <option value="">
+                  {fixturesLoading
+                    ? "Loading published fixtures..."
+                    : "Select the Match"}
+                </option>
+                {clubFixtures.map((fixture) => (
+                  <option key={fixture.id} value={fixture.id}>
                     {fixture.fixtureName}
                   </option>
                 ))}
               </select>
             </label>
           </div>
-          {lockClub && lockFixture ? (
+          {fixtureNotice && (
+            <p className="mt-4 text-sm font-semibold text-amber-300">
+              {fixtureNotice}
+            </p>
+          )}
+          {lockClub && lockFixture && fixtureByIdOrName(clubFixtures, lockFixture) ? (
             <>
               <p className="mt-4 text-2xl font-black">
                 {lockClub} · {lockFixture}
@@ -392,11 +478,25 @@ export default function SponsorDashboardPage() {
                 Posted Climate Projects from other clubs will not appear on this
                 dashboard until you change this lock.
               </p>
+              <SeeMatchDetails
+                date={
+                  lock?.fixtureDate ||
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.date
+                }
+                venue={
+                  lock?.venue ||
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.venue
+                }
+                kickoff={
+                  lock?.kickoff ||
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.kickoff
+                }
+              />
             </>
           ) : lockClub ? (
             <p className="mt-4 text-sm text-slate-400">
-              {lockClub} is selected. Choose the Match you wish to be Lead
-              Climate Sponsor for — for example Arsenal v Chelsea.
+              {lockClub} is selected. Choose a published Match from the fixtures
+              list — Date, Venue and Kick-off are on See Match details.
             </p>
           ) : (
             <p className="mt-4 text-sm text-slate-400">

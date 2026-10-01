@@ -1,8 +1,14 @@
 "use client";
 
-import { fixturesForClub } from "@/app/lib/club-fixtures";
+import { useEffect, useState } from "react";
+import {
+  formatKickoff,
+  formatMatchDate,
+} from "@/app/lib/upcoming-matches";
+import type { ClubFixture } from "@/app/lib/club-fixtures";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
+import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 
 export function MatchSponsorshipPicker({
   clubName,
@@ -17,7 +23,31 @@ export function MatchSponsorshipPicker({
   onToggle: (fixtureName: string) => void;
   onAmount: (fixtureName: string, amount: string) => void;
 }) {
-  const fixtures = fixturesForClub(clubName);
+  const [fixtures, setFixtures] = useState<ClubFixture[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!clubName.trim()) {
+      setFixtures([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    void loadClubFixtures(clubName)
+      .then((rows) => {
+        if (!cancelled) setFixtures(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setFixtures([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [clubName]);
+
   if (!clubName.trim()) {
     return (
       <p className="text-sm text-slate-500">
@@ -26,10 +56,17 @@ export function MatchSponsorshipPicker({
       </p>
     );
   }
+  if (loading) {
+    return (
+      <p className="text-sm text-slate-500">
+        Loading published fixtures for {clubName}...
+      </p>
+    );
+  }
   if (fixtures.length === 0) {
     return (
       <p className="text-sm text-slate-500">
-        No upcoming fixtures are listed for {clubName} yet.
+        No published upcoming fixtures are listed for {clubName} yet.
       </p>
     );
   }
@@ -58,7 +95,8 @@ export function MatchSponsorshipPicker({
                   {fixture.fixtureName}
                 </span>
                 <span className="text-xs text-slate-400">
-                  {fixture.competition}
+                  {formatMatchDate(fixture.date)} · {formatKickoff(fixture.kickoff)}
+                  {fixture.venue ? ` · ${fixture.venue}` : ""}
                 </span>
               </span>
             </span>
@@ -73,7 +111,7 @@ export function MatchSponsorshipPicker({
                   onChange={(event) =>
                     onAmount(fixture.fixtureName, event.target.value)
                   }
-                  className="mt-1 w-full rounded-lg bg-slate-800 p-2 text-white sm:w-36"
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-white sm:w-36"
                 />
               </label>
             )}
@@ -81,8 +119,8 @@ export function MatchSponsorshipPicker({
         );
       })}
       <p className="text-xs text-slate-500">
-        From {formatMoney(LOCAL_SPONSOR_MIN_GBP)} per selected Match. SUBMIT
-        sends these amounts to the {clubName} Sustainability Director.
+        From {formatMoney(LOCAL_SPONSOR_MIN_GBP)} per selected published Match.
+        SUBMIT sends these amounts to the {clubName} Sustainability Director.
       </p>
     </div>
   );
