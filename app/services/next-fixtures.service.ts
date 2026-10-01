@@ -621,6 +621,20 @@ export async function getUpcomingFixturesForTeams(
   return result;
 }
 
+function fillHomeVenues(matches: UpcomingMatch[]): UpcomingMatch[] {
+  const homeVenue = new Map<string, string>();
+  for (const match of matches) {
+    if (match.venue?.trim()) {
+      homeVenue.set(normalizeClubName(match.homeName), match.venue.trim());
+    }
+  }
+  return matches.map((match) => {
+    if (match.venue?.trim()) return match;
+    const venue = homeVenue.get(normalizeClubName(match.homeName));
+    return venue ? { ...match, venue } : match;
+  });
+}
+
 /** Published upcoming fixtures for lock-in — BBC, club lists, and S4P, not a generated catalog. */
 export async function getPublishedFixturesForClub(
   clubName: string
@@ -643,7 +657,7 @@ export async function getPublishedFixturesForClub(
   ]);
   const extras = [...fromBbc, ...fromFeed, ...fromDb];
   const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed, fromDb]);
-  return enrichVenues(live, extras)
+  return fillHomeVenues(enrichVenues(live, extras))
     .filter((match) => Boolean(match.date) && match.date >= todayStamp())
     .sort((left, right) => matchSortKey(left).localeCompare(matchSortKey(right)))
     .slice(0, 16);
