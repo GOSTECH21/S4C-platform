@@ -271,6 +271,51 @@ assert(
   "Posted Climate Projects disappear 5 days after they are uploaded"
 );
 
+assert(
+  sponsorRowsFromWallets([amex, topCellar]).length === 2,
+  "Lead and local wallets both appear in the Sponsors File"
+);
+
+const pumaArsenal = createLeadWallet({
+  clubName: "Arsenal",
+  brandName: "Puma",
+  commitmentFeeGbp: 3500,
+  gbpPerGoal: 4000,
+});
+const pumaArsenalFc = createLeadWallet({
+  clubName: "Arsenal FC",
+  brandName: "Puma",
+  commitmentFeeGbp: 3500,
+  gbpPerGoal: 4000,
+});
+assert(
+  pumaArsenal.id !== pumaArsenalFc.id,
+  "Arsenal and Arsenal FC can store separate Puma wallet ids"
+);
+assert(
+  sponsorRowsFromWallets([pumaArsenal, pumaArsenalFc]).length === 1,
+  "The same brand cannot appear twice in the Sponsors File"
+);
+assert(
+  buildSponsorsFile({
+    matchDate: "2026-10-10",
+    sponsors: [
+      ...sponsorRowsFromWallets([pumaArsenal]),
+      ...sponsorRowsFromWallets([pumaArsenalFc]),
+    ],
+  }).sponsors.length === 1,
+  "Saving the Sponsors File collapses duplicate Puma rows"
+);
+
+const folderPanel = readFileSync(
+  "app/components/club/MatchDayFolderPanel.tsx",
+  "utf8"
+);
+assert(
+  folderPanel.includes("uniqueSponsorRows"),
+  "The Match-Day folder de-duplicates sponsor rows before listing them"
+);
+
 const clubPage = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match-Day folder");
 assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");

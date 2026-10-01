@@ -1,9 +1,10 @@
 "use client";
 
-import { MATCH_DAY_FOLDER_NAME } from "@/app/lib/match-day-folder";
-import { MATCH_DAY_PROJECT_COUNT } from "@/app/lib/partner-projects";
-import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
-import type { MatchDayFolder } from "@/app/lib/match-day-folder";
+import {
+  MATCH_DAY_FOLDER_NAME,
+  uniqueSponsorRows,
+  type MatchDayFolder,
+} from "@/app/lib/match-day-folder";
 
 export function MatchDayFolderPanel({
   clubName,
@@ -32,6 +33,7 @@ export function MatchDayFolderPanel({
 }) {
   const sponsorsFile = folder?.sponsorsFile ?? null;
   const projectsFile = folder?.projectsFile ?? null;
+  const sponsors = uniqueSponsorRows(sponsorsFile?.sponsors ?? []);
   const canSubmit = Boolean(sponsorsFile && projectsFile);
 
   return (
@@ -65,9 +67,9 @@ export function MatchDayFolderPanel({
             {sponsorsFile?.fileName ??
               "Save the sponsors and the cash in each Climate Sponsorship Wallet."}
           </p>
-          {sponsorsFile?.sponsors.length ? (
+          {sponsors.length ? (
             <ul className="mt-4 space-y-2 text-sm text-slate-300">
-              {sponsorsFile.sponsors.map((row) => (
+              {sponsors.map((row) => (
                 <li key={row.brandName} className="flex justify-between gap-3">
                   <span>
                     {row.brandName}
