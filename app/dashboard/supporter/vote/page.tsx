@@ -19,7 +19,6 @@ import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import {
   fanVotingWindowCopy,
   fanVotingWindowForMatchCopy,
-  isVotingOpen,
   resolveVotingWindow,
 } from "@/app/lib/voting-window";
 import {
@@ -34,7 +33,7 @@ import {
   remainingGbp,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
-import type { MatchDayFolder } from "@/app/lib/match-day-folder";
+import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
@@ -189,7 +188,7 @@ function CampaignClimateBoard({
     closesAt: campaign.votingCloses,
     postedAt: campaign.postedAt,
   });
-  const votingOpen = isVotingOpen(votingWindow);
+  const fundingOpen = fanFundingIsOpen({ folder, votingWindow });
 
   useEffect(() => {
     function refresh() {
@@ -228,7 +227,7 @@ function CampaignClimateBoard({
     split?: boolean;
   }) {
     if (!supporterId) return;
-    if (!votingOpen) {
+    if (!fundingOpen) {
       setError("Voting is not open for this match yet, or it has already closed.");
       return;
     }
@@ -365,7 +364,7 @@ function CampaignClimateBoard({
         }))}
         projectCount={numbered.length || 5}
         busy={busy}
-        votingOpen={votingOpen}
+        votingOpen={fundingOpen}
         usedSponsorNames={usedSponsors}
         clubId={clubId}
         clubName={campaign.clubName}

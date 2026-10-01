@@ -9,6 +9,7 @@ import { FAN_REGISTER_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
+  canPressFundIt,
   formatWalletGbp,
   fundItCopy,
   normalizeKey,
@@ -71,12 +72,15 @@ export function ClimateProjectSponsors({
     : null;
   const leadUsed = Boolean(lead && used.has(normalizeKey(lead.brandName)));
   const leadBlocked =
-    busy ||
-    !votingOpen ||
     !lead ||
-    leadUsed ||
-    lead.remainingGbp < DEFAULT_WALLET_VOTE_GBP ||
-    !leadNumber;
+    !canPressFundIt({
+      busy,
+      fundingOpen: votingOpen,
+      used: leadUsed,
+      remainingGbp: lead.remainingGbp,
+      projectNumber: leadNumber,
+      projectCount,
+    });
   const localRows = locals.filter(
     (row) => row.kind !== "lead" && !isLeadClimateBrand(row.brandName)
   );
@@ -188,12 +192,14 @@ export function ClimateProjectSponsors({
               row.logoUrl ||
               loadBrandLogo(row.brandName) ||
               sponsorLogoSrc(row.brandName, row.logoUrl);
-            const blocked =
-              busy ||
-              !votingOpen ||
-              already ||
-              row.remainingGbp < DEFAULT_WALLET_VOTE_GBP ||
-              !value;
+            const blocked = !canPressFundIt({
+              busy,
+              fundingOpen: votingOpen,
+              used: already,
+              remainingGbp: row.remainingGbp,
+              projectNumber: value,
+              projectCount,
+            });
             return (
               <div
                 key={row.brandName}

@@ -7,7 +7,7 @@ import {
   type NumberedClimateProject,
   type SponsorWalletKind,
 } from "./sponsor-wallet";
-import { VOTING_PERIOD_DAYS, addDays } from "./voting-window";
+import { VOTING_PERIOD_DAYS, addDays, votingPhase, type VotingWindow } from "./voting-window";
 
 export const MATCH_DAY_FOLDER_NAME = "Match-Day";
 
@@ -250,6 +250,21 @@ export function isMatchDayFolderVisible(
   const expires = addDays(posted, VOTING_PERIOD_DAYS);
   const current = now instanceof Date ? now : new Date(now);
   return current.getTime() <= expires.getTime();
+}
+
+export function fanFundingIsOpen({
+  folder,
+  votingWindow,
+  now = new Date(),
+}: {
+  folder?: MatchDayFolder | null;
+  votingWindow: VotingWindow;
+  now?: Date | string;
+}): boolean {
+  if (isMatchDayFolderVisible(folder, now)) return true;
+  // Once wallets are on My S4P, FUND-IT should not stay grey until
+  // kick-off − 3 days. Only a closed vote keeps it off.
+  return votingPhase(votingWindow, now) !== "closed";
 }
 
 export function applyFundingToProjectsFile(

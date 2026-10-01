@@ -310,6 +310,26 @@ export function parseProjectNumber(
   return number;
 }
 
+export function canPressFundIt({
+  busy = false,
+  fundingOpen = true,
+  used = false,
+  remainingGbp,
+  projectNumber,
+  projectCount,
+}: {
+  busy?: boolean;
+  fundingOpen?: boolean;
+  used?: boolean;
+  remainingGbp: number;
+  projectNumber: string | number | null | undefined;
+  projectCount: number;
+}): boolean {
+  if (busy || !fundingOpen || used) return false;
+  if (!(Number(remainingGbp) >= DEFAULT_WALLET_VOTE_GBP)) return false;
+  return parseProjectNumber(projectNumber, projectCount) != null;
+}
+
 export function walletVoteAmount(
   _wallet?: Pick<ClimateWallet, "kind">
 ): number {

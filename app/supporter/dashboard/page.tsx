@@ -22,7 +22,6 @@ import { liveMatchDayBranding } from "@/app/services/match-day-branding.service"
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import {
   fanVotingWindowCopy,
-  isVotingOpen,
   resolveVotingWindow,
 } from "@/app/lib/voting-window";
 import {
@@ -39,8 +38,8 @@ import {
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
 import { captureClimateInviteFromSearch, fanVotedSponsorNames } from "@/app/lib/climate-funding";
-import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 
@@ -241,7 +240,7 @@ function CampaignPanel({
     closesAt: campaign.votingCloses,
     postedAt: campaign.postedAt,
   });
-  const votingOpen = isVotingOpen(votingWindow);
+  const fundingOpen = fanFundingIsOpen({ folder, votingWindow });
   const headline = campaignHeadline(campaign.matchTitle);
   const schedule = readFanPostSchedule(clubId);
   const branding = liveMatchDayBranding({
@@ -352,7 +351,7 @@ function CampaignPanel({
     split?: boolean;
   }) {
     if (!supporterId) return;
-    if (!votingOpen) {
+    if (!fundingOpen) {
       setError("Voting is not open for this match yet, or it has already closed.");
       return;
     }
@@ -464,7 +463,7 @@ function CampaignPanel({
             locals={localSponsors}
             projectCount={projects.length || 5}
             busy={busy}
-            votingOpen={votingOpen}
+            votingOpen={fundingOpen}
             usedSponsorNames={usedSponsors}
             clubId={clubId}
             clubName={campaign.clubName}

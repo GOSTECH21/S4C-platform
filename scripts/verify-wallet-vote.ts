@@ -15,6 +15,7 @@ import {
   remainingGbp,
   walletVoteAmount,
   totalAllocatedGbp,
+  canPressFundIt,
   formatWalletGbp,
 } from "../app/lib/sponsor-wallet";
 import {
@@ -23,6 +24,7 @@ import {
   canSubmitMatchDayFolder,
   climateProjectsFileName,
   emptyMatchDayFolder,
+  fanFundingIsOpen,
   isMatchDayFolderVisible,
   MATCH_DAY_FOLDER_NAME,
   saveProjectsIntoFolder,
@@ -31,7 +33,12 @@ import {
   sponsorsFileName,
   submitMatchDayFolder,
 } from "../app/lib/match-day-folder";
-import { MS_PER_DAY } from "../app/lib/voting-window";
+import {
+  MS_PER_DAY,
+  isVotingOpen,
+  resolveVotingWindow,
+  votingPhase,
+} from "../app/lib/voting-window";
 import {
   fanInviteRegisterPath,
   mergeNumberedFunding,
@@ -316,11 +323,79 @@ assert(
   "The Match-Day folder de-duplicates sponsor rows before listing them"
 );
 
+assert(
+  canPressFundIt({
+    remainingGbp: 3500,
+    projectNumber: "3",
+    projectCount: 5,
+  }),
+  "FUND-IT turns on when a Climate Project Number is in the Checkbox"
+);
+assert(
+  !canPressFundIt({
+    remainingGbp: 3500,
+    projectNumber: "3",
+    projectCount: 5,
+    fundingOpen: false,
+  }),
+  "FUND-IT stays off after the vote has closed"
+);
+assert(
+  canPressFundIt({
+    remainingGbp: 3500,
+    projectNumber: "3",
+    projectCount: 5,
+    used: true,
+  }) === false,
+  "FUND-IT stays off once that sponsor has already been used"
+);
+
+const earlyKickoff = resolveVotingWindow({
+  kickoff: "2026-10-10T15:00:00.000Z",
+});
+assert(
+  !isVotingOpen(earlyKickoff, "2026-10-01T21:00:00.000Z"),
+  "Kick-off voting is still closed nine days before the match"
+);
+assert(
+  votingPhase(earlyKickoff, "2026-10-01T21:55:00.000Z") === "upcoming",
+  "1 October is still before the kick-off voting window"
+);
+assert(
+  fanFundingIsOpen({
+    folder: null,
+    votingWindow: earlyKickoff,
+    now: "2026-10-01T21:55:00.000Z",
+  }),
+  "FUND-IT turns on when a project number is entered even before kick-off − 3 days"
+);
+const postedFolder = submitMatchDayFolder(
+  folder,
+  "2026-10-01T21:00:00.000Z"
+);
+assert(
+  fanFundingIsOpen({
+    folder: postedFolder,
+    votingWindow: earlyKickoff,
+    now: "2026-10-01T21:55:00.000Z",
+  }),
+  "FUND-IT is live as soon as the Match-Day folder is submitted"
+);
+assert(
+  !fanFundingIsOpen({
+    folder: null,
+    votingWindow: earlyKickoff,
+    now: "2026-10-13T16:00:00.000Z",
+  }),
+  "FUND-IT turns off after the 5-day vote has closed"
+);
+
 const clubPage = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match-Day folder");
 assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");
 
 const fanPage = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
+const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(
   fanPage.includes("ClimateProjectSponsors"),
   "My S4P lets fans take cash from a Carbon Wallet"
@@ -348,6 +423,7 @@ assert(
     !sponsorsUi.includes("Checkbox 1") &&
     !sponsorsUi.includes("Checkbox 2") &&
     sponsorsUi.includes("FUND_IT_LABEL") &&
+    sponsorsUi.includes("canPressFundIt") &&
     !sponsorsUi.includes(">Vote<"),
   "Each Carbon Wallet has one Checkbox and a FUND-IT tab"
 );
@@ -383,8 +459,11 @@ assert(
   "The invite link sends friends to fan registration for this club"
 );
 
-const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
-assert(votePage.includes("ClimateProjectSponsors"), "Climate Projects uses Carbon Wallet votes");
+assert(
+  fanPage.includes("fanFundingIsOpen") &&
+    votePage.includes("fanFundingIsOpen"),
+  "My S4P and Climate Projects enable FUND-IT after the Match-Day folder is submitted"
+);
 assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(
   votePage.includes("Climate Project list"),
