@@ -20,7 +20,7 @@ export default function HowItWorks() {
       number: "03",
       title: "FANS DIRECT THE FUNDING",
       description:
-        "Fans allocate real Sponsor-funded money to the Climate Projects they want to support",
+        "Fans press FUND-IT up to 5 times, taking £0.20 once from each Carbon Wallet onto any Climate Project they want to support (creating a DIRECT FAN ENGAGEMENT FOR LOCAL BUSINESSES)",
     },
     {
       number: "04",

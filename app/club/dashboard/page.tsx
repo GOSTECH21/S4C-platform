@@ -10,18 +10,14 @@ import {
   fileRecordDownloadName,
   postMatchDayProjectsToFans,
   readStoredMatchDay,
-  saveMatchDaySelection,
   matchDayWindowCopy,
   type ClubAccount,
   type ClubFileRecord,
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import {
-  listClubSponsorProposals,
   listClubSignedSponsorships,
-  markSponsorProposalPosted,
   type SignedSponsorship,
-  type SponsorProjectProposal,
 } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
@@ -42,36 +38,40 @@ import {
 } from "@/app/lib/partner-projects";
 import {
   DEFAULT_MINIMUM_SPONSORSHIP,
-  EXPOSURES_PER_POST,
-  formatBrandExposureLabel,
   formatMatchFundingLine,
   formatMoney,
-  formatStipulatedRate,
 } from "@/app/lib/sponsorship-auction";
+import {
+  DEFAULT_WALLET_VOTE_GBP,
+  FUND_IT_LABEL,
+  formatWalletGbp,
+} from "@/app/lib/sponsor-wallet";
 import {
   lookbackSponsorForRecord,
   signedCopyDownloadName,
   signedCopyPayload,
-  sponsorshipFundedProposals,
-  sponsorshipSelectedProposals,
 } from "@/app/lib/sponsor-dashboard";
 import {
+  leadClimateSponsorsForClub,
   loadClubSponsorRoster,
   loadGoalNetwork,
   loadMatchDayLock,
-  setMatchDaySponsorTargets,
 } from "@/app/services/climate-sponsors.service";
 import {
   selectedBrandsReadyToReceive,
-  rankSponsorsBySpend,
   type ClubSponsorRoster,
+  type LeadClubSponsorRow,
 } from "@/app/lib/climate-sponsors";
 import { BrandMark } from "@/app/components/club/BrandMark";
+import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
+import {
+  submittedLocalSponsorsForClub,
+  type LocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
-  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
@@ -109,9 +109,10 @@ export default function ClubDashboardPage() {
   const [matchDate, setMatchDate] = useState("2026-10-10");
   const [folder, setFolder] = useState<MatchDayFolder | null>(null);
   const [folderNotice, setFolderNotice] = useState<string | null>(null);
-  const [proposals, setProposals] = useState<SponsorProjectProposal[]>([]);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
+  const [leadSponsors, setLeadSponsors] = useState<LeadClubSponsorRow[]>([]);
+  const [localSponsors, setLocalSponsors] = useState<LocalSponsorRecord[]>([]);
   const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
@@ -156,13 +157,12 @@ export default function ClubDashboardPage() {
       setGbpPerGoal(stored?.gbpPerGoal && stored.gbpPerGoal > 0 ? stored.gbpPerGoal : null);
       setMaxAmount(stored?.maxAmount && stored.maxAmount > 0 ? stored.maxAmount : null);
       setGbpPerVote(stored?.gbpPerVote ?? null);
-      setProposals(
-        await listClubSponsorProposals(session.club.id, session.club.name)
-      );
       setSignedCopies(
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
       setRoster(loadClubSponsorRoster(session.club.id, session.club.name));
+      setLeadSponsors(leadClimateSponsorsForClub(session.club.name));
+      setLocalSponsors(submittedLocalSponsorsForClub(session.club.name));
       const storedFolder = readMatchDayFolder(session.club.id);
       setFolder(storedFolder);
       if (storedFolder?.matchDate) setMatchDate(storedFolder.matchDate);
@@ -197,14 +197,6 @@ export default function ClubDashboardPage() {
       ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
       : [];
   const clubRow = cilt.find((row) => row.isClub);
-  const selectedProposals = useMemo(
-    () => sponsorshipSelectedProposals(proposals),
-    [proposals]
-  );
-  const fundedProposals = useMemo(
-    () => sponsorshipFundedProposals(proposals),
-    [proposals]
-  );
   const orderedSelected = useMemo(() => {
     const featured = selected.find(isFeaturedClimateProject);
     if (!featured) return selected;
@@ -366,44 +358,6 @@ export default function ClubDashboardPage() {
     }
   }
 
-  async function pushSponsorProposal(proposal: SponsorProjectProposal) {
-    if (!club) return;
-    setPosting(true);
-    setPostError(null);
-    try {
-      const featuredId = selected.find(isFeaturedClimateProject)?.id;
-      const partnerIds = proposal.projectIds.filter((id) => id !== featuredId);
-      await saveMatchDaySelection({
-        clubId: club.id,
-        clubName: club.name,
-        country: club.country,
-        projectIds: partnerIds,
-        minAmount: minAmount ?? DEFAULT_MINIMUM_SPONSORSHIP,
-        gbpPerGoal: gbpPerGoal ?? undefined,
-        maxAmount: maxAmount ?? undefined,
-        gbpPerVote: gbpPerVote ?? undefined,
-      });
-      const posted = await postMatchDayProjectsToFans({
-        clubId: club.id,
-        clubName: club.name,
-        country: club.country,
-      });
-      const board = await loadClubProjectBoard(club.id, club.name);
-      setSelected(board.selected);
-      setPostedAt(posted.postedAt ?? new Date().toISOString());
-      await markSponsorProposalPosted(proposal.id);
-      setProposals(await listClubSponsorProposals(club.id, club.name));
-    } catch (err) {
-      setPostError(
-        err instanceof Error
-          ? err.message
-          : "Could not push the sponsor's Climate Projects to your fans."
-      );
-    } finally {
-      setPosting(false);
-    }
-  }
-
   if (unlinked) {
     const gate = clubGateCopy(signedInKind);
     return (
@@ -485,65 +439,11 @@ export default function ClubDashboardPage() {
           </div>
         </div>
 
-        <section id="our-climate-sponsors" className="mt-12 rounded-3xl border border-amber-400/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
-            Brands
-          </p>
-          <h2 className="mt-2 text-4xl font-black">Our Climate Sponsors</h2>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            Add decision-maker contacts, branding and climate-project spend.
-            Select who should receive this Match Day five. They only see it if
-            they chose {club.name} at registration or accepted your network
-            request, and have locked {club.name} for this Match Day.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push(CLUB_SPONSORS_PATH)}
-            className="mt-6 rounded-xl bg-amber-400 px-6 py-4 text-lg font-bold text-slate-950"
-          >
-            Our Climate Sponsors
-          </button>
-          {roster && roster.sponsors.length > 0 && (
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
-              {rankSponsorsBySpend(roster.sponsors).map((sponsor) => {
-                const on = roster.selectedIds.includes(sponsor.id);
-                const ready = readySponsorBrands.some((row) => row.id === sponsor.id);
-                return (
-                  <button
-                    key={sponsor.id}
-                    type="button"
-                    onClick={() =>
-                      setRoster(
-                        setMatchDaySponsorTargets(club.id, club.name, sponsor.id)
-                      )
-                    }
-                    className={`flex items-start gap-3 rounded-2xl border p-4 text-left ${
-                      on
-                        ? "border-green-500 bg-slate-800"
-                        : "border-slate-700 bg-slate-950"
-                    }`}
-                  >
-                    <BrandMark name={sponsor.brandName} logoUrl={sponsor.logoUrl} />
-                    <div>
-                      <p className="font-bold">{sponsor.brandName}</p>
-                      <p className="text-sm text-slate-400">
-                        {sponsor.contactName || "Decision maker not set"}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {formatMoney(sponsor.spentGbp)} climate spend
-                        {ready
-                          ? " · locked in — will receive this post"
-                          : on
-                            ? " · selected, waiting for lock-in"
-                            : ""}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        <ClubClimateSponsorTabs
+          clubName={club.name}
+          leadSponsors={leadSponsors}
+          localSponsors={localSponsors}
+        />
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
@@ -557,7 +457,7 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? "Save these five in the Match-Day folder as the Climate Projects File. Fans will fund them with cash taken from sponsor wallets — they no longer pick 3 of 5."
+                ? "Save these five in the Match-Day folder as the Climate Projects File. Fans press FUND-IT up to 5 times: £0.20 once from each Carbon Wallet onto any of these five Projects."
                 : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Global Schools Solar is included automatically and is UK and International.`}
             </p>
           </div>
@@ -601,9 +501,7 @@ export default function ClubDashboardPage() {
                   gbpPerGoal,
                   maxAmount,
                 }) || "Insert Base Match Sponsorship, £/Goal and Maximum"}
-                {gbpPerVote != null
-                  ? ` · ${formatStipulatedRate(gbpPerVote)} exposure counter · Projected Sponsor/Brand Exposure: ${formatBrandExposureLabel()}`
-                  : ` · Projected Sponsor/Brand Exposure: ${EXPOSURES_PER_POST} per posted fan`}
+                {` · ${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}`}
               </p>
             )}
             <ProjectGrid
@@ -638,62 +536,6 @@ export default function ClubDashboardPage() {
           error={postError}
           notice={folderNotice}
         />
-
-        <section id="sponsorship-selected" className="mt-12 rounded-3xl border border-blue-500/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
-            From the Sponsorship Manager
-          </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Sponsorship Selected Projects
-          </h2>
-          <p className="mt-2 max-w-3xl text-slate-300">
-            When a Sponsorship Manager chooses 5 Climate Projects and sends
-            them with the blue button, those projects appear here — not the
-            five you selected yourself.
-          </p>
-          {selectedProposals.length === 0 ? (
-            <p className="mt-6 text-slate-500">
-              No Sponsorship Manager has sent a list yet. Their 5 Climate
-              Projects will show here as soon as they click Send these 5
-              Climate Projects to the Sustainability Director.
-            </p>
-          ) : (
-            <div className="mt-8 space-y-8">
-              {selectedProposals.map((proposal) => (
-                <div
-                  key={proposal.id}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-                    <div>
-                      <p className="text-sm font-semibold text-amber-300">
-                        Chosen by {proposal.sponsorName}
-                      </p>
-                      <p className="text-sm text-slate-400">
-                        {new Date(proposal.createdAt).toLocaleString("en-GB")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={posting}
-                      onClick={() => void pushSponsorProposal(proposal)}
-                      className="rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500 disabled:opacity-70"
-                    >
-                      Post these to fans
-                    </button>
-                  </div>
-                  <ProjectGrid
-                    projects={proposalAsProjects(proposal)}
-                    empty="This list has no Climate Projects."
-                    badge="Sponsor selected"
-                    clubName={club.name}
-                    clubCountry={club.country}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
 
         <section className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
@@ -745,11 +587,7 @@ export default function ClubDashboardPage() {
                             Number(copy.offer.sponsorshipAmountGbp) ||
                               DEFAULT_MINIMUM_SPONSORSHIP
                           )} Base Match Sponsorship`}
-                        {copy.offer.gbpPerVote
-                          ? ` · ${formatStipulatedRate(Number(copy.offer.gbpPerVote))}`
-                          : gbpPerVote
-                            ? ` · ${formatStipulatedRate(gbpPerVote)}`
-                            : ""}
+                        {` · ${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}`}
                       </p>
                     </div>
                     <button
@@ -771,57 +609,16 @@ export default function ClubDashboardPage() {
           )}
         </section>
 
-        <section className="mt-12 rounded-3xl border border-emerald-500/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
-            From the Sponsorship Manager
-          </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Sponsorship Funded Projects
-          </h2>
-          <p className="mt-2 max-w-3xl text-slate-300">
-            After you post a Sponsorship Manager&apos;s 5 Climate Projects to
-            fans, that list is kept here as the funded sponsorship campaign.
-          </p>
-          {fundedProposals.length === 0 ? (
-            <p className="mt-6 text-slate-500">
-              No sponsor-chosen list has been posted to fans yet. Post a
-              Sponsorship Selected list and it moves here.
-            </p>
-          ) : (
-            <div className="mt-8 space-y-8">
-              {fundedProposals.map((proposal) => (
-                <div
-                  key={proposal.id}
-                  className="rounded-2xl border border-emerald-500/30 bg-slate-950 p-6"
-                >
-                  <p className="text-sm font-semibold text-amber-300">
-                    Funded by {proposal.sponsorName}
-                  </p>
-                  <p className="text-sm text-slate-400">
-                    Posted {new Date(proposal.createdAt).toLocaleString("en-GB")}
-                  </p>
-                  <ProjectGrid
-                    projects={proposalAsProjects(proposal)}
-                    empty="This funded list has no Climate Projects."
-                    funded
-                    clubName={club.name}
-                    clubCountry={club.country}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
         <section className="mt-12">
           <h2 className="text-3xl font-black">Voted-For Projects</h2>
           <p className="mt-2 text-slate-400">
-            Climate projects supporters have voted for on your match-day
-            campaign.
+            Climate projects supporters have funded with FUND-IT on your
+            match-day campaign — up to 5 times, £0.20 once from each Carbon
+            Wallet onto any Project.
           </p>
           <ProjectGrid
             projects={voted}
-            empty="No supporter votes yet. Once fans vote on My S4P, those projects appear here."
+            empty="No FUND-IT allocations yet. Once fans press FUND-IT on My S4P, those projects appear here."
             badge="Voted"
             clubName={club.name}
             clubCountry={club.country}
@@ -999,23 +796,6 @@ export default function ClubDashboardPage() {
       </div>
     </main>
   );
-}
-
-function proposalAsProjects(
-  proposal: SponsorProjectProposal
-): ClimateProject[] {
-  return proposal.projects.map((project) => ({
-    id: project.id,
-    name: project.name,
-    description: project.description,
-    category: project.category,
-    country: project.country,
-    estimated_co2: project.estimated_co2,
-    funding_goal: project.funding_goal ?? null,
-    image_url: null,
-    status: project.status ?? null,
-    location: project.location ?? null,
-  }));
 }
 
 function ProjectGrid({

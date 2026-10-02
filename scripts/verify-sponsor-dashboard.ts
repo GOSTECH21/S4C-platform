@@ -21,6 +21,9 @@ import {
 } from "../app/lib/sponsor-dashboard";
 import { sponsorOfferSignOffPath } from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
+import { sponsorHomePath } from "../app/lib/sponsor-home";
+import { lockCopy } from "../app/lib/climate-sponsors";
+import { SPONSOR_DASHBOARD_PATH } from "../app/lib/routes";
 import { readFileSync } from "fs";
 
 const failures: string[] = [];
@@ -171,11 +174,15 @@ const votedOnOffer = votedProjectsOnSignedOffer(offer, [
 ]);
 assert(
   votedOnOffer.map((project) => project.id).join(",") === "gss,local-1,int-1",
-  "Sponsor folder shows the 3 fan-voted projects from the signed five"
+  "Sponsor folder shows the fan-funded projects from the signed five"
+);
+assert(
+  fanCountFromVotedProjects(5) === 1,
+  "Five FUND-IT allocations from one Match Day five count as one fan"
 );
 assert(
   fanCountFromVotedProjects(3) === 1,
-  "Three voted Climate Projects from one Match Day five count as one fan"
+  "Fewer than five FUND-IT allocations still count as one fan"
 );
 assert(
   fanCountFromVotedProjects(0) === 0,
@@ -187,7 +194,7 @@ assert(
     { "club-united": [{ id: "gss" }, { id: "local-1" }, { id: "int-1" }] },
     0
   ) === 1,
-  "American Express sees 1 fan when Voted by fans lists 3 projects"
+  "American Express sees 1 fan when Voted by fans lists FUND-IT allocations"
 );
 
 const budweiserSig = {
@@ -400,6 +407,57 @@ const sponsorDashboardPage = readFileSync(
   "utf8"
 );
 assert(
+  !sponsorDashboardPage.includes("LocalLeftoverPanel") &&
+    !sponsorDashboardPage.includes("Match Day card") &&
+    !sponsorDashboardPage.includes("Local Business Climate Sponsor"),
+  "The S4P Sponsorship Dashboard no longer shows the Local Business Climate Sponsor block"
+);
+assert(
+  !sponsorDashboardPage.includes("{LEAD_CLIMATE_SPONSOR_LABEL} only.") &&
+    !sponsorDashboardPage.includes(
+      "Top up your Climate Sponsorship Wallet so fans can take cash"
+    ),
+  "The S4P Sponsorship Dashboard heading no longer explains Lead-only wallet copy"
+);
+assert(
+  sponsorDashboardPage.includes(
+    "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
+  ) ||
+    lockCopy().includes(
+      "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
+    ),
+  "Match Day lock-in tells sponsors to lock a club for Goal-Sponsorship"
+);
+assert(
+  sponsorDashboardPage.includes(
+    "Choose the Club. Future Matches to be played in Competitions"
+  ),
+  "Goal Sponsorship Network tells sponsors to choose the Club and the Match"
+);
+assert(
+  sponsorDashboardPage.indexOf("Select the club whose Goals you will sponsor") <
+    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
+  "Match Day lock-in sits above the Climate Sponsorship Wallet"
+);
+assert(
+  sponsorDashboardPage.includes("scrollToClubTable") &&
+    sponsorDashboardPage.includes("onMouseDown") &&
+    sponsorDashboardPage.includes("goal-sponsorship-network"),
+  "Clicking Select a club scrolls to the Goal Sponsorship Network teams table"
+);
+assert(
+  sponsorDashboardPage.includes("scrollToLockIn") &&
+    sponsorDashboardPage.includes("lockClubFromNetwork") &&
+    sponsorDashboardPage.includes('id="match-day-lock-in"'),
+  "Selecting a club from the teams table scrolls back up to Match Day lock-in"
+);
+assert(
+  sponsorDashboardPage.includes("loadClubFixtures") &&
+    sponsorDashboardPage.includes("Select the Match") &&
+    sponsorDashboardPage.includes("SeeMatchDetails"),
+  "Lead Climate Sponsors select a published Match and can See Match details"
+);
+assert(
   sponsorDashboardPage.includes(
     "Receive the club's 5 chosen Climate Projects"
   ) ||
@@ -407,6 +465,12 @@ assert(
       "Receive the club&apos;s 5 chosen Climate Projects"
     ),
   "Sponsorship dashboard keeps Receive the club's 5 chosen Climate Projects"
+);
+assert(
+  sponsorDashboardPage.includes("FUND-IT up to 5 times") &&
+    !sponsorDashboardPage.includes("The 3 Climate Projects they choose") &&
+    !sponsorDashboardPage.includes("Fans who voted and saw your brand"),
+  "Sponsors are told fans FUND-IT up to 5 times, not vote for 3 Projects"
 );
 assert(
   !sponsorDashboardPage.includes("Create Your Sponsorship Campaign"),
@@ -475,6 +539,22 @@ assert(
     [{ offerId: "liv-offer", brandName: "American Express" }]
   ) === "American Express",
   "A signed American Express offer stays American Express"
+);
+
+assert(
+  sponsorHomePath("Puma") === SPONSOR_DASHBOARD_PATH,
+  "Puma as a Lead Climate Sponsor lands on the S4P Sponsorship Dashboard"
+);
+assert(
+  sponsorHomePath("American Express") === SPONSOR_DASHBOARD_PATH,
+  "American Express stays on the Lead Climate Sponsor dashboard"
+);
+
+const localRegisterPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
+assert(
+  localRegisterPage.includes("SPONSOR_WALLET_PATH") &&
+    !localRegisterPage.includes("SPONSOR_DASHBOARD_PATH"),
+  "Local Business Climate Sponsors register into the Climate Sponsorship Wallet, not the Lead dashboard"
 );
 
 if (failures.length > 0) {

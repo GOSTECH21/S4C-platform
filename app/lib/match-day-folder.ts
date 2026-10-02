@@ -2,11 +2,12 @@ import { formatLongMatchDate } from "./s4p-climate-projects";
 import {
   committedGbp,
   remainingGbp,
+  normalizeKey,
   type ClimateWallet,
   type NumberedClimateProject,
   type SponsorWalletKind,
 } from "./sponsor-wallet";
-import { VOTING_PERIOD_DAYS, addDays } from "./voting-window";
+import { VOTING_PERIOD_DAYS, addDays, votingPhase, type VotingWindow } from "./voting-window";
 
 export const MATCH_DAY_FOLDER_NAME = "Match-Day";
 
@@ -81,10 +82,67 @@ export function emptyMatchDayFolder({
   };
 }
 
-export function sponsorRowsFromWallets(
-  wallets: ClimateWallet[]
+export function uniqueWalletsByBrand(
+  wallets: ClimateWallet[],
+  preferredClubName?: string
+): ClimateWallet[] {
+  const byBrand = new Map<string, ClimateWallet>();
+  for (const wallet of wallets) {
+    const key = normalizeKey(wallet.brandName);
+    if (!key) continue;
+    const existing = byBrand.get(key);
+    if (!existing || preferWallet(wallet, existing, preferredClubName)) {
+      byBrand.set(key, wallet);
+    }
+  }
+  return [...byBrand.values()];
+}
+
+export function uniqueSponsorRows(
+  sponsors: MatchDaySponsorRow[]
 ): MatchDaySponsorRow[] {
-  return wallets.map((wallet) => ({
+  const byBrand = new Map<string, MatchDaySponsorRow>();
+  for (const row of sponsors) {
+    const key = normalizeKey(row.brandName);
+    if (!key) continue;
+    const existing = byBrand.get(key);
+    if (!existing) {
+      byBrand.set(key, { ...row });
+      continue;
+    }
+    const takeCandidate =
+      row.kind === "lead" && existing.kind !== "lead"
+        ? true
+        : row.kind === existing.kind &&
+          (Number(row.committedGbp) || 0) > (Number(existing.committedGbp) || 0);
+    if (takeCandidate) byBrand.set(key, { ...row });
+  }
+  return [...byBrand.values()];
+}
+
+function preferWallet(
+  candidate: ClimateWallet,
+  current: ClimateWallet,
+  preferredClubName?: string
+): boolean {
+  if (preferredClubName) {
+    const wanted = normalizeKey(preferredClubName);
+    const candidateClub = normalizeKey(candidate.clubName) === wanted;
+    const currentClub = normalizeKey(current.clubName) === wanted;
+    if (candidateClub !== currentClub) return candidateClub;
+  }
+  if (candidate.kind !== current.kind) return candidate.kind === "lead";
+  const candidateCash = committedGbp(candidate);
+  const currentCash = committedGbp(current);
+  if (candidateCash !== currentCash) return candidateCash > currentCash;
+  return String(candidate.updatedAt) > String(current.updatedAt);
+}
+
+export function sponsorRowsFromWallets(
+  wallets: ClimateWallet[],
+  preferredClubName?: string
+): MatchDaySponsorRow[] {
+  return uniqueWalletsByBrand(wallets, preferredClubName).map((wallet) => ({
     brandName: wallet.brandName,
     kind: wallet.kind,
     committedGbp: committedGbp(wallet),
@@ -111,7 +169,7 @@ export function buildSponsorsFile({
     fileName: sponsorsFileName(matchDate),
     matchDate: dateKey(matchDate),
     savedAt: iso,
-    sponsors: sponsors.map((row) => ({ ...row })),
+    sponsors: uniqueSponsorRows(sponsors),
   };
 }
 
@@ -192,6 +250,21 @@ export function isMatchDayFolderVisible(
   const expires = addDays(posted, VOTING_PERIOD_DAYS);
   const current = now instanceof Date ? now : new Date(now);
   return current.getTime() <= expires.getTime();
+}
+
+export function fanFundingIsOpen({
+  folder,
+  votingWindow,
+  now = new Date(),
+}: {
+  folder?: MatchDayFolder | null;
+  votingWindow: VotingWindow;
+  now?: Date | string;
+}): boolean {
+  if (isMatchDayFolderVisible(folder, now)) return true;
+  // Once wallets are on My S4P, FUND-IT should not stay grey until
+  // kick-off − 3 days. Only a closed vote keeps it off.
+  return votingPhase(votingWindow, now) !== "closed";
 }
 
 export function applyFundingToProjectsFile(

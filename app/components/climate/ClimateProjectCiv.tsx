@@ -4,7 +4,7 @@ import {
   civForProject,
   deriveProjectLifecycle,
   fundingProgress,
-  formatProjectedCiv,
+  formatCivPipSummary,
   lifecycleIndex,
   type ProjectLifecycleStage,
 } from "@/app/lib/climate-impact-value";
@@ -78,17 +78,15 @@ export function ProjectLifecycleStrip({
 
 export function CivSummary({
   tonnes,
-  period,
   pipDays,
 }: {
   tonnes: number;
-  period: string;
+  period?: string;
   pipDays?: number;
 }) {
   return (
     <p className="mt-2 text-xs font-semibold text-amber-300">
-      Projected CIV {formatProjectedCiv(tonnes, period)}
-      {pipDays ? ` · PIP ${pipDays} days after full funding` : ""}
+      {formatCivPipSummary(tonnes, pipDays ?? 0)}
     </p>
   );
 }
@@ -119,7 +117,7 @@ export function ClimateProjectCivBlock({
         <FundingProgressPanel receivedGbp={fundedGbp} soughtGbp={sought} />
       ) : null}
       {tonnes > 0 ? (
-        <CivSummary tonnes={tonnes} period={civ.civPeriod} pipDays={civ.pipDays} />
+        <CivSummary tonnes={tonnes} pipDays={civ.pipDays} />
       ) : null}
       <ProjectLifecycleStrip stage={stage} compact={compact} />
     </>

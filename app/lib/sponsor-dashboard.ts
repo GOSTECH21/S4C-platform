@@ -202,13 +202,13 @@ export function votedProjectsOnSignedOffer<T extends { id: string }>(
   return offer.projects.filter((project) => votedIds.has(project.id));
 }
 
-/** Each fan submits 3 Climate Projects. Three voted projects from one Match Day five is one fan. */
+/** Each fan can FUND-IT once per Carbon Wallet (up to 5 times on a Match Day five). */
 export function fanCountFromVotedProjects(
   votedProjectCount: number,
-  requiredVotes = 3
+  requiredVotes = 5
 ): number {
   if (votedProjectCount <= 0) return 0;
-  const perFan = requiredVotes > 0 ? requiredVotes : 3;
+  const perFan = requiredVotes > 0 ? requiredVotes : 5;
   return Math.max(1, Math.ceil(votedProjectCount / perFan));
 }
 

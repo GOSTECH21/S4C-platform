@@ -7,6 +7,11 @@ export const MATCH_DAY_PROJECT_COUNT = 5;
 export const MATCH_DAY_CHOICE_COUNT = 4;
 /** Hours before kick-off the Sustainability Director should post; fan voting also opens then (3 days). */
 export const MATCH_DAY_LEAD_HOURS = 72;
+const MATCH_DAY_LEAD_DAYS = MATCH_DAY_LEAD_HOURS / 24;
+
+export function clubClimateProjectsIntroCopy(): string {
+  return `Global Schools Solar Project is included in every Match Day List and applies to UK & International. Choose ${MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
+}
 
 export function partnerProjectPage<T>(projects: T[], page: number): T[] {
   const start = Math.max(0, page) * PARTNER_PAGE_SIZE;

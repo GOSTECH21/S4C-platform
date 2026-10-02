@@ -9,7 +9,10 @@ import { FAN_REGISTER_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
+  FUND_IT_MAX_TIMES,
+  canPressFundIt,
   formatWalletGbp,
+  fundItCopy,
   normalizeKey,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
@@ -29,8 +32,7 @@ export type WalletVoteInput = {
   split?: boolean;
 };
 
-const FUND_IT_COPY =
-  `Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press FUND-IT; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+const FUND_IT_COPY = fundItCopy();
 
 export function ClimateProjectSponsors({
   lead,
@@ -71,12 +73,15 @@ export function ClimateProjectSponsors({
     : null;
   const leadUsed = Boolean(lead && used.has(normalizeKey(lead.brandName)));
   const leadBlocked =
-    busy ||
-    !votingOpen ||
     !lead ||
-    leadUsed ||
-    lead.remainingGbp < DEFAULT_WALLET_VOTE_GBP ||
-    !leadNumber;
+    !canPressFundIt({
+      busy,
+      fundingOpen: votingOpen,
+      used: leadUsed,
+      remainingGbp: lead.remainingGbp,
+      projectNumber: leadNumber,
+      projectCount,
+    });
   const localRows = locals.filter(
     (row) => row.kind !== "lead" && !isLeadClimateBrand(row.brandName)
   );
@@ -122,7 +127,6 @@ export function ClimateProjectSponsors({
       <div>
         <h2 className="text-3xl font-black">Climate Project Sponsor</h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          You can take money once from each sponsor during the 5-day Vote.{" "}
           {FUND_IT_COPY}. By the end of Day 5 every Carbon Wallet should show{" "}
           {formatWalletGbp(0)}.
         </p>
@@ -188,12 +192,14 @@ export function ClimateProjectSponsors({
               row.logoUrl ||
               loadBrandLogo(row.brandName) ||
               sponsorLogoSrc(row.brandName, row.logoUrl);
-            const blocked =
-              busy ||
-              !votingOpen ||
-              already ||
-              row.remainingGbp < DEFAULT_WALLET_VOTE_GBP ||
-              !value;
+            const blocked = !canPressFundIt({
+              busy,
+              fundingOpen: votingOpen,
+              used: already,
+              remainingGbp: row.remainingGbp,
+              projectNumber: value,
+              projectCount,
+            });
             return (
               <div
                 key={row.brandName}
@@ -240,8 +246,8 @@ export function ClimateProjectSponsors({
           <p className="mt-2 max-w-3xl text-sm text-slate-300">
             If Carbon Wallets still show cash on Day 5, invite friends to
             register on S4P. They may or may not support {clubName || "this club"}
-            — they only need an account so they can take money once from each
-            remaining sponsor.
+            — they only need an account so they can {FUND_IT_LABEL} once from
+            each remaining sponsor, up to {FUND_IT_MAX_TIMES} times.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <button

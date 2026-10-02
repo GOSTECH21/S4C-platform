@@ -3,6 +3,7 @@ import {
   MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
+  clubClimateProjectsIntroCopy,
   isPartnerUpload,
   listsWithUploadsFirst,
   partnerPageCount,
@@ -472,6 +473,35 @@ assert(
 assert(
   !isPartnerUpload({ location: "SCCAN" }),
   "Generic catalog projects are not treated as form uploads"
+);
+
+const clubDashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
+assert(
+  !clubDashboard.includes("From the Sponsorship Manager"),
+  "Club dashboard no longer shows From the Sponsorship Manager"
+);
+assert(
+  !clubDashboard.includes("Sponsorship Funded Projects"),
+  "Club dashboard no longer shows the Sponsorship Funded Projects block"
+);
+assert(
+  !clubDashboard.includes("Sponsorship Selected Projects"),
+  "Club dashboard no longer shows the Sponsorship Selected Projects block"
+);
+assert(
+  clubClimateProjectsIntroCopy().includes(
+    "Global Schools Solar Project is included in every Match Day List"
+  ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "Climate Partner Projects executable in Your Country"
+    ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "International Projects executable in other parts of the World"
+    ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "MUST be uploaded at least 3 Days before Match Kick-Off"
+    ),
+  "S4P Climate Projects intro uses the Match Day List and Your Country / World lists"
 );
 
 if (failures.length > 0) {

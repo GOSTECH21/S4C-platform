@@ -19,7 +19,7 @@ export function MatchDayProjectCard({
   selected = false,
   disabled = false,
   onToggle,
-  showVote = true,
+  showVote = false,
   showSponsors = true,
   fundedGbp,
 }: {
@@ -123,7 +123,7 @@ export function MatchDayProjectCard({
             >
               {selected ? "✓" : ""}
             </span>
-            Vote for this Project
+            FUND-IT this Project
           </button>
         ) : null}
       </div>

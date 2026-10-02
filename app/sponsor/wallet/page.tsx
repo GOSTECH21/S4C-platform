@@ -12,13 +12,14 @@ import {
 import {
   localRecordFromProfile,
   readLocalSponsorRecord,
-  readSponsorTier,
   writeLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
-import { SPONSOR_DASHBOARD_PATH, SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
+import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
+import { isLeadSponsorHome, sponsorHomePath } from "@/app/lib/sponsor-home";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { remainingGbp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
+import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 
 export default function SponsorWalletPage() {
   const router = useRouter();
@@ -42,11 +43,15 @@ export default function SponsorWalletPage() {
         }
         setBrand(brandName);
         const local = readLocalSponsorRecord() ?? localRecordFromProfile();
-        const tier = readSponsorTier();
+        const localForBrand =
+          local &&
+          local.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
+            ? local
+            : null;
         const lock = loadMatchDayLock(brandName);
-        const club = local?.clubName || lock?.clubName || "";
+        const club = localForBrand?.clubName || lock?.clubName || "";
         setClubName(club);
-        setKind(tier === "local" || Boolean(local) ? "local" : "lead");
+        setKind(!isLeadSponsorHome(brandName) || Boolean(localForBrand) ? "local" : "lead");
         if (club) setWallet(readClimateWallet(club, brandName));
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
@@ -57,6 +62,19 @@ export default function SponsorWalletPage() {
     }
     void load();
   }, [router]);
+
+  useEffect(() => {
+    if (!clubName || !brand) return;
+    function refreshWallet() {
+      setWallet(readClimateWallet(clubName, brand));
+    }
+    window.addEventListener(SPONSORED_GOAL_EVENT, refreshWallet);
+    window.addEventListener("storage", refreshWallet);
+    return () => {
+      window.removeEventListener(SPONSORED_GOAL_EVENT, refreshWallet);
+      window.removeEventListener("storage", refreshWallet);
+    };
+  }, [clubName, brand]);
 
   if (loading) {
     return <p className="text-slate-400">Loading Climate Sponsorship Wallet...</p>;
@@ -127,7 +145,7 @@ export default function SponsorWalletPage() {
             });
             setWallet(next);
             setNotice(
-              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet (${formatWalletGbp(remainingGbp(next))} Remaining).`
+              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet.`
             );
           } catch (err) {
             setError(err instanceof Error ? err.message : "Could not update the wallet.");
@@ -137,13 +155,15 @@ export default function SponsorWalletPage() {
         }}
       />
 
-      <button
-        type="button"
-        onClick={() => router.push(SPONSOR_DASHBOARD_PATH)}
-        className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
-      >
-        Back to dashboard
-      </button>
+      {isLeadSponsorHome(brand) ? (
+        <button
+          type="button"
+          onClick={() => router.push(sponsorHomePath(brand))}
+          className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
+        >
+          Back to dashboard
+        </button>
+      ) : null}
     </div>
   );
 }

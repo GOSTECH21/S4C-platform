@@ -5,6 +5,8 @@ export const DEFAULT_WALLET_VOTE_GBP = 0.2;
 /** Lead and Local Business Climate Sponsors use the same FUND-IT amount. */
 export const LEAD_WALLET_VOTE_GBP = DEFAULT_WALLET_VOTE_GBP;
 export const FUND_IT_LABEL = "FUND-IT";
+/** Once per Carbon Wallet; typically five wallets on a Match Day. */
+export const FUND_IT_MAX_TIMES = 5;
 export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
 
 export type SponsorWalletKind = "lead" | "local";
@@ -19,6 +21,8 @@ export type ClimateWallet = {
   /** Lead: agreed amount payable for each goal the sponsored team scores. */
   gbpPerGoal: number;
   goalsScored: number;
+  /** Lead: agreed cap on Goals-scored Sponsorship Cash. */
+  maximumSponsorshipGbp: number;
   /** Local: spendable top-up (e.g. £750). */
   sponsorshipGbp: number;
   /** Local: 10% management fee paid on top of the spendable amount. */
@@ -78,15 +82,68 @@ export function localWalletTopUp(sponsorshipGbp: number): {
   };
 }
 
-export function leadSpendableGbp(wallet: Pick<
+/** Match goals never reach this; leftover Maximum amounts were stored here. */
+export const UNREALISTIC_GOALS_SCORED = 30;
+
+export function liveGoalsScored(wallet: Pick<ClimateWallet, "goalsScored">): number {
+  return Math.max(0, Math.round(Number(wallet.goalsScored) || 0));
+}
+
+export function leadSponsorshipFromGoalsGbp(wallet: Pick<
   ClimateWallet,
-  "commitmentFeeGbp" | "gbpPerGoal" | "goalsScored"
+  "gbpPerGoal" | "goalsScored" | "maximumSponsorshipGbp"
+>): number {
+  const product = roundGbp(
+    Math.max(0, Number(wallet.gbpPerGoal) || 0) * liveGoalsScored(wallet)
+  );
+  const maximum = roundGbp(
+    Math.max(0, Number(wallet.maximumSponsorshipGbp) || 0)
+  );
+  if (maximum > 0) return roundGbp(Math.min(product, maximum));
+  return product;
+}
+
+export function leadCarbonWalletGbp(wallet: Pick<
+  ClimateWallet,
+  "commitmentFeeGbp" | "gbpPerGoal" | "goalsScored" | "maximumSponsorshipGbp"
 >): number {
   return roundGbp(
     Math.max(0, Number(wallet.commitmentFeeGbp) || 0) +
-      Math.max(0, Number(wallet.gbpPerGoal) || 0) *
-        Math.max(0, Math.round(Number(wallet.goalsScored) || 0))
+      leadSponsorshipFromGoalsGbp(wallet)
   );
+}
+
+export function leadSpendableGbp(wallet: Pick<
+  ClimateWallet,
+  "commitmentFeeGbp" | "gbpPerGoal" | "goalsScored" | "maximumSponsorshipGbp"
+>): number {
+  return leadCarbonWalletGbp(wallet);
+}
+
+export function formatLeadSponsorshipGbp(amount: number): string {
+  const value = roundGbp(amount);
+  if (value === 0) return "£0.0";
+  return formatWalletGbp(value);
+}
+
+export function normalizeClimateWallet(wallet: ClimateWallet): ClimateWallet {
+  let goalsScored = liveGoalsScored(wallet);
+  let maximumSponsorshipGbp = roundGbp(
+    Math.max(0, Number(wallet.maximumSponsorshipGbp) || 0)
+  );
+  if (
+    wallet.kind === "lead" &&
+    goalsScored > UNREALISTIC_GOALS_SCORED &&
+    maximumSponsorshipGbp === 0
+  ) {
+    maximumSponsorshipGbp = roundGbp(goalsScored);
+    goalsScored = 0;
+  }
+  return {
+    ...wallet,
+    goalsScored,
+    maximumSponsorshipGbp,
+  };
 }
 
 export function localSpendableGbp(
@@ -142,6 +199,7 @@ export function createLocalWallet({
     commitmentFeeGbp: 0,
     gbpPerGoal: 0,
     goalsScored: 0,
+    maximumSponsorshipGbp: 0,
     sponsorshipGbp: topUp.sponsorshipGbp,
     managementFeeGbp: topUp.managementFeeGbp,
     paidGbp: topUp.paidGbp,
@@ -156,6 +214,7 @@ export function createLeadWallet({
   commitmentFeeGbp,
   gbpPerGoal = 0,
   goalsScored = 0,
+  maximumSponsorshipGbp = 0,
   now = new Date(),
 }: {
   clubName: string;
@@ -163,9 +222,10 @@ export function createLeadWallet({
   commitmentFeeGbp: number;
   gbpPerGoal?: number;
   goalsScored?: number;
+  maximumSponsorshipGbp?: number;
   now?: Date | string;
 }): ClimateWallet {
-  return {
+  return normalizeClimateWallet({
     id: walletIdFor(clubName, brandName),
     clubName,
     brandName,
@@ -173,12 +233,15 @@ export function createLeadWallet({
     commitmentFeeGbp: roundGbp(Math.max(0, Number(commitmentFeeGbp) || 0)),
     gbpPerGoal: roundGbp(Math.max(0, Number(gbpPerGoal) || 0)),
     goalsScored: Math.max(0, Math.round(Number(goalsScored) || 0)),
+    maximumSponsorshipGbp: roundGbp(
+      Math.max(0, Number(maximumSponsorshipGbp) || 0)
+    ),
     sponsorshipGbp: 0,
     managementFeeGbp: 0,
     paidGbp: 0,
     allocatedGbp: 0,
     updatedAt: asIso(now),
-  };
+  });
 }
 
 export function applyLocalTopUp(
@@ -205,31 +268,38 @@ export function applyLeadCommitment(
     commitmentFeeGbp,
     gbpPerGoal,
     goalsScored,
+    maximumSponsorshipGbp,
     now = new Date(),
   }: {
     commitmentFeeGbp?: number;
     gbpPerGoal?: number;
     goalsScored?: number;
+    maximumSponsorshipGbp?: number;
     now?: Date | string;
   }
 ): ClimateWallet {
-  return {
-    ...wallet,
+  const current = normalizeClimateWallet(wallet);
+  return normalizeClimateWallet({
+    ...current,
     kind: "lead",
     commitmentFeeGbp:
       commitmentFeeGbp == null
-        ? wallet.commitmentFeeGbp
+        ? current.commitmentFeeGbp
         : roundGbp(Math.max(0, Number(commitmentFeeGbp) || 0)),
     gbpPerGoal:
       gbpPerGoal == null
-        ? wallet.gbpPerGoal
+        ? current.gbpPerGoal
         : roundGbp(Math.max(0, Number(gbpPerGoal) || 0)),
     goalsScored:
       goalsScored == null
-        ? wallet.goalsScored
+        ? current.goalsScored
         : Math.max(0, Math.round(Number(goalsScored) || 0)),
+    maximumSponsorshipGbp:
+      maximumSponsorshipGbp == null
+        ? current.maximumSponsorshipGbp
+        : roundGbp(Math.max(0, Number(maximumSponsorshipGbp) || 0)),
     updatedAt: asIso(now),
-  };
+  });
 }
 
 export function parseProjectNumber(
@@ -240,6 +310,26 @@ export function parseProjectNumber(
   if (!Number.isInteger(number)) return null;
   if (number < 1 || number > projectCount) return null;
   return number;
+}
+
+export function canPressFundIt({
+  busy = false,
+  fundingOpen = true,
+  used = false,
+  remainingGbp,
+  projectNumber,
+  projectCount,
+}: {
+  busy?: boolean;
+  fundingOpen?: boolean;
+  used?: boolean;
+  remainingGbp: number;
+  projectNumber: string | number | null | undefined;
+  projectCount: number;
+}): boolean {
+  if (busy || !fundingOpen || used) return false;
+  if (!(Number(remainingGbp) >= DEFAULT_WALLET_VOTE_GBP)) return false;
+  return parseProjectNumber(projectNumber, projectCount) != null;
 }
 
 export function walletVoteAmount(
@@ -363,6 +453,14 @@ export function formatWalletGbp(amount: number): string {
     minimumFractionDigits: hasPence ? 2 : 0,
     maximumFractionDigits: 2,
   })}`;
+}
+
+export function fundItTimesCopy(): string {
+  return `You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times. Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet and put it on any Climate Project.`;
+}
+
+export function fundItCopy(): string {
+  return `${fundItTimesCopy()} Choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
 }
 
 export function numberClimateProjects<T extends { id: string; name: string }>(

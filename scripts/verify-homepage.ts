@@ -47,8 +47,10 @@ assert(
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
-    ?.description.includes("Climate Impact Fans Table (CIFT)"),
-  "Fan narrative mentions CIFT"
+    ?.description.includes("Climate Impact Fans Table (CIFT)") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
+      ?.description.includes("FUND-IT up to 5 times"),
+  "Fan narrative mentions CIFT and FUND-IT up to 5 times"
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A Local Business Climate Sponsor")
@@ -78,9 +80,9 @@ assert(
 
 assert(LOCAL_SPONSOR_MIN_GBP === 500, "Local businesses can sponsor from £500");
 assert(
-  LOCAL_SPONSOR_LEFTOVER_COUNT === 2 &&
-    MATCH_DAY_PROJECT_COUNT - FAN_VOTE_PICK_COUNT === 2,
-  "Fans vote for 3 of 5, leaving 2 projects for the local sponsor"
+  LOCAL_SPONSOR_LEFTOVER_COUNT === 0 &&
+    FAN_VOTE_PICK_COUNT === MATCH_DAY_PROJECT_COUNT,
+  "Fans FUND-IT onto any of the 5 Climate Projects; leftover-only local branding is retired"
 );
 
 const posted = [
@@ -93,33 +95,33 @@ const posted = [
 const leftover = leftoverProjectsFromVotes({
   posted,
   votedIds: ["gss", "a", "c"],
+  leftoverCount: 2,
 });
 assert(
   leftover.map((row) => row.id).join(",") === "b,d",
-  "The 2 projects fans did not vote for are the local-sponsor leftovers"
+  "Unused-project helper still returns the two unfunded ids when asked"
 );
 assert(
   leftoverProjectsByVoteCount({
     posted,
     voteCounts: { gss: 4, a: 3, c: 3, b: 0, d: 1 },
+    leftoverCount: 2,
   })
     .map((row) => row.id)
     .join(",") === "b,d",
-  "Lowest vote counts also yield the two leftovers"
+  "Lowest FUND-IT counts still yield the two unused projects when asked"
 );
 
 assert(
   leftoverProjectsForLocalSponsor({
     posted,
     votedIds: ["gss", "a", "c"],
-  })
-    .map((row) => row.id)
-    .join(",") === "b,d",
-  "Local sponsor leftover helper attaches the 2 unvoted projects after fans pick 3"
+  }).length === 0,
+  "Local sponsors no longer wait for 3 fan picks before attaching leftover projects"
 );
 assert(
   leftoverProjectsForLocalSponsor({ posted, votedIds: ["gss"] }).length === 0,
-  "Local sponsor name is not attached until voting has 3 picks"
+  "Local sponsor leftover branding stays off the old 3-of-5 vote model"
 );
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
@@ -342,8 +344,11 @@ assert(
 );
 assert(
   howItWorks.includes("FANS DIRECT THE FUNDING") &&
-    howItWorks.includes("Fans allocate real Sponsor-funded money"),
-  "Step 03 is FANS DIRECT THE FUNDING"
+    howItWorks.includes("FUND-IT up to 5 times") &&
+    howItWorks.includes(
+      "(creating a DIRECT FAN ENGAGEMENT FOR LOCAL BUSINESSES)"
+    ),
+  "Step 03 is FANS DIRECT THE FUNDING with FUND-IT up to 5 times"
 );
 assert(
   howItWorks.includes("PROJECTS DELIVER THE IMPACT") &&

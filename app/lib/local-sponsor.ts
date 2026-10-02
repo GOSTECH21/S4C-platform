@@ -2,7 +2,8 @@ import { clubsMatch } from "./sponsor-dashboard";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
-export const FAN_VOTE_PICK_COUNT = 3;
+/** Fans may FUND-IT onto any of the Match Day five; leftover-only branding is retired. */
+export const FAN_VOTE_PICK_COUNT = MATCH_DAY_PROJECT_COUNT;
 export const LOCAL_SPONSOR_LEFTOVER_COUNT =
   MATCH_DAY_PROJECT_COUNT - FAN_VOTE_PICK_COUNT;
 export const LOCAL_SPONSORS_PER_MATCH = MATCH_DAY_PROJECT_COUNT;
@@ -10,6 +11,11 @@ export const LOCAL_SPONSOR_STORAGE = "s4p.sponsor.local";
 export const LOCAL_SPONSORS_BY_CLUB_STORAGE = "s4p.local-sponsors-by-club";
 
 export type SponsorTier = "local" | "national";
+
+export type LocalMatchSponsorship = {
+  fixtureName: string;
+  amountGbp: number;
+};
 
 export type LocalSponsorRecord = {
   brandName: string;
@@ -20,6 +26,8 @@ export type LocalSponsorRecord = {
   logoUrl?: string | null;
   tagline?: string | null;
   source?: "example" | "uploaded" | "registered";
+  matchSponsorships?: LocalMatchSponsorship[];
+  submittedAt?: string;
 };
 
 function isLocalRecord(value: unknown): value is LocalSponsorRecord {
@@ -222,6 +230,47 @@ export function writeLocalSponsorRecord(record: LocalSponsorRecord) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LOCAL_SPONSOR_STORAGE, JSON.stringify(record));
   writeLocalSponsorForClub(record);
+}
+
+export function localMatchLabels(record: LocalSponsorRecord): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const row of record.matchSponsorships ?? []) {
+    const name = row.fixtureName.trim();
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
+}
+
+export function totalLocalPledge(record: LocalSponsorRecord): number {
+  const fromMatches = (record.matchSponsorships ?? []).reduce(
+    (sum, row) => sum + (Number(row.amountGbp) || 0),
+    0
+  );
+  if (fromMatches > 0) return fromMatches;
+  return Number(record.pledgeGbp) || 0;
+}
+
+export function isSubmittedLocalSponsor(record: LocalSponsorRecord): boolean {
+  if (record.source === "example") return false;
+  if (record.submittedAt) return true;
+  return (record.matchSponsorships?.length ?? 0) > 0 || record.pledgeGbp > 0;
+}
+
+export function submittedLocalSponsorsForClub(
+  clubName: string
+): LocalSponsorRecord[] {
+  return localSponsorsForClub(clubName)
+    .filter(isSubmittedLocalSponsor)
+    .sort((left, right) => {
+      const leftAt = left.submittedAt || left.createdAt;
+      const rightAt = right.submittedAt || right.createdAt;
+      if (rightAt !== leftAt) return rightAt.localeCompare(leftAt);
+      return totalLocalPledge(right) - totalLocalPledge(left);
+    });
 }
 
 export function localSponsorForClub(clubName: string): LocalSponsorRecord | null {

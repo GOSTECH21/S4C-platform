@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
+import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   LOCAL_SPONSOR_REGISTER_PATH,
-  SPONSOR_DASHBOARD_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
+import { sponsorHomePath } from "@/app/lib/sponsor-home";
 
 export default function SponsorLoginPage() {
   const [email, setEmail] = useState("");
@@ -22,7 +23,8 @@ export default function SponsorLoginPage() {
     setError(null);
     try {
       await loginSponsor({ email, password });
-      window.location.href = SPONSOR_DASHBOARD_PATH;
+      const sponsor = await getCurrentSponsor();
+      window.location.href = sponsorHomePath(String(sponsor.name ?? ""));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
       setLoading(false);

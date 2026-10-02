@@ -214,7 +214,7 @@ export function ClimateProjectListingForm({
             />
           </label>
           <label className="text-sm text-slate-400">
-            Projected CIV (tCO₂e)
+            Projected Climate Impact Value (tCO2e/Yr)
             <input
               required
               type="number"
@@ -257,7 +257,7 @@ export function ClimateProjectListingForm({
             />
           </label>
           <label className="text-sm text-slate-400">
-            PIP (days after full funding)
+            Projected Implementation Period (Days after funding)
             <input
               required
               type="number"

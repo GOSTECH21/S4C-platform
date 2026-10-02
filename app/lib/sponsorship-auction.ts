@@ -3,8 +3,8 @@
 export const DEFAULT_MINIMUM_SPONSORSHIP = 1000;
 /** Fallback when a Sustainability Director has not yet inserted a match minimum. */
 export const OPENING_SPONSORSHIP = DEFAULT_MINIMUM_SPONSORSHIP;
-/** Stipulated amount per Climate Project — brand-exposure counter, not payment. */
-export const DEFAULT_GBP_PER_VOTE = 0.02;
+/** Each FUND-IT from a Climate Sponsorship Wallet puts this amount on a Climate Project. */
+export const DEFAULT_GBP_PER_VOTE = 0.2;
 export const DEFAULT_GBP_PER_GOAL = 3000;
 /** One post to a fan is 1 eyeball and this many brand exposures. */
 export const EXPOSURES_PER_POST = 5;

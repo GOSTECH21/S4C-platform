@@ -27,12 +27,18 @@ import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   MATCH_DAY_LOCK_LABELS,
+  displayLockFixture,
   lockCopy,
+  leagueFromMatchLabel,
+  clubNetworkLeagueId,
   unlockedMatchDay,
   type GoalSponsorshipNetwork,
   type MatchDayClubLock,
   type NetworkInvite,
 } from "@/app/lib/climate-sponsors";
+import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
+import { loadClubFixtures } from "@/app/services/club-fixtures.service";
+import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
 import { leagueForClubName } from "@/app/lib/current-season";
 import {
   SPONSOR_LOGIN_PATH,
@@ -49,14 +55,7 @@ import {
 } from "@/app/lib/sponsorship-auction";
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
-import { LocalLeftoverPanel } from "@/app/components/sponsor/LocalLeftoverPanel";
-import {
-  localRecordFromProfile,
-  readLocalSponsorRecord,
-  readSponsorTier,
-  writeLocalSponsorRecord,
-  type LocalSponsorRecord,
-} from "@/app/lib/local-sponsor";
+import { isLeadSponsorHome } from "@/app/lib/sponsor-home";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -80,13 +79,16 @@ export default function SponsorDashboardPage() {
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
   const [invites, setInvites] = useState<NetworkInvite[]>([]);
   const [lockClub, setLockClub] = useState("");
+  const [lockFixture, setLockFixture] = useState("");
   const [lockLabel, setLockLabel] = useState(MATCH_DAY_LOCK_LABELS[0]);
+  const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
+  const [fixturesLoading, setFixturesLoading] = useState(false);
+  const [fixtureNotice, setFixtureNotice] = useState<string | null>(null);
   const [networkClubs, setNetworkClubs] = useState<string[]>([]);
   const [email, setEmail] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [localRecord, setLocalRecord] = useState<LocalSponsorRecord | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -100,10 +102,10 @@ export default function SponsorDashboardPage() {
         sponsorEmail = (sponsor.email as string | null) ?? null;
         setBrand(sponsorName);
         setEmail(sponsorEmail);
-        const local =
-          readLocalSponsorRecord() ?? localRecordFromProfile();
-        if (local) writeLocalSponsorRecord(local);
-        setLocalRecord(local);
+        if (!isLeadSponsorHome(sponsorName)) {
+          router.replace(SPONSOR_WALLET_PATH);
+          return;
+        }
         const uploaded = loadBrandLogo(sponsorName);
         const fromRecord = (sponsor.logo_url as string | null) ?? null;
         setLogoUrl(
@@ -115,7 +117,13 @@ export default function SponsorDashboardPage() {
         const currentLock = loadMatchDayLock(sponsorName);
         setLock(currentLock);
         setLockClub(currentLock?.clubName ?? "");
-        if (currentLock?.matchLabel) setLockLabel(currentLock.matchLabel);
+        setLockFixture(
+          currentLock ? displayLockFixture(currentLock) : ""
+        );
+        if (currentLock?.competition) setLockLabel(currentLock.competition);
+        else if (currentLock?.matchLabel && !currentLock.fixtureName) {
+          setLockLabel(currentLock.matchLabel);
+        }
         setInvites(listInvitesForSponsor(sponsorName, sponsorEmail));
         setLoading(false);
         const folder = await loadSponsorFolder({
@@ -164,6 +172,71 @@ export default function SponsorDashboardPage() {
     load();
   }, [router]);
 
+  useEffect(() => {
+    if (!lockClub) {
+      setClubFixtures([]);
+      setFixturesLoading(false);
+      setFixtureNotice(null);
+      return;
+    }
+    let cancelled = false;
+    setFixturesLoading(true);
+    void loadClubFixtures(lockClub)
+      .then((rows) => {
+        if (cancelled) return;
+        setClubFixtures(rows);
+        const current = lockFixture || (lock ? displayLockFixture(lock) : "");
+        if (!current) {
+          setFixtureNotice(null);
+          return;
+        }
+        const published = fixtureByIdOrName(rows, current);
+        if (published) {
+          setLockFixture(published.fixtureName);
+          setLockLabel(published.competition);
+          setFixtureNotice(null);
+          if (
+            lock &&
+            (lock.fixtureDate !== published.date ||
+              lock.venue !== published.venue ||
+              lock.kickoff !== published.kickoff)
+          ) {
+            const next = lockMatchDayClub({
+              brandName: brand,
+              clubName: lockClub,
+              matchLabel: published.competition,
+              fixtureName: published.fixtureName,
+              competition: published.competition,
+              fixtureDate: published.date,
+              kickoff: published.kickoff,
+              venue: published.venue,
+              sourceUrl: published.sourceUrl,
+            });
+            setLock(next);
+          }
+          return;
+        }
+        if (rows.length > 0) {
+          setLockFixture("");
+          setFixtureNotice(
+            `${current} is not a published fixture. Select a listed Match.`
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setClubFixtures([]);
+          setFixtureNotice("Could not load published fixtures for this club.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFixturesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lockClub, brand]);
+
   async function logout() {
     await logoutSponsor();
     router.push(SPONSOR_LOGIN_PATH);
@@ -198,29 +271,72 @@ export default function SponsorDashboardPage() {
     });
   }
 
-  function applyMatchDayLock(clubName: string, matchLabel: string) {
+  function applyMatchDayLock(clubName: string, fixtureValue: string) {
     const club = clubName.trim();
-    setLockLabel(matchLabel);
+    const fixture = club ? fixtureByIdOrName(clubFixtures, fixtureValue) : null;
+    setLockFixture(fixture?.fixtureName ?? "");
+    if (fixture?.competition) setLockLabel(fixture.competition);
+    setFixtureNotice(null);
     if (!club) {
       clearMatchDayLock(brand);
       setLock(null);
       setLockClub("");
+      setLockFixture("");
       void refreshFolder();
+      return;
+    }
+    if (!fixture) {
+      setLockClub(club);
       return;
     }
     const next = lockMatchDayClub({
       brandName: brand,
       clubName: club,
-      matchLabel,
+      matchLabel: fixture.competition,
+      fixtureName: fixture.fixtureName,
+      competition: fixture.competition,
+      fixtureDate: fixture.date,
+      kickoff: fixture.kickoff,
+      venue: fixture.venue,
+      sourceUrl: fixture.sourceUrl,
     });
     setLock(next);
     setLockClub(club);
+    setLockFixture(fixture.fixtureName);
     void refreshFolder();
   }
 
   function unlockMatchDay() {
     const cleared = unlockedMatchDay(lockLabel);
-    applyMatchDayLock(cleared.clubName, cleared.matchLabel);
+    applyMatchDayLock(cleared.clubName, "");
+  }
+
+  function scrollToClubTable() {
+    const league = leagueFromMatchLabel(lockLabel);
+    const targetId = league
+      ? clubNetworkLeagueId(league)
+      : "goal-sponsorship-network";
+    window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  function scrollToLockIn() {
+    window.setTimeout(() => {
+      document.getElementById("match-day-lock-in")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
+
+  function lockClubFromNetwork(club: string) {
+    setLockClub(club);
+    setLockFixture("");
+    scrollToLockIn();
   }
 
   if (loading) {
@@ -258,12 +374,6 @@ export default function SponsorDashboardPage() {
           <h1 className="mt-3 text-4xl font-black tracking-tight">
             S4P SPONSORSHIP DASHBOARD
           </h1>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            Receive the club&apos;s 5 Climate Projects, sign them off, and keep
-            the settled sponsorships in your folder. Top up your Climate
-            Sponsorship Wallet so fans can take cash from it and put that cash
-            into a numbered Climate Project.
-          </p>
         </div>
         <button
           onClick={() => void logout()}
@@ -279,6 +389,133 @@ export default function SponsorDashboardPage() {
         </div>
       )}
 
+      <section
+        id="match-day-lock-in"
+        className="scroll-mt-6 rounded-3xl border border-green-500/30 bg-slate-900 p-8"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+          Match Day lock-in
+        </p>
+        <h2 className="mt-2 text-3xl font-black">
+          Select the club whose Goals you will sponsor
+        </h2>
+        <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
+        <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
+          <p className="text-sm uppercase tracking-[0.2em] text-green-300">
+            {lockClub ? "Locked in" : "Choose a club"}
+          </p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="block text-sm text-slate-400">
+              Club
+              <select
+                value={lockClub}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  scrollToClubTable();
+                }}
+                onFocus={scrollToClubTable}
+                onChange={(event) => {
+                  const club = event.target.value;
+                  if (!club) {
+                    applyMatchDayLock("", "");
+                    return;
+                  }
+                  setLockClub(club);
+                  setLockFixture("");
+                }}
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+                aria-label="Select a club, then choose from the teams table"
+              >
+                <option value="">Select a club</option>
+                {(
+                  Array.from(
+                    new Set([...(network?.clubNames ?? []), lockClub].filter(Boolean))
+                  ) as string[]
+                ).map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  )
+                )}
+              </select>
+            </label>
+            <label className="block text-sm text-slate-400">
+              Match
+              <select
+                value={
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.id ?? ""
+                }
+                disabled={!lockClub || fixturesLoading}
+                onChange={(event) =>
+                  applyMatchDayLock(lockClub, event.target.value)
+                }
+                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white disabled:opacity-50"
+              >
+                <option value="">
+                  {fixturesLoading
+                    ? "Loading published fixtures..."
+                    : "Select the Match"}
+                </option>
+                {clubFixtures.map((fixture) => (
+                  <option key={fixture.id} value={fixture.id}>
+                    {fixture.fixtureName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {fixtureNotice && (
+            <p className="mt-4 text-sm font-semibold text-amber-300">
+              {fixtureNotice}
+            </p>
+          )}
+          {lockClub && lockFixture && fixtureByIdOrName(clubFixtures, lockFixture) ? (
+            <>
+              <p className="mt-4 text-2xl font-black">
+                {lockClub} · {lockFixture}
+              </p>
+              <p className="mt-2 text-sm text-slate-400">
+                Posted Climate Projects from other clubs will not appear on this
+                dashboard until you change this lock.
+              </p>
+              <SeeMatchDetails
+                date={
+                  lock?.fixtureDate ||
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.date
+                }
+                venue={
+                  lock?.venue ||
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.venue
+                }
+                kickoff={
+                  lock?.kickoff ||
+                  fixtureByIdOrName(clubFixtures, lockFixture)?.kickoff
+                }
+              />
+            </>
+          ) : lockClub ? (
+            <p className="mt-4 text-sm text-slate-400">
+              {lockClub} is selected. Choose a published Match from the fixtures
+              list — Date, Venue and Kick-off are on See Match details.
+            </p>
+          ) : (
+            <p className="mt-4 text-sm text-slate-400">
+              Unlock cleared the club from this box. Pick a club on the left and
+              the Match on the right — or tap a club in your Goal
+              Sponsorship Network.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={unlockMatchDay}
+            disabled={!lockClub}
+            className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm disabled:opacity-40"
+          >
+            Unlock
+          </button>
+        </div>
+      </section>
+
       <Link
         href={SPONSOR_WALLET_PATH}
         className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
@@ -290,23 +527,14 @@ export default function SponsorDashboardPage() {
           Top up the cash fans will put into Climate Projects
         </h2>
         <p className="mt-3 max-w-3xl text-slate-300">
-          {localRecord
-            ? "Pay a sponsorship amount plus 10% management fees into this wallet. Fans insert a project number next to it and press FUND-IT."
-            : "Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship Cash. Fans then take cash from this wallet and put it on a numbered Climate Project."}
+          Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship
+          Cash. Fans then take cash from this wallet and put it on a numbered
+          Climate Project.
         </p>
         <p className="mt-5 inline-flex rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950">
           Open Climate Sponsorship Wallet
         </p>
       </Link>
-
-      {(readSponsorTier() === "local" || localRecord) && localRecord && (
-        <LocalLeftoverPanel
-          local={localRecord}
-          pending={pending}
-          signed={signed}
-          votedByClub={votedByClub}
-        />
-      )}
 
       {invites.some((row) => row.status === "pending") && (
         <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">
@@ -399,100 +627,21 @@ export default function SponsorDashboardPage() {
         </section>
       )}
 
-      <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-          Match Day lock-in
-        </p>
-        <h2 className="mt-2 text-3xl font-black">
-          Select the club whose Goals you will sponsor
-        </h2>
-        <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
-        <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
-          <p className="text-sm uppercase tracking-[0.2em] text-green-300">
-            {lockClub ? "Locked in" : "Choose a club"}
-          </p>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="block text-sm text-slate-400">
-              Club
-              <select
-                value={lockClub}
-                onChange={(event) =>
-                  applyMatchDayLock(event.target.value, lockLabel)
-                }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-              >
-                <option value="">Select a club</option>
-                {(
-                  Array.from(
-                    new Set([...(network?.clubNames ?? []), lockClub].filter(Boolean))
-                  ) as string[]
-                ).map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
-            <label className="block text-sm text-slate-400">
-              Match
-              <select
-                value={lockLabel}
-                onChange={(event) =>
-                  applyMatchDayLock(lockClub, event.target.value)
-                }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-              >
-                {MATCH_DAY_LOCK_LABELS.map((label) => (
-                  <option key={label} value={label}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {lockClub ? (
-            <>
-              <p className="mt-4 text-2xl font-black">
-                {lockClub} · {lockLabel}
-              </p>
-              <p className="mt-2 text-sm text-slate-400">
-                Posted Climate Projects from other clubs will not appear on this
-                dashboard until you change this lock.
-              </p>
-            </>
-          ) : (
-            <p className="mt-4 text-sm text-slate-400">
-              Unlock cleared the club from this box. Pick a club on the left and
-              the Match Day on the right — or tap a club in your Goal
-              Sponsorship Network.
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={unlockMatchDay}
-            disabled={!lockClub}
-            className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm disabled:opacity-40"
-          >
-            Unlock
-          </button>
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+      <section
+        id="goal-sponsorship-network"
+        className="scroll-mt-6 rounded-3xl border border-slate-700 bg-slate-900 p-8"
+      >
         <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>
         <p className="mt-2 text-slate-400">
-          Clubs you chose at registration plus any you accepted from a
-          Sustainability Director. Add more at any time. Tap a club already in
-          your network to put it in the lock box above — that replaces the
-          previous club. Choose the Match (Premier League, Champions League,
-          FA Cup) on the right of that box.
+          Choose the Club. Future Matches to be played in Competitions (League,
+          Cups and Europe) will be visible. Choose the Match
         </p>
         <div className="mt-6">
           <ClubNetworkPicker
             selected={networkClubs}
             matchDayClub={lockClub}
-            onChooseMatchDayClub={(club) => applyMatchDayLock(club, lockLabel)}
+            highlightLeague={leagueFromMatchLabel(lockLabel)}
+            onChooseMatchDayClub={lockClubFromNetwork}
             onChange={(clubs) => {
               setNetworkClubs(clubs);
               const next = ensureGoalNetwork({
@@ -501,7 +650,6 @@ export default function SponsorDashboardPage() {
               });
               setNetwork(next);
             }}
-            compact
           />
         </div>
       </section>
@@ -520,7 +668,7 @@ export default function SponsorDashboardPage() {
           value={formatMoney(stats.expenditureGbp)}
         />
         <StatCard
-          label="Fans who voted and saw your brand"
+          label="Fans who FUND-IT and saw your brand"
           value={formatVoteCount(stats.fanVotes)}
         />
       </section>
@@ -559,7 +707,7 @@ export default function SponsorDashboardPage() {
         <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
         <p className="mt-2 text-slate-400">
           Once you sign off a club&apos;s 5 and the sponsorship is settled, it
-          is lodged here — including the Climate Projects fans later vote for
+          is lodged here — including the Climate Projects fans later FUND-IT
           from that five.
         </p>
         {signed.length === 0 ? (
@@ -626,8 +774,9 @@ export default function SponsorDashboardPage() {
                   </p>
                   {votedFor.length === 0 ? (
                     <p className="mt-2 text-slate-500">
-                      Waiting for fans to vote on this Match Day five. The 3
-                      Climate Projects they choose will appear here.
+                      Waiting for fans to FUND-IT on this Match Day five. They
+                      can FUND-IT up to 5 times — £0.20 once from each Carbon
+                      Wallet onto any of these Projects.
                     </p>
                   ) : (
                     <ul className="mt-2 space-y-1 text-slate-300">

@@ -4,6 +4,7 @@ import {
   applyLocalTopUp,
   createLeadWallet,
   createLocalWallet,
+  normalizeClimateWallet,
   remainingGbp,
   walletIdFor,
   type ClimateWallet,
@@ -17,7 +18,22 @@ function readStore(): Record<string, ClimateWallet> {
     const raw = window.localStorage.getItem(WALLET_STORAGE);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as Record<string, ClimateWallet>;
-    return parsed && typeof parsed === "object" ? parsed : {};
+    if (!parsed || typeof parsed !== "object") return {};
+    const next: Record<string, ClimateWallet> = {};
+    let changed = false;
+    for (const [id, wallet] of Object.entries(parsed)) {
+      const normalized = normalizeClimateWallet(wallet);
+      next[id] = normalized;
+      if (
+        normalized.goalsScored !== wallet.goalsScored ||
+        normalized.maximumSponsorshipGbp !==
+          (Number(wallet.maximumSponsorshipGbp) || 0)
+      ) {
+        changed = true;
+      }
+    }
+    if (changed) writeStore(next);
+    return next;
   } catch {
     return {};
   }
@@ -48,9 +64,10 @@ export function readClimateWallet(
 
 export function writeClimateWallet(wallet: ClimateWallet): ClimateWallet {
   const store = readStore();
-  store[wallet.id] = wallet;
+  const next = normalizeClimateWallet(wallet);
+  store[next.id] = next;
   writeStore(store);
-  return wallet;
+  return next;
 }
 
 export function ensureLocalWallet({
@@ -82,19 +99,26 @@ export function ensureLeadWallet({
   commitmentFeeGbp,
   gbpPerGoal = 0,
   goalsScored = 0,
+  maximumSponsorshipGbp = 0,
 }: {
   clubName: string;
   brandName: string;
   commitmentFeeGbp: number;
   gbpPerGoal?: number;
   goalsScored?: number;
+  maximumSponsorshipGbp?: number;
 }): ClimateWallet {
   const existing = readClimateWallet(clubName, brandName);
   if (existing) {
     if (existing.kind !== "lead") return existing;
     if (existing.commitmentFeeGbp > 0) return existing;
     return writeClimateWallet(
-      applyLeadCommitment(existing, { commitmentFeeGbp, gbpPerGoal, goalsScored })
+      applyLeadCommitment(existing, {
+        commitmentFeeGbp,
+        gbpPerGoal,
+        goalsScored,
+        maximumSponsorshipGbp,
+      })
     );
   }
   return writeClimateWallet(
@@ -104,6 +128,7 @@ export function ensureLeadWallet({
       commitmentFeeGbp,
       gbpPerGoal,
       goalsScored,
+      maximumSponsorshipGbp,
     })
   );
 }
@@ -153,14 +178,15 @@ export function creditLeadWalletsForSponsoredGoal({
       ),
     ];
   }
-  return leads.map((wallet) =>
-    writeClimateWallet(
-      applyLeadCommitment(wallet, {
-        gbpPerGoal: wallet.gbpPerGoal || gbpPerGoal,
-        goalsScored: Math.max(0, Math.round(Number(wallet.goalsScored) || 0)) + 1,
+  return leads.map((wallet) => {
+    const current = normalizeClimateWallet(wallet);
+    return writeClimateWallet(
+      applyLeadCommitment(current, {
+        gbpPerGoal: current.gbpPerGoal || gbpPerGoal,
+        goalsScored: current.goalsScored + 1,
       })
-    )
-  );
+    );
+  });
 }
 
 export function depositLeadClimateWallet({
@@ -168,13 +194,13 @@ export function depositLeadClimateWallet({
   brandName,
   commitmentFeeGbp,
   gbpPerGoal,
-  goalsScored,
+  maximumSponsorshipGbp,
 }: {
   clubName: string;
   brandName: string;
   commitmentFeeGbp: number;
   gbpPerGoal?: number;
-  goalsScored?: number;
+  maximumSponsorshipGbp?: number;
 }): ClimateWallet {
   const existing = readClimateWallet(clubName, brandName);
   if (!existing) {
@@ -184,11 +210,15 @@ export function depositLeadClimateWallet({
         brandName,
         commitmentFeeGbp,
         gbpPerGoal,
-        goalsScored,
+        maximumSponsorshipGbp,
       })
     );
   }
   return writeClimateWallet(
-    applyLeadCommitment(existing, { commitmentFeeGbp, gbpPerGoal, goalsScored })
+    applyLeadCommitment(existing, {
+      commitmentFeeGbp,
+      gbpPerGoal,
+      maximumSponsorshipGbp,
+    })
   );
 }

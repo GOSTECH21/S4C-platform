@@ -19,7 +19,6 @@ import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import {
   fanVotingWindowCopy,
   fanVotingWindowForMatchCopy,
-  isVotingOpen,
   resolveVotingWindow,
 } from "@/app/lib/voting-window";
 import {
@@ -34,7 +33,7 @@ import {
   remainingGbp,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
-import type { MatchDayFolder } from "@/app/lib/match-day-folder";
+import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
@@ -93,7 +92,8 @@ export default function VotePage() {
             <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               Received amounts are cumulative for the 5-day Vote. Check them
-              here at any time. You can take money once from each sponsor.{" "}
+              here at any time. You can FUND-IT up to 5 times: take £0.20 once
+              from each sponsor and put it on any Climate Project.{" "}
               {fanVotingWindowCopy()}
             </p>
           </div>
@@ -189,7 +189,7 @@ function CampaignClimateBoard({
     closesAt: campaign.votingCloses,
     postedAt: campaign.postedAt,
   });
-  const votingOpen = isVotingOpen(votingWindow);
+  const fundingOpen = fanFundingIsOpen({ folder, votingWindow });
 
   useEffect(() => {
     function refresh() {
@@ -228,7 +228,7 @@ function CampaignClimateBoard({
     split?: boolean;
   }) {
     if (!supporterId) return;
-    if (!votingOpen) {
+    if (!fundingOpen) {
       setError("Voting is not open for this match yet, or it has already closed.");
       return;
     }
@@ -365,7 +365,7 @@ function CampaignClimateBoard({
         }))}
         projectCount={numbered.length || 5}
         busy={busy}
-        votingOpen={votingOpen}
+        votingOpen={fundingOpen}
         usedSponsorNames={usedSponsors}
         clubId={clubId}
         clubName={campaign.clubName}

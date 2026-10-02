@@ -16,6 +16,8 @@ import {
   saveProjectsIntoFolder,
   saveSponsorsIntoFolder,
   sponsorRowsFromWallets,
+  uniqueWalletsByBrand,
+  uniqueSponsorRows,
   submitMatchDayFolder as stampSubmitted,
   type MatchDayFolder,
 } from "../lib/match-day-folder";
@@ -48,6 +50,13 @@ export function readMatchDayFolder(clubId: string): MatchDayFolder | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as MatchDayFolder;
     if (!parsed?.clubId) return null;
+    if (parsed.sponsorsFile?.sponsors) {
+      const unique = uniqueSponsorRows(parsed.sponsorsFile.sponsors);
+      if (unique.length !== parsed.sponsorsFile.sponsors.length) {
+        parsed.sponsorsFile = { ...parsed.sponsorsFile, sponsors: unique };
+        writeMatchDayFolder(parsed);
+      }
+    }
     return parsed;
   } catch {
     return null;
@@ -73,7 +82,15 @@ export function listVisibleMatchDayFolders(): MatchDayFolder[] {
       const parsed = JSON.parse(
         window.localStorage.getItem(key) ?? ""
       ) as MatchDayFolder;
-      if (isMatchDayFolderVisible(parsed)) rows.push(parsed);
+      if (isMatchDayFolderVisible(parsed)) {
+        if (parsed.sponsorsFile?.sponsors) {
+          parsed.sponsorsFile = {
+            ...parsed.sponsorsFile,
+            sponsors: uniqueSponsorRows(parsed.sponsorsFile.sponsors),
+          };
+        }
+        rows.push(parsed);
+      }
     } catch {
       // Skip a malformed folder and keep reading.
     }
@@ -137,7 +154,7 @@ export function identifyClubSponsorWallets({
     wallets.push(extra);
     seen.add(extra.id);
   }
-  return wallets;
+  return uniqueWalletsByBrand(wallets, clubName);
 }
 
 export function folderOrCreate({
@@ -180,7 +197,7 @@ export function saveClubSponsorsFile({
       { ...folder, clubName, matchDate },
       buildSponsorsFile({
         matchDate,
-        sponsors: sponsorRowsFromWallets(wallets),
+        sponsors: sponsorRowsFromWallets(wallets, clubName),
       })
     )
   );

@@ -5,12 +5,18 @@ import {
   createLocalWallet,
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
+  FUND_IT_MAX_TIMES,
   LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
+  leadSponsorshipFromGoalsGbp,
+  leadCarbonWalletGbp,
+  formatLeadSponsorshipGbp,
+  normalizeClimateWallet,
   localWalletTopUp,
   remainingGbp,
   walletVoteAmount,
   totalAllocatedGbp,
+  canPressFundIt,
   formatWalletGbp,
 } from "../app/lib/sponsor-wallet";
 import {
@@ -19,6 +25,7 @@ import {
   canSubmitMatchDayFolder,
   climateProjectsFileName,
   emptyMatchDayFolder,
+  fanFundingIsOpen,
   isMatchDayFolderVisible,
   MATCH_DAY_FOLDER_NAME,
   saveProjectsIntoFolder,
@@ -27,7 +34,12 @@ import {
   sponsorsFileName,
   submitMatchDayFolder,
 } from "../app/lib/match-day-folder";
-import { MS_PER_DAY } from "../app/lib/voting-window";
+import {
+  MS_PER_DAY,
+  isVotingOpen,
+  resolveVotingWindow,
+  votingPhase,
+} from "../app/lib/voting-window";
 import {
   fanInviteRegisterPath,
   mergeNumberedFunding,
@@ -42,6 +54,7 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(DEFAULT_WALLET_VOTE_GBP === 0.2, "Each FUND-IT is worth £0.20");
+assert(FUND_IT_MAX_TIMES === 5, "Fans can FUND-IT up to 5 times");
 assert(
   LEAD_WALLET_VOTE_GBP === DEFAULT_WALLET_VOTE_GBP,
   "Lead and Local Business Climate Sponsors use the same £0.20 FUND-IT"
@@ -78,6 +91,81 @@ assert(
 assert(
   remainingGbp({ ...amex, goalsScored: 1 }) === 6000,
   "The Carbon Wallet increases when the sponsored team scores"
+);
+assert(
+  leadSponsorshipFromGoalsGbp(amex) === 0,
+  "Sponsorship/Goal-Scored starts at £0 before any goal"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 1 }) === 3000,
+  "One goal multiplies Goals-scored Sponsorship Cash by 1"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 2 }) === 6000,
+  "A second goal doubles Sponsorship/Goal-Scored"
+);
+assert(
+  formatLeadSponsorshipGbp(0) === "£0.0",
+  "Sponsorship/Goal-Scored reads £0.0 when Goals-Scored is 0"
+);
+assert(
+  leadCarbonWalletGbp(amex) === 3000,
+  "Amount in CARBON WALLET starts as the Commitment Fee"
+);
+assert(
+  leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 6000,
+  "Amount in CARBON WALLET is Commitment Fee plus Sponsorship/Goal-Scored"
+);
+
+const puma = createLeadWallet({
+  clubName: "Arsenal",
+  brandName: "Puma",
+  commitmentFeeGbp: 3000,
+  gbpPerGoal: 4000,
+  maximumSponsorshipGbp: 12000,
+});
+assert(
+  leadSponsorshipFromGoalsGbp(puma) === 0,
+  "Puma Sponsorship/Goal-Scored is £0 before a live goal"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 1 }) === 4000,
+  "One Arsenal goal copies the Sponsorship/Goal-Scored rate"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 2 }) === 8000,
+  "Two Arsenal goals multiply the rate by 2"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 3 }) === 12000,
+  "Three Arsenal goals reach the Maximum Sponsorship Amount"
+);
+assert(
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 4 }) === 12000,
+  "Further goals stay at the Maximum Sponsorship Amount"
+);
+assert(
+  leadCarbonWalletGbp({ ...puma, goalsScored: 1 }) === 7000,
+  "CARBON WALLET is £3,000 + £4,000 after one goal"
+);
+
+const leftoverMax = normalizeClimateWallet({
+  ...createLeadWallet({
+    clubName: "Arsenal",
+    brandName: "Puma",
+    commitmentFeeGbp: 3000,
+    gbpPerGoal: 4000,
+  }),
+  goalsScored: 12000,
+  maximumSponsorshipGbp: 0,
+});
+assert(
+  leftoverMax.goalsScored === 0 && leftoverMax.maximumSponsorshipGbp === 12000,
+  "A leftover 12000 goal count is restored as Maximum Sponsorship Amount"
+);
+assert(
+  leadSponsorshipFromGoalsGbp(leftoverMax) === 0,
+  "After restoring Maximum Sponsorship Amount, Sponsorship/Goal-Scored is £0.0"
 );
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
@@ -192,11 +280,130 @@ assert(
   "Posted Climate Projects disappear 5 days after they are uploaded"
 );
 
+assert(
+  sponsorRowsFromWallets([amex, topCellar]).length === 2,
+  "Lead and local wallets both appear in the Sponsors File"
+);
+
+const pumaArsenal = createLeadWallet({
+  clubName: "Arsenal",
+  brandName: "Puma",
+  commitmentFeeGbp: 3500,
+  gbpPerGoal: 4000,
+});
+const pumaArsenalFc = createLeadWallet({
+  clubName: "Arsenal FC",
+  brandName: "Puma",
+  commitmentFeeGbp: 3500,
+  gbpPerGoal: 4000,
+});
+assert(
+  pumaArsenal.id !== pumaArsenalFc.id,
+  "Arsenal and Arsenal FC can store separate Puma wallet ids"
+);
+assert(
+  sponsorRowsFromWallets([pumaArsenal, pumaArsenalFc]).length === 1,
+  "The same brand cannot appear twice in the Sponsors File"
+);
+assert(
+  buildSponsorsFile({
+    matchDate: "2026-10-10",
+    sponsors: [
+      ...sponsorRowsFromWallets([pumaArsenal]),
+      ...sponsorRowsFromWallets([pumaArsenalFc]),
+    ],
+  }).sponsors.length === 1,
+  "Saving the Sponsors File collapses duplicate Puma rows"
+);
+
+const folderPanel = readFileSync(
+  "app/components/club/MatchDayFolderPanel.tsx",
+  "utf8"
+);
+assert(
+  folderPanel.includes("uniqueSponsorRows"),
+  "The Match-Day folder de-duplicates sponsor rows before listing them"
+);
+
+assert(
+  canPressFundIt({
+    remainingGbp: 3500,
+    projectNumber: "3",
+    projectCount: 5,
+  }),
+  "FUND-IT turns on when a Climate Project Number is in the Checkbox"
+);
+assert(
+  !canPressFundIt({
+    remainingGbp: 3500,
+    projectNumber: "3",
+    projectCount: 5,
+    fundingOpen: false,
+  }),
+  "FUND-IT stays off after the vote has closed"
+);
+assert(
+  canPressFundIt({
+    remainingGbp: 3500,
+    projectNumber: "3",
+    projectCount: 5,
+    used: true,
+  }) === false,
+  "FUND-IT stays off once that sponsor has already been used"
+);
+
+const earlyKickoff = resolveVotingWindow({
+  kickoff: "2026-10-10T15:00:00.000Z",
+});
+assert(
+  !isVotingOpen(earlyKickoff, "2026-10-01T21:00:00.000Z"),
+  "Kick-off voting is still closed nine days before the match"
+);
+assert(
+  votingPhase(earlyKickoff, "2026-10-01T21:55:00.000Z") === "upcoming",
+  "1 October is still before the kick-off voting window"
+);
+assert(
+  fanFundingIsOpen({
+    folder: null,
+    votingWindow: earlyKickoff,
+    now: "2026-10-01T21:55:00.000Z",
+  }),
+  "FUND-IT turns on when a project number is entered even before kick-off − 3 days"
+);
+const postedFolder = submitMatchDayFolder(
+  folder,
+  "2026-10-01T21:00:00.000Z"
+);
+assert(
+  fanFundingIsOpen({
+    folder: postedFolder,
+    votingWindow: earlyKickoff,
+    now: "2026-10-01T21:55:00.000Z",
+  }),
+  "FUND-IT is live as soon as the Match-Day folder is submitted"
+);
+assert(
+  !fanFundingIsOpen({
+    folder: null,
+    votingWindow: earlyKickoff,
+    now: "2026-10-13T16:00:00.000Z",
+  }),
+  "FUND-IT turns off after the 5-day vote has closed"
+);
+
 const clubPage = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match-Day folder");
 assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");
+assert(
+  clubPage.includes("FUND-IT up to 5 times") &&
+    !clubPage.includes("pick 3 of 5") &&
+    clubPage.includes("No FUND-IT allocations yet"),
+  "The club dashboard tells SDs that fans FUND-IT up to 5 times"
+);
 
 const fanPage = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
+const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(
   fanPage.includes("ClimateProjectSponsors"),
   "My S4P lets fans take cash from a Carbon Wallet"
@@ -216,6 +423,35 @@ assert(
 assert(!fanPage.includes("MatchDayWalletVote"), "My S4P no longer uses the mixed wallet list");
 assert(!fanPage.includes("TodaysClimateSponsors"), "My S4P does not mix local logos into the Amex bar");
 assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Projects");
+assert(
+  fanPage.includes("FUND-IT up to 5 times"),
+  "My S4P tells fans they can FUND-IT up to 5 times"
+);
+
+const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");
+const supporterLogin = readFileSync("app/supporter/login/page.tsx", "utf8");
+const registerPage = readFileSync("app/register/page.tsx", "utf8");
+assert(
+  fanLogin.includes("FUND-IT up to 5 times") &&
+    supporterLogin.includes("FUND-IT up to 5 times") &&
+    registerPage.includes("FUND-IT up to 5 times") &&
+    !fanLogin.includes("vote on your club's climate projects") &&
+    !supporterLogin.includes("vote on your club's climate projects"),
+  "Fan login and registration tell supporters they can FUND-IT 5 times"
+);
+
+const votesService = readFileSync("app/services/votes.service.ts", "utf8");
+const clubMatchDayService = readFileSync(
+  "app/services/club-match-day.service.ts",
+  "utf8"
+);
+assert(
+  votesService.includes("maximum_votes: FUND_IT_MAX_TIMES") &&
+    clubMatchDayService.includes("maximum_votes: FUND_IT_MAX_TIMES") &&
+    !votesService.includes("maximum_votes: 3") &&
+    !clubMatchDayService.includes("maximum_votes: 3"),
+  "Match campaigns allow FUND-IT up to 5 times, not a 3-project vote cap"
+);
 
 const sponsorsUi = readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8");
 assert(
@@ -223,15 +459,23 @@ assert(
     sponsorsUi.includes(">Checkbox<") &&
     !sponsorsUi.includes("Checkbox 1") &&
     !sponsorsUi.includes("Checkbox 2") &&
-    sponsorsUi.includes("FUND-IT") &&
+    sponsorsUi.includes("FUND_IT_LABEL") &&
+    sponsorsUi.includes("canPressFundIt") &&
     !sponsorsUi.includes(">Vote<"),
   "Each Carbon Wallet has one Checkbox and a FUND-IT tab"
 );
 assert(
-  sponsorsUi.includes(
-    "Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press"
-  ) && sponsorsUi.includes("goes from Wallet to Project"),
-  "Local Business Climate Sponsors use the single FUND-IT instruction"
+  sponsorsUi.includes("fundItCopy") &&
+    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times"
+    ) &&
+    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "Choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press"
+    ) &&
+    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "goes from Wallet to Project"
+    ),
+  "Fans are told they can FUND-IT 5 times with the single FUND-IT instruction"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
@@ -255,8 +499,11 @@ assert(
   "The invite link sends friends to fan registration for this club"
 );
 
-const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
-assert(votePage.includes("ClimateProjectSponsors"), "Climate Projects uses Carbon Wallet votes");
+assert(
+  fanPage.includes("fanFundingIsOpen") &&
+    votePage.includes("fanFundingIsOpen"),
+  "My S4P and Climate Projects enable FUND-IT after the Match-Day folder is submitted"
+);
 assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(
   votePage.includes("Climate Project list"),
@@ -271,6 +518,74 @@ const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 assert(
   walletPage.includes("ClimateSponsorshipWallet"),
   "Sponsors have a Climate Sponsorship Wallet page"
+);
+
+const walletForm = readFileSync(
+  "app/components/sponsor/ClimateSponsorshipWallet.tsx",
+  "utf8"
+);
+assert(
+  walletForm.includes("Maximum Sponsorship Amount"),
+  "Lead wallet labels the Maximum Sponsorship Amount field"
+);
+assert(
+  walletForm.includes("Sponsorship/Goal-Scored"),
+  "Lead wallet shows a Sponsorship/Goal-Scored block"
+);
+assert(
+  walletForm.includes("Goals-Scored"),
+  "Lead wallet shows a Goals-Scored block"
+);
+assert(
+  walletForm.includes("Amount in CARBON WALLET"),
+  "Lead wallet shows Amount in CARBON WALLET"
+);
+assert(
+  walletForm.includes("formatLeadSponsorshipGbp"),
+  "Sponsorship/Goal-Scored reads £0.0 before a live goal"
+);
+assert(
+  walletForm.includes("readOnly") &&
+    walletForm.includes("Stays at 0 until a live broadcast goal is received."),
+  "Goals-Scored is not typed in; it waits for a live goal"
+);
+assert(
+  walletPage.includes("SPONSORED_GOAL_EVENT"),
+  "The wallet refreshes when a live sponsored goal is posted"
+);
+assert(
+  walletForm.includes("maximumSponsorshipGbp"),
+  "Maximum Sponsorship Amount is stored separately from goals scored"
+);
+assert(
+  !walletForm.includes("goalsScored: Number(goalsScored)"),
+  "Depositing the lead wallet does not overwrite Goals-Scored from the form"
+);
+assert(
+  walletForm.includes(
+    "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
+  ),
+  "Lead wallet explains the Day 1 Commitment Fee and Goals-scored cash"
+);
+assert(
+  !walletForm.includes("Goals scored so far"),
+  "Lead wallet no longer uses Goals scored so far"
+);
+assert(
+  walletForm.includes('kind === "local"') && walletForm.includes('label="Remaining"'),
+  "Remaining is only shown on the local wallet"
+);
+assert(
+  walletPage.includes(
+    "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet."
+  ),
+  "Lead deposit notice does not show Remaining"
+);
+assert(
+  !walletPage.includes(
+    "is in the wallet (${formatWalletGbp(remainingGbp(next))} Remaining)"
+  ),
+  "Lead deposit notice no longer appends Remaining"
 );
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
