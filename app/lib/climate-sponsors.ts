@@ -3,6 +3,7 @@
 import { CURRENT_SEASON_LEAGUES, leagueForClubName } from "./current-season";
 import { clubsMatch, normalizeClubName } from "./sponsor-dashboard";
 import { MATCH_DAY_LEAD_HOURS } from "./partner-projects";
+import { sameNamedFixture } from "./club-fixtures";
 
 export const CLIMATE_SPONSOR_LEAD_HOURS = MATCH_DAY_LEAD_HOURS;
 
@@ -120,6 +121,39 @@ export function displayLockFixture(lock: MatchDayClubLock): string {
   return lock.matchLabel;
 }
 
+export function chosenMatchSortKey(
+  match: Pick<ChosenMatch, "fixtureDate" | "kickoff">
+): string {
+  const date = String(match.fixtureDate ?? "").slice(0, 10);
+  const kickoff = String(match.kickoff ?? "99:99").slice(0, 5);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return `9999-12-31T${kickoff}`;
+  return `${date}T${kickoff}`;
+}
+
+export function sortChosenMatchesChronologically(
+  matches: ChosenMatch[]
+): ChosenMatch[] {
+  return [...matches].sort((left, right) =>
+    chosenMatchSortKey(left).localeCompare(chosenMatchSortKey(right))
+  );
+}
+
+export function chronologicalChosenMatches(
+  matches: ChosenMatch[],
+  now: Date | string = new Date()
+): ChosenMatch[] {
+  const today = (now instanceof Date ? now : new Date(now))
+    .toISOString()
+    .slice(0, 10);
+  return sortChosenMatchesChronologically(
+    matches.filter((row) => {
+      const date = String(row.fixtureDate ?? "").slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return true;
+      return date >= today;
+    })
+  );
+}
+
 export function chosenMatchesForClub(
   lock: MatchDayClubLock | null | undefined,
   clubName: string
@@ -132,17 +166,155 @@ export function chosenMatchesForClub(
       clubName: lock.clubName,
       fixtureName: displayLockFixture(lock),
       competition: lock.competition,
+      fixtureDate: lock.fixtureDate,
+      kickoff: lock.kickoff,
+      venue: lock.venue,
+      sourceUrl: lock.sourceUrl,
       lockedAt: lock.lockedAt,
     });
   }
-  const seen = new Set<string>();
-  return rows.filter((row) => {
-    if (!clubsMatch(row.clubName, clubName)) return false;
+  const byKey = new Map<string, ChosenMatch>();
+  for (const row of rows) {
+    if (!clubsMatch(row.clubName, clubName)) continue;
     const key = row.fixtureName.trim().toLowerCase();
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    if (!key) continue;
+    const existing = byKey.get(key);
+    if (!existing || (!existing.fixtureDate && row.fixtureDate)) {
+      byKey.set(key, row);
+    }
+  }
+  return sortChosenMatchesChronologically([...byKey.values()]);
+}
+
+export type NextSignedOffFixture = {
+  fixtureName: string;
+  date?: string;
+  kickoff?: string | null;
+};
+
+export function nextSignedOffFixtureForClub({
+  clubName,
+  signedOff,
+  published = [],
+  now = new Date(),
+}: {
+  clubName: string;
+  signedOff: ChosenMatch[];
+  published?: Array<{
+    fixtureName: string;
+    date: string;
+    kickoff?: string | null;
+  }>;
+  now?: Date | string;
+}): NextSignedOffFixture | null {
+  const today = (now instanceof Date ? now : new Date(now))
+    .toISOString()
+    .slice(0, 10);
+  const clubMatches = signedOff.filter(
+    (row) => !row.clubName || clubsMatch(row.clubName, clubName)
+  );
+  if (clubMatches.length === 0) return null;
+
+  function isSigned(name: string) {
+    return clubMatches.some((row) => sameNamedFixture(row.fixtureName, name));
+  }
+
+  const publishedUpcoming = [...published]
+    .filter((row) => row.date >= today)
+    .sort((left, right) =>
+      `${left.date}T${left.kickoff ?? "99:99"}`.localeCompare(
+        `${right.date}T${right.kickoff ?? "99:99"}`
+      )
+    );
+
+  const nextPublished = publishedUpcoming[0];
+  if (nextPublished && isSigned(nextPublished.fixtureName)) {
+    return {
+      fixtureName: nextPublished.fixtureName,
+      date: nextPublished.date,
+      kickoff: nextPublished.kickoff,
+    };
+  }
+
+  const nextSignedPublished = publishedUpcoming.find((row) =>
+    isSigned(row.fixtureName)
+  );
+  if (nextSignedPublished) {
+    return {
+      fixtureName: nextSignedPublished.fixtureName,
+      date: nextSignedPublished.date,
+      kickoff: nextSignedPublished.kickoff,
+    };
+  }
+
+  const dated = chronologicalChosenMatches(
+    clubMatches.map((row) => {
+      const publishedRow = published.find((item) =>
+        sameNamedFixture(item.fixtureName, row.fixtureName)
+      );
+      return {
+        ...row,
+        fixtureDate: row.fixtureDate || publishedRow?.date,
+        kickoff: row.kickoff ?? publishedRow?.kickoff,
+      };
+    }),
+    today
+  );
+  const first = dated[0];
+  if (!first) return nextPublishedFixture(published, today);
+  return {
+    fixtureName: first.fixtureName,
+    date: first.fixtureDate,
+    kickoff: first.kickoff,
+  };
+}
+
+export function nextFanMatchForClub(options: {
+  clubName: string;
+  signedOff: ChosenMatch[];
+  published?: Array<{
+    fixtureName: string;
+    date: string;
+    kickoff?: string | null;
+  }>;
+  now?: Date | string;
+}): NextSignedOffFixture | null {
+  return (
+    nextSignedOffFixtureForClub(options) ??
+    nextPublishedFixture(
+      options.published ?? [],
+      (options.now instanceof Date
+        ? options.now
+        : new Date(options.now ?? Date.now())
+      )
+        .toISOString()
+        .slice(0, 10)
+    )
+  );
+}
+
+function nextPublishedFixture(
+  published: Array<{
+    fixtureName: string;
+    date: string;
+    kickoff?: string | null;
+  }>,
+  today: string
+): NextSignedOffFixture | null {
+  const upcoming = [...published]
+    .filter((row) => row.date >= today)
+    .sort((left, right) =>
+      `${left.date}T${left.kickoff ?? "99:99"}`.localeCompare(
+        `${right.date}T${right.kickoff ?? "99:99"}`
+      )
+    );
+  const first = upcoming[0];
+  if (!first) return null;
+  return {
+    fixtureName: first.fixtureName,
+    date: first.date,
+    kickoff: first.kickoff,
+  };
 }
 
 export function appendChosenMatch(
@@ -242,7 +414,9 @@ export function leadSponsorsForClubFromStores({
     upsert({
       brandName: network?.brandName || lock.brandKey,
       email: network?.email ?? null,
-      matches: matches.map((row) => row.fixtureName),
+      matches: sortChosenMatchesChronologically(matches).map(
+        (row) => row.fixtureName
+      ),
       lockedAt: matches[matches.length - 1]?.lockedAt ?? lock.lockedAt,
       inNetwork: Boolean(network && networkHasClub(network, clubName)),
     });

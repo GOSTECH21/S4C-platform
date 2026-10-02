@@ -4,6 +4,7 @@ import {
   displayCompetition,
   formatKickoff,
   formatMatchDate,
+  namesMatch,
   normalizeClubName,
   type UpcomingMatch,
 } from "./upcoming-matches";
@@ -69,6 +70,31 @@ export function fixturesFromUpcoming(matches: UpcomingMatch[]): ClubFixture[] {
   return rows;
 }
 
+export function fixtureSides(name: string): [string, string] | null {
+  const parts = String(name ?? "")
+    .replace(/\s+climate campaign$/i, "")
+    .split(/\s+(?:vs\.?|v|versus)\s+/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length !== 2) return null;
+  return [parts[0], parts[1]];
+}
+
+/** Same published match, including home/away reversed and vs/v spelling. */
+export function sameNamedFixture(left: string, right: string): boolean {
+  const a = fixtureSides(left);
+  const b = fixtureSides(right);
+  if (!a || !b) {
+    const keyLeft = normalizeClubName(left);
+    const keyRight = normalizeClubName(right);
+    return Boolean(keyLeft && keyLeft === keyRight);
+  }
+  return (
+    (namesMatch(a[0], b[0]) && namesMatch(a[1], b[1])) ||
+    (namesMatch(a[0], b[1]) && namesMatch(a[1], b[0]))
+  );
+}
+
 export function fixtureByIdOrName(
   fixtures: ClubFixture[],
   value: string
@@ -77,12 +103,11 @@ export function fixtureByIdOrName(
   if (!needle) return null;
   const byId = fixtures.find((row) => row.id === needle);
   if (byId) return byId;
-  const key = normalizeClubName(needle);
   return (
     fixtures.find(
       (row) =>
-        normalizeClubName(row.fixtureName) === key ||
-        normalizeClubName(`${row.homeName} vs ${row.awayName}`) === key
+        sameNamedFixture(row.fixtureName, needle) ||
+        sameNamedFixture(`${row.homeName} vs ${row.awayName}`, needle)
     ) ?? null
   );
 }

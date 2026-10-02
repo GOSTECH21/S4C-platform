@@ -1,7 +1,10 @@
 import { readFileSync } from "fs";
 import {
   appendChosenMatch,
+  chosenMatchesForClub,
   leadSponsorsForClubFromStores,
+  nextFanMatchForClub,
+  nextSignedOffFixtureForClub,
   type GoalSponsorshipNetwork,
   type MatchDayClubLock,
 } from "../app/lib/climate-sponsors";
@@ -9,7 +12,9 @@ import {
   clubFixtureFromUpcoming,
   fixtureByIdOrName,
   matchDetailsLines,
+  sameNamedFixture,
 } from "../app/lib/club-fixtures";
+import { campaignHeadline } from "../app/lib/sponsorship-auction";
 import {
   LOCAL_SPONSOR_MIN_GBP,
   isSubmittedLocalSponsor,
@@ -180,6 +185,118 @@ assert(
   "Example local brands do not appear as submitted Local Business Climate Sponsors"
 );
 
+assert(
+  sameNamedFixture("Bournemouth v Arsenal", "Arsenal vs Bournemouth"),
+  "Home and away reversed still count as the same fixture"
+);
+
+const pumaDatedLock: MatchDayClubLock = {
+  brandKey: "puma",
+  clubName: "Arsenal",
+  matchLabel: "Premier League Match",
+  fixtureName: "Arsenal v Everton",
+  fixtureDate: "2026-10-18",
+  kickoff: "17:30",
+  lockedAt: now,
+  matches: [
+    {
+      clubName: "Arsenal",
+      fixtureName: "Bournemouth v Arsenal",
+      fixtureDate: "2026-10-03",
+      kickoff: "15:00",
+      lockedAt: now,
+    },
+    {
+      clubName: "Arsenal",
+      fixtureName: "Arsenal v Everton",
+      fixtureDate: "2026-10-18",
+      kickoff: "17:30",
+      lockedAt: now,
+    },
+  ],
+};
+assert(
+  chosenMatchesForClub(pumaDatedLock, "Arsenal")
+    .map((row) => row.fixtureName)
+    .join(",") === "Bournemouth v Arsenal,Arsenal v Everton",
+  "Puma's Arsenal matches are listed in chronological order"
+);
+assert(
+  nextSignedOffFixtureForClub({
+    clubName: "Arsenal",
+    signedOff: chosenMatchesForClub(pumaDatedLock, "Arsenal"),
+    now: "2026-10-02T09:00:00.000Z",
+  })?.fixtureName === "Bournemouth v Arsenal",
+  "My S4P uses the next signed-off Arsenal fixture, not a stale Arsenal v Chelsea campaign"
+);
+assert(
+  campaignHeadline("Bournemouth v Arsenal") ===
+    "Bournemouth v Arsenal Climate Campaign",
+  "The My S4P headline is the next signed-off fixture plus Climate Campaign"
+);
+
+const publishedArsenal = [
+  clubFixtureFromUpcoming({
+    id: "list-arsenal-leeds",
+    date: "2026-10-04",
+    kickoff: "14:00",
+    homeName: "Arsenal",
+    awayName: "Leeds United",
+    venue: "Emirates Stadium",
+    competition: "England - Premier League",
+    source: "fixtures-list",
+    sourceUrl: "https://www.bbc.co.uk/sport/football/teams/arsenal/scores-fixtures",
+  }),
+  clubFixtureFromUpcoming({
+    id: "list-bournemouth-arsenal",
+    date: "2026-10-10",
+    kickoff: "15:00",
+    homeName: "Bournemouth",
+    awayName: "Arsenal",
+    venue: "Vitality Stadium",
+    competition: "England - Premier League",
+    source: "fixtures-list",
+    sourceUrl: "https://www.bbc.co.uk/sport/football/teams/arsenal/scores-fixtures",
+  }),
+  clubFixtureFromUpcoming({
+    id: "list-arsenal-everton",
+    date: "2026-10-18",
+    kickoff: "17:30",
+    homeName: "Arsenal",
+    awayName: "Everton",
+    venue: "Emirates Stadium",
+    competition: "England - Premier League",
+    source: "fixtures-list",
+    sourceUrl: "https://www.bbc.co.uk/sport/football/teams/arsenal/scores-fixtures",
+  }),
+];
+assert(
+  nextFanMatchForClub({
+    clubName: "Arsenal",
+    signedOff: chosenMatchesForClub(pumaDatedLock, "Arsenal"),
+    published: publishedArsenal,
+    now: "2026-10-02T09:00:00.000Z",
+  })?.fixtureName === "Bournemouth v Arsenal",
+  "Fans see the next signed-off Arsenal fixture in date order, not Arsenal v Chelsea"
+);
+assert(
+  nextFanMatchForClub({
+    clubName: "Arsenal",
+    signedOff: [
+      {
+        clubName: "Arsenal",
+        fixtureName: "Arsenal v Leeds United",
+        fixtureDate: "2026-10-04",
+        kickoff: "14:00",
+        lockedAt: now,
+      },
+    ],
+    published: publishedArsenal,
+    now: "2026-10-02T09:00:00.000Z",
+  })?.fixtureName === "Arsenal v Leeds United",
+  "When Leeds United is Arsenal's next fixture and a Lead Climate Sponsor signs it off, that is the My S4P headline"
+);
+
 const nextFixtures = readFileSync("app/services/next-fixtures.service.ts", "utf8");
 assert(
   nextFixtures.includes("getPublishedFixturesForClub") &&
@@ -206,6 +323,19 @@ assert(
     tabs.includes("Our Local Businesses Sponsor") &&
     tabs.includes("Local Businesses Climate Sponsors"),
   "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
+);
+
+const votesService = readFileSync("app/services/votes.service.ts", "utf8");
+assert(
+  votesService.includes("nextFanMatchForClub") &&
+    votesService.includes("applyNextFanMatchHeadline"),
+  "My S4P replaces a stale campaign title with the next signed-off fixture"
+);
+assert(
+  readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    "campaignHeadline(campaign.matchTitle)"
+  ),
+  "My S4P prints the resolved fixture as the Climate Campaign headline"
 );
 
 const sponsorDash = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");

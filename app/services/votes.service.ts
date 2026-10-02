@@ -42,6 +42,13 @@ import {
 } from "../lib/voting-window";
 import { identifySignedInKind } from "./signed-in-role.service";
 import { isFanFacingKind } from "../lib/signed-in-role";
+import {
+  chosenMatchesForClub,
+  nextFanMatchForClub,
+} from "../lib/climate-sponsors";
+import { listMatchDayLocks } from "./climate-sponsors.service";
+import { getPublishedFixturesForClub } from "./next-fixtures.service";
+import { fixturesFromUpcoming } from "../lib/club-fixtures";
 
 export type ClimateProject = {
   id: string;
@@ -574,7 +581,10 @@ export async function getMyS4PCampaigns(
     campaigns.push(fromPortfolio);
   }
 
-  return campaigns.filter((campaign) => campaign.isVisible !== false);
+  const withHeadlines = await Promise.all(
+    campaigns.map((campaign) => applyNextFanMatchHeadline(campaign))
+  );
+  return withHeadlines.filter((campaign) => campaign.isVisible !== false);
 }
 
 export async function getMyS4PCampaign(
@@ -902,6 +912,44 @@ type AuctionSettings = {
   fansWhoVoted: number;
   brandExposures: number;
 };
+
+async function applyNextFanMatchHeadline(
+  campaign: S4PCampaign
+): Promise<S4PCampaign> {
+  let published: Array<{
+    fixtureName: string;
+    date: string;
+    kickoff: string | null;
+  }> = [];
+  try {
+    published = fixturesFromUpcoming(
+      await getPublishedFixturesForClub(campaign.clubName)
+    );
+  } catch {
+    published = [];
+  }
+  const next = nextFanMatchForClub({
+    clubName: campaign.clubName,
+    signedOff: listMatchDayLocks().flatMap((lock) =>
+      chosenMatchesForClub(lock, campaign.clubName)
+    ),
+    published,
+  });
+  if (!next?.fixtureName) return campaign;
+  const matchTitle = formatMatchHeadline(next.fixtureName);
+  const kickoff = parseFixtureKickoff({
+    fixture_date: next.date ?? null,
+    kickoff_time: next.kickoff ?? null,
+  });
+  return {
+    ...campaign,
+    matchTitle,
+    ...campaignVotingFields({
+      kickoff,
+      postedAt: campaign.postedAt,
+    }),
+  };
+}
 
 function campaignVotingFields(options: {
   kickoff?: Date | null;
