@@ -2,8 +2,9 @@ import { seasonNamesMatch } from "./current-season";
 import { fixtureSides, sameNamedFixture } from "./club-fixtures";
 import {
   applyLeadCommitment,
-  normalizeClimateWallet,
+  committedGbp,
   remainingGbp,
+  normalizeClimateWallet,
   type ClimateWallet,
 } from "./sponsor-wallet";
 
@@ -41,6 +42,56 @@ export type SponsoredGoalResult = {
 
 export function clubNamesMatchForGoal(clubName: string, otherName: string) {
   return seasonNamesMatch(clubName, otherName);
+}
+
+export function isGenericLeadSponsorName(name: string | null | undefined): boolean {
+  const key = String(name ?? "").trim().toLowerCase();
+  return key === "lead climate sponsor" || key === "goal sponsor";
+}
+
+/** Amount fans see on that sponsor's Carbon Wallet (committed cash, not a leftover £3,000 default). */
+export function goalStatementAmountGbp(wallet: ClimateWallet): number {
+  const committed = committedGbp(wallet);
+  if (committed > 0) return committed;
+  const remaining = remainingGbp(wallet);
+  if (remaining > 0) return remaining;
+  return 0;
+}
+
+export function leadWalletForGoalStatement(
+  wallets: ClimateWallet[],
+  clubName: string,
+  brandName?: string | null
+): ClimateWallet | null {
+  const leads = wallets.filter(
+    (wallet) =>
+      wallet.kind === "lead" && clubNamesMatchForGoal(wallet.clubName, clubName)
+  );
+  const brand = String(brandName ?? "").trim();
+  if (brand && !isGenericLeadSponsorName(brand)) {
+    const named = leads.find(
+      (wallet) =>
+        wallet.brandName.trim().toLowerCase() === brand.toLowerCase()
+    );
+    if (named) return named;
+  }
+  return leads[0] ?? null;
+}
+
+export function withSponsorWalletOnGoalAlert(
+  alert: FanGoalAlert,
+  wallet: ClimateWallet | null,
+  displayedRemainingGbp?: number | null
+): FanGoalAlert {
+  const brand =
+    wallet?.brandName?.trim() && !isGenericLeadSponsorName(wallet.brandName)
+      ? wallet.brandName.trim()
+      : alert.brandName;
+  const fromWallet = wallet ? goalStatementAmountGbp(wallet) : 0;
+  const fromDisplay = Number(displayedRemainingGbp) || 0;
+  const amountGbp =
+    fromWallet > 0 ? fromWallet : fromDisplay > 0 ? fromDisplay : alert.amountGbp;
+  return { ...alert, brandName: brand, amountGbp };
 }
 
 export function creditLeadWalletForGoal(wallet: ClimateWallet): ClimateWallet {

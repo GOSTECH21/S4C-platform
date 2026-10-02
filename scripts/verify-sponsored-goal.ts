@@ -13,10 +13,14 @@ import {
   FAN_GOAL_ALERTS_STORAGE,
   goalAlertForCampaign,
   goalScoreline,
+  goalStatementAmountGbp,
+  isGenericLeadSponsorName,
+  leadWalletForGoalStatement,
   leadWalletIncreaseGbp,
   mergeFanGoalAlerts,
   recordFanGoalAlert,
   SPONSORED_GOAL_EVENT,
+  withSponsorWalletOnGoalAlert,
 } from "../app/lib/sponsored-goal";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
 import { mergePlatformStats } from "../app/lib/platform-stats";
@@ -171,13 +175,66 @@ assert(
   "A Chelsea goal alert is not shown on the Arsenal v Leeds United campaign"
 );
 
+const pumaWallet = {
+  ...createLeadWallet({
+    clubName: "Arsenal",
+    brandName: "Puma",
+    commitmentFeeGbp: 3500,
+    gbpPerGoal: 3000,
+  }),
+  allocatedGbp: 0.2,
+};
+assert(remainingGbp(pumaWallet) === 3499.8, "Puma's Carbon Wallet shows £3,499.80 after FUND-IT");
+assert(
+  goalStatementAmountGbp(pumaWallet) === 3500,
+  "The GOAL statement uses Puma's committed £3,500, not a leftover £3,000 /Goal"
+);
+assert(
+  isGenericLeadSponsorName("Lead Climate Sponsor"),
+  "Lead Climate Sponsor is a label, not a brand"
+);
+assert(
+  leadWalletForGoalStatement(
+    [pumaWallet],
+    "Arsenal FC",
+    "Lead Climate Sponsor"
+  )?.brandName === "Puma",
+  "Arsenal FC fans resolve Puma's wallet even when the banner was labelled Lead Climate Sponsor"
+);
+const pumaBanner = withSponsorWalletOnGoalAlert(
+  {
+    clubName: "Arsenal FC",
+    opponentName: "Leeds United",
+    fixtureDate: "2026-10-10",
+    scoreline: "Arsenal FC scored",
+    brandName: "Lead Climate Sponsor",
+    amountGbp: DEFAULT_LEAD_GBP_PER_GOAL,
+    at: "2026-10-02T12:00:00.000Z",
+  },
+  pumaWallet
+);
+assert(
+  pumaBanner.brandName === "Puma" && pumaBanner.amountGbp === 3500,
+  "GOAL! names Puma and £3,500 — the amount shown on Puma's Carbon Wallet"
+);
+
 const dashboard = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
 assert(
   dashboard.includes("FanGoalAlertBanner") &&
+    dashboard.includes("sponsorRemainingGbp") &&
     dashboard.includes("SPONSORED_GOAL_EVENT"),
   "My S4P shows the Arsenal goal banner and refreshes the Lead wallet"
 );
 
+assert(
+  readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
+    "goalStatementAmountGbp"
+  ) ||
+    readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
+      "withSponsorWalletOnGoalAlert"
+    ),
+  "The GOAL banner uses the amount shown on the sponsor Carbon Wallet"
+);
 const admin = readFileSync("app/admin/fixtures/page.tsx", "utf8");
 assert(
   admin.includes("Simulate Arsenal Goal") &&

@@ -4,8 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   alertsForClub,
   goalAlertForCampaign,
+  isGenericLeadSponsorName,
+  leadWalletForGoalStatement,
   mergeFanGoalAlerts,
   SPONSORED_GOAL_EVENT,
+  withSponsorWalletOnGoalAlert,
   type FanGoalAlert,
 } from "@/app/lib/sponsored-goal";
 import { leadSponsorBrandForFixture } from "@/app/lib/climate-sponsors";
@@ -15,16 +18,18 @@ import {
   listGoalNetworks,
   listMatchDayLocks,
 } from "@/app/services/climate-sponsors.service";
-import { readClimateWallet } from "@/app/services/sponsor-wallet.service";
+import { listClimateWalletsForClub } from "@/app/services/sponsor-wallet.service";
 
 export function FanGoalAlertBanner({
   clubNames,
   matchTitle,
   sponsorName,
+  sponsorRemainingGbp,
 }: {
   clubNames: string[];
   matchTitle?: string | null;
   sponsorName?: string | null;
+  sponsorRemainingGbp?: number | null;
 }) {
   const [alerts, setAlerts] = useState<FanGoalAlert[]>([]);
   const clubKey = clubNames.slice().sort().join("|");
@@ -62,7 +67,19 @@ export function FanGoalAlertBanner({
       locks: listMatchDayLocks(),
       networks: listGoalNetworks(),
     });
-    const brand = lockBrand || String(sponsorName ?? "").trim() || null;
+    const preferredBrand = [lockBrand, sponsorName].find(
+      (name) => name && !isGenericLeadSponsorName(name)
+    );
+    const wallet = leadWalletForGoalStatement(
+      names.flatMap((name) => listClimateWalletsForClub(name)),
+      clubName,
+      preferredBrand
+    );
+    const brand =
+      wallet?.brandName ||
+      preferredBrand ||
+      (isGenericLeadSponsorName(sponsorName) ? null : sponsorName) ||
+      null;
     const alert = goalAlertForCampaign({
       alerts,
       clubName,
@@ -70,13 +87,9 @@ export function FanGoalAlertBanner({
       sponsorName: brand,
     });
     if (!alert) return null;
-    if (matchTitle && !brand) return null;
-    if (!brand) return alert;
-    const wallet = readClimateWallet(alert.clubName, brand);
-    const amountGbp =
-      Number(wallet?.gbpPerGoal) > 0 ? Number(wallet?.gbpPerGoal) : alert.amountGbp;
-    return { ...alert, brandName: brand, amountGbp };
-  }, [alerts, clubKey, matchTitle, sponsorName]);
+    if (matchTitle && !brand && !wallet) return null;
+    return withSponsorWalletOnGoalAlert(alert, wallet, sponsorRemainingGbp);
+  }, [alerts, clubKey, matchTitle, sponsorName, sponsorRemainingGbp]);
 
   if (!latest) return null;
 

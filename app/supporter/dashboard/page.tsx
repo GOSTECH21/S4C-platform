@@ -413,7 +413,8 @@ function CampaignPanel({
           <FanGoalAlertBanner
             clubNames={[campaign.clubName]}
             matchTitle={campaign.matchTitle}
-            sponsorName={leadName}
+            sponsorName={leadSponsor?.brandName || leadName}
+            sponsorRemainingGbp={leadSponsor?.remainingGbp}
           />
         </div>
         <div className="text-center">
