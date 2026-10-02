@@ -14,6 +14,7 @@ import {
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
+import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { seasonNamesMatch } from "../lib/current-season";
 import { readInvitedClubs } from "../lib/climate-funding";
 import {
@@ -260,7 +261,7 @@ async function ensureOpenCampaignIdForClub(
       title,
       status: "open",
       sponsorship_per_goal: OPENING_SPONSORSHIP,
-      maximum_votes: 3,
+      maximum_votes: FUND_IT_MAX_TIMES,
       voting_opens: window.votingOpens,
       voting_closes: window.votingCloses,
       ...(fixtureId ? { match_id: fixtureId } : {}),
@@ -513,7 +514,7 @@ export type S4PCampaign = {
   kickoffAt: string | null;
 };
 
-const REQUIRED_VOTES = 5;
+const REQUIRED_VOTES = FUND_IT_MAX_TIMES;
 
 /**
  * Match climate campaigns for a fan: clubs they support that have posted

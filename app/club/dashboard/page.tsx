@@ -612,12 +612,13 @@ export default function ClubDashboardPage() {
         <section className="mt-12">
           <h2 className="text-3xl font-black">Voted-For Projects</h2>
           <p className="mt-2 text-slate-400">
-            Climate projects supporters have voted for on your match-day
-            campaign.
+            Climate projects supporters have funded with FUND-IT on your
+            match-day campaign — up to 5 times, £0.20 once from each Carbon
+            Wallet onto any Project.
           </p>
           <ProjectGrid
             projects={voted}
-            empty="No supporter votes yet. Once fans vote on My S4P, those projects appear here."
+            empty="No FUND-IT allocations yet. Once fans press FUND-IT on My S4P, those projects appear here."
             badge="Voted"
             clubName={club.name}
             clubCountry={club.country}

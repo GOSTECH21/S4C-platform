@@ -14,6 +14,7 @@ import {
   DEFAULT_MINIMUM_SPONSORSHIP,
   brandExposureValue,
 } from "../lib/sponsorship-auction";
+import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { findClubOnRoster } from "../lib/current-season";
 import type { ClimateCountryContext } from "../lib/featured-climate-country";
 import {
@@ -501,7 +502,7 @@ export async function ensureOpenClubCampaign(
       title,
       status: "open",
       sponsorship_per_goal: amount,
-      maximum_votes: 3,
+      maximum_votes: FUND_IT_MAX_TIMES,
       voting_opens: votingOpensAt,
       voting_closes: votingClosesAt,
       ...(fixtureId ? { match_id: fixtureId } : {}),
@@ -511,7 +512,7 @@ export async function ensureOpenClubCampaign(
       title,
       status: "open",
       sponsorship_per_goal: amount,
-      maximum_votes: 3,
+      maximum_votes: FUND_IT_MAX_TIMES,
       ...(fixtureId ? { match_id: fixtureId } : {}),
     },
     {

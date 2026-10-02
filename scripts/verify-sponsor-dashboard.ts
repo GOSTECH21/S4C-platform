@@ -174,7 +174,7 @@ const votedOnOffer = votedProjectsOnSignedOffer(offer, [
 ]);
 assert(
   votedOnOffer.map((project) => project.id).join(",") === "gss,local-1,int-1",
-  "Sponsor folder shows the 3 fan-voted projects from the signed five"
+  "Sponsor folder shows the fan-funded projects from the signed five"
 );
 assert(
   fanCountFromVotedProjects(5) === 1,
@@ -465,6 +465,12 @@ assert(
       "Receive the club&apos;s 5 chosen Climate Projects"
     ),
   "Sponsorship dashboard keeps Receive the club's 5 chosen Climate Projects"
+);
+assert(
+  sponsorDashboardPage.includes("FUND-IT up to 5 times") &&
+    !sponsorDashboardPage.includes("The 3 Climate Projects they choose") &&
+    !sponsorDashboardPage.includes("Fans who voted and saw your brand"),
+  "Sponsors are told fans FUND-IT up to 5 times, not vote for 3 Projects"
 );
 assert(
   !sponsorDashboardPage.includes("Create Your Sponsorship Campaign"),

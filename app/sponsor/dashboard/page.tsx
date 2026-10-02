@@ -668,7 +668,7 @@ export default function SponsorDashboardPage() {
           value={formatMoney(stats.expenditureGbp)}
         />
         <StatCard
-          label="Fans who voted and saw your brand"
+          label="Fans who FUND-IT and saw your brand"
           value={formatVoteCount(stats.fanVotes)}
         />
       </section>
@@ -774,8 +774,9 @@ export default function SponsorDashboardPage() {
                   </p>
                   {votedFor.length === 0 ? (
                     <p className="mt-2 text-slate-500">
-                      Waiting for fans to vote on this Match Day five. The 3
-                      Climate Projects they choose will appear here.
+                      Waiting for fans to FUND-IT on this Match Day five. They
+                      can FUND-IT up to 5 times — £0.20 once from each Carbon
+                      Wallet onto any of these Projects.
                     </p>
                   ) : (
                     <ul className="mt-2 space-y-1 text-slate-300">

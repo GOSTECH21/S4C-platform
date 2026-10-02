@@ -397,7 +397,8 @@ assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match
 assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");
 assert(
   clubPage.includes("FUND-IT up to 5 times") &&
-    !clubPage.includes("pick 3 of 5"),
+    !clubPage.includes("pick 3 of 5") &&
+    clubPage.includes("No FUND-IT allocations yet"),
   "The club dashboard tells SDs that fans FUND-IT up to 5 times"
 );
 
@@ -425,6 +426,31 @@ assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Pr
 assert(
   fanPage.includes("FUND-IT up to 5 times"),
   "My S4P tells fans they can FUND-IT up to 5 times"
+);
+
+const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");
+const supporterLogin = readFileSync("app/supporter/login/page.tsx", "utf8");
+const registerPage = readFileSync("app/register/page.tsx", "utf8");
+assert(
+  fanLogin.includes("FUND-IT up to 5 times") &&
+    supporterLogin.includes("FUND-IT up to 5 times") &&
+    registerPage.includes("FUND-IT up to 5 times") &&
+    !fanLogin.includes("vote on your club's climate projects") &&
+    !supporterLogin.includes("vote on your club's climate projects"),
+  "Fan login and registration tell supporters they can FUND-IT 5 times"
+);
+
+const votesService = readFileSync("app/services/votes.service.ts", "utf8");
+const clubMatchDayService = readFileSync(
+  "app/services/club-match-day.service.ts",
+  "utf8"
+);
+assert(
+  votesService.includes("maximum_votes: FUND_IT_MAX_TIMES") &&
+    clubMatchDayService.includes("maximum_votes: FUND_IT_MAX_TIMES") &&
+    !votesService.includes("maximum_votes: 3") &&
+    !clubMatchDayService.includes("maximum_votes: 3"),
+  "Match campaigns allow FUND-IT up to 5 times, not a 3-project vote cap"
 );
 
 const sponsorsUi = readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8");
