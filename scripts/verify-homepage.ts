@@ -342,7 +342,10 @@ assert(
 );
 assert(
   howItWorks.includes("FANS DIRECT THE FUNDING") &&
-    howItWorks.includes("Fans allocate real Sponsor-funded money"),
+    howItWorks.includes("Fans allocate real Sponsor-funded money") &&
+    howItWorks.includes(
+      "(creating a DIRECT FAN ENGAGEMENT FOR LOCAL BUSINESSES)"
+    ),
   "Step 03 is FANS DIRECT THE FUNDING"
 );
 assert(
