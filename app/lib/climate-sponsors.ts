@@ -279,18 +279,15 @@ export function nextFanMatchForClub(options: {
   }>;
   now?: Date | string;
 }): NextSignedOffFixture | null {
-  return (
-    nextSignedOffFixtureForClub(options) ??
-    nextPublishedFixture(
-      options.published ?? [],
-      (options.now instanceof Date
-        ? options.now
-        : new Date(options.now ?? Date.now())
-      )
-        .toISOString()
-        .slice(0, 10)
-    )
-  );
+  const today = (options.now instanceof Date
+    ? options.now
+    : new Date(options.now ?? Date.now())
+  )
+    .toISOString()
+    .slice(0, 10);
+  const nextPublished = nextPublishedFixture(options.published ?? [], today);
+  if (nextPublished) return nextPublished;
+  return nextSignedOffFixtureForClub(options);
 }
 
 function nextPublishedFixture(

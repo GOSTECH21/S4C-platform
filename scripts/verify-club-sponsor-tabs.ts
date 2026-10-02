@@ -276,8 +276,8 @@ assert(
     signedOff: chosenMatchesForClub(pumaDatedLock, "Arsenal"),
     published: publishedArsenal,
     now: "2026-10-02T09:00:00.000Z",
-  })?.fixtureName === "Bournemouth v Arsenal",
-  "Fans see the next signed-off Arsenal fixture in date order, not Arsenal v Chelsea"
+  })?.fixtureName === "Arsenal v Leeds United",
+  "Fans see Arsenal's next published fixture, not a stale Arsenal v Chelsea campaign"
 );
 assert(
   nextFanMatchForClub({
