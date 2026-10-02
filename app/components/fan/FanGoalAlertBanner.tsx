@@ -1,16 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   alertsForClub,
+  goalAlertForCampaign,
   mergeFanGoalAlerts,
   SPONSORED_GOAL_EVENT,
   type FanGoalAlert,
 } from "@/app/lib/sponsored-goal";
+import { leadSponsorBrandForFixture } from "@/app/lib/climate-sponsors";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
 import { loadLatestGoalAlerts } from "@/app/services/sponsored-goal.service";
+import {
+  listGoalNetworks,
+  listMatchDayLocks,
+} from "@/app/services/climate-sponsors.service";
+import { readClimateWallet } from "@/app/services/sponsor-wallet.service";
 
-export function FanGoalAlertBanner({ clubNames }: { clubNames: string[] }) {
+export function FanGoalAlertBanner({
+  clubNames,
+  matchTitle,
+  sponsorName,
+}: {
+  clubNames: string[];
+  matchTitle?: string | null;
+  sponsorName?: string | null;
+}) {
   const [alerts, setAlerts] = useState<FanGoalAlert[]>([]);
   const clubKey = clubNames.slice().sort().join("|");
 
@@ -38,7 +53,31 @@ export function FanGoalAlertBanner({ clubNames }: { clubNames: string[] }) {
     };
   }, [clubKey]);
 
-  const latest = alerts[0];
+  const latest = useMemo(() => {
+    const names = clubKey ? clubKey.split("|") : [];
+    const clubName = names[0] ?? "";
+    const lockBrand = leadSponsorBrandForFixture({
+      clubName,
+      fixtureName: matchTitle,
+      locks: listMatchDayLocks(),
+      networks: listGoalNetworks(),
+    });
+    const brand = lockBrand || String(sponsorName ?? "").trim() || null;
+    const alert = goalAlertForCampaign({
+      alerts,
+      clubName,
+      matchTitle,
+      sponsorName: brand,
+    });
+    if (!alert) return null;
+    if (matchTitle && !brand) return null;
+    if (!brand) return alert;
+    const wallet = readClimateWallet(alert.clubName, brand);
+    const amountGbp =
+      Number(wallet?.gbpPerGoal) > 0 ? Number(wallet?.gbpPerGoal) : alert.amountGbp;
+    return { ...alert, brandName: brand, amountGbp };
+  }, [alerts, clubKey, matchTitle, sponsorName]);
+
   if (!latest) return null;
 
   return (

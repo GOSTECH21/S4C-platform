@@ -22,6 +22,7 @@ import { liveMatchDayBranding } from "@/app/services/match-day-branding.service"
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import {
   fanVotingWindowCopy,
+  fanWalletDrainCopy,
   resolveVotingWindow,
 } from "@/app/lib/voting-window";
 import {
@@ -164,9 +165,6 @@ export default function MyS4PDashboardPage() {
 
   return (
     <div className="space-y-16 pb-16">
-      <div className="mx-auto max-w-5xl px-8">
-        <FanGoalAlertBanner clubNames={clubNames} />
-      </div>
       {error && (
         <div className="mx-auto max-w-5xl px-8">
           <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
@@ -252,6 +250,7 @@ function CampaignPanel({
     campaignSponsorName: campaign.sponsorName,
     campaignSponsorLogoUrl: campaign.sponsorLogoUrl,
     storedLocals: schedule?.localAssignments,
+    fixtureName: campaign.matchTitle,
   });
   const leadName = branding.lead.name;
   const leadLogoUrl = branding.lead.logoUrl;
@@ -410,15 +409,20 @@ function CampaignPanel({
   return (
     <main className="pb-8 text-white">
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
+        <div className="mb-6">
+          <FanGoalAlertBanner
+            clubNames={[campaign.clubName]}
+            matchTitle={campaign.matchTitle}
+            sponsorName={leadName}
+          />
+        </div>
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
             {campaign.clubName}
           </p>
           <h1 className="mt-2 text-3xl font-black md:text-5xl">{headline}</h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            {fanVotingWindowCopy()} Climate Projects posted by the{" "}
-            {campaign.clubName} Sustainability Director disappear after 5 days.
-            Bring every Carbon Wallet to {formatWalletGbp(0)}.
+            {fanVotingWindowCopy()} {fanWalletDrainCopy(formatWalletGbp(0))}
           </p>
         </div>
 

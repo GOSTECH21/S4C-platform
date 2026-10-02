@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import {
   appendChosenMatch,
   chosenMatchesForClub,
+  leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   nextFanMatchForClub,
   nextSignedOffFixtureForClub,
@@ -295,6 +296,52 @@ assert(
     now: "2026-10-02T09:00:00.000Z",
   })?.fixtureName === "Arsenal v Leeds United",
   "When Leeds United is Arsenal's next fixture and a Lead Climate Sponsor signs it off, that is the My S4P headline"
+);
+
+const pumaLeedsLock: MatchDayClubLock = {
+  brandKey: "puma",
+  clubName: "Arsenal",
+  matchLabel: "Premier League Match",
+  fixtureName: "Arsenal v Leeds United",
+  fixtureDate: "2026-10-10",
+  kickoff: "12:30",
+  lockedAt: now,
+};
+assert(
+  leadSponsorBrandForFixture({
+    clubName: "Arsenal",
+    fixtureName: "Arsenal v Leeds United Climate Campaign",
+    locks: [pumaLeedsLock, pumaDatedLock],
+    networks: [puma, diageo],
+  }) === "Puma",
+  "Arsenal v Leeds United uses Puma, the Lead Climate Sponsor who signed that match"
+);
+assert(
+  leadSponsorBrandForFixture({
+    clubName: "Arsenal",
+    fixtureName: "Arsenal v Everton",
+    locks: [pumaLeedsLock, pumaDatedLock],
+    networks: [puma, diageo],
+  }) === "Puma",
+  "Arsenal v Everton still names Puma"
+);
+assert(
+  leadSponsorBrandForFixture({
+    clubName: "Arsenal",
+    fixtureName: "Arsenal v Chelsea",
+    locks: [pumaLeedsLock, pumaDatedLock],
+    networks: [puma, diageo],
+  }) === null,
+  "A fixture nobody signed does not inherit another match's Lead Climate Sponsor"
+);
+assert(
+  readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
+    "leadSponsorBrandForFixture"
+  ) &&
+    readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
+      "matchTitle"
+    ),
+  "The GOAL banner on My S4P uses the Lead Climate Sponsor of the current match"
 );
 
 const nextFixtures = readFileSync("app/services/next-fixtures.service.ts", "utf8");

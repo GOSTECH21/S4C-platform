@@ -5,6 +5,7 @@ import {
   VOTING_PERIOD_DAYS,
   clubVotingWindowCopy,
   fanVotingWindowCopy,
+  fanWalletDrainCopy,
   isVotingOpen,
   parseFixtureKickoff,
   resolveVotingWindow,
@@ -80,13 +81,15 @@ assert(
 
 assert(
   fanVotingWindowCopy().includes("Wednesday at 15:00") &&
-    fanVotingWindowCopy().includes("Monday at 15:00"),
-  "Fan copy uses the Saturday 15:00 example"
+    fanVotingWindowCopy().includes("Monday at 15:00") &&
+    fanVotingWindowCopy().includes("Fund allocation opens") &&
+    fanVotingWindowCopy().includes("Match ended"),
+  "Fan copy uses the Saturday 15:00 fund-allocation example"
 );
 assert(
-  clubVotingWindowCopy(4).includes("5 days") &&
-    clubVotingWindowCopy(4).includes("3 days before kick-off"),
-  "Club copy tells the SD to post 3 days before kick-off for a 5-day vote"
+  clubVotingWindowCopy(4).includes("3 days before kick-off") &&
+    clubVotingWindowCopy(4).includes("Fund allocation opens"),
+  "Club copy tells the SD to post 3 days before kick-off for fund allocation"
 );
 assert(
   !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
@@ -97,6 +100,12 @@ assert(
     ) &&
     !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
       "Lead Climate Sponsor pays"
+    ) &&
+    readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+      "fanWalletDrainCopy"
+    ) &&
+    !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+      "Bring every Carbon Wallet"
     ),
   "My S4P no longer shows the Lead Climate Sponsor payment and exposure copy"
 );
@@ -104,7 +113,12 @@ assert(
   readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
     "fanVotingWindowCopy"
   ),
-  "Climate Projects explains the 5-day voting window"
+  "Climate Projects explains the 5-day fund-allocation window"
+);
+assert(
+  fanWalletDrainCopy("£0").includes("each Club disappears") &&
+    fanWalletDrainCopy("£0").includes("bring it to £0 by Day 5"),
+  "Fans are told to drain Carbon Wallets to £0 by Day 5"
 );
 
 if (failures.length > 0) {
@@ -113,5 +127,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Voting opens 3 days before kick-off and closes 2 days after, for 5 days."
+  "Fund allocation opens 3 days before kick-off and closes 2 days after Match ended."
 );

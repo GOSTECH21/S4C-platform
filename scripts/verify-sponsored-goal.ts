@@ -5,11 +5,13 @@ import {
 } from "../app/lib/sponsor-wallet";
 import {
   alertsForClub,
+  brandNameFromGoalMessage,
   clubNamesMatchForGoal,
   creditLeadWalletForGoal,
   DEFAULT_LEAD_GBP_PER_GOAL,
   DEFAULT_LEAD_GOAL_SPONSOR,
   FAN_GOAL_ALERTS_STORAGE,
+  goalAlertForCampaign,
   goalScoreline,
   leadWalletIncreaseGbp,
   mergeFanGoalAlerts,
@@ -130,6 +132,45 @@ assert(
   "Chelsea supporters are not shown the Arsenal goal banner"
 );
 
+assert(
+  brandNameFromGoalMessage(
+    "Arsenal FC scored against Leeds United. Puma has released £3,000 Goals-scored sponsorship into the Carbon Wallet."
+  ) === "Puma",
+  "Goal notifications keep the Lead Climate Sponsor who signed that match"
+);
+
+const amexAlert = localAlerts[0];
+const pumaLeedsAlert = {
+  ...amexAlert,
+  opponentName: "Leeds United",
+  scoreline: "Arsenal FC scored",
+  brandName: "American Express",
+};
+assert(
+  goalAlertForCampaign({
+    alerts: [amexAlert, pumaLeedsAlert],
+    clubName: "Arsenal",
+    matchTitle: "Arsenal v Leeds United Climate Campaign",
+    sponsorName: "Puma",
+  })?.brandName === "Puma",
+  "My S4P GOAL banner names Puma for Arsenal v Leeds United, not a leftover American Express"
+);
+assert(
+  goalAlertForCampaign({
+    alerts: [
+      {
+        ...amexAlert,
+        scoreline: "Arsenal FC v Chelsea",
+        opponentName: "Chelsea",
+      },
+    ],
+    clubName: "Arsenal",
+    matchTitle: "Arsenal v Leeds United",
+    sponsorName: "Puma",
+  }) == null,
+  "A Chelsea goal alert is not shown on the Arsenal v Leeds United campaign"
+);
+
 const dashboard = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
 assert(
   dashboard.includes("FanGoalAlertBanner") &&
@@ -155,8 +196,11 @@ const service = readFileSync("app/services/sponsored-goal.service.ts", "utf8");
 assert(
   service.includes("createNotification") &&
     service.includes("score_events") &&
-    service.includes("supporter_preferences"),
-  "A sponsored goal posts a score event and alerts registered club fans"
+    service.includes("supporter_preferences") &&
+    service.includes("leadSponsorBrandForFixture") &&
+    service.includes("brandNameFromGoalMessage") &&
+    !service.includes("brandName: DEFAULT_LEAD_GOAL_SPONSOR"),
+  "A sponsored goal posts a score event and names the Lead Climate Sponsor who signed that match"
 );
 
 if (failures.length > 0) {

@@ -45,9 +45,10 @@ import { identifySignedInKind } from "./signed-in-role.service";
 import { isFanFacingKind } from "../lib/signed-in-role";
 import {
   chosenMatchesForClub,
+  leadSponsorBrandForFixture,
   nextFanMatchForClub,
 } from "../lib/climate-sponsors";
-import { listMatchDayLocks } from "./climate-sponsors.service";
+import { listGoalNetworks, listMatchDayLocks } from "./climate-sponsors.service";
 import { getPublishedFixturesForClub } from "./next-fixtures.service";
 import { fixturesFromUpcoming } from "../lib/club-fixtures";
 
@@ -942,9 +943,21 @@ async function applyNextFanMatchHeadline(
     fixture_date: next.date ?? null,
     kickoff_time: next.kickoff ?? null,
   });
+  const matchSponsor = leadSponsorBrandForFixture({
+    clubName: campaign.clubName,
+    fixtureName: next.fixtureName,
+    locks: listMatchDayLocks(),
+    networks: listGoalNetworks(),
+  });
   return {
     ...campaign,
     matchTitle,
+    ...(matchSponsor
+      ? {
+          sponsorName: matchSponsor,
+          sponsorLogoUrl: sponsorLogoSrc(matchSponsor, campaign.sponsorLogoUrl),
+        }
+      : {}),
     ...campaignVotingFields({
       kickoff,
       postedAt: campaign.postedAt,

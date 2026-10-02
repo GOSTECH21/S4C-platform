@@ -99,7 +99,11 @@ export function isVotingOpen(
 }
 
 export function fanVotingWindowCopy(): string {
-  return `Voting is open for ${VOTING_PERIOD_DAYS} days. It opens ${VOTING_OPENS_DAYS_BEFORE_KICKOFF} days before kick-off and closes ${VOTING_CLOSES_DAYS_AFTER_KICKOFF} days after, at the same time. A Saturday 15:00 kick-off opens voting Wednesday at 15:00 and closes Monday at 15:00.`;
+  return `Fund allocation opens ${VOTING_OPENS_DAYS_BEFORE_KICKOFF} days before kick-off & closes ${VOTING_CLOSES_DAYS_AFTER_KICKOFF} days after Match ended (e.g, funding allocation for a Saturday 15:00 kick-off opens on Wednesday at 15:00 and closes Monday at 15:00).`;
+}
+
+export function fanWalletDrainCopy(zeroLabel = "£0"): string {
+  return `Climate Projects posted by each Club disappears after ${VOTING_PERIOD_DAYS} days. Fans should try & allocate all Carbon Wallet funds & bring it to ${zeroLabel} by Day ${VOTING_PERIOD_DAYS}.`;
 }
 
 export function clubVotingWindowCopy(choiceCount: number): string {
@@ -122,7 +126,7 @@ export function formatVotingClock(value: Date): string {
 }
 
 export function fanVotingWindowForMatchCopy(window: VotingWindow): string {
-  return `Voting is open for ${VOTING_PERIOD_DAYS} days. It opens ${formatVotingClock(window.opensAt)} and closes ${formatVotingClock(window.closesAt)}.`;
+  return `Fund allocation opens ${formatVotingClock(window.opensAt)} and closes ${formatVotingClock(window.closesAt)}.`;
 }
 
 function asDate(value: Date | string | null | undefined): Date | null {
