@@ -14,6 +14,7 @@ import {
   loadBrandLogo,
   loadClubSponsorRoster,
   lockedBrandNameForClub,
+  lockedBrandNameForClubAndMatch,
 } from "./climate-sponsors.service";
 
 export function liveMatchDayBranding<T extends { id: string }>({
@@ -26,6 +27,7 @@ export function liveMatchDayBranding<T extends { id: string }>({
   campaignSponsorLogoUrl = null,
   storedLocals = null,
   signedBrandName = null,
+  fixtureName = null,
 }: {
   clubId?: string | null;
   clubName: string;
@@ -36,19 +38,23 @@ export function liveMatchDayBranding<T extends { id: string }>({
   campaignSponsorLogoUrl?: string | null;
   storedLocals?: MatchDayLocalAssignment[] | null;
   signedBrandName?: string | null;
+  fixtureName?: string | null;
 }) {
   const roster = loadClubSponsorRoster(clubId || clubName, clubName);
+  const matchBrand = lockedBrandNameForClubAndMatch(clubName, fixtureName);
+  const namedFixture = Boolean(String(fixtureName ?? "").trim());
+  const useClubFallback = !namedFixture || Boolean(matchBrand);
   return resolveMatchDayBranding({
     clubName,
     projects,
     rosterSponsors: roster.sponsors,
     selected: selectedSponsors(roster),
-    lockedBrandName: lockedBrandNameForClub(clubName),
-    signedBrandName,
-    storedLeadName,
-    storedLeadLogoUrl,
-    campaignSponsorName,
-    campaignSponsorLogoUrl,
+    lockedBrandName: matchBrand,
+    signedBrandName: useClubFallback ? signedBrandName : null,
+    storedLeadName: useClubFallback ? storedLeadName : null,
+    storedLeadLogoUrl: useClubFallback ? storedLeadLogoUrl : null,
+    campaignSponsorName: useClubFallback ? campaignSponsorName : null,
+    campaignSponsorLogoUrl: useClubFallback ? campaignSponsorLogoUrl : null,
     storedLocals,
     loadLogo: loadBrandLogo,
   });

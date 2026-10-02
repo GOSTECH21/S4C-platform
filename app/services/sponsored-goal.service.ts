@@ -3,15 +3,23 @@ import { seasonNamesMatch } from "../lib/current-season";
 import { createNotification } from "./notifications.service";
 import { createScoreEvent } from "./score-event.service";
 import { updateFixtureScore } from "./fixtures.service";
-import { creditLeadWalletsForSponsoredGoal } from "./sponsor-wallet.service";
 import {
-  DEFAULT_LEAD_GOAL_SPONSOR,
+  creditLeadWalletsForSponsoredGoal,
+  readClimateWallet,
+} from "./sponsor-wallet.service";
+import {
   DEFAULT_LEAD_GBP_PER_GOAL,
+  brandNameFromGoalMessage,
   goalScoreline,
   recordFanGoalAlert,
   type FanGoalAlert,
   type SponsoredGoalResult,
 } from "../lib/sponsored-goal";
+import { leadSponsorBrandForFixture } from "../lib/climate-sponsors";
+import {
+  listGoalNetworks,
+  listMatchDayLocks,
+} from "./climate-sponsors.service";
 
 type FixtureRow = {
   id: string;
@@ -164,12 +172,42 @@ async function alertClubFans({
   return ids.size;
 }
 
+function resolveMatchLeadSponsor(
+  clubName: string,
+  homeName: string,
+  awayName: string
+): { brandName: string; amountGbp: number } | null {
+  const locks = listMatchDayLocks();
+  const networks = listGoalNetworks();
+  const fixtureNames = [`${homeName} v ${awayName}`, `${awayName} v ${homeName}`];
+  let brand: string | null = null;
+  for (const fixtureName of fixtureNames) {
+    brand = leadSponsorBrandForFixture({
+      clubName,
+      fixtureName,
+      locks,
+      networks,
+    });
+    if (brand) break;
+  }
+  if (!brand) return null;
+  const wallet =
+    readClimateWallet(clubName, brand) ??
+    readClimateWallet(homeName, brand) ??
+    readClimateWallet(awayName, brand);
+  const amountGbp =
+    Number(wallet?.gbpPerGoal) > 0
+      ? Number(wallet?.gbpPerGoal)
+      : DEFAULT_LEAD_GBP_PER_GOAL;
+  return { brandName: brand, amountGbp };
+}
+
 export async function recordSponsoredGoal({
   clubName = "Arsenal",
   scorerName = "Simulated Goal",
   minute = 23,
-  brandName = DEFAULT_LEAD_GOAL_SPONSOR,
-  amountGbp = DEFAULT_LEAD_GBP_PER_GOAL,
+  brandName,
+  amountGbp,
 }: {
   clubName?: string;
   scorerName?: string;
@@ -192,6 +230,17 @@ export async function recordSponsoredGoal({
   const awayScore = Math.max(0, Math.round(Number(fixture.away_score) || 0));
   const nextHome = scoringIsHome ? homeScore + 1 : homeScore;
   const nextAway = scoringIsHome ? awayScore : awayScore + 1;
+  const resolved = resolveMatchLeadSponsor(scoringName, homeName, awayName);
+  const goalBrand = String(brandName ?? "").trim() || resolved?.brandName || "";
+  const goalAmount =
+    Number(amountGbp) > 0
+      ? Number(amountGbp)
+      : resolved?.amountGbp ?? DEFAULT_LEAD_GBP_PER_GOAL;
+  if (!goalBrand) {
+    throw new Error(
+      `No Lead Climate Sponsor has signed ${homeName} v ${awayName}.`
+    );
+  }
 
   const scoreEvent = await insertScoreEvent({
     fixtureId: fixture.id,
@@ -218,8 +267,13 @@ export async function recordSponsoredGoal({
     clubId,
     clubName: scoringName,
     fixtureId: fixture.id,
-    title: `GOAL! ${scoringName} scored`,
-    message: `${scoringName} scored against ${opponentName}. ${brandName} has released £${amountGbp.toLocaleString("en-GB")} Goals-scored sponsorship into the Carbon Wallet.`,
+    title: `GOAL! ${goalScoreline({
+      homeName,
+      homeScore: nextHome,
+      awayName,
+      awayScore: nextAway,
+    })}`,
+    message: `${scoringName} scored against ${opponentName}. ${goalBrand} has released £${goalAmount.toLocaleString("en-GB")} Goals-scored sponsorship into the Carbon Wallet.`,
   });
 
   return {
@@ -233,8 +287,8 @@ export async function recordSponsoredGoal({
     homeScore: nextHome,
     awayScore: nextAway,
     scoreEventId: String(scoreEvent.id),
-    brandName,
-    amountGbp,
+    brandName: goalBrand,
+    amountGbp: goalAmount,
     alertedFans,
   };
 }
@@ -284,13 +338,15 @@ export async function loadLatestGoalAlerts(
     if (!/goal/i.test(title)) return [];
     const message = String((row as { message?: string }).message ?? "");
     const amountMatch = message.match(/£([\d,]+)/);
+    const opponentMatch = message.match(/scored against\s+(.+?)\./i);
+    const parsedBrand = brandNameFromGoalMessage(message);
     return [
       {
         clubName: club,
-        opponentName: "",
+        opponentName: opponentMatch?.[1]?.trim() ?? "",
         fixtureDate: "",
         scoreline: title.replace(/^GOAL!\s*/i, ""),
-        brandName: DEFAULT_LEAD_GOAL_SPONSOR,
+        brandName: parsedBrand ?? "",
         amountGbp: amountMatch
           ? Number(amountMatch[1].replace(/,/g, "")) || DEFAULT_LEAD_GBP_PER_GOAL
           : DEFAULT_LEAD_GBP_PER_GOAL,

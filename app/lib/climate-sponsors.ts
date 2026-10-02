@@ -427,6 +427,36 @@ export function leadSponsorsForClubFromStores({
   });
 }
 
+/** The Lead Climate Sponsor who locked this named fixture — never another match's brand. */
+export function leadSponsorBrandForFixture({
+  clubName,
+  fixtureName,
+  locks,
+  networks = [],
+}: {
+  clubName: string;
+  fixtureName?: string | null;
+  locks: MatchDayClubLock[];
+  networks?: GoalSponsorshipNetwork[];
+}): string | null {
+  const fixture = String(fixtureName ?? "")
+    .replace(/\s+climate campaign$/i, "")
+    .trim();
+  if (!clubName.trim() || !fixture) return null;
+  const named = leadSponsorsForClubFromStores({
+    clubName,
+    networks,
+    locks,
+  }).filter((row) =>
+    row.matches.some((name) => sameNamedFixture(name, fixture))
+  );
+  if (named.length === 0) return null;
+  named.sort((left, right) =>
+    String(right.lockedAt ?? "").localeCompare(String(left.lockedAt ?? ""))
+  );
+  return named[0]?.brandName?.trim() || null;
+}
+
 export function brandKey(name: string): string {
   return normalizeClubName(name);
 }

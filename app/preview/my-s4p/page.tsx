@@ -21,6 +21,10 @@ import {
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
+import {
+  fanVotingWindowCopy,
+  fanWalletDrainCopy,
+} from "@/app/lib/voting-window";
 
 const PROJECTS = [
   {
@@ -166,8 +170,7 @@ export default function MyS4PPreviewPage() {
           </p>
           <h1 className="mt-2 text-4xl font-black">Hibernian Climate Campaign</h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            Climate Projects posted by the Sustainability Director disappear
-            after 5 days. Bring every Carbon Wallet to {formatWalletGbp(0)}.
+            {fanVotingWindowCopy()} {fanWalletDrainCopy(formatWalletGbp(0))}
           </p>
         </div>
 

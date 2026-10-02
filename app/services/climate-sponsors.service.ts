@@ -7,6 +7,7 @@ import {
   brandsMatch,
   emptySponsor,
   inviteMatchesSponsor,
+  leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   removeSponsor,
   selectedSponsors,
@@ -271,6 +272,23 @@ export function ensureGoalNetwork({
   );
   saveGoalNetwork(next);
   return next;
+}
+
+export function lockedBrandNameForClubAndMatch(
+  clubName: string,
+  fixtureName?: string | null
+): string | null {
+  if (!clubName.trim() || typeof window === "undefined") return null;
+  const fixture = String(fixtureName ?? "").trim();
+  if (fixture) {
+    return leadSponsorBrandForFixture({
+      clubName,
+      fixtureName: fixture,
+      locks: listMatchDayLocks(),
+      networks: listGoalNetworks(),
+    });
+  }
+  return lockedBrandNameForClub(clubName);
 }
 
 export function lockedBrandNameForClub(clubName: string): string | null {

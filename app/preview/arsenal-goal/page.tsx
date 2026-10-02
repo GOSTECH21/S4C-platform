@@ -10,7 +10,6 @@ import {
 } from "@/app/services/sponsored-goal.service";
 import {
   DEFAULT_LEAD_GBP_PER_GOAL,
-  DEFAULT_LEAD_GOAL_SPONSOR,
   type SponsoredGoalResult,
 } from "@/app/lib/sponsored-goal";
 import { formatWalletGbp, remainingGbp, type ClimateWallet } from "@/app/lib/sponsor-wallet";
@@ -72,9 +71,10 @@ export default function ArsenalGoalSimulationPage() {
         <h1 className="text-4xl font-black">Simulate an Arsenal sponsored goal</h1>
         <p className="text-slate-300">
           This posts a Goal-scored event on Arsenal's upcoming fixture, releases
-          the agreed {formatWalletGbp(DEFAULT_LEAD_GBP_PER_GOAL)} / Goal from{" "}
-          {DEFAULT_LEAD_GOAL_SPONSOR} into the Carbon Wallet, alerts registered
-          Arsenal fans, and adds one Impact Moment on the homepage.
+          the agreed {formatWalletGbp(DEFAULT_LEAD_GBP_PER_GOAL)} / Goal from the
+          Lead Climate Sponsor who signed that match into the Carbon Wallet,
+          alerts registered Arsenal fans, and adds one Impact Moment on the
+          homepage.
         </p>
         <p className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-300">
           Fixture: {fixtureLabel}

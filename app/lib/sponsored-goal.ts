@@ -1,8 +1,10 @@
 import { seasonNamesMatch } from "./current-season";
+import { fixtureSides, sameNamedFixture } from "./club-fixtures";
 import {
   applyLeadCommitment,
-  normalizeClimateWallet,
+  committedGbp,
   remainingGbp,
+  normalizeClimateWallet,
   type ClimateWallet,
 } from "./sponsor-wallet";
 
@@ -40,6 +42,56 @@ export type SponsoredGoalResult = {
 
 export function clubNamesMatchForGoal(clubName: string, otherName: string) {
   return seasonNamesMatch(clubName, otherName);
+}
+
+export function isGenericLeadSponsorName(name: string | null | undefined): boolean {
+  const key = String(name ?? "").trim().toLowerCase();
+  return key === "lead climate sponsor" || key === "goal sponsor";
+}
+
+/** Amount fans see on that sponsor's Carbon Wallet (committed cash, not a leftover £3,000 default). */
+export function goalStatementAmountGbp(wallet: ClimateWallet): number {
+  const committed = committedGbp(wallet);
+  if (committed > 0) return committed;
+  const remaining = remainingGbp(wallet);
+  if (remaining > 0) return remaining;
+  return 0;
+}
+
+export function leadWalletForGoalStatement(
+  wallets: ClimateWallet[],
+  clubName: string,
+  brandName?: string | null
+): ClimateWallet | null {
+  const leads = wallets.filter(
+    (wallet) =>
+      wallet.kind === "lead" && clubNamesMatchForGoal(wallet.clubName, clubName)
+  );
+  const brand = String(brandName ?? "").trim();
+  if (brand && !isGenericLeadSponsorName(brand)) {
+    const named = leads.find(
+      (wallet) =>
+        wallet.brandName.trim().toLowerCase() === brand.toLowerCase()
+    );
+    if (named) return named;
+  }
+  return leads[0] ?? null;
+}
+
+export function withSponsorWalletOnGoalAlert(
+  alert: FanGoalAlert,
+  wallet: ClimateWallet | null,
+  displayedRemainingGbp?: number | null
+): FanGoalAlert {
+  const brand =
+    wallet?.brandName?.trim() && !isGenericLeadSponsorName(wallet.brandName)
+      ? wallet.brandName.trim()
+      : alert.brandName;
+  const fromWallet = wallet ? goalStatementAmountGbp(wallet) : 0;
+  const fromDisplay = Number(displayedRemainingGbp) || 0;
+  const amountGbp =
+    fromWallet > 0 ? fromWallet : fromDisplay > 0 ? fromDisplay : alert.amountGbp;
+  return { ...alert, brandName: brand, amountGbp };
 }
 
 export function creditLeadWalletForGoal(wallet: ClimateWallet): ClimateWallet {
@@ -83,6 +135,76 @@ export function alertsForClub(clubName: string): FanGoalAlert[] {
   return listFanGoalAlerts().filter((alert) =>
     clubNamesMatchForGoal(alert.clubName, clubName)
   );
+}
+
+export function brandNameFromGoalMessage(message: string): string | null {
+  const match = String(message ?? "").match(
+    /\.\s*([^.]+?) has released £/
+  );
+  const brand = match?.[1]?.trim() ?? "";
+  return brand || null;
+}
+
+/** true = this fixture, false = a different named fixture, null = opponent unknown. */
+export function alertBelongsToFixture(
+  alert: FanGoalAlert,
+  matchTitle?: string | null
+): boolean | null {
+  const fixture = String(matchTitle ?? "")
+    .replace(/\s+climate campaign$/i, "")
+    .trim();
+  if (!fixture) return null;
+  if (
+    sameNamedFixture(alert.scoreline, fixture) ||
+    (alert.opponentName &&
+      sameNamedFixture(`${alert.clubName} v ${alert.opponentName}`, fixture))
+  ) {
+    return true;
+  }
+  const scoreSides = fixtureSides(alert.scoreline);
+  const matchSides = fixtureSides(fixture);
+  if (scoreSides && matchSides) return sameNamedFixture(alert.scoreline, fixture);
+  const opponent = String(alert.opponentName ?? "").trim();
+  if (opponent && matchSides) {
+    if (
+      seasonNamesMatch(opponent, matchSides[0]) ||
+      seasonNamesMatch(opponent, matchSides[1])
+    ) {
+      return true;
+    }
+  }
+  return null;
+}
+
+/** Latest goal for this club's current match, using that match's Lead sponsor. */
+export function goalAlertForCampaign({
+  alerts,
+  clubName,
+  matchTitle,
+  sponsorName,
+}: {
+  alerts: FanGoalAlert[];
+  clubName: string;
+  matchTitle?: string | null;
+  sponsorName?: string | null;
+}): FanGoalAlert | null {
+  const clubAlerts = alerts.filter((alert) =>
+    clubNamesMatchForGoal(alert.clubName, clubName)
+  );
+  const belonging = clubAlerts.map((alert) => ({
+    alert,
+    belongs: alertBelongsToFixture(alert, matchTitle),
+  }));
+  const forThisMatch = belonging.filter((row) => row.belongs === true);
+  const unknownMatch = belonging.filter((row) => row.belongs !== false);
+  const pool = (forThisMatch.length > 0 ? forThisMatch : unknownMatch).map(
+    (row) => row.alert
+  );
+  const latest = pool[0] ?? null;
+  if (!latest) return null;
+  const brand = String(sponsorName ?? "").trim();
+  if (!brand) return latest;
+  return { ...latest, brandName: brand };
 }
 
 export function goalScoreline(result: Pick<
