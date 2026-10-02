@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
 import { resolveMatchDayBranding } from "@/app/lib/match-day-branding";
@@ -95,16 +94,6 @@ export default function MatchDayPreviewPage() {
   const ranked = placements
     .map((row) => row.local)
     .filter((row): row is NonNullable<typeof row> => Boolean(row));
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  function toggle(projectId: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(projectId)) next.delete(projectId);
-      else if (next.size < 3) next.add(projectId);
-      return next;
-    });
-  }
 
   return (
     <main className="min-h-screen bg-[#04140f] py-8 text-white">
@@ -116,9 +105,11 @@ export default function MatchDayPreviewPage() {
           Hibs Match-Day Climate Campaign
         </h1>
         <p className="mx-auto mt-3 max-w-3xl text-center text-slate-300">
-          Choose 3 Climate Projects. The Lead Climate Sponsor (American Express)
-          occupies 65% of each card and appears on all five. Five Local Business
-          Climate Sponsors occupy the remaining 35% — one each.
+          Choose any Climate Project and press FUND-IT. You can FUND-IT up to 5
+          times — £0.20 once from each Carbon Wallet. The Lead Climate Sponsor
+          (American Express) occupies 65% of each card and appears on all five.
+          Five Local Business Climate Sponsors occupy the remaining 35% — one
+          each.
         </p>
         <div className="mt-8">
           <TodaysClimateSponsors
@@ -138,10 +129,7 @@ export default function MatchDayPreviewPage() {
               leadLogoUrl={branding.lead.logoUrl}
               local={row.local}
               localScale={row.scale}
-              selected={selected.has(row.project.id)}
-              disabled={!selected.has(row.project.id) && selected.size >= 3}
-              showVote
-              onToggle={() => toggle(row.project.id)}
+              showVote={false}
             />
           ))}
         </div>

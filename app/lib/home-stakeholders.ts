@@ -26,7 +26,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
   {
     title: "A Fan",
     description:
-      "Help your team address their Match Day Carbon Footprints; Vote and climb up our Climate Impact Fans Table (CIFT).",
+      "Help your team address their Match Day Carbon Footprints; FUND-IT up to 5 times and climb up our Climate Impact Fans Table (CIFT).",
     register: FAN_REGISTER_PATH,
     login: FAN_LOGIN_PATH,
     registerText: "Register as a Fan →",

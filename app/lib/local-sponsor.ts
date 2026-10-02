@@ -2,7 +2,8 @@ import { clubsMatch } from "./sponsor-dashboard";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
-export const FAN_VOTE_PICK_COUNT = 3;
+/** Fans may FUND-IT onto any of the Match Day five; leftover-only branding is retired. */
+export const FAN_VOTE_PICK_COUNT = MATCH_DAY_PROJECT_COUNT;
 export const LOCAL_SPONSOR_LEFTOVER_COUNT =
   MATCH_DAY_PROJECT_COUNT - FAN_VOTE_PICK_COUNT;
 export const LOCAL_SPONSORS_PER_MATCH = MATCH_DAY_PROJECT_COUNT;

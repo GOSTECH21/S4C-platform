@@ -707,7 +707,7 @@ export default function SponsorDashboardPage() {
         <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
         <p className="mt-2 text-slate-400">
           Once you sign off a club&apos;s 5 and the sponsorship is settled, it
-          is lodged here — including the Climate Projects fans later vote for
+          is lodged here — including the Climate Projects fans later FUND-IT
           from that five.
         </p>
         {signed.length === 0 ? (

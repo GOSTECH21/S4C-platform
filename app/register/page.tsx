@@ -157,7 +157,7 @@ export default function RegisterPage() {
         <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
         <p className="mt-2 text-slate-400">
           {invitedClub
-            ? `You've been invited to help put remaining Carbon Wallet funds into ${invitedClub.clubName} Climate Projects. You do not need to support that club — register and you can take money once from each remaining sponsor.`
+            ? `You've been invited to help put remaining Carbon Wallet funds into ${invitedClub.clubName} Climate Projects. You do not need to support that club — register and you can FUND-IT once from each remaining sponsor, up to 5 times.`
             : `Create your account with your real name and email, then choose the
           teams you support across the four sports categories: Football (Goal
           scored), Rugby (Try scored), NFL (Touchdown scored) and NBA (3-Point

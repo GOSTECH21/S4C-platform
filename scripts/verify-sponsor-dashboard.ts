@@ -177,8 +177,12 @@ assert(
   "Sponsor folder shows the 3 fan-voted projects from the signed five"
 );
 assert(
+  fanCountFromVotedProjects(5) === 1,
+  "Five FUND-IT allocations from one Match Day five count as one fan"
+);
+assert(
   fanCountFromVotedProjects(3) === 1,
-  "Three voted Climate Projects from one Match Day five count as one fan"
+  "Fewer than five FUND-IT allocations still count as one fan"
 );
 assert(
   fanCountFromVotedProjects(0) === 0,
@@ -190,7 +194,7 @@ assert(
     { "club-united": [{ id: "gss" }, { id: "local-1" }, { id: "int-1" }] },
     0
   ) === 1,
-  "American Express sees 1 fan when Voted by fans lists 3 projects"
+  "American Express sees 1 fan when Voted by fans lists FUND-IT allocations"
 );
 
 const budweiserSig = {

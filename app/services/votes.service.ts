@@ -513,7 +513,7 @@ export type S4PCampaign = {
   kickoffAt: string | null;
 };
 
-const REQUIRED_VOTES = 3;
+const REQUIRED_VOTES = 5;
 
 /**
  * Match climate campaigns for a fan: clubs they support that have posted

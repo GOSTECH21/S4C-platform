@@ -92,7 +92,8 @@ export default function VotePage() {
             <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               Received amounts are cumulative for the 5-day Vote. Check them
-              here at any time. You can take money once from each sponsor.{" "}
+              here at any time. You can FUND-IT up to 5 times: take £0.20 once
+              from each sponsor and put it on any Climate Project.{" "}
               {fanVotingWindowCopy()}
             </p>
           </div>

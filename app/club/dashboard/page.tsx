@@ -457,7 +457,7 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? "Save these five in the Match-Day folder as the Climate Projects File. Fans will fund them with cash taken from sponsor wallets — they no longer pick 3 of 5."
+                ? "Save these five in the Match-Day folder as the Climate Projects File. Fans press FUND-IT up to 5 times: £0.20 once from each Carbon Wallet onto any of these five Projects."
                 : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Global Schools Solar is included automatically and is UK and International.`}
             </p>
           </div>

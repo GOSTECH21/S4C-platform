@@ -438,6 +438,8 @@ function CampaignPanel({
           <h2 className="text-3xl font-black">Climate Projects List</h2>
           <p className="mt-2 text-sm text-slate-400">
             Use the bold project number in the Checkbox, then press FUND-IT.
+            You can FUND-IT up to 5 times — £0.20 once from each Carbon Wallet
+            onto any Climate Project.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {voteable.map((project, index) => {

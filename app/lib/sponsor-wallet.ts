@@ -5,6 +5,8 @@ export const DEFAULT_WALLET_VOTE_GBP = 0.2;
 /** Lead and Local Business Climate Sponsors use the same FUND-IT amount. */
 export const LEAD_WALLET_VOTE_GBP = DEFAULT_WALLET_VOTE_GBP;
 export const FUND_IT_LABEL = "FUND-IT";
+/** Once per Carbon Wallet; typically five wallets on a Match Day. */
+export const FUND_IT_MAX_TIMES = 5;
 export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
 
 export type SponsorWalletKind = "lead" | "local";
@@ -453,8 +455,12 @@ export function formatWalletGbp(amount: number): string {
   })}`;
 }
 
+export function fundItTimesCopy(): string {
+  return `You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times. Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet and put it on any Climate Project.`;
+}
+
 export function fundItCopy(): string {
-  return `Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+  return `${fundItTimesCopy()} Choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
 }
 
 export function numberClimateProjects<T extends { id: string; name: string }>(

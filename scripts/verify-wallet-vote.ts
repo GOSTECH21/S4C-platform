@@ -5,6 +5,7 @@ import {
   createLocalWallet,
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
+  FUND_IT_MAX_TIMES,
   LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
   leadSponsorshipFromGoalsGbp,
@@ -53,6 +54,7 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(DEFAULT_WALLET_VOTE_GBP === 0.2, "Each FUND-IT is worth £0.20");
+assert(FUND_IT_MAX_TIMES === 5, "Fans can FUND-IT up to 5 times");
 assert(
   LEAD_WALLET_VOTE_GBP === DEFAULT_WALLET_VOTE_GBP,
   "Lead and Local Business Climate Sponsors use the same £0.20 FUND-IT"
@@ -393,6 +395,11 @@ assert(
 const clubPage = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match-Day folder");
 assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");
+assert(
+  clubPage.includes("FUND-IT up to 5 times") &&
+    !clubPage.includes("pick 3 of 5"),
+  "The club dashboard tells SDs that fans FUND-IT up to 5 times"
+);
 
 const fanPage = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
@@ -415,6 +422,10 @@ assert(
 assert(!fanPage.includes("MatchDayWalletVote"), "My S4P no longer uses the mixed wallet list");
 assert(!fanPage.includes("TodaysClimateSponsors"), "My S4P does not mix local logos into the Amex bar");
 assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Projects");
+assert(
+  fanPage.includes("FUND-IT up to 5 times"),
+  "My S4P tells fans they can FUND-IT up to 5 times"
+);
 
 const sponsorsUi = readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8");
 assert(
@@ -430,12 +441,15 @@ assert(
 assert(
   sponsorsUi.includes("fundItCopy") &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Choose a Climate Project Number; Insert it into the Checkbox next to any Climate Wallet; Press"
+      "You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times"
+    ) &&
+    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "Choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
       "goes from Wallet to Project"
     ),
-  "Local Business Climate Sponsors use the single FUND-IT instruction"
+  "Fans are told they can FUND-IT 5 times with the single FUND-IT instruction"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
