@@ -10,8 +10,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  /* Leaf green sampled from the numeral 4 in /images/home/s4p-mark.png */
+}
+
+/* Leaf green sampled from the numeral 4 in /images/home/s4p-mark.png */
+@theme {
   --color-s4p-mark: #5bc662;
+}
+
+.text-s4p-mark {
+  color: #5bc662;
 }
 
 @media (prefers-color-scheme: dark) {
