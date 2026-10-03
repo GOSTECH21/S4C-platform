@@ -342,7 +342,7 @@ export default function HomeFrontPage({
                   </p>
                   <a
                     href={primaryHref}
-                    className="mt-5 block rounded-xl bg-emerald-500 px-2 py-3 text-center text-[0.8rem] font-bold leading-snug text-slate-950 hover:bg-emerald-400"
+                    className="mt-5 block rounded-xl bg-s4p-mark px-2 py-3 text-center text-[0.8rem] font-bold leading-snug text-slate-950 hover:brightness-110"
                   >
                     {primaryText}
                   </a>

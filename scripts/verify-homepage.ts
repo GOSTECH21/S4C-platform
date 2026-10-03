@@ -238,6 +238,11 @@ assert(
   "Login and Register tabs use the S4P mark green from the numeral 4"
 );
 assert(
+  front.includes("rounded-xl bg-s4p-mark px-2 py-3") &&
+    !front.includes("rounded-xl bg-emerald-500 px-2 py-3"),
+  "Are You Register and Login buttons use the S4P mark green from the numeral 4"
+);
+assert(
   !front.includes("history.replaceState") &&
     !front.includes("`#${intent}`"),
   "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
