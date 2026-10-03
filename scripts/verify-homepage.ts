@@ -276,6 +276,13 @@ assert(
     front.includes("text-s4p-mark\">Impact"),
   "Hero statement sits between the S4P mark and the stats bar, with Sport, Sponsors, Fans and Impact in the S4P mark green"
 );
+assert(
+  front.includes("order-2 lg:order-4") &&
+    front.includes("hidden lg:block") &&
+    front.includes("lg:hidden") &&
+    front.includes("flex flex-col"),
+  "On mobile, How Score-For-Our-Planet Works sits directly under the S4P mark; Impact Tables stay in the desktop hero"
+);
 
 assert(
   front.includes("Turning Match-Day Sporting Moments into") &&

@@ -185,7 +185,7 @@ export default function HomeFrontPage({
         <div className="absolute inset-0 bg-gradient-to-b from-[#04140f]/30 via-transparent to-[#04140f]" />
       </div>
 
-      <div className="relative">
+      <div className="relative flex flex-col">
         <div className="sticky top-0 z-50 flex justify-end px-5 py-3 md:px-10">
           <div
             role="tablist"
@@ -220,7 +220,7 @@ export default function HomeFrontPage({
             </button>
           </div>
         </div>
-        <section className="grid items-center gap-6 px-5 pb-8 pt-4 md:px-10 md:pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4">
+        <section className="order-1 grid items-center gap-6 px-5 pb-4 pt-4 md:px-10 md:pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4 lg:pb-8">
           <div>
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
@@ -254,10 +254,14 @@ export default function HomeFrontPage({
             </p>
           </div>
 
-          <S4pImpactTables boards={impactTables} />
+          <div className="hidden lg:block">
+            <S4pImpactTables boards={impactTables} />
+          </div>
         </section>
 
-        <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl">
+        <div className="order-2 lg:order-4">{children}</div>
+
+        <p className="order-3 mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:order-2 lg:mb-20 lg:text-4xl">
           <span className="block">
             <span className="text-s4p-mark">Sport</span>
             <span className="text-white"> creates the moment.</span>
@@ -271,7 +275,7 @@ export default function HomeFrontPage({
           </span>
         </p>
 
-        <section className="mx-4 md:mx-10">
+        <section className="order-4 mx-4 md:mx-10 lg:order-3">
           <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-5">
             {STATS.map((stat) => (
               <div key={stat.key} className="bg-slate-950/40 px-3 py-5 text-center">
@@ -291,11 +295,13 @@ export default function HomeFrontPage({
           </div>
         </section>
 
-        {children}
+        <div className="order-5 mx-4 mt-8 md:mx-10 lg:hidden">
+          <S4pImpactTables boards={impactTables} />
+        </div>
 
         <section
           id={JOIN_SECTION_ID}
-          className="scroll-mt-24 px-5 pb-16 md:px-10"
+          className="order-6 scroll-mt-24 px-5 pb-16 md:px-10"
         >
           <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
             Are You...?
