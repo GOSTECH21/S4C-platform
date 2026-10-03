@@ -53,7 +53,7 @@ export default function HowItWorks() {
             key={step.number}
             className="flex flex-col items-center px-2 text-center xl:px-3"
           >
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-500 text-3xl font-black text-black shadow-xl">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-s4p-mark text-3xl font-black text-black shadow-xl">
               {step.number}
             </div>
             <h3 className="mt-8 text-xl font-bold uppercase text-white md:text-2xl">
@@ -64,7 +64,7 @@ export default function HowItWorks() {
             </p>
             {index < steps.length - 1 && (
               <div className="mt-auto hidden w-3/4 pt-10 xl:block">
-                <div className="h-1 w-full rounded-full bg-gradient-to-r from-green-500 to-green-300" />
+                <div className="h-1 w-full rounded-full bg-s4p-mark" />
               </div>
             )}
           </div>

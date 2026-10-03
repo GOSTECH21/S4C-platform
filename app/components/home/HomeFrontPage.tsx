@@ -199,7 +199,7 @@ export default function HomeFrontPage({
               onClick={() => showJoin("login")}
               className={`rounded-lg px-5 py-2 text-sm font-bold ${
                 joinIntent === "login"
-                  ? "bg-emerald-500 text-slate-950"
+                  ? "bg-s4p-mark text-slate-950"
                   : "text-white hover:bg-slate-800"
               }`}
             >
@@ -212,7 +212,7 @@ export default function HomeFrontPage({
               onClick={() => showJoin("register")}
               className={`rounded-lg px-5 py-2 text-sm font-bold ${
                 joinIntent === "register"
-                  ? "bg-emerald-500 text-slate-950"
+                  ? "bg-s4p-mark text-slate-950"
                   : "text-white hover:bg-slate-800"
               }`}
             >
