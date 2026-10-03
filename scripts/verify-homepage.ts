@@ -233,6 +233,11 @@ assert(
   "Top-right Login and Register tabs take visitors to the role cards"
 );
 assert(
+  front.includes('bg-s4p-mark text-slate-950') &&
+    !front.includes("bg-emerald-500 text-slate-950"),
+  "Login and Register tabs use the S4P mark green from the numeral 4"
+);
+assert(
   !front.includes("history.replaceState") &&
     !front.includes("`#${intent}`"),
   "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
@@ -299,7 +304,8 @@ assert(
 
 const globalCss = readFileSync("app/globals.css", "utf8");
 assert(
-  globalCss.includes("--color-s4p-mark: #5bc662"),
+  globalCss.includes("--color-s4p-mark: #5bc662") &&
+    globalCss.includes(".bg-s4p-mark"),
   "S4P mark green is the leaf colour sampled from the numeral 4"
 );
 assert(
@@ -350,6 +356,10 @@ assert(
 );
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
+assert(
+  howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
+  "How It Works step numbers 01-05 use the S4P mark green from the numeral 4"
+);
 assert(
   howItWorks.includes("CLUBS CHOOSE PROJECTS") &&
     howItWorks.includes("five eligible Climate Projects") &&

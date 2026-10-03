@@ -21,6 +21,10 @@
   color: #5bc662;
 }
 
+.bg-s4p-mark {
+  background-color: #5bc662;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
