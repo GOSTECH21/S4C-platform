@@ -131,7 +131,7 @@ function SimpleRows({
           className="flex items-baseline justify-between gap-4 border-b border-slate-800 px-6 py-4 last:border-b-0"
         >
           <span className="min-w-0 truncate text-lg font-semibold">
-            <span className="mr-3 font-black text-emerald-400">{row.rank}.</span>
+            <span className="mr-3 font-black text-s4p-mark">{row.rank}.</span>
             {row.name}
           </span>
           <span className="shrink-0 text-sm font-semibold text-amber-300">
@@ -174,7 +174,7 @@ function FullRows({
             key={`${row.rank}-${row.name}`}
             className="border-t border-slate-800"
           >
-            <td className="px-4 py-3.5 font-black text-emerald-400">{row.rank}</td>
+            <td className="px-4 py-3.5 font-black text-s4p-mark">{row.rank}</td>
             <td className="px-4 py-3.5 font-semibold">{row.name}</td>
             <td className="px-4 py-3.5 text-right font-semibold text-amber-300">
               {row.impactMoments}
@@ -227,7 +227,7 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
       </header>
 
       <section className="mx-auto max-w-5xl px-6 py-12">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-emerald-400">
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-s4p-mark">
           S4P Impact Tables
         </p>
         <h1 className="mt-3 text-center text-4xl font-black">{heading}</h1>

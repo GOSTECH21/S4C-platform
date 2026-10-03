@@ -69,7 +69,7 @@ export default function S4pImpactTables({
               className="flex items-baseline justify-between gap-3 rounded-lg bg-slate-900/70 px-3 py-1.5"
             >
               <span className="min-w-0 truncate text-base font-bold text-white">
-                <span className="mr-2 font-black text-emerald-400">
+                <span className="mr-2 font-black text-s4p-mark">
                   {row.rank}.
                 </span>
                 {row.name}

@@ -270,16 +270,29 @@ assert(
 );
 assert(
   front.includes("creates the moment") &&
-    front.includes("text-emerald-400\">Sport") &&
-    front.includes("text-emerald-400\">Sponsors") &&
-    front.includes("text-emerald-400\">Fans") &&
-    front.includes("text-emerald-400\">Impact"),
-  "Hero statement sits between the S4P mark and the stats bar, with Sport, Sponsors, Fans and Impact in green"
+    front.includes("text-s4p-mark\">Sport") &&
+    front.includes("text-s4p-mark\">Sponsors") &&
+    front.includes("text-s4p-mark\">Fans") &&
+    front.includes("text-s4p-mark\">Impact"),
+  "Hero statement sits between the S4P mark and the stats bar, with Sport, Sponsors, Fans and Impact in the S4P mark green"
 );
 
 assert(
-  front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
-  "The S4P logo carries the Funded Climate Action line underneath"
+  front.includes("Turning Match-Day Sporting Moments into") &&
+    front.includes("Funded Climate Action") &&
+    front.includes('block text-s4p-mark">Funded Climate Action') &&
+    !front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
+  "The S4P logo tagline is two lines, with Funded Climate Action in the S4P mark green"
+);
+assert(
+  front.includes('text-s4p-mark">a brighter planet'),
+  "A brighter planet uses the S4P mark green from the numeral 4"
+);
+
+const globalCss = readFileSync("app/globals.css", "utf8");
+assert(
+  globalCss.includes("--color-s4p-mark: #5bc662"),
+  "S4P mark green is the leaf colour sampled from the numeral 4"
 );
 assert(
   front.includes("WICKET") &&
@@ -321,6 +334,7 @@ assert(
     impactLib.includes("View Full Climate Impact Sponsorship Table →") &&
     impactLib.includes("View Full Climate Impact Fans Table →") &&
     impactWidget.includes("h-fit") &&
+    impactWidget.includes("text-s4p-mark") &&
     impactWidget.includes("text-amber-300") &&
     !impactWidget.includes("h-full") &&
     !impactWidget.includes("flex-1"),
