@@ -53,7 +53,7 @@ const STATS: Array<{
 ];
 
 function StatIcon({ name }: { name: (typeof STATS)[number]["icon"] }) {
-  const common = "h-7 w-7 text-emerald-400";
+  const common = "h-7 w-7 text-s4p-mark";
   if (name === "pound") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
@@ -225,7 +225,7 @@ export default function HomeFrontPage({
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
               <br />
-              <span className="text-emerald-400">a brighter planet</span>
+              <span className="text-s4p-mark">a brighter planet</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-emerald-50 md:text-base">
               Every <span className="font-black text-white">GOAL</span>, every{" "}
@@ -249,7 +249,8 @@ export default function HomeFrontPage({
               priority
             />
             <p className="mt-1 max-w-xl text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-2xl lg:text-[1.35rem]">
-              Turning Match-Day Sporting Moments into Funded Climate Action
+              <span className="block">Turning Match-Day Sporting Moments into</span>
+              <span className="block text-s4p-mark">Funded Climate Action</span>
             </p>
           </div>
 
@@ -258,15 +259,15 @@ export default function HomeFrontPage({
 
         <p className="mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:mb-20 lg:text-4xl">
           <span className="block">
-            <span className="text-emerald-400">Sport</span>
+            <span className="text-s4p-mark">Sport</span>
             <span className="text-white"> creates the moment.</span>
           </span>
           <span className="block">
-            <span className="text-emerald-400">Sponsors</span>
+            <span className="text-s4p-mark">Sponsors</span>
             <span className="text-white"> fund it. </span>
-            <span className="text-emerald-400">Fans</span>
+            <span className="text-s4p-mark">Fans</span>
             <span className="text-white"> direct the </span>
-            <span className="text-emerald-400">Impact</span>
+            <span className="text-s4p-mark">Impact</span>
           </span>
         </p>
 

@@ -12,6 +12,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Leaf green sampled from the numeral 4 in /images/home/s4p-mark.png */
+@theme {
+  --color-s4p-mark: #5bc662;
+}
+
+.text-s4p-mark {
+  color: #5bc662;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
