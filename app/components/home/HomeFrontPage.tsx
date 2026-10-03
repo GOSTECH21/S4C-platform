@@ -295,13 +295,9 @@ export default function HomeFrontPage({
           </div>
         </section>
 
-        <div className="order-5 mx-4 mt-8 md:mx-10 lg:hidden">
-          <S4pImpactTables boards={impactTables} />
-        </div>
-
         <section
           id={JOIN_SECTION_ID}
-          className="order-6 scroll-mt-24 px-5 pb-16 md:px-10"
+          className="order-5 scroll-mt-24 px-5 pb-16 md:px-10"
         >
           <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
             Are You...?
@@ -388,6 +384,10 @@ export default function HomeFrontPage({
             </p>
           </div>
         </section>
+
+        <div className="order-6 mx-4 mb-12 mt-2 md:mx-10 lg:hidden">
+          <S4pImpactTables boards={impactTables} />
+        </div>
       </div>
     </div>
   );

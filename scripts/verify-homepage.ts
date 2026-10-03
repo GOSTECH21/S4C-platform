@@ -280,8 +280,9 @@ assert(
   front.includes("order-2 lg:order-4") &&
     front.includes("hidden lg:block") &&
     front.includes("lg:hidden") &&
-    front.includes("flex flex-col"),
-  "On mobile, How Score-For-Our-Planet Works sits directly under the S4P mark; Impact Tables stay in the desktop hero"
+    front.includes("flex flex-col") &&
+    front.lastIndexOf("S4pImpactTables") > front.indexOf("Are You...?"),
+  "On mobile, How Score-For-Our-Planet Works sits under the S4P mark and Impact Tables appear only after Are You; desktop keeps Impact Tables in the hero"
 );
 
 assert(
