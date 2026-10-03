@@ -37,9 +37,9 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="mx-auto max-w-[1800px] px-6 py-24 md:px-12 xl:px-16">
+    <section className="mx-auto max-w-[1800px] px-6 pb-16 pt-6 md:px-12 md:py-24 xl:px-16">
       <div className="text-center">
-        <h2 className="text-4xl font-black text-white md:text-5xl">
+        <h2 className="text-3xl font-black text-white md:text-5xl">
           How Score-For-Our-Planet Works
         </h2>
         <p className="mt-5 text-lg text-slate-400 md:text-xl">
@@ -47,7 +47,7 @@ export default function HowItWorks() {
         </p>
       </div>
 
-      <div className="mt-16 grid grid-cols-1 items-stretch gap-12 sm:grid-cols-2 xl:mt-24 xl:grid-cols-5 xl:gap-x-16 xl:gap-y-12">
+      <div className="mt-8 grid grid-cols-1 items-stretch gap-12 sm:grid-cols-2 md:mt-16 xl:mt-24 xl:grid-cols-5 xl:gap-x-16 xl:gap-y-12">
         {steps.map((step, index) => (
           <div
             key={step.number}
