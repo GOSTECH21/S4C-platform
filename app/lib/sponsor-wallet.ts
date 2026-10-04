@@ -262,6 +262,27 @@ export function applyLocalTopUp(
   };
 }
 
+/** Local Carbon Wallets cannot exceed the submitted Match sponsorship. */
+export function capLocalWalletSponsorship(
+  wallet: ClimateWallet,
+  agreedGbp: number,
+  now: Date | string = new Date()
+): ClimateWallet {
+  if (wallet.kind !== "local") return wallet;
+  const agreed = roundGbp(Math.max(0, Number(agreedGbp) || 0));
+  if (!(agreed > 0)) return wallet;
+  if (roundGbp(localSpendableGbp(wallet)) <= agreed) return wallet;
+  const fees = localWalletTopUp(agreed);
+  return {
+    ...wallet,
+    kind: "local",
+    sponsorshipGbp: fees.sponsorshipGbp,
+    managementFeeGbp: fees.managementFeeGbp,
+    paidGbp: fees.paidGbp,
+    updatedAt: asIso(now),
+  };
+}
+
 export function applyLeadCommitment(
   wallet: ClimateWallet,
   {

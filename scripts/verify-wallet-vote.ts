@@ -14,6 +14,7 @@ import {
   normalizeClimateWallet,
   localWalletTopUp,
   remainingGbp,
+  capLocalWalletSponsorship,
   walletVoteAmount,
   totalAllocatedGbp,
   canPressFundIt,
@@ -66,6 +67,33 @@ const topUp = localWalletTopUp(750);
 assert(topUp.sponsorshipGbp === 750, "£750 stays as spendable cash in the wallet");
 assert(topUp.managementFeeGbp === 75, "10% of £750 is the £75 management fee");
 assert(topUp.paidGbp === 825, "The local sponsor pays £750 + 10% = £825");
+
+const fountainWallet = {
+  ...createLocalWallet({
+    clubName: "Arsenal",
+    brandName: "The Fountain",
+    sponsorshipGbp: 1550,
+  }),
+  allocatedGbp: 0.2,
+};
+assert(
+  remainingGbp(fountainWallet) === 1549.8,
+  "An uncapped Fountain wallet still shows the inflated remainder"
+);
+const fountainCapped = capLocalWalletSponsorship(fountainWallet, 800);
+assert(
+  fountainCapped.sponsorshipGbp === 800 && remainingGbp(fountainCapped) === 799.8,
+  "The Fountain Carbon Wallet caps at the submitted £800 match amount, minus FUND-IT already taken"
+);
+assert(
+  readFileSync("app/services/match-day-folder.service.ts", "utf8").includes(
+    "healLocalWalletsForClub"
+  ) &&
+    readFileSync("app/services/sponsor-wallet.service.ts", "utf8").includes(
+      "capLocalWalletSponsorship"
+    ),
+  "My S4P heals inflated local wallets down to the submitted Match amount"
+);
 
 const topCellar = createLocalWallet({
   clubName: "Hibernian",
