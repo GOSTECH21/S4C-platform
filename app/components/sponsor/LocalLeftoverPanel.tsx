@@ -3,6 +3,7 @@
 import {
   LOCAL_SPONSOR_MIN_GBP,
   localSponsorsForClub,
+  totalLocalPledge,
   type LocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import {
@@ -46,7 +47,8 @@ export function LocalLeftoverPanel({
             row.local.brandName.trim().toLowerCase() ===
               local.brandName.trim().toLowerCase()
         );
-  const multiplier = localExposureMultiplier(local.pledgeGbp);
+  const pledged = totalLocalPledge(local);
+  const multiplier = localExposureMultiplier(pledged);
 
   return (
     <section className="rounded-3xl border border-amber-400/30 bg-slate-900 p-8">
@@ -57,7 +59,7 @@ export function LocalLeftoverPanel({
         {local.clubName} Match Day card
       </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        You pledged {formatMoney(local.pledgeGbp)}. That is {multiplier}× the
+        You pledged {formatMoney(pledged)}. That is {multiplier}× the
         fan exposures of a £{LOCAL_SPONSOR_MIN_GBP} local sponsor. Your logo
         appears on one of the five Climate Project cards posted to{" "}
         {local.clubName} fans — higher pledges take the more prominent cards,

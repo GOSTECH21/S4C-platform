@@ -254,6 +254,11 @@ export function totalLocalPledge(record: LocalSponsorRecord): number {
   return Number(record.pledgeGbp) || 0;
 }
 
+/** Keep pledgeGbp in lock-step with submitted Match amounts, not wallet cash. */
+export function withAgreedPledge(record: LocalSponsorRecord): LocalSponsorRecord {
+  return { ...record, pledgeGbp: totalLocalPledge(record) };
+}
+
 export function isSubmittedLocalSponsor(record: LocalSponsorRecord): boolean {
   if (record.source === "example") return false;
   if (record.submittedAt) return true;
