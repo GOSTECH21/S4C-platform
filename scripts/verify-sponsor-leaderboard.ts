@@ -111,11 +111,11 @@ const mixed = rankSponsorDonations([
 const affiliates = leaderboardForScope(mixed, "affiliates", ["Hibernian"]);
 assert(
   affiliates.map((row) => row.brandName).join(",") === "American Express,Mash Tun",
-  "Affiliates ranks only sponsors of the fan's chosen club"
+  "Affiliates ranks only sponsors of the club on the board"
 );
 assert(
   affiliates.every((row) => row.brandName !== "Diageo"),
-  "Affiliates does not include sponsors of a club the fan did not choose"
+  "Affiliates does not include sponsors of another club"
 );
 assert(
   affiliates[0]?.rank === 1 &&
@@ -131,7 +131,7 @@ assert(
 );
 assert(
   leaderboardForScope(mixed, "affiliates", []).length === 0,
-  "Affiliates is empty until the fan chooses a club in My Teams"
+  "Affiliates is empty until a club is provided"
 );
 
 const splitBrand = rankSponsorDonations([
@@ -155,7 +155,7 @@ assert(
   hibsAffiliates.length === 1 &&
     hibsAffiliates[0]?.donationGbp === 50000 &&
     hibsAffiliates[0]?.clubNames.join(",") === "Hibernian",
-  "Affiliates counts only the donation to the fan's chosen club"
+  "Affiliates counts only the donation to the selected club"
 );
 assert(
   SPONSOR_LEADERBOARD_SCOPE_OPTIONS.find((option) => option.value === "affiliates")
@@ -181,24 +181,43 @@ assert(
 
 const nav = readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8");
 assert(
-  nav.includes('label: "Sponsor"') && nav.includes("SUPPORTER_SPONSOR_PATH"),
-  "Fan navigation has a Sponsor tab"
+  !nav.includes('label: "Sponsor"') && !nav.includes("SUPPORTER_SPONSOR_PATH"),
+  "Fan navigation no longer has a Sponsor tab"
 );
 assert(
   readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(
-    "Sponsor Leaderboard"
-  ) &&
-    readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(
-      "getSupportedTeams"
-    ) &&
-    readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(
-      "affiliateClubs"
-    ),
-  "The Sponsor tab ranks Affiliates from the fan's chosen club in My Teams"
+    "redirect(SUPPORTER_CAMPAIGN_PATH)"
+  ),
+  "The old fan Sponsor URL sends supporters back to My S4P"
 );
 assert(
-  readFileSync("app/lib/routes.ts", "utf8").includes("SUPPORTER_SPONSOR_PATH"),
-  "Sponsor tab has a supporter route"
+  readFileSync("app/lib/routes.ts", "utf8").includes(
+    "CLUB_SPONSOR_LEADERBOARD_PATH"
+  ) &&
+    readFileSync("app/components/club/ClubNav.tsx", "utf8").includes(
+      'label: "Sponsor"'
+    ) &&
+    readFileSync("app/components/club/ClubNav.tsx", "utf8").includes(
+      "CLUB_SPONSOR_LEADERBOARD_PATH"
+    ),
+  "Club navigation has the Sponsor tab"
+);
+assert(
+  readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
+    "Sponsor Leaderboard"
+  ) &&
+    readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
+      "affiliateClubs={[clubName]}"
+    ) &&
+    readFileSync("app/club/sponsor/page.tsx", "utf8").includes("ClubNav"),
+  "The club Sponsor tab ranks Affiliates for the Sustainability Director's club"
+);
+assert(
+  readFileSync("app/club/dashboard/page.tsx", "utf8").includes("<ClubNav") &&
+    readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
+      "<ClubNav"
+    ),
+  "Club Dashboard and Climate Projects keep the Sponsor tab in reach while choosing projects"
 );
 
 assert(
@@ -312,4 +331,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Sponsor tab ranks donations from largest to smallest.");
+console.log("Club Sponsor tab ranks donations from largest to smallest.");

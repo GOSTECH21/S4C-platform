@@ -1,6 +1,6 @@
 "use client";
 
-import FanNav from "@/app/dashboard/supporter/components/FanNav";
+import ClubNav from "@/app/components/club/ClubNav";
 import { SponsorLeaderboard } from "@/app/components/fan/SponsorLeaderboard";
 import { rankSponsorDonations } from "@/app/lib/sponsor-leaderboard";
 import {
@@ -75,15 +75,17 @@ export default function SponsorLeaderboardPreviewPage() {
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
       <div className="mx-auto max-w-6xl">
-        <FanNav />
+        <ClubNav />
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
           Sponsor
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Choose Global Leaderboard, Local Leaderboard, or Affiliates. Use the
-          Sort-Selector beside the board to rank Restaurants, Car Companies,
-          Hotels, Fashion Retailers, or Others. Global Leaderboard opens first.
+          The Sustainability Director uses this board when choosing Climate
+          Sponsors for Match Day projects. Choose Global Leaderboard, Local
+          Leaderboard, or Affiliates. Use the Sort-Selector beside the board to
+          rank Restaurants, Car Companies, Hotels, Fashion Retailers, or
+          Others. Global Leaderboard opens first.
         </p>
         <div className="mt-8">
           <SponsorLeaderboard rows={ROWS} affiliateClubs={["Hibernian"]} />

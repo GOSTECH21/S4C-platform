@@ -37,6 +37,7 @@ import {
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
 } from "@/app/lib/routes";
+import ClubNav from "@/app/components/club/ClubNav";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import { clubGateCopy } from "@/app/lib/signed-in-role";
@@ -211,12 +212,7 @@ export default function SelectMatchDayProjectsPage() {
   return (
     <main className="min-h-screen bg-slate-950 p-10 text-white">
       <div className="mx-auto max-w-6xl">
-        <button
-          onClick={() => router.push(CLUB_DASHBOARD_PATH)}
-          className="text-sm font-semibold text-green-400 hover:underline"
-        >
-          ← Back to dashboard
-        </button>
+        <ClubNav />
 
         <h1 className="mt-6 text-4xl font-black">S4P Climate Projects</h1>
         <p className="mt-3 max-w-3xl text-slate-300">

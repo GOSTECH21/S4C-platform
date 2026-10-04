@@ -77,6 +77,7 @@ import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
+import ClubNav from "@/app/components/club/ClubNav";
 import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
@@ -395,6 +396,7 @@ export default function ClubDashboardPage() {
   return (
     <main className="min-h-screen bg-slate-950 p-10 text-white">
       <div className="mx-auto max-w-7xl">
+        <ClubNav />
         <div className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-black">{club.name}</h1>
@@ -402,22 +404,14 @@ export default function ClubDashboardPage() {
               Welcome to your Score-4-Our-Planet Club Dashboard
             </p>
           </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => void startClubAfresh()}
-              disabled={clearing}
-              className="rounded-xl border border-amber-400/50 px-5 py-3 font-semibold text-amber-200 disabled:opacity-50"
-            >
-              {clearing ? "Clearing…" : "Start this club afresh"}
-            </button>
           <button
-            onClick={logout}
-            className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
+            type="button"
+            onClick={() => void startClubAfresh()}
+            disabled={clearing}
+            className="rounded-xl border border-amber-400/50 px-5 py-3 font-semibold text-amber-200 disabled:opacity-50"
           >
-            Logout
+            {clearing ? "Clearing…" : "Start this club afresh"}
           </button>
-          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">

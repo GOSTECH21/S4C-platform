@@ -10,6 +10,7 @@ export const SUPPORTER_LOGIN_PATH = "/supporter/login";
 export const SUPPORTER_CAMPAIGN_PATH = "/supporter/dashboard";
 export const SUPPORTER_PROJECTS_PATH = "/dashboard/supporter/vote";
 export const SUPPORTER_TEAMS_PATH = "/dashboard/supporter/preferences";
+/** Old fan Sponsor tab; now redirects to My S4P. */
 export const SUPPORTER_SPONSOR_PATH = "/dashboard/supporter/sponsors";
 
 export const SUPPORTER_CAMPAIGN_ALIASES = [
@@ -28,6 +29,7 @@ export const CLUB_SELECT_PROJECTS_ALIASES = [
   "/club/dashboard/s4p-climate-projects",
 ];
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
+export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
