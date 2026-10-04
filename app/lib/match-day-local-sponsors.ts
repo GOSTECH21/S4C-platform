@@ -4,6 +4,8 @@ import {
   LOCAL_SPONSORS_PER_MATCH,
   type LocalSponsorRecord,
   localSponsorsForClub,
+  totalLocalPledge,
+  withAgreedPledge,
 } from "./local-sponsor";
 import { localSlotScale } from "./dual-sponsor";
 import { brandInitials } from "./climate-sponsors";
@@ -29,9 +31,12 @@ export function rankLocalSponsorsByPledge(
   locals: LocalSponsorRecord[]
 ): LocalSponsorRecord[] {
   return [...locals]
+    .map(withAgreedPledge)
     .sort((left, right) => {
-      if (right.pledgeGbp !== left.pledgeGbp) {
-        return right.pledgeGbp - left.pledgeGbp;
+      const leftPledge = totalLocalPledge(left);
+      const rightPledge = totalLocalPledge(right);
+      if (rightPledge !== leftPledge) {
+        return rightPledge - leftPledge;
       }
       return left.createdAt.localeCompare(right.createdAt);
     })
@@ -56,14 +61,14 @@ export function assignLocalSponsorsToProjects<T extends { id: string }>(
   locals: LocalSponsorRecord[]
 ): MatchDayLocalPlacement<T>[] {
   const ranked = rankLocalSponsorsByPledge(locals);
-  const maxPledge = ranked[0]?.pledgeGbp ?? LOCAL_SPONSOR_MIN_GBP;
+  const maxPledge = ranked[0] ? totalLocalPledge(ranked[0]) : LOCAL_SPONSOR_MIN_GBP;
   return projects.slice(0, MATCH_DAY_PROJECT_COUNT).map((project, index) => {
     const local = ranked[index] ?? null;
     return {
       project,
       cardIndex: index + 1,
       local,
-      scale: local ? localSlotScale(local.pledgeGbp, maxPledge) : 1,
+      scale: local ? localSlotScale(totalLocalPledge(local), maxPledge) : 1,
     };
   });
 }
@@ -77,7 +82,7 @@ export function assignmentsFromPlacements<T extends { id: string }>(
       projectId: row.project.id,
       cardIndex: row.cardIndex,
       brandName: row.local!.brandName,
-      pledgeGbp: row.local!.pledgeGbp,
+      pledgeGbp: totalLocalPledge(row.local!),
       logoUrl: row.local!.logoUrl ?? null,
       tagline: row.local!.tagline ?? null,
       email: row.local!.email,

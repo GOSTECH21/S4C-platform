@@ -10,6 +10,7 @@ import {
   type LocalSponsorRecord,
   localSponsorsForClub,
   replaceLocalSponsorsForClub,
+  withAgreedPledge,
 } from "./local-sponsor";
 import {
   assignLocalSponsorsToProjects,
@@ -133,9 +134,10 @@ function asLocalRecord(
     logoUrl?: string | null;
     tagline?: string | null;
     source?: LocalSponsorRecord["source"];
+    matchSponsorships?: LocalSponsorRecord["matchSponsorships"];
   }
 ): LocalSponsorRecord {
-  return {
+  return withAgreedPledge({
     brandName: row.brandName,
     email: row.email ?? "",
     clubName,
@@ -144,7 +146,8 @@ function asLocalRecord(
     logoUrl: row.logoUrl || null,
     tagline: row.tagline ?? null,
     source: row.source ?? "uploaded",
-  };
+    matchSponsorships: row.matchSponsorships,
+  });
 }
 
 function rosterLocalRecords(
@@ -180,20 +183,18 @@ function mergeLocalRecords(
     if (!key) continue;
     const current = byBrand.get(key);
     if (!current) {
-      byBrand.set(key, { ...row, clubName });
+      byBrand.set(key, withAgreedPledge({ ...row, clubName }));
       continue;
     }
-    const preferUploaded =
-      (current.source === "example" || isExampleLocalBrand(current.brandName)) &&
-      row.source !== "example" &&
-      !isExampleLocalBrand(row.brandName);
-    if (
-      preferUploaded ||
-      (!current.logoUrl && row.logoUrl) ||
-      row.pledgeGbp > current.pledgeGbp
-    ) {
-      byBrand.set(key, { ...current, ...row, clubName });
+    const keepCurrentMatches =
+      (current.matchSponsorships?.length ?? 0) > 0 &&
+      !(row.matchSponsorships?.length);
+    const next = { ...current, ...row, clubName };
+    if (keepCurrentMatches) {
+      next.matchSponsorships = current.matchSponsorships;
     }
+    next.logoUrl = row.logoUrl || current.logoUrl;
+    byBrand.set(key, withAgreedPledge(next));
   }
   const registered = [...byBrand.values()].filter(isRegisteredLocalSponsor);
   return registered

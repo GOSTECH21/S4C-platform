@@ -10,6 +10,7 @@ import {
   type LocalSponsorRecord,
   writeLocalSponsorForClub,
   removeLocalSponsorForClub,
+  totalLocalPledge,
 } from "@/app/lib/local-sponsor";
 import {
   LEAD_CLIMATE_SPONSOR_SHARE,
@@ -163,11 +164,11 @@ export function MatchDayLocalSponsorBoard({
                   {row.local?.brandName ?? "—"}
                 </td>
                 <td className="py-3 pr-4 text-amber-200">
-                  {row.local ? formatMoney(row.local.pledgeGbp) : "—"}
+                  {row.local ? formatMoney(totalLocalPledge(row.local)) : "—"}
                 </td>
                 <td className="py-3 pr-4 text-emerald-300">
                   {row.local
-                    ? `${localExposureMultiplier(row.local.pledgeGbp)}× per posted fan`
+                    ? `${localExposureMultiplier(totalLocalPledge(row.local))}× per posted fan`
                     : "—"}
                 </td>
                 <td className="py-3">

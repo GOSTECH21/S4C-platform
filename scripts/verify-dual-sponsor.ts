@@ -7,7 +7,7 @@ import {
   localHeaderFlex,
   localSlotScale,
 } from "../app/lib/dual-sponsor";
-import { LOCAL_SPONSOR_MIN_GBP } from "../app/lib/local-sponsor";
+import { LOCAL_SPONSOR_MIN_GBP, totalLocalPledge } from "../app/lib/local-sponsor";
 import {
   assignLocalSponsorsToProjects,
   exampleLocalSponsorsForClub,
@@ -74,6 +74,39 @@ assert(
 assert(
   localSlotScale(500, 1500) === 1 / 3 && localSlotScale(1500, 1500) === 1,
   "The £500 logo is one-third the size of the £1,500 logo in the 35% slot"
+);
+
+const fountain = {
+  brandName: "The Fountain",
+  email: "fountain@local.test",
+  clubName: "Arsenal",
+  pledgeGbp: 1550,
+  createdAt: "2026-10-04T00:00:00.000Z",
+  submittedAt: "2026-10-04T00:00:00.000Z",
+  source: "registered" as const,
+  matchSponsorships: [
+    { fixtureName: "Arsenal v Leeds United", amountGbp: 800 },
+  ],
+};
+assert(
+  totalLocalPledge(fountain) === 800,
+  "The Fountain's submitted Arsenal v Leeds United amount is £800"
+);
+const fountainPlaced = assignLocalSponsorsToProjects(projects, [fountain]);
+assert(
+  fountainPlaced[0].local?.brandName === "The Fountain" &&
+    fountainPlaced[0].local?.pledgeGbp === 800 &&
+    localExposureMultiplier(fountainPlaced[0].local.pledgeGbp) === 800 / 500,
+  "The attach-logos table uses The Fountain's £800 match pledge, not a £1,550 wallet figure"
+);
+assert(
+  readFileSync("app/components/club/MatchDayLocalSponsorBoard.tsx", "utf8").includes(
+    "totalLocalPledge(row.local)"
+  ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "local.matchSponsorships?.length"
+    ),
+  "Club attach board reads submitted match amounts; wallet top-ups do not overwrite them"
 );
 assert(
   localHeaderFlex(1500, [500, 750, 1000, 1250, 1500]) === 1 &&

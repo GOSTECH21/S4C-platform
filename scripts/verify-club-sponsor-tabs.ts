@@ -173,6 +173,23 @@ assert(
   "Local match amounts still start from £500"
 );
 
+const fountain: LocalSponsorRecord = {
+  brandName: "The Fountain",
+  email: "fountain@local.test",
+  clubName: "Arsenal",
+  pledgeGbp: 1550,
+  createdAt: now,
+  submittedAt: now,
+  source: "registered",
+  matchSponsorships: [
+    { fixtureName: "Arsenal v Leeds United", amountGbp: 800 },
+  ],
+};
+assert(
+  totalLocalPledge(fountain) === 800,
+  "The Fountain's agreed Arsenal v Leeds United amount is £800, not a later wallet total"
+);
+
 const example: LocalSponsorRecord = {
   brandName: "Braidview Garage",
   email: "",

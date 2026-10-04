@@ -115,7 +115,7 @@ export default function SponsorWalletPage() {
             });
             setWallet(next);
             const local = readLocalSponsorRecord() ?? localRecordFromProfile();
-            if (local) {
+            if (local && !(local.matchSponsorships?.length)) {
               writeLocalSponsorRecord({
                 ...local,
                 pledgeGbp: next.sponsorshipGbp,
