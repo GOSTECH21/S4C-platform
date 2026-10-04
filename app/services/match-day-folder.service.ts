@@ -32,10 +32,12 @@ import {
   type WalletVoteResult,
 } from "../lib/sponsor-wallet";
 import { clubsMatch } from "../lib/sponsor-dashboard";
+import { totalLocalPledge } from "../lib/local-sponsor";
 import { liveLeadAndLocals } from "./match-day-branding.service";
 import {
   ensureLeadWallet,
   ensureLocalWallet,
+  healLocalWalletsForClub,
   listClimateWalletsForClub,
   writeClimateWallet,
 } from "./sponsor-wallet.service";
@@ -127,6 +129,7 @@ export function identifyClubSponsorWallets({
   minAmount?: number | null;
   gbpPerGoal?: number | null;
 }): ClimateWallet[] {
+  healLocalWalletsForClub(clubName);
   const branding = liveLeadAndLocals(clubId, clubName);
   const wallets: ClimateWallet[] = [];
   if (branding.leadName) {
@@ -144,7 +147,7 @@ export function identifyClubSponsorWallets({
       ensureLocalWallet({
         clubName,
         brandName: local.brandName,
-        sponsorshipGbp: local.pledgeGbp,
+        sponsorshipGbp: totalLocalPledge(local),
       })
     );
   }
@@ -356,7 +359,7 @@ export function fanVisibleSponsors(
 ) {
   const rows = folder?.sponsorsFile?.sponsors ?? [];
   const clubName = folder?.clubName || options?.clubName || "";
-  let wallets = clubName ? listClimateWalletsForClub(clubName) : [];
+  let wallets = clubName ? healLocalWalletsForClub(clubName) : [];
   if (
     wallets.length === 0 &&
     options?.clubId &&

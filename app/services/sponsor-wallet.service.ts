@@ -1,7 +1,7 @@
-import { clubsMatch } from "../lib/sponsor-dashboard";
 import {
   applyLeadCommitment,
   applyLocalTopUp,
+  capLocalWalletSponsorship,
   createLeadWallet,
   createLocalWallet,
   normalizeClimateWallet,
@@ -9,6 +9,11 @@ import {
   walletIdFor,
   type ClimateWallet,
 } from "../lib/sponsor-wallet";
+import { clubsMatch } from "../lib/sponsor-dashboard";
+import {
+  localSponsorsForClub,
+  totalLocalPledge,
+} from "../lib/local-sponsor";
 
 const WALLET_STORAGE = "s4p.sponsor.wallets";
 
@@ -70,6 +75,17 @@ export function writeClimateWallet(wallet: ClimateWallet): ClimateWallet {
   return next;
 }
 
+function agreedLocalSponsorshipGbp(
+  clubName: string,
+  brandName: string
+): number {
+  const record = localSponsorsForClub(clubName).find(
+    (row) =>
+      row.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
+  );
+  return record ? totalLocalPledge(record) : 0;
+}
+
 export function ensureLocalWallet({
   clubName,
   brandName,
@@ -79,17 +95,23 @@ export function ensureLocalWallet({
   brandName: string;
   sponsorshipGbp: number;
 }): ClimateWallet {
+  const agreed = agreedLocalSponsorshipGbp(clubName, brandName);
+  const amount = agreed > 0 ? agreed : sponsorshipGbp;
   const existing = readClimateWallet(clubName, brandName);
   if (existing) {
+    const capped = capLocalWalletSponsorship(existing, amount);
+    if (capped.sponsorshipGbp !== existing.sponsorshipGbp) {
+      return writeClimateWallet(capped);
+    }
     if (existing.kind === "local" && remainingGbp(existing) === 0 && existing.allocatedGbp === 0) {
       return writeClimateWallet(
-        createLocalWallet({ clubName, brandName, sponsorshipGbp })
+        createLocalWallet({ clubName, brandName, sponsorshipGbp: amount })
       );
     }
     return existing;
   }
   return writeClimateWallet(
-    createLocalWallet({ clubName, brandName, sponsorshipGbp })
+    createLocalWallet({ clubName, brandName, sponsorshipGbp: amount })
   );
 }
 
@@ -143,12 +165,24 @@ export function topUpLocalClimateWallet({
   sponsorshipGbp: number;
 }): ClimateWallet {
   const existing = readClimateWallet(clubName, brandName);
-  if (!existing) {
-    return writeClimateWallet(
-      createLocalWallet({ clubName, brandName, sponsorshipGbp })
-    );
-  }
-  return writeClimateWallet(applyLocalTopUp(existing, sponsorshipGbp));
+  const next = !existing
+    ? createLocalWallet({ clubName, brandName, sponsorshipGbp })
+    : applyLocalTopUp(existing, sponsorshipGbp);
+  const agreed = agreedLocalSponsorshipGbp(clubName, brandName);
+  return writeClimateWallet(
+    agreed > 0 ? capLocalWalletSponsorship(next, agreed) : next
+  );
+}
+
+export function healLocalWalletsForClub(clubName: string): ClimateWallet[] {
+  return listClimateWalletsForClub(clubName).map((wallet) => {
+    if (wallet.kind !== "local") return wallet;
+    const agreed = agreedLocalSponsorshipGbp(clubName, wallet.brandName);
+    if (!(agreed > 0)) return wallet;
+    const capped = capLocalWalletSponsorship(wallet, agreed);
+    if (capped.sponsorshipGbp === wallet.sponsorshipGbp) return wallet;
+    return writeClimateWallet(capped);
+  });
 }
 
 export function creditLeadWalletsForSponsoredGoal({

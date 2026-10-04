@@ -39,7 +39,7 @@ import {
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
 import { captureClimateInviteFromSearch, fanVotedSponsorNames } from "@/app/lib/climate-funding";
-import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { totalLocalPledge, type LocalSponsorRecord } from "@/app/lib/local-sponsor";
 import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
@@ -335,7 +335,7 @@ function CampaignPanel({
     return rankedLocals.map((local) => ({
       brandName: local.brandName,
       kind: "local" as const,
-      remainingGbp: local.pledgeGbp,
+      remainingGbp: totalLocalPledge(local),
       logoUrl: local.logoUrl ?? null,
     }));
   }, [sponsors, rankedLocals]);

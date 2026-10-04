@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
 import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
+import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import {
   writeLocalSponsorRecord,
   type LocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
+import {
+  createLeadWallet,
+  createLocalWallet,
+  remainingGbp,
+} from "@/app/lib/sponsor-wallet";
+import {
+  ensureLocalWallet,
+  writeClimateWallet,
+} from "@/app/services/sponsor-wallet.service";
 
 const FOUNTAIN: LocalSponsorRecord = {
   brandName: "The Fountain",
@@ -31,10 +41,42 @@ const PROJECTS = [
 
 export default function LocalPledgePreviewPage() {
   const [ready, setReady] = useState(false);
+  const [fountainRemaining, setFountainRemaining] = useState(0);
   useEffect(() => {
     writeLocalSponsorRecord(FOUNTAIN);
+    writeClimateWallet({
+      ...createLocalWallet({
+        clubName: "Arsenal",
+        brandName: "The Fountain",
+        sponsorshipGbp: 1550,
+      }),
+      allocatedGbp: 0.2,
+    });
+    writeClimateWallet(
+      createLeadWallet({
+        clubName: "Arsenal",
+        brandName: "Puma",
+        commitmentFeeGbp: 3500,
+      })
+    );
+    const healed = ensureLocalWallet({
+      clubName: "Arsenal",
+      brandName: "The Fountain",
+      sponsorshipGbp: 1550,
+    });
+    setFountainRemaining(remainingGbp(healed));
     setReady(true);
   }, []);
+  const locals = useMemo(
+    () => [
+      {
+        brandName: "The Fountain",
+        kind: "local" as const,
+        remainingGbp: fountainRemaining,
+      },
+    ],
+    [fountainRemaining]
+  );
   if (!ready) return null;
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -49,6 +91,10 @@ export default function LocalPledgePreviewPage() {
           clubName="Arsenal"
           projects={PROJECTS}
           leadName="Puma"
+        />
+        <ClimateProjectSponsors
+          lead={{ brandName: "Puma", kind: "lead", remainingGbp: 3500 }}
+          locals={locals}
         />
       </div>
     </main>
