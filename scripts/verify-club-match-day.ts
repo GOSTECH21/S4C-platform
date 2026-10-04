@@ -257,6 +257,14 @@ assert(
   }),
   "A Liverpool fan does not match an Arsenal vs Chelsea campaign"
 );
+assert(
+  !fanTeamMatchesPostedClub(liverpoolFan, {
+    clubId: "sd-united",
+    clubName: "Manchester United",
+    title: "Man United vs Liverpool Climate Campaign",
+  }),
+  "A Liverpool fan does not match a United campaign when they are only the opponent"
+);
 const liverpoolPosted = postedMatchDayForFanTeam(
   liverpoolFan,
   [

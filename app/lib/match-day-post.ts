@@ -30,7 +30,9 @@ export function fanTeamMatchesPostedClub(
   }
 ): boolean {
   if (posted.clubId && posted.clubId === team.id) return true;
-  const labels = [posted.clubName, posted.title]
+  // When the posting club is known, ignore fixture titles so the opponent
+  // (or another club's leftover campaign) cannot match this fan.
+  const labels = (posted.clubName ? [posted.clubName] : [posted.title])
     .filter((value): value is string => Boolean(value && value.trim()))
     .flatMap(campaignLabelParts);
   return labels.some(

@@ -16,7 +16,10 @@ import {
 } from "../lib/sponsorship-auction";
 import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { seasonNamesMatch } from "../lib/current-season";
-import { readInvitedClubs } from "../lib/climate-funding";
+import {
+  filterCampaignsForFan,
+  teamsForFanCampaigns,
+} from "../lib/fan-campaign-scope";
 import {
   MATCH_DAY_PORTFOLIO_VOTED,
   fanPostVisibility,
@@ -524,28 +527,7 @@ const REQUIRED_VOTES = FUND_IT_MAX_TIMES;
 export async function getMyS4PCampaigns(
   supporter: Supporter & { favourite_club_id?: string | null }
 ): Promise<S4PCampaign[]> {
-  const teams = [
-    ...(await getSupportedTeams(supporter)),
-    ...readInvitedClubs()
-      .filter(
-        (invited) =>
-          invited.clubId || invited.clubName
-      )
-      .map((invited) => ({
-        id: invited.clubId,
-        name: invited.clubName || invited.clubId,
-        displayName: invited.clubName || invited.clubId,
-        sport: "Football",
-        competition: "Invite",
-      })),
-  ].filter((team, index, rows) => {
-    const key = `${team.id}:${team.name}`.toLowerCase();
-    return (
-      rows.findIndex(
-        (row) => `${row.id}:${row.name}`.toLowerCase() === key
-      ) === index
-    );
-  });
+  const teams = teamsForFanCampaigns(await getSupportedTeams(supporter));
   if (teams.length === 0) return [];
 
   const campaigns: S4PCampaign[] = [];
@@ -558,8 +540,16 @@ export async function getMyS4PCampaigns(
     )
     .eq("status", "open");
 
+  const postedClubNames = await postedClubNameById(
+    (open ?? []).map((row) => row.club_id)
+  );
+
   for (const row of open ?? []) {
-    const matched = matchingSupportedTeams(row, teams);
+    const matched = matchingSupportedTeams(
+      row,
+      teams,
+      postedClubNames.get(String(row.club_id ?? "")) ?? null
+    );
     if (matched.length === 0) continue;
     const built = await buildCampaignFromMatchRow(row, teams);
     if (!built) continue;
@@ -586,7 +576,10 @@ export async function getMyS4PCampaigns(
   const withHeadlines = await Promise.all(
     campaigns.map((campaign) => applyNextFanMatchHeadline(campaign))
   );
-  return withHeadlines.filter((campaign) => campaign.isVisible !== false);
+  return filterCampaignsForFan(
+    withHeadlines.filter((campaign) => campaign.isVisible !== false),
+    teams
+  );
 }
 
 export async function getMyS4PCampaign(
@@ -598,14 +591,38 @@ export async function getMyS4PCampaign(
 
 function matchingSupportedTeams(
   row: { club_id: string | null; title: string | null },
-  teams: TeamOption[]
+  teams: TeamOption[],
+  clubName?: string | null
 ): TeamOption[] {
   return teams.filter((team) =>
     fanTeamMatchesPostedClub(team, {
       clubId: row.club_id,
-      title: row.title,
+      clubName,
+      title: clubName ? undefined : row.title,
     })
   );
+}
+
+async function postedClubNameById(
+  clubIds: Array<string | null | undefined>
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  for (const schedule of readAllFanPostSchedules()) {
+    if (schedule.clubId && schedule.clubName) {
+      names.set(schedule.clubId, schedule.clubName);
+    }
+  }
+  const dbIds = [
+    ...new Set(clubIds.map((id) => String(id ?? "")).filter(isVoteUuid)),
+  ];
+  if (dbIds.length === 0) return names;
+  const { data } = await supabase.from("clubs").select("id, name").in("id", dbIds);
+  for (const row of data ?? []) {
+    const clubId = String(row.id ?? "");
+    const clubName = String(row.name ?? "").trim();
+    if (clubId && clubName) names.set(clubId, clubName);
+  }
+  return names;
 }
 
 function titleIncludesTeam(title: string, team: TeamOption): boolean {
