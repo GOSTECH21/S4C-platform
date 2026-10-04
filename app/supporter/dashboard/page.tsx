@@ -38,7 +38,8 @@ import {
   remainingGbp,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
-import { captureClimateInviteFromSearch, fanVotedSponsorNames } from "@/app/lib/climate-funding";
+import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
+import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
 import { totalLocalPledge, type LocalSponsorRecord } from "@/app/lib/local-sponsor";
 import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
@@ -58,11 +59,12 @@ export default function MyS4PDashboardPage() {
       getMyS4PCampaigns(current),
       getVotedProjectIds(current.id),
     ]);
+    const ownCampaigns = filterCampaignsForFan(camps, supported);
     setTeams(supported);
-    setCampaigns(camps);
+    setCampaigns(ownCampaigns);
     setVotedIds(voted);
     await Promise.all(
-      camps.map((campaign) => {
+      ownCampaigns.map((campaign) => {
         const votedOnThis = voteableProjects(campaign)
           .map((project) => project.id)
           .filter((id) => voted.has(id));
@@ -75,7 +77,6 @@ export default function MyS4PDashboardPage() {
   }
 
   useEffect(() => {
-    captureClimateInviteFromSearch();
     async function load() {
       try {
         const current = await getOrCreateSupporter();
@@ -99,12 +100,12 @@ export default function MyS4PDashboardPage() {
   }, []);
 
   const clubNames = useMemo(
-    () => [
-      ...teams.map((team) => team.displayName),
-      ...teams.map((team) => team.name),
-      ...campaigns.map((campaign) => campaign.clubName),
-    ].filter(Boolean),
-    [teams, campaigns]
+    () =>
+      [
+        ...teams.map((team) => team.displayName),
+        ...teams.map((team) => team.name),
+      ].filter(Boolean),
+    [teams]
   );
 
   if (loading) {

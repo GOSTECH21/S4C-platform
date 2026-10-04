@@ -16,6 +16,8 @@ import FanNav from "../components/FanNav";
 import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
+import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
+import { getSupportedTeams } from "@/app/services/teams.service";
 import {
   fanVotingWindowCopy,
   fanVotingWindowForMatchCopy,
@@ -49,11 +51,12 @@ export default function VotePage() {
   const [error, setError] = useState<string | null>(null);
 
   async function reload(current: Supporter) {
-    const [posted, voted] = await Promise.all([
+    const [supported, posted, voted] = await Promise.all([
+      getSupportedTeams(current),
       getMyS4PCampaigns(current),
       getVotedProjectIds(current.id),
     ]);
-    setCampaigns(posted);
+    setCampaigns(filterCampaignsForFan(posted, supported));
     setVotedIds(voted);
   }
 
