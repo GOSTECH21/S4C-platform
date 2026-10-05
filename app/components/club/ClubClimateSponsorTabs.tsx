@@ -26,6 +26,11 @@ export function ClubClimateSponsorTabs({
   const [tab, setTab] = useState<ClimateSponsorTab>("lead");
   const leadCount = leadSponsors.length;
   const localCount = localSponsors.length;
+  const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
+  const leadTabId = `${tabPrefix}-lead-climate-sponsor-tab`;
+  const localTabId = `${tabPrefix}-local-businesses-sponsor-tab`;
+  const leadPanelId = `${tabPrefix}-lead-climate-sponsor-panel`;
+  const localPanelId = `${tabPrefix}-local-businesses-sponsor-panel`;
 
   return (
     <section
@@ -40,9 +45,10 @@ export function ClubClimateSponsorTabs({
         Lead Climate Sponsors and Local Business Climate Sponsors who have
         registered, chosen {clubName}, and submitted the Match Days they will
         fund. Each club has one Lead Climate Sponsor. Every other brand that
-        chose {clubName} is a Local Business Climate Sponsor. This is the
-        incoming list for the Sustainability Director — not a roster to pick
-        from, and never another club&apos;s brands.
+        chose {clubName}{" "}
+        is a Local Business Climate Sponsor. This is the incoming list for the
+        Sustainability Director — not a roster to pick from, and never another
+        club&apos;s brands.
       </p>
 
       <div
@@ -51,19 +57,19 @@ export function ClubClimateSponsorTabs({
         className="mt-8 flex flex-wrap gap-3"
       >
         <TabButton
-          id="lead-climate-sponsor-tab"
+          id={leadTabId}
           selected={tab === "lead"}
           onClick={() => setTab("lead")}
-          controls="lead-climate-sponsor-panel"
+          controls={leadPanelId}
         >
           Our Lead Climate Sponsor
           {leadCount ? ` (${leadCount})` : ""}
         </TabButton>
         <TabButton
-          id="local-businesses-sponsor-tab"
+          id={localTabId}
           selected={tab === "local"}
           onClick={() => setTab("local")}
-          controls="local-businesses-sponsor-panel"
+          controls={localPanelId}
         >
           Our Local Businesses Sponsor
           {localCount ? ` (${localCount})` : ""}
@@ -73,8 +79,8 @@ export function ClubClimateSponsorTabs({
       {tab === "lead" ? (
         <div
           role="tabpanel"
-          id="lead-climate-sponsor-panel"
-          aria-labelledby="lead-climate-sponsor-tab"
+          id={leadPanelId}
+          aria-labelledby={leadTabId}
           className="mt-8"
         >
           <h3 className="text-2xl font-black">Our Lead Climate Sponsor</h3>
@@ -122,8 +128,8 @@ export function ClubClimateSponsorTabs({
       ) : (
         <div
           role="tabpanel"
-          id="local-businesses-sponsor-panel"
-          aria-labelledby="local-businesses-sponsor-tab"
+          id={localPanelId}
+          aria-labelledby={localTabId}
           className="mt-8"
         >
           <h3 className="text-2xl font-black">

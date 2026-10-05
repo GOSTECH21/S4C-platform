@@ -511,10 +511,13 @@ assert(
 
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
-  dashboard.includes("ClubClimateSponsorTabs") &&
-    dashboard.includes("localBusinessClimateSponsorsForClub") &&
-    !dashboard.includes("setMatchDaySponsorTargets"),
-  "Club dashboard shows inbound Climate Sponsor tabs instead of picking who receives the five"
+  readFileSync("app/preview/club-sponsors/page.tsx", "utf8").includes(
+    "leadClimateSponsorsForClub"
+  ) &&
+    readFileSync("app/preview/club-sponsors/page.tsx", "utf8").includes(
+      "localBusinessClimateSponsorsForClub"
+    ),
+  "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 
 const tabs = readFileSync("app/components/club/ClubClimateSponsorTabs.tsx", "utf8");

@@ -1,80 +1,194 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
-import type { LeadClubSponsorRow } from "@/app/lib/climate-sponsors";
-import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import { SponsorLeaderboard } from "@/app/components/fan/SponsorLeaderboard";
+import { brandKey, type GoalSponsorshipNetwork } from "@/app/lib/climate-sponsors";
+import {
+  donationEntriesForClubSponsors,
+  rankSponsorDonations,
+  type SponsorLeaderboardRow,
+} from "@/app/lib/sponsor-leaderboard";
+import { writeLocalSponsorRecord, type LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import {
+  leadClimateSponsorsForClub,
+  localBusinessClimateSponsorsForClub,
+  saveGoalNetwork,
+  lockMatchDayClub,
+} from "@/app/services/climate-sponsors.service";
 
-const LEADS: LeadClubSponsorRow[] = [
-  {
-    brandKey: "american express",
+const NETWORK_KEY = "s4p.sponsor.goalNetwork";
+const LOCK_KEY = "s4p.sponsor.matchLock";
+
+function network(
+  brandName: string,
+  clubName: string,
+  email: string
+): GoalSponsorshipNetwork {
+  return {
+    brandKey: brandKey(brandName),
+    brandName,
+    email,
+    clubNames: [clubName],
+    leagues: [],
+  };
+}
+
+function seedStores() {
+  window.localStorage.removeItem(NETWORK_KEY);
+  window.localStorage.removeItem(LOCK_KEY);
+  const hibsLocals = [
+    "Interval",
+    "Kokobean Cafe",
+    "Tax Assist",
+    "Top Cellar",
+  ];
+  saveGoalNetwork(network("American Express", "Hibernian", "amex@amex.test"));
+  lockMatchDayClub({
     brandName: "American Express",
-    email: "amex@example.com",
-    matches: ["Arsenal v Chelsea"],
-    lockedAt: new Date().toISOString(),
-    inNetwork: true,
-  },
-  {
-    brandKey: "puma",
-    brandName: "Puma",
-    email: "puma@example.com",
-    matches: ["Bayern Munich v Arsenal"],
-    lockedAt: new Date().toISOString(),
-    inNetwork: true,
-  },
-  {
-    brandKey: "diageo",
-    brandName: "Diageo",
-    email: "diageo@example.com",
-    matches: ["Arsenal v Manchester United"],
-    lockedAt: new Date().toISOString(),
-    inNetwork: true,
-  },
-];
-
-const LOCALS: LocalSponsorRecord[] = [
-  {
-    brandName: "The Stadium Cafe",
-    email: "cafe@example.com",
-    clubName: "Arsenal",
-    pledgeGbp: 1250,
-    createdAt: new Date().toISOString(),
-    submittedAt: new Date().toISOString(),
-    source: "registered",
-    matchSponsorships: [
-      { fixtureName: "Arsenal v Chelsea", amountGbp: 750 },
-      { fixtureName: "Arsenal v Manchester United", amountGbp: 500 },
-    ],
-  },
-  {
-    brandName: "Highbury Hardware",
-    email: "hardware@example.com",
-    clubName: "Arsenal",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hibernian v Hearts",
+  });
+  for (const brandName of hibsLocals) {
+    saveGoalNetwork(network(brandName, "Hibernian", `${brandName}@local.test`));
+    lockMatchDayClub({
+      brandName,
+      clubName: "Hibernian",
+      matchLabel:
+        brandName === "Interval" || brandName === "Tax Assist"
+          ? "Premier League Match"
+          : "Scottish Premiership Match",
+    });
+  }
+  writeLocalSponsorRecord({
+    brandName: "Mash Tun",
+    email: "mash@local.test",
+    clubName: "Hibernian",
     pledgeGbp: 500,
-    createdAt: new Date().toISOString(),
-    submittedAt: new Date().toISOString(),
+    createdAt: "2026-10-04T00:00:00.000Z",
+    submittedAt: "2026-10-04T00:00:00.000Z",
+    source: "registered",
+    matchSponsorships: [{ fixtureName: "Hibernian v Hearts", amountGbp: 500 }],
+  } satisfies LocalSponsorRecord);
+
+  saveGoalNetwork(network("Puma", "Arsenal", "puma@puma.test"));
+  lockMatchDayClub({
+    brandName: "Puma",
+    clubName: "Arsenal",
+    matchLabel: "Premier League Match",
+    fixtureName: "Arsenal v Leeds United",
+  });
+  writeLocalSponsorRecord({
+    brandName: "The Fountain",
+    email: "fountain@local.test",
+    clubName: "Arsenal",
+    pledgeGbp: 800,
+    createdAt: "2026-10-04T00:00:00.000Z",
+    submittedAt: "2026-10-04T00:00:00.000Z",
     source: "registered",
     matchSponsorships: [
-      { fixtureName: "Arsenal v Chelsea", amountGbp: 500 },
+      { fixtureName: "Arsenal v Leeds United", amountGbp: 800 },
     ],
-  },
-];
+  } satisfies LocalSponsorRecord);
+}
 
 export default function ClubSponsorsPreviewPage() {
-  const leads = useMemo(() => LEADS, []);
-  const locals = useMemo(() => LOCALS, []);
+  const [ready, setReady] = useState(false);
+  const [hibsLeads, setHibsLeads] = useState(
+    [] as ReturnType<typeof leadClimateSponsorsForClub>
+  );
+  const [hibsLocals, setHibsLocals] = useState(
+    [] as ReturnType<typeof localBusinessClimateSponsorsForClub>
+  );
+  const [arsenalLeads, setArsenalLeads] = useState(
+    [] as ReturnType<typeof leadClimateSponsorsForClub>
+  );
+  const [arsenalLocals, setArsenalLocals] = useState(
+    [] as ReturnType<typeof localBusinessClimateSponsorsForClub>
+  );
+  const [hibsBoard, setHibsBoard] = useState<SponsorLeaderboardRow[]>([]);
+  const [arsenalBoard, setArsenalBoard] = useState<SponsorLeaderboardRow[]>([]);
+
+  useEffect(() => {
+    seedStores();
+    const hibsLeadRows = leadClimateSponsorsForClub("Hibernian");
+    const hibsLocalRows = localBusinessClimateSponsorsForClub("Hibernian");
+    const arsenalLeadRows = leadClimateSponsorsForClub("Arsenal");
+    const arsenalLocalRows = localBusinessClimateSponsorsForClub("Arsenal");
+    setHibsLeads(hibsLeadRows);
+    setHibsLocals(hibsLocalRows);
+    setArsenalLeads(arsenalLeadRows);
+    setArsenalLocals(arsenalLocalRows);
+    setHibsBoard(
+      rankSponsorDonations(
+        donationEntriesForClubSponsors({
+          clubName: "Hibernian",
+          leads: hibsLeadRows,
+          locals: hibsLocalRows,
+        })
+      )
+    );
+    setArsenalBoard(
+      rankSponsorDonations(
+        donationEntriesForClubSponsors({
+          clubName: "Arsenal",
+          leads: arsenalLeadRows,
+          locals: arsenalLocalRows,
+        })
+      )
+    );
+    setReady(true);
+  }, []);
+
+  if (!ready) {
+    return (
+      <main className="min-h-screen bg-slate-950 p-8 text-slate-400">
+        Seeding club Climate Sponsors…
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="mx-auto max-w-6xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          Arsenal FC preview
-        </p>
-        <h1 className="mt-2 text-4xl font-black">Club dashboard sponsors</h1>
-        <ClubClimateSponsorTabs
-          clubName="Arsenal"
-          leadSponsors={leads}
-          localSponsors={locals}
-        />
+      <div className="mx-auto max-w-6xl space-y-16">
+        <section>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+            Preview
+          </p>
+          <h1 className="mt-2 text-4xl font-black">Club Climate Sponsors</h1>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            Each club shows only the brands that chose it. Hibernian Lead is
+            American Express. Arsenal Lead is Puma. Every other inbound brand is
+            a Local Business Climate Sponsor.
+          </p>
+        </section>
+
+        <section data-club="hibernian">
+          <h2 className="text-3xl font-black">Hibernian</h2>
+          <ClubClimateSponsorTabs
+            clubName="Hibernian"
+            leadSponsors={hibsLeads}
+            localSponsors={hibsLocals}
+          />
+          <div className="mt-8">
+            <h3 className="mb-4 text-2xl font-black">Hibernian Sponsor Leaderboard</h3>
+            <SponsorLeaderboard rows={hibsBoard} affiliateClubs={["Hibernian"]} />
+          </div>
+        </section>
+
+        <section data-club="arsenal">
+          <h2 className="text-3xl font-black">Arsenal</h2>
+          <ClubClimateSponsorTabs
+            clubName="Arsenal"
+            leadSponsors={arsenalLeads}
+            localSponsors={arsenalLocals}
+          />
+          <div className="mt-8">
+            <h3 className="mb-4 text-2xl font-black">Arsenal Sponsor Leaderboard</h3>
+            <SponsorLeaderboard rows={arsenalBoard} affiliateClubs={["Arsenal"]} />
+          </div>
+        </section>
       </div>
     </main>
   );
