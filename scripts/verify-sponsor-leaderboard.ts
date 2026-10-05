@@ -8,6 +8,7 @@ import {
   DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
   SPONSOR_LEADERBOARD_CATEGORY_OPTIONS,
   SPONSOR_LEADERBOARD_SCOPE_OPTIONS,
+  donationEntriesForClubSponsors,
   leaderboardForCategory,
   leaderboardForClub,
   leaderboardForScope,
@@ -220,6 +221,59 @@ assert(
   "The club board only keeps sponsors of the stated club"
 );
 
+const arsenalInbound = rankSponsorDonations(
+  donationEntriesForClubSponsors({
+    clubName: "Arsenal FC",
+    leads: [{ brandName: "Puma" }],
+    locals: [
+      {
+        brandName: "The Fountain",
+        pledgeGbp: 800,
+        matchSponsorships: [{ amountGbp: 800 }],
+      },
+    ],
+    walletAmounts: [{ brandName: "Puma", amountGbp: 3499.8 }],
+  })
+);
+assert(
+  arsenalInbound.map((row) => row.brandName).join(",") ===
+    "Puma,The Fountain" &&
+    arsenalInbound[0]?.kind === LEAD_CLIMATE_SPONSOR_LABEL &&
+    arsenalInbound[1]?.kind === LOCAL_BUSINESS_SPONSOR_LABEL &&
+    arsenalInbound[1]?.donationGbp === 800,
+  "Arsenal's inbound board lists Puma and The Fountain"
+);
+assert(
+  leaderboardForScope(arsenalInbound, "global", ["Arsenal"]).map(
+    (row) => row.brandName
+  ).join(",") === "Puma",
+  "Arsenal Global Leaderboard is the Lead Climate Sponsor Puma"
+);
+assert(
+  leaderboardForScope(arsenalInbound, "local", ["Arsenal"]).map(
+    (row) => row.brandName
+  ).join(",") === "The Fountain",
+  "Arsenal Local Leaderboard is The Fountain"
+);
+assert(
+  !arsenalInbound.some((row) =>
+    /american express|aberdeen|budweiser|gillette|diageo|mash tun/i.test(
+      row.brandName
+    )
+  ),
+  "Arsenal inbound sponsors never include other clubs' brands"
+);
+assert(
+  rankSponsorDonations(
+    donationEntriesForClubSponsors({
+      clubName: "Arsenal",
+      leads: [{ brandName: "Puma" }],
+      locals: [],
+    })
+  ).some((row) => row.brandName === "Puma"),
+  "An inbound Lead Climate Sponsor still appears before cash is recorded"
+);
+
 const splitBrand = rankSponsorDonations([
   {
     brandName: "American Express",
@@ -293,7 +347,7 @@ assert(
     "Sponsor Leaderboard"
   ) &&
     readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
-      "loadSponsorLeaderboard([session.club.name])"
+      "loadClubSponsorLeaderboard(session.club.name)"
     ) &&
     readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
       "affiliateClubs={[clubName]}"

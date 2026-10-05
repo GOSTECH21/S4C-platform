@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ClubNav from "@/app/components/club/ClubNav";
 import { SponsorLeaderboard } from "@/app/components/fan/SponsorLeaderboard";
-import { loadSponsorLeaderboard } from "@/app/services/sponsor-leaderboard.service";
+import { loadClubSponsorLeaderboard } from "@/app/services/sponsor-leaderboard.service";
 import { loadClubSession } from "@/app/services/club-match-day.service";
 import {
   CLUB_LOGIN_PATH,
@@ -29,7 +29,7 @@ export default function ClubSponsorLeaderboardPage() {
           return;
         }
         setClubName(session.club.name);
-        setRows(await loadSponsorLeaderboard([session.club.name]));
+        setRows(await loadClubSponsorLeaderboard(session.club.name));
       } catch (err) {
         console.error("Failed to load sponsor leaderboard:", err);
         setError(
