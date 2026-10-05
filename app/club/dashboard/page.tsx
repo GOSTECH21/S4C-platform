@@ -74,10 +74,8 @@ import {
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
-import { MatchDayLocalSponsorBoard } from "@/app/components/club/MatchDayLocalSponsorBoard";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import ClubNav from "@/app/components/club/ClubNav";
-import { liveLeadAndLocals } from "@/app/services/match-day-branding.service";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import {
@@ -185,11 +183,6 @@ export default function ClubDashboardPage() {
       ),
     [funded, voted]
   );
-  const branding = club
-    ? liveLeadAndLocals(club.id, club.name)
-    : { leadName: "Lead Climate Sponsor", leadLogoUrl: null };
-  const leadName = branding.leadName || "Lead Climate Sponsor";
-  const leadLogoUrl = branding.leadLogoUrl;
   const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
   const localCountry = club
     ? localCatalogCountryForClub({
@@ -519,15 +512,6 @@ export default function ClubDashboardPage() {
               clubName={club.name}
               clubCountry={club.country}
             />
-            {selected.length >= MATCH_DAY_PROJECT_COUNT ? (
-              <MatchDayLocalSponsorBoard
-                clubId={club.id}
-                clubName={club.name}
-                projects={orderedSelected}
-                leadName={leadName}
-                leadLogoUrl={leadLogoUrl}
-              />
-            ) : null}
           </div>
         </section>
 

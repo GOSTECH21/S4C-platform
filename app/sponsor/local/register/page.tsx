@@ -17,6 +17,7 @@ import {
 } from "@/app/lib/routes";
 import {
   LOCAL_SPONSOR_MIN_GBP,
+  LOCAL_SPONSOR_TERMS,
   writeLocalSponsorRecord,
   type LocalMatchSponsorship,
 } from "@/app/lib/local-sponsor";
@@ -33,6 +34,8 @@ export default function LocalSponsorRegisterPage() {
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [signerName, setSignerName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +60,20 @@ export default function LocalSponsorRegisterPage() {
     }
     if (selectedMatches.length === 0) {
       setError("Select the Match or Matches you wish to sponsor.");
+      return;
+    }
+    if (!logoUrl) {
+      setError(
+        "Upload your brand logo. It appears once on the club's Our Climate Sponsors list."
+      );
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("Read and agree to the Terms and Conditions before you sign off.");
+      return;
+    }
+    if (!signerName.trim()) {
+      setError("Type your full name to sign off this Local Business Climate Sponsorship.");
       return;
     }
     const matchSponsorships: LocalMatchSponsorship[] = [];
@@ -104,6 +121,9 @@ export default function LocalSponsorRegisterPage() {
         source: "registered",
         matchSponsorships,
         submittedAt: new Date().toISOString(),
+        acceptedTerms: true,
+        signerName: signerName.trim(),
+        signedAt: new Date().toISOString(),
       });
       ensureLocalWallet({
         clubName,
@@ -127,15 +147,14 @@ export default function LocalSponsorRegisterPage() {
       </h1>
       <p className="mt-4 text-slate-300">
         Choose the club, select the Match or Matches you wish to sponsor, enter
-        your sponsorship amounts, then SUBMIT. From £{LOCAL_SPONSOR_MIN_GBP} per
-        Match your logo appears on one of the five Match Day Climate Project
-        cards posted to fans. Pay the amount you want fans to take from your
-        Climate Sponsorship Wallet; a 10% management fee is added on top (for
-        example £750 + 10% = {formatWalletGbp(localWalletTopUp(750).paidGbp)}{" "}
-        paid, with {formatWalletGbp(750)} remaining in the wallet). A £1,500
-        pledge receives three times the fan exposures of a £
-        {LOCAL_SPONSOR_MIN_GBP} pledge, and takes a more prominent card —
-        Global Schools Solar first.
+        your sponsorship amounts, upload your logo, agree to the Terms and
+        Conditions and sign off, then SUBMIT. From £{LOCAL_SPONSOR_MIN_GBP} per
+        Match your business appears once on the club&apos;s Our Climate Sponsors
+        list as a Local Business Climate Sponsor. A 10% management fee is added
+        on top of the amount you submit (for example £750 + 10% ={" "}
+        {formatWalletGbp(localWalletTopUp(750).paidGbp)} paid, with{" "}
+        {formatWalletGbp(750)} remaining in the Climate Sponsorship Wallet).
+        Fans take £0.20 per FUND-IT from that wallet.
       </p>
 
       {error && (
@@ -190,6 +209,7 @@ export default function LocalSponsorRegisterPage() {
           brandName={companyName}
           logoUrl={logoUrl}
           error={logoError}
+          hint="Upload your brand mark. It appears once on the club's Our Climate Sponsors list as a Local Business Climate Sponsor."
           onChange={(next) => {
             setLogoError(null);
             setLogoUrl(next);
@@ -229,9 +249,44 @@ export default function LocalSponsorRegisterPage() {
             />
           </div>
         </div>
+        <div className="space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-5">
+          <h2 className="text-xl font-black text-white">
+            Terms and Conditions and sign-off
+          </h2>
+          <p className="text-sm text-slate-300">
+            Terms and Conditions apply. Sign off this Local Business Climate
+            Sponsorship before you SUBMIT it for the club Sustainability
+            Director.
+          </p>
+          <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
+            {LOCAL_SPONSOR_TERMS}
+          </div>
+          <label className="flex items-start gap-3 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+              className="mt-1"
+              required
+            />
+            I have read and agree to the Terms and Conditions.
+          </label>
+          <label className="block text-sm text-slate-400">
+            Signature (type your full name)
+            <input
+              type="text"
+              value={signerName}
+              onChange={(event) => setSignerName(event.target.value)}
+              className="mt-2 w-full rounded-lg bg-slate-800 p-3 font-serif text-2xl text-white"
+              required
+            />
+          </label>
+        </div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={
+            loading || !acceptedTerms || !signerName.trim() || !logoUrl
+          }
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
           {loading ? "Submitting..." : "SUBMIT sponsorship"}

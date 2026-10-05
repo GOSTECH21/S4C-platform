@@ -28,7 +28,12 @@ export type LocalSponsorRecord = {
   source?: "example" | "uploaded" | "registered";
   matchSponsorships?: LocalMatchSponsorship[];
   submittedAt?: string;
+  acceptedTerms?: boolean;
+  signerName?: string;
+  signedAt?: string;
 };
+
+export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee, so fans can take £0.20 per FUND-IT from your Climate Sponsorship Wallet onto numbered Climate Projects. Your brand name and logo appear once on the club's Our Climate Sponsors list as a Local Business Climate Sponsor — not as a Lead Climate Sponsor. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
 function isLocalRecord(value: unknown): value is LocalSponsorRecord {
   if (!value || typeof value !== "object") return false;
@@ -265,11 +270,27 @@ export function isSubmittedLocalSponsor(record: LocalSponsorRecord): boolean {
   return (record.matchSponsorships?.length ?? 0) > 0 || record.pledgeGbp > 0;
 }
 
+export function isSignedOffLocalSponsor(record: LocalSponsorRecord): boolean {
+  return Boolean(
+    record.acceptedTerms &&
+      record.signerName?.trim() &&
+      record.signedAt
+  );
+}
+
+/** Club page lists a local only after sign-off (legacy submitted records still appear). */
+export function isClubInboundLocalSponsor(record: LocalSponsorRecord): boolean {
+  if (record.source === "example" || record.source === "uploaded") return false;
+  if (!isSubmittedLocalSponsor(record)) return false;
+  if (record.signedAt) return isSignedOffLocalSponsor(record);
+  return Boolean(record.submittedAt);
+}
+
 export function submittedLocalSponsorsForClub(
   clubName: string
 ): LocalSponsorRecord[] {
   return localSponsorsForClub(clubName)
-    .filter(isSubmittedLocalSponsor)
+    .filter(isClubInboundLocalSponsor)
     .sort((left, right) => {
       const leftAt = left.submittedAt || left.createdAt;
       const rightAt = right.submittedAt || right.createdAt;

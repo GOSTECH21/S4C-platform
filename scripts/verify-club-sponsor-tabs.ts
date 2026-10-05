@@ -19,6 +19,8 @@ import {
 import { campaignHeadline } from "../app/lib/sponsorship-auction";
 import {
   LOCAL_SPONSOR_MIN_GBP,
+  isClubInboundLocalSponsor,
+  isSignedOffLocalSponsor,
   isSubmittedLocalSponsor,
   localMatchLabels,
   totalLocalPledge,
@@ -295,6 +297,43 @@ const local: LocalSponsorRecord = {
 };
 assert(isSubmittedLocalSponsor(local), "Submitted local sponsorships appear for the SD");
 assert(
+  isClubInboundLocalSponsor(local),
+  "Legacy submitted locals still appear on the club page"
+);
+assert(
+  !isSignedOffLocalSponsor(local) &&
+    !isClubInboundLocalSponsor({
+      ...local,
+      submittedAt: undefined,
+    }),
+  "A local without sign-off or SUBMIT does not appear on the club page"
+);
+assert(
+  isSignedOffLocalSponsor({
+    ...local,
+    acceptedTerms: true,
+    signerName: "Jamie",
+    signedAt: now,
+  }) &&
+    isClubInboundLocalSponsor({
+      ...local,
+      acceptedTerms: true,
+      signerName: "Jamie",
+      signedAt: now,
+    }),
+  "Signed-off locals appear on the club Our Climate Sponsors list"
+);
+assert(
+  !isClubInboundLocalSponsor({
+    ...local,
+    source: "uploaded",
+    acceptedTerms: true,
+    signerName: "Jamie",
+    signedAt: now,
+  }),
+  "Club-uploaded attach-board logos never appear as inbound Local Business Climate Sponsors"
+);
+assert(
   localMatchLabels(local).join(",") ===
     "Arsenal v Chelsea,Arsenal v Manchester United",
   "Local tab lists the matches the business chose"
@@ -534,8 +573,15 @@ assert(
     tabs.includes("Each club has one Lead Climate Sponsor") &&
     tabs.includes("Local businesses never") &&
     tabs.includes("appear on the Lead tab") &&
+    tabs.includes("once, with the logo they uploaded at registration") &&
+    tabs.includes("Signed off by") &&
     tabs.includes("splitClubClimateSponsorsForTabs"),
   "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
+);
+assert(
+  !dashboard.includes("MatchDayLocalSponsorBoard") &&
+    !dashboard.includes("Attach registered local logos"),
+  "Club dashboard lists locals once under Our Climate Sponsors, not again on an attach-logos board"
 );
 
 const votesService = readFileSync("app/services/votes.service.ts", "utf8");
@@ -563,8 +609,13 @@ const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
   localPage.includes("MatchSponsorshipPicker") &&
     localPage.includes("SUBMIT sponsorship") &&
-    localPage.includes("matchSponsorships"),
-  "Local Business Climate Sponsors select matches, enter amounts and SUBMIT"
+    localPage.includes("matchSponsorships") &&
+    localPage.includes("LOCAL_SPONSOR_TERMS") &&
+    localPage.includes("acceptedTerms") &&
+    localPage.includes("signerName") &&
+    localPage.includes("BrandLogoField") &&
+    localPage.includes("signedAt"),
+  "Local Business Climate Sponsors upload a logo, agree T&Cs, sign off, then SUBMIT"
 );
 
 if (failures.length > 0) {
