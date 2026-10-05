@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import type { LeadClubSponsorRow } from "@/app/lib/climate-sponsors";
+import { splitClubClimateSponsorsForTabs } from "@/app/lib/match-day-branding";
 import {
   localMatchLabels,
   totalLocalPledge,
@@ -23,9 +24,18 @@ export function ClubClimateSponsorTabs({
   leadSponsors: LeadClubSponsorRow[];
   localSponsors: LocalSponsorRecord[];
 }) {
+  const { leads, locals } = useMemo(
+    () =>
+      splitClubClimateSponsorsForTabs({
+        clubName,
+        leadSponsors,
+        localSponsors,
+      }),
+    [clubName, leadSponsors, localSponsors]
+  );
   const [tab, setTab] = useState<ClimateSponsorTab>("lead");
-  const leadCount = leadSponsors.length;
-  const localCount = localSponsors.length;
+  const leadCount = leads.length;
+  const localCount = locals.length;
   const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
   const leadTabId = `${tabPrefix}-lead-climate-sponsor-tab`;
   const localTabId = `${tabPrefix}-local-businesses-sponsor-tab`;
@@ -44,11 +54,10 @@ export function ClubClimateSponsorTabs({
       <p className="mt-3 max-w-3xl text-slate-300">
         Lead Climate Sponsors and Local Business Climate Sponsors who have
         registered, chosen {clubName}, and submitted the Match Days they will
-        fund. Each club has one Lead Climate Sponsor. Every other brand that
-        chose {clubName}{" "}
-        is a Local Business Climate Sponsor. This is the incoming list for the
-        Sustainability Director — not a roster to pick from, and never another
-        club&apos;s brands.
+        fund. Each club has one Lead Climate Sponsor. Local businesses never
+        appear on the Lead tab. They always sit under Our Local Businesses
+        Sponsor. This is the incoming list for the Sustainability Director, not
+        a roster to pick from, and never another club&apos;s brands.
       </p>
 
       <div
@@ -90,14 +99,14 @@ export function ClubClimateSponsorTabs({
             appear here with those fixtures. Only that one Lead Climate Sponsor
             is listed — never a Local Business Climate Sponsor.
           </p>
-          {leadSponsors.length === 0 ? (
+          {leads.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
               No Lead Climate Sponsor has opted to sponsor {clubName} Match Days
               yet.
             </p>
           ) : (
             <ul className="mt-6 grid gap-4">
-              {leadSponsors.map((sponsor) => (
+              {leads.map((sponsor) => (
                 <li
                   key={sponsor.brandKey}
                   className="rounded-2xl border border-slate-700 bg-slate-950 p-5"
@@ -141,14 +150,14 @@ export function ClubClimateSponsorTabs({
             amounts and submitted. These brands are supporting {clubName}&apos;s
             Match Day carbon-emissions mitigation.
           </p>
-          {localSponsors.length === 0 ? (
+          {locals.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
               No Local Business Climate Sponsor has submitted support for{" "}
               {clubName}&apos;s Match Day carbon-emissions mitigation yet.
             </p>
           ) : (
             <ul className="mt-6 grid gap-4">
-              {localSponsors.map((sponsor) => (
+              {locals.map((sponsor) => (
                 <LocalSponsorCard
                   key={`${sponsor.brandName}:${sponsor.email}`}
                   sponsor={sponsor}

@@ -5,6 +5,7 @@ import {
   isLeadClimateSponsorName,
   KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES,
   type ClubClimateSponsor,
+  type LeadClubSponsorRow,
 } from "./climate-sponsors";
 import {
   LOCAL_SPONSOR_MIN_GBP,
@@ -101,6 +102,54 @@ export function isLocalBusinessBrand(
     (row) =>
       brandsMatch(row.brandName, brandName) && localJobTitle(row.jobTitle)
   );
+}
+
+/** Lead tab keeps Lead Climate Sponsor brands only. Everyone else goes Local. */
+export function splitClubClimateSponsorsForTabs({
+  clubName,
+  leadSponsors,
+  localSponsors,
+}: {
+  clubName: string;
+  leadSponsors: LeadClubSponsorRow[];
+  localSponsors: LocalSponsorRecord[];
+}): {
+  leads: LeadClubSponsorRow[];
+  locals: LocalSponsorRecord[];
+} {
+  const leads = leadSponsors.filter((row) => isLeadClimateBrand(row.brandName));
+  const localsByKey = new Map<string, LocalSponsorRecord>();
+
+  function rememberLocal(row: LocalSponsorRecord) {
+    if (!row.brandName.trim()) return;
+    if (isLeadClimateBrand(row.brandName) || isExampleLocalBrand(row.brandName)) {
+      return;
+    }
+    const key = brandKey(row.brandName);
+    if (!key || localsByKey.has(key)) return;
+    localsByKey.set(key, row);
+  }
+
+  for (const row of localSponsors) rememberLocal(row);
+  for (const row of leadSponsors) {
+    if (isLeadClimateBrand(row.brandName)) continue;
+    rememberLocal({
+      brandName: row.brandName,
+      email: row.email ?? "",
+      clubName,
+      pledgeGbp: 0,
+      createdAt: row.lockedAt ?? "",
+      submittedAt: row.lockedAt ?? undefined,
+      source: "registered",
+      logoUrl: row.logoUrl,
+      matchSponsorships: row.matches.map((fixtureName) => ({
+        fixtureName,
+        amountGbp: 0,
+      })),
+    });
+  }
+
+  return { leads, locals: [...localsByKey.values()] };
 }
 
 function asLocalRecord(

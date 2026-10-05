@@ -20,6 +20,7 @@ import {
   isLocalBusinessBrand,
   resolveLeadClimateSponsor,
   resolveMatchDayBranding,
+  splitClubClimateSponsorsForTabs,
 } from "../app/lib/match-day-branding";
 import { emptySponsor } from "../app/lib/climate-sponsors";
 
@@ -213,6 +214,73 @@ assert(
     isLocalBusinessBrand("The Fountain", "Arsenal") &&
     !isLeadClimateBrand("The Fountain"),
   "Interval, Kokobean Cafe, Tax Assist and The Fountain are Local Business Climate Sponsors"
+);
+
+const hibsTabs = splitClubClimateSponsorsForTabs({
+  clubName: "Hibernian",
+  leadSponsors: [
+    {
+      brandKey: "american express",
+      brandName: "American Express",
+      email: null,
+      matches: ["Scottish Premiership Match"],
+      lockedAt: null,
+      inNetwork: true,
+    },
+    {
+      brandKey: "interval",
+      brandName: "Interval",
+      email: null,
+      matches: ["Premier League Match"],
+      lockedAt: null,
+      inNetwork: true,
+    },
+    {
+      brandKey: "kokobean cafe",
+      brandName: "Kokobean Cafe",
+      email: null,
+      matches: ["Scottish Premiership Match"],
+      lockedAt: null,
+      inNetwork: true,
+    },
+    {
+      brandKey: "tax assist",
+      brandName: "Tax Assist",
+      email: null,
+      matches: ["Premier League Match"],
+      lockedAt: null,
+      inNetwork: true,
+    },
+    {
+      brandKey: "top cellar",
+      brandName: "Top Cellar",
+      email: null,
+      matches: ["Scottish Premiership Match"],
+      lockedAt: null,
+      inNetwork: true,
+    },
+  ],
+  localSponsors: [
+    {
+      brandName: "Mash Tun",
+      email: "mash@local.test",
+      clubName: "Hibernian",
+      pledgeGbp: 500,
+      createdAt: "",
+      source: "registered",
+    },
+  ],
+});
+assert(
+  hibsTabs.leads.map((row) => row.brandName).join(",") === "American Express",
+  "Our Lead Climate Sponsor tab keeps only American Express"
+);
+assert(
+  hibsTabs.locals
+    .map((row) => row.brandName)
+    .sort()
+    .join(",") === "Interval,Kokobean Cafe,Mash Tun,Tax Assist,Top Cellar",
+  "Interval, Kokobean Cafe, Tax Assist and Top Cellar move to Our Local Businesses Sponsor"
 );
 assert(
   resolveLeadClimateSponsor({

@@ -511,6 +511,12 @@ assert(
 
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
+  dashboard.includes("splitClubClimateSponsorsForTabs") &&
+    dashboard.includes("leadClimateSponsorsForClub") &&
+    dashboard.includes("localBusinessClimateSponsorsForClub"),
+  "Club dashboard splits inbound brands so local businesses never stay on the Lead tab"
+);
+assert(
   readFileSync("app/preview/club-sponsors/page.tsx", "utf8").includes(
     "leadClimateSponsorsForClub"
   ) &&
@@ -525,7 +531,10 @@ assert(
   tabs.includes("Our Lead Climate Sponsor") &&
     tabs.includes("Our Local Businesses Sponsor") &&
     tabs.includes("Local Businesses Climate Sponsors") &&
-    tabs.includes("Each club has one Lead Climate Sponsor"),
+    tabs.includes("Each club has one Lead Climate Sponsor") &&
+    tabs.includes("Local businesses never") &&
+    tabs.includes("appear on the Lead tab") &&
+    tabs.includes("splitClubClimateSponsorsForTabs"),
   "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
 );
 
