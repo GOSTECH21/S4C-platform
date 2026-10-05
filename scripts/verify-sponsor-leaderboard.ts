@@ -263,6 +263,39 @@ assert(
   ),
   "Arsenal inbound sponsors never include other clubs' brands"
 );
+
+const hibsMisfiledLeads = rankSponsorDonations(
+  donationEntriesForClubSponsors({
+    clubName: "Hibernian",
+    leads: [
+      { brandName: "American Express" },
+      { brandName: "Interval" },
+      { brandName: "Kokobean Cafe" },
+      { brandName: "Tax Assist" },
+      { brandName: "Top Cellar" },
+    ],
+    locals: [{ brandName: "Mash Tun", pledgeGbp: 500 }],
+  })
+);
+assert(
+  hibsMisfiledLeads
+    .filter((row) => row.kind === LEAD_CLIMATE_SPONSOR_LABEL)
+    .map((row) => row.brandName)
+    .join(",") === "American Express",
+  "Hibernian Global Leaderboard is only American Express"
+);
+assert(
+  hibsMisfiledLeads
+    .filter((row) => row.kind === LOCAL_BUSINESS_SPONSOR_LABEL)
+    .map((row) => row.brandName)
+    .sort()
+    .join(",") === "Interval,Kokobean Cafe,Mash Tun,Tax Assist,Top Cellar",
+  "Misfiled Hibernian locals move to the Local Business Climate Sponsor board"
+);
+assert(
+  !hibsMisfiledLeads.some((row) => /puma|fountain|aberdeen|budweiser/i.test(row.brandName)),
+  "Hibernian inbound sponsors never include Arsenal or other clubs' brands"
+);
 assert(
   rankSponsorDonations(
     donationEntriesForClubSponsors({
@@ -353,7 +386,10 @@ assert(
       "affiliateClubs={[clubName]}"
     ) &&
     readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
-      "Only Lead Climate Sponsors and Local Business"
+      "This board is"
+    ) &&
+    readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
+      "one Lead Climate Sponsor"
     ) &&
     readFileSync("app/club/sponsor/page.tsx", "utf8").includes("ClubNav"),
   "The club Sponsor tab loads and ranks only that club's Lead and Local sponsors"

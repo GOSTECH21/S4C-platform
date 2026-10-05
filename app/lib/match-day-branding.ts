@@ -1,7 +1,9 @@
 import {
   brandKey,
   brandsMatch,
-  SUGGESTED_CLIMATE_BRANDS,
+  isKnownLocalBusinessSponsorName,
+  isLeadClimateSponsorName,
+  KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES,
   type ClubClimateSponsor,
 } from "./climate-sponsors";
 import {
@@ -31,20 +33,7 @@ export const EXAMPLE_LOCAL_BRANDS = [
 ];
 
 /** Local businesses that must never occupy Lead Climate Sponsor space. */
-export const KNOWN_LOCAL_BUSINESS_BRANDS = [
-  "Tax Assist",
-  "Top Cellar",
-  "Kokobean Cafe",
-  "Kokobean",
-  "Mash Tun",
-  "Interval",
-];
-
-const LEAD_CLIMATE_BRAND_NAMES = [
-  "American Express",
-  "Amex",
-  ...SUGGESTED_CLIMATE_BRANDS,
-];
+export const KNOWN_LOCAL_BUSINESS_BRANDS = KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES;
 
 export type MatchDayLead = {
   name: string;
@@ -53,12 +42,6 @@ export type MatchDayLead = {
 
 function compactBrandKey(name: string): string {
   return brandKey(name).replace(/\s+/g, "");
-}
-
-function listedBrandMatch(name: string, listed: string[]): boolean {
-  const key = compactBrandKey(name);
-  if (!key) return false;
-  return listed.some((row) => compactBrandKey(row) === key);
 }
 
 function localJobTitle(value: string | null | undefined): boolean {
@@ -80,16 +63,11 @@ export function isExampleLocalBrand(brandName: string): boolean {
 }
 
 export function isLeadClimateBrand(brandName: string): boolean {
-  const key = compactBrandKey(brandName);
-  if (!key) return false;
-  if (listedBrandMatch(brandName, LEAD_CLIMATE_BRAND_NAMES)) return true;
-  return LEAD_CLIMATE_BRAND_NAMES.map(compactBrandKey).some(
-    (lead) => lead.length >= 4 && key.startsWith(lead)
-  );
+  return isLeadClimateSponsorName(brandName);
 }
 
 export function isKnownLocalBusinessBrand(brandName: string): boolean {
-  return listedBrandMatch(brandName, KNOWN_LOCAL_BUSINESS_BRANDS);
+  return isKnownLocalBusinessSponsorName(brandName);
 }
 
 export function isRegisteredLocalSponsor(row: {

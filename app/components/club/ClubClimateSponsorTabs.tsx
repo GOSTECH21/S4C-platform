@@ -39,8 +39,10 @@ export function ClubClimateSponsorTabs({
       <p className="mt-3 max-w-3xl text-slate-300">
         Lead Climate Sponsors and Local Business Climate Sponsors who have
         registered, chosen {clubName}, and submitted the Match Days they will
-        fund. This is the incoming list for the Sustainability Director — not a
-        roster to pick from.
+        fund. Each club has one Lead Climate Sponsor. Every other brand that
+        chose {clubName} is a Local Business Climate Sponsor. This is the
+        incoming list for the Sustainability Director — not a roster to pick
+        from, and never another club&apos;s brands.
       </p>
 
       <div
@@ -79,8 +81,8 @@ export function ClubClimateSponsorTabs({
           <p className="mt-2 max-w-3xl text-slate-400">
             When a Lead Climate Sponsor registers, opts to sponsor {clubName},
             and selects the Match they wish to be Lead Climate Sponsor for, they
-            appear here with those fixtures — for example Arsenal v Chelsea;
-            Bayern Munich v Arsenal; Arsenal v Manchester United.
+            appear here with those fixtures. Only that one Lead Climate Sponsor
+            is listed — never a Local Business Climate Sponsor.
           </p>
           {leadSponsors.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
@@ -230,7 +232,8 @@ function LocalSponsorCard({ sponsor }: { sponsor: LocalSponsorRecord }) {
         <div className="min-w-0 flex-1">
           <p className="font-bold">{sponsor.brandName}</p>
           <p className="text-sm text-slate-400">
-            Local Business Climate Sponsor · {formatMoney(total)} submitted
+            Local Business Climate Sponsor
+            {total > 0 ? ` · ${formatMoney(total)} submitted` : ` for ${sponsor.clubName}`}
           </p>
           {(sponsor.matchSponsorships?.length ?? 0) > 0 ? (
             <ul className="mt-3 space-y-1 text-sm text-slate-300">

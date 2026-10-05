@@ -53,15 +53,14 @@ export default function ClubSponsorLeaderboardPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
-          Use this board when choosing Climate Sponsors for {clubName}&apos;s
-          Match Day projects. Only Lead Climate Sponsors and Local Business
-          Climate Sponsors of {clubName} appear here — never another club&apos;s
-          brands. Choose Global Leaderboard for Lead Climate Sponsors, Local
-          Leaderboard for Local Business Climate Sponsors, or Affiliates for
-          both. Use the Sort-Selector beside the board to rank Restaurants, Car
-          Companies, Hotels, Fashion Retailers, or Others. Global Leaderboard
-          opens first. Affiliates ranks {clubName}&apos;s sponsors from the
-          largest donation to the smallest.
+          This board is {clubName} only. It lists the one Lead Climate Sponsor
+          and the Local Business Climate Sponsors that chose {clubName} — never
+          another club&apos;s brands. Choose Global Leaderboard for that Lead
+          Climate Sponsor, Local Leaderboard for Local Business Climate
+          Sponsors, or Affiliates for both. Use the Sort-Selector beside the
+          board to rank Restaurants, Car Companies, Hotels, Fashion Retailers,
+          or Others. Global Leaderboard opens first. Affiliates ranks{" "}
+          {clubName}&apos;s sponsors from the largest donation to the smallest.
         </p>
         <p className="mt-3 max-w-3xl text-sm text-slate-400">
           After you shortlist brands here, attach them on the Dashboard and in{" "}

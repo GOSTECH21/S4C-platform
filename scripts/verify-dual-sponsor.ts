@@ -206,6 +206,15 @@ assert(
   "Top Cellar stays a Local Business Climate Sponsor even with a national job title"
 );
 assert(
+  !isLeadClimateBrand("Interval") &&
+    !isLeadClimateBrand("Kokobean Cafe") &&
+    !isLeadClimateBrand("Tax Assist") &&
+    isLocalBusinessBrand("Interval", "Hibernian") &&
+    isLocalBusinessBrand("The Fountain", "Arsenal") &&
+    !isLeadClimateBrand("The Fountain"),
+  "Interval, Kokobean Cafe, Tax Assist and The Fountain are Local Business Climate Sponsors"
+);
+assert(
   resolveLeadClimateSponsor({
     clubName: "Hibernian",
     rosterSponsors: [topCellar, amex, mashTun, kokobean, interval, taxAssist],

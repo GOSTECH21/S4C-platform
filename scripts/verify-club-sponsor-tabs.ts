@@ -4,6 +4,7 @@ import {
   chosenMatchesForClub,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
+  localBusinessSponsorsForClubFromStores,
   nextFanMatchForClub,
   nextSignedOffFixtureForClub,
   type GoalSponsorshipNetwork,
@@ -131,6 +132,140 @@ assert(
 assert(
   leads[1].matches.join(",") === "Arsenal v Manchester United",
   "Puma shows Arsenal v Manchester United"
+);
+
+const fountainNetwork: GoalSponsorshipNetwork = {
+  brandKey: "the fountain",
+  brandName: "The Fountain",
+  email: "fountain@local.test",
+  clubNames: ["Arsenal"],
+  leagues: [],
+};
+const arsenalLocals = localBusinessSponsorsForClubFromStores({
+  clubName: "Arsenal",
+  networks: [diageo, puma, fountainNetwork],
+  locks: [afterSecond, pumaLock],
+});
+assert(
+  arsenalLocals.map((row) => row.brandName).join(",") === "The Fountain",
+  "Arsenal Local tab is The Fountain, not Puma or Diageo"
+);
+assert(
+  leadSponsorsForClubFromStores({
+    clubName: "Arsenal",
+    networks: [diageo, puma, fountainNetwork],
+    locks: [afterSecond, pumaLock],
+  })
+    .map((row) => row.brandName)
+    .join(",") === "Diageo,Puma",
+  "The Fountain stays off Arsenal's Lead Climate Sponsor tab"
+);
+
+const amex: GoalSponsorshipNetwork = {
+  brandKey: "american express",
+  brandName: "American Express",
+  email: "amex@amex.test",
+  clubNames: ["Hibernian"],
+  leagues: ["Scottish Premiership"],
+};
+const hibsLocalNetworks: GoalSponsorshipNetwork[] = [
+  amex,
+  {
+    brandKey: "interval",
+    brandName: "Interval",
+    email: "interval@local.test",
+    clubNames: ["Hibernian"],
+    leagues: [],
+  },
+  {
+    brandKey: "kokobean cafe",
+    brandName: "Kokobean Cafe",
+    email: "kokobean@local.test",
+    clubNames: ["Hibernian"],
+    leagues: [],
+  },
+  {
+    brandKey: "tax assist",
+    brandName: "Tax Assist",
+    email: "tax@local.test",
+    clubNames: ["Hibernian"],
+    leagues: [],
+  },
+  {
+    brandKey: "top cellar",
+    brandName: "Top Cellar",
+    email: "cellar@local.test",
+    clubNames: ["Hibernian"],
+    leagues: [],
+  },
+];
+const hibsLocalLocks: MatchDayClubLock[] = [
+  {
+    brandKey: "american express",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hibernian v Hearts",
+    lockedAt: now,
+  },
+  {
+    brandKey: "interval",
+    clubName: "Hibernian",
+    matchLabel: "Premier League Match",
+    lockedAt: now,
+  },
+  {
+    brandKey: "kokobean cafe",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    lockedAt: now,
+  },
+  {
+    brandKey: "tax assist",
+    clubName: "Hibernian",
+    matchLabel: "Premier League Match",
+    lockedAt: now,
+  },
+  {
+    brandKey: "top cellar",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    lockedAt: now,
+  },
+];
+const hibsLeads = leadSponsorsForClubFromStores({
+  clubName: "Hibernian",
+  networks: hibsLocalNetworks,
+  locks: hibsLocalLocks,
+});
+const hibsLocals = localBusinessSponsorsForClubFromStores({
+  clubName: "Hibernian",
+  networks: hibsLocalNetworks,
+  locks: hibsLocalLocks,
+});
+assert(
+  hibsLeads.map((row) => row.brandName).join(",") === "American Express",
+  "Hibernian Lead Climate Sponsor is only American Express"
+);
+assert(
+  hibsLocals
+    .map((row) => row.brandName)
+    .sort()
+    .join(",") === "Interval,Kokobean Cafe,Tax Assist,Top Cellar",
+  "Interval, Kokobean Cafe, Tax Assist and Top Cellar sit on Hibernian's Local tab"
+);
+assert(
+  !hibsLeads.some((row) =>
+    /interval|kokobean|tax assist|top cellar|fountain/i.test(row.brandName)
+  ),
+  "Hibernian never lists local businesses as Lead Climate Sponsors"
+);
+assert(
+  leadSponsorsForClubFromStores({
+    clubName: "Arsenal",
+    networks: hibsLocalNetworks,
+    locks: hibsLocalLocks,
+  }).length === 0,
+  "Hibernian's American Express does not appear for Arsenal"
 );
 
 const liverpool = leadSponsorsForClubFromStores({
@@ -377,6 +512,7 @@ assert(
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
   dashboard.includes("ClubClimateSponsorTabs") &&
+    dashboard.includes("localBusinessClimateSponsorsForClub") &&
     !dashboard.includes("setMatchDaySponsorTargets"),
   "Club dashboard shows inbound Climate Sponsor tabs instead of picking who receives the five"
 );
@@ -385,7 +521,8 @@ const tabs = readFileSync("app/components/club/ClubClimateSponsorTabs.tsx", "utf
 assert(
   tabs.includes("Our Lead Climate Sponsor") &&
     tabs.includes("Our Local Businesses Sponsor") &&
-    tabs.includes("Local Businesses Climate Sponsors"),
+    tabs.includes("Local Businesses Climate Sponsors") &&
+    tabs.includes("Each club has one Lead Climate Sponsor"),
   "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
 );
 

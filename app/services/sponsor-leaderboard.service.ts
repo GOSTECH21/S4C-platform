@@ -5,9 +5,8 @@ import {
 import {
   isExampleLocalBrand,
   isLeadClimateBrand,
-  isLocalBusinessBrand,
 } from "../lib/match-day-branding";
-import { allLocalSponsors, submittedLocalSponsorsForClub } from "../lib/local-sponsor";
+import { allLocalSponsors } from "../lib/local-sponsor";
 import { clubsMatch } from "../lib/sponsor-dashboard";
 import {
   leadCarbonWalletGbp,
@@ -24,6 +23,7 @@ import {
   leadClimateSponsorsForClub,
   listClubSponsorRosters,
   loadBrandLogo,
+  localBusinessClimateSponsorsForClub,
 } from "./climate-sponsors.service";
 import {
   listOfferSignatures,
@@ -31,10 +31,8 @@ import {
 } from "./sponsor-offers.service";
 import { listClimateWalletsForClub } from "./sponsor-wallet.service";
 
-function kindForBrand(brandName: string, clubName: string): SponsorDonationEntry["kind"] {
-  if (isLeadClimateBrand(brandName) || !isLocalBusinessBrand(brandName, clubName)) {
-    return LEAD_CLIMATE_SPONSOR_LABEL;
-  }
+function kindForBrand(brandName: string): SponsorDonationEntry["kind"] {
+  if (isLeadClimateBrand(brandName)) return LEAD_CLIMATE_SPONSOR_LABEL;
   return LOCAL_BUSINESS_SPONSOR_LABEL;
 }
 
@@ -48,12 +46,17 @@ export function localSponsorDonationEntries(): SponsorDonationEntry[] {
         donationGbp: Number(sponsor.spentGbp) || 0,
         clubName: roster.clubName,
         logoUrl: sponsor.logoUrl || loadBrandLogo(sponsor.brandName),
-        kind: kindForBrand(sponsor.brandName, roster.clubName),
+        kind: kindForBrand(sponsor.brandName),
       });
     }
   }
   for (const local of allLocalSponsors()) {
-    if (isExampleLocalBrand(local.brandName)) continue;
+    if (
+      isExampleLocalBrand(local.brandName) ||
+      isLeadClimateBrand(local.brandName)
+    ) {
+      continue;
+    }
     entries.push({
       brandName: local.brandName,
       donationGbp: Number(local.pledgeGbp) || 0,
@@ -84,7 +87,7 @@ export async function loadSponsorLeaderboard(
         donationGbp: Number(offer?.sponsorshipAmountGbp) || 0,
         clubName: offer?.clubName ?? null,
         logoUrl: loadBrandLogo(signature.brandName),
-        kind: kindForBrand(signature.brandName, offer?.clubName ?? ""),
+        kind: kindForBrand(signature.brandName),
       });
     }
   } catch {
@@ -128,7 +131,7 @@ export async function loadClubSponsorLeaderboard(
     donationEntriesForClubSponsors({
       clubName: club,
       leads: leadClimateSponsorsForClub(club),
-      locals: submittedLocalSponsorsForClub(club),
+      locals: localBusinessClimateSponsorsForClub(club),
       walletAmounts,
       offerAmounts,
     })

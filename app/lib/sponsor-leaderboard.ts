@@ -1,4 +1,4 @@
-import { brandsMatch } from "./climate-sponsors";
+import { brandsMatch, isLeadClimateSponsorName } from "./climate-sponsors";
 import { clubsMatch } from "./sponsor-dashboard";
 import {
   LEAD_CLIMATE_SPONSOR_LABEL,
@@ -341,7 +341,9 @@ export function donationEntriesForClubSponsors({
       ),
       clubName: club,
       logoUrl: lead.logoUrl ?? null,
-      kind: LEAD_CLIMATE_SPONSOR_LABEL,
+      kind: isLeadClimateSponsorName(brandName)
+        ? LEAD_CLIMATE_SPONSOR_LABEL
+        : LOCAL_BUSINESS_SPONSOR_LABEL,
       keepWithoutDonation: true,
     });
   }
@@ -358,7 +360,9 @@ export function donationEntriesForClubSponsors({
       ),
       clubName: local.clubName?.trim() || club,
       logoUrl: local.logoUrl ?? null,
-      kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+      kind: isLeadClimateSponsorName(brandName)
+        ? LEAD_CLIMATE_SPONSOR_LABEL
+        : LOCAL_BUSINESS_SPONSOR_LABEL,
       keepWithoutDonation: true,
     });
   }

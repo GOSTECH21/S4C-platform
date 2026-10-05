@@ -56,6 +56,7 @@ import {
   loadClubSponsorRoster,
   loadGoalNetwork,
   loadMatchDayLock,
+  localBusinessClimateSponsorsForClub,
 } from "@/app/services/climate-sponsors.service";
 import {
   selectedBrandsReadyToReceive,
@@ -64,10 +65,7 @@ import {
 } from "@/app/lib/climate-sponsors";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
-import {
-  submittedLocalSponsorsForClub,
-  type LocalSponsorRecord,
-} from "@/app/lib/local-sponsor";
+import { type LocalSponsorRecord } from "@/app/lib/local-sponsor";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
@@ -163,7 +161,7 @@ export default function ClubDashboardPage() {
       );
       setRoster(loadClubSponsorRoster(session.club.id, session.club.name));
       setLeadSponsors(leadClimateSponsorsForClub(session.club.name));
-      setLocalSponsors(submittedLocalSponsorsForClub(session.club.name));
+      setLocalSponsors(localBusinessClimateSponsorsForClub(session.club.name));
       const storedFolder = readMatchDayFolder(session.club.id);
       setFolder(storedFolder);
       if (storedFolder?.matchDate) setMatchDate(storedFolder.matchDate);
