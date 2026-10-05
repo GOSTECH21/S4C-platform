@@ -163,28 +163,18 @@ const selectPage = readFileSync(
   "utf8"
 );
 assert(
-  selectPage.includes("Base Match Sponsorship"),
-  "SD form asks for Base Match Sponsorship"
-);
-assert(
-  selectPage.includes("Sponsorship per Goal scored"),
-  "SD form asks for Sponsorship per Goal scored"
-);
-assert(
-  selectPage.includes("Up to a Maximum of"),
-  "SD form asks for the Maximum cap"
-);
-assert(
-  !selectPage.includes("Projected Sponsor/Brand Exposure") &&
-    !selectPage.includes("Stipulated amount / Climate Project") &&
-    !selectPage.includes("Exposure counter per posted fan"),
-  "SD form no longer uses the old 0.02 exposure-counter Goal-scored block"
+  !selectPage.includes("Goal-scored funding for this Match") &&
+    !selectPage.includes("Base Match Sponsorship") &&
+    !selectPage.includes("Sponsorship per Goal scored") &&
+    !selectPage.includes("Up to a Maximum of"),
+  "Club Climate Projects no longer asks the SD to set Goal-scored funding"
 );
 assert(
   selectPage.includes("FUND_IT_LABEL") &&
     selectPage.includes("DEFAULT_WALLET_VOTE_GBP") &&
-    selectPage.includes("fundItCopy"),
-  "SD Goal-scored funding uses the £0.20 FUND-IT amount"
+    selectPage.includes("leadWalletMatchFunding") &&
+    selectPage.includes("Confirm ${MATCH_DAY_PROJECT_COUNT} Climate Projects"),
+  "Club Climate Projects keeps £0.20 FUND-IT and confirms the six projects"
 );
 assert(
   !selectPage.includes("Projected fans who will vote"),
@@ -210,5 +200,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Match Day funding: Base + £/Goal, capped; each FUND-IT is £0.20."
+  "Match Day funding: sponsor wallet sets Base + £/Goal; club page keeps £0.20 FUND-IT."
 );

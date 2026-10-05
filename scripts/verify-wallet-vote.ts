@@ -429,6 +429,13 @@ assert(
     clubPage.includes("No FUND-IT allocations yet"),
   "The club dashboard tells SDs that fans FUND-IT up to 5 times"
 );
+const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
+assert(
+  !clubSelect.includes("Goal-scored funding for this Match") &&
+    clubSelect.includes("DEFAULT_WALLET_VOTE_GBP") &&
+    clubSelect.includes("leadWalletMatchFunding"),
+  "Club Climate Projects does not set Goal-scored funding; FUND-IT stays £0.20"
+);
 
 const fanPage = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");

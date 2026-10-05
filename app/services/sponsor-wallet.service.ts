@@ -59,6 +59,25 @@ export function listClimateWalletsForClub(clubName: string): ClimateWallet[] {
   );
 }
 
+/** Goal-scored terms already set by the Lead Climate Sponsor in their wallet. */
+export function leadWalletMatchFunding(clubName: string): {
+  minAmount: number;
+  gbpPerGoal: number;
+  maxAmount: number;
+} {
+  const wallet = [...listClimateWalletsForClub(clubName)]
+    .filter((row) => row.kind === "lead")
+    .sort((left, right) => right.commitmentFeeGbp - left.commitmentFeeGbp)[0];
+  if (!wallet) {
+    return { minAmount: 0, gbpPerGoal: 0, maxAmount: 0 };
+  }
+  return {
+    minAmount: Math.max(0, Number(wallet.commitmentFeeGbp) || 0),
+    gbpPerGoal: Math.max(0, Number(wallet.gbpPerGoal) || 0),
+    maxAmount: Math.max(0, Number(wallet.maximumSponsorshipGbp) || 0),
+  };
+}
+
 export function readClimateWallet(
   clubName: string,
   brandName: string
