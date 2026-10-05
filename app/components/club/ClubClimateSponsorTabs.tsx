@@ -19,10 +19,12 @@ export function ClubClimateSponsorTabs({
   clubName,
   leadSponsors,
   localSponsors,
+  initialTab = "lead",
 }: {
   clubName: string;
   leadSponsors: LeadClubSponsorRow[];
   localSponsors: LocalSponsorRecord[];
+  initialTab?: ClimateSponsorTab;
 }) {
   const { leads, locals } = useMemo(
     () =>
@@ -33,7 +35,7 @@ export function ClubClimateSponsorTabs({
       }),
     [clubName, leadSponsors, localSponsors]
   );
-  const [tab, setTab] = useState<ClimateSponsorTab>("lead");
+  const [tab, setTab] = useState<ClimateSponsorTab>(initialTab);
   const leadCount = leads.length;
   const localCount = locals.length;
   const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
@@ -56,8 +58,9 @@ export function ClubClimateSponsorTabs({
         registered, chosen {clubName}, and submitted the Match Days they will
         fund. Each club has one Lead Climate Sponsor. Local businesses never
         appear on the Lead tab. They always sit under Our Local Businesses
-        Sponsor. This is the incoming list for the Sustainability Director, not
-        a roster to pick from, and never another club&apos;s brands.
+        Sponsor — once, with the logo they uploaded at registration. This is
+        the incoming list for the Sustainability Director, not a roster to pick
+        from, and never another club&apos;s brands.
       </p>
 
       <div
@@ -145,10 +148,11 @@ export function ClubClimateSponsorTabs({
             Local Businesses Climate Sponsors
           </h3>
           <p className="mt-2 max-w-3xl text-slate-400">
-            Local businesses that registered, chose {clubName}, selected the
-            Match or Matches they wish to sponsor, entered their sponsorship
-            amounts and submitted. These brands are supporting {clubName}&apos;s
-            Match Day carbon-emissions mitigation.
+            Local businesses that registered, chose {clubName}, uploaded their
+            logo, selected the Match or Matches they wish to sponsor, entered
+            their sponsorship amounts, agreed to the Terms and Conditions,
+            signed off, and SUBMITTED. These brands appear here once and are
+            supporting {clubName}&apos;s Match Day carbon-emissions mitigation.
           </p>
           {locals.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
@@ -250,6 +254,11 @@ function LocalSponsorCard({ sponsor }: { sponsor: LocalSponsorRecord }) {
             Local Business Climate Sponsor
             {total > 0 ? ` · ${formatMoney(total)} submitted` : ` for ${sponsor.clubName}`}
           </p>
+          {sponsor.signerName ? (
+            <p className="text-sm text-slate-500">
+              Signed off by {sponsor.signerName}
+            </p>
+          ) : null}
           {(sponsor.matchSponsorships?.length ?? 0) > 0 ? (
             <ul className="mt-3 space-y-1 text-sm text-slate-300">
               {sponsor.matchSponsorships!.map((row) => (

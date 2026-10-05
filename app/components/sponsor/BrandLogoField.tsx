@@ -9,11 +9,13 @@ export function BrandLogoField({
   logoUrl,
   onChange,
   error,
+  hint,
 }: {
   brandName: string;
   logoUrl: string | null;
   onChange: (logoDataUrl: string) => void;
   error?: string | null;
+  hint?: string;
 }) {
   const [localError, setLocalError] = useState<string | null>(null);
   return (
@@ -40,8 +42,8 @@ export function BrandLogoField({
         />
       </div>
       <p className="mt-2 text-xs text-slate-500">
-        Upload your brand mark so it appears next to Signed in as on the
-        Sponsorship Dashboard.
+        {hint ??
+          "Upload your brand mark so it appears next to Signed in as on the Sponsorship Dashboard."}
       </p>
       {(error || localError) && (
         <p className="mt-2 text-sm text-red-300">{error || localError}</p>

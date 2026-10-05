@@ -34,6 +34,55 @@ function network(
   };
 }
 
+const SEEDED_HIBS_LOCALS: LocalSponsorRecord[] = [
+  {
+    brandName: "Mash Tun",
+    email: "mash@local.test",
+    clubName: "Hibernian",
+    pledgeGbp: 500,
+    createdAt: "2026-10-04T00:00:00.000Z",
+    submittedAt: "2026-10-04T00:00:00.000Z",
+    source: "registered",
+    acceptedTerms: true,
+    signerName: "Jamie",
+    signedAt: "2026-10-04T00:00:00.000Z",
+    matchSponsorships: [{ fixtureName: "Hibernian v Hearts", amountGbp: 500 }],
+  },
+];
+
+const SEEDED_ARSENAL_LOCALS: LocalSponsorRecord[] = [
+  {
+    brandName: "Piazza Italiana",
+    email: "piazza@local.test",
+    clubName: "Arsenal",
+    pledgeGbp: 1750,
+    createdAt: "2026-10-04T00:00:00.000Z",
+    submittedAt: "2026-10-04T00:00:00.000Z",
+    source: "registered",
+    acceptedTerms: true,
+    signerName: "Jamie",
+    signedAt: "2026-10-04T00:00:00.000Z",
+    matchSponsorships: [
+      { fixtureName: "Arsenal v Leeds United", amountGbp: 1750 },
+    ],
+  },
+  {
+    brandName: "The Fountain",
+    email: "fountain@local.test",
+    clubName: "Arsenal",
+    pledgeGbp: 800,
+    createdAt: "2026-10-04T00:00:00.000Z",
+    submittedAt: "2026-10-04T00:00:00.000Z",
+    source: "registered",
+    acceptedTerms: true,
+    signerName: "Jamie",
+    signedAt: "2026-10-04T00:00:00.000Z",
+    matchSponsorships: [
+      { fixtureName: "Arsenal v Leeds United", amountGbp: 800 },
+    ],
+  },
+];
+
 function seedStores() {
   window.localStorage.removeItem(NETWORK_KEY);
   window.localStorage.removeItem(LOCK_KEY);
@@ -61,16 +110,7 @@ function seedStores() {
           : "Scottish Premiership Match",
     });
   }
-  writeLocalSponsorRecord({
-    brandName: "Mash Tun",
-    email: "mash@local.test",
-    clubName: "Hibernian",
-    pledgeGbp: 500,
-    createdAt: "2026-10-04T00:00:00.000Z",
-    submittedAt: "2026-10-04T00:00:00.000Z",
-    source: "registered",
-    matchSponsorships: [{ fixtureName: "Hibernian v Hearts", amountGbp: 500 }],
-  } satisfies LocalSponsorRecord);
+  writeLocalSponsorRecord(SEEDED_HIBS_LOCALS[0]);
 
   saveGoalNetwork(network("Puma", "Arsenal", "puma@puma.test"));
   lockMatchDayClub({
@@ -79,75 +119,56 @@ function seedStores() {
     matchLabel: "Premier League Match",
     fixtureName: "Arsenal v Leeds United",
   });
-  writeLocalSponsorRecord({
-    brandName: "The Fountain",
-    email: "fountain@local.test",
-    clubName: "Arsenal",
-    pledgeGbp: 800,
-    createdAt: "2026-10-04T00:00:00.000Z",
-    submittedAt: "2026-10-04T00:00:00.000Z",
-    source: "registered",
-    matchSponsorships: [
-      { fixtureName: "Arsenal v Leeds United", amountGbp: 800 },
-    ],
-  } satisfies LocalSponsorRecord);
+  for (const row of SEEDED_ARSENAL_LOCALS) {
+    writeLocalSponsorRecord(row);
+  }
 }
 
 export default function ClubSponsorsPreviewPage() {
-  const [ready, setReady] = useState(false);
   const [hibsLeads, setHibsLeads] = useState(
     [] as ReturnType<typeof leadClimateSponsorsForClub>
   );
-  const [hibsLocals, setHibsLocals] = useState(
-    [] as ReturnType<typeof localBusinessClimateSponsorsForClub>
-  );
+  const [hibsLocals, setHibsLocals] = useState(SEEDED_HIBS_LOCALS);
   const [arsenalLeads, setArsenalLeads] = useState(
     [] as ReturnType<typeof leadClimateSponsorsForClub>
   );
-  const [arsenalLocals, setArsenalLocals] = useState(
-    [] as ReturnType<typeof localBusinessClimateSponsorsForClub>
-  );
+  const [arsenalLocals, setArsenalLocals] = useState(SEEDED_ARSENAL_LOCALS);
   const [hibsBoard, setHibsBoard] = useState<SponsorLeaderboardRow[]>([]);
   const [arsenalBoard, setArsenalBoard] = useState<SponsorLeaderboardRow[]>([]);
 
   useEffect(() => {
-    seedStores();
-    const hibsLeadRows = leadClimateSponsorsForClub("Hibernian");
-    const hibsLocalRows = localBusinessClimateSponsorsForClub("Hibernian");
-    const arsenalLeadRows = leadClimateSponsorsForClub("Arsenal");
-    const arsenalLocalRows = localBusinessClimateSponsorsForClub("Arsenal");
-    setHibsLeads(hibsLeadRows);
-    setHibsLocals(hibsLocalRows);
-    setArsenalLeads(arsenalLeadRows);
-    setArsenalLocals(arsenalLocalRows);
-    setHibsBoard(
-      rankSponsorDonations(
-        donationEntriesForClubSponsors({
-          clubName: "Hibernian",
-          leads: hibsLeadRows,
-          locals: hibsLocalRows,
-        })
-      )
-    );
-    setArsenalBoard(
-      rankSponsorDonations(
-        donationEntriesForClubSponsors({
-          clubName: "Arsenal",
-          leads: arsenalLeadRows,
-          locals: arsenalLocalRows,
-        })
-      )
-    );
-    setReady(true);
+    try {
+      seedStores();
+      const hibsLeadRows = leadClimateSponsorsForClub("Hibernian");
+      const hibsLocalRows = localBusinessClimateSponsorsForClub("Hibernian");
+      const arsenalLeadRows = leadClimateSponsorsForClub("Arsenal");
+      const arsenalLocalRows = localBusinessClimateSponsorsForClub("Arsenal");
+      setHibsLeads(hibsLeadRows);
+      setHibsLocals(hibsLocalRows);
+      setArsenalLeads(arsenalLeadRows);
+      setArsenalLocals(arsenalLocalRows);
+      setHibsBoard(
+        rankSponsorDonations(
+          donationEntriesForClubSponsors({
+            clubName: "Hibernian",
+            leads: hibsLeadRows,
+            locals: hibsLocalRows,
+          })
+        )
+      );
+      setArsenalBoard(
+        rankSponsorDonations(
+          donationEntriesForClubSponsors({
+            clubName: "Arsenal",
+            leads: arsenalLeadRows,
+            locals: arsenalLocalRows,
+          })
+        )
+      );
+    } catch (err) {
+      console.error("club-sponsors preview seed failed", err);
+    }
   }, []);
-
-  if (!ready) {
-    return (
-      <main className="min-h-screen bg-slate-950 p-8 text-slate-400">
-        Seeding club Climate Sponsors…
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -170,6 +191,7 @@ export default function ClubSponsorsPreviewPage() {
             clubName="Hibernian"
             leadSponsors={hibsLeads}
             localSponsors={hibsLocals}
+            initialTab="local"
           />
           <div className="mt-8">
             <h3 className="mb-4 text-2xl font-black">Hibernian Sponsor Leaderboard</h3>
@@ -183,6 +205,7 @@ export default function ClubSponsorsPreviewPage() {
             clubName="Arsenal"
             leadSponsors={arsenalLeads}
             localSponsors={arsenalLocals}
+            initialTab="local"
           />
           <div className="mt-8">
             <h3 className="mb-4 text-2xl font-black">Arsenal Sponsor Leaderboard</h3>

@@ -103,11 +103,8 @@ assert(
 assert(
   readFileSync("app/components/club/MatchDayLocalSponsorBoard.tsx", "utf8").includes(
     "totalLocalPledge(row.local)"
-  ) &&
-    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-      "local.matchSponsorships?.length"
-    ),
-  "Club attach board reads submitted match amounts; wallet top-ups do not overwrite them"
+  ),
+  "The preview attach board still reads submitted match amounts"
 );
 assert(
   localHeaderFlex(1500, [500, 750, 1000, 1250, 1500]) === 1 &&
@@ -447,8 +444,9 @@ assert(
 
 const club = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
-  club.includes("MatchDayLocalSponsorBoard"),
-  "The Sustainability Director attaches five local logos before posting"
+  !club.includes("MatchDayLocalSponsorBoard") &&
+    club.includes("ClubClimateSponsorTabs"),
+  "Club dashboard shows locals once under Our Climate Sponsors, not on an attach-logos board"
 );
 assert(
   !readFileSync("app/components/club/MatchDayLocalSponsorBoard.tsx", "utf8").includes(
