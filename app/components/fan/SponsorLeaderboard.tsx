@@ -98,10 +98,14 @@ export function SponsorLeaderboard({
             : category !== "all"
               ? `No ${categoryLabel} on this leaderboard yet.`
               : scope === "affiliates"
-                ? "No sponsor donations are recorded for the club you support yet."
+                ? "No sponsor donations are recorded for this club yet."
                 : scope === "local"
-                  ? "No Local Business Climate Sponsor donations are recorded yet."
-                  : "No Global Climate Sponsor donations are recorded yet."}
+                  ? affiliateClubs.length > 0
+                    ? "No Local Business Climate Sponsor donations are recorded for this club yet."
+                    : "No Local Business Climate Sponsor donations are recorded yet."
+                  : affiliateClubs.length > 0
+                    ? "No Lead Climate Sponsor donations are recorded for this club yet."
+                    : "No Global Climate Sponsor donations are recorded yet."}
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-800">

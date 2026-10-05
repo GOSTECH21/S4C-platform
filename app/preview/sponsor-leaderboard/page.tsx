@@ -82,10 +82,11 @@ export default function SponsorLeaderboardPreviewPage() {
         <h1 className="mt-2 text-4xl font-black">Sponsor Leaderboard</h1>
         <p className="mt-3 max-w-3xl text-slate-300">
           The Sustainability Director uses this board when choosing Climate
-          Sponsors for Match Day projects. Choose Global Leaderboard, Local
-          Leaderboard, or Affiliates. Use the Sort-Selector beside the board to
-          rank Restaurants, Car Companies, Hotels, Fashion Retailers, or
-          Others. Global Leaderboard opens first.
+          Sponsors for Hibernian Match Day projects. Only Hibernian Lead and
+          Local Business Climate Sponsors appear here. Choose Global
+          Leaderboard, Local Leaderboard, or Affiliates. Use the Sort-Selector
+          beside the board to rank Restaurants, Car Companies, Hotels, Fashion
+          Retailers, or Others. Global Leaderboard opens first.
         </p>
         <div className="mt-8">
           <SponsorLeaderboard rows={ROWS} affiliateClubs={["Hibernian"]} />

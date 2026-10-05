@@ -9,6 +9,7 @@ import {
 } from "../lib/match-day-branding";
 import { allLocalSponsors } from "../lib/local-sponsor";
 import {
+  leaderboardForClub,
   rankSponsorDonations,
   type SponsorDonationEntry,
   type SponsorLeaderboardRow,
@@ -56,7 +57,9 @@ export function localSponsorDonationEntries(): SponsorDonationEntry[] {
   return entries;
 }
 
-export async function loadSponsorLeaderboard(): Promise<SponsorLeaderboardRow[]> {
+export async function loadSponsorLeaderboard(
+  clubNames: string[] = []
+): Promise<SponsorLeaderboardRow[]> {
   const entries = localSponsorDonationEntries();
   try {
     const [offers, signatures] = await Promise.all([
@@ -79,5 +82,6 @@ export async function loadSponsorLeaderboard(): Promise<SponsorLeaderboardRow[]>
   } catch {
     // Roster and local pledges still rank when signed offers cannot be loaded.
   }
-  return rankSponsorDonations(entries);
+  const ranked = rankSponsorDonations(entries);
+  return clubNames.length > 0 ? leaderboardForClub(ranked, clubNames) : ranked;
 }

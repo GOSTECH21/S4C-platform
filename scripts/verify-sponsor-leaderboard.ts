@@ -9,6 +9,7 @@ import {
   SPONSOR_LEADERBOARD_CATEGORY_OPTIONS,
   SPONSOR_LEADERBOARD_SCOPE_OPTIONS,
   leaderboardForCategory,
+  leaderboardForClub,
   leaderboardForScope,
   rankSponsorDonations,
   sponsorIndustryCategory,
@@ -134,6 +135,91 @@ assert(
   "Affiliates is empty until a club is provided"
 );
 
+const arsenalVsHibs = rankSponsorDonations([
+  {
+    brandName: "Puma",
+    donationGbp: 3500,
+    clubName: "Arsenal",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "The Fountain",
+    donationGbp: 800,
+    clubName: "Arsenal",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+  {
+    brandName: "American Express",
+    donationGbp: 998.5,
+    clubName: "Hibernian",
+    kind: LEAD_CLIMATE_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Mash Tun",
+    donationGbp: 1500,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Kokobean Cafe",
+    donationGbp: 1200,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Interval",
+    donationGbp: 1000,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+  {
+    brandName: "Top Cellar",
+    donationGbp: 500,
+    clubName: "Hibernian",
+    kind: LOCAL_BUSINESS_SPONSOR_LABEL,
+  },
+]);
+const arsenalClub = ["Arsenal FC"];
+const arsenalLocal = leaderboardForScope(arsenalVsHibs, "local", arsenalClub);
+const arsenalRestaurants = leaderboardForCategory(arsenalLocal, "restaurants");
+assert(
+  arsenalLocal.length === 1 &&
+    arsenalLocal[0]?.brandName === "The Fountain" &&
+    arsenalLocal[0]?.clubNames.join(",") === "Arsenal",
+  "Arsenal Local Leaderboard keeps The Fountain and drops Hibernian restaurants"
+);
+assert(
+  arsenalLocal.every(
+    (row) =>
+      !/hibernian|mash tun|kokobean|interval|top cellar/i.test(
+        `${row.brandName} ${row.clubNames.join(" ")}`
+      )
+  ),
+  "Arsenal Local Leaderboard never lists Mash Tun, Kokobean Cafe, Interval or Top Cellar"
+);
+assert(
+  arsenalRestaurants.length === 0,
+  "Arsenal Restaurants is empty when only Hibernian pubs are in the leftover data"
+);
+assert(
+  leaderboardForScope(arsenalVsHibs, "global", arsenalClub).map(
+    (row) => row.brandName
+  ).join(",") === "Puma" &&
+    leaderboardForScope(arsenalVsHibs, "global", arsenalClub).every(
+      (row) => row.brandName !== "American Express"
+    ),
+  "Arsenal Global Leaderboard is Puma, not Hibernian's American Express"
+);
+assert(
+  leaderboardForClub(arsenalVsHibs, arsenalClub).every((row) =>
+    row.clubNames.every((club) => /arsenal/i.test(club))
+  ) &&
+    !leaderboardForClub(arsenalVsHibs, arsenalClub).some((row) =>
+      /mash tun|kokobean/i.test(row.brandName)
+    ),
+  "The club board only keeps sponsors of the stated club"
+);
+
 const splitBrand = rankSponsorDonations([
   {
     brandName: "American Express",
@@ -207,10 +293,16 @@ assert(
     "Sponsor Leaderboard"
   ) &&
     readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
+      "loadSponsorLeaderboard([session.club.name])"
+    ) &&
+    readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
       "affiliateClubs={[clubName]}"
     ) &&
+    readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
+      "Only Lead Climate Sponsors and Local Business"
+    ) &&
     readFileSync("app/club/sponsor/page.tsx", "utf8").includes("ClubNav"),
-  "The club Sponsor tab ranks Affiliates for the Sustainability Director's club"
+  "The club Sponsor tab loads and ranks only that club's Lead and Local sponsors"
 );
 assert(
   readFileSync("app/club/dashboard/page.tsx", "utf8").includes("<ClubNav") &&

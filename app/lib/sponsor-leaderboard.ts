@@ -132,45 +132,62 @@ function clubIsChosen(clubName: string, chosenClubs: string[]): boolean {
   return chosenClubs.some((chosen) => clubsMatch(clubName, chosen));
 }
 
+function rerank(rows: SponsorLeaderboardRow[]): SponsorLeaderboardRow[] {
+  return [...rows]
+    .sort((left, right) => {
+      if (right.donationGbp !== left.donationGbp) {
+        return right.donationGbp - left.donationGbp;
+      }
+      return left.brandName.localeCompare(right.brandName);
+    })
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
+/** Keep only donations for the named club. Other clubs never appear. */
+export function leaderboardForClub(
+  rows: SponsorLeaderboardRow[],
+  clubNames: string[]
+): SponsorLeaderboardRow[] {
+  if (clubNames.length === 0) return [];
+  return rerank(
+    rows
+      .map((row) => {
+        const matched = row.clubDonations.filter((donation) =>
+          clubIsChosen(donation.clubName, clubNames)
+        );
+        const names =
+          matched.length > 0
+            ? matched.map((donation) => donation.clubName)
+            : row.clubNames.filter((club) => clubIsChosen(club, clubNames));
+        const donationGbp =
+          matched.length > 0
+            ? matched.reduce((sum, donation) => sum + donation.amount, 0)
+            : names.length > 0
+              ? row.donationGbp
+              : 0;
+        return { ...row, clubNames: names, donationGbp };
+      })
+      .filter((row) => row.donationGbp > 0 && row.clubNames.length > 0)
+  );
+}
+
 export function leaderboardForScope(
   rows: SponsorLeaderboardRow[],
   scope: SponsorLeaderboardScope = DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
   affiliateClubs: string[] = []
 ): SponsorLeaderboardRow[] {
+  const clubRows =
+    affiliateClubs.length > 0
+      ? leaderboardForClub(rows, affiliateClubs)
+      : rows;
   if (scope === "affiliates") {
-    return rows
-      .map((row) => {
-        const matched = row.clubDonations.filter((donation) =>
-          clubIsChosen(donation.clubName, affiliateClubs)
-        );
-        const clubNames =
-          matched.length > 0
-            ? matched.map((donation) => donation.clubName)
-            : row.clubNames.filter((club) => clubIsChosen(club, affiliateClubs));
-        const donationGbp =
-          matched.length > 0
-            ? matched.reduce((sum, donation) => sum + donation.amount, 0)
-            : clubNames.length > 0
-              ? row.donationGbp
-              : 0;
-        return { ...row, clubNames, donationGbp };
-      })
-      .filter((row) => row.donationGbp > 0 && row.clubNames.length > 0)
-      .sort((left, right) => {
-        if (right.donationGbp !== left.donationGbp) {
-          return right.donationGbp - left.donationGbp;
-        }
-        return left.brandName.localeCompare(right.brandName);
-      })
-      .map((row, index) => ({ ...row, rank: index + 1 }));
+    return affiliateClubs.length > 0 ? clubRows : [];
   }
   const kind =
     scope === "local"
       ? LOCAL_BUSINESS_SPONSOR_LABEL
       : LEAD_CLIMATE_SPONSOR_LABEL;
-  return rows
-    .filter((row) => row.kind === kind)
-    .map((row, index) => ({ ...row, rank: index + 1 }));
+  return rerank(clubRows.filter((row) => row.kind === kind));
 }
 
 export function leaderboardForCategory(
