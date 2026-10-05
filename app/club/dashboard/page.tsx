@@ -492,14 +492,24 @@ export default function ClubDashboardPage() {
             <p className="mt-2 max-w-3xl text-sm text-slate-400">
               {matchDayWindowCopy()}
             </p>
-            {(minAmount != null || gbpPerVote != null || gbpPerGoal != null) && (
+            {(minAmount != null && Number(minAmount) > 0) ||
+            (gbpPerGoal != null && Number(gbpPerGoal) > 0) ? (
               <p className="mt-2 text-sm text-green-300">
-                {formatMatchFundingLine({
-                  baseAmount: minAmount,
-                  gbpPerGoal,
-                  maxAmount,
-                }) || "Insert Base Match Sponsorship, £/Goal and Maximum"}
-                {` · ${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}`}
+                {[
+                  formatMatchFundingLine({
+                    baseAmount: minAmount,
+                    gbpPerGoal,
+                    maxAmount,
+                  }),
+                  `${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from each Carbon Wallet`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            ) : (
+              <p className="mt-2 text-sm text-green-300">
+                {FUND_IT_LABEL} {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from
+                each Carbon Wallet
               </p>
             )}
             <ProjectGrid

@@ -23,16 +23,11 @@ import {
   localCatalogCountryForClub,
 } from "@/app/lib/featured-climate-country";
 import {
-  formatMatchFundingLine,
-  formatMoney,
-  totalMatchSponsorshipPayable,
-} from "@/app/lib/sponsorship-auction";
-import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
   formatWalletGbp,
-  fundItCopy,
 } from "@/app/lib/sponsor-wallet";
+import { leadWalletMatchFunding } from "@/app/services/sponsor-wallet.service";
 import {
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
@@ -56,9 +51,6 @@ export default function SelectMatchDayProjectsPage() {
   const [featured, setFeatured] = useState<ClimateProject | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
-  const [minAmount, setMinAmount] = useState("");
-  const [gbpPerGoal, setGbpPerGoal] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,9 +98,6 @@ export default function SelectMatchDayProjectsPage() {
             (id) => id !== featuredProject?.id && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
-          setMinAmount(stored.minAmount ? String(stored.minAmount) : "");
-          setGbpPerGoal(stored.gbpPerGoal ? String(stored.gbpPerGoal) : "");
-          setMaxAmount(stored.maxAmount ? String(stored.maxAmount) : "");
         }
       } catch (err) {
         setError(
@@ -149,33 +138,7 @@ export default function SelectMatchDayProjectsPage() {
       return;
     }
     const rate = DEFAULT_WALLET_VOTE_GBP;
-    const minimum = Number(minAmount);
-    const perGoal = Number(gbpPerGoal);
-    const cap = Number(maxAmount);
-    if (!Number.isFinite(minimum) || minimum <= 0) {
-      setError(
-        "Insert the Base Match Sponsorship for this Match. This is the Minimum Payment even if the club scores no Goals."
-      );
-      return;
-    }
-    if (!Number.isFinite(perGoal) || perGoal <= 0) {
-      setError(
-        "Insert the Sponsorship per Goal scored. This is added to the Base Match Sponsorship for each Goal."
-      );
-      return;
-    }
-    if (!Number.isFinite(cap) || cap <= 0) {
-      setError(
-        'Insert the "Up to a Maximum of" cap. The sponsor cannot pay more than this, however many Goals are scored.'
-      );
-      return;
-    }
-    if (cap < minimum) {
-      setError(
-        "The Maximum must be at least the Base Match Sponsorship. A 0–0 still pays the base."
-      );
-      return;
-    }
+    const funding = leadWalletMatchFunding(clubName);
     setSaving(true);
     setError(null);
     try {
@@ -184,9 +147,9 @@ export default function SelectMatchDayProjectsPage() {
         clubName,
         country: clubCountry,
         projectIds: [...selected],
-        minAmount: minimum,
-        gbpPerGoal: perGoal,
-        maxAmount: cap,
+        minAmount: funding.minAmount,
+        gbpPerGoal: funding.gbpPerGoal,
+        maxAmount: funding.maxAmount,
         projectedVotes: 0,
         gbpPerVote: rate,
         expectedSponsorship: rate,
@@ -341,66 +304,17 @@ export default function SelectMatchDayProjectsPage() {
         </div>
 
         <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8">
-          <h3 className="text-2xl font-bold">
-            Goal-scored funding for this Match
-          </h3>
-          <p className="mt-2 text-slate-400">
-            Set a Base Match Sponsorship — the Minimum Payment the brand
-            sponsor pays even if {clubName} scores no Goals — then the amount
-            added for each Goal scored, and a cap. Fans press {FUND_IT_LABEL};{" "}
-            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from a Climate
-            Sponsorship Wallet to a numbered Climate Project.
+          <p className="text-sm text-slate-400">{FUND_IT_LABEL}</p>
+          <p className="mt-2 text-lg font-bold text-white">
+            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <label className="block text-sm text-slate-400">
-              Base Match Sponsorship
-              <input
-                type="number"
-                min={1}
-                step={100}
-                value={minAmount}
-                onChange={(event) => setMinAmount(event.target.value)}
-                placeholder="e.g. 3000"
-                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
-            <label className="block text-sm text-slate-400">
-              Sponsorship per Goal scored
-              <input
-                type="number"
-                min={1}
-                step={100}
-                value={gbpPerGoal}
-                onChange={(event) => setGbpPerGoal(event.target.value)}
-                placeholder="e.g. 3000"
-                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
-            <label className="block text-sm text-slate-400">
-              Up to a Maximum of
-              <input
-                type="number"
-                min={1}
-                step={100}
-                value={maxAmount}
-                onChange={(event) => setMaxAmount(event.target.value)}
-                placeholder="e.g. 15000"
-                className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-              />
-            </label>
-          </div>
-          <div className="mt-4 rounded-lg bg-slate-800 p-4">
-            <p className="text-sm text-slate-400">{FUND_IT_LABEL}</p>
-            <p className="mt-2 text-lg font-bold text-white">
-              {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">{fundItCopy()}</p>
-          </div>
-          <FundingPreview
-            minAmount={Number(minAmount) || 0}
-            gbpPerGoal={Number(gbpPerGoal) || 0}
-            maxAmount={Number(maxAmount) || 0}
-          />
+          <p className="mt-2 max-w-3xl text-sm text-slate-400">
+            Fans press {FUND_IT_LABEL} up to 5 times and take{" "}
+            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon
+            Wallet onto any of these Climate Projects. Goal-scored funding is
+            already set by the Lead Climate Sponsor in the Climate Sponsorship
+            Wallet.
+          </p>
           <button
             onClick={confirm}
             disabled={saving || selected.size !== MATCH_DAY_CHOICE_COUNT}
@@ -408,67 +322,10 @@ export default function SelectMatchDayProjectsPage() {
           >
             {saving
               ? "Saving..."
-              : `Confirm ${MATCH_DAY_PROJECT_COUNT} projects · ${
-                  formatMatchFundingLine({
-                    baseAmount: Number(minAmount) || 0,
-                    gbpPerGoal: Number(gbpPerGoal) || 0,
-                    maxAmount: Number(maxAmount) || 0,
-                  }) || "insert Base, £/Goal and Maximum"
-                }`}
+              : `Confirm ${MATCH_DAY_PROJECT_COUNT} Climate Projects`}
           </button>
         </div>
       </div>
     </main>
-  );
-}
-
-function FundingPreview({
-  minAmount,
-  gbpPerGoal,
-  maxAmount,
-}: {
-  minAmount: number;
-  gbpPerGoal: number;
-  maxAmount: number;
-}) {
-  if (!(minAmount > 0) || !(gbpPerGoal > 0) || !(maxAmount > 0)) {
-    return (
-      <p className="mt-4 text-sm text-amber-300">
-        Insert the Base Match Sponsorship, the amount payable per Goal, and the
-        Maximum. A 0–0 still pays the base. Each Goal adds the per-Goal amount,
-        never above the cap. Each {FUND_IT_LABEL} takes{" "}
-        {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from a Climate Sponsorship
-        Wallet.
-      </p>
-    );
-  }
-
-  const nilNil = totalMatchSponsorshipPayable({
-    baseAmount: minAmount,
-    gbpPerGoal,
-    goalsScored: 0,
-    maxAmount,
-  });
-  const oneNil = totalMatchSponsorshipPayable({
-    baseAmount: minAmount,
-    gbpPerGoal,
-    goalsScored: 1,
-    maxAmount,
-  });
-  const twoNil = totalMatchSponsorshipPayable({
-    baseAmount: minAmount,
-    gbpPerGoal,
-    goalsScored: 2,
-    maxAmount,
-  });
-
-  return (
-    <p className="mt-4 text-sm text-green-300">
-      0–0 pays {formatMoney(nilNil)} (the Base Match Sponsorship). 1–0 pays{" "}
-      {formatMoney(oneNil)}. 2–0 pays {formatMoney(twoNil)}. The sponsor cannot
-      pay more than {formatMoney(maxAmount)}, however many Goals are scored.
-      Each {FUND_IT_LABEL} takes {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from
-      a Climate Sponsorship Wallet to a numbered Climate Project.
-    </p>
   );
 }
