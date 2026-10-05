@@ -611,6 +611,11 @@ assert(
   "Remaining is only shown on the local wallet"
 );
 assert(
+  !walletForm.includes("Sponsorship amount (from") &&
+    !walletForm.includes("Pay into Climate Sponsorship Wallet"),
+  "Local wallet does not ask for a second sponsorship amount"
+);
+assert(
   walletPage.includes(
     "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet."
   ),

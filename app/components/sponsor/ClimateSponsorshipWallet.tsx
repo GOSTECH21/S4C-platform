@@ -8,18 +8,15 @@ import {
   leadCarbonWalletGbp,
   leadSponsorshipFromGoalsGbp,
   liveGoalsScored,
-  localWalletTopUp,
   remainingGbp,
   type ClimateWallet,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
-import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 
 export function ClimateSponsorshipWallet({
   kind,
   wallet,
   clubName,
-  onLocalTopUp,
   onLeadDeposit,
   busy = false,
   notice,
@@ -28,7 +25,6 @@ export function ClimateSponsorshipWallet({
   kind: SponsorWalletKind;
   wallet: ClimateWallet | null;
   clubName: string;
-  onLocalTopUp: (sponsorshipGbp: number) => void;
   onLeadDeposit: (input: {
     commitmentFeeGbp: number;
     gbpPerGoal: number;
@@ -38,11 +34,9 @@ export function ClimateSponsorshipWallet({
   notice?: string | null;
   error?: string | null;
 }) {
-  const [sponsorship, setSponsorship] = useState("750");
   const [commitmentFee, setCommitmentFee] = useState("1000");
   const [gbpPerGoal, setGbpPerGoal] = useState("3000");
   const [maximumSponsorship, setMaximumSponsorship] = useState("0");
-  const preview = localWalletTopUp(Number(sponsorship) || 0);
   const liveGoals = wallet ? liveGoalsScored(wallet) : 0;
 
   useEffect(() => {
@@ -61,7 +55,7 @@ export function ClimateSponsorshipWallet({
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "lead"
           ? "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
-          : `Pay the sponsorship amount you want fans of ${clubName || "your club"} to take from this wallet. A 10% management fee is added on top (for example £750 + 10% = ${formatWalletGbp(preview.paidGbp)} paid; the wallet then shows ${formatWalletGbp(preview.sponsorshipGbp)}).`}
+          : `Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from this wallet. The sponsorship amount you submitted is shown above, with the 10% management fee already added.`}
       </p>
 
       {wallet && kind === "lead" ? (
@@ -104,37 +98,17 @@ export function ClimateSponsorshipWallet({
       ) : null}
 
       {kind === "local" ? (
-        <form
-          className="mt-8 space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onLocalTopUp(Number(sponsorship));
-          }}
-        >
-          <label className="block text-sm text-slate-400">
-            Sponsorship amount (from £{LOCAL_SPONSOR_MIN_GBP})
-            <input
-              type="number"
-              min={LOCAL_SPONSOR_MIN_GBP}
-              step={50}
-              value={sponsorship}
-              onChange={(event) => setSponsorship(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            />
-          </label>
-          <p className="text-sm text-green-300">
-            You pay {formatWalletGbp(preview.paidGbp)} ({formatWalletGbp(preview.sponsorshipGbp)}{" "}
-            + 10% management fee). Fans then take {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}{" "}
-            per FUND-IT from the {formatWalletGbp(preview.sponsorshipGbp)} remaining.
+        wallet ? (
+          <p className="mt-6 text-sm text-green-300">
+            Fans take {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from
+            the {formatWalletGbp(remainingGbp(wallet))} remaining.
           </p>
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
-          >
-            {busy ? "Paying in..." : "Pay into Climate Sponsorship Wallet"}
-          </button>
-        </form>
+        ) : (
+          <p className="mt-6 text-sm text-slate-500">
+            The sponsorship amount you submitted on registration appears here
+            once the wallet is created. There is no second amount to enter.
+          </p>
+        )
       ) : (
         <form
           className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
