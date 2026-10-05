@@ -555,13 +555,10 @@ assert(
     dashboard.includes("localBusinessClimateSponsorsForClub"),
   "Club dashboard splits inbound brands so local businesses never stay on the Lead tab"
 );
+const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
 assert(
-  readFileSync("app/preview/club-sponsors/page.tsx", "utf8").includes(
-    "leadClimateSponsorsForClub"
-  ) &&
-    readFileSync("app/preview/club-sponsors/page.tsx", "utf8").includes(
-      "localBusinessClimateSponsorsForClub"
-    ),
+  preview.includes("leadClimateSponsorsForClub") &&
+    preview.includes("localBusinessClimateSponsorsForClub"),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 
@@ -616,6 +613,13 @@ assert(
     localPage.includes("BrandLogoField") &&
     localPage.includes("signedAt"),
   "Local Business Climate Sponsors upload a logo, agree T&Cs, sign off, then SUBMIT"
+);
+assert(
+  preview.includes("SEEDED_ARSENAL_LOCALS") &&
+    preview.includes("Piazza Italiana") &&
+    preview.includes("signerName: \"Jamie\"") &&
+    preview.includes('initialTab="local"'),
+  "The club-sponsors preview shows signed-off locals once, on the Local tab"
 );
 
 if (failures.length > 0) {

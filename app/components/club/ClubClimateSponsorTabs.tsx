@@ -19,10 +19,12 @@ export function ClubClimateSponsorTabs({
   clubName,
   leadSponsors,
   localSponsors,
+  initialTab = "lead",
 }: {
   clubName: string;
   leadSponsors: LeadClubSponsorRow[];
   localSponsors: LocalSponsorRecord[];
+  initialTab?: ClimateSponsorTab;
 }) {
   const { leads, locals } = useMemo(
     () =>
@@ -33,7 +35,7 @@ export function ClubClimateSponsorTabs({
       }),
     [clubName, leadSponsors, localSponsors]
   );
-  const [tab, setTab] = useState<ClimateSponsorTab>("lead");
+  const [tab, setTab] = useState<ClimateSponsorTab>(initialTab);
   const leadCount = leads.length;
   const localCount = locals.length;
   const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
