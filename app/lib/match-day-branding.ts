@@ -1,8 +1,11 @@
 import {
   brandKey,
   brandsMatch,
-  SUGGESTED_CLIMATE_BRANDS,
+  isKnownLocalBusinessSponsorName,
+  isLeadClimateSponsorName,
+  KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES,
   type ClubClimateSponsor,
+  type LeadClubSponsorRow,
 } from "./climate-sponsors";
 import {
   LOCAL_SPONSOR_MIN_GBP,
@@ -31,20 +34,7 @@ export const EXAMPLE_LOCAL_BRANDS = [
 ];
 
 /** Local businesses that must never occupy Lead Climate Sponsor space. */
-export const KNOWN_LOCAL_BUSINESS_BRANDS = [
-  "Tax Assist",
-  "Top Cellar",
-  "Kokobean Cafe",
-  "Kokobean",
-  "Mash Tun",
-  "Interval",
-];
-
-const LEAD_CLIMATE_BRAND_NAMES = [
-  "American Express",
-  "Amex",
-  ...SUGGESTED_CLIMATE_BRANDS,
-];
+export const KNOWN_LOCAL_BUSINESS_BRANDS = KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES;
 
 export type MatchDayLead = {
   name: string;
@@ -53,12 +43,6 @@ export type MatchDayLead = {
 
 function compactBrandKey(name: string): string {
   return brandKey(name).replace(/\s+/g, "");
-}
-
-function listedBrandMatch(name: string, listed: string[]): boolean {
-  const key = compactBrandKey(name);
-  if (!key) return false;
-  return listed.some((row) => compactBrandKey(row) === key);
 }
 
 function localJobTitle(value: string | null | undefined): boolean {
@@ -80,16 +64,11 @@ export function isExampleLocalBrand(brandName: string): boolean {
 }
 
 export function isLeadClimateBrand(brandName: string): boolean {
-  const key = compactBrandKey(brandName);
-  if (!key) return false;
-  if (listedBrandMatch(brandName, LEAD_CLIMATE_BRAND_NAMES)) return true;
-  return LEAD_CLIMATE_BRAND_NAMES.map(compactBrandKey).some(
-    (lead) => lead.length >= 4 && key.startsWith(lead)
-  );
+  return isLeadClimateSponsorName(brandName);
 }
 
 export function isKnownLocalBusinessBrand(brandName: string): boolean {
-  return listedBrandMatch(brandName, KNOWN_LOCAL_BUSINESS_BRANDS);
+  return isKnownLocalBusinessSponsorName(brandName);
 }
 
 export function isRegisteredLocalSponsor(row: {
@@ -123,6 +102,54 @@ export function isLocalBusinessBrand(
     (row) =>
       brandsMatch(row.brandName, brandName) && localJobTitle(row.jobTitle)
   );
+}
+
+/** Lead tab keeps Lead Climate Sponsor brands only. Everyone else goes Local. */
+export function splitClubClimateSponsorsForTabs({
+  clubName,
+  leadSponsors,
+  localSponsors,
+}: {
+  clubName: string;
+  leadSponsors: LeadClubSponsorRow[];
+  localSponsors: LocalSponsorRecord[];
+}): {
+  leads: LeadClubSponsorRow[];
+  locals: LocalSponsorRecord[];
+} {
+  const leads = leadSponsors.filter((row) => isLeadClimateBrand(row.brandName));
+  const localsByKey = new Map<string, LocalSponsorRecord>();
+
+  function rememberLocal(row: LocalSponsorRecord) {
+    if (!row.brandName.trim()) return;
+    if (isLeadClimateBrand(row.brandName) || isExampleLocalBrand(row.brandName)) {
+      return;
+    }
+    const key = brandKey(row.brandName);
+    if (!key || localsByKey.has(key)) return;
+    localsByKey.set(key, row);
+  }
+
+  for (const row of localSponsors) rememberLocal(row);
+  for (const row of leadSponsors) {
+    if (isLeadClimateBrand(row.brandName)) continue;
+    rememberLocal({
+      brandName: row.brandName,
+      email: row.email ?? "",
+      clubName,
+      pledgeGbp: 0,
+      createdAt: row.lockedAt ?? "",
+      submittedAt: row.lockedAt ?? undefined,
+      source: "registered",
+      logoUrl: row.logoUrl,
+      matchSponsorships: row.matches.map((fixtureName) => ({
+        fixtureName,
+        amountGbp: 0,
+      })),
+    });
+  }
+
+  return { leads, locals: [...localsByKey.values()] };
 }
 
 function asLocalRecord(

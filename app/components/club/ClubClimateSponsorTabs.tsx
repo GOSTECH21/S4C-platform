@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import type { LeadClubSponsorRow } from "@/app/lib/climate-sponsors";
+import { splitClubClimateSponsorsForTabs } from "@/app/lib/match-day-branding";
 import {
   localMatchLabels,
   totalLocalPledge,
@@ -23,9 +24,23 @@ export function ClubClimateSponsorTabs({
   leadSponsors: LeadClubSponsorRow[];
   localSponsors: LocalSponsorRecord[];
 }) {
+  const { leads, locals } = useMemo(
+    () =>
+      splitClubClimateSponsorsForTabs({
+        clubName,
+        leadSponsors,
+        localSponsors,
+      }),
+    [clubName, leadSponsors, localSponsors]
+  );
   const [tab, setTab] = useState<ClimateSponsorTab>("lead");
-  const leadCount = leadSponsors.length;
-  const localCount = localSponsors.length;
+  const leadCount = leads.length;
+  const localCount = locals.length;
+  const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
+  const leadTabId = `${tabPrefix}-lead-climate-sponsor-tab`;
+  const localTabId = `${tabPrefix}-local-businesses-sponsor-tab`;
+  const leadPanelId = `${tabPrefix}-lead-climate-sponsor-panel`;
+  const localPanelId = `${tabPrefix}-local-businesses-sponsor-panel`;
 
   return (
     <section
@@ -39,8 +54,10 @@ export function ClubClimateSponsorTabs({
       <p className="mt-3 max-w-3xl text-slate-300">
         Lead Climate Sponsors and Local Business Climate Sponsors who have
         registered, chosen {clubName}, and submitted the Match Days they will
-        fund. This is the incoming list for the Sustainability Director — not a
-        roster to pick from.
+        fund. Each club has one Lead Climate Sponsor. Local businesses never
+        appear on the Lead tab. They always sit under Our Local Businesses
+        Sponsor. This is the incoming list for the Sustainability Director, not
+        a roster to pick from, and never another club&apos;s brands.
       </p>
 
       <div
@@ -49,19 +66,19 @@ export function ClubClimateSponsorTabs({
         className="mt-8 flex flex-wrap gap-3"
       >
         <TabButton
-          id="lead-climate-sponsor-tab"
+          id={leadTabId}
           selected={tab === "lead"}
           onClick={() => setTab("lead")}
-          controls="lead-climate-sponsor-panel"
+          controls={leadPanelId}
         >
           Our Lead Climate Sponsor
           {leadCount ? ` (${leadCount})` : ""}
         </TabButton>
         <TabButton
-          id="local-businesses-sponsor-tab"
+          id={localTabId}
           selected={tab === "local"}
           onClick={() => setTab("local")}
-          controls="local-businesses-sponsor-panel"
+          controls={localPanelId}
         >
           Our Local Businesses Sponsor
           {localCount ? ` (${localCount})` : ""}
@@ -71,25 +88,25 @@ export function ClubClimateSponsorTabs({
       {tab === "lead" ? (
         <div
           role="tabpanel"
-          id="lead-climate-sponsor-panel"
-          aria-labelledby="lead-climate-sponsor-tab"
+          id={leadPanelId}
+          aria-labelledby={leadTabId}
           className="mt-8"
         >
           <h3 className="text-2xl font-black">Our Lead Climate Sponsor</h3>
           <p className="mt-2 max-w-3xl text-slate-400">
             When a Lead Climate Sponsor registers, opts to sponsor {clubName},
             and selects the Match they wish to be Lead Climate Sponsor for, they
-            appear here with those fixtures — for example Arsenal v Chelsea;
-            Bayern Munich v Arsenal; Arsenal v Manchester United.
+            appear here with those fixtures. Only that one Lead Climate Sponsor
+            is listed — never a Local Business Climate Sponsor.
           </p>
-          {leadSponsors.length === 0 ? (
+          {leads.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
               No Lead Climate Sponsor has opted to sponsor {clubName} Match Days
               yet.
             </p>
           ) : (
             <ul className="mt-6 grid gap-4">
-              {leadSponsors.map((sponsor) => (
+              {leads.map((sponsor) => (
                 <li
                   key={sponsor.brandKey}
                   className="rounded-2xl border border-slate-700 bg-slate-950 p-5"
@@ -120,8 +137,8 @@ export function ClubClimateSponsorTabs({
       ) : (
         <div
           role="tabpanel"
-          id="local-businesses-sponsor-panel"
-          aria-labelledby="local-businesses-sponsor-tab"
+          id={localPanelId}
+          aria-labelledby={localTabId}
           className="mt-8"
         >
           <h3 className="text-2xl font-black">
@@ -133,14 +150,14 @@ export function ClubClimateSponsorTabs({
             amounts and submitted. These brands are supporting {clubName}&apos;s
             Match Day carbon-emissions mitigation.
           </p>
-          {localSponsors.length === 0 ? (
+          {locals.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
               No Local Business Climate Sponsor has submitted support for{" "}
               {clubName}&apos;s Match Day carbon-emissions mitigation yet.
             </p>
           ) : (
             <ul className="mt-6 grid gap-4">
-              {localSponsors.map((sponsor) => (
+              {locals.map((sponsor) => (
                 <LocalSponsorCard
                   key={`${sponsor.brandName}:${sponsor.email}`}
                   sponsor={sponsor}
@@ -230,7 +247,8 @@ function LocalSponsorCard({ sponsor }: { sponsor: LocalSponsorRecord }) {
         <div className="min-w-0 flex-1">
           <p className="font-bold">{sponsor.brandName}</p>
           <p className="text-sm text-slate-400">
-            Local Business Climate Sponsor · {formatMoney(total)} submitted
+            Local Business Climate Sponsor
+            {total > 0 ? ` · ${formatMoney(total)} submitted` : ` for ${sponsor.clubName}`}
           </p>
           {(sponsor.matchSponsorships?.length ?? 0) > 0 ? (
             <ul className="mt-3 space-y-1 text-sm text-slate-300">

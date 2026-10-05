@@ -1,4 +1,4 @@
-import { brandsMatch } from "./climate-sponsors";
+import { brandsMatch, isLeadClimateSponsorName } from "./climate-sponsors";
 import { clubsMatch } from "./sponsor-dashboard";
 import {
   LEAD_CLIMATE_SPONSOR_LABEL,
@@ -15,6 +15,8 @@ export type SponsorDonationEntry = {
   clubName?: string | null;
   logoUrl?: string | null;
   kind?: SponsorDonationKind;
+  /** Inbound club sponsors stay on the board even before cash is recorded. */
+  keepWithoutDonation?: boolean;
 };
 
 export type SponsorLeaderboardRow = {
@@ -132,45 +134,62 @@ function clubIsChosen(clubName: string, chosenClubs: string[]): boolean {
   return chosenClubs.some((chosen) => clubsMatch(clubName, chosen));
 }
 
+function rerank(rows: SponsorLeaderboardRow[]): SponsorLeaderboardRow[] {
+  return [...rows]
+    .sort((left, right) => {
+      if (right.donationGbp !== left.donationGbp) {
+        return right.donationGbp - left.donationGbp;
+      }
+      return left.brandName.localeCompare(right.brandName);
+    })
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
+/** Keep only donations for the named club. Other clubs never appear. */
+export function leaderboardForClub(
+  rows: SponsorLeaderboardRow[],
+  clubNames: string[]
+): SponsorLeaderboardRow[] {
+  if (clubNames.length === 0) return [];
+  return rerank(
+    rows
+      .map((row) => {
+        const matched = row.clubDonations.filter((donation) =>
+          clubIsChosen(donation.clubName, clubNames)
+        );
+        const names =
+          matched.length > 0
+            ? matched.map((donation) => donation.clubName)
+            : row.clubNames.filter((club) => clubIsChosen(club, clubNames));
+        const donationGbp =
+          matched.length > 0
+            ? matched.reduce((sum, donation) => sum + donation.amount, 0)
+            : names.length > 0
+              ? row.donationGbp
+              : 0;
+        return { ...row, clubNames: names, donationGbp };
+      })
+      .filter((row) => row.clubNames.length > 0)
+  );
+}
+
 export function leaderboardForScope(
   rows: SponsorLeaderboardRow[],
   scope: SponsorLeaderboardScope = DEFAULT_SPONSOR_LEADERBOARD_SCOPE,
   affiliateClubs: string[] = []
 ): SponsorLeaderboardRow[] {
+  const clubRows =
+    affiliateClubs.length > 0
+      ? leaderboardForClub(rows, affiliateClubs)
+      : rows;
   if (scope === "affiliates") {
-    return rows
-      .map((row) => {
-        const matched = row.clubDonations.filter((donation) =>
-          clubIsChosen(donation.clubName, affiliateClubs)
-        );
-        const clubNames =
-          matched.length > 0
-            ? matched.map((donation) => donation.clubName)
-            : row.clubNames.filter((club) => clubIsChosen(club, affiliateClubs));
-        const donationGbp =
-          matched.length > 0
-            ? matched.reduce((sum, donation) => sum + donation.amount, 0)
-            : clubNames.length > 0
-              ? row.donationGbp
-              : 0;
-        return { ...row, clubNames, donationGbp };
-      })
-      .filter((row) => row.donationGbp > 0 && row.clubNames.length > 0)
-      .sort((left, right) => {
-        if (right.donationGbp !== left.donationGbp) {
-          return right.donationGbp - left.donationGbp;
-        }
-        return left.brandName.localeCompare(right.brandName);
-      })
-      .map((row, index) => ({ ...row, rank: index + 1 }));
+    return affiliateClubs.length > 0 ? clubRows : [];
   }
   const kind =
     scope === "local"
       ? LOCAL_BUSINESS_SPONSOR_LABEL
       : LEAD_CLIMATE_SPONSOR_LABEL;
-  return rows
-    .filter((row) => row.kind === kind)
-    .map((row, index) => ({ ...row, rank: index + 1 }));
+  return rerank(clubRows.filter((row) => row.kind === kind));
 }
 
 export function leaderboardForCategory(
@@ -200,7 +219,7 @@ export function rankSponsorDonations(
   for (const entry of entries) {
     const name = entry.brandName.trim();
     const amount = Math.max(0, Number(entry.donationGbp) || 0);
-    if (!name || amount <= 0) continue;
+    if (!name || (amount <= 0 && !entry.keepWithoutDonation)) continue;
     let index = brandIndex(name, brands);
     if (index < 0) {
       brands.push(name);
@@ -247,4 +266,106 @@ export function rankSponsorDonations(
       return left.brandName.localeCompare(right.brandName);
     })
     .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
+export type ClubInboundLead = {
+  brandName: string;
+  logoUrl?: string | null;
+};
+
+export type ClubInboundLocal = {
+  brandName: string;
+  clubName?: string | null;
+  logoUrl?: string | null;
+  pledgeGbp?: number;
+  matchSponsorships?: Array<{ amountGbp?: number }>;
+};
+
+export type ClubSponsorAmount = {
+  brandName: string;
+  amountGbp: number;
+};
+
+function amountForBrand(brandName: string, amounts: ClubSponsorAmount[]): number {
+  let max = 0;
+  for (const row of amounts) {
+    if (!brandsMatch(row.brandName, brandName)) continue;
+    max = Math.max(max, Number(row.amountGbp) || 0);
+  }
+  return max;
+}
+
+function localInboundPledge(local: ClubInboundLocal): number {
+  const fromMatches = (local.matchSponsorships ?? []).reduce(
+    (sum, row) => sum + (Number(row.amountGbp) || 0),
+    0
+  );
+  if (fromMatches > 0) return fromMatches;
+  return Number(local.pledgeGbp) || 0;
+}
+
+/** Build leaderboard rows from the club's own inbound Lead and Local sponsors. */
+export function donationEntriesForClubSponsors({
+  clubName,
+  leads,
+  locals,
+  walletAmounts = [],
+  offerAmounts = [],
+}: {
+  clubName: string;
+  leads: ClubInboundLead[];
+  locals: ClubInboundLocal[];
+  walletAmounts?: ClubSponsorAmount[];
+  offerAmounts?: ClubSponsorAmount[];
+}): SponsorDonationEntry[] {
+  const club = clubName.trim();
+  if (!club) return [];
+  const entries: SponsorDonationEntry[] = [];
+  const seen = new Set<string>();
+
+  function remember(name: string): boolean {
+    const key = name.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }
+
+  for (const lead of leads) {
+    const brandName = lead.brandName.trim();
+    if (!remember(brandName)) continue;
+    entries.push({
+      brandName,
+      donationGbp: Math.max(
+        amountForBrand(brandName, walletAmounts),
+        amountForBrand(brandName, offerAmounts)
+      ),
+      clubName: club,
+      logoUrl: lead.logoUrl ?? null,
+      kind: isLeadClimateSponsorName(brandName)
+        ? LEAD_CLIMATE_SPONSOR_LABEL
+        : LOCAL_BUSINESS_SPONSOR_LABEL,
+      keepWithoutDonation: true,
+    });
+  }
+
+  for (const local of locals) {
+    const brandName = local.brandName.trim();
+    if (!remember(brandName)) continue;
+    entries.push({
+      brandName,
+      donationGbp: Math.max(
+        localInboundPledge(local),
+        amountForBrand(brandName, walletAmounts),
+        amountForBrand(brandName, offerAmounts)
+      ),
+      clubName: local.clubName?.trim() || club,
+      logoUrl: local.logoUrl ?? null,
+      kind: isLeadClimateSponsorName(brandName)
+        ? LEAD_CLIMATE_SPONSOR_LABEL
+        : LOCAL_BUSINESS_SPONSOR_LABEL,
+      keepWithoutDonation: true,
+    });
+  }
+
+  return entries;
 }

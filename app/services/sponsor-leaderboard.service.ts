@@ -5,27 +5,34 @@ import {
 import {
   isExampleLocalBrand,
   isLeadClimateBrand,
-  isLocalBusinessBrand,
 } from "../lib/match-day-branding";
 import { allLocalSponsors } from "../lib/local-sponsor";
+import { clubsMatch } from "../lib/sponsor-dashboard";
 import {
+  leadCarbonWalletGbp,
+  spendableGbp,
+} from "../lib/sponsor-wallet";
+import {
+  donationEntriesForClubSponsors,
+  leaderboardForClub,
   rankSponsorDonations,
   type SponsorDonationEntry,
   type SponsorLeaderboardRow,
 } from "../lib/sponsor-leaderboard";
 import {
+  leadClimateSponsorsForClub,
   listClubSponsorRosters,
   loadBrandLogo,
+  localBusinessClimateSponsorsForClub,
 } from "./climate-sponsors.service";
 import {
   listOfferSignatures,
   listSponsorMatchOffers,
 } from "./sponsor-offers.service";
+import { listClimateWalletsForClub } from "./sponsor-wallet.service";
 
-function kindForBrand(brandName: string, clubName: string): SponsorDonationEntry["kind"] {
-  if (isLeadClimateBrand(brandName) || !isLocalBusinessBrand(brandName, clubName)) {
-    return LEAD_CLIMATE_SPONSOR_LABEL;
-  }
+function kindForBrand(brandName: string): SponsorDonationEntry["kind"] {
+  if (isLeadClimateBrand(brandName)) return LEAD_CLIMATE_SPONSOR_LABEL;
   return LOCAL_BUSINESS_SPONSOR_LABEL;
 }
 
@@ -39,12 +46,17 @@ export function localSponsorDonationEntries(): SponsorDonationEntry[] {
         donationGbp: Number(sponsor.spentGbp) || 0,
         clubName: roster.clubName,
         logoUrl: sponsor.logoUrl || loadBrandLogo(sponsor.brandName),
-        kind: kindForBrand(sponsor.brandName, roster.clubName),
+        kind: kindForBrand(sponsor.brandName),
       });
     }
   }
   for (const local of allLocalSponsors()) {
-    if (isExampleLocalBrand(local.brandName)) continue;
+    if (
+      isExampleLocalBrand(local.brandName) ||
+      isLeadClimateBrand(local.brandName)
+    ) {
+      continue;
+    }
     entries.push({
       brandName: local.brandName,
       donationGbp: Number(local.pledgeGbp) || 0,
@@ -56,7 +68,9 @@ export function localSponsorDonationEntries(): SponsorDonationEntry[] {
   return entries;
 }
 
-export async function loadSponsorLeaderboard(): Promise<SponsorLeaderboardRow[]> {
+export async function loadSponsorLeaderboard(
+  clubNames: string[] = []
+): Promise<SponsorLeaderboardRow[]> {
   const entries = localSponsorDonationEntries();
   try {
     const [offers, signatures] = await Promise.all([
@@ -73,11 +87,53 @@ export async function loadSponsorLeaderboard(): Promise<SponsorLeaderboardRow[]>
         donationGbp: Number(offer?.sponsorshipAmountGbp) || 0,
         clubName: offer?.clubName ?? null,
         logoUrl: loadBrandLogo(signature.brandName),
-        kind: kindForBrand(signature.brandName, offer?.clubName ?? ""),
+        kind: kindForBrand(signature.brandName),
       });
     }
   } catch {
     // Roster and local pledges still rank when signed offers cannot be loaded.
   }
-  return rankSponsorDonations(entries);
+  const ranked = rankSponsorDonations(entries);
+  return clubNames.length > 0 ? leaderboardForClub(ranked, clubNames) : ranked;
+}
+
+export async function loadClubSponsorLeaderboard(
+  clubName: string
+): Promise<SponsorLeaderboardRow[]> {
+  const club = clubName.trim();
+  if (!club) return [];
+  const walletAmounts = listClimateWalletsForClub(club).map((wallet) => ({
+    brandName: wallet.brandName,
+    amountGbp:
+      wallet.kind === "lead" ? leadCarbonWalletGbp(wallet) : spendableGbp(wallet),
+  }));
+  const offerAmounts: Array<{ brandName: string; amountGbp: number }> = [];
+  try {
+    const [offers, signatures] = await Promise.all([
+      listSponsorMatchOffers(),
+      listOfferSignatures(),
+    ]);
+    for (const signature of signatures) {
+      if (!signature.brandName.trim() || isExampleLocalBrand(signature.brandName)) {
+        continue;
+      }
+      const offer = offers.find((row) => row.id === signature.offerId);
+      if (!offer || !clubsMatch(String(offer.clubName ?? ""), club)) continue;
+      offerAmounts.push({
+        brandName: signature.brandName,
+        amountGbp: Number(offer.sponsorshipAmountGbp) || 0,
+      });
+    }
+  } catch {
+    // Inbound Lead and Local lists still appear when signed offers cannot load.
+  }
+  return rankSponsorDonations(
+    donationEntriesForClubSponsors({
+      clubName: club,
+      leads: leadClimateSponsorsForClub(club),
+      locals: localBusinessClimateSponsorsForClub(club),
+      walletAmounts,
+      offerAmounts,
+    })
+  );
 }

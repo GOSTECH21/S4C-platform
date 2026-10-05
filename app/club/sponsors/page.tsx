@@ -13,9 +13,9 @@ import {
 } from "@/app/lib/climate-sponsors";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import {
-  CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
 } from "@/app/lib/routes";
+import ClubNav from "@/app/components/club/ClubNav";
 import { loadClubSession } from "@/app/services/club-match-day.service";
 import {
   addClubClimateSponsor,
@@ -114,13 +114,7 @@ export default function OurClimateSponsorsPage() {
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
       <div className="mx-auto max-w-6xl">
-        <button
-          type="button"
-          onClick={() => router.push(CLUB_DASHBOARD_PATH)}
-          className="text-sm font-semibold text-green-400 hover:underline"
-        >
-          ← Back to dashboard
-        </button>
+        <ClubNav />
         <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           {clubName}
         </p>

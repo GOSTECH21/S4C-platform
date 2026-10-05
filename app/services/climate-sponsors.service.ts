@@ -7,8 +7,10 @@ import {
   brandsMatch,
   emptySponsor,
   inviteMatchesSponsor,
+  isLeadClimateSponsorName,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
+  localBusinessSponsorsForClubFromStores,
   removeSponsor,
   selectedSponsors,
   toggleSelectedSponsor,
@@ -22,7 +24,13 @@ import {
 } from "../lib/climate-sponsors";
 import { uniqueClubNames } from "../lib/s4p-admin";
 import { offerBelongsToClub } from "../lib/campaign-sponsor";
-import { allLocalSponsors } from "../lib/local-sponsor";
+import { isExampleLocalBrand } from "../lib/match-day-branding";
+import {
+  allLocalSponsors,
+  submittedLocalSponsorsForClub,
+  withAgreedPledge,
+  type LocalSponsorRecord,
+} from "../lib/local-sponsor";
 
 const ROSTER_KEY = "s4p.club.climateSponsors";
 const NETWORK_KEY = "s4p.sponsor.goalNetwork";
@@ -172,7 +180,9 @@ export function listMatchDayLocks(): MatchDayClubLock[] {
 }
 
 export function leadClimateSponsorsForClub(clubName: string): LeadClubSponsorRow[] {
-  const excluded = allLocalSponsors().map((row) => row.brandName);
+  const excluded = allLocalSponsors()
+    .map((row) => row.brandName)
+    .filter((name) => !isLeadClimateSponsorName(name));
   return leadSponsorsForClubFromStores({
     clubName,
     networks: listGoalNetworks(),
@@ -182,6 +192,93 @@ export function leadClimateSponsorsForClub(clubName: string): LeadClubSponsorRow
     ...row,
     logoUrl: loadBrandLogo(row.brandName),
   }));
+}
+
+function localRecordFromInbound(
+  clubName: string,
+  row: LeadClubSponsorRow
+): LocalSponsorRecord {
+  return withAgreedPledge({
+    brandName: row.brandName,
+    email: row.email ?? "",
+    clubName,
+    pledgeGbp: 0,
+    createdAt: row.lockedAt ?? "",
+    submittedAt: row.lockedAt || undefined,
+    source: "registered",
+    logoUrl: loadBrandLogo(row.brandName),
+    matchSponsorships: row.matches.map((fixtureName) => ({
+      fixtureName,
+      amountGbp: 0,
+    })),
+  });
+}
+
+function mergeLocalInbound(
+  existing: LocalSponsorRecord,
+  extra: LeadClubSponsorRow
+): LocalSponsorRecord {
+  const matchSponsorships = [...(existing.matchSponsorships ?? [])];
+  for (const name of extra.matches) {
+    const trimmed = name.trim();
+    if (
+      !trimmed ||
+      matchSponsorships.some(
+        (row) => row.fixtureName.trim().toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
+      continue;
+    }
+    matchSponsorships.push({ fixtureName: trimmed, amountGbp: 0 });
+  }
+  return withAgreedPledge({
+    ...existing,
+    logoUrl: existing.logoUrl || loadBrandLogo(existing.brandName),
+    matchSponsorships,
+  });
+}
+
+/** Local Business Climate Sponsors of this club — never the Lead Climate Sponsor. */
+export function localBusinessClimateSponsorsForClub(
+  clubName: string
+): LocalSponsorRecord[] {
+  const byBrand = new Map<string, LocalSponsorRecord>();
+  for (const row of submittedLocalSponsorsForClub(clubName)) {
+    if (
+      isLeadClimateSponsorName(row.brandName) ||
+      isExampleLocalBrand(row.brandName)
+    ) {
+      continue;
+    }
+    byBrand.set(brandKey(row.brandName), {
+      ...row,
+      logoUrl: row.logoUrl || loadBrandLogo(row.brandName),
+    });
+  }
+  for (const row of localBusinessSponsorsForClubFromStores({
+    clubName,
+    networks: listGoalNetworks(),
+    locks: listMatchDayLocks(),
+  })) {
+    if (
+      isLeadClimateSponsorName(row.brandName) ||
+      isExampleLocalBrand(row.brandName)
+    ) {
+      continue;
+    }
+    const key = brandKey(row.brandName);
+    const existing = byBrand.get(key);
+    byBrand.set(
+      key,
+      existing ? mergeLocalInbound(existing, row) : localRecordFromInbound(clubName, row)
+    );
+  }
+  return [...byBrand.values()].sort((left, right) => {
+    const leftAt = left.submittedAt || left.createdAt;
+    const rightAt = right.submittedAt || right.createdAt;
+    if (rightAt !== leftAt) return rightAt.localeCompare(leftAt);
+    return left.brandName.localeCompare(right.brandName);
+  });
 }
 
 export function loadGoalNetwork(

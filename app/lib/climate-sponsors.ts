@@ -14,6 +14,49 @@ export const SUGGESTED_CLIMATE_BRANDS = [
   "Puma",
 ];
 
+/** National / fashion Lead Climate Sponsors. Never local businesses. */
+export const LEAD_CLIMATE_SPONSOR_NAMES = [
+  "American Express",
+  "Amex",
+  ...SUGGESTED_CLIMATE_BRANDS,
+];
+
+/** Local businesses that must never occupy the Lead Climate Sponsor tab. */
+export const KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES = [
+  "Tax Assist",
+  "Top Cellar",
+  "Kokobean Cafe",
+  "Kokobean",
+  "Mash Tun",
+  "Interval",
+  "The Fountain",
+];
+
+function compactSponsorKey(name: string): string {
+  return brandKey(name).replace(/\s+/g, "");
+}
+
+function listedSponsorName(name: string, listed: string[]): boolean {
+  const key = compactSponsorKey(name);
+  if (!key) return false;
+  return listed.some((row) => compactSponsorKey(row) === key);
+}
+
+export function isKnownLocalBusinessSponsorName(brandName: string): boolean {
+  return listedSponsorName(brandName, KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES);
+}
+
+/** True only for designated Lead Climate Sponsor brands — one type per club. */
+export function isLeadClimateSponsorName(brandName: string): boolean {
+  if (!brandName.trim()) return false;
+  if (isKnownLocalBusinessSponsorName(brandName)) return false;
+  if (listedSponsorName(brandName, LEAD_CLIMATE_SPONSOR_NAMES)) return true;
+  const key = compactSponsorKey(brandName);
+  return LEAD_CLIMATE_SPONSOR_NAMES.map(compactSponsorKey).some(
+    (lead) => lead.length >= 4 && key.startsWith(lead)
+  );
+}
+
 export const MATCH_DAY_LOCK_LABELS = [
   "Premier League Match",
   "Champions League Match",
@@ -344,7 +387,7 @@ export function appendChosenMatch(
   return { ...next, fixtureName, matches };
 }
 
-export function leadSponsorsForClubFromStores({
+function sponsorsForClubFromStores({
   clubName,
   networks,
   locks,
@@ -425,6 +468,45 @@ export function leadSponsorsForClubFromStores({
     }
     return left.brandName.localeCompare(right.brandName);
   });
+}
+
+export function leadSponsorsForClubFromStores({
+  clubName,
+  networks,
+  locks,
+  excludeBrandKeys = [],
+}: {
+  clubName: string;
+  networks: GoalSponsorshipNetwork[];
+  locks: MatchDayClubLock[];
+  excludeBrandKeys?: string[];
+}): LeadClubSponsorRow[] {
+  return sponsorsForClubFromStores({
+    clubName,
+    networks,
+    locks,
+    excludeBrandKeys,
+  }).filter((row) => isLeadClimateSponsorName(row.brandName));
+}
+
+/** Brands that chose this club but are not the Lead Climate Sponsor. */
+export function localBusinessSponsorsForClubFromStores({
+  clubName,
+  networks,
+  locks,
+  excludeBrandKeys = [],
+}: {
+  clubName: string;
+  networks: GoalSponsorshipNetwork[];
+  locks: MatchDayClubLock[];
+  excludeBrandKeys?: string[];
+}): LeadClubSponsorRow[] {
+  return sponsorsForClubFromStores({
+    clubName,
+    networks,
+    locks,
+    excludeBrandKeys,
+  }).filter((row) => !isLeadClimateSponsorName(row.brandName));
 }
 
 /** The Lead Climate Sponsor who locked this named fixture — never another match's brand. */
