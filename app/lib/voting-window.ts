@@ -102,6 +102,10 @@ export function fanVotingWindowCopy(): string {
   return `Fund allocation opens ${VOTING_OPENS_DAYS_BEFORE_KICKOFF} days before kick-off & closes ${VOTING_CLOSES_DAYS_AFTER_KICKOFF} days after Match ended (e.g, funding allocation for a Saturday 15:00 kick-off opens on Wednesday at 15:00 and closes Monday at 15:00).`;
 }
 
+export function climateProjectsReceivedCopy(): string {
+  return "Received amounts are cumulative. Check them here at any time. You can FUND up to 5 Climate Projects by taking £0.20 once from each sponsor & put it on any Climate Project. Closing Date applies.";
+}
+
 export function fanWalletDrainCopy(zeroLabel = "£0"): string {
   return `Climate Projects posted by each Club disappears after ${VOTING_PERIOD_DAYS} days. Fans should try & allocate all Carbon Wallet funds & bring it to ${zeroLabel} by Day ${VOTING_PERIOD_DAYS}.`;
 }

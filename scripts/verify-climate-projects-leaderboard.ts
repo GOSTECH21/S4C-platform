@@ -73,6 +73,10 @@ assert(
   preview.includes("MatchDayWalletVote") && preview.includes("Top Cellar"),
   "The Climate Projects preview shows Top Cellar's wallet"
 );
+assert(
+  preview.includes("climateProjectsReceivedCopy"),
+  "The Climate Projects preview uses the same cumulative FUND copy"
+);
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));

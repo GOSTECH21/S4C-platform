@@ -502,15 +502,16 @@ assert(
 assert(
   sponsorsUi.includes("fundItCopy") &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times"
+      "Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press"
+      "choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
       "goes from Wallet to Project"
-    ),
-  "Fans are told they can FUND-IT 5 times with the single FUND-IT instruction"
+    ) &&
+    sponsorsUi.includes("By the end of Day 5 every Carbon Wallet should show"),
+  "Climate Project Sponsor tells fans to take £0.20 once from each wallet into a numbered project"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),

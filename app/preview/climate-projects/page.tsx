@@ -12,7 +12,7 @@ import {
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
 import { loadFundedProjects, writeProjectFunding } from "@/app/lib/climate-funding";
-import { fanVotingWindowCopy } from "@/app/lib/voting-window";
+import { climateProjectsReceivedCopy } from "@/app/lib/voting-window";
 
 const PREVIEW_CLUB = "preview-hibs";
 
@@ -59,8 +59,7 @@ export default function ClimateProjectsPreviewPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
         <p className="mt-3 max-w-2xl text-slate-300">
-          Received amounts are the running 5-day total. Check them here at any
-          time. {fanVotingWindowCopy()}
+          {climateProjectsReceivedCopy()}
         </p>
 
         <section className="mt-10 space-y-8">
