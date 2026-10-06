@@ -205,7 +205,6 @@ export default function ClubSponsorsPreviewPage() {
             clubName="Arsenal"
             leadSponsors={arsenalLeads}
             localSponsors={arsenalLocals}
-            initialTab="local"
           />
           <div className="mt-8">
             <h3 className="mb-4 text-2xl font-black">Arsenal Sponsor Leaderboard</h3>
