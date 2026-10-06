@@ -2,16 +2,8 @@
 
 import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
-import { MatchDayWalletVote } from "@/app/components/fan/MatchDayWalletVote";
-import {
-  allocateWalletVote,
-  createLocalWallet,
-  formatWalletGbp,
-  remainingGbp,
-  type ClimateWallet,
-  type NumberedClimateProject,
-} from "@/app/lib/sponsor-wallet";
-import { loadFundedProjects, writeProjectFunding } from "@/app/lib/climate-funding";
+import { formatWalletGbp, type NumberedClimateProject } from "@/app/lib/sponsor-wallet";
+import { loadFundedProjects } from "@/app/lib/climate-funding";
 import { climateProjectsReceivedCopy } from "@/app/lib/voting-window";
 
 const PREVIEW_CLUB = "preview-hibs";
@@ -26,29 +18,10 @@ const INITIAL: NumberedClimateProject[] = [
 
 export default function ClimateProjectsPreviewPage() {
   const [projects, setProjects] = useState(INITIAL);
-  const [wallet, setWallet] = useState<ClimateWallet>(() =>
-    createLocalWallet({
-      clubName: "Hibernian",
-      brandName: "Top Cellar",
-      sponsorshipGbp: 750,
-    })
-  );
 
   useEffect(() => {
     setProjects(loadFundedProjects(PREVIEW_CLUB, INITIAL));
   }, []);
-
-  function vote(_brandName: string, projectNumber: string) {
-    const result = allocateWalletVote({
-      wallet,
-      projects,
-      projectNumber: Number(projectNumber),
-    });
-    if (!result.ok) return;
-    setWallet(result.wallet);
-    setProjects(result.projects);
-    writeProjectFunding(PREVIEW_CLUB, result.projects);
-  }
 
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -78,18 +51,32 @@ export default function ClimateProjectsPreviewPage() {
             </ul>
           </div>
 
-          <MatchDayWalletVote
-            clubName="Hibernian"
-            projects={projects}
-            sponsors={[
-              {
-                brandName: wallet.brandName,
-                kind: wallet.kind,
-                remainingGbp: remainingGbp(wallet),
-              },
-            ]}
-            onVote={vote}
-          />
+          <div>
+            <h2 className="text-2xl font-black">Climate Project list</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              The Received amount on each project is the running total from every
+              fan during this 5-day Vote.
+            </p>
+            <ol className="mt-4 grid gap-3 md:grid-cols-5">
+              {projects.map((project) => (
+                <li
+                  key={project.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-900 p-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-green-400">
+                    Project {project.number}
+                  </p>
+                  <h3 className="mt-2 font-bold leading-tight text-white">
+                    {project.name}
+                  </h3>
+                  <p className="mt-3 text-sm text-slate-400">Received</p>
+                  <p className="text-xl font-black text-green-400">
+                    {formatWalletGbp(project.fundedGbp)}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
       </div>
     </main>
