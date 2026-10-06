@@ -467,12 +467,12 @@ const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");
 const supporterLogin = readFileSync("app/supporter/login/page.tsx", "utf8");
 const registerPage = readFileSync("app/register/page.tsx", "utf8");
 assert(
-  fanLogin.includes("FUND-IT up to 5 times") &&
-    supporterLogin.includes("FUND-IT up to 5 times") &&
+  fanLogin.includes("FUND up to 5 Projects shown to you") &&
+    supporterLogin.includes("FUND up to 5 Projects shown to you") &&
     registerPage.includes("FUND-IT up to 5 times") &&
     !fanLogin.includes("vote on your club's climate projects") &&
     !supporterLogin.includes("vote on your club's climate projects"),
-  "Fan login and registration tell supporters they can FUND-IT 5 times"
+  "Fan login says FUND up to 5 Projects shown to you"
 );
 
 const votesService = readFileSync("app/services/votes.service.ts", "utf8");
