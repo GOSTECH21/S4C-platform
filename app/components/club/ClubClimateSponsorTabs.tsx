@@ -54,13 +54,10 @@ export function ClubClimateSponsorTabs({
       </p>
       <h2 className="mt-2 text-4xl font-black">Our Climate Sponsors</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Lead Climate Sponsors and Local Business Climate Sponsors who have
-        registered, chosen {clubName}, and submitted the Match Days they will
-        fund. Each club has one Lead Climate Sponsor. Local businesses never
-        appear on the Lead tab. They always sit under Our Local Businesses
-        Sponsor — once, with the logo they uploaded at registration. This is
-        the incoming list for the Sustainability Director, not a roster to pick
-        from, and never another club&apos;s brands.
+        Interested Lead Climate Sponsors and Local Business Climate Sponsors
+        who signed up to sponsor your Club will automatically appear here. Only
+        one Lead Climate Sponsor is allowed each Match Day. Four Local Business
+        Climate Sponsors are accepted each Match Day.
       </p>
 
       <div
@@ -95,13 +92,6 @@ export function ClubClimateSponsorTabs({
           aria-labelledby={leadTabId}
           className="mt-8"
         >
-          <h3 className="text-2xl font-black">Our Lead Climate Sponsor</h3>
-          <p className="mt-2 max-w-3xl text-slate-400">
-            When a Lead Climate Sponsor registers, opts to sponsor {clubName},
-            and selects the Match they wish to be Lead Climate Sponsor for, they
-            appear here with those fixtures. Only that one Lead Climate Sponsor
-            is listed — never a Local Business Climate Sponsor.
-          </p>
           {leads.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-slate-500">
               No Lead Climate Sponsor has opted to sponsor {clubName} Match Days
