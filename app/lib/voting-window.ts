@@ -111,7 +111,7 @@ export function clubVotingWindowCopy(choiceCount: number): string {
 }
 
 export function clubMatchDayFolderCopy(): string {
-  return `Three days before kick-off, save the Sponsors File and the Climate Projects File in the Match-Day folder, then press SUBMIT. ${fanVotingWindowCopy()} Registered fans then take cash from a sponsor wallet and put it on a numbered Climate Project.`;
+  return `Sponsored Climate Projects signed & submitted by Sponsors to Clubs 3 Days before Match Day Kick-off appears here. Once received, press SUBMIT. Fund allocation starts (e.g, for a Saturday 15:00 kick-off opens on Wednesday at 15:00 and closes Monday at 15:00). Registered fans starts take cash from a sponsor wallet to put on a numbered Climate Project during this period.`;
 }
 
 export function formatVotingClock(value: Date): string {
