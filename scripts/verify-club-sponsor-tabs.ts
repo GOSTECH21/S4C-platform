@@ -567,10 +567,12 @@ assert(
   tabs.includes("Our Lead Climate Sponsor") &&
     tabs.includes("Our Local Businesses Sponsor") &&
     tabs.includes("Local Businesses Climate Sponsors") &&
-    tabs.includes("Each club has one Lead Climate Sponsor") &&
-    tabs.includes("Local businesses never") &&
-    tabs.includes("appear on the Lead tab") &&
-    tabs.includes("once, with the logo they uploaded at registration") &&
+    tabs.includes("signed up to sponsor your Club") &&
+    tabs.includes("allowed each Match Day") &&
+    tabs.includes("Four Local Business") &&
+    tabs.includes("accepted each Match Day") &&
+    !tabs.includes("When a Lead Climate Sponsor registers") &&
+    !tabs.includes("Local businesses never") &&
     tabs.includes("Signed off by") &&
     tabs.includes("splitClubClimateSponsorsForTabs"),
   "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
