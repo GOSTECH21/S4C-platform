@@ -3,18 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   alertsForClub,
-  goalAlertForCampaign,
-  isGenericLeadSponsorName,
-  leadWalletForGoalStatement,
   mergeFanGoalAlerts,
+  resolveVisibleFanGoalAlert,
   SPONSORED_GOAL_EVENT,
-  withSponsorWalletOnGoalAlert,
   type FanGoalAlert,
 } from "@/app/lib/sponsored-goal";
 import { leadSponsorBrandForFixture } from "@/app/lib/climate-sponsors";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
 import { loadLatestGoalAlerts } from "@/app/services/sponsored-goal.service";
 import {
+  leadClimateSponsorsForClub,
   listGoalNetworks,
   listMatchDayLocks,
 } from "@/app/services/climate-sponsors.service";
@@ -67,28 +65,18 @@ export function FanGoalAlertBanner({
       locks: listMatchDayLocks(),
       networks: listGoalNetworks(),
     });
-    const preferredBrand = [lockBrand, sponsorName].find(
-      (name) => name && !isGenericLeadSponsorName(name)
-    );
-    const wallet = leadWalletForGoalStatement(
-      names.flatMap((name) => listClimateWalletsForClub(name)),
-      clubName,
-      preferredBrand
-    );
-    const brand =
-      wallet?.brandName ||
-      preferredBrand ||
-      (isGenericLeadSponsorName(sponsorName) ? null : sponsorName) ||
-      null;
-    const alert = goalAlertForCampaign({
+    return resolveVisibleFanGoalAlert({
       alerts,
       clubName,
       matchTitle,
-      sponsorName: brand,
+      sponsorName,
+      lockBrand,
+      clubLeadBrands: leadClimateSponsorsForClub(clubName).map(
+        (row) => row.brandName
+      ),
+      wallets: names.flatMap((name) => listClimateWalletsForClub(name)),
+      sponsorRemainingGbp,
     });
-    if (!alert) return null;
-    if (matchTitle && !brand && !wallet) return null;
-    return withSponsorWalletOnGoalAlert(alert, wallet, sponsorRemainingGbp);
   }, [alerts, clubKey, matchTitle, sponsorName, sponsorRemainingGbp]);
 
   if (!latest) return null;

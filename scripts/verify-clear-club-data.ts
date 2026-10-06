@@ -74,6 +74,20 @@ const store: Record<string, string> = {
     { id: "s1", offerId: "o1", brandName: "Puma" },
     { id: "s2", offerId: "o2", brandName: "Nike" },
   ]),
+  "s4p.fan.goalAlerts": JSON.stringify([
+    {
+      clubName: "Arsenal FC",
+      scoreline: "Arsenal FC scored",
+      brandName: "American Express",
+      amountGbp: 3000,
+    },
+    {
+      clubName: "Hibernian",
+      scoreline: "Hibernian scored",
+      brandName: "American Express",
+      amountGbp: 3000,
+    },
+  ]),
 };
 
 (globalThis as { window?: unknown }).window = {
@@ -132,6 +146,11 @@ assert(
   leftoverSignatures.length === 1 && leftoverSignatures[0].offerId === "o2",
   "Arsenal signed copies are removed"
 );
+const leftoverAlerts = JSON.parse(store["s4p.fan.goalAlerts"]);
+assert(
+  leftoverAlerts.length === 1 && leftoverAlerts[0].clubName === "Hibernian",
+  "Arsenal GOAL alerts are removed so American Express cannot linger on My S4P"
+);
 assert(
   store[SELECTION_LIVE_PREFIX + "club-a"] === "blank",
   "Arsenal is marked as a blank Match Day after the wipe"
@@ -169,6 +188,12 @@ assert(
     board.includes("if (selected.length === 0) return [];"),
   "The dashboard board does not restore or auto-fill an empty Arsenal five"
 );
+assert(
+  readFileSync("app/services/clear-club-data.service.ts", "utf8").includes(
+    'deleteWhereClubId("notifications"'
+  ),
+  "Start afresh also removes leftover Arsenal GOAL notifications"
+);
 const sql = readFileSync(
   "supabase/migrations/0016_clear_arsenal_projects_sponsors.sql",
   "utf8"
@@ -179,6 +204,7 @@ assert(
     sql.includes("sponsorship_campaigns") &&
     sql.includes("club_climate_file_records") &&
     sql.includes("sponsor_project_proposals") &&
+    sql.includes("notifications") &&
     sql.includes("other clubs"),
   "Hosted SQL clears Arsenal portfolios, lookbacks and proposals and keeps other clubs"
 );

@@ -20,6 +20,7 @@ import {
   mergeFanGoalAlerts,
   recordFanGoalAlert,
   SPONSORED_GOAL_EVENT,
+  resolveVisibleFanGoalAlert,
   withSponsorWalletOnGoalAlert,
 } from "../app/lib/sponsored-goal";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
@@ -144,12 +145,25 @@ assert(
 );
 
 const amexAlert = localAlerts[0];
-const pumaLeedsAlert = {
+const leftoverAmexAlert = {
   ...amexAlert,
   opponentName: "Leeds United",
   scoreline: "Arsenal FC scored",
   brandName: "American Express",
 };
+const pumaLeedsAlert = {
+  ...leftoverAmexAlert,
+  brandName: "Puma",
+};
+assert(
+  goalAlertForCampaign({
+    alerts: [amexAlert, leftoverAmexAlert],
+    clubName: "Arsenal",
+    matchTitle: "Arsenal v Leeds United Climate Campaign",
+    sponsorName: "Puma",
+  }) == null,
+  "A leftover American Express GOAL is not shown as Puma for Arsenal v Leeds United"
+);
 assert(
   goalAlertForCampaign({
     alerts: [amexAlert, pumaLeedsAlert],
@@ -158,6 +172,45 @@ assert(
     sponsorName: "Puma",
   })?.brandName === "Puma",
   "My S4P GOAL banner names Puma for Arsenal v Leeds United, not a leftover American Express"
+);
+assert(
+  goalAlertForCampaign({
+    alerts: [leftoverAmexAlert],
+    clubName: "Arsenal",
+    matchTitle: null,
+    sponsorName: null,
+  }) == null,
+  "Empty My S4P does not keep a leftover American Express GOAL after Arsenal's Lead is deleted"
+);
+assert(
+  resolveVisibleFanGoalAlert({
+    alerts: [leftoverAmexAlert],
+    clubName: "Arsenal",
+    wallets: [wallet],
+  }) == null,
+  "A leftover American Express wallet is not enough to put Amex on Arsenal My S4P"
+);
+assert(
+  resolveVisibleFanGoalAlert({
+    alerts: [leftoverAmexAlert],
+    clubName: "Arsenal",
+    clubLeadBrands: ["Puma"],
+  }) == null,
+  "Arsenal's current Lead being Puma does not recycle an American Express GOAL"
+);
+assert(
+  resolveVisibleFanGoalAlert({
+    alerts: [
+      {
+        ...leftoverAmexAlert,
+        clubName: "Hibernian",
+        scoreline: "Hibernian scored",
+      },
+    ],
+    clubName: "Hibernian",
+    clubLeadBrands: ["American Express"],
+  })?.brandName === "American Express",
+  "Hibernian still shows American Express when that club's Lead is American Express"
 );
 assert(
   goalAlertForCampaign({
@@ -201,6 +254,14 @@ assert(
   )?.brandName === "Puma",
   "Arsenal FC fans resolve Puma's wallet even when the banner was labelled Lead Climate Sponsor"
 );
+assert(
+  leadWalletForGoalStatement([wallet, pumaWallet], "Arsenal FC") == null,
+  "Arsenal does not pick a leftover American Express wallet when no Lead is named"
+);
+assert(
+  leadWalletForGoalStatement([wallet], "Arsenal FC", "Puma") == null,
+  "An American Express wallet is not used as Puma's Arsenal GOAL statement"
+);
 const pumaBanner = withSponsorWalletOnGoalAlert(
   {
     clubName: "Arsenal FC",
@@ -228,12 +289,12 @@ assert(
 
 assert(
   readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
-    "goalStatementAmountGbp"
-  ) ||
+    "resolveVisibleFanGoalAlert"
+  ) &&
     readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
-      "withSponsorWalletOnGoalAlert"
+      "leadClimateSponsorsForClub"
     ),
-  "The GOAL banner uses the amount shown on the sponsor Carbon Wallet"
+  "The GOAL banner uses the amount shown on the sponsor Carbon Wallet and only the club's current Lead"
 );
 const admin = readFileSync("app/admin/fixtures/page.tsx", "utf8");
 assert(

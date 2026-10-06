@@ -95,6 +95,11 @@ begin
           )) = needle;
   end if;
 
+  if to_regclass('public.notifications') is not null then
+    delete from public.notifications
+    where club_id = any (club_ids);
+  end if;
+
   if to_regclass('public.sponsor_match_offers') is not null then
     delete from public.sponsor_match_offers
     where club_id = any (club_ids)

@@ -58,6 +58,16 @@ export function goalStatementAmountGbp(wallet: ClimateWallet): number {
   return 0;
 }
 
+export function sponsorNamesMatch(
+  left?: string | null,
+  right?: string | null
+): boolean {
+  const a = String(left ?? "").trim().toLowerCase();
+  const b = String(right ?? "").trim().toLowerCase();
+  if (!a || !b) return false;
+  return a === b;
+}
+
 export function leadWalletForGoalStatement(
   wallets: ClimateWallet[],
   clubName: string,
@@ -69,13 +79,14 @@ export function leadWalletForGoalStatement(
   );
   const brand = String(brandName ?? "").trim();
   if (brand && !isGenericLeadSponsorName(brand)) {
-    const named = leads.find(
-      (wallet) =>
-        wallet.brandName.trim().toLowerCase() === brand.toLowerCase()
+    return (
+      leads.find((wallet) => sponsorNamesMatch(wallet.brandName, brand)) ?? null
     );
-    if (named) return named;
   }
-  return leads[0] ?? null;
+  if (isGenericLeadSponsorName(brand) && leads.length === 1) {
+    return leads[0];
+  }
+  return null;
 }
 
 export function withSponsorWalletOnGoalAlert(
@@ -83,11 +94,16 @@ export function withSponsorWalletOnGoalAlert(
   wallet: ClimateWallet | null,
   displayedRemainingGbp?: number | null
 ): FanGoalAlert {
-  const brand =
-    wallet?.brandName?.trim() && !isGenericLeadSponsorName(wallet.brandName)
-      ? wallet.brandName.trim()
-      : alert.brandName;
-  const fromWallet = wallet ? goalStatementAmountGbp(wallet) : 0;
+  const walletBrand = wallet?.brandName?.trim() ?? "";
+  const canUseWallet =
+    Boolean(wallet) &&
+    Boolean(walletBrand) &&
+    !isGenericLeadSponsorName(walletBrand) &&
+    (!alert.brandName ||
+      isGenericLeadSponsorName(alert.brandName) ||
+      sponsorNamesMatch(walletBrand, alert.brandName));
+  const brand = canUseWallet ? walletBrand : alert.brandName;
+  const fromWallet = canUseWallet && wallet ? goalStatementAmountGbp(wallet) : 0;
   const fromDisplay = Number(displayedRemainingGbp) || 0;
   const amountGbp =
     fromWallet > 0 ? fromWallet : fromDisplay > 0 ? fromDisplay : alert.amountGbp;
@@ -176,6 +192,17 @@ export function alertBelongsToFixture(
   return null;
 }
 
+export function goalAlertMatchesLeadSponsor(
+  alert: FanGoalAlert,
+  sponsorName?: string | null
+): boolean {
+  const preferred = String(sponsorName ?? "").trim();
+  if (!preferred || isGenericLeadSponsorName(preferred)) return false;
+  const named = String(alert.brandName ?? "").trim();
+  if (!named || isGenericLeadSponsorName(named)) return true;
+  return sponsorNamesMatch(named, preferred);
+}
+
 /** Latest goal for this club's current match, using that match's Lead sponsor. */
 export function goalAlertForCampaign({
   alerts,
@@ -188,6 +215,8 @@ export function goalAlertForCampaign({
   matchTitle?: string | null;
   sponsorName?: string | null;
 }): FanGoalAlert | null {
+  const preferred = String(sponsorName ?? "").trim();
+  if (!preferred || isGenericLeadSponsorName(preferred)) return null;
   const clubAlerts = alerts.filter((alert) =>
     clubNamesMatchForGoal(alert.clubName, clubName)
   );
@@ -197,14 +226,49 @@ export function goalAlertForCampaign({
   }));
   const forThisMatch = belonging.filter((row) => row.belongs === true);
   const unknownMatch = belonging.filter((row) => row.belongs !== false);
-  const pool = (forThisMatch.length > 0 ? forThisMatch : unknownMatch).map(
-    (row) => row.alert
-  );
+  const pool = (forThisMatch.length > 0 ? forThisMatch : unknownMatch)
+    .map((row) => row.alert)
+    .filter((alert) => goalAlertMatchesLeadSponsor(alert, preferred));
   const latest = pool[0] ?? null;
   if (!latest) return null;
-  const brand = String(sponsorName ?? "").trim();
-  if (!brand) return latest;
-  return { ...latest, brandName: brand };
+  return { ...latest, brandName: preferred };
+}
+
+/** Hide leftover GOAL copy unless this club still has that Lead Climate Sponsor. */
+export function resolveVisibleFanGoalAlert({
+  alerts,
+  clubName,
+  matchTitle,
+  sponsorName,
+  lockBrand,
+  clubLeadBrands = [],
+  wallets = [],
+  sponsorRemainingGbp,
+}: {
+  alerts: FanGoalAlert[];
+  clubName: string;
+  matchTitle?: string | null;
+  sponsorName?: string | null;
+  lockBrand?: string | null;
+  clubLeadBrands?: string[];
+  wallets?: ClimateWallet[];
+  sponsorRemainingGbp?: number | null;
+}): FanGoalAlert | null {
+  const preferredBrand = [
+    lockBrand,
+    sponsorName,
+    ...(matchTitle ? [] : clubLeadBrands),
+  ].find((name) => name && !isGenericLeadSponsorName(name));
+  if (!preferredBrand) return null;
+  const wallet = leadWalletForGoalStatement(wallets, clubName, preferredBrand);
+  const alert = goalAlertForCampaign({
+    alerts,
+    clubName,
+    matchTitle,
+    sponsorName: preferredBrand,
+  });
+  if (!alert) return null;
+  return withSponsorWalletOnGoalAlert(alert, wallet, sponsorRemainingGbp);
 }
 
 export function goalScoreline(result: Pick<

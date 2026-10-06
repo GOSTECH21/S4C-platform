@@ -530,7 +530,7 @@ assert(
     "leadSponsorBrandForFixture"
   ) &&
     readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
-      "matchTitle"
+      "resolveVisibleFanGoalAlert"
     ),
   "The GOAL banner on My S4P uses the Lead Climate Sponsor of the current match"
 );
