@@ -21,7 +21,7 @@ export default function FanLoginPage() {
   return (
     <RoleLoginForm
       title="Fan Login"
-      subtitle="Sign in to My S4P to FUND-IT up to 5 times — £0.20 once from each Carbon Wallet onto any Climate Project."
+      subtitle="Sign in to My S4P to FUND up to 5 Projects shown to you."
       destination={SUPPORTER_CAMPAIGN_PATH}
       registerHref={FAN_REGISTER_PATH}
       afterSignIn={async () => {
