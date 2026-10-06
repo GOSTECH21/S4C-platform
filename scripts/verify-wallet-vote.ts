@@ -537,8 +537,8 @@ assert(
 
 assert(
   fanPage.includes("fanFundingIsOpen") &&
-    votePage.includes("fanFundingIsOpen"),
-  "My S4P and Climate Projects enable FUND-IT after the Match-Day folder is submitted"
+    !votePage.includes("fanFundingIsOpen"),
+  "My S4P enables FUND-IT; Climate Projects only shows Received totals"
 );
 assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(

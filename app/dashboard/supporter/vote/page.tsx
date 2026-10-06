@@ -5,17 +5,13 @@ import Link from "next/link";
 import {
   getMyS4PCampaigns,
   getOrCreateSupporter,
-  getVotedProjectIds,
-  submitCampaignVotes,
   describeDataError,
   type CampaignProject,
   type S4PCampaign,
   type Supporter,
 } from "@/app/services/votes.service";
 import FanNav from "../components/FanNav";
-import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
-import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
 import { getSupportedTeams } from "@/app/services/teams.service";
 import {
@@ -24,18 +20,13 @@ import {
   resolveVotingWindow,
 } from "@/app/lib/voting-window";
 import {
-  applyFanWalletVote,
   fanVisibleProjects,
-  fanVisibleSponsors,
   visibleMatchDayFolderForClub,
 } from "@/app/services/match-day-folder.service";
 import {
-  FUND_IT_LABEL,
   formatWalletGbp,
-  remainingGbp,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
-import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
@@ -44,20 +35,16 @@ function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
 }
 
 export default function VotePage() {
-  const [supporter, setSupporter] = useState<Supporter | null>(null);
   const [campaigns, setCampaigns] = useState<S4PCampaign[]>([]);
-  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function reload(current: Supporter) {
-    const [supported, posted, voted] = await Promise.all([
+    const [supported, posted] = await Promise.all([
       getSupportedTeams(current),
       getMyS4PCampaigns(current),
-      getVotedProjectIds(current.id),
     ]);
     setCampaigns(filterCampaignsForFan(posted, supported));
-    setVotedIds(voted);
   }
 
   useEffect(() => {
@@ -68,7 +55,6 @@ export default function VotePage() {
           window.location.href = FAN_LOGIN_PATH;
           return;
         }
-        setSupporter(supporter);
         await reload(supporter);
       } catch (err) {
         console.error("Failed to load climate projects:", err);
@@ -130,11 +116,6 @@ export default function VotePage() {
             <CampaignClimateBoard
               key={campaign.campaignId ?? campaign.clubId}
               campaign={campaign}
-              supporterId={supporter?.id ?? null}
-              votedIds={votedIds}
-              onVoted={(projectId) =>
-                setVotedIds((prev) => new Set([...prev, projectId]))
-              }
             />
           ))
         )}
@@ -143,22 +124,9 @@ export default function VotePage() {
   );
 }
 
-function CampaignClimateBoard({
-  campaign,
-  supporterId,
-  votedIds,
-  onVoted,
-}: {
-  campaign: S4PCampaign;
-  supporterId: string | null;
-  votedIds: Set<string>;
-  onVoted: (projectId: string) => void;
-}) {
+function CampaignClimateBoard({ campaign }: { campaign: S4PCampaign }) {
   const listed = campaignProjects(campaign);
   const clubId = campaign.postedClubId ?? campaign.clubId;
-  const [folder, setFolder] = useState<MatchDayFolder | null>(() =>
-    visibleMatchDayFolderForClub({ clubId, clubName: campaign.clubName })
-  );
   const fallback = listed.map((project, index) => ({
     id: project.id,
     name: project.name,
@@ -167,29 +135,18 @@ function CampaignClimateBoard({
     votesReceived: project.votesReceived,
   }));
   const [numbered, setNumbered] = useState<NumberedClimateProject[]>(() =>
-    fanVisibleProjects(folder, clubId, fallback)
-  );
-  const [sponsors, setSponsors] = useState(() =>
-    fanVisibleSponsors(folder, {
+    fanVisibleProjects(
+      visibleMatchDayFolderForClub({ clubId, clubName: campaign.clubName }),
       clubId,
-      clubName: campaign.clubName,
-      minAmount: campaign.minimumAmount,
-      gbpPerGoal: campaign.gbpPerGoal,
-    })
+      fallback
+    )
   );
-  const [usedSponsors, setUsedSponsors] = useState<string[]>(() =>
-    fanVotedSponsorNames(supporterId, clubId)
-  );
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const votingWindow = resolveVotingWindow({
     kickoff: campaign.kickoffAt,
     opensAt: campaign.votingOpens,
     closesAt: campaign.votingCloses,
     postedAt: campaign.postedAt,
   });
-  const fundingOpen = fanFundingIsOpen({ folder, votingWindow });
 
   useEffect(() => {
     function refresh() {
@@ -197,17 +154,7 @@ function CampaignClimateBoard({
         clubId,
         clubName: campaign.clubName,
       });
-      setFolder(next);
       setNumbered((prev) => fanVisibleProjects(next, clubId, prev));
-      setSponsors(
-        fanVisibleSponsors(next, {
-          clubId,
-          clubName: campaign.clubName,
-          minAmount: campaign.minimumAmount,
-          gbpPerGoal: campaign.gbpPerGoal,
-        })
-      );
-      setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
     }
     refresh();
     const timer = window.setInterval(refresh, 5000);
@@ -216,75 +163,7 @@ function CampaignClimateBoard({
       window.clearInterval(timer);
       window.removeEventListener("storage", refresh);
     };
-  }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
-
-  async function voteFromWallet({
-    brandName,
-    projectNumber,
-    split = false,
-  }: {
-    brandName: string;
-    projectNumber?: string;
-    split?: boolean;
-  }) {
-    if (!supporterId) return;
-    if (!fundingOpen) {
-      setError("Voting is not open for this match yet, or it has already closed.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    setNotice(null);
-    try {
-      const result = applyFanWalletVote({
-        clubId,
-        clubName: campaign.clubName,
-        brandName,
-        projectNumber,
-        split,
-        supporterId,
-        projects: numbered,
-      });
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setFolder(result.folder ?? folder);
-      setNumbered(result.projects);
-      setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
-      setSponsors(
-        fanVisibleSponsors(result.folder ?? folder, {
-          clubId,
-          clubName: campaign.clubName,
-          minAmount: campaign.minimumAmount,
-          gbpPerGoal: campaign.gbpPerGoal,
-        })
-      );
-      const votedNow = [result.project.id];
-      votedNow.forEach(onVoted);
-      try {
-        await submitCampaignVotes(
-          supporterId,
-          [...new Set([...votedIds, ...votedNow])],
-          listed.map((project) => project.id),
-          campaign.campaignId,
-          clubId
-        );
-      } catch {
-        // Wallet cash has already moved.
-      }
-      setNotice(
-        `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-      );
-    } catch (err) {
-      setError(describeDataError(err, "Could not save your vote."));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const lead = sponsors.find((row) => row.kind === "lead") ?? null;
-  const locals = sponsors.filter((row) => row.kind === "local");
+  }, [clubId, campaign.clubName]);
 
   return (
     <section className="mt-10 space-y-8">
@@ -309,17 +188,6 @@ function CampaignClimateBoard({
           ))}
         </ul>
       </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
-          {error}
-        </div>
-      )}
-      {notice && !error && (
-        <div className="rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-300">
-          ✓ {notice}
-        </div>
-      )}
 
       <div>
         <h2 className="text-2xl font-black">Climate Project list</h2>
@@ -347,32 +215,6 @@ function CampaignClimateBoard({
           ))}
         </ol>
       </div>
-
-      <ClimateProjectSponsors
-        lead={
-          lead
-            ? {
-                brandName: lead.brandName,
-                kind: "lead",
-                remainingGbp: lead.remainingGbp,
-              }
-            : null
-        }
-        locals={locals.map((row) => ({
-          brandName: row.brandName,
-          kind: "local" as const,
-          remainingGbp: row.remainingGbp,
-        }))}
-        projectCount={numbered.length || 5}
-        busy={busy}
-        votingOpen={fundingOpen}
-        usedSponsorNames={usedSponsors}
-        clubId={clubId}
-        clubName={campaign.clubName}
-        onVote={({ brandName, projectNumber, split }) =>
-          void voteFromWallet({ brandName, projectNumber, split })
-        }
-      />
     </section>
   );
 }

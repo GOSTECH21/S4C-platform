@@ -59,8 +59,15 @@ const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(page.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(!page.includes("Posted for"), "The posted-for box no longer lists posted projects");
 assert(
-  page.includes("ClimateProjectSponsors"),
-  "Climate Projects lets fans take cash from a sponsor wallet"
+  !page.includes("ClimateProjectSponsors") &&
+    !page.includes("Climate Project Sponsor"),
+  "Climate Projects does not repeat Climate Project Sponsor wallets from My S4P"
+);
+assert(
+  readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    "ClimateProjectSponsors"
+  ),
+  "My S4P still has Climate Project Sponsor wallets for FUND-IT"
 );
 assert(
   page.includes("Climate Project list") &&
@@ -70,8 +77,10 @@ assert(
 
 const preview = readFileSync("app/preview/climate-projects/page.tsx", "utf8");
 assert(
-  preview.includes("MatchDayWalletVote") && preview.includes("Top Cellar"),
-  "The Climate Projects preview shows Top Cellar's wallet"
+  preview.includes("Climate Project list") &&
+    !preview.includes("MatchDayWalletVote") &&
+    !preview.includes("Climate Project Sponsor"),
+  "The Climate Projects preview shows Received totals without wallet FUND-IT"
 );
 assert(
   preview.includes("climateProjectsReceivedCopy"),
