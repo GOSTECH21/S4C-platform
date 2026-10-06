@@ -3,6 +3,7 @@ import {
   VOTING_CLOSES_DAYS_AFTER_KICKOFF,
   VOTING_OPENS_DAYS_BEFORE_KICKOFF,
   VOTING_PERIOD_DAYS,
+  climateProjectsReceivedCopy,
   clubVotingWindowCopy,
   clubMatchDayFolderCopy,
   fanVotingWindowCopy,
@@ -81,6 +82,14 @@ assert(
 );
 
 assert(
+  climateProjectsReceivedCopy().includes("Received amounts are cumulative.") &&
+    climateProjectsReceivedCopy().includes("FUND up to 5 Climate Projects") &&
+    climateProjectsReceivedCopy().includes("Closing Date applies") &&
+    !climateProjectsReceivedCopy().includes("FUND-IT up to 5 times") &&
+    !climateProjectsReceivedCopy().includes("5-day Vote"),
+  "Climate Projects intro is cumulative FUND copy with Closing Date applies"
+);
+assert(
   fanVotingWindowCopy().includes("Wednesday at 15:00") &&
     fanVotingWindowCopy().includes("Monday at 15:00") &&
     fanVotingWindowCopy().includes("Fund allocation opens") &&
@@ -122,9 +131,9 @@ assert(
 );
 assert(
   readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
-    "fanVotingWindowCopy"
+    "climateProjectsReceivedCopy"
   ),
-  "Climate Projects explains the 5-day fund-allocation window"
+  "Climate Projects uses the cumulative FUND copy with Closing Date applies"
 );
 assert(
   fanWalletDrainCopy("£0").includes("each Club disappears") &&

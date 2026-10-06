@@ -481,7 +481,7 @@ export function fundItTimesCopy(): string {
 }
 
 export function fundItCopy(): string {
-  return `${fundItTimesCopy()} Choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+  return `Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet; choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
 }
 
 export function numberClimateProjects<T extends { id: string; name: string }>(
