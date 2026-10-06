@@ -54,9 +54,9 @@ export function ClubClimateSponsorTabs({
       </p>
       <h2 className="mt-2 text-4xl font-black">Our Climate Sponsors</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Interested Lead Climate Sponsors and Local Business Climate Sponsors
-        who signed up to sponsor your Club will automatically appear here. Only
-        one Lead Climate Sponsor is allowed each Match Day. Four Local Business
+        Interested Lead Climate Sponsors and Local Business Climate Sponsors who
+        signed up to sponsor your Club will automatically appear here. Only one
+        Lead Climate Sponsor is allowed each Match Day. Four Local Business
         Climate Sponsors are accepted each Match Day.
       </p>
 
