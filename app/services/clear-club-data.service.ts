@@ -72,6 +72,7 @@ export async function clearClubProjectsAndSponsors(
       clubIds,
       campaignIds,
     });
+    await deleteWhereClubId("notifications", clubIds);
     const remaining = await loadClubCampaigns(clubIds, clubName);
     return {
       clubIds,
@@ -101,6 +102,7 @@ export async function clearClubProjectsAndSponsors(
   await deleteWhereClubId("club_climate_file_records", clubIds);
   await deleteWhereClubId("sponsor_match_offers", clubIds);
   await deleteWhereClubId("sponsor_project_proposals", clubIds);
+  await deleteWhereClubId("notifications", clubIds);
 
   const allSponsorship = await supabase
     .from("sponsorship_campaigns")
