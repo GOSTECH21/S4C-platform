@@ -1,3 +1,4 @@
+import { isSponsorBlockedFromClub } from "./climate-sponsors";
 import { formatLongMatchDate } from "./s4p-climate-projects";
 import {
   committedGbp,
@@ -84,7 +85,8 @@ export function emptyMatchDayFolder({
 
 export function uniqueWalletsByBrand(
   wallets: ClimateWallet[],
-  preferredClubName?: string
+  preferredClubName?: string,
+  preferredLeadName?: string | null
 ): ClimateWallet[] {
   const byBrand = new Map<string, ClimateWallet>();
   for (const wallet of wallets) {
@@ -95,11 +97,17 @@ export function uniqueWalletsByBrand(
       byBrand.set(key, wallet);
     }
   }
-  return [...byBrand.values()];
+  return exclusiveLeadItems(
+    [...byBrand.values()],
+    preferredLeadName,
+    preferredClubName
+  );
 }
 
 export function uniqueSponsorRows(
-  sponsors: MatchDaySponsorRow[]
+  sponsors: MatchDaySponsorRow[],
+  preferredLeadName?: string | null,
+  clubName?: string | null
 ): MatchDaySponsorRow[] {
   const byBrand = new Map<string, MatchDaySponsorRow>();
   for (const row of sponsors) {
@@ -117,7 +125,35 @@ export function uniqueSponsorRows(
           (Number(row.committedGbp) || 0) > (Number(existing.committedGbp) || 0);
     if (takeCandidate) byBrand.set(key, { ...row });
   }
-  return [...byBrand.values()];
+  return exclusiveLeadItems(
+    [...byBrand.values()],
+    preferredLeadName,
+    clubName
+  );
+}
+
+/** Keep locals, but never more than one Lead Climate Sponsor. */
+function exclusiveLeadItems<T extends { brandName: string; kind: string }>(
+  items: T[],
+  preferredLeadName?: string | null,
+  clubName?: string | null
+): T[] {
+  const allowed = clubName
+    ? items.filter(
+        (row) => !isSponsorBlockedFromClub(row.brandName, clubName)
+      )
+    : items;
+  const leads = allowed.filter((row) => row.kind === "lead");
+  if (leads.length <= 1) return allowed;
+  const preferredKey = normalizeKey(preferredLeadName ?? "");
+  const keeper =
+    (preferredKey
+      ? leads.find((row) => normalizeKey(row.brandName) === preferredKey)
+      : null) ?? leads[0];
+  const keeperKey = normalizeKey(keeper.brandName);
+  return allowed.filter(
+    (row) => row.kind !== "lead" || normalizeKey(row.brandName) === keeperKey
+  );
 }
 
 function preferWallet(
@@ -140,9 +176,14 @@ function preferWallet(
 
 export function sponsorRowsFromWallets(
   wallets: ClimateWallet[],
-  preferredClubName?: string
+  preferredClubName?: string,
+  preferredLeadName?: string | null
 ): MatchDaySponsorRow[] {
-  return uniqueWalletsByBrand(wallets, preferredClubName).map((wallet) => ({
+  return uniqueWalletsByBrand(
+    wallets,
+    preferredClubName,
+    preferredLeadName
+  ).map((wallet) => ({
     brandName: wallet.brandName,
     kind: wallet.kind,
     committedGbp: committedGbp(wallet),
@@ -159,17 +200,21 @@ export function buildSponsorsFile({
   matchDate,
   sponsors,
   now = new Date(),
+  preferredLeadName = null,
+  clubName = null,
 }: {
   matchDate: Date | string;
   sponsors: MatchDaySponsorRow[];
   now?: Date | string;
+  preferredLeadName?: string | null;
+  clubName?: string | null;
 }): MatchDaySponsorsFile {
   const iso = asIso(now);
   return {
     fileName: sponsorsFileName(matchDate),
     matchDate: dateKey(matchDate),
     savedAt: iso,
-    sponsors: uniqueSponsorRows(sponsors),
+    sponsors: uniqueSponsorRows(sponsors, preferredLeadName, clubName),
   };
 }
 

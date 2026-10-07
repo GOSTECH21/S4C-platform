@@ -1,12 +1,17 @@
 import { readFileSync } from "fs";
 import {
   appendChosenMatch,
+  canClaimLeadClimateSponsor,
   chosenMatchesForClub,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   localBusinessSponsorsForClubFromStores,
   nextFanMatchForClub,
   nextSignedOffFixtureForClub,
+  occupyingLeadClimateSponsor,
+  isSponsorBlockedFromClub,
+  SECOND_LEAD_CLIMATE_SPONSOR_REJECTED,
+  secondLeadClimateSponsorRejectedMessage,
   type GoalSponsorshipNetwork,
   type MatchDayClubLock,
 } from "../app/lib/climate-sponsors";
@@ -123,8 +128,8 @@ const leads = leadSponsorsForClubFromStores({
   excludeBrandKeys: ["The Stadium Cafe"],
 });
 assert(
-  leads.map((row) => row.brandName).join(",") === "Diageo,Puma",
-  "Arsenal Lead tab lists opted-in Lead brands and hides local businesses"
+  leads.map((row) => row.brandName).join(",") === "Diageo",
+  "Arsenal Lead tab keeps only the first Lead Climate Sponsor"
 );
 assert(
   leads[0].matches.includes("Arsenal v Chelsea") &&
@@ -132,8 +137,26 @@ assert(
   "Diageo shows the Arsenal matches it chose to sponsor"
 );
 assert(
-  leads[1].matches.join(",") === "Arsenal v Manchester United",
-  "Puma shows Arsenal v Manchester United"
+  !leads.some((row) => row.brandName === "Puma"),
+  "A second Lead Climate Sponsor is rejected from Arsenal's Lead tab"
+);
+assert(
+  !canClaimLeadClimateSponsor({
+    clubName: "Arsenal",
+    brandName: "Puma",
+    networks: [diageo, puma, cafe],
+    locks: [afterSecond, pumaLock],
+  }),
+  "Puma cannot claim Arsenal after Diageo is already the Lead Climate Sponsor"
+);
+assert(
+  canClaimLeadClimateSponsor({
+    clubName: "Arsenal",
+    brandName: "Diageo",
+    networks: [diageo, puma, cafe],
+    locks: [afterSecond, pumaLock],
+  }),
+  "The occupying Lead Climate Sponsor can still lock further Arsenal matches"
 );
 
 const fountainNetwork: GoalSponsorshipNetwork = {
@@ -159,7 +182,7 @@ assert(
     locks: [afterSecond, pumaLock],
   })
     .map((row) => row.brandName)
-    .join(",") === "Diageo,Puma",
+    .join(",") === "Diageo",
   "The Fountain stays off Arsenal's Lead Climate Sponsor tab"
 );
 
@@ -247,6 +270,93 @@ const hibsLocals = localBusinessSponsorsForClubFromStores({
 assert(
   hibsLeads.map((row) => row.brandName).join(",") === "American Express",
   "Hibernian Lead Climate Sponsor is only American Express"
+);
+
+const budweiserEurope: GoalSponsorshipNetwork = {
+  brandKey: "budweiser europe",
+  brandName: "Budweiser Europe",
+  email: "bud@bud.test",
+  clubNames: ["Hibernian"],
+  leagues: ["Scottish Premiership"],
+};
+const pumaHibs: GoalSponsorshipNetwork = {
+  brandKey: "puma",
+  brandName: "Puma",
+  email: "puma@puma.test",
+  clubNames: ["Hibernian"],
+  leagues: ["Scottish Premiership"],
+};
+const hibsFirstLock: MatchDayClubLock = {
+  brandKey: "budweiser europe",
+  clubName: "Hibernian",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Hibernian v Celtic",
+  lockedAt: "2026-09-01T10:00:00.000Z",
+};
+const hibsSecondLock: MatchDayClubLock = {
+  brandKey: "puma",
+  clubName: "Hibernian",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Hibernian v Celtic",
+  lockedAt: "2026-10-01T10:00:00.000Z",
+};
+const hibsDuplicateLeads = leadSponsorsForClubFromStores({
+  clubName: "Hibernian",
+  networks: [budweiserEurope, pumaHibs],
+  locks: [hibsFirstLock, hibsSecondLock],
+});
+assert(
+  hibsDuplicateLeads.length === 1 &&
+    hibsDuplicateLeads[0].brandName === "Puma",
+  "Hibernian Our Lead Climate Sponsor never lists Budweiser Europe and Puma together"
+);
+assert(
+  occupyingLeadClimateSponsor({
+    clubName: "Hibernian",
+    networks: [budweiserEurope, pumaHibs],
+    locks: [hibsFirstLock, hibsSecondLock],
+  })?.brandName === "Puma",
+  "Budweiser is deleted from Hibernian so Puma is the Lead Climate Sponsor"
+);
+assert(
+  !canClaimLeadClimateSponsor({
+    clubName: "Hibernian",
+    brandName: "Budweiser Europe",
+    networks: [budweiserEurope, pumaHibs],
+    locks: [hibsFirstLock, hibsSecondLock],
+  }),
+  "Budweiser cannot claim Hibernian as a Lead Climate Sponsor"
+);
+assert(
+  canClaimLeadClimateSponsor({
+    clubName: "Hibernian",
+    brandName: "Puma",
+    networks: [budweiserEurope, pumaHibs],
+    locks: [hibsFirstLock, hibsSecondLock],
+  }),
+  "Puma remains Hibernian's Lead Climate Sponsor"
+);
+assert(
+  leadSponsorBrandForFixture({
+    clubName: "Hibernian",
+    fixtureName: "Hibernian v Celtic",
+    networks: [budweiserEurope, pumaHibs],
+    locks: [hibsFirstLock, hibsSecondLock],
+  }) === "Puma",
+  "Hibernian v Celtic names Puma, not Budweiser"
+);
+assert(
+  isSponsorBlockedFromClub("Budweiser Europe", "Hibernian") &&
+    isSponsorBlockedFromClub("Budweiser", "Hibernian FC") &&
+    !isSponsorBlockedFromClub("Puma", "Hibernian") &&
+    !isSponsorBlockedFromClub("Budweiser Europe", "Arsenal"),
+  "Budweiser is deleted from Hibernian only"
+);
+assert(
+  /rejected/i.test(
+    secondLeadClimateSponsorRejectedMessage("Hibernian", "Puma")
+  ) && SECOND_LEAD_CLIMATE_SPONSOR_REJECTED.includes("one Lead Climate Sponsor"),
+  "The rejection copy says only one Lead Climate Sponsor is allowed"
 );
 assert(
   hibsLocals
@@ -522,8 +632,8 @@ assert(
     fixtureName: "Arsenal v Chelsea",
     locks: [pumaLeedsLock, pumaDatedLock],
     networks: [puma, diageo],
-  }) === null,
-  "A fixture nobody signed does not inherit another match's Lead Climate Sponsor"
+  }) === "Puma",
+  "Arsenal has one Lead Climate Sponsor in all circumstances"
 );
 assert(
   readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
@@ -558,7 +668,8 @@ assert(
 const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
 assert(
   preview.includes("leadClimateSponsorsForClub") &&
-    preview.includes("localBusinessClimateSponsorsForClub"),
+    preview.includes("localBusinessClimateSponsorsForClub") &&
+    preview.includes("A second Lead Climate Sponsor on Hibernian must be rejected"),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 
@@ -568,7 +679,7 @@ assert(
     tabs.includes("Our Local Businesses Sponsor") &&
     tabs.includes("Local Businesses Climate Sponsors") &&
     tabs.includes("signed up to sponsor your Club") &&
-    tabs.includes("allowed each Match Day") &&
+    tabs.includes("Any second Lead Climate Sponsor is rejected") &&
     tabs.includes("Four Local Business") &&
     tabs.includes("accepted each Match Day") &&
     !tabs.includes("When a Lead Climate Sponsor registers") &&

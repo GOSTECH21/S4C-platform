@@ -33,6 +33,7 @@ import {
   saveSponsorsIntoFolder,
   sponsorRowsFromWallets,
   sponsorsFileName,
+  uniqueSponsorRows,
   submitMatchDayFolder,
 } from "../app/lib/match-day-folder";
 import {
@@ -311,6 +312,55 @@ assert(
 assert(
   sponsorRowsFromWallets([amex, topCellar]).length === 2,
   "Lead and local wallets both appear in the Sponsors File"
+);
+assert(
+  uniqueSponsorRows([
+    {
+      brandName: "Budweiser Europe",
+      kind: "lead",
+      committedGbp: 1000,
+      remainingGbp: 1000,
+    },
+    {
+      brandName: "Puma",
+      kind: "lead",
+      committedGbp: 2500,
+      remainingGbp: 2500,
+    },
+  ])
+    .map((row) => row.brandName)
+    .join(",") === "Budweiser Europe",
+  "The Sponsors File never lists two Lead Climate Sponsors"
+);
+assert(
+  uniqueSponsorRows(
+    [
+      {
+        brandName: "Budweiser Europe",
+        kind: "lead",
+        committedGbp: 1000,
+        remainingGbp: 1000,
+      },
+      {
+        brandName: "Puma",
+        kind: "lead",
+        committedGbp: 2500,
+        remainingGbp: 2500,
+      },
+    ],
+    null,
+    "Hibernian"
+  )
+    .map((row) => row.brandName)
+    .join(",") === "Puma",
+  "The Hibernian Sponsors File deletes Budweiser and keeps Puma as the Lead"
+);
+assert(
+  sponsorRowsFromWallets([amex, puma, topCellar]).length === 2 &&
+    sponsorRowsFromWallets([amex, puma, topCellar]).filter(
+      (row) => row.kind === "lead"
+    ).length === 1,
+  "A second Lead wallet is dropped from the Sponsors File while the local remains"
 );
 
 const pumaArsenal = createLeadWallet({
@@ -643,6 +693,19 @@ assert(
     preview.includes("American Express") &&
     preview.includes("showSponsors={false}"),
   "The My S4P preview shows numbered Climate Projects without sponsor branding"
+);
+assert(
+  readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes("Puma") &&
+    !readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes(
+      "Budweiser Europe"
+    ),
+  "The Hibernian Match-Day folder preview keeps Puma and deletes Budweiser"
+);
+assert(
+  readFileSync("app/lib/match-day-folder.ts", "utf8").includes(
+    "never more than one Lead Climate Sponsor"
+  ),
+  "The Sponsors File helper rejects a second Lead Climate Sponsor"
 );
 
 const folderService = readFileSync("app/services/match-day-folder.service.ts", "utf8");

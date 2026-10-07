@@ -35,7 +35,11 @@ export function MatchDayFolderPanel({
 }) {
   const sponsorsFile = folder?.sponsorsFile ?? null;
   const projectsFile = folder?.projectsFile ?? null;
-  const sponsors = uniqueSponsorRows(sponsorsFile?.sponsors ?? []);
+  const sponsors = uniqueSponsorRows(
+    sponsorsFile?.sponsors ?? [],
+    null,
+    clubName
+  );
   const canSubmit = Boolean(sponsorsFile && projectsFile);
 
   return (

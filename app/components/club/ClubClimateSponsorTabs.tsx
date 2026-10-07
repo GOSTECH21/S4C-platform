@@ -36,7 +36,6 @@ export function ClubClimateSponsorTabs({
     [clubName, leadSponsors, localSponsors]
   );
   const [tab, setTab] = useState<ClimateSponsorTab>(initialTab);
-  const leadCount = leads.length;
   const localCount = locals.length;
   const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
   const leadTabId = `${tabPrefix}-lead-climate-sponsor-tab`;
@@ -56,8 +55,8 @@ export function ClubClimateSponsorTabs({
       <p className="mt-3 max-w-3xl text-slate-300">
         Interested Lead Climate Sponsors and Local Business Climate Sponsors who
         signed up to sponsor your Club will automatically appear here. Only one
-        Lead Climate Sponsor is allowed each Match Day. Four Local Business
-        Climate Sponsors are accepted each Match Day.
+        Lead Climate Sponsor is allowed. Any second Lead Climate Sponsor is rejected.
+        Four Local Business Climate Sponsors are accepted each Match Day.
       </p>
 
       <div
@@ -72,7 +71,6 @@ export function ClubClimateSponsorTabs({
           controls={leadPanelId}
         >
           Our Lead Climate Sponsor
-          {leadCount ? ` (${leadCount})` : ""}
         </TabButton>
         <TabButton
           id={localTabId}

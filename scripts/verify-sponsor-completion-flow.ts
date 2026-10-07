@@ -60,6 +60,25 @@ const lock = lockMatchDayClub({
 });
 assert(lock.clubName === "Hibernian", "Step 1 locks Puma into Hibernian");
 
+let secondLeadRejected = false;
+try {
+  lockMatchDayClub({
+    brandName: "Budweiser Europe",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hibernian v Celtic",
+    competition: "Scottish Premiership Match",
+  });
+} catch (err) {
+  secondLeadRejected = /only one lead climate sponsor/i.test(
+    err instanceof Error ? err.message : String(err)
+  );
+}
+assert(
+  secondLeadRejected,
+  "A second Lead Climate Sponsor lock on Hibernian is rejected"
+);
+
 const wallet = depositLeadClimateWallet({
   clubName: "Hibernian",
   brandName: "Puma",

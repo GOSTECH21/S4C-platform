@@ -53,8 +53,18 @@ export function readMatchDayFolder(clubId: string): MatchDayFolder | null {
     const parsed = JSON.parse(raw) as MatchDayFolder;
     if (!parsed?.clubId) return null;
     if (parsed.sponsorsFile?.sponsors) {
-      const unique = uniqueSponsorRows(parsed.sponsorsFile.sponsors);
-      if (unique.length !== parsed.sponsorsFile.sponsors.length) {
+      const unique = uniqueSponsorRows(
+        parsed.sponsorsFile.sponsors,
+        null,
+        parsed.clubName
+      );
+      if (
+        unique.length !== parsed.sponsorsFile.sponsors.length ||
+        unique.some(
+          (row, index) =>
+            row.brandName !== parsed.sponsorsFile?.sponsors[index]?.brandName
+        )
+      ) {
         parsed.sponsorsFile = { ...parsed.sponsorsFile, sponsors: unique };
         writeMatchDayFolder(parsed);
       }
@@ -88,7 +98,11 @@ function listStoredMatchDayFolders(): MatchDayFolder[] {
       if (parsed.sponsorsFile?.sponsors) {
         parsed.sponsorsFile = {
           ...parsed.sponsorsFile,
-          sponsors: uniqueSponsorRows(parsed.sponsorsFile.sponsors),
+          sponsors: uniqueSponsorRows(
+            parsed.sponsorsFile.sponsors,
+            null,
+            parsed.clubName
+          ),
         };
       }
       rows.push(parsed);
@@ -177,7 +191,7 @@ export function identifyClubSponsorWallets({
     wallets.push(extra);
     seen.add(extra.id);
   }
-  return uniqueWalletsByBrand(wallets, clubName);
+  return uniqueWalletsByBrand(wallets, clubName, branding.leadName);
 }
 
 export function folderOrCreate({
@@ -221,6 +235,7 @@ export function saveClubSponsorsFile({
       buildSponsorsFile({
         matchDate,
         sponsors: sponsorRowsFromWallets(wallets, clubName),
+        clubName,
       })
     )
   );
@@ -305,6 +320,7 @@ export function publishMatchDayFolderFromSignedOffer({
     buildSponsorsFile({
       matchDate,
       sponsors: sponsorRowsFromWallets(wallets, clubName),
+      clubName,
     })
   );
   folder = saveProjectsIntoFolder(
