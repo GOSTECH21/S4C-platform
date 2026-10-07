@@ -324,6 +324,15 @@ assert(
   "Posted Climate Projects appear on fan dashboards immediately"
 );
 assert(
+  readFileSync("app/services/club-match-day.service.ts", "utf8").includes(
+    "export async function publishSignedSponsorshipToFans"
+  ) &&
+    readFileSync("app/services/match-day-folder.service.ts", "utf8").includes(
+      "publishMatchDayFolderFromSignedOffer"
+    ),
+  "Sponsor sign-off publishes the signed five to fans and the Match-Day folder immediately"
+);
+assert(
   isFanPostVisible(new Date(Date.now() + 60_000).toISOString()),
   "There is no hold-back after the Sustainability Director posts"
 );

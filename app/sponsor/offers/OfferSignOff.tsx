@@ -7,7 +7,11 @@ import {
   signSponsorOffer,
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
-import { SPONSOR_DASHBOARD_PATH } from "@/app/lib/routes";
+import {
+  SPONSOR_DASHBOARD_PATH,
+  SPONSOR_OFFER_SIGN_SECTION_ID,
+  SPONSOR_SIGNED_SECTION_ID,
+} from "@/app/lib/routes";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
@@ -108,7 +112,10 @@ export function OfferSignOffForm({
   }
 
   return (
-    <div>
+    <div id={SPONSOR_OFFER_SIGN_SECTION_ID} className="scroll-mt-6">
+      <p className="mt-10 text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+        Signed Sponsorship
+      </p>
       {showProjects && (
         <div className="mt-8">
           <OfferProjectList offer={offer} />
@@ -122,12 +129,12 @@ export function OfferSignOffForm({
             SPONSORED BY {signedBrand}
           </p>
           <p className="mt-2 text-slate-300">
-            Fans of {offer.clubName} will see this brand name alongside each of
-            the 5 Climate Projects. This copy is now lodged in your Dashboard
-            folder, and the club Sustainability Director has a signed copy.
+            Fans of {offer.clubName} and the club Sustainability Director can
+            now see these signed-off Climate Projects immediately. This copy is
+            lodged in your Dashboard folder.
           </p>
           <Link
-            href={`${SPONSOR_DASHBOARD_PATH}#signed-folder`}
+            href={`${SPONSOR_DASHBOARD_PATH}#${SPONSOR_SIGNED_SECTION_ID}`}
             className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
           >
             Open Dashboard folder

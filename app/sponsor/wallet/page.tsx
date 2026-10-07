@@ -12,8 +12,16 @@ import {
   localRecordFromProfile,
   readLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
-import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
-import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
+import {
+  bindFundedSponsorToClub,
+  ensureGoalNetwork,
+  loadMatchDayLock,
+  lockWalletFundingToClub,
+} from "@/app/services/climate-sponsors.service";
+import {
+  SPONSOR_LOGIN_PATH,
+  sponsorDashboardReceivePath,
+} from "@/app/lib/routes";
 import { isLeadSponsorHome, sponsorHomePath } from "@/app/lib/sponsor-home";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
@@ -111,10 +119,30 @@ export default function SponsorWalletPage() {
               brandName: brand,
               ...input,
             });
+            lockWalletFundingToClub({
+              brandName: brand,
+              clubName,
+              commitmentFeeGbp: next.commitmentFeeGbp,
+              gbpPerGoal: next.gbpPerGoal,
+              maximumSponsorshipGbp: next.maximumSponsorshipGbp,
+            });
+            ensureGoalNetwork({
+              brandName: brand,
+              clubNames: [clubName],
+            });
+            bindFundedSponsorToClub({
+              clubName,
+              brandName: brand,
+              spentGbp: next.commitmentFeeGbp,
+            });
             setWallet(next);
             setNotice(
-              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet.`
+              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for ${clubName}.`
             );
+            if (isLeadSponsorHome(brand)) {
+              router.push(sponsorDashboardReceivePath());
+              return;
+            }
           } catch (err) {
             setError(err instanceof Error ? err.message : "Could not update the wallet.");
           } finally {

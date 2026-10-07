@@ -19,6 +19,7 @@ import {
   selectedSponsors,
   sponsorCanReceiveClubPost,
   toggleSelectedSponsor,
+  ensureSponsorSelected,
   topClimateSponsors,
   upsertSponsor,
   unlockedMatchDay,
@@ -76,6 +77,12 @@ roster = upsertSponsor(
 roster = toggleSelectedSponsor(roster, "d");
 assert(roster.selectedIds.includes("d"), "SD can select Diageo before posting");
 assert(!roster.selectedIds.includes("g"), "Unselected brands are not posting targets");
+roster = ensureSponsorSelected(roster, "g");
+assert(
+  roster.selectedIds.includes("d") && roster.selectedIds.includes("g"),
+  "A wallet deposit selects the locked-in brand on the club roster"
+);
+roster = toggleSelectedSponsor(roster, "g");
 assert(
   selectedSponsors(roster).map((row) => row.brandName).join(",") === "Diageo",
   "Posted five target the brands the SD selected, even before lock-in"

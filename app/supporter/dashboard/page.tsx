@@ -44,6 +44,7 @@ import { totalLocalPledge, type LocalSponsorRecord } from "@/app/lib/local-spons
 import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
+import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 
 export default function MyS4PDashboardPage() {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
@@ -98,6 +99,19 @@ export default function MyS4PDashboardPage() {
 
     load();
   }, []);
+
+  useEffect(() => {
+    if (!supporter) return;
+    function refreshLive() {
+      void loadCampaigns(supporter);
+    }
+    window.addEventListener(SIGNED_SPONSORSHIP_EVENT, refreshLive);
+    window.addEventListener("storage", refreshLive);
+    return () => {
+      window.removeEventListener(SIGNED_SPONSORSHIP_EVENT, refreshLive);
+      window.removeEventListener("storage", refreshLive);
+    };
+  }, [supporter]);
 
   const clubNames = useMemo(
     () =>
@@ -281,10 +295,12 @@ function CampaignPanel({
     const timer = window.setInterval(refreshWallets, 5000);
     window.addEventListener("storage", refreshWallets);
     window.addEventListener(SPONSORED_GOAL_EVENT, refreshWallets);
+    window.addEventListener(SIGNED_SPONSORSHIP_EVENT, refreshWallets);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener("storage", refreshWallets);
       window.removeEventListener(SPONSORED_GOAL_EVENT, refreshWallets);
+      window.removeEventListener(SIGNED_SPONSORSHIP_EVENT, refreshWallets);
     };
   }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
 

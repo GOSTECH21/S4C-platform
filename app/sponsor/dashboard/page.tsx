@@ -43,6 +43,8 @@ import { leagueForClubName } from "@/app/lib/current-season";
 import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
+  SPONSOR_RECEIVE_SECTION_ID,
+  SPONSOR_SIGNED_SECTION_ID,
   SPONSOR_WALLET_PATH,
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
@@ -236,6 +238,28 @@ export default function SponsorDashboardPage() {
       cancelled = true;
     };
   }, [lockClub, brand]);
+
+  useEffect(() => {
+    if (loading) return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (
+      hash !== SPONSOR_RECEIVE_SECTION_ID &&
+      hash !== SPONSOR_SIGNED_SECTION_ID
+    ) {
+      return;
+    }
+    const scroll = () =>
+      document.getElementById(hash)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    const frame = window.requestAnimationFrame(scroll);
+    const timer = window.setTimeout(scroll, 80);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [loading, pending.length, signed.length]);
 
   async function logout() {
     await logoutSponsor();
@@ -673,7 +697,7 @@ export default function SponsorDashboardPage() {
         />
       </section>
 
-      <section>
+      <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
         <Link
           href={SPONSOR_OFFERS_PATH}
           className="block rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
@@ -685,9 +709,11 @@ export default function SponsorDashboardPage() {
             Receive the club&apos;s 5 chosen Climate Projects
           </h2>
           <p className="mt-3 max-w-3xl text-slate-300">
-            After you lock in a club, open New Sponsorship/Score Offer. If that
-            club&apos;s Sustainability Director posted their 5 to you, sign them
-            off here. Posts from other clubs stay hidden while the lock is on.
+            After you lock in a club and deposit into the Climate Sponsorship
+            Wallet, that funding is locked to the club. Open New
+            Sponsorship/Score Offer to pull the Sustainability Director&apos;s
+            uploaded five immediately, then sign them off. Posts from other
+            clubs stay hidden while the lock is on.
           </p>
           <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
             {pending.length > 0
@@ -698,8 +724,8 @@ export default function SponsorDashboardPage() {
       </section>
 
       <section
-        id="signed-folder"
-        className="rounded-3xl border border-slate-700 bg-slate-900 p-8"
+        id={SPONSOR_SIGNED_SECTION_ID}
+        className="scroll-mt-6 rounded-3xl border border-slate-700 bg-slate-900 p-8"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
           Folder

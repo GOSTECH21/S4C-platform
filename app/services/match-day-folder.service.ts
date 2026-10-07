@@ -74,7 +74,7 @@ export function writeMatchDayFolder(folder: MatchDayFolder): MatchDayFolder {
   return folder;
 }
 
-export function listVisibleMatchDayFolders(): MatchDayFolder[] {
+function listStoredMatchDayFolders(): MatchDayFolder[] {
   if (typeof window === "undefined") return [];
   const rows: MatchDayFolder[] = [];
   for (let index = 0; index < window.localStorage.length; index += 1) {
@@ -84,20 +84,40 @@ export function listVisibleMatchDayFolders(): MatchDayFolder[] {
       const parsed = JSON.parse(
         window.localStorage.getItem(key) ?? ""
       ) as MatchDayFolder;
-      if (isMatchDayFolderVisible(parsed)) {
-        if (parsed.sponsorsFile?.sponsors) {
-          parsed.sponsorsFile = {
-            ...parsed.sponsorsFile,
-            sponsors: uniqueSponsorRows(parsed.sponsorsFile.sponsors),
-          };
-        }
-        rows.push(parsed);
+      if (!parsed?.clubId) continue;
+      if (parsed.sponsorsFile?.sponsors) {
+        parsed.sponsorsFile = {
+          ...parsed.sponsorsFile,
+          sponsors: uniqueSponsorRows(parsed.sponsorsFile.sponsors),
+        };
       }
+      rows.push(parsed);
     } catch {
       // Skip a malformed folder and keep reading.
     }
   }
   return rows;
+}
+
+export function listAllMatchDayFolders(): MatchDayFolder[] {
+  return listStoredMatchDayFolders();
+}
+
+export function listVisibleMatchDayFolders(): MatchDayFolder[] {
+  return listStoredMatchDayFolders().filter((folder) =>
+    isMatchDayFolderVisible(folder)
+  );
+}
+
+export function uploadedMatchDayFolderForClub(
+  clubName: string
+): MatchDayFolder | null {
+  if (!clubName.trim()) return null;
+  return (
+    listStoredMatchDayFolders().find((folder) =>
+      clubsMatch(folder.clubName, clubName)
+    ) ?? null
+  );
 }
 
 export function visibleMatchDayFolderForClub({
@@ -249,6 +269,55 @@ export function submitClubMatchDayFolder(clubId: string): MatchDayFolder {
     );
   }
   return writeMatchDayFolder(stampSubmitted(folder));
+}
+
+export function publishMatchDayFolderFromSignedOffer({
+  clubId,
+  clubName,
+  projects,
+  minAmount,
+  gbpPerGoal,
+}: {
+  clubId: string;
+  clubName: string;
+  projects: Array<{ id: string; name: string }>;
+  minAmount?: number | null;
+  gbpPerGoal?: number | null;
+}): MatchDayFolder | null {
+  if (!clubId || projects.length === 0) return null;
+  const matchDate = new Date().toISOString().slice(0, 10);
+  const wallets = identifyClubSponsorWallets({
+    clubId,
+    clubName,
+    minAmount,
+    gbpPerGoal,
+  });
+  const existing = readMatchDayFolder(clubId);
+  const funding = Object.fromEntries(
+    (existing?.projectsFile?.projects ?? []).map((project) => [
+      project.id,
+      { fundedGbp: project.fundedGbp, votesReceived: project.votesReceived },
+    ])
+  );
+  let folder = folderOrCreate({ clubId, clubName, matchDate });
+  folder = saveSponsorsIntoFolder(
+    { ...folder, clubName, matchDate },
+    buildSponsorsFile({
+      matchDate,
+      sponsors: sponsorRowsFromWallets(wallets, clubName),
+    })
+  );
+  folder = saveProjectsIntoFolder(
+    { ...folder, clubName, matchDate },
+    buildProjectsFile({
+      matchDate,
+      projects: numberClimateProjects(projects, funding),
+    })
+  );
+  if (canSubmitMatchDayFolder(folder)) {
+    folder = stampSubmitted(folder);
+  }
+  return writeMatchDayFolder(folder);
 }
 
 export function applyFanWalletVote({
