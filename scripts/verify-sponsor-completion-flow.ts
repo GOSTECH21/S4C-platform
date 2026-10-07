@@ -39,7 +39,7 @@ function assert(condition: boolean, message: string) {
 }
 
 async function main() {
-const { lockMatchDayClub, lockWalletFundingToClub, ensureGoalNetwork, bindFundedSponsorToClub, loadMatchDayLock, loadClubSponsorRoster } = await import("../app/services/climate-sponsors.service");
+const { lockMatchDayClub, lockWalletFundingToClub, ensureGoalNetwork, bindFundedSponsorToClub, loadMatchDayLock, loadClubSponsorRoster, recordSignedLeadClimateSponsor, leadClimateSponsorsForClub } = await import("../app/services/climate-sponsors.service");
 const { depositLeadClimateWallet, readClimateWallet } = await import("../app/services/sponsor-wallet.service");
 const { ensureOfferFromLockedClubUploads } = await import("../app/services/sponsor-offers.service");
 const { publishMatchDayFolderFromSignedOffer, uploadedMatchDayFolderForClub } = await import("../app/services/match-day-folder.service");
@@ -224,6 +224,16 @@ assert(
     commitmentFeeGbp: 2500,
   }).commitmentFeeGbp === 2500,
   "Funding lock copy stays on the Hibernian match-day lock"
+);
+
+assert(
+  recordSignedLeadClimateSponsor({
+    brandName: "American Express",
+    clubName: "Hibernian",
+    fixtureName: "Hibernian v Celtic",
+  })?.brandName === "Puma" &&
+    leadClimateSponsorsForClub("Hibernian")[0]?.brandName === "Puma",
+  "A later American Express sign-off does not replace the occupying Hibernian Lead"
 );
 
 if (failures.length > 0) {

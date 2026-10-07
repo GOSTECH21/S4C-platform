@@ -183,6 +183,14 @@ export default function ClubDashboardPage() {
       setSignedCopies(
         await listClubSignedSponsorships(club.id, club.name)
       );
+      setRoster(loadClubSponsorRoster(club.id, club.name));
+      const inbound = splitClubClimateSponsorsForTabs({
+        clubName: club.name,
+        leadSponsors: leadClimateSponsorsForClub(club.name),
+        localSponsors: localBusinessClimateSponsorsForClub(club.name),
+      });
+      setLeadSponsors(inbound.leads);
+      setLocalSponsors(inbound.locals);
       const stored = readStoredMatchDay(club.id);
       setPostedAt(stored?.postedAt ?? null);
       setFolder(readMatchDayFolder(club.id));
@@ -461,9 +469,11 @@ export default function ClubDashboardPage() {
         </div>
 
         <ClubClimateSponsorTabs
+          key={`${club.name}:${leadSponsors[0]?.brandKey ?? "none"}`}
           clubName={club.name}
           leadSponsors={leadSponsors}
           localSponsors={localSponsors}
+          initialTab="lead"
         />
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">

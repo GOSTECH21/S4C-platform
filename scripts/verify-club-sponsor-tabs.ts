@@ -662,8 +662,11 @@ const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
   dashboard.includes("splitClubClimateSponsorsForTabs") &&
     dashboard.includes("leadClimateSponsorsForClub") &&
-    dashboard.includes("localBusinessClimateSponsorsForClub"),
-  "Club dashboard splits inbound brands so local businesses never stay on the Lead tab"
+    dashboard.includes("localBusinessClimateSponsorsForClub") &&
+    dashboard.slice(dashboard.indexOf("refreshSignedLive")).includes(
+      "leadClimateSponsorsForClub"
+    ),
+  "Club dashboard splits inbound brands so local businesses never stay on the Lead tab, and refreshes that Lead list after sign-off"
 );
 const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
 assert(
@@ -685,7 +688,9 @@ assert(
     !tabs.includes("When a Lead Climate Sponsor registers") &&
     !tabs.includes("Local businesses never") &&
     tabs.includes("Signed off by") &&
-    tabs.includes("splitClubClimateSponsorsForTabs"),
+    tabs.includes("splitClubClimateSponsorsForTabs") &&
+    tabs.includes('setTab("lead")') &&
+    tabs.includes("aria-pressed"),
   "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
 );
 assert(
