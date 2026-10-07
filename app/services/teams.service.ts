@@ -3,8 +3,8 @@ import { ensureCurrentSeasonRoster } from "./season-roster.service";
 import {
   CURRENT_SEASON_LEAGUES,
   LEAGUE_SPORT,
-  canonicalLeagueName,
   findClubOnRoster,
+  isDemoClubName,
   seasonNamesMatch,
 } from "../lib/current-season";
 import {
@@ -163,20 +163,6 @@ export async function loadTeamCatalogFromDatabase(): Promise<TeamGroup[]> {
     }
   }
 
-  for (const row of rows) {
-    if (usedIds.has(row.id)) continue;
-    if (canonicalLeagueName(row.competition)) continue;
-    if (!row.id || row.competition === "Other") continue;
-    if (!isPrimarySport(row.sport)) continue;
-    teams.push({
-      id: row.id,
-      name: row.name,
-      displayName: displayClubName(row.name),
-      sport: row.sport,
-      competition: row.competition,
-    });
-  }
-
   return groupTeams(teams).filter((group) => isPrimarySport(group.sport));
 }
 
@@ -214,6 +200,7 @@ export async function findClubByPreferenceName(
     .maybeSingle();
 
   if (!data) return null;
+  if (!isDemoClubName(String(data.name ?? ""))) return null;
   const competition = (
     data as unknown as {
       competitions: { name: string | null; sports: { name: string } | null } | null;

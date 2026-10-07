@@ -123,8 +123,12 @@ const leagueNet = addLeagueToNetwork(
   "Premier League"
 );
 assert(
-  networkHasClub(leagueNet, "Manchester City"),
-  "A Premier League network includes Manchester City"
+  networkHasClub(leagueNet, "Arsenal"),
+  "A Premier League network includes Arsenal"
+);
+assert(
+  !networkHasClub(leagueNet, "Manchester City"),
+  "A Premier League network does not add other Premier League clubs in the three-club demo"
 );
 
 assert(

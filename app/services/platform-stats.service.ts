@@ -6,7 +6,7 @@ import {
   storedFullName,
   type RegisteredFan,
 } from "../lib/s4p-admin";
-import { currentSeasonTeamCount } from "../lib/current-season";
+import { currentSeasonTeamCount, isDemoClubName } from "../lib/current-season";
 import { mergePlatformStats, type PlatformStats } from "../lib/platform-stats";
 
 async function impactMomentsCreated(): Promise<number> {
@@ -64,16 +64,18 @@ async function fansEngagedFromTables(): Promise<number | null> {
     ]);
     if (supporters.error || !supporters.data) return null;
 
-    const fans: RegisteredFan[] = supporters.data.map((row) => {
-      const club = (row as { clubs?: { name?: string } | null }).clubs;
-      return {
-        id: String(row.id),
-        fullName: String(row.full_name ?? "").trim() || "Unnamed fan",
-        email: String(row.email ?? "").trim() || "No email",
-        clubName: String(club?.name ?? "").trim() || "No club selected",
-        authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
-      };
-    });
+    const fans: RegisteredFan[] = supporters.data
+      .map((row) => {
+        const club = (row as { clubs?: { name?: string } | null }).clubs;
+        return {
+          id: String(row.id),
+          fullName: String(row.full_name ?? "").trim() || "Unnamed fan",
+          email: String(row.email ?? "").trim() || "No email",
+          clubName: String(club?.name ?? "").trim() || "No club selected",
+          authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
+        };
+      })
+      .filter((fan) => isDemoClubName(fan.clubName));
 
     const mappedDirectors = (directors.error ? [] : directors.data ?? []).map((row) => ({
       email: String(row.email ?? "").trim(),

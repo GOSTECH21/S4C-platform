@@ -134,12 +134,13 @@ assert(
   "Local registration states the £500 minimum"
 );
 assert(
-  localPage.includes("one of the five"),
-  "Local registration says the logo sits on one of the five Match Day cards"
+  localPage.includes("Our Climate Sponsors") &&
+    localPage.includes("ClubNetworkPicker"),
+  "Local registration picks a demo club and shows the logo on Our Climate Sponsors"
 );
 assert(
-  localPage.includes("three times"),
-  "Local registration states that a £1,500 pledge is three times a £500 pledge"
+  localPage.includes("Match / Matches"),
+  "Local registration still lets a business choose Match amounts"
 );
 assert(
   !localPage.includes("2 Climate"),

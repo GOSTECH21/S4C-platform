@@ -33,11 +33,11 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(
-  currentSeasonTeamCount() === 200,
-  "The Sports Teams window must be exactly 200 unique 2026/27 clubs"
+  currentSeasonTeamCount() === 3,
+  "The Sports Teams window must be exactly the three demo clubs"
 );
 assert(
-  mergePlatformStats({ sportsTeams: 221 }).sportsTeams === 200,
+  mergePlatformStats({ sportsTeams: 221 }).sportsTeams === 3,
   "Leftover duplicate club rows must not become the Sports Teams count"
 );
 assert(
@@ -327,7 +327,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Sponsored Arsenal goal: Sports Teams stay at 200; Lead wallet +£3,000; fan alert stored."
+  "Sponsored Arsenal goal: Sports Teams stay at 3; Lead wallet +£3,000; fan alert stored."
 );
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

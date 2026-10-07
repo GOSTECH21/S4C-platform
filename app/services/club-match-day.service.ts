@@ -15,7 +15,7 @@ import {
   brandExposureValue,
 } from "../lib/sponsorship-auction";
 import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
-import { findClubOnRoster } from "../lib/current-season";
+import { findClubOnRoster, isDemoClubName } from "../lib/current-season";
 import type { ClimateCountryContext } from "../lib/featured-climate-country";
 import {
   localCatalogCountryForClub,
@@ -227,7 +227,8 @@ export async function findClubForRegistration(
 ): Promise<ClubProfile | null> {
   const { data } = await supabase.from("clubs").select("id, name, country");
   const match = findClubOnRoster(data ?? [], clubName);
-  return match ?? null;
+  if (!match || !isDemoClubName(match.name)) return null;
+  return match;
 }
 
 export async function registerClubSustainabilityDirector(
@@ -309,6 +310,11 @@ async function createOrSignInClubUser(email: string, password: string) {
 async function resolveRegisteredClub(
   input: ClubRegistrationInput
 ): Promise<ClubProfile> {
+  if (!isDemoClubName(input.clubName)) {
+    throw new Error(
+      "This demo only includes Hearts of Midlothian FC, Hibernian FC, and Arsenal FC."
+    );
+  }
   const existing = await findClubForRegistration(input.clubName);
   if (existing) return existing;
 

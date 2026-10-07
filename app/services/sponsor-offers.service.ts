@@ -1,5 +1,9 @@
 import { supabase } from "../lib/supabase";
-import { LEAGUE_SPORT, leagueForClubName } from "../lib/current-season";
+import {
+  LEAGUE_SPORT,
+  isDemoClubName,
+  leagueForClubName,
+} from "../lib/current-season";
 import { scoreLabelForSport } from "../lib/sports";
 import { sponsorOfferHeadline } from "../lib/s4p-climate-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
@@ -299,6 +303,7 @@ export async function listSponsorMatchOffers(): Promise<SponsorMatchOffer[]> {
         Number(offer.maxAmount) > 0 ? Number(offer.maxAmount) : offer.maxAmount ?? null,
       targetBrandNames: offer.targetBrandNames,
     }))
+    .filter((offer) => isDemoClubName(offer.clubName))
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
 }
 

@@ -9,6 +9,7 @@ import {
 } from "../lib/s4p-admin";
 import { getFanRegistrationsForStaff } from "./supporters.service";
 import { clubsForBrandFromLocalStores } from "./climate-sponsors.service";
+import { isDemoClubName } from "../lib/current-season";
 
 export type StaffDirector = {
   id: string;
@@ -41,19 +42,21 @@ export async function loadStaffParticipantRoster() {
     .not("user_id", "is", null)
     .order("name");
 
-  const mappedDirectors: StaffDirector[] = (directors.data ?? []).map((row) => {
-    const club = (row as { clubs?: { name?: string } | null }).clubs;
-    return {
-      id: String(row.id),
-      fullName:
-        storedFullName(
-          String(row.first_name ?? ""),
-          String(row.last_name ?? "")
-        ) || "Unnamed director",
-      email: String(row.email ?? "").trim() || "No email",
-      clubName: String(club?.name ?? "").trim() || "No club selected",
-    };
-  });
+  const mappedDirectors: StaffDirector[] = (directors.data ?? [])
+    .map((row) => {
+      const club = (row as { clubs?: { name?: string } | null }).clubs;
+      return {
+        id: String(row.id),
+        fullName:
+          storedFullName(
+            String(row.first_name ?? ""),
+            String(row.last_name ?? "")
+          ) || "Unnamed director",
+        email: String(row.email ?? "").trim() || "No email",
+        clubName: String(club?.name ?? "").trim() || "No club selected",
+      };
+    })
+    .filter((row) => isDemoClubName(row.clubName));
 
   const mappedSponsorsBase = (sponsors.data ?? []).map((row) => ({
     id: String(row.id),
@@ -82,14 +85,18 @@ export async function loadStaffParticipantRoster() {
     networkRows.error?.code === "PGRST205" ||
     /could not find the table/i.test(networkRows.error?.message ?? "");
 
-  const mappedSponsors: StaffSponsor[] = mappedSponsorsBase.map((row) => {
-    const fromDb = clubsFromDb.get(compactIdentity(row.brandName)) ?? [];
-    const fromLocal = clubsForBrandFromLocalStores(row.brandName, row.email);
-    return {
-      ...row,
-      clubNames: uniqueClubNames([...fromDb, ...fromLocal]),
-    };
-  });
+  const mappedSponsors: StaffSponsor[] = mappedSponsorsBase
+    .map((row) => {
+      const fromDb = (clubsFromDb.get(compactIdentity(row.brandName)) ?? []).filter(
+        (name) => isDemoClubName(name)
+      );
+      const fromLocal = clubsForBrandFromLocalStores(row.brandName, row.email);
+      return {
+        ...row,
+        clubNames: uniqueClubNames([...fromDb, ...fromLocal]),
+      };
+    })
+    .filter((row) => row.clubNames.length > 0);
 
   const excluded = {
     emails: [
@@ -105,7 +112,9 @@ export async function loadStaffParticipantRoster() {
     ].filter((key) => key.length >= 6),
   };
 
-  const fanRoster = staffFanRoster(fans, excluded);
+  const fanRoster = staffFanRoster(fans, excluded).filter((fan) =>
+    isDemoClubName(fan.clubName)
+  );
 
   return {
     fans: fanRoster,

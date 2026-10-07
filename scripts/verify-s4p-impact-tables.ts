@@ -47,8 +47,12 @@ assert(
 );
 
 const cilt = overallClimateImpactLeagueRows();
-assert(cilt.length === IMPACT_TABLE_FULL_LIMIT, "CILT full table has 20 clubs");
-assert(cilt[0].rank === 1 && cilt[9].rank === 10, "CILT top ten is numbered 1 to 10");
+assert(cilt.length === 3, "CILT full table has the three demo clubs");
+assert(
+  cilt.map((row) => row.name).join(",") === "Arsenal,Hearts,Hibernian",
+  "CILT ranks Arsenal, Hearts, then Hibernian"
+);
+assert(cilt[0].rank === 1 && cilt[2].rank === 3, "CILT demo rows are numbered 1 to 3");
 
 const football = climateImpactLeagueRowsFor(
   parseCiltFilter({ scope: "sport", sport: "Football" })
@@ -63,32 +67,8 @@ const premier = climateImpactLeagueRowsFor(
   parseCiltFilter({ competition: "Premier League" })
 );
 assert(
-  premier[0].name === "Arsenal" &&
-    premier.every((row) =>
-      [
-        "Arsenal",
-        "Liverpool",
-        "Chelsea",
-        "Manchester City",
-        "Manchester United",
-        "Tottenham Hotspur",
-        "Newcastle United",
-        "Aston Villa",
-        "Nottingham Forest",
-        "Brighton & Hove Albion",
-        "Fulham",
-        "Bournemouth",
-        "Crystal Palace",
-        "Everton",
-        "Brentford",
-        "Leeds United",
-        "Sunderland",
-        "Ipswich Town",
-        "Coventry City",
-        "Hull City",
-      ].includes(row.name)
-    ),
-  "Premier League CILT ranks Premier League clubs"
+  premier.length === 1 && premier[0].name === "Arsenal",
+  "Premier League CILT ranks Arsenal only"
 );
 assert(
   impactTableHeading("cilt", parseCiltFilter({ competition: "Premier League" })) ===
