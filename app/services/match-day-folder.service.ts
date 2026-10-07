@@ -177,7 +177,7 @@ export function identifyClubSponsorWallets({
     wallets.push(extra);
     seen.add(extra.id);
   }
-  return uniqueWalletsByBrand(wallets, clubName);
+  return uniqueWalletsByBrand(wallets, clubName, branding.leadName);
 }
 
 export function folderOrCreate({

@@ -41,9 +41,15 @@ function seedWallets(): ClimateWallet[] {
   return [
     createLeadWallet({
       clubName: "Hibernian",
-      brandName: "American Express",
-      commitmentFeeGbp: 3000,
-      gbpPerGoal: 3000,
+      brandName: "Budweiser Europe",
+      commitmentFeeGbp: 1000,
+      gbpPerGoal: 1000,
+    }),
+    createLeadWallet({
+      clubName: "Hibernian",
+      brandName: "Puma",
+      commitmentFeeGbp: 2500,
+      gbpPerGoal: 3500,
     }),
     createLocalWallet({
       clubName: "Hibernian",
