@@ -11,6 +11,7 @@ import {
   canClaimLeadClimateSponsor,
   isLeadClimateSponsorName,
   isRemovedSponsorBrand,
+  isSponsorBlockedFromClub,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   occupyingLeadClimateSponsor,
@@ -71,7 +72,9 @@ type LockStore = Record<string, MatchDayClubLock>;
 
 function rosterWithoutRemovedSponsors(roster: ClubSponsorRoster): ClubSponsorRoster {
   const sponsors = (roster.sponsors ?? []).filter(
-    (row) => !isRemovedSponsorBrand(row.brandName)
+    (row) =>
+      !isRemovedSponsorBrand(row.brandName) &&
+      !isSponsorBlockedFromClub(row.brandName, roster.clubName)
   );
   const keptIds = new Set(sponsors.map((row) => row.id));
   return {
@@ -128,7 +131,12 @@ function pruneNonDemoLocalSponsorStores() {
       networkChanged = true;
       continue;
     }
-    const next = demoOnlyNetwork(row);
+    const next = demoOnlyNetwork({
+      ...row,
+      clubNames: (row.clubNames ?? []).filter(
+        (club) => !isSponsorBlockedFromClub(row.brandName, club)
+      ),
+    });
     if (next.clubNames.length === 0) {
       networkChanged = true;
       continue;
@@ -150,7 +158,8 @@ function pruneNonDemoLocalSponsorStores() {
     if (
       row &&
       isDemoClubName(row.clubName) &&
-      !isRemovedSponsorBrand(row.brandKey)
+      !isRemovedSponsorBrand(row.brandKey) &&
+      !isSponsorBlockedFromClub(row.brandKey, row.clubName)
     ) {
       nextLocks[key] = row;
     } else lockChanged = true;
@@ -596,6 +605,11 @@ export function lockMatchDayClub({
   venue?: string | null;
   sourceUrl?: string | null;
 }): MatchDayClubLock {
+  if (isSponsorBlockedFromClub(brandName, clubName)) {
+    throw new Error(
+      secondLeadClimateSponsorRejectedMessage(clubName, "Puma")
+    );
+  }
   const lockedAt = new Date().toISOString();
   const store = readJson<LockStore>(LOCK_KEY, {});
   const occupant = occupyingLeadClimateSponsor({

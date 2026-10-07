@@ -1,3 +1,4 @@
+import { isSponsorBlockedFromClub } from "./climate-sponsors";
 import { formatLongMatchDate } from "./s4p-climate-projects";
 import {
   committedGbp,
@@ -96,12 +97,17 @@ export function uniqueWalletsByBrand(
       byBrand.set(key, wallet);
     }
   }
-  return exclusiveLeadItems([...byBrand.values()], preferredLeadName);
+  return exclusiveLeadItems(
+    [...byBrand.values()],
+    preferredLeadName,
+    preferredClubName
+  );
 }
 
 export function uniqueSponsorRows(
   sponsors: MatchDaySponsorRow[],
-  preferredLeadName?: string | null
+  preferredLeadName?: string | null,
+  clubName?: string | null
 ): MatchDaySponsorRow[] {
   const byBrand = new Map<string, MatchDaySponsorRow>();
   for (const row of sponsors) {
@@ -119,23 +125,33 @@ export function uniqueSponsorRows(
           (Number(row.committedGbp) || 0) > (Number(existing.committedGbp) || 0);
     if (takeCandidate) byBrand.set(key, { ...row });
   }
-  return exclusiveLeadItems([...byBrand.values()], preferredLeadName);
+  return exclusiveLeadItems(
+    [...byBrand.values()],
+    preferredLeadName,
+    clubName
+  );
 }
 
 /** Keep locals, but never more than one Lead Climate Sponsor. */
 function exclusiveLeadItems<T extends { brandName: string; kind: string }>(
   items: T[],
-  preferredLeadName?: string | null
+  preferredLeadName?: string | null,
+  clubName?: string | null
 ): T[] {
-  const leads = items.filter((row) => row.kind === "lead");
-  if (leads.length <= 1) return items;
+  const allowed = clubName
+    ? items.filter(
+        (row) => !isSponsorBlockedFromClub(row.brandName, clubName)
+      )
+    : items;
+  const leads = allowed.filter((row) => row.kind === "lead");
+  if (leads.length <= 1) return allowed;
   const preferredKey = normalizeKey(preferredLeadName ?? "");
   const keeper =
     (preferredKey
       ? leads.find((row) => normalizeKey(row.brandName) === preferredKey)
       : null) ?? leads[0];
   const keeperKey = normalizeKey(keeper.brandName);
-  return items.filter(
+  return allowed.filter(
     (row) => row.kind !== "lead" || normalizeKey(row.brandName) === keeperKey
   );
 }
@@ -185,18 +201,20 @@ export function buildSponsorsFile({
   sponsors,
   now = new Date(),
   preferredLeadName = null,
+  clubName = null,
 }: {
   matchDate: Date | string;
   sponsors: MatchDaySponsorRow[];
   now?: Date | string;
   preferredLeadName?: string | null;
+  clubName?: string | null;
 }): MatchDaySponsorsFile {
   const iso = asIso(now);
   return {
     fileName: sponsorsFileName(matchDate),
     matchDate: dateKey(matchDate),
     savedAt: iso,
-    sponsors: uniqueSponsorRows(sponsors, preferredLeadName),
+    sponsors: uniqueSponsorRows(sponsors, preferredLeadName, clubName),
   };
 }
 

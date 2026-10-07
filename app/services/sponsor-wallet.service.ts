@@ -9,6 +9,7 @@ import {
   walletIdFor,
   type ClimateWallet,
 } from "../lib/sponsor-wallet";
+import { isSponsorBlockedFromClub } from "../lib/climate-sponsors";
 import { clubsMatch } from "../lib/sponsor-dashboard";
 import {
   localSponsorsForClub,
@@ -28,6 +29,10 @@ function readStore(): Record<string, ClimateWallet> {
     let changed = false;
     for (const [id, wallet] of Object.entries(parsed)) {
       const normalized = normalizeClimateWallet(wallet);
+      if (isSponsorBlockedFromClub(normalized.brandName, normalized.clubName)) {
+        changed = true;
+        continue;
+      }
       next[id] = normalized;
       if (
         normalized.goalsScored !== wallet.goalsScored ||
@@ -87,8 +92,13 @@ export function readClimateWallet(
 }
 
 export function writeClimateWallet(wallet: ClimateWallet): ClimateWallet {
-  const store = readStore();
   const next = normalizeClimateWallet(wallet);
+  const store = readStore();
+  if (isSponsorBlockedFromClub(next.brandName, next.clubName)) {
+    delete store[next.id];
+    writeStore(store);
+    return next;
+  }
   store[next.id] = next;
   writeStore(store);
   return next;

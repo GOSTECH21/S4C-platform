@@ -9,6 +9,7 @@ import {
   nextFanMatchForClub,
   nextSignedOffFixtureForClub,
   occupyingLeadClimateSponsor,
+  isSponsorBlockedFromClub,
   SECOND_LEAD_CLIMATE_SPONSOR_REJECTED,
   secondLeadClimateSponsorRejectedMessage,
   type GoalSponsorshipNetwork,
@@ -306,7 +307,7 @@ const hibsDuplicateLeads = leadSponsorsForClubFromStores({
 });
 assert(
   hibsDuplicateLeads.length === 1 &&
-    hibsDuplicateLeads[0].brandName === "Budweiser Europe",
+    hibsDuplicateLeads[0].brandName === "Puma",
   "Hibernian Our Lead Climate Sponsor never lists Budweiser Europe and Puma together"
 );
 assert(
@@ -314,17 +315,26 @@ assert(
     clubName: "Hibernian",
     networks: [budweiserEurope, pumaHibs],
     locks: [hibsFirstLock, hibsSecondLock],
-  })?.brandName === "Budweiser Europe",
-  "The first Lead Climate Sponsor to lock Hibernian keeps the slot"
+  })?.brandName === "Puma",
+  "Budweiser is deleted from Hibernian so Puma is the Lead Climate Sponsor"
 );
 assert(
   !canClaimLeadClimateSponsor({
+    clubName: "Hibernian",
+    brandName: "Budweiser Europe",
+    networks: [budweiserEurope, pumaHibs],
+    locks: [hibsFirstLock, hibsSecondLock],
+  }),
+  "Budweiser cannot claim Hibernian as a Lead Climate Sponsor"
+);
+assert(
+  canClaimLeadClimateSponsor({
     clubName: "Hibernian",
     brandName: "Puma",
     networks: [budweiserEurope, pumaHibs],
     locks: [hibsFirstLock, hibsSecondLock],
   }),
-  "Puma's second Hibernian Lead claim is rejected"
+  "Puma remains Hibernian's Lead Climate Sponsor"
 );
 assert(
   leadSponsorBrandForFixture({
@@ -332,12 +342,19 @@ assert(
     fixtureName: "Hibernian v Celtic",
     networks: [budweiserEurope, pumaHibs],
     locks: [hibsFirstLock, hibsSecondLock],
-  }) === "Budweiser Europe",
-  "Hibernian v Celtic names the one Lead Climate Sponsor, not both"
+  }) === "Puma",
+  "Hibernian v Celtic names Puma, not Budweiser"
+);
+assert(
+  isSponsorBlockedFromClub("Budweiser Europe", "Hibernian") &&
+    isSponsorBlockedFromClub("Budweiser", "Hibernian FC") &&
+    !isSponsorBlockedFromClub("Puma", "Hibernian") &&
+    !isSponsorBlockedFromClub("Budweiser Europe", "Arsenal"),
+  "Budweiser is deleted from Hibernian only"
 );
 assert(
   /rejected/i.test(
-    secondLeadClimateSponsorRejectedMessage("Hibernian", "Budweiser Europe")
+    secondLeadClimateSponsorRejectedMessage("Hibernian", "Puma")
   ) && SECOND_LEAD_CLIMATE_SPONSOR_REJECTED.includes("one Lead Climate Sponsor"),
   "The rejection copy says only one Lead Climate Sponsor is allowed"
 );

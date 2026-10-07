@@ -348,11 +348,12 @@ assert(
         remainingGbp: 2500,
       },
     ],
-    "Puma"
+    null,
+    "Hibernian"
   )
     .map((row) => row.brandName)
     .join(",") === "Puma",
-  "The occupying Lead Climate Sponsor is the one row kept in the Sponsors File"
+  "The Hibernian Sponsors File deletes Budweiser and keeps Puma as the Lead"
 );
 assert(
   sponsorRowsFromWallets([amex, puma, topCellar]).length === 2 &&
@@ -694,11 +695,11 @@ assert(
   "The My S4P preview shows numbered Climate Projects without sponsor branding"
 );
 assert(
-  readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes(
-    "Budweiser Europe"
-  ) &&
-    readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes("Puma"),
-  "The Match-Day folder preview starts with two Lead wallets so the file can reject the second"
+  readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes("Puma") &&
+    !readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes(
+      "Budweiser Europe"
+    ),
+  "The Hibernian Match-Day folder preview keeps Puma and deletes Budweiser"
 );
 assert(
   readFileSync("app/lib/match-day-folder.ts", "utf8").includes(

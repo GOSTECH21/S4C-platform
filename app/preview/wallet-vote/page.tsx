@@ -41,12 +41,6 @@ function seedWallets(): ClimateWallet[] {
   return [
     createLeadWallet({
       clubName: "Hibernian",
-      brandName: "Budweiser Europe",
-      commitmentFeeGbp: 1000,
-      gbpPerGoal: 1000,
-    }),
-    createLeadWallet({
-      clubName: "Hibernian",
       brandName: "Puma",
       commitmentFeeGbp: 2500,
       gbpPerGoal: 3500,
@@ -73,7 +67,8 @@ export default function WalletVotePreviewPage() {
         empty,
         buildSponsorsFile({
           matchDate: MATCH_DATE,
-          sponsors: sponsorRowsFromWallets(seedWallets()),
+          sponsors: sponsorRowsFromWallets(seedWallets(), "Hibernian"),
+          clubName: "Hibernian",
         })
       ),
       buildProjectsFile({ matchDate: MATCH_DATE, projects: INITIAL_PROJECTS })
@@ -146,7 +141,8 @@ export default function WalletVotePreviewPage() {
                 prev,
                 buildSponsorsFile({
                   matchDate: MATCH_DATE,
-                  sponsors: sponsorRowsFromWallets(wallets),
+                  sponsors: sponsorRowsFromWallets(wallets, "Hibernian"),
+                  clubName: "Hibernian",
                 })
               )
             )

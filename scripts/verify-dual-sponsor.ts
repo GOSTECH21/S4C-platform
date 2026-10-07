@@ -295,8 +295,8 @@ const twoLeadTabs = splitClubClimateSponsorsForTabs({
   localSponsors: [],
 });
 assert(
-  twoLeadTabs.leads.map((row) => row.brandName).join(",") === "Budweiser Europe",
-  "Our Lead Climate Sponsor tab rejects a second Lead entry"
+  twoLeadTabs.leads.map((row) => row.brandName).join(",") === "Puma",
+  "Our Lead Climate Sponsor tab deletes Budweiser from Hibernian and keeps Puma"
 );
 assert(
   hibsTabs.locals
