@@ -2,6 +2,7 @@
 
 import { CURRENT_SEASON_LEAGUES, leagueForClubName } from "./current-season";
 import { clubsMatch, normalizeClubName } from "./sponsor-dashboard";
+export { clubsMatch };
 import { MATCH_DAY_LEAD_HOURS } from "./partner-projects";
 import { sameNamedFixture } from "./club-fixtures";
 
