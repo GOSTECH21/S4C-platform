@@ -14,20 +14,34 @@ const LOCK_KEY = "s4p.sponsor.matchLock";
 export default function LeadSignoffPreviewPage() {
   const [before, setBefore] = useState<LeadClubSponsorRow[]>([]);
   const [leads, setLeads] = useState<LeadClubSponsorRow[]>([]);
+  const [notice, setNotice] = useState("Signing off American Express…");
 
   useEffect(() => {
-    window.localStorage.removeItem(NETWORK_KEY);
-    window.localStorage.removeItem(LOCK_KEY);
-    setBefore(leadClimateSponsorsForClub("Hibernian"));
-    recordSignedLeadClimateSponsor({
-      brandName: "American Express",
-      clubName: "Hibernian",
-      clubId: "hibs-demo",
-      fixtureName: "Hibernian v Celtic",
-      fixtureDate: "2026-10-10",
-      competition: "Scottish Premiership Match",
-    });
-    setLeads(leadClimateSponsorsForClub("Hibernian"));
+    try {
+      window.localStorage.removeItem(NETWORK_KEY);
+      window.localStorage.removeItem(LOCK_KEY);
+      const prior = leadClimateSponsorsForClub("Hibernian");
+      setBefore(prior);
+      const signed = recordSignedLeadClimateSponsor({
+        brandName: "American Express",
+        clubName: "Hibernian",
+        clubId: "hibs-demo",
+        fixtureName: "Hibernian v Celtic",
+        fixtureDate: "2026-10-10",
+        competition: "Scottish Premiership Match",
+      });
+      const next = leadClimateSponsorsForClub("Hibernian");
+      setLeads(next);
+      setNotice(
+        signed
+          ? `Activated: ${signed.brandName} · ${signed.matches.join(", ") || "match pending"}`
+          : "Sign-off did not activate a Lead Climate Sponsor."
+      );
+    } catch (err) {
+      setNotice(
+        err instanceof Error ? err.message : "Could not activate the Lead tab."
+      );
+    }
   }, []);
 
   return (
@@ -50,6 +64,7 @@ export default function LeadSignoffPreviewPage() {
             ? "No Lead Climate Sponsor"
             : before.map((row) => row.brandName).join(", ")}
         </p>
+        <p className="mt-2 text-sm font-semibold text-amber-300">{notice}</p>
         <ClubClimateSponsorTabs
           clubName="Hibernian"
           leadSponsors={leads}

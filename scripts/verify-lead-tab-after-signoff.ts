@@ -138,7 +138,8 @@ async function main() {
     preview.includes("recordSignedLeadClimateSponsor") &&
       preview.includes("Hibernian v Celtic") &&
       preview.includes("American Express") &&
-      preview.includes("ClubClimateSponsorTabs"),
+      preview.includes("ClubClimateSponsorTabs") &&
+      preview.includes("Activated:"),
     "The lead-signoff preview shows American Express on Our Lead Climate Sponsor after Hibernian v Celtic sign-off"
   );
 
