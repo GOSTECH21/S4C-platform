@@ -17,6 +17,8 @@ import {
   listInvitesForSponsor,
   loadBrandLogo,
   loadGoalNetwork,
+  listGoalNetworks,
+  listMatchDayLocks,
   loadMatchDayLock,
   lockMatchDayClub,
   readLogoFile,
@@ -27,10 +29,13 @@ import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   MATCH_DAY_LOCK_LABELS,
+  clubsMatch,
   displayLockFixture,
   lockCopy,
   leagueFromMatchLabel,
   clubNetworkLeagueId,
+  occupyingLeadClimateSponsor,
+  secondLeadClimateSponsorRejectedMessage,
   unlockedMatchDay,
   type GoalSponsorshipNetwork,
   type MatchDayClubLock,
@@ -203,18 +208,26 @@ export default function SponsorDashboardPage() {
               lock.venue !== published.venue ||
               lock.kickoff !== published.kickoff)
           ) {
-            const next = lockMatchDayClub({
-              brandName: brand,
-              clubName: lockClub,
-              matchLabel: published.competition,
-              fixtureName: published.fixtureName,
-              competition: published.competition,
-              fixtureDate: published.date,
-              kickoff: published.kickoff,
-              venue: published.venue,
-              sourceUrl: published.sourceUrl,
-            });
-            setLock(next);
+            try {
+              const next = lockMatchDayClub({
+                brandName: brand,
+                clubName: lockClub,
+                matchLabel: published.competition,
+                fixtureName: published.fixtureName,
+                competition: published.competition,
+                fixtureDate: published.date,
+                kickoff: published.kickoff,
+                venue: published.venue,
+                sourceUrl: published.sourceUrl,
+              });
+              setLock(next);
+            } catch (err) {
+              setFixtureNotice(
+                err instanceof Error
+                  ? err.message
+                  : secondLeadClimateSponsorRejectedMessage(lockClub, "")
+              );
+            }
           }
           return;
         }
@@ -313,21 +326,29 @@ export default function SponsorDashboardPage() {
       setLockClub(club);
       return;
     }
-    const next = lockMatchDayClub({
-      brandName: brand,
-      clubName: club,
-      matchLabel: fixture.competition,
-      fixtureName: fixture.fixtureName,
-      competition: fixture.competition,
-      fixtureDate: fixture.date,
-      kickoff: fixture.kickoff,
-      venue: fixture.venue,
-      sourceUrl: fixture.sourceUrl,
-    });
-    setLock(next);
-    setLockClub(club);
-    setLockFixture(fixture.fixtureName);
-    void refreshFolder();
+    try {
+      const next = lockMatchDayClub({
+        brandName: brand,
+        clubName: club,
+        matchLabel: fixture.competition,
+        fixtureName: fixture.fixtureName,
+        competition: fixture.competition,
+        fixtureDate: fixture.date,
+        kickoff: fixture.kickoff,
+        venue: fixture.venue,
+        sourceUrl: fixture.sourceUrl,
+      });
+      setLock(next);
+      setLockClub(club);
+      setLockFixture(fixture.fixtureName);
+      void refreshFolder();
+    } catch (err) {
+      setFixtureNotice(
+        err instanceof Error
+          ? err.message
+          : secondLeadClimateSponsorRejectedMessage(club, "")
+      );
+    }
   }
 
   function unlockMatchDay() {
@@ -658,8 +679,14 @@ export default function SponsorDashboardPage() {
         <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>
         <p className="mt-2 text-slate-400">
           Choose the Club. Future Matches to be played in Competitions (League,
-          Cups and Europe) will be visible. Choose the Match
+          Cups and Europe) will be visible. Choose the Match. Only one Lead
+          Climate Sponsor is allowed for each club.
         </p>
+        {fixtureNotice ? (
+          <p className="mt-4 text-sm font-semibold text-amber-300">
+            {fixtureNotice}
+          </p>
+        ) : null}
         <div className="mt-6">
           <ClubNetworkPicker
             selected={networkClubs}
@@ -667,12 +694,30 @@ export default function SponsorDashboardPage() {
             highlightLeague={leagueFromMatchLabel(lockLabel)}
             onChooseMatchDayClub={lockClubFromNetwork}
             onChange={(clubs) => {
-              setNetworkClubs(clubs);
               const next = ensureGoalNetwork({
                 brandName: brand,
                 clubNames: clubs,
               });
               setNetwork(next);
+              setNetworkClubs(next.clubNames);
+              const rejected = clubs.filter(
+                (club) =>
+                  !next.clubNames.some((kept) => clubsMatch(kept, club))
+              );
+              if (rejected.length > 0) {
+                const club = rejected[0] ?? "";
+                const occupant = occupyingLeadClimateSponsor({
+                  clubName: club,
+                  networks: listGoalNetworks(),
+                  locks: listMatchDayLocks(),
+                });
+                setFixtureNotice(
+                  secondLeadClimateSponsorRejectedMessage(
+                    club,
+                    occupant?.brandName ?? ""
+                  )
+                );
+              }
             }}
           />
         </div>

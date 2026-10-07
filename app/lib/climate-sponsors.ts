@@ -53,6 +53,18 @@ export function isRemovedSponsorBrand(name: string | null | undefined): boolean 
   return key.startsWith("carbonwarriors");
 }
 
+export const SECOND_LEAD_CLIMATE_SPONSOR_REJECTED =
+  "Only one Lead Climate Sponsor is allowed. A second Lead Climate Sponsor is rejected.";
+
+export function secondLeadClimateSponsorRejectedMessage(
+  clubName: string,
+  occupantName: string
+): string {
+  const club = clubName.trim() || "this club";
+  const occupant = occupantName.trim() || "another brand";
+  return `${SECOND_LEAD_CLIMATE_SPONSOR_REJECTED} ${occupant} already holds ${club}.`;
+}
+
 /** True only for designated Lead Climate Sponsor brands — one type per club. */
 export function isLeadClimateSponsorName(brandName: string): boolean {
   if (!brandName.trim()) return false;
@@ -482,6 +494,78 @@ function sponsorsForClubFromStores({
   });
 }
 
+/** First locked (or first opted-in) Lead Climate Sponsor wins. Everyone else is rejected. */
+export function pickSoleLeadClimateSponsor(
+  rows: LeadClubSponsorRow[]
+): LeadClubSponsorRow | null {
+  const leads = rows.filter(
+    (row) =>
+      isLeadClimateSponsorName(row.brandName) &&
+      !isRemovedSponsorBrand(row.brandName)
+  );
+  if (leads.length === 0) return null;
+  const ranked = [...leads].sort((left, right) => {
+    const leftLocked = left.matches.length > 0 || Boolean(left.lockedAt);
+    const rightLocked = right.matches.length > 0 || Boolean(right.lockedAt);
+    if (leftLocked !== rightLocked) return leftLocked ? -1 : 1;
+    const leftAt = left.lockedAt || "";
+    const rightAt = right.lockedAt || "";
+    if (leftAt && rightAt && leftAt !== rightAt) {
+      return leftAt.localeCompare(rightAt);
+    }
+    if (leftAt && !rightAt) return -1;
+    if (!leftAt && rightAt) return 1;
+    return left.brandName.localeCompare(right.brandName);
+  });
+  return ranked[0] ?? null;
+}
+
+export function occupyingLeadClimateSponsor({
+  clubName,
+  networks,
+  locks,
+  excludeBrandKeys = [],
+}: {
+  clubName: string;
+  networks: GoalSponsorshipNetwork[];
+  locks: MatchDayClubLock[];
+  excludeBrandKeys?: string[];
+}): LeadClubSponsorRow | null {
+  return pickSoleLeadClimateSponsor(
+    sponsorsForClubFromStores({
+      clubName,
+      networks,
+      locks,
+      excludeBrandKeys,
+    })
+  );
+}
+
+export function canClaimLeadClimateSponsor({
+  clubName,
+  brandName,
+  networks,
+  locks,
+  excludeBrandKeys = [],
+}: {
+  clubName: string;
+  brandName: string;
+  networks: GoalSponsorshipNetwork[];
+  locks: MatchDayClubLock[];
+  excludeBrandKeys?: string[];
+}): boolean {
+  if (!clubName.trim() || !brandName.trim()) return false;
+  if (!isLeadClimateSponsorName(brandName)) return true;
+  const occupant = occupyingLeadClimateSponsor({
+    clubName,
+    networks,
+    locks,
+    excludeBrandKeys,
+  });
+  if (!occupant) return true;
+  return brandsMatch(occupant.brandName, brandName);
+}
+
 export function leadSponsorsForClubFromStores({
   clubName,
   networks,
@@ -493,12 +577,13 @@ export function leadSponsorsForClubFromStores({
   locks: MatchDayClubLock[];
   excludeBrandKeys?: string[];
 }): LeadClubSponsorRow[] {
-  return sponsorsForClubFromStores({
+  const occupant = occupyingLeadClimateSponsor({
     clubName,
     networks,
     locks,
     excludeBrandKeys,
-  }).filter((row) => isLeadClimateSponsorName(row.brandName));
+  });
+  return occupant ? [occupant] : [];
 }
 
 /** Brands that chose this club but are not the Lead Climate Sponsor. */
@@ -521,10 +606,10 @@ export function localBusinessSponsorsForClubFromStores({
   }).filter((row) => !isLeadClimateSponsorName(row.brandName));
 }
 
-/** The Lead Climate Sponsor who locked this named fixture — never another match's brand. */
+/** The one Lead Climate Sponsor for this club — never a second brand. */
 export function leadSponsorBrandForFixture({
   clubName,
-  fixtureName,
+  fixtureName: _fixtureName,
   locks,
   networks = [],
 }: {
@@ -533,22 +618,14 @@ export function leadSponsorBrandForFixture({
   locks: MatchDayClubLock[];
   networks?: GoalSponsorshipNetwork[];
 }): string | null {
-  const fixture = String(fixtureName ?? "")
-    .replace(/\s+climate campaign$/i, "")
-    .trim();
-  if (!clubName.trim() || !fixture) return null;
-  const named = leadSponsorsForClubFromStores({
-    clubName,
-    networks,
-    locks,
-  }).filter((row) =>
-    row.matches.some((name) => sameNamedFixture(name, fixture))
+  if (!clubName.trim()) return null;
+  return (
+    occupyingLeadClimateSponsor({
+      clubName,
+      networks,
+      locks,
+    })?.brandName?.trim() || null
   );
-  if (named.length === 0) return null;
-  named.sort((left, right) =>
-    String(right.lockedAt ?? "").localeCompare(String(left.lockedAt ?? ""))
-  );
-  return named[0]?.brandName?.trim() || null;
 }
 
 export function brandKey(name: string): string {

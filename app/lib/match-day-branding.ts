@@ -4,6 +4,7 @@ import {
   isKnownLocalBusinessSponsorName,
   isLeadClimateSponsorName,
   isRemovedSponsorBrand,
+  pickSoleLeadClimateSponsor,
   KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES,
   type ClubClimateSponsor,
   type LeadClubSponsorRow,
@@ -119,7 +120,10 @@ export function splitClubClimateSponsorsForTabs({
   leads: LeadClubSponsorRow[];
   locals: LocalSponsorRecord[];
 } {
-  const leads = leadSponsors.filter((row) => isLeadClimateBrand(row.brandName));
+  const occupant = pickSoleLeadClimateSponsor(
+    leadSponsors.filter((row) => isLeadClimateBrand(row.brandName))
+  );
+  const leads = occupant ? [occupant] : [];
   const localsByKey = new Map<string, LocalSponsorRecord>();
 
   function rememberLocal(row: LocalSponsorRecord) {

@@ -8,10 +8,13 @@ import {
   emptySponsor,
   ensureSponsorSelected,
   inviteMatchesSponsor,
+  canClaimLeadClimateSponsor,
   isLeadClimateSponsorName,
   isRemovedSponsorBrand,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
+  occupyingLeadClimateSponsor,
+  secondLeadClimateSponsorRejectedMessage,
   localBusinessSponsorsForClubFromStores,
   removeSponsor,
   selectedSponsors,
@@ -415,14 +418,25 @@ export function saveGoalNetwork(network: GoalSponsorshipNetwork) {
     const store = readJson<NetworkStore>(NETWORK_KEY, {});
     delete store[brandKey(network.brandName)];
     writeJson(NETWORK_KEY, store);
-    void persistSponsorClubNetwork({ ...network, clubNames: [] });
-    return;
+    const cleared = { ...network, clubNames: [] as string[] };
+    void persistSponsorClubNetwork(cleared);
+    return cleared;
   }
   const next = demoOnlyNetwork({
     ...network,
     brandKey: brandKey(network.brandName),
   });
   const store = readJson<NetworkStore>(NETWORK_KEY, {});
+  const locks = listMatchDayLocks();
+  const networks = Object.values(store).filter((row) => row && row.brandName);
+  next.clubNames = next.clubNames.filter((clubName) =>
+    canClaimLeadClimateSponsor({
+      clubName,
+      brandName: next.brandName,
+      networks,
+      locks,
+    })
+  );
   if (next.clubNames.length === 0) {
     delete store[brandKey(network.brandName)];
   } else {
@@ -430,6 +444,7 @@ export function saveGoalNetwork(network: GoalSponsorshipNetwork) {
   }
   writeJson(NETWORK_KEY, store);
   void persistSponsorClubNetwork(next);
+  return next;
 }
 
 export function clubsForBrandFromLocalStores(
@@ -526,8 +541,7 @@ export function ensureGoalNetwork({
     { ...existing, brandName, email: email ?? existing.email },
     demoClubNamesOnly(clubNames)
   );
-  saveGoalNetwork(next);
-  return next;
+  return saveGoalNetwork(next);
 }
 
 export function lockedBrandNameForClubAndMatch(
@@ -549,25 +563,11 @@ export function lockedBrandNameForClubAndMatch(
 
 export function lockedBrandNameForClub(clubName: string): string | null {
   if (!clubName.trim() || typeof window === "undefined") return null;
-  const locks = readJson<LockStore>(LOCK_KEY, {});
-  const networks = readJson<NetworkStore>(NETWORK_KEY, {});
-  const rosters = readJson<RosterStore>(ROSTER_KEY, {});
-  for (const lock of Object.values(locks)) {
-    if (!lock?.clubName || !offerBelongsToClub(lock.clubName, clubName)) continue;
-    const fromNetwork = Object.values(networks).find(
-      (row) =>
-        row.brandKey === lock.brandKey ||
-        brandsMatch(row.brandName, lock.brandKey)
-    );
-    if (fromNetwork?.brandName) return fromNetwork.brandName;
-    for (const roster of Object.values(rosters)) {
-      const sponsor = roster.sponsors.find(
-        (row) => brandKey(row.brandName) === lock.brandKey
-      );
-      if (sponsor?.brandName) return sponsor.brandName;
-    }
-  }
-  return null;
+  return occupyingLeadClimateSponsor({
+    clubName,
+    networks: listGoalNetworks(),
+    locks: listMatchDayLocks(),
+  })?.brandName?.trim() || null;
 }
 
 export function loadMatchDayLock(brandName: string): MatchDayClubLock | null {
@@ -598,6 +598,20 @@ export function lockMatchDayClub({
 }): MatchDayClubLock {
   const lockedAt = new Date().toISOString();
   const store = readJson<LockStore>(LOCK_KEY, {});
+  const occupant = occupyingLeadClimateSponsor({
+    clubName,
+    networks: listGoalNetworks(),
+    locks: Object.values(store).filter((row) => row && row.clubName),
+  });
+  if (
+    isLeadClimateSponsorName(brandName) &&
+    occupant &&
+    !brandsMatch(occupant.brandName, brandName)
+  ) {
+    throw new Error(
+      secondLeadClimateSponsorRejectedMessage(clubName, occupant.brandName)
+    );
+  }
   const existing = store[brandKey(brandName)] ?? null;
   const keepFunding =
     existing && offerBelongsToClub(existing.clubName, clubName)

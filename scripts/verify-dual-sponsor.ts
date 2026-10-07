@@ -272,6 +272,32 @@ assert(
   hibsTabs.leads.map((row) => row.brandName).join(",") === "American Express",
   "Our Lead Climate Sponsor tab keeps only American Express"
 );
+const twoLeadTabs = splitClubClimateSponsorsForTabs({
+  clubName: "Hibernian",
+  leadSponsors: [
+    {
+      brandKey: "budweiser europe",
+      brandName: "Budweiser Europe",
+      email: null,
+      matches: ["Hibernian v Celtic"],
+      lockedAt: "2026-09-01T10:00:00.000Z",
+      inNetwork: true,
+    },
+    {
+      brandKey: "puma",
+      brandName: "Puma",
+      email: null,
+      matches: ["Hibernian v Celtic"],
+      lockedAt: "2026-10-01T10:00:00.000Z",
+      inNetwork: true,
+    },
+  ],
+  localSponsors: [],
+});
+assert(
+  twoLeadTabs.leads.map((row) => row.brandName).join(",") === "Budweiser Europe",
+  "Our Lead Climate Sponsor tab rejects a second Lead entry"
+);
 assert(
   hibsTabs.locals
     .map((row) => row.brandName)
