@@ -133,6 +133,15 @@ async function main() {
     "Agree and sign off records the Lead Climate Sponsor and notifies the club dashboard"
   );
 
+  const preview = readFileSync("app/preview/lead-signoff/page.tsx", "utf8");
+  assert(
+    preview.includes("recordSignedLeadClimateSponsor") &&
+      preview.includes("Hibernian v Celtic") &&
+      preview.includes("American Express") &&
+      preview.includes("ClubClimateSponsorTabs"),
+    "The lead-signoff preview shows American Express on Our Lead Climate Sponsor after Hibernian v Celtic sign-off"
+  );
+
   const tabs = readFileSync(
     "app/components/club/ClubClimateSponsorTabs.tsx",
     "utf8"
