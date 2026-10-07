@@ -39,7 +39,7 @@ function assert(condition: boolean, message: string) {
 }
 
 async function main() {
-const { lockMatchDayClub, lockWalletFundingToClub, ensureGoalNetwork, bindFundedSponsorToClub, loadMatchDayLock, loadClubSponsorRoster } = await import("../app/services/climate-sponsors.service");
+const { lockMatchDayClub, lockWalletFundingToClub, ensureGoalNetwork, bindFundedSponsorToClub, loadMatchDayLock, loadClubSponsorRoster, recordSignedLeadClimateSponsor, leadClimateSponsorsForClub } = await import("../app/services/climate-sponsors.service");
 const { depositLeadClimateWallet, readClimateWallet } = await import("../app/services/sponsor-wallet.service");
 const { ensureOfferFromLockedClubUploads } = await import("../app/services/sponsor-offers.service");
 const { publishMatchDayFolderFromSignedOffer, uploadedMatchDayFolderForClub } = await import("../app/services/match-day-folder.service");
@@ -224,6 +224,29 @@ assert(
     commitmentFeeGbp: 2500,
   }).commitmentFeeGbp === 2500,
   "Funding lock copy stays on the Hibernian match-day lock"
+);
+
+const heartsLead = recordSignedLeadClimateSponsor({
+  brandName: "American Express",
+  clubName: "Hearts of Midlothian",
+  clubId: "hearts-demo",
+  fixtureName: "Hearts of Midlothian v Celtic",
+  fixtureDate: "2026-10-11",
+});
+assert(
+  heartsLead?.brandName === "American Express" &&
+    leadClimateSponsorsForClub("Hearts of Midlothian").some((row) =>
+      /celtic/i.test(row.matches.join(" "))
+    ),
+  "Sign-off activates Our Lead Climate Sponsor for the club Sustainability Director immediately"
+);
+assert(
+  recordSignedLeadClimateSponsor({
+    brandName: "American Express",
+    clubName: "Hibernian",
+    fixtureName: "Hibernian v Celtic",
+  })?.brandName === "Puma",
+  "A later American Express sign-off does not replace the occupying Hibernian Lead"
 );
 
 if (failures.length > 0) {

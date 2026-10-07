@@ -573,25 +573,39 @@ export async function signSponsorOffer({
 
   try {
     const offer = await getSponsorMatchOffer(offerId);
-    if (offer?.clubId && offer.projects.length > 0) {
-      const { publishSignedSponsorshipToFans } = await import(
-        "./club-match-day.service"
+    if (offer?.clubName) {
+      const { recordSignedLeadClimateSponsor } = await import(
+        "./climate-sponsors.service"
       );
-      await publishSignedSponsorshipToFans({
-        clubId: offer.clubId,
-        clubName: offer.clubName,
+      recordSignedLeadClimateSponsor({
         brandName: signature.brandName,
-        projects: offer.projects,
-        minAmount: offer.sponsorshipAmountGbp,
-        gbpPerGoal: offer.gbpPerGoal,
-        maxAmount: offer.maxAmount,
-        gbpPerVote: offer.gbpPerVote,
+        clubName: offer.clubName,
+        clubId: offer.clubId,
+        fixtureName: offer.matchTitle,
+        fixtureDate: offer.matchDate,
       });
+    }
+    if (offer?.clubId && offer.clubName) {
+      if (offer.projects.length > 0) {
+        const { publishSignedSponsorshipToFans } = await import(
+          "./club-match-day.service"
+        );
+        await publishSignedSponsorshipToFans({
+          clubId: offer.clubId,
+          clubName: offer.clubName,
+          brandName: signature.brandName,
+          projects: offer.projects,
+          minAmount: offer.sponsorshipAmountGbp,
+          gbpPerGoal: offer.gbpPerGoal,
+          maxAmount: offer.maxAmount,
+          gbpPerVote: offer.gbpPerVote,
+        });
+      }
       notifySignedSponsorship({
         clubId: offer.clubId,
         clubName: offer.clubName,
         brandName: signature.brandName,
-        projectIds: offer.projectIds,
+        projectIds: offer.projectIds ?? [],
       });
     }
   } catch {

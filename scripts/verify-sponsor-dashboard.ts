@@ -604,8 +604,9 @@ const offerService = readFileSync(
 );
 assert(
   offerService.includes("ensureOfferFromLockedClubUploads") &&
-    offerService.includes("publishSignedSponsorshipToFans"),
-  "Locked-in sponsors pull the SD's uploaded five immediately, then sign-off publishes them to the club and fans"
+    offerService.includes("publishSignedSponsorshipToFans") &&
+    offerService.includes("recordSignedLeadClimateSponsor"),
+  "Locked-in sponsors pull the SD's uploaded five immediately, then sign-off publishes them and activates the club Lead tab"
 );
 assert(
   readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
@@ -613,8 +614,11 @@ assert(
   ) &&
     readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
       "ensureOfferFromLockedClubUploads"
+    ) &&
+    readFileSync("scripts/verify-lead-tab-after-signoff.ts", "utf8").includes(
+      "recordSignedLeadClimateSponsor"
     ),
-  "A completion-flow verify covers lock, wallet funding, pull, and live fan publish"
+  "A completion-flow verify covers lock, wallet funding, pull, live fan publish, and Lead-tab activation after sign-off"
 );
 
 assert(

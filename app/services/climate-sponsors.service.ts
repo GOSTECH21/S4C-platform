@@ -655,6 +655,69 @@ export function lockMatchDayClub({
   return lock;
 }
 
+/** After a Lead signs off a match, they occupy this club's Lead Climate Sponsor tab. */
+export function recordSignedLeadClimateSponsor({
+  brandName,
+  clubName,
+  clubId,
+  fixtureName,
+  fixtureDate,
+  competition,
+}: {
+  brandName: string;
+  clubName: string;
+  clubId?: string | null;
+  fixtureName?: string | null;
+  fixtureDate?: string | null;
+  competition?: string | null;
+}): LeadClubSponsorRow | null {
+  const brand = brandName.trim();
+  const club = clubName.trim();
+  if (!brand || !club) return null;
+  if (!isLeadClimateSponsorName(brand)) return null;
+  if (isRemovedSponsorBrand(brand) || isSponsorBlockedFromClub(brand, club)) {
+    return null;
+  }
+
+  const canClaim = canClaimLeadClimateSponsor({
+    clubName: club,
+    brandName: brand,
+    networks: listGoalNetworks(),
+    locks: listMatchDayLocks(),
+  });
+  if (!canClaim) {
+    return leadClimateSponsorsForClub(club)[0] ?? null;
+  }
+
+  ensureGoalNetwork({
+    brandName: brand,
+    clubNames: [club],
+  });
+
+  const matchName =
+    String(fixtureName ?? "").trim() || `${club} Match Day`;
+  try {
+    lockMatchDayClub({
+      brandName: brand,
+      clubName: club,
+      matchLabel: String(competition ?? "").trim() || matchName,
+      fixtureName: matchName,
+      competition: String(competition ?? "").trim() || matchName,
+      fixtureDate: String(fixtureDate ?? "").trim() || undefined,
+    });
+  } catch {
+    // Signature still stands if a second Lead is rejected from the lock.
+  }
+
+  bindFundedSponsorToClub({
+    clubId,
+    clubName: club,
+    brandName: brand,
+  });
+
+  return leadClimateSponsorsForClub(club)[0] ?? null;
+}
+
 export function lockWalletFundingToClub({
   brandName,
   clubName,

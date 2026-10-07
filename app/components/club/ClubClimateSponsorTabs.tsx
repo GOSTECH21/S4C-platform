@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import type { LeadClubSponsorRow } from "@/app/lib/climate-sponsors";
 import { splitClubClimateSponsorsForTabs } from "@/app/lib/match-day-branding";
@@ -36,12 +36,33 @@ export function ClubClimateSponsorTabs({
     [clubName, leadSponsors, localSponsors]
   );
   const [tab, setTab] = useState<ClimateSponsorTab>(initialTab);
+  const [selectedLeadKey, setSelectedLeadKey] = useState<string | null>(
+    leads[0]?.brandKey ?? null
+  );
+  const activateLeadWhenSignedOff = useRef(leads.length === 0);
   const localCount = locals.length;
   const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
   const leadTabId = `${tabPrefix}-lead-climate-sponsor-tab`;
   const localTabId = `${tabPrefix}-local-businesses-sponsor-tab`;
   const leadPanelId = `${tabPrefix}-lead-climate-sponsor-panel`;
   const localPanelId = `${tabPrefix}-local-businesses-sponsor-panel`;
+
+  useEffect(() => {
+    if (leads.length === 0) {
+      setSelectedLeadKey(null);
+      activateLeadWhenSignedOff.current = true;
+      return;
+    }
+    setSelectedLeadKey((current) =>
+      current && leads.some((row) => row.brandKey === current)
+        ? current
+        : leads[0]!.brandKey
+    );
+    if (activateLeadWhenSignedOff.current) {
+      setTab("lead");
+      activateLeadWhenSignedOff.current = false;
+    }
+  }, [leads]);
 
   return (
     <section
@@ -97,31 +118,42 @@ export function ClubClimateSponsorTabs({
             </p>
           ) : (
             <ul className="mt-6 grid gap-4">
-              {leads.map((sponsor) => (
-                <li
-                  key={sponsor.brandKey}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-5"
-                >
-                  <div className="flex items-start gap-3">
-                    <BrandMark
-                      name={sponsor.brandName}
-                      logoUrl={sponsor.logoUrl}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold">{sponsor.brandName}</p>
-                      <p className="text-sm text-slate-400">
-                        {sponsor.inNetwork
-                          ? `Lead Climate Sponsor for ${clubName}`
-                          : `Locked ${clubName} Match Days`}
-                      </p>
-                      <MatchPills
-                        matches={sponsor.matches}
-                        empty="Match not yet selected"
+              {leads.map((sponsor) => {
+                const selected = selectedLeadKey === sponsor.brandKey;
+                return (
+                <li key={sponsor.brandKey}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLeadKey(sponsor.brandKey)}
+                    aria-pressed={selected}
+                    className={`w-full rounded-2xl border p-5 text-left ${
+                      selected
+                        ? "border-amber-400 bg-slate-950 ring-2 ring-amber-400/60"
+                        : "border-slate-700 bg-slate-950 hover:border-amber-300"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <BrandMark
+                        name={sponsor.brandName}
+                        logoUrl={sponsor.logoUrl}
                       />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold">{sponsor.brandName}</p>
+                        <p className="text-sm text-slate-400">
+                          {sponsor.inNetwork
+                            ? `Lead Climate Sponsor for ${clubName}`
+                            : `Locked ${clubName} Match Days`}
+                        </p>
+                        <MatchPills
+                          matches={sponsor.matches}
+                          empty="Match not yet selected"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>
@@ -216,16 +248,16 @@ function MatchPills({
     return <p className="mt-3 text-sm text-slate-500">{empty}</p>;
   }
   return (
-    <ul className="mt-3 flex flex-wrap gap-2">
+    <div className="mt-3 flex flex-wrap gap-2">
       {matches.map((match) => (
-        <li
+        <span
           key={match}
           className="rounded-full border border-green-500/40 bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-300"
         >
           {match}
-        </li>
+        </span>
       ))}
-    </ul>
+    </div>
   );
 }
 
