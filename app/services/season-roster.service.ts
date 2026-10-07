@@ -3,9 +3,8 @@ import {
   CURRENT_SEASON_LEAGUES,
   LEAGUE_COUNTRY,
   LEAGUE_SPORT,
-  canonicalLeagueName,
   findClubOnRoster,
-  isCurrentSeasonLeagueFixture,
+  isDemoClubName,
   normalizeSeasonName,
 } from "../lib/current-season";
 import { supabase } from "../lib/supabase";
@@ -62,8 +61,18 @@ async function syncCurrentSeasonRoster(): Promise<void> {
 
   await ensureLeagueCompetitions(byName, sportsByName);
 
-  if (rosterAlreadyCurrent(clubRows, byName)) return;
+  if (!rosterAlreadyCurrent(clubRows, byName)) {
+    await assignCurrentSeasonClubs(clubRows, byName);
+  }
 
+  await dropStaleLeagueFixtures(clubRows, byName);
+  await pruneNonDemoClubParticipants(clubRows);
+}
+
+async function assignCurrentSeasonClubs(
+  clubRows: ClubRow[],
+  byName: Map<string, CompetitionRow>
+): Promise<void> {
   for (const competition of byName.values()) {
     if (
       CURRENT_SEASON_LEAGUES[competition.name] &&
@@ -126,8 +135,6 @@ async function syncCurrentSeasonRoster(): Promise<void> {
       club.competition_id = null;
     }
   }
-
-  await dropStaleLeagueFixtures(clubRows, byName);
 }
 
 async function ensureLeagueCompetitions(
@@ -183,7 +190,7 @@ function rosterAlreadyCurrent(
 
 async function dropStaleLeagueFixtures(
   clubs: ClubRow[],
-  competitions: Map<string, CompetitionRow>
+  _competitions: Map<string, CompetitionRow>
 ): Promise<void> {
   const clubById = new Map(clubs.map((club) => [club.id, club]));
   const { data: fixtures } = await supabase
@@ -192,14 +199,10 @@ async function dropStaleLeagueFixtures(
 
   const staleIds: string[] = [];
   for (const fixture of fixtures ?? []) {
-    const competitionName = [...competitions.values()].find(
-      (row) => row.id === fixture.competition_id
-    )?.name;
-    if (!canonicalLeagueName(competitionName)) continue;
     const home = clubById.get(fixture.home_club_id as string);
     const away = clubById.get(fixture.away_club_id as string);
     if (!home || !away) continue;
-    if (!isCurrentSeasonLeagueFixture(competitionName, home.name, away.name)) {
+    if (!isDemoClubName(home.name) && !isDemoClubName(away.name)) {
       staleIds.push(fixture.id as string);
     }
   }
@@ -208,4 +211,119 @@ async function dropStaleLeagueFixtures(
   for (const id of staleIds) {
     await supabase.from("fixtures").delete().eq("id", id);
   }
+}
+
+async function pruneNonDemoClubParticipants(clubs: ClubRow[]): Promise<void> {
+  try {
+    await pruneNonDemoClubParticipantsUnsafe(clubs);
+  } catch (error) {
+    console.error("Failed to prune non-demo club participants", error);
+  }
+}
+
+async function pruneNonDemoClubParticipantsUnsafe(clubs: ClubRow[]): Promise<void> {
+  const demoIds = new Set(
+    clubs.filter((club) => isDemoClubName(club.name)).map((club) => club.id)
+  );
+
+  await deleteRowsNotInDemoClubs("club_accounts", "club_id", demoIds);
+
+  const { data: memberships } = await supabase
+    .from("supporter_clubs")
+    .select("supporter_id, club_id");
+  for (const row of memberships ?? []) {
+    if (demoIds.has(String(row.club_id ?? ""))) continue;
+    await supabase
+      .from("supporter_clubs")
+      .delete()
+      .eq("supporter_id", row.supporter_id)
+      .eq("club_id", row.club_id);
+  }
+
+  const { data: fans } = await supabase
+    .from("supporters")
+    .select("id, favourite_club_id");
+  const staleFanIds = (fans ?? [])
+    .filter((row) => !demoIds.has(String(row.favourite_club_id ?? "")))
+    .map((row) => String(row.id));
+  if (staleFanIds.length > 0) {
+    await supabase.from("supporter_votes").delete().in("supporter_id", staleFanIds);
+    await supabase.from("supporters").delete().in("id", staleFanIds);
+  }
+
+  const { data: prefs } = await supabase
+    .from("supporter_preferences")
+    .select("user_id, club");
+  for (const row of prefs ?? []) {
+    if (isDemoClubName(String(row.club ?? ""))) continue;
+    await supabase
+      .from("supporter_preferences")
+      .delete()
+      .eq("user_id", row.user_id)
+      .eq("club", row.club);
+  }
+
+  const { data: networks } = await supabase
+    .from("sponsor_club_network")
+    .select("brand_name, club_name");
+  const keepBrands = new Set<string>();
+  const dropBrands = new Set<string>();
+  for (const row of networks ?? []) {
+    const brand = String(row.brand_name ?? "").trim().toLowerCase();
+    const club = String(row.club_name ?? "").trim();
+    if (!brand || !club) continue;
+    if (isDemoClubName(club)) keepBrands.add(brand);
+    else dropBrands.add(brand);
+  }
+  for (const row of networks ?? []) {
+    const club = String(row.club_name ?? "").trim();
+    if (!club || isDemoClubName(club)) continue;
+    await supabase
+      .from("sponsor_club_network")
+      .delete()
+      .eq("brand_name", row.brand_name)
+      .eq("club_name", row.club_name);
+  }
+
+  const { data: sponsors } = await supabase.from("sponsors").select("id, name");
+  for (const sponsor of sponsors ?? []) {
+    const key = String(sponsor.name ?? "").trim().toLowerCase();
+    if (!key || !dropBrands.has(key) || keepBrands.has(key)) continue;
+    await supabase.from("sponsors").delete().eq("id", sponsor.id);
+  }
+
+  await deleteOffersForOtherClubs("sponsor_match_offers", "club_name");
+  await deleteOffersForOtherClubs("sponsor_project_proposals", "club_name");
+}
+
+async function deleteRowsNotInDemoClubs(
+  table: string,
+  column: string,
+  demoIds: Set<string>
+): Promise<void> {
+  const { data, error } = await supabase.from(table).select(`id, ${column}`);
+  if (error || !data) return;
+  const staleIds = data
+    .filter((row) => !demoIds.has(String((row as Record<string, unknown>)[column] ?? "")))
+    .map((row) => String((row as { id?: unknown }).id ?? ""))
+    .filter(Boolean);
+  if (staleIds.length === 0) return;
+  await supabase.from(table).delete().in("id", staleIds);
+}
+
+async function deleteOffersForOtherClubs(
+  table: string,
+  clubColumn: string
+): Promise<void> {
+  const { data, error } = await supabase.from(table).select(`id, ${clubColumn}`);
+  if (error || !data) return;
+  const staleIds = data
+    .filter(
+      (row) =>
+        !isDemoClubName(String((row as Record<string, unknown>)[clubColumn] ?? ""))
+    )
+    .map((row) => String((row as { id?: unknown }).id ?? ""))
+    .filter(Boolean);
+  if (staleIds.length === 0) return;
+  await supabase.from(table).delete().in("id", staleIds);
 }

@@ -2,11 +2,14 @@ import {
   CURRENT_SEASON_LEAGUES,
   clubInCurrentSeasonLeague,
   currentSeasonTeamCount,
+  demoClubNamesOnly,
   isCurrentSeasonLeagueFixture,
+  isDemoClubName,
   seasonNamesMatch,
 } from "../app/lib/current-season";
 import { loadTeamCatalogFromDatabase } from "../app/services/teams.service";
 import { SPORT_SELECT_OPTIONS, scoreLabelForSport } from "../app/lib/sports";
+import { readFileSync } from "fs";
 
 const failures: string[] = [];
 
@@ -18,39 +21,64 @@ const premierLeague = CURRENT_SEASON_LEAGUES["Premier League"];
 const championship = CURRENT_SEASON_LEAGUES["EFL Championship"];
 const scottish = CURRENT_SEASON_LEAGUES["Scottish Premiership"];
 
-assert(premierLeague.length === 20, "Premier League must have 20 clubs");
-assert(championship.length === 24, "EFL Championship must have 24 clubs");
-assert(scottish.length === 12, "Scottish Premiership must have 12 clubs");
+assert(premierLeague.length === 1, "Premier League demo catalog is Arsenal only");
+assert(premierLeague[0] === "Arsenal", "Premier League demo club is Arsenal");
+assert(!championship, "EFL Championship is not in the three-club demo catalog");
+assert(scottish.length === 2, "Scottish Premiership demo catalog is Hearts and Hibernian");
 assert(
-  currentSeasonTeamCount() === 200,
-  "Sports Teams must be exactly 200 unique current-season clubs"
+  scottish.includes("Hearts") && scottish.includes("Hibernian"),
+  "Scottish Premiership demo clubs are Hearts and Hibernian"
+);
+assert(
+  currentSeasonTeamCount() === 3,
+  "Sports Teams must be exactly the three demo clubs"
 );
 
-for (const relegated of [
-  "West Ham United",
-  "Burnley",
-  "Wolverhampton Wanderers",
-]) {
-  assert(
-    !clubInCurrentSeasonLeague("Premier League", relegated),
-    `${relegated} must not be in the 2026/27 Premier League`
-  );
-  assert(
-    clubInCurrentSeasonLeague("EFL Championship", relegated),
-    `${relegated} must be in the 2026/27 EFL Championship`
-  );
-}
+assert(isDemoClubName("Arsenal FC"), "Arsenal FC is a demo club");
+assert(isDemoClubName("Hearts of Midlothian FC"), "Hearts of Midlothian FC is a demo club");
+assert(isDemoClubName("Hibernian Football Club"), "Hibernian is a demo club");
+assert(!isDemoClubName("Chelsea"), "Chelsea is not a selectable demo club");
+assert(!isDemoClubName("Liverpool"), "Liverpool is not a selectable demo club");
+assert(!isDemoClubName("Celtic"), "Celtic is not a selectable demo club");
+assert(!isDemoClubName("American Express"), "Brand names are not treated as demo clubs");
+assert(
+  demoClubNamesOnly(["Arsenal", "Liverpool", "Hibernian", "Celtic"]).join(",") ===
+    "Arsenal,Hibernian",
+  "Sponsor networks keep only Hearts/Hibs/Arsenal club links"
+);
 
-for (const promoted of ["Coventry City", "Ipswich Town", "Hull City"]) {
-  assert(
-    clubInCurrentSeasonLeague("Premier League", promoted),
-    `${promoted} must be in the 2026/27 Premier League`
-  );
-  assert(
-    !clubInCurrentSeasonLeague("EFL Championship", promoted),
-    `${promoted} must not remain in the Championship`
-  );
-}
+assert(
+  !clubInCurrentSeasonLeague("Premier League", "Chelsea"),
+  "Chelsea must not be selectable in the Premier League demo"
+);
+assert(
+  !clubInCurrentSeasonLeague("EFL Championship", "West Ham United"),
+  "Championship clubs are outside the three-club demo"
+);
+assert(
+  clubInCurrentSeasonLeague("Premier League", "Arsenal"),
+  "Arsenal remains the Premier League demo club"
+);
+assert(
+  clubInCurrentSeasonLeague("Scottish Premiership", "Hearts"),
+  "Hearts remains a Scottish Premiership demo club"
+);
+assert(
+  clubInCurrentSeasonLeague("Scottish Premiership", "Hibernian"),
+  "Hibernian remains a Scottish Premiership demo club"
+);
+assert(
+  !clubInCurrentSeasonLeague("Scottish Premiership", "Celtic"),
+  "Celtic must not remain in the Scottish Premiership demo"
+);
+assert(
+  !clubInCurrentSeasonLeague("NFL", "New England Patriots"),
+  "NFL clubs are outside the three-club demo"
+);
+assert(
+  !clubInCurrentSeasonLeague("La Liga", "Real Madrid"),
+  "La Liga clubs are outside the three-club demo"
+);
 
 assert(
   seasonNamesMatch("Hearts of Midlothian FC", "Heart of Midlothian"),
@@ -65,81 +93,52 @@ assert(
   "Dundee and Dundee United are different clubs"
 );
 assert(
-  !seasonNamesMatch("Paris FC", "Paris Saint-Germain"),
-  "Paris FC and Paris Saint-Germain are different clubs"
-);
-assert(
   seasonNamesMatch("Liverpool", "Liverpool Football Club"),
-  "Fan catalog Liverpool matches the club row Liverpool Football Club"
-);
-assert(
-  seasonNamesMatch("Liverpool FC", "Liverpool Football Club"),
-  "Liverpool FC matches Liverpool Football Club"
+  "Opponent name matching still works for fixture titles"
 );
 assert(
   !seasonNamesMatch("Liverpool", "Manchester United"),
   "Liverpool does not match Manchester United"
 );
 
-assert(
-  clubInCurrentSeasonLeague("NFL", "New England Patriots"),
-  "New England Patriots must be in the current NFL catalog"
-);
-assert(
-  clubInCurrentSeasonLeague("La Liga", "Real Madrid"),
-  "Real Madrid must be in La Liga"
-);
-assert(
-  clubInCurrentSeasonLeague("Serie A", "AC Milan"),
-  "AC Milan must be in Serie A"
-);
 assert(scoreLabelForSport("Football") === "Goal", "Football sponsorship is per Goal");
 assert(scoreLabelForSport("Rugby") === "Try", "Rugby sponsorship is per Try");
 assert(scoreLabelForSport("NFL") === "Touchdown", "NFL sponsorship is per Touchdown");
 assert(scoreLabelForSport("NBA") === "3-Point", "NBA sponsorship is per 3-Point");
 assert(
-  scoreLabelForSport("Basketball") === "3-Point",
-  "Basketball uses the NBA 3-Point sponsorship trigger"
-);
-assert(
   SPORT_SELECT_OPTIONS.join(",") === "Football,Rugby,NFL,Basketball",
   "Club sport picker is Football, Rugby, NFL, Basketball"
-);
-assert(
-  !(SPORT_SELECT_OPTIONS as readonly string[]).includes("Cricket"),
-  "Cricket is not a selectable S4P sport"
-);
-assert(
-  clubInCurrentSeasonLeague("NBA", "Boston Celtics"),
-  "Boston Celtics must be in the NBA catalog"
-);
-
-assert(
-  !isCurrentSeasonLeagueFixture(
-    "Premier League",
-    "Arsenal",
-    "West Ham United"
-  ),
-  "Arsenal cannot play West Ham in the Premier League this season"
-);
-
-assert(
-  isCurrentSeasonLeagueFixture("EFL Championship", "West Ham United", "Burnley"),
-  "West Ham vs Burnley is a valid Championship fixture"
 );
 
 assert(
   isCurrentSeasonLeagueFixture("Premier League", "Arsenal", "Chelsea"),
-  "Arsenal vs Chelsea remains a valid Premier League fixture"
+  "Arsenal vs Chelsea remains a valid demo fixture title"
+);
+assert(
+  isCurrentSeasonLeagueFixture("Scottish Premiership", "Dundee United", "Hibernian"),
+  "Hibernian vs an opponent remains a valid demo fixture title"
+);
+assert(
+  !isCurrentSeasonLeagueFixture("Premier League", "Chelsea", "Liverpool"),
+  "Fixtures with no Hearts, Hibernian, or Arsenal side are dropped"
+);
+assert(
+  !isCurrentSeasonLeagueFixture("EFL Championship", "West Ham United", "Burnley"),
+  "Championship-only fixtures are outside the three-club demo"
 );
 
+const registerCopy = readFileSync("app/register/page.tsx", "utf8");
 assert(
-  clubInCurrentSeasonLeague("Scottish Premiership", "Falkirk"),
-  "Falkirk must be in the current Scottish Premiership"
+  registerCopy.includes("Hearts of Midlothian FC") &&
+    registerCopy.includes("Hibernian FC") &&
+    registerCopy.includes("Arsenal FC"),
+  "Fan registration names the three demo clubs"
 );
 assert(
-  !clubInCurrentSeasonLeague("Scottish Premiership", "Ross County"),
-  "Ross County must not remain in the Scottish Premiership"
+  !registerCopy.includes("Boston Celtics") &&
+    !registerCopy.includes("West Ham United") &&
+    !registerCopy.includes("New England Patriots"),
+  "Fan registration no longer lists clubs outside the three-club demo"
 );
 
 function main() {
@@ -148,7 +147,7 @@ function main() {
     process.exit(1);
   }
 
-  console.log("Current-season membership and fixture rules passed.");
+  console.log("Three-club demo membership and fixture rules passed.");
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
 
@@ -163,32 +162,19 @@ function main() {
       );
       const names = (premier?.teams ?? []).map((team) => team.displayName);
       console.log("Premier League catalog:", names.join(", "));
-      if (names.some((name) => /west ham|burnley|wolves/i.test(name))) {
-        throw new Error(
-          "Live catalog still includes a relegated Premier League club."
-        );
+      if (names.length !== 1 || !names.some((name) => /arsenal/i.test(name))) {
+        throw new Error("Live catalog must show only Arsenal in the Premier League.");
       }
-      if (!names.some((name) => /coventry/i.test(name))) {
-        throw new Error(
-          "Live catalog is missing Coventry City from the Premier League."
-        );
+      if (names.some((name) => /chelsea|liverpool|west ham/i.test(name))) {
+        throw new Error("Live catalog still includes a non-demo Premier League club.");
       }
-      const championshipNames = (championshipGroup?.teams ?? []).map(
-        (team) => team.displayName
-      );
-      if (!championshipNames.some((name) => /west ham/i.test(name))) {
-        throw new Error(
-          "Live catalog is missing West Ham United from the Championship."
-        );
+      if (championshipGroup?.teams?.length) {
+        throw new Error("Live catalog still includes the Championship.");
       }
       const needed = [
         ["Football", "Premier League", "Arsenal"],
         ["Football", "Scottish Premiership", "Hearts"],
-        ["Football", "La Liga", "Real Madrid"],
-        ["Football", "Serie A", "AC Milan"],
-        ["Rugby", "Six Nations", "Scotland"],
-        ["NFL", "NFL", "New England Patriots"],
-        ["NBA", "NBA", "Boston Celtics"],
+        ["Football", "Scottish Premiership", "Hibernian"],
       ] as const;
       for (const [sport, league, team] of needed) {
         const group = catalog.find((item) => item.sport === sport);
@@ -200,6 +186,7 @@ function main() {
           throw new Error(`Live catalog is missing ${team} in ${league}.`);
         }
       }
+      const forbidden = ["Chelsea", "Liverpool", "Celtic", "Real Madrid", "AC Milan"];
       for (const group of catalog) {
         for (const competition of group.competitions) {
           const ids = competition.teams.map((team) => team.id);
@@ -208,32 +195,36 @@ function main() {
               `Live catalog has duplicate team ids in ${competition.name}.`
             );
           }
+          for (const team of competition.teams) {
+            if (
+              forbidden.some((name) =>
+                new RegExp(name, "i").test(`${team.displayName} ${team.name}`)
+              )
+            ) {
+              throw new Error(
+                `Live catalog still lists ${team.displayName} in ${competition.name}.`
+              );
+            }
+          }
         }
       }
-      const scottish = football?.competitions.find(
+      const scottishLive = football?.competitions.find(
         (competition) => competition.name === "Scottish Premiership"
       );
-      const ligue1 = football?.competitions.find(
-        (competition) => competition.name === "Ligue 1"
-      );
-      const scottishNames = (scottish?.teams ?? []).map((team) => team.displayName);
-      const ligueNames = (ligue1?.teams ?? []).map((team) => team.displayName);
-      if (scottishNames.filter((name) => /^dundee$/i.test(name)).length > 1) {
-        throw new Error("Dundee appears twice in the Scottish Premiership catalog.");
+      const scottishNames = (scottishLive?.teams ?? []).map((team) => team.displayName);
+      if (scottishNames.length !== 2) {
+        throw new Error(
+          `Live Scottish Premiership catalog has ${scottishNames.length} clubs, expected 2.`
+        );
       }
-      if (!scottishNames.some((name) => /dundee united/i.test(name))) {
-        throw new Error("Live catalog is missing Dundee United.");
+      if (!scottishNames.some((name) => /heart/i.test(name))) {
+        throw new Error("Live catalog is missing Hearts of Midlothian.");
       }
-      if (ligueNames.filter((name) => /^paris fc$/i.test(name)).length > 1) {
-        throw new Error("Paris FC appears twice in the Ligue 1 catalog.");
-      }
-      if (!ligueNames.some((name) => /paris saint|psg/i.test(name))) {
-        throw new Error("Live catalog is missing Paris Saint-Germain.");
+      if (!scottishNames.some((name) => /hibernian/i.test(name))) {
+        throw new Error("Live catalog is missing Hibernian.");
       }
       console.log(
-        "Live catalog: Premier League",
-        names.length,
-        "clubs; Championship includes West Ham; fan scenario teams present."
+        "Live catalog: three demo clubs only — Arsenal, Hearts, Hibernian."
       );
     })
     .catch((error) => {

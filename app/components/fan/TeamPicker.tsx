@@ -8,9 +8,6 @@ import { sportCategory } from "@/app/lib/sports";
 const DEFAULT_OPEN = new Set([
   "Premier League",
   "Scottish Premiership",
-  "Six Nations",
-  "NFL",
-  "NBA",
 ]);
 
 export default function TeamPicker({

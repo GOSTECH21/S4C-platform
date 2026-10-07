@@ -1,247 +1,22 @@
-/** Current 2026/27 league membership for the MVP demo catalog. */
+/** Live demo catalog: only the three clubs being demonstrated. */
 
 export const CURRENT_SEASON = "2026/27";
 
+export const DEMO_CLUB_NAMES = ["Arsenal", "Hearts", "Hibernian"] as const;
+
 export const CURRENT_SEASON_LEAGUES: Record<string, string[]> = {
-  "Premier League": [
-    "Arsenal",
-    "Aston Villa",
-    "Bournemouth",
-    "Brentford",
-    "Brighton & Hove Albion",
-    "Chelsea",
-    "Coventry City",
-    "Crystal Palace",
-    "Everton",
-    "Fulham",
-    "Hull City",
-    "Ipswich Town",
-    "Leeds United",
-    "Liverpool",
-    "Manchester City",
-    "Manchester United",
-    "Newcastle United",
-    "Nottingham Forest",
-    "Sunderland",
-    "Tottenham Hotspur",
-  ],
-  "EFL Championship": [
-    "Birmingham City",
-    "Blackburn Rovers",
-    "Bolton Wanderers",
-    "Bristol City",
-    "Burnley",
-    "Cardiff City",
-    "Charlton Athletic",
-    "Derby County",
-    "Lincoln City",
-    "Middlesbrough",
-    "Millwall",
-    "Norwich City",
-    "Portsmouth",
-    "Preston North End",
-    "Queens Park Rangers",
-    "Sheffield United",
-    "Southampton",
-    "Stoke City",
-    "Swansea City",
-    "Watford",
-    "West Bromwich Albion",
-    "West Ham United",
-    "Wolverhampton Wanderers",
-    "Wrexham",
-  ],
-  "Scottish Premiership": [
-    "Aberdeen",
-    "Celtic",
-    "Dundee",
-    "Dundee United",
-    "Falkirk",
-    "Hearts",
-    "Hibernian",
-    "Kilmarnock",
-    "Motherwell",
-    "Rangers",
-    "St Johnstone",
-    "St Mirren",
-  ],
-  Bundesliga: [
-    "Bayer Leverkusen",
-    "Bayern Munich",
-    "Borussia Dortmund",
-    "Borussia Mönchengladbach",
-    "Eintracht Frankfurt",
-    "FC Augsburg",
-    "FC Köln",
-    "Freiburg",
-    "Hamburger SV",
-    "Hoffenheim",
-    "Mainz 05",
-    "RB Leipzig",
-    "Schalke 04",
-    "SC Paderborn",
-    "SV Elversberg",
-    "Union Berlin",
-    "VfB Stuttgart",
-    "Werder Bremen",
-  ],
-  "La Liga": [
-    "Alavés",
-    "Athletic Club",
-    "Atlético Madrid",
-    "Barcelona",
-    "Celta Vigo",
-    "Deportivo La Coruña",
-    "Elche",
-    "Espanyol",
-    "Getafe",
-    "Levante",
-    "Málaga",
-    "Osasuna",
-    "Racing Santander",
-    "Rayo Vallecano",
-    "Real Betis",
-    "Real Madrid",
-    "Real Sociedad",
-    "Sevilla",
-    "Valencia",
-    "Villarreal",
-  ],
-  "Ligue 1": [
-    "Angers",
-    "Auxerre",
-    "Brest",
-    "Le Havre",
-    "Le Mans",
-    "Lens",
-    "Lille",
-    "Lorient",
-    "Lyon",
-    "Marseille",
-    "Monaco",
-    "Nice",
-    "Paris FC",
-    "Paris Saint-Germain",
-    "Rennes",
-    "Strasbourg",
-    "Toulouse",
-    "Troyes",
-  ],
-  "Serie A": [
-    "AC Milan",
-    "Atalanta",
-    "Bologna",
-    "Cagliari",
-    "Como",
-    "Fiorentina",
-    "Frosinone",
-    "Genoa",
-    "Inter Milan",
-    "Juventus",
-    "Lazio",
-    "Lecce",
-    "Monza",
-    "Napoli",
-    "Parma",
-    "Roma",
-    "Sassuolo",
-    "Torino",
-    "Udinese",
-    "Venezia",
-  ],
-  "Six Nations": ["England", "France", "Ireland", "Italy", "Scotland", "Wales"],
-  NFL: [
-    "Arizona Cardinals",
-    "Atlanta Falcons",
-    "Baltimore Ravens",
-    "Buffalo Bills",
-    "Carolina Panthers",
-    "Chicago Bears",
-    "Cincinnati Bengals",
-    "Cleveland Browns",
-    "Dallas Cowboys",
-    "Denver Broncos",
-    "Detroit Lions",
-    "Green Bay Packers",
-    "Houston Texans",
-    "Indianapolis Colts",
-    "Jacksonville Jaguars",
-    "Kansas City Chiefs",
-    "Las Vegas Raiders",
-    "Los Angeles Chargers",
-    "Los Angeles Rams",
-    "Miami Dolphins",
-    "Minnesota Vikings",
-    "New England Patriots",
-    "New Orleans Saints",
-    "New York Giants",
-    "New York Jets",
-    "Philadelphia Eagles",
-    "Pittsburgh Steelers",
-    "San Francisco 49ers",
-    "Seattle Seahawks",
-    "Tampa Bay Buccaneers",
-    "Tennessee Titans",
-    "Washington Commanders",
-  ],
-  NBA: [
-    "Atlanta Hawks",
-    "Boston Celtics",
-    "Brooklyn Nets",
-    "Charlotte Hornets",
-    "Chicago Bulls",
-    "Cleveland Cavaliers",
-    "Dallas Mavericks",
-    "Denver Nuggets",
-    "Detroit Pistons",
-    "Golden State Warriors",
-    "Houston Rockets",
-    "Indiana Pacers",
-    "Los Angeles Clippers",
-    "Los Angeles Lakers",
-    "Memphis Grizzlies",
-    "Miami Heat",
-    "Milwaukee Bucks",
-    "Minnesota Timberwolves",
-    "New Orleans Pelicans",
-    "New York Knicks",
-    "Oklahoma City Thunder",
-    "Orlando Magic",
-    "Philadelphia 76ers",
-    "Phoenix Suns",
-    "Portland Trail Blazers",
-    "Sacramento Kings",
-    "San Antonio Spurs",
-    "Toronto Raptors",
-    "Utah Jazz",
-    "Washington Wizards",
-  ],
+  "Premier League": ["Arsenal"],
+  "Scottish Premiership": ["Hearts", "Hibernian"],
 };
 
 export const LEAGUE_SPORT: Record<string, string> = {
   "Premier League": "Football",
-  "EFL Championship": "Football",
   "Scottish Premiership": "Football",
-  Bundesliga: "Football",
-  "La Liga": "Football",
-  "Ligue 1": "Football",
-  "Serie A": "Football",
-  "Six Nations": "Rugby",
-  NFL: "NFL",
-  NBA: "NBA",
 };
 
 export const LEAGUE_COUNTRY: Record<string, string> = {
   "Premier League": "England",
-  "EFL Championship": "England",
   "Scottish Premiership": "Scotland",
-  Bundesliga: "Germany",
-  "La Liga": "Spain",
-  "Ligue 1": "France",
-  "Serie A": "Italy",
-  "Six Nations": "Europe",
-  NFL: "USA",
-  NBA: "USA",
 };
 
 const LEAGUE_ALIASES: Record<string, string> = {
@@ -347,7 +122,8 @@ export function canonicalLeagueName(
   const trimmed = leagueName.trim();
   if (CURRENT_SEASON_LEAGUES[trimmed]) return trimmed;
   const normalized = normalizeSeasonName(trimmed);
-  if (LEAGUE_ALIASES[normalized]) return LEAGUE_ALIASES[normalized];
+  const aliased = LEAGUE_ALIASES[normalized];
+  if (aliased && CURRENT_SEASON_LEAGUES[aliased]) return aliased;
   for (const name of Object.keys(CURRENT_SEASON_LEAGUES)) {
     if (normalizeSeasonName(name) === normalized) return name;
   }
@@ -367,15 +143,23 @@ export function seasonNamesMatch(left: string, right: string): boolean {
   return false;
 }
 
+export function isDemoClubName(name: string | null | undefined): boolean {
+  return DEMO_CLUB_NAMES.some((club) => seasonNamesMatch(club, String(name ?? "")));
+}
+
+export function demoClubNamesOnly(names: string[]): string[] {
+  return names.filter((name) => isDemoClubName(name));
+}
+
 export function clubInCurrentSeasonLeague(
   leagueName: string,
   clubName: string
 ): boolean {
   const league = canonicalLeagueName(leagueName);
-  if (!league) return true;
-  return CURRENT_SEASON_LEAGUES[league].some((name) =>
-    seasonNamesMatch(name, clubName)
-  );
+  if (!league) return false;
+  const clubs = CURRENT_SEASON_LEAGUES[league];
+  if (!clubs) return false;
+  return clubs.some((name) => seasonNamesMatch(name, clubName));
 }
 
 export function leagueForClubName(clubName: string): string | null {
@@ -394,16 +178,11 @@ export function currentSeasonTeamCount(): number {
 }
 
 export function isCurrentSeasonLeagueFixture(
-  leagueName: string | null | undefined,
+  _leagueName: string | null | undefined,
   homeName: string,
   awayName: string
 ): boolean {
-  const league = canonicalLeagueName(leagueName);
-  if (!league) return true;
-  return (
-    clubInCurrentSeasonLeague(league, homeName) &&
-    clubInCurrentSeasonLeague(league, awayName)
-  );
+  return isDemoClubName(homeName) || isDemoClubName(awayName);
 }
 
 export function findClubOnRoster<T extends { name: string; competition_id?: string | null }>(

@@ -81,8 +81,8 @@ assert(
   "Arsenal local catalog is England"
 );
 assert(
-  localCatalogCountryForClub({ clubName: "AC Milan" }) === "Italy",
-  "AC Milan local catalog is Italy"
+  localCatalogCountryForClub({ country: "Italy" }) === "Italy",
+  "Italy remains a Climate Partner catalog country"
 );
 assert(
   selectableCatalogForClub({ clubName: "Arsenal" })
@@ -94,7 +94,7 @@ assert(
   selectableCatalogForCountry("Italy")
     .slice(0, 10)
     .every((project) => project.country === "Italy"),
-  "AC Milan chooses from 10 Italy projects on page 1"
+  "Italy Climate Partner page 1 is 10 Italy projects"
 );
 assert(
   selectableCatalogForClub({ clubName: "Hearts of Midlothian FC" })
@@ -104,7 +104,7 @@ assert(
 );
 
 const table = premierLeagueCilt("Arsenal FC");
-assert(table.length === 20, "CILT ranks all 20 Premier League clubs");
+assert(table.length === 1, "CILT ranks Arsenal as the only Premier League demo club");
 assert(table[0].position === 1, "First row is position 1");
 const arsenal = table.find((row) => row.isClub);
 assert(Boolean(arsenal), "Arsenal FC is highlighted on the CILT");
@@ -124,34 +124,32 @@ assert(
 );
 
 const spl = scottishPremiershipCilt("Hearts of Midlothian FC");
-assert(spl.length === 12, "CILT ranks all 12 Scottish Premiership clubs");
+assert(spl.length === 2, "CILT ranks Hearts and Hibernian only");
 const hearts = spl.find((row) => row.isClub);
 assert(Boolean(hearts), "Hearts is highlighted on the Scottish Premiership CILT");
-assert((hearts?.position ?? 99) <= 3, "Hearts starts in the Scottish Premiership top 3");
-
-const climbed = scottishPremiershipCilt("Hearts of Midlothian FC", 3000);
-const climbedHearts = climbed.find((row) => row.isClub);
-const celtic = climbed.find((row) => row.club === "Celtic");
+assert(hearts?.position === 1, "Hearts starts first in the two-club Scottish CILT");
 assert(
-  (climbedHearts?.position ?? 99) < (hearts?.position ?? 0),
-  "Hearts climbs the Scottish Premiership CILT when extra carbon impact is added"
+  spl.some((row) => /hibernian/i.test(row.club)),
+  "Hibernian remains on the Scottish Premiership CILT"
 );
 assert(
-  (climbedHearts?.tonnes ?? 0) > (celtic?.tonnes ?? 0) ||
-    (climbedHearts?.position ?? 99) <= 2,
-  "Hearts can overtake higher Scottish Premiership clubs on the CILT"
+  !spl.some((row) => /celtic|rangers/i.test(row.club)),
+  "Celtic and Rangers are not on the Scottish Premiership CILT"
+);
+
+const climbedHibs = scottishPremiershipCilt("Hibernian", 2000);
+const climbedHibsRow = climbedHibs.find((row) => row.isClub);
+assert(
+  climbedHibsRow?.position === 1,
+  "Hibernian can overtake Hearts on the CILT when extra carbon impact is added"
 );
 
 assert(
-  leagueForClubName("Real Madrid") === "La Liga",
-  "Real Madrid is a La Liga club"
+  leagueForClubName("Real Madrid") === null,
+  "Real Madrid is outside the three-club demo catalog"
 );
 const laLiga = climateImpactLeagueTable("La Liga", "Real Madrid");
-assert(laLiga.length === 20, "CILT ranks all 20 La Liga clubs");
-assert(
-  Boolean(laLiga.find((row) => row.isClub)),
-  "Real Madrid is highlighted on the La Liga CILT"
-);
+assert(laLiga.length === 0, "La Liga is not ranked in the three-club demo");
 assert(
   leagueForClubName("Arsenal") === "Premier League",
   "Arsenal remains a Premier League club"
