@@ -651,7 +651,8 @@ assert(
 const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
 assert(
   preview.includes("leadClimateSponsorsForClub") &&
-    preview.includes("localBusinessClimateSponsorsForClub"),
+    preview.includes("localBusinessClimateSponsorsForClub") &&
+    preview.includes("A second Lead Climate Sponsor on Hibernian must be rejected"),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 

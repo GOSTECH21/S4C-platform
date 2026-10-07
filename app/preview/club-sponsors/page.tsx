@@ -99,26 +99,45 @@ function seedStores() {
     matchLabel: "Scottish Premiership Match",
     fixtureName: "Hibernian v Hearts",
   });
+  try {
+    saveGoalNetwork(network("Puma", "Hibernian", "puma@puma.test"));
+    lockMatchDayClub({
+      brandName: "Puma",
+      clubName: "Hibernian",
+      matchLabel: "Scottish Premiership Match",
+      fixtureName: "Hibernian v Celtic",
+    });
+  } catch {
+    // A second Lead Climate Sponsor on Hibernian must be rejected.
+  }
   for (const brandName of hibsLocals) {
     saveGoalNetwork(network(brandName, "Hibernian", `${brandName}@local.test`));
-    lockMatchDayClub({
-      brandName,
-      clubName: "Hibernian",
-      matchLabel:
-        brandName === "Interval" || brandName === "Tax Assist"
-          ? "Premier League Match"
-          : "Scottish Premiership Match",
-    });
+    try {
+      lockMatchDayClub({
+        brandName,
+        clubName: "Hibernian",
+        matchLabel:
+          brandName === "Interval" || brandName === "Tax Assist"
+            ? "Premier League Match"
+            : "Scottish Premiership Match",
+      });
+    } catch {
+      // Locals never occupy the Lead slot; ignore a stale lock error.
+    }
   }
   writeLocalSponsorRecord(SEEDED_HIBS_LOCALS[0]);
 
   saveGoalNetwork(network("Puma", "Arsenal", "puma@puma.test"));
-  lockMatchDayClub({
-    brandName: "Puma",
-    clubName: "Arsenal",
-    matchLabel: "Premier League Match",
-    fixtureName: "Arsenal v Leeds United",
-  });
+  try {
+    lockMatchDayClub({
+      brandName: "Puma",
+      clubName: "Arsenal",
+      matchLabel: "Premier League Match",
+      fixtureName: "Arsenal v Leeds United",
+    });
+  } catch {
+    // Puma is Arsenal's Lead Climate Sponsor; ignore a duplicate lock.
+  }
   for (const row of SEEDED_ARSENAL_LOCALS) {
     writeLocalSponsorRecord(row);
   }
