@@ -27,6 +27,7 @@ import {
   formatWalletGbp,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
+import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
@@ -66,6 +67,22 @@ export default function VotePage() {
       }
     }
     void load();
+  }, []);
+
+  useEffect(() => {
+    async function refreshLive() {
+      const supporter = await getOrCreateSupporter();
+      if (supporter) await reload(supporter);
+    }
+    function onLive() {
+      void refreshLive();
+    }
+    window.addEventListener(SIGNED_SPONSORSHIP_EVENT, onLive);
+    window.addEventListener("storage", onLive);
+    return () => {
+      window.removeEventListener(SIGNED_SPONSORSHIP_EVENT, onLive);
+      window.removeEventListener("storage", onLive);
+    };
   }, []);
 
   return (

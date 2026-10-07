@@ -19,11 +19,24 @@ import {
   fanCountFromVotedProjects,
   fanVotesOnSignedOffers,
 } from "../app/lib/sponsor-dashboard";
-import { sponsorOfferSignOffPath } from "../app/lib/routes";
+import {
+  SPONSOR_DASHBOARD_PATH,
+  SPONSOR_OFFER_SIGN_SECTION_ID,
+  SPONSOR_RECEIVE_SECTION_ID,
+  SPONSOR_SIGNED_SECTION_ID,
+  sponsorDashboardReceivePath,
+  sponsorOfferSignOffPath,
+} from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
 import { lockCopy } from "../app/lib/climate-sponsors";
-import { SPONSOR_DASHBOARD_PATH } from "../app/lib/routes";
+import {
+  applyWalletFundingLock,
+  includeBrandOnTargets,
+  isWalletFundingLocked,
+  shouldPullLockedClubUploads,
+  SIGNED_SPONSORSHIP_EVENT,
+} from "../app/lib/sponsor-completion-flow";
 import { readFileSync } from "fs";
 
 const failures: string[] = [];
@@ -398,8 +411,22 @@ assert(
   "Agree and sign off stays on New Sponsorship/Score Offer"
 );
 assert(
+  offerListPage.includes("SPONSOR_OFFER_SIGN_SECTION_ID") &&
+    offerListPage.includes("scrollIntoView"),
+  "Once the uploaded five are in view, New Sponsorship/Score Offer opens Signed Sponsorship"
+);
+assert(
   !offerListPage.includes("${SPONSOR_OFFERS_PATH}/${"),
   "The offer list does not link to /sponsor/offers/[id]"
+);
+assert(
+  readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+    "SPONSOR_OFFER_SIGN_SECTION_ID"
+  ) &&
+    readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+      "Signed Sponsorship"
+    ),
+  "The sign-off form is the Signed Sponsorship section"
 );
 
 const sponsorDashboardPage = readFileSync(
@@ -465,6 +492,12 @@ assert(
       "Receive the club&apos;s 5 chosen Climate Projects"
     ),
   "Sponsorship dashboard keeps Receive the club's 5 chosen Climate Projects"
+);
+assert(
+  sponsorDashboardPage.includes("SPONSOR_RECEIVE_SECTION_ID") &&
+    sponsorDashboardPage.includes("SPONSOR_SIGNED_SECTION_ID") &&
+    sponsorDashboardPage.includes("scrollIntoView"),
+  "After a wallet deposit the dashboard can default to Receive the club's 5 chosen Climate Projects"
 );
 assert(
   sponsorDashboardPage.includes("FUND-IT up to 5 times") &&
@@ -555,6 +588,95 @@ assert(
   localRegisterPage.includes("SPONSOR_WALLET_PATH") &&
     !localRegisterPage.includes("SPONSOR_DASHBOARD_PATH"),
   "Local Business Climate Sponsors register into the Climate Sponsorship Wallet, not the Lead dashboard"
+);
+
+const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
+assert(
+  walletPage.includes("lockWalletFundingToClub") &&
+    walletPage.includes("sponsorDashboardReceivePath") &&
+    walletPage.includes("bindFundedSponsorToClub"),
+  "Depositing into the Climate Sponsorship Wallet locks funding to the club and returns to Receive the club's 5"
+);
+
+const offerService = readFileSync(
+  "app/services/sponsor-offers.service.ts",
+  "utf8"
+);
+assert(
+  offerService.includes("ensureOfferFromLockedClubUploads") &&
+    offerService.includes("publishSignedSponsorshipToFans"),
+  "Locked-in sponsors pull the SD's uploaded five immediately, then sign-off publishes them to the club and fans"
+);
+assert(
+  readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
+    "lockWalletFundingToClub"
+  ) &&
+    readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
+      "ensureOfferFromLockedClubUploads"
+    ),
+  "A completion-flow verify covers lock, wallet funding, pull, and live fan publish"
+);
+
+assert(
+  readFileSync("app/club/dashboard/page.tsx", "utf8").includes(
+    "SIGNED_SPONSORSHIP_EVENT"
+  ) &&
+    readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+      "SIGNED_SPONSORSHIP_EVENT"
+    ) &&
+    readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
+      "SIGNED_SPONSORSHIP_EVENT"
+    ),
+  "Club Sustainability Directors and fans refresh as soon as the sponsor signs off"
+);
+
+const fundingLock = applyWalletFundingLock(
+  {
+    brandKey: "puma",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    lockedAt: "2026-10-07T10:00:00.000Z",
+  },
+  { commitmentFeeGbp: 2500, gbpPerGoal: 3500, maximumSponsorshipGbp: 7500 }
+);
+assert(
+  isWalletFundingLocked(fundingLock) &&
+    fundingLock.commitmentFeeGbp === 2500 &&
+    fundingLock.clubName === "Hibernian",
+  "A Climate Sponsorship Wallet deposit locks funding to the sponsored club"
+);
+assert(
+  !isWalletFundingLocked({
+    brandKey: "puma",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    lockedAt: "2026-10-07T10:00:00.000Z",
+  }),
+  "Lock-in without a wallet deposit is not yet funding-locked"
+);
+assert(
+  includeBrandOnTargets(["American Express"], "Puma").join(",") ===
+    "American Express,Puma",
+  "Opening the uploaded five adds the locked-in brand to the offer targets"
+);
+assert(
+  shouldPullLockedClubUploads({
+    pendingForClub: 0,
+    uploadedProjectCount: 5,
+  }) &&
+    !shouldPullLockedClubUploads({
+      pendingForClub: 1,
+      uploadedProjectCount: 5,
+    }),
+  "Uploaded Climate Projects are pulled when the locked club has no pending offer yet"
+);
+assert(
+  sponsorDashboardReceivePath() ===
+    `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_RECEIVE_SECTION_ID}` &&
+    SPONSOR_SIGNED_SECTION_ID === "signed-folder" &&
+    SPONSOR_OFFER_SIGN_SECTION_ID === "signed-sponsorship" &&
+    SIGNED_SPONSORSHIP_EVENT === "s4p-signed-sponsorship",
+  "Receive, Signed Sponsorship, and live sign-off anchors stay stable"
 );
 
 if (failures.length > 0) {

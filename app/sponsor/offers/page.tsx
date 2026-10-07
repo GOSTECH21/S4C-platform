@@ -11,6 +11,7 @@ import {
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
+  SPONSOR_OFFER_SIGN_SECTION_ID,
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
@@ -42,6 +43,21 @@ export default function NewSponsorshipOfferPage() {
     load();
   }, [router]);
 
+  useEffect(() => {
+    if (loading || pending.length === 0) return;
+    const scroll = () =>
+      document.getElementById(SPONSOR_OFFER_SIGN_SECTION_ID)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    const frame = window.requestAnimationFrame(scroll);
+    const timer = window.setTimeout(scroll, 400);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [loading, pending]);
+
   if (loading) {
     return <p className="text-slate-400">Loading New Sponsorship/Score Offer...</p>;
   }
@@ -61,8 +77,10 @@ export default function NewSponsorshipOfferPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">New Sponsorship/Score Offer</h1>
       <p className="mt-4 text-slate-300">
-        These are the 5 Climate Projects the Sustainability Director posted for
-        this match. Read them, then sign off if you agree to go ahead.
+        These are the 5 Climate Projects the Sustainability Director has
+        already uploaded for the club you locked in. They are pulled here
+        immediately. Read them, then the Signed Sponsorship section opens for
+        you to sign off.
       </p>
 
       {!offer ? (

@@ -1386,6 +1386,144 @@ export async function postMatchDayProjectsToFans({
   return selection;
 }
 
+export async function publishSignedSponsorshipToFans({
+  clubId,
+  clubName,
+  brandName,
+  projects,
+  minAmount,
+  gbpPerGoal,
+  maxAmount,
+  gbpPerVote,
+}: {
+  clubId: string;
+  clubName: string;
+  brandName: string;
+  projects: Array<{
+    id: string;
+    name: string;
+    description?: string | null;
+    category?: string | null;
+    country?: string | null;
+    estimated_co2?: number | null;
+    funding_goal?: number | null;
+    location?: string | null;
+    status?: string | null;
+  }>;
+  minAmount?: number | null;
+  gbpPerGoal?: number | null;
+  maxAmount?: number | null;
+  gbpPerVote?: number | null;
+}): Promise<void> {
+  const portfolioIds = [...new Set(projects.map((project) => project.id).filter(Boolean))];
+  if (!clubId || portfolioIds.length === 0) return;
+
+  const postedAt = new Date();
+  const visibleAt = fanPostVisibleAt(postedAt);
+  const stored = readStoredMatchDay(clubId);
+  const brand = brandName.trim();
+  writeFanPostSchedule({
+    clubId,
+    clubName,
+    postedAt: postedAt.toISOString(),
+    visibleAt: visibleAt.toISOString(),
+    projectIds: portfolioIds,
+    campaignId: stored?.campaignId ?? null,
+    sponsorNames: brand ? [brand] : [],
+    leadSponsorName: brand || null,
+    leadSponsorLogoUrl: brand ? sponsorLogoSrc(brand, null) : null,
+  });
+
+  const auction = withAuctionDefaults({
+    projectIds: portfolioIds,
+    minAmount:
+      Number(minAmount) > 0
+        ? Number(minAmount)
+        : stored?.minAmount ?? DEFAULT_MINIMUM_SPONSORSHIP,
+    gbpPerGoal: Number(gbpPerGoal) > 0 ? Number(gbpPerGoal) : stored?.gbpPerGoal,
+    maxAmount: Number(maxAmount) > 0 ? Number(maxAmount) : stored?.maxAmount,
+    gbpPerVote: Number(gbpPerVote) > 0 ? Number(gbpPerVote) : stored?.gbpPerVote,
+    savedAt: postedAt.toISOString(),
+    campaignId: stored?.campaignId ?? null,
+    postedAt: postedAt.toISOString(),
+  });
+
+  try {
+    await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_POSTED);
+  } catch {
+    // Local fan post still goes live if the hosted portfolio table is unavailable.
+  }
+
+  let campaign: OpenClubCampaign | null = null;
+  try {
+    campaign = await ensureOpenClubCampaign(clubId, clubName, auction.minAmount, {
+      votingOpens: visibleAt.toISOString(),
+    });
+    if (
+      campaignBelongsToClub(
+        { ...campaign, club_id: campaign.club_id ?? clubId },
+        clubId,
+        clubName
+      )
+    ) {
+      await writeCampaignProjects(campaign.id, portfolioIds);
+    }
+  } catch {
+    campaign = await findOpenClubCampaign(clubId, clubName);
+  }
+
+  const selection: MatchDaySelection = {
+    ...auction,
+    campaignId: campaign?.id ?? stored?.campaignId ?? null,
+    postedAt: postedAt.toISOString(),
+  };
+  writeStoredMatchDay(clubId, selection);
+  writeCampaignAuction(selection.campaignId, selection);
+  writeFanPostSchedule({
+    clubId,
+    clubName,
+    postedAt: postedAt.toISOString(),
+    visibleAt: visibleAt.toISOString(),
+    projectIds: portfolioIds,
+    campaignId: selection.campaignId,
+    sponsorNames: brand ? [brand] : [],
+    leadSponsorName: brand || null,
+    leadSponsorLogoUrl: brand ? sponsorLogoSrc(brand, null) : null,
+  });
+
+  try {
+    const { publishMatchDayFolderFromSignedOffer } = await import(
+      "./match-day-folder.service"
+    );
+    publishMatchDayFolderFromSignedOffer({
+      clubId,
+      clubName,
+      projects,
+      minAmount: selection.minAmount,
+      gbpPerGoal: selection.gbpPerGoal,
+    });
+  } catch {
+    // Folder publish is best-effort; fan schedule already makes the five visible.
+  }
+
+  try {
+    await persistFileRecord({
+      clubId,
+      clubName,
+      campaignId: selection.campaignId,
+      minAmount: selection.minAmount,
+      selected: projects,
+      voted: [],
+      sponsorName: brand || null,
+      sponsorLogoUrl: brand ? sponsorLogoSrc(brand, null) : null,
+      savedAt: postedAt.toISOString(),
+    });
+  } catch {
+    // Signed copy is still in sponsor_offer_signatures for the club dashboard.
+  }
+  markClubSelectionLive(clubId);
+}
+
 export function matchDayWindowCopy(): string {
   return clubMatchDayFolderCopy();
 }

@@ -2,6 +2,7 @@
 
 import { CURRENT_SEASON_LEAGUES, leagueForClubName } from "./current-season";
 import { clubsMatch, normalizeClubName } from "./sponsor-dashboard";
+export { clubsMatch };
 import { MATCH_DAY_LEAD_HOURS } from "./partner-projects";
 import { sameNamedFixture } from "./club-fixtures";
 
@@ -148,6 +149,11 @@ export type MatchDayClubLock = {
   sourceUrl?: string | null;
   matches?: ChosenMatch[];
   lockedAt: string;
+  /** Set when the Lead deposits the Climate Sponsorship Wallet for this lock. */
+  fundingLockedAt?: string;
+  commitmentFeeGbp?: number;
+  gbpPerGoal?: number;
+  maximumSponsorshipGbp?: number;
 };
 
 export type LeadClubSponsorRow = {
@@ -630,6 +636,14 @@ export function toggleSelectedSponsor(
   if (selected.has(sponsorId)) selected.delete(sponsorId);
   else selected.add(sponsorId);
   return { ...roster, selectedIds: [...selected] };
+}
+
+export function ensureSponsorSelected(
+  roster: ClubSponsorRoster,
+  sponsorId: string
+): ClubSponsorRoster {
+  if (!sponsorId || roster.selectedIds.includes(sponsorId)) return roster;
+  return { ...roster, selectedIds: [...roster.selectedIds, sponsorId] };
 }
 
 export function selectedSponsors(

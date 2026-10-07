@@ -77,6 +77,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import ClubNav from "@/app/components/club/ClubNav";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
+import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import {
   readMatchDayFolder,
@@ -174,6 +175,35 @@ export default function ClubDashboardPage() {
 
     load();
   }, [router]);
+
+  useEffect(() => {
+    if (!club) return;
+    async function refreshSignedLive() {
+      if (!club) return;
+      setSignedCopies(
+        await listClubSignedSponsorships(club.id, club.name)
+      );
+      const stored = readStoredMatchDay(club.id);
+      setPostedAt(stored?.postedAt ?? null);
+      setFolder(readMatchDayFolder(club.id));
+      try {
+        const board = await loadClubProjectBoard(club.id, club.name);
+        setSelected(board.selected);
+        setRecords(board.records);
+      } catch {
+        // Signed copies still refresh even if the project board cannot.
+      }
+    }
+    function onLive() {
+      void refreshSignedLive();
+    }
+    window.addEventListener(SIGNED_SPONSORSHIP_EVENT, onLive);
+    window.addEventListener("storage", onLive);
+    return () => {
+      window.removeEventListener(SIGNED_SPONSORSHIP_EVENT, onLive);
+      window.removeEventListener("storage", onLive);
+    };
+  }, [club]);
 
   const extraTonnes = useMemo(
     () =>

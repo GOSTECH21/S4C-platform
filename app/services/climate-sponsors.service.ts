@@ -6,6 +6,7 @@ import {
   brandKey,
   brandsMatch,
   emptySponsor,
+  ensureSponsorSelected,
   inviteMatchesSponsor,
   isLeadClimateSponsorName,
   isRemovedSponsorBrand,
@@ -30,6 +31,7 @@ import {
   isDemoClubName,
 } from "../lib/current-season";
 import { offerBelongsToClub } from "../lib/campaign-sponsor";
+import { applyWalletFundingLock } from "../lib/sponsor-completion-flow";
 import { isExampleLocalBrand } from "../lib/match-day-branding";
 import {
   allLocalSponsors,
@@ -595,6 +597,17 @@ export function lockMatchDayClub({
   sourceUrl?: string | null;
 }): MatchDayClubLock {
   const lockedAt = new Date().toISOString();
+  const store = readJson<LockStore>(LOCK_KEY, {});
+  const existing = store[brandKey(brandName)] ?? null;
+  const keepFunding =
+    existing && offerBelongsToClub(existing.clubName, clubName)
+      ? {
+          fundingLockedAt: existing.fundingLockedAt,
+          commitmentFeeGbp: existing.commitmentFeeGbp,
+          gbpPerGoal: existing.gbpPerGoal,
+          maximumSponsorshipGbp: existing.maximumSponsorshipGbp,
+        }
+      : {};
   const next: MatchDayClubLock = {
     brandKey: brandKey(brandName),
     clubName,
@@ -606,13 +619,66 @@ export function lockMatchDayClub({
     venue,
     sourceUrl,
     lockedAt,
+    ...keepFunding,
   };
-  const store = readJson<LockStore>(LOCK_KEY, {});
-  const existing = store[brandKey(brandName)] ?? null;
   const lock = appendChosenMatch(existing, next);
   store[brandKey(brandName)] = lock;
   writeJson(LOCK_KEY, store);
   return lock;
+}
+
+export function lockWalletFundingToClub({
+  brandName,
+  clubName,
+  commitmentFeeGbp,
+  gbpPerGoal,
+  maximumSponsorshipGbp,
+}: {
+  brandName: string;
+  clubName: string;
+  commitmentFeeGbp: number;
+  gbpPerGoal?: number;
+  maximumSponsorshipGbp?: number;
+}): MatchDayClubLock | null {
+  const store = readJson<LockStore>(LOCK_KEY, {});
+  const current = store[brandKey(brandName)] ?? null;
+  if (!current || !offerBelongsToClub(current.clubName, clubName)) return null;
+  const lock = applyWalletFundingLock(current, {
+    commitmentFeeGbp,
+    gbpPerGoal,
+    maximumSponsorshipGbp,
+  });
+  store[brandKey(brandName)] = lock;
+  writeJson(LOCK_KEY, store);
+  return lock;
+}
+
+export function bindFundedSponsorToClub({
+  clubId,
+  clubName,
+  brandName,
+  spentGbp,
+}: {
+  clubId?: string | null;
+  clubName: string;
+  brandName: string;
+  spentGbp?: number;
+}): ClubSponsorRoster | null {
+  const club = clubName.trim();
+  const brand = brandName.trim();
+  if (!club || !brand || !isDemoClubName(club)) return null;
+  const id = clubId?.trim() || club;
+  const roster = addClubClimateSponsor(id, club, {
+    brandName: brand,
+    spentGbp: Number(spentGbp) || 0,
+  });
+  const sponsor = roster.sponsors.find((row) =>
+    brandsMatch(row.brandName, brand)
+  );
+  if (!sponsor) return roster;
+  const next = ensureSponsorSelected(roster, sponsor.id);
+  saveClubSponsorRoster(next);
+  return next;
 }
 
 export function clearMatchDayLock(brandName: string) {

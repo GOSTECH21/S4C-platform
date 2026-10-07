@@ -1,5 +1,17 @@
 /** Paths used by homepage role cards and post-login destinations. */
 
+import {
+  SPONSOR_OFFER_SIGN_SECTION_ID,
+  SPONSOR_RECEIVE_SECTION_ID,
+  SPONSOR_SIGNED_SECTION_ID,
+} from "./sponsor-completion-flow";
+
+export {
+  SPONSOR_OFFER_SIGN_SECTION_ID,
+  SPONSOR_RECEIVE_SECTION_ID,
+  SPONSOR_SIGNED_SECTION_ID,
+};
+
 export const HOME_PATH = "/";
 
 export const FAN_LOGIN_PATH = "/fan/login";
@@ -36,6 +48,10 @@ export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_WALLET_PATH = "/sponsor/wallet";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
+
+export function sponsorDashboardReceivePath(): string {
+  return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_RECEIVE_SECTION_ID}`;
+}
 export const SPONSOR_OFFER_SIGN_OFF_PATH = "/sponsor/offers/sign-off";
 export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";
 
