@@ -1,6 +1,7 @@
 import { clubsMatch } from "./sponsor-dashboard";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
 import { isDemoClubName } from "./current-season";
+import { isRemovedSponsorBrand } from "./climate-sponsors";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
 /** Fans may FUND-IT onto any of the Match Day five; leftover-only branding is retired. */
@@ -130,7 +131,7 @@ export function readLocalSponsorRecord(): LocalSponsorRecord | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as LocalSponsorRecord;
     if (!parsed?.brandName || !parsed?.clubName) return null;
-    if (!isDemoClubName(parsed.clubName)) {
+    if (!isDemoClubName(parsed.clubName) || isRemovedSponsorBrand(parsed.brandName)) {
       window.localStorage.removeItem(LOCAL_SPONSOR_STORAGE);
       return null;
     }
@@ -166,7 +167,9 @@ function pruneNonDemoLocalSponsors() {
   const next: Record<string, unknown> = {};
   let changed = false;
   for (const [key, value] of Object.entries(store)) {
-    const rows = parseClubLocals(value).filter((row) => isDemoClubName(row.clubName));
+    const rows = parseClubLocals(value).filter(
+      (row) => isDemoClubName(row.clubName) && !isRemovedSponsorBrand(row.brandName)
+    );
     if (rows.length === 0) {
       changed = true;
       continue;
@@ -206,7 +209,12 @@ export function allLocalSponsors(): LocalSponsorRecord[] {
   const seen = new Set<string>();
   return rows.filter((row) => {
     const key = `${clubKey(row.clubName)}:${brandKey(row.brandName)}`;
-    if (!row.brandName.trim() || !isDemoClubName(row.clubName) || seen.has(key)) {
+    if (
+      !row.brandName.trim() ||
+      !isDemoClubName(row.clubName) ||
+      isRemovedSponsorBrand(row.brandName) ||
+      seen.has(key)
+    ) {
       return false;
     }
     seen.add(key);
@@ -223,10 +231,13 @@ export function replaceLocalSponsorsForClub(
   }
   try {
     const store = readLocalsStore();
-    store[clubKey(clubName)] = records.filter(isLocalRecord).map((row) => ({
-      ...row,
-      clubName,
-    }));
+    store[clubKey(clubName)] = records
+      .filter(isLocalRecord)
+      .filter((row) => !isRemovedSponsorBrand(row.brandName))
+      .map((row) => ({
+        ...row,
+        clubName,
+      }));
     writeLocalsStore(store);
   } catch {
     // Browser storage can be blocked; local branding then stays on this device only.
@@ -260,7 +271,13 @@ export function removeLocalSponsorForClub(clubName: string, brandName: string) {
 }
 
 export function writeLocalSponsorRecord(record: LocalSponsorRecord) {
-  if (typeof window === "undefined" || !isDemoClubName(record.clubName)) return;
+  if (
+    typeof window === "undefined" ||
+    !isDemoClubName(record.clubName) ||
+    isRemovedSponsorBrand(record.brandName)
+  ) {
+    return;
+  }
   window.localStorage.setItem(LOCAL_SPONSOR_STORAGE, JSON.stringify(record));
   writeLocalSponsorForClub(record);
 }

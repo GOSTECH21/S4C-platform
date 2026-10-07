@@ -473,7 +473,7 @@ assert(
   "Uploaded international climate projects sit above generic List 2 projects"
 );
 assert(
-  isPartnerUpload({ location: "Carbon Warriors · Climate Partner" }),
+  isPartnerUpload({ location: "Green Projects · Climate Partner" }),
   "Form uploads are tagged as Climate Partner projects"
 );
 assert(

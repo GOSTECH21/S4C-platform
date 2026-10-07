@@ -3,6 +3,7 @@ import {
   brandsMatch,
   isKnownLocalBusinessSponsorName,
   isLeadClimateSponsorName,
+  isRemovedSponsorBrand,
   KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES,
   type ClubClimateSponsor,
   type LeadClubSponsorRow,
@@ -50,6 +51,7 @@ function localJobTitle(value: string | null | undefined): boolean {
 }
 
 export function isExampleLocalBrand(brandName: string): boolean {
+  if (isRemovedSponsorBrand(brandName)) return true;
   const key = compactBrandKey(brandName);
   if (!key) return false;
   return EXAMPLE_LOCAL_BRANDS.some((row) => {
@@ -122,7 +124,11 @@ export function splitClubClimateSponsorsForTabs({
 
   function rememberLocal(row: LocalSponsorRecord) {
     if (!row.brandName.trim()) return;
-    if (isLeadClimateBrand(row.brandName) || isExampleLocalBrand(row.brandName)) {
+    if (
+      isLeadClimateBrand(row.brandName) ||
+      isExampleLocalBrand(row.brandName) ||
+      isRemovedSponsorBrand(row.brandName)
+    ) {
       return;
     }
     const key = brandKey(row.brandName);

@@ -4,6 +4,7 @@ import {
   isDemoClubName,
   leagueForClubName,
 } from "../lib/current-season";
+import { isRemovedSponsorBrand } from "../lib/climate-sponsors";
 import { scoreLabelForSport } from "../lib/sports";
 import { sponsorOfferHeadline } from "../lib/s4p-climate-projects";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
@@ -329,7 +330,9 @@ export async function listOfferSignatures(): Promise<SponsorOfferSignature[]> {
     acceptedTerms: Boolean(row.accepted_terms),
     signedAt: String(row.signed_at ?? ""),
   }));
-  return mergeById(local, remote);
+  return mergeById(local, remote).filter(
+    (row) => !isRemovedSponsorBrand(row.brandName)
+  );
 }
 
 export async function signSponsorOffer({
@@ -341,6 +344,9 @@ export async function signSponsorOffer({
   signerName: string;
   brandName: string;
 }): Promise<SponsorOfferSignature> {
+  if (isRemovedSponsorBrand(brandName)) {
+    throw new Error("This brand is not available as a Climate Sponsor.");
+  }
   let sponsorId: string | null = null;
   try {
     const sponsor = await getCurrentSponsor();

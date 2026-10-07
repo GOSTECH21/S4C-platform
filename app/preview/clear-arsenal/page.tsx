@@ -33,8 +33,8 @@ export default function ClearArsenalPage() {
         </p>
         <h1 className="text-4xl font-black">Start Arsenal afresh</h1>
         <p className="text-slate-300">
-          This removes Arsenal&apos;s posted Climate Projects, Carbon Warriors
-          funded lists, Match Day file records and every sponsor attached to
+          This removes Arsenal&apos;s posted Climate Projects, sponsor funded
+          lists, Match Day file records and every sponsor attached to
           Arsenal. Opening the Arsenal club dashboard also starts the
           Sustainability Director on a blank Match Day until a new five is
           saved. Shared catalog projects and other clubs are left in place.
@@ -66,7 +66,7 @@ export default function ClearArsenalPage() {
             </p>
             <p>
               The Sustainability Director now sees 0 selected Climate Projects,
-              no Carbon Warriors funded lists, and no Match Day lookback until
+              no leftover funded lists, and no Match Day lookback until
               they choose a new five.
             </p>
             <p>Posted Match Day rows removed: {result.portfolios}</p>

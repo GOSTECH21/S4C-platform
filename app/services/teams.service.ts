@@ -60,7 +60,6 @@ export function sponsorLogoSrc(
   if (!key) return null;
   if (key.includes("budweiser")) return "/sponsors/budweiser.svg";
   if (key.includes("gillette")) return "/sponsors/gillette.svg";
-  if (key.includes("carbon warrior")) return "/sponsors/carbon-warriors.svg";
   return null;
 }
 

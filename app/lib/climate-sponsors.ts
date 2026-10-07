@@ -46,6 +46,12 @@ export function isKnownLocalBusinessSponsorName(brandName: string): boolean {
   return listedSponsorName(brandName, KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES);
 }
 
+/** Carbon Warriors Limited is removed from the platform as a sponsor. */
+export function isRemovedSponsorBrand(name: string | null | undefined): boolean {
+  const key = compactSponsorKey(String(name ?? ""));
+  return key.startsWith("carbonwarriors");
+}
+
 /** True only for designated Lead Climate Sponsor brands — one type per club. */
 export function isLeadClimateSponsorName(brandName: string): boolean {
   if (!brandName.trim()) return false;
@@ -412,7 +418,7 @@ function sponsorsForClubFromStores({
     inNetwork?: boolean;
   }) {
     const key = brandKey(row.brandName);
-    if (!key || excluded.has(key)) return;
+    if (!key || excluded.has(key) || isRemovedSponsorBrand(row.brandName)) return;
     const current = byBrand.get(key);
     const matches = [...(current?.matches ?? [])];
     for (const name of row.matches ?? []) {

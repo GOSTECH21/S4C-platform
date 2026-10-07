@@ -10,6 +10,7 @@ import {
 import { getFanRegistrationsForStaff } from "./supporters.service";
 import { clubsForBrandFromLocalStores } from "./climate-sponsors.service";
 import { isDemoClubName } from "../lib/current-season";
+import { isRemovedSponsorBrand } from "../lib/climate-sponsors";
 
 export type StaffDirector = {
   id: string;
@@ -96,7 +97,7 @@ export async function loadStaffParticipantRoster() {
         clubNames: uniqueClubNames([...fromDb, ...fromLocal]),
       };
     })
-    .filter((row) => row.clubNames.length > 0);
+    .filter((row) => row.clubNames.length > 0 && !isRemovedSponsorBrand(row.brandName));
 
   const excluded = {
     emails: [
