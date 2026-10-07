@@ -12,6 +12,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 export default function ClubLoginPage() {
   return (
     <RoleLoginForm
+      role="club"
       title="Club Login"
       subtitle="Sign in as your club's Sustainability Director."
       destination={CLUB_DASHBOARD_PATH}

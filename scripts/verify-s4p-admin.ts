@@ -182,6 +182,11 @@ assert(
   /sustainability director/i.test(fanLoginWrongRoleMessage("club")),
   "Fan login tells a Sustainability Director to use Club Login"
 );
+assert(
+  readFileSync("app/club/login/page.tsx", "utf8").includes('role="club"') &&
+    readFileSync("app/fan/login/page.tsx", "utf8").includes('role="fan"'),
+  "Club Login and Fan Login keep separate title fields"
+);
 
 assert(
   /from ["']\.\.\/lib\/s4p-admin["']/.test(

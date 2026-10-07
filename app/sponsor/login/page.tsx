@@ -9,10 +9,12 @@ import {
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
 import { sponsorHomePath } from "@/app/lib/sponsor-home";
+import { roleLoginAccount } from "@/app/lib/role-login";
 
 export default function SponsorLoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const account = roleLoginAccount("sponsor");
+  const [email, setEmail] = useState(account.email);
+  const [password, setPassword] = useState(account.password);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,11 +48,19 @@ export default function SponsorLoginPage() {
           {error}
         </div>
       )}
-      <form onSubmit={handleLogin} className="mt-10 space-y-5">
+      <form
+        id={account.formId}
+        onSubmit={handleLogin}
+        className="mt-10 space-y-5"
+        autoComplete="on"
+      >
         <label className="block text-sm text-slate-400">
           Email
           <input
             type="email"
+            id={account.emailName}
+            name={account.emailName}
+            autoComplete={account.emailAutoComplete}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -61,6 +71,9 @@ export default function SponsorLoginPage() {
           Password
           <input
             type="password"
+            id={account.passwordName}
+            name={account.passwordName}
+            autoComplete={account.passwordAutoComplete}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"

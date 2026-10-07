@@ -11,6 +11,7 @@ import { requireS4PStaff } from "@/app/services/signed-in-role.service";
 export default function AdminLoginPage() {
   return (
     <RoleLoginForm
+      role="admin"
       title="S4P Staff Login"
       subtitle="Authorized Score-For-Our-Planet staff only. This is not Fan, Club or Sponsor login."
       destination={ADMIN_PATH}
