@@ -8,6 +8,7 @@ import {
   emptySponsor,
   inviteMatchesSponsor,
   isLeadClimateSponsorName,
+  isRemovedSponsorBrand,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   localBusinessSponsorsForClubFromStores,
@@ -63,28 +64,41 @@ type RosterStore = Record<string, ClubSponsorRoster>;
 type NetworkStore = Record<string, GoalSponsorshipNetwork>;
 type LockStore = Record<string, MatchDayClubLock>;
 
+function rosterWithoutRemovedSponsors(roster: ClubSponsorRoster): ClubSponsorRoster {
+  const sponsors = (roster.sponsors ?? []).filter(
+    (row) => !isRemovedSponsorBrand(row.brandName)
+  );
+  const keptIds = new Set(sponsors.map((row) => row.id));
+  return {
+    ...roster,
+    sponsors,
+    selectedIds: (roster.selectedIds ?? []).filter((id) => keptIds.has(id)),
+  };
+}
+
 export function loadClubSponsorRoster(
   clubId: string,
   clubName: string
 ): ClubSponsorRoster {
+  pruneNonDemoLocalSponsorStores();
   const store = readJson<RosterStore>(ROSTER_KEY, {});
   const existing = store[clubId];
   if (existing) {
-    return {
+    return rosterWithoutRemovedSponsors({
       ...existing,
       clubName: existing.clubName || clubName,
       selectedIds: existing.selectedIds ?? [],
-    };
+    });
   }
   const byName = Object.values(store).find(
     (roster) => roster.clubName && offerBelongsToClub(roster.clubName, clubName)
   );
   if (byName) {
-    return {
+    return rosterWithoutRemovedSponsors({
       ...byName,
       clubName: byName.clubName || clubName,
       selectedIds: byName.selectedIds ?? [],
-    };
+    });
   }
   return { clubId, clubName, sponsors: [], selectedIds: [] };
 }
@@ -105,7 +119,7 @@ function pruneNonDemoLocalSponsorStores() {
   const nextNetworks: NetworkStore = {};
   let networkChanged = false;
   for (const [key, row] of Object.entries(networks)) {
-    if (!row?.brandName) {
+    if (!row?.brandName || isRemovedSponsorBrand(row.brandName)) {
       networkChanged = true;
       continue;
     }
@@ -128,8 +142,13 @@ function pruneNonDemoLocalSponsorStores() {
   const nextLocks: LockStore = {};
   let lockChanged = false;
   for (const [key, row] of Object.entries(locks)) {
-    if (row && isDemoClubName(row.clubName)) nextLocks[key] = row;
-    else lockChanged = true;
+    if (
+      row &&
+      isDemoClubName(row.clubName) &&
+      !isRemovedSponsorBrand(row.brandKey)
+    ) {
+      nextLocks[key] = row;
+    } else lockChanged = true;
   }
   if (lockChanged) writeJson(LOCK_KEY, nextLocks);
 
@@ -137,10 +156,27 @@ function pruneNonDemoLocalSponsorStores() {
   const nextRosters: RosterStore = {};
   let rosterChanged = false;
   for (const [key, row] of Object.entries(rosters)) {
-    if (row && isDemoClubName(row.clubName)) nextRosters[key] = row;
-    else rosterChanged = true;
+    if (row && isDemoClubName(row.clubName)) {
+      const next = rosterWithoutRemovedSponsors(row);
+      if (next.sponsors.length !== (row.sponsors ?? []).length) {
+        rosterChanged = true;
+      }
+      nextRosters[key] = next;
+    } else rosterChanged = true;
   }
   if (rosterChanged) writeJson(ROSTER_KEY, nextRosters);
+
+  const logos = readJson<Record<string, string>>(LOGO_KEY, {});
+  const nextLogos: Record<string, string> = {};
+  let logoChanged = false;
+  for (const [key, value] of Object.entries(logos)) {
+    if (isRemovedSponsorBrand(key)) {
+      logoChanged = true;
+      continue;
+    }
+    nextLogos[key] = value;
+  }
+  if (logoChanged) writeJson(LOGO_KEY, nextLogos);
 }
 
 export function listClubSponsorRosters(): ClubSponsorRoster[] {
@@ -154,10 +190,11 @@ export function listClubSponsorRosters(): ClubSponsorRoster[] {
 
 export function selectedBrandNamesForClubName(clubName: string): string[] {
   if (!clubName.trim() || typeof window === "undefined") return [];
+  pruneNonDemoLocalSponsorStores();
   const store = readJson<RosterStore>(ROSTER_KEY, {});
   for (const roster of Object.values(store)) {
     if (!offerBelongsToClub(roster.clubName || "", clubName)) continue;
-    return selectedSponsors(roster)
+    return selectedSponsors(rosterWithoutRemovedSponsors(roster))
       .map((sponsor) => sponsor.brandName.trim())
       .filter(Boolean);
   }
@@ -166,8 +203,9 @@ export function selectedBrandNamesForClubName(clubName: string): string[] {
 
 export function saveClubSponsorRoster(roster: ClubSponsorRoster) {
   if (!isDemoClubName(roster.clubName)) return;
+  const next = rosterWithoutRemovedSponsors(roster);
   const store = readJson<RosterStore>(ROSTER_KEY, {});
-  store[roster.clubId] = roster;
+  store[roster.clubId] = next;
   writeJson(ROSTER_KEY, store);
 }
 
@@ -176,6 +214,9 @@ export function addClubClimateSponsor(
   clubName: string,
   input: Partial<ClubClimateSponsor>
 ): ClubSponsorRoster {
+  if (isRemovedSponsorBrand(input.brandName)) {
+    return loadClubSponsorRoster(clubId, clubName);
+  }
   const roster = loadClubSponsorRoster(clubId, clubName);
   const next = upsertSponsor(roster, emptySponsor(input));
   saveClubSponsorRoster(next);
@@ -312,7 +353,8 @@ export function localBusinessClimateSponsorsForClub(
   for (const row of submittedLocalSponsorsForClub(clubName)) {
     if (
       isLeadClimateSponsorName(row.brandName) ||
-      isExampleLocalBrand(row.brandName)
+      isExampleLocalBrand(row.brandName) ||
+      isRemovedSponsorBrand(row.brandName)
     ) {
       continue;
     }
@@ -328,7 +370,8 @@ export function localBusinessClimateSponsorsForClub(
   })) {
     if (
       isLeadClimateSponsorName(row.brandName) ||
-      isExampleLocalBrand(row.brandName)
+      isExampleLocalBrand(row.brandName) ||
+      isRemovedSponsorBrand(row.brandName)
     ) {
       continue;
     }
@@ -351,6 +394,7 @@ export function loadGoalNetwork(
   brandName: string,
   email?: string | null
 ): GoalSponsorshipNetwork | null {
+  if (isRemovedSponsorBrand(brandName)) return null;
   pruneNonDemoLocalSponsorStores();
   const store = readJson<NetworkStore>(NETWORK_KEY, {});
   const byBrand = store[brandKey(brandName)];
@@ -365,6 +409,13 @@ export function loadGoalNetwork(
 }
 
 export function saveGoalNetwork(network: GoalSponsorshipNetwork) {
+  if (isRemovedSponsorBrand(network.brandName)) {
+    const store = readJson<NetworkStore>(NETWORK_KEY, {});
+    delete store[brandKey(network.brandName)];
+    writeJson(NETWORK_KEY, store);
+    void persistSponsorClubNetwork({ ...network, clubNames: [] });
+    return;
+  }
   const next = demoOnlyNetwork({
     ...network,
     brandKey: brandKey(network.brandName),
@@ -403,6 +454,17 @@ export function clubsForBrandFromLocalStores(
 }
 
 async function persistSponsorClubNetwork(network: GoalSponsorshipNetwork) {
+  if (isRemovedSponsorBrand(network.brandName)) {
+    try {
+      await supabase
+        .from("sponsor_club_network")
+        .delete()
+        .eq("brand_name", network.brandName);
+    } catch {
+      // Table is optional until migration 0009 is applied.
+    }
+    return;
+  }
   const clubNames = demoClubNamesOnly(uniqueClubNames(network.clubNames));
   try {
     const existing = await supabase
@@ -442,6 +504,15 @@ export function ensureGoalNetwork({
   email?: string | null;
   clubNames?: string[];
 }): GoalSponsorshipNetwork {
+  if (isRemovedSponsorBrand(brandName)) {
+    return {
+      brandKey: brandKey(brandName),
+      brandName,
+      email: email ?? null,
+      clubNames: [],
+      leagues: [],
+    };
+  }
   const existing = loadGoalNetwork(brandName, email) ?? {
     brandKey: brandKey(brandName),
     brandName,
@@ -571,12 +642,14 @@ export function clearMatchDayLock(brandName: string) {
 }
 
 export function saveBrandLogo(brandName: string, logoDataUrl: string) {
+  if (isRemovedSponsorBrand(brandName)) return;
   const store = readJson<Record<string, string>>(LOGO_KEY, {});
   store[brandKey(brandName)] = logoDataUrl;
   writeJson(LOGO_KEY, store);
 }
 
 export function loadBrandLogo(brandName: string): string | null {
+  if (isRemovedSponsorBrand(brandName)) return null;
   const store = readJson<Record<string, string>>(LOGO_KEY, {});
   const exact = store[brandKey(brandName)];
   if (exact) return exact;

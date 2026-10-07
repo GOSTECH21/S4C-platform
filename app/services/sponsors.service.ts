@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { isRemovedSponsorBrand } from "../lib/climate-sponsors";
 
 export async function getSponsors() {
   const { data, error } = await supabase
@@ -8,7 +9,9 @@ export async function getSponsors() {
 
   if (error) throw error;
 
-  return data;
+  return (data ?? []).filter(
+    (row) => !isRemovedSponsorBrand(String((row as { name?: string }).name ?? ""))
+  );
 }
 
 export async function createSponsor({
@@ -20,6 +23,10 @@ export async function createSponsor({
   industry: string;
   website: string;
 }) {
+  if (isRemovedSponsorBrand(name)) {
+    throw new Error("This brand is not available as a Climate Sponsor.");
+  }
+
   const { data, error } = await supabase
     .from("sponsors")
     .insert([

@@ -8,6 +8,7 @@ import {
   brandInitials,
   brandsMatch,
   emptySponsor,
+  isRemovedSponsorBrand,
   lockCopy,
   leagueFromMatchLabel,
   clubNetworkLeagueId,
@@ -35,7 +36,14 @@ function assert(condition: boolean, message: string) {
 
 assert(brandsMatch("Diageo", "diageo"), "Brand names match case-insensitively");
 assert(brandInitials("Budweiser") === "BU", "Single-word brands use two-letter initials");
-assert(brandInitials("Carbon Warriors Limited") === "CW", "Two-word brands use first letters");
+assert(brandInitials("Omar Karyem Restaurant") === "OK", "Two-word brands use first letters");
+assert(
+  isRemovedSponsorBrand("Carbon Warriors Limited") &&
+    isRemovedSponsorBrand("Carbon Warriors") &&
+    !isRemovedSponsorBrand("Omar Karyem Restaurant") &&
+    !isRemovedSponsorBrand("Puma"),
+  "Carbon Warriors Limited is removed as a Climate Sponsor"
+);
 
 const ranked = rankSponsorsBySpend([
   emptySponsor({ id: "b", brandName: "Budweiser", spentGbp: 8000 }),

@@ -65,7 +65,7 @@ const signature = {
   offerId: "offer-1",
   sponsorId: "sponsor-1",
   signerName: "Alex Manager",
-  brandName: "Carbon Warriors Limited",
+  brandName: "Puma",
   acceptedTerms: true,
   signedAt: "2026-09-14T11:00:00.000Z",
 };
@@ -105,7 +105,7 @@ assert(
 );
 
 const payload = signedCopyPayload(signed[0]);
-assert(payload.brand === "Carbon Warriors Limited", "Signed copy names the brand");
+assert(payload.brand === "Puma", "Signed copy names the brand");
 assert(payload.signedBy === "Alex Manager", "Signed copy names the signer");
 assert(payload.climateProjects.length === 5, "Signed copy lists the five projects");
 assert(
@@ -114,7 +114,7 @@ assert(
   "Signed copy states the Base Match Sponsorship"
 );
 assert(
-  signedCopyDownloadName("Manchester United", "Carbon Warriors Limited").includes(
+  signedCopyDownloadName("Manchester United", "Puma").includes(
     "s4p-signed-sponsorship"
   ),
   "Club can download a named signed copy file"

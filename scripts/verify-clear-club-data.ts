@@ -55,7 +55,7 @@ const store: Record<string, string> = {
       id: "p1",
       clubId: "club-a",
       clubName: "Arsenal FC",
-      sponsorName: "Carbon Warriors Limited",
+      sponsorName: "Acme Climate Ltd",
       status: "posted",
     },
     {
@@ -137,7 +137,7 @@ assert(
 const leftoverProposals = JSON.parse(store["s4p.sponsor.projectProposals"]);
 assert(
   leftoverProposals.length === 1 && leftoverProposals[0].clubName === "Chelsea",
-  "Carbon Warriors Arsenal proposals are removed"
+  "Arsenal sponsor proposals are removed"
 );
 const leftoverOffers = JSON.parse(store["s4p.sponsor.matchOffers"]);
 assert(leftoverOffers.length === 1 && leftoverOffers[0].id === "o2", "Arsenal match offers are removed");

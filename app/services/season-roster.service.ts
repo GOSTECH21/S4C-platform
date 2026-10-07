@@ -7,6 +7,7 @@ import {
   isDemoClubName,
   normalizeSeasonName,
 } from "../lib/current-season";
+import { isRemovedSponsorBrand } from "../lib/climate-sponsors";
 import { supabase } from "../lib/supabase";
 
 type ClubRow = {
@@ -294,6 +295,27 @@ async function pruneNonDemoClubParticipantsUnsafe(clubs: ClubRow[]): Promise<voi
 
   await deleteOffersForOtherClubs("sponsor_match_offers", "club_name");
   await deleteOffersForOtherClubs("sponsor_project_proposals", "club_name");
+  await deleteRemovedSponsorBrands();
+}
+
+async function deleteRemovedSponsorBrands(): Promise<void> {
+  const { data: networks } = await supabase
+    .from("sponsor_club_network")
+    .select("brand_name, club_name");
+  for (const row of networks ?? []) {
+    if (!isRemovedSponsorBrand(String(row.brand_name ?? ""))) continue;
+    await supabase
+      .from("sponsor_club_network")
+      .delete()
+      .eq("brand_name", row.brand_name)
+      .eq("club_name", row.club_name);
+  }
+
+  const { data: sponsors } = await supabase.from("sponsors").select("id, name");
+  for (const sponsor of sponsors ?? []) {
+    if (!isRemovedSponsorBrand(String(sponsor.name ?? ""))) continue;
+    await supabase.from("sponsors").delete().eq("id", sponsor.id);
+  }
 }
 
 async function deleteRowsNotInDemoClubs(
