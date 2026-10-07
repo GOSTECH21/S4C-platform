@@ -12,10 +12,7 @@ type CompetitionStepProps = {
 const competitions: Record<string, string[]> = {
   Football: [
     "Premier League",
-    "Championship",
-    "FA Cup",
-    "Champions League",
-    "Europa League",
+    "Scottish Premiership",
   ],
 
   Rugby: [

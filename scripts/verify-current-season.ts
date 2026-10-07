@@ -9,6 +9,7 @@ import {
 } from "../app/lib/current-season";
 import { loadTeamCatalogFromDatabase } from "../app/services/teams.service";
 import { SPORT_SELECT_OPTIONS, scoreLabelForSport } from "../app/lib/sports";
+import { readFileSync } from "fs";
 
 const failures: string[] = [];
 
@@ -124,6 +125,20 @@ assert(
 assert(
   !isCurrentSeasonLeagueFixture("EFL Championship", "West Ham United", "Burnley"),
   "Championship-only fixtures are outside the three-club demo"
+);
+
+const registerCopy = readFileSync("app/register/page.tsx", "utf8");
+assert(
+  registerCopy.includes("Hearts of Midlothian FC") &&
+    registerCopy.includes("Hibernian FC") &&
+    registerCopy.includes("Arsenal FC"),
+  "Fan registration names the three demo clubs"
+);
+assert(
+  !registerCopy.includes("Boston Celtics") &&
+    !registerCopy.includes("West Ham United") &&
+    !registerCopy.includes("New England Patriots"),
+  "Fan registration no longer lists clubs outside the three-club demo"
 );
 
 function main() {

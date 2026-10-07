@@ -32,28 +32,8 @@ const [selectedPackage, setSelectedPackage] = useState("Gold");
   // -----------------------------
 
   const competitions: Record<string, string[]> = {
-
-    Football: [
-    "Premier League",
-    "Championship",
-    "Scottish Premiership",
-    "La Liga",
-    "Serie A",
-  ],
-
-  Rugby: [
-    "Six Nations",
-    "Premiership Rugby",
-  ],
-
-  NFL: [
-    "NFL",
-  ],
-
-  NBA: [
-    "NBA",
-  ],
-};
+    Football: ["Premier League", "Scottish Premiership"],
+  };
 
   // -----------------------------
   // Temporary Fixtures
@@ -63,143 +43,12 @@ const [selectedPackage, setSelectedPackage] = useState("Gold");
   const fixtures: Record<string, string[]> = {
   "Premier League": [
     "Arsenal vs Chelsea",
-    "Liverpool vs Everton",
-    "Manchester United vs Leeds United",
-    "Tottenham Hotspur vs Newcastle United",
-    "Manchester City vs Aston Villa",
-    "Brighton vs Fulham",
-    "Crystal Palace vs Hull City",
-    "Nottingham Forest vs Brentford",
-    "Coventry City vs Bournemouth",
-    "Ipswich Town vs Sunderland",
   ],
 
-  "Championship": [
-    "West Ham United vs Norwich City",
-    "Sheffield United vs Middlesbrough",
-    "Burnley vs Watford",
-    "West Bromwich Albion vs Blackburn Rovers",
-    "Queens Park Rangers vs Stoke City",
-    "Wolverhampton Wanderers vs Swansea City",
-    "Cardiff City vs Bristol City",
-    "Preston North End vs Millwall",
-  ],
-
-  "Scottish Premier League": [
-    "Celtic vs Rangers",
+  "Scottish Premiership": [
     "Hearts vs Hibernian",
-    "Aberdeen vs Dundee United",
-    "Motherwell vs Kilmarnock",
-    "St Mirren vs Falkirk",
-    "Dundee vs St Johnstone",
-  ],
-
-  "Women's Super League": [
-    "Arsenal Women vs Chelsea Women",
-    "Manchester City Women vs Manchester United Women",
-    "Liverpool Women vs Aston Villa Women",
-    "Everton Women vs Tottenham Women",
-    "Brighton Women vs Leicester Women",
-    "West Ham Women vs Crystal Palace Women",
-  ],
-
-  "Six Nations": [
-    "England vs France",
-    "Ireland vs Scotland",
-    "Wales vs Italy",
-    "France vs Wales",
-    "Scotland vs England",
-    "Italy vs Ireland",
-  ],
-
-  "Premiership Rugby": [
-    "Saracens vs Harlequins",
-    "Bath vs Leicester Tigers",
-    "Northampton Saints vs Bristol Bears",
-    "Exeter Chiefs vs Gloucester",
-    "Sale Sharks vs Newcastle Falcons",
-    "Wasps vs Worcester Warriors",
-  ],
-
-  NFL: [
-    "New England Patriots vs Buffalo Bills",
-    "Kansas City Chiefs vs Buffalo Bills",
-    "Dallas Cowboys vs Philadelphia Eagles",
-    "Green Bay Packers vs Chicago Bears",
-    "San Francisco 49ers vs Seattle Seahawks",
-    "Miami Dolphins vs New York Jets",
-    "Baltimore Ravens vs Cincinnati Bengals",
-    "Pittsburgh Steelers vs Cleveland Browns",
-    "Detroit Lions vs Minnesota Vikings",
-  ],
-
-  "NFL Regular Season": [
-    "Kansas City Chiefs vs Buffalo Bills",
-    "Dallas Cowboys vs Philadelphia Eagles",
-    "Green Bay Packers vs Chicago Bears",
-    "San Francisco 49ers vs Seattle Seahawks",
-    "Miami Dolphins vs New York Jets",
-    "Baltimore Ravens vs Cincinnati Bengals",
-    "Pittsburgh Steelers vs Cleveland Browns",
-    "Detroit Lions vs Minnesota Vikings",
-  ],
-
-  "NBA": [
-    "Los Angeles Lakers vs Golden State Warriors",
-    "Boston Celtics vs Miami Heat",
-    "New York Knicks vs Brooklyn Nets",
-    "Chicago Bulls vs Milwaukee Bucks",
-    "Dallas Mavericks vs Houston Rockets",
-    "Denver Nuggets vs Phoenix Suns",
-    "Philadelphia 76ers vs Toronto Raptors",
-    "Sacramento Kings vs LA Clippers",
-  ],
-
-  "EuroLeague": [
-    "Real Madrid vs Barcelona",
-    "Olympiacos vs Panathinaikos",
-    "Fenerbahçe vs Anadolu Efes",
-    "Virtus Bologna vs Olimpia Milano",
-    "Bayern Munich vs AS Monaco",
-    "Maccabi Tel Aviv vs Partizan Belgrade",
-  ],
-
-  "The Hundred": [
-    "Oval Invincibles vs London Spirit",
-    "Southern Brave vs Trent Rockets",
-    "Manchester Originals vs Northern Superchargers",
-    "Welsh Fire vs Birmingham Phoenix",
-    "London Spirit vs Oval Invincibles",
-    "Northern Superchargers vs Southern Brave",
-  ],
-
-  "IPL": [
-    "Mumbai Indians vs Chennai Super Kings",
-    "Royal Challengers Bengaluru vs Kolkata Knight Riders",
-    "Delhi Capitals vs Rajasthan Royals",
-    "Punjab Kings vs Gujarat Titans",
-    "Sunrisers Hyderabad vs Lucknow Super Giants",
-    "Chennai Super Kings vs Kolkata Knight Riders",
-    "Mumbai Indians vs Royal Challengers Bengaluru",
-    "Rajasthan Royals vs Delhi Capitals",
-  ],
-
-  "PGA Tour": [
-    "The Players Championship - Final Round",
-    "Arnold Palmer Invitational - Final Round",
-    "Genesis Invitational - Final Round",
-    "Memorial Tournament - Final Round",
-    "Travelers Championship - Final Round",
-    "FedEx St Jude Championship - Final Round",
-  ],
-
-  "DP World Tour": [
-    "BMW PGA Championship - Final Round",
-    "Dubai Desert Classic - Final Round",
-    "Scottish Open - Final Round",
-    "Irish Open - Final Round",
-    "Italian Open - Final Round",
-    "Andalucía Masters - Final Round",
+    "Dundee United vs Hibernian",
+    "Hearts vs Dundee United",
   ],
 };
 const opponent = selectedFixture

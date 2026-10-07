@@ -229,16 +229,10 @@ export default function RegisterPage() {
 
           <h2 className="mt-10 text-2xl font-bold">Teams you support</h2>
           <p className="mt-2 text-slate-300">
-            Pick from the current {CURRENT_SEASON} season — not last season.
-            Relegated clubs such as West Ham United, Burnley and Wolves now sit
-            in the EFL Championship, so they cannot appear as Premier League
-            opponents (Arsenal cannot play West Ham in the league this season).
-            A Goal for Arsenal, a Try for Scotland, a Touchdown for the
-            Patriots or a 3-Point for an NBA team each releases the sponsor
-            amount agreed for that match (for example £10,000/Goal). Examples:
-            Arsenal (Premier League), Hearts of Midlothian FC (Scottish
-            Premiership), Scotland (Six Nations Rugby), New England Patriots
-            (NFL) and Boston Celtics (NBA).
+            Pick from the current {CURRENT_SEASON} season. This demo includes
+            Hearts of Midlothian FC, Hibernian FC, and Arsenal FC. A Goal for
+            those clubs releases the sponsor amount agreed for that match (for
+            example £10,000/Goal).
           </p>
 
           <div className="mt-6">
