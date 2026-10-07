@@ -607,6 +607,15 @@ assert(
     offerService.includes("publishSignedSponsorshipToFans"),
   "Locked-in sponsors pull the SD's uploaded five immediately, then sign-off publishes them to the club and fans"
 );
+assert(
+  readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
+    "lockWalletFundingToClub"
+  ) &&
+    readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
+      "ensureOfferFromLockedClubUploads"
+    ),
+  "A completion-flow verify covers lock, wallet funding, pull, and live fan publish"
+);
 
 assert(
   readFileSync("app/club/dashboard/page.tsx", "utf8").includes(

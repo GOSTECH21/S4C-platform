@@ -312,7 +312,12 @@ async function uploadedProjectsForLockedClub(clubName: string): Promise<{
     "../lib/match-day-post"
   );
 
-  const team = await findClubByPreferenceName(clubName);
+  let team: { id: string; name: string } | null = null;
+  try {
+    team = await findClubByPreferenceName(clubName);
+  } catch {
+    team = null;
+  }
   const folder = uploadedMatchDayFolderForClub(clubName);
   const schedule = readAllFanPostSchedules().find(
     (row) => clubsMatch(row.clubName, clubName)
@@ -354,7 +359,25 @@ async function uploadedProjectsForLockedClub(clubName: string): Promise<{
   ].filter(Boolean);
   const uniqueIds = [...new Set(ids)];
   if (uniqueIds.length === 0) return null;
-  const projects = await loadProjectsByIds(uniqueIds);
+  let projects: ClimateProject[] = [];
+  try {
+    projects = await loadProjectsByIds(uniqueIds);
+  } catch {
+    projects = [];
+  }
+  if (projects.length === 0 && folder?.projectsFile?.projects.length) {
+    projects = folder.projectsFile.projects.map((project) => ({
+      id: project.id,
+      name: project.name,
+      description: null,
+      category: null,
+      country: null,
+      estimated_co2: null,
+      funding_goal: null,
+      image_url: null,
+      status: null,
+    }));
+  }
   if (projects.length === 0) return null;
   return {
     clubId,
