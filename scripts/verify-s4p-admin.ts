@@ -185,7 +185,7 @@ assert(
 assert(
   readFileSync("app/club/login/page.tsx", "utf8").includes('role="club"') &&
     readFileSync("app/fan/login/page.tsx", "utf8").includes('role="fan"'),
-  "Club Login and Fan Login default to different title accounts"
+  "Club Login and Fan Login keep separate title fields"
 );
 
 assert(

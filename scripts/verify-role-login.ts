@@ -1,9 +1,5 @@
 import { readFileSync } from "fs";
-import {
-  roleLoginAccount,
-  roleLoginEmailBelongsToTitle,
-  type LoginRole,
-} from "../app/lib/role-login";
+import { roleLoginAccount, type LoginRole } from "../app/lib/role-login";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -15,36 +11,25 @@ const accounts = Object.fromEntries(
   roles.map((role) => [role, roleLoginAccount(role)])
 ) as Record<LoginRole, ReturnType<typeof roleLoginAccount>>;
 
+const hardcodedEmails = [
+  "lauradaviesheartsfan@gmail.com",
+  "lauradaviesheartssd@gmail.com",
+  "pumasponsor@gmail.com",
+  "climatepartner@gmail.com",
+  "s4pstaff@gmail.com",
+];
+
 assert(
-  accounts.fan.email === "lauradaviesheartsfan@gmail.com" &&
-    roleLoginEmailBelongsToTitle("fan", accounts.fan.email),
-  "Fan Login defaults to the Hearts fan email"
+  roles.every((role) => accounts[role].email === "" && accounts[role].password === ""),
+  "Fan, Club, Sponsor, Partner and Staff logins start with empty email and password"
 );
+
+const helperSource = readFileSync("app/lib/role-login.ts", "utf8");
 assert(
-  accounts.club.email === "lauradaviesheartssd@gmail.com" &&
-    roleLoginEmailBelongsToTitle("club", accounts.club.email) &&
-    accounts.club.email !== accounts.fan.email,
-  "Club Login defaults to the Hearts Sustainability Director email, not the fan account"
+  hardcodedEmails.every((email) => !helperSource.includes(email)),
+  "No title-associated emails are hardcoded into login defaults"
 );
-assert(
-  accounts.sponsor.email === "pumasponsor@gmail.com" &&
-    accounts.sponsor.email !== accounts.fan.email,
-  "Sponsor Login defaults to the Puma sponsor email, not the fan account"
-);
-assert(
-  accounts.partner.email === "climatepartner@gmail.com" &&
-    accounts.partner.email !== accounts.fan.email,
-  "Climate Partner Login defaults to the partner email, not the fan account"
-);
-assert(
-  accounts.admin.email === "s4pstaff@gmail.com" &&
-    accounts.admin.email !== accounts.fan.email,
-  "S4P Staff Login defaults to the staff email, not the fan account"
-);
-assert(
-  new Set(roles.map((role) => accounts[role].email)).size === roles.length,
-  "Every login title has a different default email"
-);
+
 assert(
   new Set(roles.map((role) => accounts[role].emailName)).size === roles.length,
   "Each login title has its own email field name so the browser keeps passwords separate"
@@ -70,7 +55,7 @@ assert(
     roleForm.includes("account.emailAutoComplete") &&
     roleForm.includes("account.passwordAutoComplete") &&
     !roleForm.includes('name="email"'),
-  "Shared role login form uses the title's account and a private username field"
+  "Shared role login form uses private per-title fields"
 );
 
 const loginPages: Array<{ path: string; role: LoginRole; marker: string }> = [
@@ -96,8 +81,10 @@ const loginPages: Array<{ path: string; role: LoginRole; marker: string }> = [
 for (const page of loginPages) {
   const source = readFileSync(page.path, "utf8");
   assert(
-    source.includes(page.marker) && !source.includes('name="email"'),
-    `${page.path} uses the ${page.role} title account and does not share a generic email field`
+    source.includes(page.marker) &&
+      !source.includes('name="email"') &&
+      hardcodedEmails.every((email) => !source.includes(email)),
+    `${page.path} uses empty ${page.role} fields and does not share a generic email field`
   );
 }
 
@@ -106,8 +93,9 @@ assert(
   sponsorLogin.includes('roleLoginAccount("sponsor")') &&
     sponsorLogin.includes("account.emailName") &&
     sponsorLogin.includes("account.emailAutoComplete") &&
-    !sponsorLogin.includes('name="email"'),
-  "Sponsor Login uses the sponsor title account, not the shared email field"
+    !sponsorLogin.includes('name="email"') &&
+    hardcodedEmails.every((email) => !sponsorLogin.includes(email)),
+  "Sponsor Login starts empty and does not share the Fan email field"
 );
 
 const genericLogin = readFileSync("app/login/page.tsx", "utf8");
@@ -115,8 +103,9 @@ assert(
   genericLogin.includes('roleLoginAccount("fan")') &&
     genericLogin.includes("account.emailName") &&
     genericLogin.includes("account.emailAutoComplete") &&
-    !genericLogin.includes('name="email"'),
-  "The navbar Login page uses Fan credentials and does not share Club field names"
+    !genericLogin.includes('name="email"') &&
+    hardcodedEmails.every((email) => !genericLogin.includes(email)),
+  "The navbar Login page starts empty and does not share Club field names"
 );
 
 if (failures.length > 0) {
