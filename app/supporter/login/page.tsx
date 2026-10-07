@@ -15,6 +15,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 export default function SupporterLoginPage() {
   return (
     <RoleLoginForm
+      role="fan"
       title="Fan Login"
       subtitle="Sign in to My S4P to FUND up to 5 Projects shown to you."
       destination={SUPPORTER_CAMPAIGN_PATH}

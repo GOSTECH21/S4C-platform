@@ -9,6 +9,7 @@ import {
 export default function PartnerLoginPage() {
   return (
     <RoleLoginForm
+      role="partner"
       title="Climate Partner Login"
       subtitle="Sign in to fill, sign and list your Climate Project on S4P."
       destination={PARTNER_DASHBOARD_PATH}

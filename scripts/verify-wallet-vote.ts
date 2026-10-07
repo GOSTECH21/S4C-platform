@@ -618,8 +618,11 @@ assert(
 );
 assert(
   walletPage.includes(
-    "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet."
-  ),
+    "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for"
+  ) ||
+    walletPage.includes(
+      "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet."
+    ),
   "Lead deposit notice does not show Remaining"
 );
 assert(

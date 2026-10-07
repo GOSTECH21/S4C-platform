@@ -4,10 +4,12 @@ import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
 import { destinationForRole, FAN_REGISTER_PATH } from "@/app/lib/routes";
+import { roleLoginAccount } from "@/app/lib/role-login";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const account = roleLoginAccount("fan");
+  const [email, setEmail] = useState(account.email);
+  const [password, setPassword] = useState(account.password);
   const [busy, setBusy] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
@@ -36,11 +38,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-xl bg-slate-900 p-8 shadow-lg">
         <h1 className="mb-6 text-3xl font-bold text-green-400">Login</h1>
 
-        <form onSubmit={handleLogin}>
+        <form id={account.formId} onSubmit={handleLogin} autoComplete="on">
           <input
             type="email"
-            name="email"
-            autoComplete="email"
+            id={account.emailName}
+            name={account.emailName}
+            autoComplete={account.emailAutoComplete}
             placeholder="Email"
             className="mb-4 w-full rounded-md bg-slate-800 p-3"
             value={email}
@@ -50,8 +53,9 @@ export default function LoginPage() {
 
           <input
             type="password"
-            name="password"
-            autoComplete="current-password"
+            id={account.passwordName}
+            name={account.passwordName}
+            autoComplete={account.passwordAutoComplete}
             placeholder="Password"
             className="mb-6 w-full rounded-md bg-slate-800 p-3"
             value={password}
