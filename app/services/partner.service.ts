@@ -3,7 +3,6 @@ import {
   FEATURED_PROJECT_NAME,
   PARTNER_MATCH_DAY_CATALOG,
   SCCAN_LOCATION_TAG,
-  SCCAN_PARTNER_NAME,
   type PartnerCatalogProject,
 } from "../lib/sccan-catalog";
 import {
@@ -15,12 +14,18 @@ import {
   type ClimateProjectCivInput,
 } from "../lib/climate-impact-value";
 import { encodeLocationSite } from "../lib/project-site";
+import {
+  RETIRED_PARTNER_LISTING_NAMES,
+  isRetiredPartnerListing,
+  selectOwnListedProjects,
+} from "../lib/partner-projects";
 import type { ClimateProject } from "./votes.service";
 
 const PROJECT_FIELDS =
   "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured, location";
 
 const PARTNER_PROFILE_KEY = "s4p.partner.profile.";
+const PARTNER_OWN_LISTINGS_KEY = "s4p.partner.ownListings.";
 
 export type PartnerProfile = {
   organisationName: string;
@@ -187,6 +192,7 @@ function uniqueUploaded(rows: ClimateProject[]): ClimateProject[] {
     if (
       catalogNames.has(key) ||
       isFeaturedName(project.name) ||
+      isRetiredPartnerListing(project.name) ||
       (project.status ?? "active") === "archived" ||
       seen.has(key)
     ) {
@@ -210,9 +216,7 @@ export async function loadPartnerLibrary(): Promise<ClimateProject[]> {
   const session = await loadPartnerSession();
   if (!session) return [...uploaded, ...published];
   const mine = uploaded.filter((project) =>
-    String(project.location ?? "")
-      .toLowerCase()
-      .includes(session.profile.organisationName.toLowerCase())
+    selectOwnListedProjects([project], session.profile.organisationName).length > 0
   );
   const others = uploaded.filter(
     (project) => !mine.some((row) => row.id === project.id)
@@ -220,14 +224,53 @@ export async function loadPartnerLibrary(): Promise<ClimateProject[]> {
   return [...mine, ...others, ...published];
 }
 
+function ownListingStorageKey(userId: string) {
+  return PARTNER_OWN_LISTINGS_KEY + userId;
+}
+
+function readOwnListedIds(userId: string): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(ownListingStorageKey(userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.map((id) => String(id)).filter(Boolean)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberOwnListedProject(
+  userId: string,
+  projectId: string
+) {
+  if (typeof window === "undefined" || !userId || !projectId) return;
+  const next = [...new Set([...readOwnListedIds(userId), projectId])];
+  window.localStorage.setItem(ownListingStorageKey(userId), JSON.stringify(next));
+}
+
+async function archiveRetiredPartnerListings() {
+  try {
+    await supabase
+      .from("climate_projects")
+      .update({ status: "archived" })
+      .in("name", RETIRED_PARTNER_LISTING_NAMES);
+  } catch {
+    // Hosted archive can fail if the row is already gone or RLS blocks it.
+  }
+}
+
 export async function loadMyListedClimateProjects(): Promise<ClimateProject[]> {
   const session = await loadPartnerSession();
+  if (!session) return [];
+  await archiveRetiredPartnerListings();
   const uploaded = await loadUploadedPartnerProjects();
-  if (!session) return uploaded;
-  const org = session.profile.organisationName.trim().toLowerCase();
-  if (!org) return uploaded;
-  return uploaded.filter((project) =>
-    String(project.location ?? "").toLowerCase().includes(org)
+  return selectOwnListedProjects(
+    uploaded,
+    session.profile.organisationName,
+    readOwnListedIds(session.userId)
   );
 }
 
@@ -262,7 +305,9 @@ export async function uploadPartnerProject(
     .single();
 
   if (error) throw error;
-  return data as ClimateProject;
+  const listed = data as ClimateProject;
+  rememberOwnListedProject(session.userId, listed.id);
+  return listed;
 }
 
 function catalogPayload(project: PartnerCatalogProject) {
@@ -298,10 +343,10 @@ function writePartnerProfile(userId: string, profile: PartnerProfile) {
 
 function readPartnerProfile(userId: string): PartnerProfile {
   const fallback: PartnerProfile = {
-    organisationName: SCCAN_PARTNER_NAME,
+    organisationName: "",
     contactName: "",
-    website: "https://sccan.scot/",
-    country: "Scotland",
+    website: "",
+    country: "",
   };
   if (typeof window === "undefined") return fallback;
   try {

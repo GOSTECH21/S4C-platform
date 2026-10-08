@@ -18,6 +18,13 @@ import {
   qualifyingCivTonnes,
 } from "../app/lib/climate-impact-value";
 import { CLIMATE_PROJECT_COUNTRIES } from "../app/lib/climate-project-countries";
+import {
+  RETIRED_PARTNER_LISTING_NAMES,
+  isOwnPartnerListing,
+  isRetiredPartnerListing,
+  partnerOrganisationFromLocation,
+  selectOwnListedProjects,
+} from "../app/lib/partner-projects";
 
 const failures: string[] = [];
 
@@ -195,6 +202,75 @@ assert(
   }) === "implementation",
   "PIP keeps a fully funded project in Implementation until it is Live"
 );
+assert(
+  deriveProjectLifecycle({
+    status: "active",
+    estimated_co2: 25,
+    funding_goal: 8000,
+    fundedGbp: 0,
+    location: encodePartnerLocation("New Climate Co", civ),
+  }) === "listed",
+  "A newly signed-off Climate Partner upload stays Listed, not Live"
+);
+
+const ghana = {
+  id: "ghana",
+  name: "Ghana Community Solar Upload",
+  location: "Other Provider · Climate Partner",
+};
+const tynecastle = {
+  id: "tynecastle",
+  name: "Tynecastle High School Solar Installation",
+  location: "Other Provider · Climate Partner",
+};
+const sccanExchange = {
+  id: "sccan-exchange",
+  name: "SCCAN Community Learning Exchange",
+  location: "Scottish Communities Climate Action Network · Climate Partner",
+};
+const ownListing = {
+  id: "own-1",
+  name: "Partner Rooftop Solar",
+  location: encodePartnerLocation("New Climate Co", civ),
+};
+const otherListing = {
+  id: "other-1",
+  name: "Someone Else Solar",
+  location: encodePartnerLocation("Other Provider", civ),
+};
+assert(
+  RETIRED_PARTNER_LISTING_NAMES.includes("Ghana Community Solar Upload") &&
+    isRetiredPartnerListing(ghana.name) &&
+    isRetiredPartnerListing(tynecastle.name) &&
+    isRetiredPartnerListing(sccanExchange.name),
+  "Leftover Ghana, Tynecastle and SCCAN listings are retired"
+);
+assert(
+  isOwnPartnerListing(ownListing, "New Climate Co") &&
+    !isOwnPartnerListing(otherListing, "New Climate Co") &&
+    !isOwnPartnerListing(ownListing, "") &&
+    partnerOrganisationFromLocation(ownListing.location) === "New Climate Co",
+  "A Climate Partner only owns the listing tagged with their organisation"
+);
+assert(
+  selectOwnListedProjects(
+    [ghana, tynecastle, sccanExchange, ownListing, otherListing],
+    "New Climate Co"
+  ).map((row) => row.id).join() === "own-1",
+  "Partner home shows only that partner's signed-off project"
+);
+assert(
+  selectOwnListedProjects(
+    [ghana, tynecastle, sccanExchange, ownListing, otherListing],
+    ""
+  ).length === 0,
+  "Partner home stays empty until that partner lists their own project"
+);
+assert(
+  selectOwnListedProjects([ownListing], "", ["own-1"]).map((row) => row.id).join() ===
+    "own-1",
+  "A just-listed project is remembered for that Climate Partner"
+);
 
 const partnerForm = readFileSync(
   "app/components/climate/ClimateProjectListingForm.tsx",
@@ -267,16 +343,78 @@ assert(
     partnerPage.indexOf("Your listed Climate Projects"),
   "The Climate Project Form is the first action on the Partner dashboard"
 );
+const listedCard = readFileSync(
+  "app/components/climate/ListedClimateProjectCard.tsx",
+  "utf8"
+);
+assert(
+  partnerPage.includes("This space is empty until you fill the Climate Project Form") &&
+    partnerPage.includes("not another provider") &&
+    partnerPage.includes("ListedClimateProjectCard"),
+  "Partner home is empty until own sign-off and shows only that partner's listing"
+);
+assert(
+  listedCard.includes("LIFECYCLE_LABELS") &&
+    listedCard.includes("deriveProjectLifecycle") &&
+    listedCard.includes("Provider:") &&
+    listedCard.includes('stage === "implementation"') &&
+    listedCard.includes('stage === "listed"'),
+  "A listed project highlights Listed, then Implementation when it is being implemented"
+);
+const partnerListedPreview = readFileSync(
+  "app/preview/partner-listed/page.tsx",
+  "utf8"
+);
+assert(
+  partnerListedPreview.includes("selectOwnListedProjects") &&
+    partnerListedPreview.includes("ListedClimateProjectCard") &&
+    partnerListedPreview.includes("This space is empty until you fill the Climate Project Form") &&
+    partnerListedPreview.includes("When it is being implemented"),
+  "Partner-listed preview shows empty home, own Listed project, and Implementation"
+);
+assert(
+  !partnerPage.includes("Ghana Community Solar Upload") &&
+    !partnerPage.includes("Tynecastle High School Solar Installation") &&
+    !partnerPage.includes("SCCAN Community Learning Exchange"),
+  "Partner home does not hard-code leftover provider listings"
+);
+
+const civUi = readFileSync("app/components/climate/ClimateProjectCiv.tsx", "utf8");
+assert(
+  civUi.includes('aria-current={current ? "step" : undefined}') &&
+    civUi.includes("ring-2 ring-emerald-200"),
+  "The lifecycle strip highlights the current stage, including Implementation"
+);
+
+const partnerService = readFileSync("app/services/partner.service.ts", "utf8");
+assert(
+  partnerService.includes("selectOwnListedProjects") &&
+    partnerService.includes("archiveRetiredPartnerListings") &&
+    partnerService.includes("rememberOwnListedProject") &&
+    partnerService.includes("if (!session) return []"),
+  "Listed Climate Projects load only the signed-in partner's own uploads"
+);
 
 const partnerRegister = readFileSync("app/partner/register/page.tsx", "utf8");
 assert(
   partnerRegister.includes("ClimateProjectListingForm") &&
     partnerRegister.includes("Climate Project Form") &&
-    !partnerRegister.includes("SCCAN_PARTNER_NAME"),
-  "Registering as a Climate Partner presents the Climate Project Form"
+    !partnerRegister.includes("SCCAN_PARTNER_NAME") &&
+    partnerRegister.includes('roleRegisterAccount("partner")') &&
+    partnerRegister.includes('useState("")') &&
+    !partnerRegister.includes('type="email"') &&
+    !partnerRegister.includes("godwinokey") &&
+    !partnerRegister.includes("@gmail.com"),
+  "Registering as a Climate Partner presents a blank Climate Project Form with no defaulted email"
+);
+const countriesSource = readFileSync("app/lib/climate-project-countries.ts", "utf8");
+assert(
+  !countriesSource.includes("Intl.DisplayNames") &&
+    CLIMATE_PROJECT_COUNTRIES.includes("Falkland Islands") &&
+    !CLIMATE_PROJECT_COUNTRIES.includes("Falkland Islands (Islas Malvinas)"),
+  "Country names are frozen so server and browser show the same list"
 );
 
-const partnerService = readFileSync("app/services/partner.service.ts", "utf8");
 assert(
   partnerService.includes("assertCanListClimateProject") &&
     partnerService.includes("encodePartnerLocation") &&

@@ -281,13 +281,15 @@ export function deriveProjectLifecycle(project: {
   estimated_co2?: number | null;
   now?: number;
 }): ProjectLifecycleStage {
+  const civ = civForProject(project);
+  const sought = asPositiveAmount(project.funding_goal);
+  const received = asPositiveAmount(project.fundedGbp);
+  const partnerListing = /climate partner/i.test(project.location ?? "");
+  if (partnerListing && received <= 0) return "listed";
   const explicit = parseLifecycleStatus(project.status);
   if (explicit && explicit !== "listed" && explicit !== "funding") {
     return explicit;
   }
-  const civ = civForProject(project);
-  const sought = asPositiveAmount(project.funding_goal);
-  const received = asPositiveAmount(project.fundedGbp);
   if (received <= 0) {
     if (explicit === "listed" || explicit === "funding") return "listed";
     if (!explicit && asPositiveAmount(project.estimated_co2) > 0) {

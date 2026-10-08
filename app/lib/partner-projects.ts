@@ -32,11 +32,61 @@ export function isLocalUploadedCountry(
   return value === local || value.includes(local) || local.includes(value);
 }
 
+/** Leftover demo rows that must not appear on a Climate Partner's home. */
+export const RETIRED_PARTNER_LISTING_NAMES = [
+  "Ghana Community Solar Upload",
+  "Tynecastle High School Solar Installation",
+  "SCCAN Community Learning Exchange",
+];
+
 /** Partner-form uploads store `Organisation · Climate Partner` in location. */
 export function isPartnerUpload(project: {
   location?: string | null;
 }): boolean {
   return /climate partner/i.test(project.location ?? "");
+}
+
+export function isRetiredPartnerListing(
+  name: string | null | undefined
+): boolean {
+  const key = (name ?? "").trim().toLowerCase();
+  return RETIRED_PARTNER_LISTING_NAMES.some(
+    (row) => row.toLowerCase() === key
+  );
+}
+
+export function partnerOrganisationFromLocation(
+  location: string | null | undefined
+): string {
+  const base = String(location ?? "").split("|")[0].trim();
+  return base.replace(/\s*·\s*climate partner$/i, "").trim();
+}
+
+/** True when this listing was signed off by this Climate Partner organisation. */
+export function isOwnPartnerListing(
+  project: { name?: string | null; location?: string | null },
+  organisationName: string | null | undefined
+): boolean {
+  const org = (organisationName ?? "").trim().toLowerCase();
+  if (!org || isRetiredPartnerListing(project.name)) return false;
+  const provider = partnerOrganisationFromLocation(project.location).toLowerCase();
+  return Boolean(provider) && provider === org;
+}
+
+/** Partner home: only this organisation's signed-off uploads, never other providers. */
+export function selectOwnListedProjects<
+  T extends { id: string; name?: string | null; location?: string | null },
+>(
+  projects: T[],
+  organisationName: string | null | undefined,
+  ownIds: readonly string[] = []
+): T[] {
+  const ids = new Set(ownIds);
+  return projects.filter((project) => {
+    if (isRetiredPartnerListing(project.name)) return false;
+    if (ids.has(project.id)) return true;
+    return isOwnPartnerListing(project, organisationName);
+  });
 }
 
 export function listsWithUploadsFirst<
@@ -51,7 +101,13 @@ export function listsWithUploadsFirst<
   const seenUploads = new Set<string>();
   for (const project of uploaded) {
     const key = project.name.toLowerCase();
-    if (genericNames.has(key) || seenUploads.has(key)) continue;
+    if (
+      genericNames.has(key) ||
+      seenUploads.has(key) ||
+      isRetiredPartnerListing(project.name)
+    ) {
+      continue;
+    }
     seenUploads.add(key);
     extra.push(project);
   }

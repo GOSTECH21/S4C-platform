@@ -1,5 +1,9 @@
 import { readFileSync } from "fs";
-import { roleLoginAccount, type LoginRole } from "../app/lib/role-login";
+import {
+  roleLoginAccount,
+  roleRegisterAccount,
+  type LoginRole,
+} from "../app/lib/role-login";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -96,6 +100,28 @@ assert(
     !sponsorLogin.includes('name="email"') &&
     hardcodedEmails.every((email) => !sponsorLogin.includes(email)),
   "Sponsor Login starts empty and does not share the Fan email field"
+);
+
+const partnerRegisterAccount = roleRegisterAccount("partner");
+assert(
+  partnerRegisterAccount.emailName !== accounts.partner.emailName &&
+    partnerRegisterAccount.passwordName !== accounts.partner.passwordName &&
+    partnerRegisterAccount.emailName === "s4p-partner-register-email" &&
+    partnerRegisterAccount.passwordAutoComplete.includes("new-password"),
+  "Climate Partner registration uses its own blank fields, not the Partner login names"
+);
+
+const partnerRegister = readFileSync("app/partner/register/page.tsx", "utf8");
+assert(
+  partnerRegister.includes('useState("")') &&
+    partnerRegister.includes('roleRegisterAccount("partner")') &&
+    partnerRegister.includes("account.emailName") &&
+    partnerRegister.includes("BlankRegisterField") &&
+    !partnerRegister.includes('type="email"') &&
+    !partnerRegister.includes('type="password"') &&
+    !partnerRegister.includes("godwinokey") &&
+    hardcodedEmails.every((email) => !partnerRegister.includes(email)),
+  "Climate Partner registration starts as a blank sheet with no defaulted email"
 );
 
 const genericLogin = readFileSync("app/login/page.tsx", "utf8");

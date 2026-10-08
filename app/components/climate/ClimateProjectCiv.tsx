@@ -57,11 +57,12 @@ export function ProjectLifecycleStrip({
             key={item}
             className={`rounded-full px-2 py-0.5 text-[0.62rem] font-bold ${
               current
-                ? "bg-emerald-500 text-slate-950"
+                ? "bg-emerald-500 text-slate-950 ring-2 ring-emerald-200"
                 : done
                   ? "bg-emerald-500/20 text-emerald-200"
                   : "bg-slate-800 text-slate-500"
             }`}
+            aria-current={current ? "step" : undefined}
           >
             {LIFECYCLE_LABELS[item]}
             {index < PROJECT_LIFECYCLE.length - 1 && !compact ? (

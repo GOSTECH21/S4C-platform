@@ -481,6 +481,28 @@ assert(
   merged.international[0].name === "Partner Upload Ghana",
   "Uploaded international climate projects sit above generic List 2 projects"
 );
+const withoutRetiredDemo = listsWithUploadsFirst(
+  merged.local.slice(1, 11).concat(merged.international.slice(1)),
+  [
+    { id: "r1", name: "Ghana Community Solar Upload", country: "Ghana" },
+    { id: "r2", name: "Tynecastle High School Solar Installation", country: "Scotland" },
+    { id: "r3", name: "SCCAN Community Learning Exchange", country: "Scotland" },
+  ],
+  "Scotland"
+);
+assert(
+  !withoutRetiredDemo.local.some((project) =>
+    /Ghana Community Solar Upload|Tynecastle High School Solar Installation|SCCAN Community Learning Exchange/.test(
+      project.name
+    )
+  ) &&
+    !withoutRetiredDemo.international.some((project) =>
+      /Ghana Community Solar Upload|Tynecastle High School Solar Installation|SCCAN Community Learning Exchange/.test(
+        project.name
+      )
+    ),
+  "Retired leftover partner listings are not mixed into club Climate Project lists"
+);
 assert(
   isPartnerUpload({ location: "Green Projects · Climate Partner" }),
   "Form uploads are tagged as Climate Partner projects"

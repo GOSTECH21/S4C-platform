@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type InputHTMLAttributes } from "react";
 import Link from "next/link";
 import { registerClimatePartner } from "@/app/services/partner.service";
 import {
@@ -8,9 +8,28 @@ import {
   PARTNER_DASHBOARD_PATH,
   PARTNER_LOGIN_PATH,
 } from "@/app/lib/routes";
+import { roleRegisterAccount } from "@/app/lib/role-login";
 import { ClimateProjectListingForm } from "@/app/components/climate/ClimateProjectListingForm";
 
+function BlankRegisterField(props: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      type="text"
+      autoCorrect="off"
+      autoCapitalize="none"
+      spellCheck={false}
+      data-1p-ignore="true"
+      data-lpignore="true"
+      data-bwignore="true"
+      data-form-type="other"
+    />
+  );
+}
+
 export default function PartnerRegisterPage() {
+  const account = roleRegisterAccount("partner");
+  const [fieldsReady, setFieldsReady] = useState(false);
   const [organisationName, setOrganisationName] = useState("");
   const [contactName, setContactName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,8 +39,21 @@ export default function PartnerRegisterPage() {
   const [accountReady, setAccountReady] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setOrganisationName("");
+    setContactName("");
+    setEmail("");
+    setWebsite("");
+    setPassword("");
+    setConfirmPassword("");
+    setFieldsReady(true);
+  }, []);
+
   async function createAccount(country: string, signerName: string) {
     setAccountError(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      throw new Error("Enter a valid email address.");
+    }
     if (password !== confirmPassword) {
       throw new Error("Passwords do not match.");
     }
@@ -32,13 +64,38 @@ export default function PartnerRegisterPage() {
     await registerClimatePartner({
       organisationName,
       contactName: contactName || signerName,
-      email,
+      email: email.trim(),
       password,
       website,
       country,
     });
     setAccountReady(true);
   }
+
+  const blankSlot = (
+    <div className="grid gap-4 border-b border-slate-800 pb-6">
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
+        Your Climate Partner account
+      </p>
+      {(
+        [
+          "Organisation name",
+          "Contact name",
+          "Email",
+          "Website (optional)",
+          "Password",
+          "Confirm password",
+        ] as const
+      ).map((label) => (
+        <div
+          key={label}
+          className="flex h-14 items-center rounded-lg bg-slate-800 px-4 text-slate-500"
+        >
+          {label}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
@@ -82,55 +139,75 @@ export default function PartnerRegisterPage() {
               window.location.href = PARTNER_DASHBOARD_PATH;
             }}
             accountSlot={
-              <div className="grid gap-4 border-b border-slate-800 pb-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
-                  Your Climate Partner account
-                </p>
-                <input
-                  required
-                  placeholder="Organisation name"
-                  value={organisationName}
-                  onChange={(event) => setOrganisationName(event.target.value)}
-                  className="w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-                <input
-                  required
-                  placeholder="Contact name"
-                  value={contactName}
-                  onChange={(event) => setContactName(event.target.value)}
-                  className="w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-                <input
-                  required
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-                <input
-                  placeholder="Website (optional)"
-                  value={website}
-                  onChange={(event) => setWebsite(event.target.value)}
-                  className="w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-                <input
-                  required
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-                <input
-                  required
-                  type="password"
-                  placeholder="Confirm password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full rounded-lg bg-slate-800 p-4 text-white"
-                />
-              </div>
+              fieldsReady ? (
+                <div className="grid gap-4 border-b border-slate-800 pb-6">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
+                    Your Climate Partner account
+                  </p>
+                  <BlankRegisterField
+                    required
+                    id={account.organisationName}
+                    name={account.organisationName}
+                    autoComplete="off"
+                    placeholder="Organisation name"
+                    value={organisationName}
+                    onChange={(event) => setOrganisationName(event.target.value)}
+                    className="w-full rounded-lg bg-slate-800 p-4 text-white"
+                  />
+                  <BlankRegisterField
+                    required
+                    id={account.contactName}
+                    name={account.contactName}
+                    autoComplete="off"
+                    placeholder="Contact name"
+                    value={contactName}
+                    onChange={(event) => setContactName(event.target.value)}
+                    className="w-full rounded-lg bg-slate-800 p-4 text-white"
+                  />
+                  <BlankRegisterField
+                    required
+                    id={account.emailName}
+                    name={account.emailName}
+                    inputMode="email"
+                    autoComplete="off"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="w-full rounded-lg bg-slate-800 p-4 text-white"
+                  />
+                  <BlankRegisterField
+                    id={account.websiteName}
+                    name={account.websiteName}
+                    autoComplete="off"
+                    placeholder="Website (optional)"
+                    value={website}
+                    onChange={(event) => setWebsite(event.target.value)}
+                    className="w-full rounded-lg bg-slate-800 p-4 text-white"
+                  />
+                  <BlankRegisterField
+                    required
+                    id={account.passwordName}
+                    name={account.passwordName}
+                    autoComplete="new-password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    className="w-full rounded-lg bg-slate-800 p-4 text-white [-webkit-text-security:disc]"
+                  />
+                  <BlankRegisterField
+                    required
+                    id={account.confirmName}
+                    name={account.confirmName}
+                    autoComplete="new-password"
+                    placeholder="Confirm password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="w-full rounded-lg bg-slate-800 p-4 text-white [-webkit-text-security:disc]"
+                  />
+                </div>
+              ) : (
+                blankSlot
+              )
             }
           />
         </div>

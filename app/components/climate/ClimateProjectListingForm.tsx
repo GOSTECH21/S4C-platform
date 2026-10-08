@@ -154,6 +154,7 @@ export function ClimateProjectListingForm({
       )}
       <form
         onSubmit={handleSubmit}
+        autoComplete="off"
         className="mt-6 grid gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6"
       >
         {accountSlot}
