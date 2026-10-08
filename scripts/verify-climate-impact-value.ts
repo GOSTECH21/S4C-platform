@@ -399,8 +399,12 @@ const partnerRegister = readFileSync("app/partner/register/page.tsx", "utf8");
 assert(
   partnerRegister.includes("ClimateProjectListingForm") &&
     partnerRegister.includes("Climate Project Form") &&
-    !partnerRegister.includes("SCCAN_PARTNER_NAME"),
-  "Registering as a Climate Partner presents the Climate Project Form"
+    !partnerRegister.includes("SCCAN_PARTNER_NAME") &&
+    partnerRegister.includes('roleRegisterAccount("partner")') &&
+    partnerRegister.includes('useState("")') &&
+    !partnerRegister.includes("godwinokey") &&
+    !partnerRegister.includes("@gmail.com"),
+  "Registering as a Climate Partner presents a blank Climate Project Form with no defaulted email"
 );
 
 assert(

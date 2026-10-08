@@ -29,3 +29,34 @@ export function roleLoginAccount(role: LoginRole): RoleLoginAccount {
     passwordAutoComplete: `${section} current-password`,
   };
 }
+
+export type RoleRegisterAccount = {
+  formId: string;
+  organisationName: string;
+  contactName: string;
+  emailName: string;
+  websiteName: string;
+  passwordName: string;
+  confirmName: string;
+  emailAutoComplete: string;
+  passwordAutoComplete: string;
+};
+
+/**
+ * Registration uses a different autocomplete section from Login so a saved
+ * password (including another person's browser profile) is not painted in.
+ */
+export function roleRegisterAccount(role: LoginRole): RoleRegisterAccount {
+  const section = `section-s4p-${role}-register`;
+  return {
+    formId: `s4p-${role}-register`,
+    organisationName: `s4p-${role}-register-organisation`,
+    contactName: `s4p-${role}-register-contact`,
+    emailName: `s4p-${role}-register-email`,
+    websiteName: `s4p-${role}-register-website`,
+    passwordName: `s4p-${role}-register-password`,
+    confirmName: `s4p-${role}-register-confirm`,
+    emailAutoComplete: `${section} off`,
+    passwordAutoComplete: `${section} new-password`,
+  };
+}
