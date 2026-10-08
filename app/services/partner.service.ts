@@ -14,6 +14,7 @@ import {
   encodePartnerLocation,
   type ClimateProjectCivInput,
 } from "../lib/climate-impact-value";
+import { encodeLocationSite } from "../lib/project-site";
 import type { ClimateProject } from "./votes.service";
 
 const PROJECT_FIELDS =
@@ -246,7 +247,10 @@ export async function uploadPartnerProject(
       description: input.description.trim(),
       category: input.category,
       country: input.country.trim() || session.profile.country,
-      location: encodePartnerLocation(session.profile.organisationName, civ),
+      location: encodePartnerLocation(session.profile.organisationName, civ, {
+        postcode: input.postcode,
+        address: input.address,
+      }),
       estimated_co2: civ.projectedCiv,
       funding_goal: input.fundingAmountSought,
       featured: false,
@@ -268,7 +272,13 @@ function catalogPayload(project: PartnerCatalogProject) {
     description: project.description,
     category: project.category,
     country: project.country,
-    location: encodeLocationCiv(project.location, civ),
+    location: encodeLocationCiv(
+      encodeLocationSite(project.location, {
+        postcode: project.postcode ?? "",
+        address: project.address ?? "",
+      }),
+      civ
+    ),
     estimated_co2: project.estimated_co2,
     funding_goal: project.funding_goal,
     featured: project.featured,

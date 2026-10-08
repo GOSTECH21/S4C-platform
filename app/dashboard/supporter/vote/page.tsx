@@ -28,6 +28,8 @@ import {
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
+import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
+import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   return campaign.featuredProject
@@ -98,6 +100,11 @@ export default function VotePage() {
             <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               {climateProjectsReceivedCopy()}
+            </p>
+            <p className="mt-2 max-w-2xl text-sm text-emerald-300">
+              Put FUND-IT onto Climate Projects within 5 miles of your club
+              stadium postcode when those local projects are on the Match Day
+              list.
             </p>
           </div>
 
@@ -196,6 +203,11 @@ function CampaignClimateBoard({ campaign }: { campaign: S4PCampaign }) {
             : ""}
           .
         </p>
+        {stadiumSiteForClub(campaign.clubName) ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            {nearbyProjectsCopy(campaign.clubName)}
+          </p>
+        ) : null}
         <ul className="mt-4 space-y-1 text-slate-300">
           {numbered.map((project) => (
             <li key={project.id}>
@@ -224,6 +236,12 @@ function CampaignClimateBoard({ campaign }: { campaign: S4PCampaign }) {
               <h3 className="mt-2 font-bold leading-tight text-white">
                 {project.name}
               </h3>
+              <div className="mt-2">
+                <ProjectSiteLine
+                  project={project}
+                  clubName={campaign.clubName}
+                />
+              </div>
               <p className="mt-3 text-sm text-slate-400">Received</p>
               <p className="text-xl font-black text-green-400">
                 {formatWalletGbp(project.fundedGbp)}

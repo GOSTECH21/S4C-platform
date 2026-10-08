@@ -1,4 +1,9 @@
-import { FEATURED_PROJECT_NAME, selectableCatalogForCountry } from "./sccan-catalog";
+import {
+  FEATURED_PROJECT_NAME,
+  INTERNATIONAL_CLIMATE_PROJECTS,
+  localClimateProjectsForClub,
+  selectableCatalogForCountry,
+} from "./sccan-catalog";
 import {
   LEAGUE_COUNTRY,
   canonicalLeagueName,
@@ -139,7 +144,14 @@ export function localCatalogCountryForClub(
 }
 
 export function selectableCatalogForClub(context: ClimateCountryContext) {
-  return selectableCatalogForCountry(localCatalogCountryForClub(context));
+  const country = localCatalogCountryForClub(context);
+  if (!context.clubName?.trim()) {
+    return selectableCatalogForCountry(country);
+  }
+  return [
+    ...localClimateProjectsForClub(context.clubName, country),
+    ...INTERNATIONAL_CLIMATE_PROJECTS,
+  ];
 }
 
 export function featuredClimateProjectCountryLabel(

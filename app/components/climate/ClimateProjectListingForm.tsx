@@ -28,7 +28,7 @@ export function ClimateProjectListingForm({
   defaultCountry = "",
   defaultSignerName = "",
   heading = "Climate Project Form",
-  intro = "Every Climate Project listed on S4P must have a Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period and a signed Climate Partner undertaking. Incomplete projects are not listed.",
+  intro = "Every Climate Project listed on S4P must have a Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period, the postcode or address where it is implemented, and a signed Climate Partner undertaking. Incomplete projects are not listed.",
   submitLabel = "Sign off and list on S4P",
   busyLabel = "Signing off...",
   accountSlot,
@@ -57,6 +57,8 @@ export function ClimateProjectListingForm({
     description: "",
     category: "Community Climate Action",
     country: defaultCountry,
+    postcode: "",
+    address: "",
     fundingAmountSought: "",
     projectedCiv: "",
     civPeriod: DEFAULT_CIV_PERIOD as string,
@@ -95,6 +97,8 @@ export function ClimateProjectListingForm({
         description: form.description,
         category: form.category,
         country: form.country,
+        postcode: form.postcode,
+        address: form.address,
         fundingAmountSought: Number(form.fundingAmountSought) || 0,
         projectedCiv: Number(form.projectedCiv) || 0,
         civPeriod: form.civPeriod,
@@ -111,6 +115,8 @@ export function ClimateProjectListingForm({
         description: "",
         category: form.category,
         country: form.country,
+        postcode: "",
+        address: "",
         fundingAmountSought: "",
         projectedCiv: "",
         civPeriod: DEFAULT_CIV_PERIOD,
@@ -198,6 +204,38 @@ export function ClimateProjectListingForm({
             className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
           />
         </label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="text-sm text-slate-400">
+            Postcode where the project is implemented
+            <input
+              required
+              placeholder="e.g. EH7 5QG"
+              value={form.postcode}
+              onChange={(event) =>
+                setForm({ ...form, postcode: event.target.value })
+              }
+              className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+              autoComplete="postal-code"
+            />
+          </label>
+          <label className="text-sm text-slate-400">
+            Address / site of implementation
+            <input
+              required
+              placeholder="Street, neighbourhood or venue"
+              value={form.address}
+              onChange={(event) =>
+                setForm({ ...form, address: event.target.value })
+              }
+              className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
+            />
+          </label>
+        </div>
+        <p className="text-xs text-slate-500">
+          Fans of a club can put FUND-IT onto Climate Projects within 5 miles of
+          that club&apos;s stadium postcode. Local Business Climate Sponsors
+          must also trade within 5 miles of the stadium.
+        </p>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-slate-400">
             Funding Amount Sought (£)

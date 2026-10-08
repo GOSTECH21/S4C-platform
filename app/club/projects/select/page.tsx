@@ -38,6 +38,8 @@ import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.ser
 import { clubGateCopy } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
+import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
+import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -181,6 +183,12 @@ export default function SelectMatchDayProjectsPage() {
         <p className="mt-3 max-w-3xl text-slate-300">
           {clubClimateProjectsIntroCopy()}
         </p>
+        {stadiumSiteForClub(clubName) ? (
+          <p className="mt-3 max-w-3xl text-sm text-emerald-300">
+            {nearbyProjectsCopy(clubName)} List 1 shows those local projects
+            first.
+          </p>
+        ) : null}
 
         {featured && (
           <div className="mt-8 rounded-2xl border border-green-500/40 bg-green-500/10 p-6">
@@ -265,7 +273,8 @@ export default function SelectMatchDayProjectsPage() {
                 <p className="mt-3 flex-1 text-slate-300">{project.description}</p>
                 <div className="mt-4 space-y-1 text-sm text-slate-400">
                   {project.category && <p>{project.category}</p>}
-                  {project.country && <p>📍 {project.country}</p>}
+                  {project.country && <p>{project.country}</p>}
+                  <ProjectSiteLine project={project} clubName={clubName} />
                 </div>
                 <ClimateProjectCivBlock project={project} compact={false} />
                 <button
