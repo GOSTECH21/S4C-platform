@@ -216,12 +216,16 @@ const partnerPageCopy = partnerPage.replace(/\s+/g, " ");
 assert(
   partnerPage.includes("ClimateProjectListingForm") &&
     partnerPage.includes("List your Climate Project") &&
-    partnerPageCopy.includes(
-      "S4P will not list a project without Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period (PIP), the implementation postcode and an authorized sign-off"
-    ) &&
+    !partnerPageCopy.includes("S4P will not list a project without") &&
     !partnerPage.includes("Select project") &&
     !partnerPage.includes("publishSccanCatalog"),
   "Partner dashboard opens the Climate Project Form, not a catalog to pick from"
+);
+assert(
+  partnerForm.includes(
+    "Every Climate Project listed on S4P must have a Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period (PIP), the postcode or address where it is implemented, and a signed Climate Partner undertaking. Incomplete projects are not listed."
+  ),
+  "Climate Project Form intro names CIV, PIP and the implementation postcode"
 );
 assert(
   partnerPage.indexOf("ClimateProjectListingForm") <
