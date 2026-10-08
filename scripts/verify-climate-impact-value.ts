@@ -17,6 +17,7 @@ import {
   parseCivFromLocation,
   qualifyingCivTonnes,
 } from "../app/lib/climate-impact-value";
+import { CLIMATE_PROJECT_COUNTRIES } from "../app/lib/climate-project-countries";
 
 const failures: string[] = [];
 
@@ -226,6 +227,38 @@ assert(
     "Every Climate Project listed on S4P must have a Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period (PIP), the postcode or address where it is implemented, and a signed Climate Partner undertaking. Incomplete projects are not listed."
   ),
   "Climate Project Form intro names CIV, PIP and the implementation postcode"
+);
+assert(
+  partnerForm.includes("<select") &&
+    partnerForm.includes("CLIMATE_PROJECT_COUNTRIES") &&
+    partnerForm.includes("Select country"),
+  "Country is a dropdown of all countries"
+);
+assert(
+  partnerForm.includes("put FUNDS onto Climate Projects within 5 miles") &&
+    partnerForm.includes(
+      "might target Climate Projects within 5 miles of the stadium for"
+    ) &&
+    !partnerForm.includes("put FUND-IT onto Climate Projects within 5 miles"),
+  "Form nearby copy uses FUNDS and local-sponsor targeting"
+);
+assert(
+  CLIMATE_PROJECT_COUNTRIES[0] === "Scotland" &&
+    CLIMATE_PROJECT_COUNTRIES[1] === "England",
+  "Country dropdown lists Scotland and England first"
+);
+assert(
+  CLIMATE_PROJECT_COUNTRIES.slice(2).every(
+    (name, index, rest) =>
+      index === 0 || rest[index - 1].localeCompare(name, "en") <= 0
+  ),
+  "Countries after Scotland and England are alphabetical"
+);
+assert(
+  CLIMATE_PROJECT_COUNTRIES.includes("Italy") &&
+    CLIMATE_PROJECT_COUNTRIES.includes("United Kingdom") &&
+    CLIMATE_PROJECT_COUNTRIES.includes("Wales"),
+  "Country dropdown includes the remaining countries"
 );
 assert(
   partnerPage.indexOf("ClimateProjectListingForm") <

@@ -10,6 +10,7 @@ import {
   DEFAULT_PIP_DAYS,
   DEFAULT_PROJECT_LIFE_YEARS,
 } from "@/app/lib/climate-impact-value";
+import { CLIMATE_PROJECT_COUNTRIES } from "@/app/lib/climate-project-countries";
 
 const CATEGORIES = [
   "Solar Energy",
@@ -194,15 +195,27 @@ export function ClimateProjectListingForm({
         </label>
         <label className="text-sm text-slate-400">
           Country
-          <input
+          <select
             required
-            placeholder="Country"
             value={form.country}
             onChange={(event) =>
               setForm({ ...form, country: event.target.value })
             }
             className="mt-2 w-full rounded-lg bg-slate-800 p-4 text-white"
-          />
+          >
+            <option value="" disabled>
+              Select country
+            </option>
+            {CLIMATE_PROJECT_COUNTRIES.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+            {form.country &&
+            !CLIMATE_PROJECT_COUNTRIES.includes(form.country) ? (
+              <option value={form.country}>{form.country}</option>
+            ) : null}
+          </select>
         </label>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-slate-400">
@@ -232,9 +245,10 @@ export function ClimateProjectListingForm({
           </label>
         </div>
         <p className="text-xs text-slate-500">
-          Fans of a club can put FUND-IT onto Climate Projects within 5 miles of
+          Fans of a club can put FUNDS onto Climate Projects within 5 miles of
           that club&apos;s stadium postcode. Local Business Climate Sponsors
-          must also trade within 5 miles of the stadium.
+          might target Climate Projects within 5 miles of the stadium for
+          sponsorship.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-slate-400">
