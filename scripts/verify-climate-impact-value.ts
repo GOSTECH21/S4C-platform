@@ -257,7 +257,9 @@ assert(
 assert(
   CLIMATE_PROJECT_COUNTRIES.includes("Italy") &&
     CLIMATE_PROJECT_COUNTRIES.includes("United Kingdom") &&
-    CLIMATE_PROJECT_COUNTRIES.includes("Wales"),
+    CLIMATE_PROJECT_COUNTRIES.includes("Wales") &&
+    !CLIMATE_PROJECT_COUNTRIES.includes("Pseudo-Accents") &&
+    !CLIMATE_PROJECT_COUNTRIES.includes("United Nations"),
   "Country dropdown includes the remaining countries"
 );
 assert(
