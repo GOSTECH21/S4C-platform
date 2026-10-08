@@ -119,9 +119,9 @@ export default function PartnerListedPreviewPage() {
           <h2 className="text-xl font-black">Before sign-off</h2>
           {emptyHome.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8 text-slate-400">
-              This space is empty until you fill the Climate Project Form,
-              sign it off, and list your own project. After you log in, that
-              listing is the only one shown on your home.
+              No Climate Project is listed on this account yet. After you
+              register, fill the Climate Project Form and sign it off, it
+              appears here on login.
             </div>
           ) : (
             <p>Unexpected leftover listings.</p>
@@ -132,7 +132,11 @@ export default function PartnerListedPreviewPage() {
           <h2 className="text-xl font-black">After this partner signs off</h2>
           <div className="mt-4 grid gap-4">
             {afterSignOff.map((project) => (
-              <ListedClimateProjectCard key={project.id} project={project} />
+              <ListedClimateProjectCard
+                key={project.id}
+                project={project}
+                canUploadImages
+              />
             ))}
           </div>
         </section>
