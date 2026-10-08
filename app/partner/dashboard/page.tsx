@@ -73,8 +73,9 @@ export default function PartnerDashboardPage() {
               You are a Project Partner with a Climate Project to put on S4P.
               Fill in the Climate Project Form, sign the undertaking, and list
               it. Clubs’ Sustainability Directors can then select it. S4P will
-              not list a project without CIV, Funding Amount Sought, PIP, the
-              implementation postcode and this sign-off.
+              not list a project without Climate Impact Value (CIV), Funding
+              Amount Sought, Project Implementation Period (PIP), the
+              implementation postcode and an authorized sign-off.
             </p>
             <p className="mt-2 text-sm text-slate-500">
               {profile?.organisationName}
