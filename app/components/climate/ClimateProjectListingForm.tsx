@@ -28,7 +28,7 @@ export function ClimateProjectListingForm({
   defaultCountry = "",
   defaultSignerName = "",
   heading = "Climate Project Form",
-  intro = "Every Climate Project listed on S4P must have a Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period, the postcode or address where it is implemented, and a signed Climate Partner undertaking. Incomplete projects are not listed.",
+  intro = "Every Climate Project listed on S4P must have a Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period (PIP), the postcode or address where it is implemented, and a signed Climate Partner undertaking. Incomplete projects are not listed.",
   submitLabel = "Sign off and list on S4P",
   busyLabel = "Signing off...",
   accountSlot,
