@@ -13,10 +13,8 @@ import {
   HOME_PATH,
   PARTNER_LOGIN_PATH,
 } from "@/app/lib/routes";
-import { civForProject } from "@/app/lib/climate-impact-value";
-import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import { ClimateProjectListingForm } from "@/app/components/climate/ClimateProjectListingForm";
-import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
+import { ListedClimateProjectCard } from "@/app/components/climate/ListedClimateProjectCard";
 
 export default function PartnerDashboardPage() {
   const router = useRouter();
@@ -109,47 +107,26 @@ export default function PartnerDashboardPage() {
         <section className="mt-12">
           <h2 className="text-2xl font-black">Your listed Climate Projects</h2>
           <p className="mt-2 text-slate-400">
-            These are the projects you have signed off and listed. They are
-            visible to Sustainability Directors. A club cannot add tCO₂e until
-            a project is Live.
+            Only the Climate Project you have just signed off for listing on
+            S4P appears here — not another provider's project. Sustainability
+            Directors can then select it. A club cannot add tCO₂e until a
+            project is Live.
           </p>
           {projects.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8 text-slate-400">
-              You have not listed a Climate Project yet. Use the Climate Project
-              Form above to fill, sign and list one.
+              This space is empty until you fill the Climate Project Form,
+              sign it off, and list your own project. After you log in, that
+              listing is the only one shown on your home.
             </div>
           ) : (
             <div className="mt-6 grid gap-4">
               {projects.map((project) => (
-                <ListedProjectCard key={project.id} project={project} />
+                <ListedClimateProjectCard key={project.id} project={project} />
               ))}
             </div>
           )}
         </section>
       </div>
     </main>
-  );
-}
-
-function ListedProjectCard({ project }: { project: ClimateProject }) {
-  const civ = civForProject(project);
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      {civ.undertakingSigned ? (
-        <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
-          Signed
-        </span>
-      ) : null}
-      <h3 className="mt-3 text-2xl font-bold">{project.name}</h3>
-      <p className="mt-2 text-sm text-slate-300">{project.description}</p>
-      <div className="mt-3">
-        <ProjectSiteLine project={project} />
-      </div>
-      <p className="mt-2 text-xs text-slate-500">
-        {project.country}
-        {` · ${civ.verificationStatus}`}
-      </p>
-      <ClimateProjectCivBlock project={project} compact={false} />
-    </div>
   );
 }
