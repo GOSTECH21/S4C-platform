@@ -273,7 +273,9 @@ assert(
   form.includes("Postcode where the project is implemented") &&
     form.includes("Address / site of implementation") &&
     form.includes("postcode: form.postcode") &&
-    form.includes("address: form.address"),
+    form.includes("address: form.address") &&
+    form.includes("CLIMATE_PROJECT_COUNTRIES") &&
+    form.includes("put FUNDS onto Climate Projects within 5 miles"),
   "Climate Project Form collects and submits implementation postcode and address"
 );
 
