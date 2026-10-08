@@ -116,8 +116,9 @@ assert(
   partnerRegister.includes('useState("")') &&
     partnerRegister.includes('roleRegisterAccount("partner")') &&
     partnerRegister.includes("account.emailName") &&
-    partnerRegister.includes("FreshRegisterInput") &&
-    partnerRegister.includes("tabIndex={-1}") &&
+    partnerRegister.includes("BlankRegisterField") &&
+    !partnerRegister.includes('type="email"') &&
+    !partnerRegister.includes('type="password"') &&
     !partnerRegister.includes("godwinokey") &&
     hardcodedEmails.every((email) => !partnerRegister.includes(email)),
   "Climate Partner registration starts as a blank sheet with no defaulted email"

@@ -402,9 +402,17 @@ assert(
     !partnerRegister.includes("SCCAN_PARTNER_NAME") &&
     partnerRegister.includes('roleRegisterAccount("partner")') &&
     partnerRegister.includes('useState("")') &&
+    !partnerRegister.includes('type="email"') &&
     !partnerRegister.includes("godwinokey") &&
     !partnerRegister.includes("@gmail.com"),
   "Registering as a Climate Partner presents a blank Climate Project Form with no defaulted email"
+);
+const countriesSource = readFileSync("app/lib/climate-project-countries.ts", "utf8");
+assert(
+  !countriesSource.includes("Intl.DisplayNames") &&
+    CLIMATE_PROJECT_COUNTRIES.includes("Falkland Islands") &&
+    !CLIMATE_PROJECT_COUNTRIES.includes("Falkland Islands (Islas Malvinas)"),
+  "Country names are frozen so server and browser show the same list"
 );
 
 assert(
