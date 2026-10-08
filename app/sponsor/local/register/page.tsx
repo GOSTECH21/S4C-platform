@@ -21,6 +21,11 @@ import {
   writeLocalSponsorRecord,
   type LocalMatchSponsorship,
 } from "@/app/lib/local-sponsor";
+import {
+  assertLocalBusinessNearStadium,
+  localBusinessNearStadiumMessage,
+  stadiumSiteForClub,
+} from "@/app/lib/project-site";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import { localWalletTopUp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
@@ -30,6 +35,7 @@ export default function LocalSponsorRegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clubName, setClubName] = useState("");
+  const [postcode, setPostcode] = useState("");
   const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -56,6 +62,12 @@ export default function LocalSponsorRegisterPage() {
     if (loading) return;
     if (!clubName) {
       setError("Choose the local club whose stadium your business is near.");
+      return;
+    }
+    try {
+      assertLocalBusinessNearStadium({ postcode, clubName });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Enter a nearby business postcode.");
       return;
     }
     if (selectedMatches.length === 0) {
@@ -124,6 +136,7 @@ export default function LocalSponsorRegisterPage() {
         acceptedTerms: true,
         signerName: signerName.trim(),
         signedAt: new Date().toISOString(),
+        postcode: postcode.trim(),
       });
       ensureLocalWallet({
         clubName,
@@ -216,6 +229,26 @@ export default function LocalSponsorRegisterPage() {
           }}
         />
         <div>
+        <label className="block text-sm text-slate-400">
+          Business postcode
+          <input
+            type="text"
+            value={postcode}
+            onChange={(event) => setPostcode(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            placeholder="e.g. EH7 5AA"
+            autoComplete="postal-code"
+            required
+          />
+        </label>
+        <p className="text-xs text-slate-500">
+          {clubName
+            ? localBusinessNearStadiumMessage(clubName)
+            : "Local businesses must trade within 5 miles of the club stadium postcode."}
+          {stadiumSiteForClub(clubName)
+            ? ` Stadium postcode ${stadiumSiteForClub(clubName)?.postcode}.`
+            : ""}
+        </p>
           <p className="text-sm text-slate-400">
             Local club (near the stadium)
           </p>

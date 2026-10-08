@@ -16,6 +16,7 @@ import {
 import { civForProject } from "@/app/lib/climate-impact-value";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import { ClimateProjectListingForm } from "@/app/components/climate/ClimateProjectListingForm";
+import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 
 export default function PartnerDashboardPage() {
   const router = useRouter();
@@ -72,8 +73,8 @@ export default function PartnerDashboardPage() {
               You are a Project Partner with a Climate Project to put on S4P.
               Fill in the Climate Project Form, sign the undertaking, and list
               it. Clubs’ Sustainability Directors can then select it. S4P will
-              not list a project without CIV, Funding Amount Sought, PIP and
-              this sign-off.
+              not list a project without CIV, Funding Amount Sought, PIP, the
+              implementation postcode and this sign-off.
             </p>
             <p className="mt-2 text-sm text-slate-500">
               {profile?.organisationName}
@@ -143,7 +144,10 @@ function ListedProjectCard({ project }: { project: ClimateProject }) {
       ) : null}
       <h3 className="mt-3 text-2xl font-bold">{project.name}</h3>
       <p className="mt-2 text-sm text-slate-300">{project.description}</p>
-      <p className="mt-3 text-xs text-slate-500">
+      <div className="mt-3">
+        <ProjectSiteLine project={project} />
+      </div>
+      <p className="mt-2 text-xs text-slate-500">
         {project.country}
         {` · ${civ.verificationStatus}`}
       </p>

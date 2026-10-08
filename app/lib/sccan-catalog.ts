@@ -1,3 +1,8 @@
+import {
+  listedSiteForProjectName,
+  nearbyProjectsForClub,
+} from "./project-site";
+
 /** Local Climate Partner catalogs (10 per country) plus 10 international projects. */
 
 export const SCCAN_SOURCE_URL = "https://sccan.scot/";
@@ -17,6 +22,8 @@ export type PartnerCatalogProject = {
   funding_goal: number;
   featured: boolean;
   source: string;
+  postcode?: string;
+  address?: string;
 };
 
 export const FEATURED_GLOBAL_SCHOOLS_SOLAR: PartnerCatalogProject = {
@@ -264,27 +271,43 @@ export const SCCAN_CLIMATE_PROJECTS: PartnerCatalogProject[] = [
   },
 ];
 
+function withListedSite(
+  project: PartnerCatalogProject
+): PartnerCatalogProject {
+  const listed = listedSiteForProjectName(project.name);
+  if (!listed) return project;
+  return {
+    ...project,
+    postcode: project.postcode ?? listed.postcode,
+    address: project.address ?? listed.address,
+  };
+}
+
 function localPartnerProject(
   project: Omit<PartnerCatalogProject, "featured" | "location" | "source"> & {
     location?: string;
     source?: string;
+    postcode?: string;
+    address?: string;
   }
 ): PartnerCatalogProject {
-  return {
+  return withListedSite({
     ...project,
     featured: false,
     location: project.location ?? project.country,
     source: project.source ?? `Climate Partner · ${project.country}`,
-  };
+  });
 }
 
 /** Page 1 for Scottish clubs such as Hearts: SCCAN community projects. */
 export const SCOTLAND_CLIMATE_PROJECTS: PartnerCatalogProject[] =
-  SCCAN_CLIMATE_PROJECTS.slice(0, 10).map((project) => ({
-    ...project,
-    country: "Scotland",
-    location: "Scotland",
-  }));
+  SCCAN_CLIMATE_PROJECTS.slice(0, 10).map((project) =>
+    withListedSite({
+      ...project,
+      country: "Scotland",
+      location: "Scotland",
+    })
+  );
 
 /** @deprecated Use SCOTLAND_CLIMATE_PROJECTS or localClimateProjectsForClub. */
 export const UK_CLIMATE_PROJECTS: PartnerCatalogProject[] = SCOTLAND_CLIMATE_PROJECTS;
@@ -1006,6 +1029,57 @@ export function localClimateProjectsForCountry(
   );
 }
 
+function uniqueCatalogProjects(
+  projects: PartnerCatalogProject[]
+): PartnerCatalogProject[] {
+  const seen = new Set<string>();
+  const rows: PartnerCatalogProject[] = [];
+  for (const project of projects) {
+    const key = project.name.trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    rows.push(withListedSite(project));
+  }
+  return rows;
+}
+
+/** Local List 1 for a club: projects within 5 miles of the stadium first. */
+export function localClimateProjectsForClub(
+  clubName: string | null | undefined,
+  country: string | null | undefined
+): PartnerCatalogProject[] {
+  const nation = (country ?? "").trim();
+  const countryList = localClimateProjectsForCountry(nation);
+  const extras =
+    nation === "Scotland"
+      ? SCCAN_CLIMATE_PROJECTS.map((project) =>
+          withListedSite({
+            ...project,
+            country: "Scotland",
+            location: project.location || "Scotland",
+          })
+        )
+      : [];
+  const pool = uniqueCatalogProjects([...countryList, ...extras]);
+  const nearby = nearbyProjectsForClub(pool, clubName).map((row) => row.project);
+  const nearbyNames = new Set(
+    nearby.map((project) => project.name.trim().toLowerCase())
+  );
+  const rest = pool.filter(
+    (project) => !nearbyNames.has(project.name.trim().toLowerCase())
+  );
+  return [...nearby, ...rest].slice(0, 10);
+}
+
+/** Every catalog project that has a public implementation postcode. */
+export function sitedCatalogProjects(): PartnerCatalogProject[] {
+  return uniqueCatalogProjects([
+    ...ALL_LOCAL_CLIMATE_PROJECTS,
+    ...SCCAN_CLIMATE_PROJECTS,
+    ...ENGLAND_CLIMATE_PROJECTS,
+  ]).filter((project) => Boolean(project.postcode));
+}
+
 /** 20 projects one Sustainability Director chooses from: 10 local, then 10 international. */
 export function selectableCatalogForCountry(
   country: string | null | undefined
@@ -1042,7 +1116,13 @@ export function isLocalCatalogName(
   const list = country
     ? localClimateProjectsForCountry(country)
     : ALL_LOCAL_CLIMATE_PROJECTS;
-  return list.some((project) => project.name.toLowerCase() === value);
+  if (list.some((project) => project.name.toLowerCase() === value)) return true;
+  if ((country ?? "").trim() === "Scotland") {
+    return SCCAN_CLIMATE_PROJECTS.some(
+      (project) => project.name.toLowerCase() === value
+    );
+  }
+  return false;
 }
 
 export function isInternationalCatalogName(name: string | null | undefined): boolean {

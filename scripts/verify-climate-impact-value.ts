@@ -36,6 +36,8 @@ const valid = {
   verificationStatus: "Provider-declared",
   undertakingSigned: true,
   signerName: "Alex Partner",
+  postcode: "EH16 4TE",
+  address: "41 Old Dalkeith Road, Edinburgh",
 };
 
 assert(climateProjectListingErrors(valid).length === 0, "Complete CIV can be listed");
@@ -58,6 +60,14 @@ assert(
 assert(
   climateProjectListingErrors({ ...valid, pipDays: 0 }).length > 0,
   "A project without PIP cannot be listed"
+);
+assert(
+  climateProjectListingErrors({ ...valid, postcode: "" }).length > 0,
+  "A project without an implementation postcode cannot be listed"
+);
+assert(
+  climateProjectListingErrors({ ...valid, address: "" }).length > 0,
+  "A project without an implementation address cannot be listed"
 );
 
 try {
@@ -95,10 +105,14 @@ assert(
 );
 
 const civ = civRecordFromListing(valid, "2026-09-29T00:00:00.000Z");
-const location = encodePartnerLocation("Solar Co", civ);
+const location = encodePartnerLocation("Solar Co", civ, {
+  postcode: valid.postcode,
+  address: valid.address,
+});
 const parsed = parseCivFromLocation(location);
 assert(parsed?.projectedCiv === 25 && parsed.undertakingSigned, "CIV is stored with the partner listing");
 assert(/Climate Partner/.test(location), "Partner uploads remain tagged Climate Partner");
+assert(/SITE:/.test(location) && /EH16 4TE/.test(decodeURIComponent(location)), "Partner listings store the implementation postcode");
 assert(
   /SCCAN/.test(encodeLocationCiv("SCCAN", civ)),
   "Catalog locations keep their source tag when CIV is attached"
@@ -190,9 +204,11 @@ assert(
     partnerForm.includes("Projected Climate Impact Value") &&
     partnerForm.includes("Funding Amount Sought") &&
     partnerForm.includes("Projected Implementation Period") &&
+    partnerForm.includes("Postcode where the project is implemented") &&
+    partnerForm.includes("Address / site of implementation") &&
     partnerForm.includes("CIV_UNDERTAKING") &&
     partnerForm.includes("Sign off and list on S4P"),
-  "Climate Project Form collects CIV, funding, PIP and a signed undertaking"
+  "Climate Project Form collects CIV, funding, PIP, implementation postcode and a signed undertaking"
 );
 
 const partnerPage = readFileSync("app/partner/dashboard/page.tsx", "utf8");

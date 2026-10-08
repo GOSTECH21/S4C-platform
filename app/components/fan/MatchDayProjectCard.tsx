@@ -2,6 +2,7 @@
 
 import { DualSponsorStrip } from "@/app/components/fan/DualSponsorStrip";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
+import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import {
   climateImpactTags,
   climateProjectHeroClass,
@@ -94,6 +95,9 @@ export function MatchDayProjectCard({
             localScale={localScale}
           />
         ) : null}
+        <div className="mt-2">
+          <ProjectSiteLine project={project} clubName={clubName} />
+        </div>
         <ClimateProjectCivBlock
           project={project}
           fundedGbp={typeof fundedGbp === "number" ? fundedGbp : 0}

@@ -5,6 +5,8 @@ import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { formatWalletGbp, type NumberedClimateProject } from "@/app/lib/sponsor-wallet";
 import { loadFundedProjects } from "@/app/lib/climate-funding";
 import { climateProjectsReceivedCopy } from "@/app/lib/voting-window";
+import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
+import { nearbyProjectsCopy } from "@/app/lib/project-site";
 
 const PREVIEW_CLUB = "preview-hibs";
 
@@ -33,6 +35,9 @@ export default function ClimateProjectsPreviewPage() {
         <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
         <p className="mt-3 max-w-2xl text-slate-300">
           {climateProjectsReceivedCopy()}
+        </p>
+        <p className="mt-2 max-w-2xl text-sm text-emerald-300">
+          {nearbyProjectsCopy("Hibernian")}
         </p>
 
         <section className="mt-10 space-y-8">
@@ -69,6 +74,9 @@ export default function ClimateProjectsPreviewPage() {
                   <h3 className="mt-2 font-bold leading-tight text-white">
                     {project.name}
                   </h3>
+                  <div className="mt-2">
+                    <ProjectSiteLine project={project} clubName="Hibernian" />
+                  </div>
                   <p className="mt-3 text-sm text-slate-400">Received</p>
                   <p className="text-xl font-black text-green-400">
                     {formatWalletGbp(project.fundedGbp)}

@@ -65,7 +65,7 @@ export default function PartnerRegisterPage() {
           <ClimateProjectListingForm
             defaultSignerName={contactName}
             heading="Climate Project Form"
-            intro="Complete every field, including Climate Impact Value, Funding Amount Sought, PIP and the signed undertaking. S4P will not list the project until this form is signed off."
+            intro="Complete every field, including Climate Impact Value, Funding Amount Sought, PIP, the postcode where the project is implemented, and the signed undertaking. S4P will not list the project until this form is signed off."
             submitLabel="Create account, sign off and list on S4P"
             busyLabel="Listing your project..."
             beforeUpload={async ({ country, signerName }) => {

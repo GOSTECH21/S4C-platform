@@ -1,11 +1,13 @@
 import { formatFundingGbp } from "./platform-stats";
 
+import { encodeLocationSite, projectSiteListingErrors } from "./project-site";
+
 /** S4P Climate Impact Value: a Climate Project cannot be listed without this. */
 export const CIV_UNDERTAKING =
   "The Climate Partner confirms that the information, assumptions, calculations and evidence submitted in support of the stated Climate Impact Value are true and accurate to the best of its knowledge and that it will notify S4P of any material change. Any falsification of details and information provided to S4P will result in S4P seeking to recover any amounts provided to their Project. Failure to implement the project within the Project Implementation Period provided to S4P could result in S4P seeking to recover the amounts provided.";
 
 export const CIV_LISTING_BLOCKED =
-  "This Project will not be listed on S4P until a Climate Impact Value, Funding Amount Sought, Project Implementation Period and signed undertaking are provided.";
+  "This Project will not be listed on S4P until a Climate Impact Value, Funding Amount Sought, Project Implementation Period, implementation postcode and signed undertaking are provided.";
 
 export const PROJECT_LIFECYCLE = [
   "listed",
@@ -70,6 +72,8 @@ export type ClimateProjectCivInput = {
   verificationStatus: string;
   undertakingSigned: boolean;
   signerName: string;
+  postcode?: string;
+  address?: string;
 };
 
 export type FundingProgress = {
@@ -120,6 +124,7 @@ export function climateProjectListingErrors(
   if (!input.signerName.trim()) {
     errors.push("Signature (full name) is required.");
   }
+  errors.push(...projectSiteListingErrors(input));
   return errors;
 }
 
@@ -159,10 +164,14 @@ export function encodeLocationCiv(
 
 export function encodePartnerLocation(
   organisationName: string,
-  civ: ClimateImpactValueRecord
+  civ: ClimateImpactValueRecord,
+  site?: { postcode?: string; address?: string } | null
 ): string {
   return encodeLocationCiv(
-    `${organisationName.trim()} · Climate Partner`,
+    encodeLocationSite(`${organisationName.trim()} · Climate Partner`, {
+      postcode: site?.postcode ?? "",
+      address: site?.address ?? "",
+    }),
     civ
   );
 }
