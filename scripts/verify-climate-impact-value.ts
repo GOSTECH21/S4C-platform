@@ -19,6 +19,10 @@ import {
 } from "../app/lib/climate-impact-value";
 import { CLIMATE_PROJECT_COUNTRIES } from "../app/lib/climate-project-countries";
 import {
+  MAX_PROJECT_IMAGES,
+  showcaseImagesForProject,
+} from "../app/lib/project-images";
+import {
   RETIRED_PARTNER_LISTING_NAMES,
   isOwnPartnerListing,
   isRetiredPartnerListing,
@@ -291,12 +295,13 @@ assert(
 const partnerPage = readFileSync("app/partner/dashboard/page.tsx", "utf8");
 const partnerPageCopy = partnerPage.replace(/\s+/g, " ");
 assert(
-  partnerPage.includes("ClimateProjectListingForm") &&
-    partnerPage.includes("List your Climate Project") &&
+  !partnerPage.includes("ClimateProjectListingForm") &&
+    partnerPage.includes("Your listed Climate Projects") &&
+    partnerPage.includes("canUploadImages") &&
     !partnerPageCopy.includes("S4P will not list a project without") &&
     !partnerPage.includes("Select project") &&
     !partnerPage.includes("publishSccanCatalog"),
-  "Partner dashboard opens the Climate Project Form, not a catalog to pick from"
+  "After login, Climate Partner home shows listed projects and image upload, not the registration form"
 );
 assert(
   partnerForm.includes(
@@ -339,27 +344,36 @@ assert(
   "Country dropdown includes the remaining countries"
 );
 assert(
-  partnerPage.indexOf("ClimateProjectListingForm") <
-    partnerPage.indexOf("Your listed Climate Projects"),
-  "The Climate Project Form is the first action on the Partner dashboard"
+  partnerPage.includes("Attach images that explain and showcase") &&
+    !partnerPage.includes("List your Climate Project"),
+  "Partner home copy is the listed-project workspace, not the listing form"
 );
 const listedCard = readFileSync(
   "app/components/climate/ListedClimateProjectCard.tsx",
   "utf8"
 );
 assert(
-  partnerPage.includes("This space is empty until you fill the Climate Project Form") &&
-    partnerPage.includes("not another provider") &&
+  partnerPage.includes("No Climate Project is listed on this account yet") &&
     partnerPage.includes("ListedClimateProjectCard"),
   "Partner home is empty until own sign-off and shows only that partner's listing"
+);
+assert(
+  MAX_PROJECT_IMAGES === 6 &&
+    showcaseImagesForProject({
+      id: "own-1",
+      image_url: "https://cdn.example/project.jpg",
+    })[0] === "https://cdn.example/project.jpg",
+  "A listed Climate Project can show attached showcase images"
 );
 assert(
   listedCard.includes("LIFECYCLE_LABELS") &&
     listedCard.includes("deriveProjectLifecycle") &&
     listedCard.includes("Provider:") &&
     listedCard.includes('stage === "implementation"') &&
-    listedCard.includes('stage === "listed"'),
-  "A listed project highlights Listed, then Implementation when it is being implemented"
+    listedCard.includes('stage === "listed"') &&
+    listedCard.includes("PartnerProjectImages") &&
+    listedCard.includes("canUploadImages"),
+  "A listed project highlights Listed, then Implementation, and can attach showcase images"
 );
 const partnerListedPreview = readFileSync(
   "app/preview/partner-listed/page.tsx",
@@ -368,8 +382,9 @@ const partnerListedPreview = readFileSync(
 assert(
   partnerListedPreview.includes("selectOwnListedProjects") &&
     partnerListedPreview.includes("ListedClimateProjectCard") &&
-    partnerListedPreview.includes("This space is empty until you fill the Climate Project Form") &&
-    partnerListedPreview.includes("When it is being implemented"),
+    partnerListedPreview.includes("No Climate Project is listed on this account yet") &&
+    partnerListedPreview.includes("When it is being implemented") &&
+    partnerListedPreview.includes("canUploadImages"),
   "Partner-listed preview shows empty home, own Listed project, and Implementation"
 );
 assert(

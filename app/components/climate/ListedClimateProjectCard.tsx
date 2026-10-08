@@ -6,14 +6,17 @@ import {
 } from "@/app/lib/climate-impact-value";
 import { partnerOrganisationFromLocation } from "@/app/lib/partner-projects";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
+import { PartnerProjectImages } from "@/app/components/climate/PartnerProjectImages";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 
 export function ListedClimateProjectCard({
   project,
   fundedGbp = 0,
+  canUploadImages = false,
 }: {
   project: ClimateProject;
   fundedGbp?: number;
+  canUploadImages?: boolean;
 }) {
   const civ = civForProject(project);
   const stage = deriveProjectLifecycle({ ...project, fundedGbp });
@@ -56,6 +59,11 @@ export function ListedClimateProjectCard({
         project={project}
         fundedGbp={fundedGbp}
         compact={false}
+      />
+      <PartnerProjectImages
+        projectId={project.id}
+        imageUrl={project.image_url}
+        canUpload={canUploadImages}
       />
     </div>
   );

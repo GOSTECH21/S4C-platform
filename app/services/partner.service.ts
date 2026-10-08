@@ -274,6 +274,20 @@ export async function loadMyListedClimateProjects(): Promise<ClimateProject[]> {
   );
 }
 
+export async function updateListedProjectImage(
+  projectId: string,
+  imageUrl: string | null
+) {
+  const session = await loadPartnerSession();
+  if (!session) throw new Error("Sign in as a Climate Partner to attach images.");
+  if (!projectId) return;
+  const { error } = await supabase
+    .from("climate_projects")
+    .update({ image_url: imageUrl })
+    .eq("id", projectId);
+  if (error) throw error;
+}
+
 export async function uploadPartnerProject(
   input: PartnerProjectInput
 ): Promise<ClimateProject> {

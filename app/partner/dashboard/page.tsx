@@ -13,7 +13,6 @@ import {
   HOME_PATH,
   PARTNER_LOGIN_PATH,
 } from "@/app/lib/routes";
-import { ClimateProjectListingForm } from "@/app/components/climate/ClimateProjectListingForm";
 import { ListedClimateProjectCard } from "@/app/components/climate/ListedClimateProjectCard";
 
 export default function PartnerDashboardPage() {
@@ -65,12 +64,12 @@ export default function PartnerDashboardPage() {
               Climate Partner
             </p>
             <h1 className="mt-2 text-4xl font-black">
-              List your Climate Project
+              Your listed Climate Projects
             </h1>
             <p className="mt-2 max-w-2xl text-slate-300">
-              You are a Project Partner with a Climate Project to put on S4P.
-              Fill in the Climate Project Form, sign the undertaking, and list
-              it. Clubs’ Sustainability Directors can then select it.
+              This is the Climate Project you signed off for listing on S4P.
+              Attach images that explain and showcase it. Sustainability
+              Directors can select it; a club cannot add tCO₂e until it is Live.
             </p>
             <p className="mt-2 text-sm text-slate-500">
               {profile?.organisationName}
@@ -96,32 +95,21 @@ export default function PartnerDashboardPage() {
           </div>
         )}
 
-        <div className="mt-10">
-          <ClimateProjectListingForm
-            defaultCountry={profile?.country ?? ""}
-            defaultSignerName={profile?.contactName ?? ""}
-            onListed={async () => setProjects(await loadMyListedClimateProjects())}
-          />
-        </div>
-
-        <section className="mt-12">
-          <h2 className="text-2xl font-black">Your listed Climate Projects</h2>
-          <p className="mt-2 text-slate-400">
-            Only the Climate Project you have just signed off for listing on
-            S4P appears here — not another provider's project. Sustainability
-            Directors can then select it. A club cannot add tCO₂e until a
-            project is Live.
-          </p>
+        <section className="mt-10">
           {projects.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8 text-slate-400">
-              This space is empty until you fill the Climate Project Form,
-              sign it off, and list your own project. After you log in, that
-              listing is the only one shown on your home.
+            <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8 text-slate-400">
+              No Climate Project is listed on this account yet. After you
+              register, fill the Climate Project Form and sign it off, it
+              appears here on login.
             </div>
           ) : (
-            <div className="mt-6 grid gap-4">
+            <div className="grid gap-4">
               {projects.map((project) => (
-                <ListedClimateProjectCard key={project.id} project={project} />
+                <ListedClimateProjectCard
+                  key={project.id}
+                  project={project}
+                  canUploadImages
+                />
               ))}
             </div>
           )}
