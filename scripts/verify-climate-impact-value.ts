@@ -212,9 +212,13 @@ assert(
 );
 
 const partnerPage = readFileSync("app/partner/dashboard/page.tsx", "utf8");
+const partnerPageCopy = partnerPage.replace(/\s+/g, " ");
 assert(
   partnerPage.includes("ClimateProjectListingForm") &&
     partnerPage.includes("List your Climate Project") &&
+    partnerPageCopy.includes(
+      "S4P will not list a project without Climate Impact Value (CIV), Funding Amount Sought, Project Implementation Period (PIP), the implementation postcode and an authorized sign-off"
+    ) &&
     !partnerPage.includes("Select project") &&
     !partnerPage.includes("publishSccanCatalog"),
   "Partner dashboard opens the Climate Project Form, not a catalog to pick from"
