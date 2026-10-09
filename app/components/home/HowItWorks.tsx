@@ -51,7 +51,7 @@ export default function HowItWorks() {
         {steps.map((step, index) => (
           <div
             key={step.number}
-            className="flex flex-col items-center px-2 text-center xl:px-3"
+            className="flex flex-col items-center rounded-3xl bg-slate-950/55 px-4 py-6 text-center backdrop-blur-sm xl:px-5"
           >
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-s4p-mark text-3xl font-black text-black shadow-xl">
               {step.number}
@@ -59,7 +59,7 @@ export default function HowItWorks() {
             <h3 className="mt-8 text-xl font-bold uppercase text-white md:text-2xl">
               {step.title}
             </h3>
-            <p className="mt-5 text-sm leading-7 text-slate-300 md:text-[0.95rem] md:leading-8">
+            <p className="mt-5 text-sm leading-7 text-slate-200 md:text-[0.95rem] md:leading-8">
               {step.description}
             </p>
             {index < steps.length - 1 && (
