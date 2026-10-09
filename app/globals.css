@@ -52,16 +52,27 @@ html {
   background-color: var(--s4p-canvas);
 }
 
+html,
 body {
   min-height: 100%;
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   background-color: var(--s4p-canvas);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image:
     radial-gradient(ellipse 90% 55% at 8% -10%, rgba(91, 198, 98, 0.28), transparent 58%),
     radial-gradient(ellipse 70% 45% at 100% 0%, rgba(232, 195, 106, 0.16), transparent 52%),
     linear-gradient(168deg, #165544 0%, #0c3229 42%, #0a2a22 100%);
-  background-attachment: fixed;
 }
 
 input,
