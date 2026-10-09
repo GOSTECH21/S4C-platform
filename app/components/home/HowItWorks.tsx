@@ -42,7 +42,7 @@ export default function HowItWorks() {
         <h2 className="text-3xl font-black text-white md:text-5xl">
           How Score-For-Our-Planet Works
         </h2>
-        <p className="mt-5 text-lg text-slate-400 md:text-xl">
+        <p className="mt-5 text-lg text-slate-300 md:text-xl">
           Five simple steps that transform sporting passion into measurable climate action.
         </p>
       </div>
@@ -59,7 +59,7 @@ export default function HowItWorks() {
             <h3 className="mt-8 text-xl font-bold uppercase text-white md:text-2xl">
               {step.title}
             </h3>
-            <p className="mt-5 text-sm leading-7 text-slate-400 md:text-[0.95rem] md:leading-8">
+            <p className="mt-5 text-sm leading-7 text-slate-300 md:text-[0.95rem] md:leading-8">
               {step.description}
             </p>
             {index < steps.length - 1 && (

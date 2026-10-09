@@ -73,7 +73,7 @@ export default function AdminRegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
+    <main className="flex min-h-screen items-center justify-center px-4 text-white">
       <div className="w-full max-w-md rounded-xl bg-slate-900 p-8 shadow-lg">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           S4P staff

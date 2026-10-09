@@ -214,7 +214,7 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
   const heading = impactTableHeading(tab, filter);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen text-white">
       <header className="border-b border-slate-800">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
           <Link href={HOME_PATH} className="text-2xl font-black text-green-400">

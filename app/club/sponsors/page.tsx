@@ -105,14 +105,14 @@ export default function OurClimateSponsorsPage() {
 
   if (loading || !roster) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+      <main className="flex min-h-screen items-center justify-center text-white">
         Loading Our Climate Sponsors...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-6xl">
         <ClubNav />
         <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">

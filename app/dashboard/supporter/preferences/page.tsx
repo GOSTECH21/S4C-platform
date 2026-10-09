@@ -150,7 +150,7 @@ export default function SupporterPreferencesPage() {
     .sort((a, b) => matchSortKey(a.match).localeCompare(matchSortKey(b.match)));
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-5xl">
         <FanNav />
 

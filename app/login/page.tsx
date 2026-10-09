@@ -34,8 +34,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-      <div className="w-full max-w-md rounded-xl bg-slate-900 p-8 shadow-lg">
+    <main className="flex min-h-screen items-center justify-center text-white">
+      <div className="w-full max-w-md rounded-xl border border-emerald-400/25 bg-slate-900 p-8 shadow-xl">
         <h1 className="mb-6 text-3xl font-bold text-green-400">Login</h1>
 
         <form id={account.formId} onSubmit={handleLogin} autoComplete="on">
@@ -45,7 +45,7 @@ export default function LoginPage() {
             name={account.emailName}
             autoComplete={account.emailAutoComplete}
             placeholder="Email"
-            className="mb-4 w-full rounded-md bg-slate-800 p-3"
+            className="mb-4 w-full rounded-md border border-emerald-400/20 bg-slate-800 p-3 text-white"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -57,7 +57,7 @@ export default function LoginPage() {
             name={account.passwordName}
             autoComplete={account.passwordAutoComplete}
             placeholder="Password"
-            className="mb-6 w-full rounded-md bg-slate-800 p-3"
+            className="mb-6 w-full rounded-md border border-emerald-400/20 bg-slate-800 p-3 text-white"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

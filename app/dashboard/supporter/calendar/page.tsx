@@ -89,14 +89,14 @@ export default function SupporterCalendarPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-950 p-8 text-white">
+      <main className="min-h-screen p-8 text-white">
         Loading your fixtures...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-6xl">
         <Link
           href="/dashboard/supporter/preferences"

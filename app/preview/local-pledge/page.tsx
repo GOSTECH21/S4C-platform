@@ -79,7 +79,7 @@ export default function LocalPledgePreviewPage() {
   );
   if (!ready) return null;
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-6xl space-y-8">
         <h1 className="text-4xl font-black">The Fountain pledge preview</h1>
         <ClubClimateSponsorTabs

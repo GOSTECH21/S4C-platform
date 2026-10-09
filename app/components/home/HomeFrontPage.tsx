@@ -172,7 +172,7 @@ export default function HomeFrontPage({
   }, []);
 
   return (
-    <div className="relative bg-[#04140f] text-white">
+    <div className="relative text-white">
       <div className="absolute inset-0 overflow-hidden">
         <Image
           src="/images/home/hero.png"
@@ -181,8 +181,8 @@ export default function HomeFrontPage({
           priority
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#04140f]/95 via-[#04140f]/80 to-[#04140f]/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#04140f]/30 via-transparent to-[#04140f]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/82 via-slate-950/58 to-emerald-900/25" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-transparent to-slate-950" />
       </div>
 
       <div className="relative flex flex-col">
@@ -227,7 +227,7 @@ export default function HomeFrontPage({
               <br />
               <span className="text-s4p-mark">a brighter planet</span>
             </h1>
-            <p className="mt-6 max-w-xl text-sm leading-7 text-emerald-50 md:text-base">
+            <p className="mt-6 max-w-xl text-sm leading-7 text-slate-200 md:text-base">
               Every <span className="font-black text-white">GOAL</span>, every{" "}
               <span className="font-black text-white">TRY</span>, every{" "}
               <span className="font-black text-white">TOUCHDOWN</span> &amp; every{" "}
@@ -325,7 +325,7 @@ export default function HomeFrontPage({
               return (
               <article
                 key={card.title}
-                className="flex h-full flex-col overflow-hidden rounded-3xl border border-slate-700/80 bg-[#07150f] shadow-xl"
+                className="flex h-full flex-col overflow-hidden rounded-3xl border border-emerald-400/25 bg-slate-900 shadow-xl"
               >
                 <div className="relative h-40">
                   <Image

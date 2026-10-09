@@ -49,14 +49,14 @@ export default function PartnerDashboardPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+      <main className="flex min-h-screen items-center justify-center text-white">
         Loading Climate Partner dashboard...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-3xl">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>

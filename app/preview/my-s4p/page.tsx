@@ -114,7 +114,7 @@ export default function MyS4PPreviewPage() {
   const lead = wallets.find((wallet) => wallet.kind === "lead") ?? null;
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-[90rem]">
         <FanNav />
         <div className="text-center">

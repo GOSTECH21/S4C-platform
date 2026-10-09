@@ -6,7 +6,7 @@ export default function MyS4PLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen text-white">
       <div className="mx-auto max-w-6xl px-6 pt-6">
         <FanNav />
       </div>

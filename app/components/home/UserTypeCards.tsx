@@ -7,10 +7,10 @@ export default function UserTypeCards() {
       {HOME_STAKEHOLDERS.map((type) => (
         <div
           key={type.title}
-          className="flex h-full flex-col rounded-2xl border border-slate-700 bg-slate-900 p-8 shadow-lg transition hover:border-green-500"
+          className="flex h-full flex-col rounded-2xl border border-emerald-400/25 bg-slate-900 p-8 shadow-lg transition hover:border-s4p-mark"
         >
           <h3 className="text-2xl font-bold text-white">{type.title}</h3>
-          <p className="mt-4 flex-1 leading-7 text-slate-400">
+          <p className="mt-4 flex-1 leading-7 text-slate-300">
             {type.description}
           </p>
           <div className="mt-8 space-y-3">

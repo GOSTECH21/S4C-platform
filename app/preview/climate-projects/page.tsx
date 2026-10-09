@@ -26,7 +26,7 @@ export default function ClimateProjectsPreviewPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-6xl">
         <FanNav />
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">

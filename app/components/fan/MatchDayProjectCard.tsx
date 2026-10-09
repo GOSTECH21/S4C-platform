@@ -52,7 +52,7 @@ export function MatchDayProjectCard({
 
   return (
     <article
-      className={`overflow-hidden rounded-2xl border bg-[#07150f] text-white shadow-xl ${
+      className={`overflow-hidden rounded-2xl border bg-slate-900 text-white shadow-xl ${
         selected ? "border-maroon-400 border-rose-400" : "border-white/10"
       }`}
     >
