@@ -108,7 +108,7 @@ export default function WalletVotePreviewPage() {
     );
     setProjects(result.projects);
     setNotice(
-      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
+      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
     );
   }
 
@@ -123,9 +123,9 @@ export default function WalletVotePreviewPage() {
           <h1 className="mt-2 text-4xl font-black">Wallet vote · 10th October 2026</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Top Cellar pays £750 + 10% into the Climate Sponsorship Wallet.
-            Insert 2 next to that wallet and press {FUND_IT_LABEL}: the wallet
+            Select Wee Spoke Hub from the drop-down next to that wallet and press {FUND_IT_LABEL}: the wallet
             shows {formatWalletGbp(750 - DEFAULT_WALLET_VOTE_GBP)} Remaining and
-            Project 2 receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
+            Wee Spoke Hub receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
           </p>
         </div>
 
