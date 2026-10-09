@@ -487,15 +487,23 @@ assert(
   "Club Climate Projects does not set Goal-scored funding; FUND-IT stays £0.20"
 );
 
-const fanPage = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
+const fanPage = readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8");
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
-assert(
-  fanPage.includes("ClimateProjectSponsors"),
-  "My S4P lets fans take cash from a Carbon Wallet"
+const sponsorsPage = readFileSync(
+  "app/supporter/dashboard/climate-sponsors/page.tsx",
+  "utf8"
 );
 assert(
-  fanPage.includes("Climate Projects List"),
-  "My S4P uses the Climate Projects List heading"
+  fanPage.includes('section === "projects"') &&
+    fanPage.includes("Open Climate Project Sponsors") &&
+    sponsorsPage.includes('section="sponsors"'),
+  "My S4P guides fans to a separate Climate Project Sponsors page"
+);
+assert(
+  fanPage.includes("Climate Projects List") &&
+    fanPage.includes("space-y-2") &&
+    fanPage.includes("select the project by name"),
+  "My S4P uses the Climate Projects List heading as a stacked accordion"
 );
 assert(
   !fanPage.includes("Climate Project list"),
@@ -504,6 +512,15 @@ assert(
 assert(
   fanPage.includes("showSponsors={false}"),
   "My S4P Climate Projects List has no sponsor logo or name"
+);
+assert(
+  readFileSync("app/components/fan/MatchDayProjectCard.tsx", "utf8").includes(
+    "aria-expanded"
+  ) &&
+    !readFileSync("app/components/fan/MatchDayProjectCard.tsx", "utf8").includes(
+      "climateProjectHeroClass"
+    ),
+  "Climate Project cards accordion titles and drop the duplicate overlay numbers"
 );
 assert(!fanPage.includes("MatchDayWalletVote"), "My S4P no longer uses the mixed wallet list");
 assert(!fanPage.includes("TodaysClimateSponsors"), "My S4P does not mix local logos into the Amex bar");
@@ -541,13 +558,13 @@ assert(
 const sponsorsUi = readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8");
 assert(
   sponsorsUi.includes("Carbon Wallet") &&
-    sponsorsUi.includes(">Checkbox<") &&
-    !sponsorsUi.includes("Checkbox 1") &&
-    !sponsorsUi.includes("Checkbox 2") &&
+    sponsorsUi.includes("FundProjectSelect") &&
+    sponsorsUi.includes("Select a Climate Project") &&
+    !sponsorsUi.includes(">Checkbox<") &&
     sponsorsUi.includes("FUND_IT_LABEL") &&
     sponsorsUi.includes("canPressFundIt") &&
     !sponsorsUi.includes(">Vote<"),
-  "Each Carbon Wallet has one Checkbox and a FUND-IT tab"
+  "Each Carbon Wallet has a Climate Project drop-down and a FUND-IT tab"
 );
 assert(
   sponsorsUi.includes("fundItCopy") &&
@@ -555,13 +572,13 @@ assert(
       "Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press"
+      "select a Climate Project from the drop-down next to that wallet; Press"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
       "goes from Wallet to Project"
     ) &&
     sponsorsUi.includes("By the end of Day 5 every Carbon Wallet should show"),
-  "Climate Project Sponsor tells fans to take £0.20 once from each wallet into a numbered project"
+  "Climate Project Sponsors tell fans to take £0.20 once from each wallet into a named project"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),

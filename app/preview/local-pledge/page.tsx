@@ -95,6 +95,10 @@ export default function LocalPledgePreviewPage() {
         <ClimateProjectSponsors
           lead={{ brandName: "Puma", kind: "lead", remainingGbp: 3500 }}
           locals={locals}
+          projects={PROJECTS.map((project, index) => ({
+            number: index + 1,
+            name: project.name,
+          }))}
         />
       </div>
     </main>

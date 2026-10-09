@@ -625,7 +625,7 @@ assert(
   readFileSync("app/club/dashboard/page.tsx", "utf8").includes(
     "SIGNED_SPONSORSHIP_EVENT"
   ) &&
-    readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "SIGNED_SPONSORSHIP_EVENT"
     ) &&
     readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(

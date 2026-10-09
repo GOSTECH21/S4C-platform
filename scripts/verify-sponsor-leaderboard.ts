@@ -354,8 +354,11 @@ assert(
 
 const nav = readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8");
 assert(
-  !nav.includes('label: "Sponsor"') && !nav.includes("SUPPORTER_SPONSOR_PATH"),
-  "Fan navigation no longer has a Sponsor tab"
+  !nav.includes('label: "Sponsor"') &&
+    !nav.includes("SUPPORTER_SPONSOR_PATH") &&
+    nav.includes("SUPPORTER_CLIMATE_SPONSORS_PATH") &&
+    nav.includes('label: "Climate Sponsors"'),
+  "Fan navigation has Climate Sponsors, not the old Sponsor tab"
 );
 assert(
   readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(

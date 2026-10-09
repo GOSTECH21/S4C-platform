@@ -50,7 +50,7 @@ export function MatchDayWalletVote({
         <h2 className="text-2xl font-black">Climate Project list</h2>
         <p className="mt-1 text-sm text-slate-400">
           {votingMessage ??
-            `Look up a sponsor wallet, insert a project number (1–${projects.length || 5}) next to it, then press ${FUND_IT_LABEL}. Each FUND-IT takes ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet and puts it into the chosen ${clubName} Climate Project.`}
+            `Look up a sponsor wallet, select a Climate Project from the drop-down next to it, then press ${FUND_IT_LABEL}. Each FUND-IT takes ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from that wallet and puts it into the chosen ${clubName} Climate Project.`}
         </p>
       </div>
 
@@ -83,8 +83,8 @@ export function MatchDayWalletVote({
       <div>
         <h2 className="text-2xl font-black">Sponsor Climate Wallets</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Insert the project number in the box next to a wallet, then press{" "}
-          {FUND_IT_LABEL}.
+          Select a Climate Project from the drop-down next to a wallet, then
+          press {FUND_IT_LABEL}.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export function MatchDayWalletVote({
                 <th className="p-4">Sponsor</th>
                 <th className="p-4">Kind</th>
                 <th className="p-4 text-right">Remaining</th>
-                <th className="p-4">Project number</th>
+                <th className="p-4">Climate Project</th>
                 <th className="p-4 text-right">{FUND_IT_LABEL}</th>
               </tr>
             </thead>
@@ -128,13 +128,10 @@ export function MatchDayWalletVote({
                     </td>
                     <td className="p-4">
                       <label className="sr-only" htmlFor={`project-${row.brandName}`}>
-                        Project number for {row.brandName}
+                        Climate Project for {row.brandName}
                       </label>
-                      <input
+                      <select
                         id={`project-${row.brandName}`}
-                        type="number"
-                        min={1}
-                        max={projects.length || 5}
                         value={value}
                         onChange={(event) =>
                           setNumbers((prev) => ({
@@ -142,9 +139,16 @@ export function MatchDayWalletVote({
                             [row.brandName]: event.target.value,
                           }))
                         }
-                        className="w-20 rounded-lg border border-slate-700 bg-slate-900 p-2 text-center text-white"
-                        aria-label={`Insert a project number next to ${row.brandName}'s wallet`}
-                      />
+                        className="w-full min-w-[12rem] rounded-lg border border-slate-700 bg-slate-900 p-2 text-white"
+                        aria-label={`Select a Climate Project next to ${row.brandName}'s wallet`}
+                      >
+                        <option value="">Select a Climate Project</option>
+                        {projects.map((project) => (
+                          <option key={project.id} value={String(project.number)}>
+                            {project.name}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="p-4 text-right">
                       <button
