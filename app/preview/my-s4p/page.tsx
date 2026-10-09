@@ -1,23 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
+import Link from "next/link";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
-import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
-import {
-  fanVotedSponsorNames,
-  loadFundedProjects,
-  recordFanSponsorVote,
-  writeProjectFunding,
-} from "@/app/lib/climate-funding";
+import { SUPPORTER_CLIMATE_SPONSORS_PATH } from "@/app/lib/routes";
+import { loadFundedProjects } from "@/app/lib/climate-funding";
 import {
   applyLeadCommitment,
-  allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
-  FUND_IT_LABEL,
   formatWalletGbp,
-  remainingGbp,
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
@@ -112,53 +105,13 @@ export default function MyS4PPreviewPage() {
       votesReceived: 0,
     }))
   );
-  const [usedSponsors, setUsedSponsors] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setFunded(seedProjects());
-    setUsedSponsors(fanVotedSponsorNames(PREVIEW_FAN, PREVIEW_CLUB));
   }, []);
   const lead = wallets.find((wallet) => wallet.kind === "lead") ?? null;
-  const locals = wallets.filter((wallet) => wallet.kind === "local");
-
-  const leadRow = lead
-    ? {
-        brandName: lead.brandName,
-        kind: "lead" as const,
-        remainingGbp: remainingGbp(lead),
-      }
-    : null;
-  const localRows = useMemo(
-    () =>
-      locals.map((wallet) => ({
-        brandName: wallet.brandName,
-        kind: "local" as const,
-        remainingGbp: remainingGbp(wallet),
-      })),
-    [locals]
-  );
-
-  function applyResult(
-    result: ReturnType<typeof allocateWalletVote>
-  ) {
-    if (!result.ok) {
-      setError(result.error);
-      setNotice(null);
-      return;
-    }
-    setError(null);
-    setWallets((prev) =>
-      prev.map((row) => (row.brandName === result.wallet.brandName ? result.wallet : row))
-    );
-    setFunded(result.projects);
-    writeProjectFunding(PREVIEW_CLUB, result.projects);
-    setUsedSponsors(recordFanSponsorVote(PREVIEW_FAN, PREVIEW_CLUB, result.wallet.brandName));
-    setNotice(
-      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-    );
-  }
 
   return (
     <main className="min-h-screen bg-slate-950 p-8 text-white">
@@ -214,11 +167,13 @@ export default function MyS4PPreviewPage() {
         <section className="mt-10">
           <h2 className="text-3xl font-black">Climate Projects List</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Use the bold project number in the Checkbox, then press FUND-IT.
-            You can FUND-IT up to 5 times — £0.20 once from each Carbon Wallet
-            onto any Climate Project.
+            Project titles are shown first. Open a project to read the details.
+            To put £0.20 into a Climate Project, open Climate Project Sponsors,
+            select the project by name, then press FUND-IT. You can FUND-IT up
+            to 5 times — £0.20 once from each Carbon Wallet onto any Climate
+            Project.
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-6 space-y-2">
             {PROJECTS.map((project, index) => (
               <MatchDayProjectCard
                 key={project.id}
@@ -235,26 +190,19 @@ export default function MyS4PPreviewPage() {
           </div>
         </section>
 
-        <div className="mt-12">
-          <ClimateProjectSponsors
-            lead={leadRow}
-            locals={localRows}
-            projectCount={5}
-            usedSponsorNames={usedSponsors}
-            clubId={PREVIEW_CLUB}
-            clubName="Hibernian"
-            onVote={({ brandName, projectNumber }) => {
-              const wallet = wallets.find((row) => row.brandName === brandName);
-              if (!wallet) return;
-              applyResult(
-                allocateWalletVote({
-                  wallet,
-                  projects: funded,
-                  projectNumber: Number(projectNumber),
-                })
-              );
-            }}
-          />
+        <div className="mt-8 rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6">
+          <h3 className="text-xl font-black">Climate Project Sponsors</h3>
+          <p className="mt-2 max-w-3xl text-sm text-slate-300">
+            The sponsor list and FUND-IT wallets are on a separate page.
+            Choose a sponsor, pick the Climate Project from the drop-down,
+            then press FUND-IT.
+          </p>
+          <Link
+            href={SUPPORTER_CLIMATE_SPONSORS_PATH}
+            className="mt-4 inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-green-400"
+          >
+            Open Climate Project Sponsors
+          </Link>
         </div>
       </div>
     </main>

@@ -450,7 +450,7 @@ assert(
   "Local Business Climate Sponsor is labelled on the card"
 );
 
-const vote = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
+const vote = readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8");
 assert(
   vote.includes("liveMatchDayBranding"),
   "My S4P still resolves the Match Day five for the club"
@@ -460,8 +460,9 @@ assert(
   "My S4P Climate Projects List does not attach a sponsor logo or name"
 );
 assert(
-  vote.includes("ClimateProjectSponsors"),
-  "Lead and local Carbon Wallets sit under Climate Project Sponsor"
+  vote.includes("ClimateProjectSponsors") &&
+    vote.includes("Open Climate Project Sponsors"),
+  "Lead and local Carbon Wallets sit on the Climate Project Sponsors page"
 );
 assert(
   !vote.includes("leftoverSponsor"),

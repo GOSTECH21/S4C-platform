@@ -7,6 +7,7 @@ import { supabase } from "@/app/lib/supabase";
 import {
   FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_PATH,
+  SUPPORTER_CLIMATE_SPONSORS_PATH,
   SUPPORTER_PROJECTS_PATH,
   SUPPORTER_TEAMS_PATH,
   isMyS4PPath,
@@ -25,6 +26,11 @@ const LINKS = [
     href: SUPPORTER_PROJECTS_PATH,
     label: "Climate Projects",
     match: "projects" as const,
+  },
+  {
+    href: SUPPORTER_CLIMATE_SPONSORS_PATH,
+    label: "Climate Sponsors",
+    match: "sponsors" as const,
   },
   { href: SUPPORTER_TEAMS_PATH, label: "My Teams", match: "teams" as const },
 ];
@@ -102,8 +108,11 @@ export default function FanNav() {
               ? isMyS4PPath(pathname)
               : link.match === "teams"
                 ? pathname === SUPPORTER_TEAMS_PATH
-                : pathname === SUPPORTER_PROJECTS_PATH ||
-                  pathname === "/supporter/dashboard/vote";
+                : link.match === "sponsors"
+                  ? pathname === SUPPORTER_CLIMATE_SPONSORS_PATH ||
+                    pathname === "/dashboard/supporter/climate-sponsors"
+                  : pathname === SUPPORTER_PROJECTS_PATH ||
+                    pathname === "/supporter/dashboard/vote";
 
           return (
             <Link

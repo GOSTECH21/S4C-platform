@@ -64,10 +64,13 @@ assert(
   "Climate Projects does not repeat Climate Project Sponsor wallets from My S4P"
 );
 assert(
-  readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
-    "ClimateProjectSponsors"
-  ),
-  "My S4P still has Climate Project Sponsor wallets for FUND-IT"
+  readFileSync("app/supporter/dashboard/climate-sponsors/page.tsx", "utf8").includes(
+    'section="sponsors"'
+  ) &&
+    readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
+      "Open Climate Project Sponsors"
+    ),
+  "Climate Project Sponsor wallets live on a guided Sponsors page"
 );
 assert(
   page.includes("Climate Project list") &&

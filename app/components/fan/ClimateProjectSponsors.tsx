@@ -37,6 +37,7 @@ const FUND_IT_COPY = fundItCopy();
 export function ClimateProjectSponsors({
   lead,
   locals,
+  projects = [],
   projectCount = 5,
   onVote,
   onLeadVote,
@@ -50,6 +51,7 @@ export function ClimateProjectSponsors({
 }: {
   lead: CarbonWalletSponsor | null;
   locals: CarbonWalletSponsor[];
+  projects?: Array<{ number: number; name: string }>;
   projectCount?: number;
   onVote?: (input: WalletVoteInput) => void;
   onLeadVote?: (input: { projectNumber?: string; split?: boolean }) => void;
@@ -90,6 +92,13 @@ export function ClimateProjectSponsors({
       localRows.reduce((sum, row) => sum + row.remainingGbp, 0)
   );
   const inviteHref = fanInviteRegisterPath(clubId, clubName);
+  const projectChoices =
+    projects.length > 0
+      ? projects
+      : Array.from({ length: projectCount }, (_, index) => ({
+          number: index + 1,
+          name: `Climate Project ${index + 1}`,
+        }));
 
   function fundLead() {
     if (!lead) return;
@@ -150,9 +159,9 @@ export function ClimateProjectSponsors({
               </div>
             </div>
             <CarbonWalletBox amount={lead.remainingGbp} />
-            <FundCheckbox
+            <FundProjectSelect
               brandName={lead.brandName}
-              projectCount={projectCount}
+              projects={projectChoices}
               numberValue={leadNumber}
               used={leadUsed}
               onNumber={setLeadNumber}
@@ -215,9 +224,9 @@ export function ClimateProjectSponsors({
                   </div>
                 </div>
                 <CarbonWalletBox amount={row.remainingGbp} compact />
-                <FundCheckbox
+                <FundProjectSelect
                   brandName={row.brandName}
-                  projectCount={projectCount}
+                  projects={projectChoices}
                   numberValue={value}
                   used={already}
                   onNumber={(next) =>
@@ -293,39 +302,40 @@ function CarbonWalletBox({
   );
 }
 
-function FundCheckbox({
+function FundProjectSelect({
   brandName,
-  projectCount,
+  projects,
   numberValue,
   used,
   onNumber,
   testIdPrefix,
 }: {
   brandName: string;
-  projectCount: number;
+  projects: Array<{ number: number; name: string }>;
   numberValue: string;
   used: boolean;
   onNumber: (value: string) => void;
   testIdPrefix: string;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-slate-300">
-      <span className="font-semibold">Checkbox</span>
-      <input
-        id={testIdPrefix === "lead" ? "lead-project-number" : undefined}
-        type="number"
-        min={1}
-        max={projectCount}
+    <label className="flex min-w-[14rem] flex-1 flex-col gap-1 text-sm text-slate-300">
+      <span className="font-semibold">Climate Project</span>
+      <select
+        id={testIdPrefix === "lead" ? "lead-project-select" : undefined}
         value={numberValue}
         disabled={used}
         onChange={(event) => onNumber(event.target.value)}
-        className="h-10 w-16 rounded-md border-2 border-white/70 bg-slate-950 text-center text-lg font-black text-white disabled:opacity-40"
-        data-testid={`${testIdPrefix}-project-number`}
-        aria-label={`Insert a Climate Project Number next to ${brandName}'s Carbon Wallet`}
-      />
-      <span className="text-slate-500">
-        {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} to that project
-      </span>
+        className="h-10 w-full rounded-md border-2 border-white/70 bg-slate-950 px-2 text-sm font-bold text-white disabled:opacity-40"
+        data-testid={`${testIdPrefix}-project-select`}
+        aria-label={`Select a Climate Project to receive ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}`}
+      >
+        <option value="">Select a Climate Project</option>
+        {projects.map((project) => (
+          <option key={project.number} value={String(project.number)}>
+            {project.name}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }

@@ -107,7 +107,7 @@ assert(
   "getMyS4PCampaigns no longer merges browser-wide invited clubs into a signed-in fan"
 );
 
-const myS4p = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
+const myS4p = readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8");
 assert(
   myS4p.includes("filterCampaignsForFan(camps, supported)") &&
     !myS4p.includes("captureClimateInviteFromSearch()"),

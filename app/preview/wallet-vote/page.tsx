@@ -108,7 +108,7 @@ export default function WalletVotePreviewPage() {
     );
     setProjects(result.projects);
     setNotice(
-      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into Project ${result.project.number}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
+      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
     );
   }
 
@@ -123,9 +123,9 @@ export default function WalletVotePreviewPage() {
           <h1 className="mt-2 text-4xl font-black">Wallet vote · 10th October 2026</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Top Cellar pays £750 + 10% into the Climate Sponsorship Wallet.
-            Insert 2 next to that wallet and press {FUND_IT_LABEL}: the wallet
+            Select Wee Spoke Hub from the drop-down next to that wallet and press {FUND_IT_LABEL}: the wallet
             shows {formatWalletGbp(750 - DEFAULT_WALLET_VOTE_GBP)} Remaining and
-            Project 2 receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
+            Wee Spoke Hub receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
           </p>
         </div>
 
@@ -179,7 +179,11 @@ export default function WalletVotePreviewPage() {
             )}
             <section className="mt-10">
               <h2 className="text-3xl font-black">Climate Projects List</h2>
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <p className="mt-2 text-sm text-slate-400">
+                Project titles are shown first. Open a project for details. Select
+                a Climate Project by name next to a sponsor, then press FUND-IT.
+              </p>
+              <div className="mt-6 space-y-2">
                 {projects.map((project) => (
                   <MatchDayProjectCard
                     key={project.id}
@@ -211,6 +215,10 @@ export default function WalletVotePreviewPage() {
                     kind: "local" as const,
                     remainingGbp: row.remainingGbp,
                   }))}
+                projects={projects.map((project) => ({
+                  number: project.number,
+                  name: project.name,
+                }))}
                 projectCount={projects.length}
                 onVote={({ brandName, projectNumber }) =>
                   vote(brandName, projectNumber ?? "")

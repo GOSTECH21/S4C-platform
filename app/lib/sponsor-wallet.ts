@@ -382,7 +382,7 @@ export function allocateWalletVote({
   if (number == null) {
     return {
       ok: false,
-      error: `Insert a project number from 1 to ${projects.length || 5} next to the wallet.`,
+      error: "Select a Climate Project from the drop-down next to the wallet.",
     };
   }
   const left = remainingGbp(wallet);
@@ -481,7 +481,7 @@ export function fundItTimesCopy(): string {
 }
 
 export function fundItCopy(): string {
-  return `Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet; choose a Climate Project Number; Insert it into the Checkbox next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+  return `Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet; select a Climate Project from the drop-down next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
 }
 
 export function numberClimateProjects<T extends { id: string; name: string }>(

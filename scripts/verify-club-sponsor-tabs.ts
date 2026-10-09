@@ -706,7 +706,7 @@ assert(
   "My S4P replaces a stale campaign title with the next signed-off fixture"
 );
 assert(
-  readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+  readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
     "campaignHeadline(campaign.matchTitle)"
   ),
   "My S4P prints the resolved fixture as the Climate Campaign headline"

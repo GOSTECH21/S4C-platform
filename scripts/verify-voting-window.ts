@@ -112,19 +112,19 @@ assert(
   "This Match Day selected-projects copy says sponsored projects appear here, then SUBMIT"
 );
 assert(
-  !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+  !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
     "72-hour voting window"
   ) &&
-    !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "brand-exposure counter"
     ) &&
-    !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "Lead Climate Sponsor pays"
     ) &&
-    readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "fanWalletDrainCopy"
     ) &&
-    !readFileSync("app/supporter/dashboard/page.tsx", "utf8").includes(
+    !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "Bring every Carbon Wallet"
     ),
   "My S4P no longer shows the Lead Climate Sponsor payment and exposure copy"

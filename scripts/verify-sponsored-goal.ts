@@ -279,7 +279,7 @@ assert(
   "GOAL! names Puma and £3,500 — the amount shown on Puma's Carbon Wallet"
 );
 
-const dashboard = readFileSync("app/supporter/dashboard/page.tsx", "utf8");
+const dashboard = readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8");
 assert(
   dashboard.includes("FanGoalAlertBanner") &&
     dashboard.includes("sponsorRemainingGbp") &&
