@@ -23,7 +23,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen text-white">
       <HomeFrontPage impactTables={impactTables} initialStats={stats}>
         <HowItWorks />
       </HomeFrontPage>

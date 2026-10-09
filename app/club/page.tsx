@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function ClubLandingPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen text-white">
 
       {/* HERO */}
 

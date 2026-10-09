@@ -16,7 +16,7 @@ export default async function ClubDashboard({ params }: Props) {
   const clubName = club.replace(/-/g, " ");
 const clubData = await getClubByName(clubName);
   return (
-    <main className="min-h-screen bg-slate-950 text-white px-6 py-12">
+    <main className="min-h-screen text-white px-6 py-12">
       <div className="mx-auto max-w-7xl">
 
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-10">

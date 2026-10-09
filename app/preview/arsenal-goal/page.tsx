@@ -63,7 +63,7 @@ export default function ArsenalGoalSimulationPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
+    <main className="min-h-screen px-6 py-12 text-white">
       <div className="mx-auto max-w-3xl space-y-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-400">
           Platform test

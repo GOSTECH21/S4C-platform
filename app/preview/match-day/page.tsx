@@ -96,7 +96,7 @@ export default function MatchDayPreviewPage() {
     .filter((row): row is NonNullable<typeof row> => Boolean(row));
 
   return (
-    <main className="min-h-screen bg-[#04140f] py-8 text-white">
+    <main className="min-h-screen py-8 text-white">
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
           Hibernian fans power climate action

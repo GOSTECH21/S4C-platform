@@ -168,14 +168,14 @@ export default function SelectMatchDayProjectsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+      <main className="flex min-h-screen items-center justify-center text-white">
         Loading Climate Project Partners...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-10 text-white">
+    <main className="min-h-screen p-10 text-white">
       <div className="mx-auto max-w-6xl">
         <ClubNav />
 

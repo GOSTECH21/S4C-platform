@@ -123,7 +123,7 @@ confirmPassword: "",
 
   return (
 
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen text-white">
 
       <section className="mx-auto max-w-5xl px-8 py-20">
 

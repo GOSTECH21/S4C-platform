@@ -149,7 +149,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+    <main className="min-h-screen px-4 py-10 text-white">
       <div className="mx-auto max-w-5xl rounded-xl bg-slate-900 p-8 shadow-lg">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           S4P

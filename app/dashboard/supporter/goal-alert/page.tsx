@@ -59,7 +59,7 @@ export default async function GoalAlertPage({
   );
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 p-8 text-white">
+    <main className="flex min-h-screen items-center justify-center p-8 text-white">
       <div className="w-full max-w-2xl rounded-3xl border border-green-400 bg-slate-900 p-10 text-center shadow-2xl">
         <div className="text-7xl">{event.emoji}</div>
 

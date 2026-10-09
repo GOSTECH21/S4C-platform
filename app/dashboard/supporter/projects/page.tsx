@@ -32,7 +32,7 @@ export default async function ProjectsPage({
   const amount = params.amount ?? "1";
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-4xl">
         <h1 className="text-4xl font-black text-green-400">
           🌳 Choose a Climate Project

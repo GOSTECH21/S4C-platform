@@ -38,7 +38,7 @@ export function S4PStaffGate({ children }: { children: React.ReactNode }) {
 
   if (!allowed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+      <main className="flex min-h-screen items-center justify-center text-white">
         <p className="text-slate-400">Checking S4P staff access...</p>
       </main>
     );

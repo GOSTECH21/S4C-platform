@@ -98,7 +98,7 @@ export default function PartnerRegisterPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
+    <main className="min-h-screen px-4 py-12 text-white">
       <div className="mx-auto max-w-3xl rounded-2xl bg-slate-900 p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           Climate Partner

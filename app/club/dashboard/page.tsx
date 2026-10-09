@@ -397,7 +397,7 @@ export default function ClubDashboardPage() {
   if (unlinked) {
     const gate = clubGateCopy(signedInKind);
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
+      <main className="flex min-h-screen items-center justify-center px-4 text-white">
         <div className="max-w-lg rounded-2xl bg-slate-900 p-8 text-center">
           <h1 className="text-3xl font-black">{gate.title}</h1>
           <p className="mt-4 text-slate-300">{gate.body}</p>
@@ -422,14 +422,14 @@ export default function ClubDashboardPage() {
 
   if (loading || !club || !account) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+      <main className="flex min-h-screen items-center justify-center text-white">
         Loading Dashboard...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-10 text-white">
+    <main className="min-h-screen p-10 text-white">
       <div className="mx-auto max-w-7xl">
         <ClubNav />
         <div className="mb-10 flex items-center justify-between">

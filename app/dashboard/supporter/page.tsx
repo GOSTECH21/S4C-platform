@@ -149,7 +149,7 @@ console.log("Supporter Claims:", supporterClaims);
   const totalProjects = credits.length;
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
 
       <div className="mx-auto max-w-7xl">
 

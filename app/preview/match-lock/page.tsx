@@ -26,7 +26,7 @@ export default function MatchLockPreviewPage() {
   const selected = fixtureByIdOrName(fixtures, selectedId);
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
+    <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           Arsenal published fixtures

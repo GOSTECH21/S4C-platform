@@ -14,7 +14,7 @@ export default async function SuccessPage({
   const amount = params.amount ?? "1";
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+    <main className="min-h-screen flex items-center justify-center text-white">
       <div className="rounded-2xl bg-slate-900 p-10 text-center">
         <h1 className="text-5xl text-green-400">✅</h1>
 

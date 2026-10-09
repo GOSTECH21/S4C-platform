@@ -27,7 +27,7 @@ const navItems = [
 
 export default function Sidebar() {
   return (
-    <aside className="hidden min-h-screen w-72 border-r border-slate-800 bg-slate-950 p-6 text-white md:block">
+    <aside className="hidden min-h-screen w-72 border-r border-emerald-400/20 bg-slate-900/80 p-6 text-white backdrop-blur md:block">
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-green-400">S4P</h1>
         <p className="text-sm text-slate-400">Score for Climate</p>
