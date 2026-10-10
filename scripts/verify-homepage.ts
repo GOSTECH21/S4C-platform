@@ -130,12 +130,16 @@ assert(
   "Local registration states the £500 minimum"
 );
 assert(
-  localPage.includes("one of the five"),
-  "Local registration says the logo sits on one of the five Match Day cards"
+  localPage.includes("Score-4-Planet") &&
+    localPage.includes("Sign & SUBMIT") &&
+    localPage.includes("business postcode") &&
+    localPage.includes("<ol"),
+  "Local registration asks for postcode, optional logo, club, T&Cs, then Sign & SUBMIT"
 );
 assert(
-  localPage.includes("three times"),
-  "Local registration states that a £1,500 pledge is three times a £500 pledge"
+  !localPage.includes("one of the five") &&
+    !localPage.includes("three times"),
+  "Local registration no longer uses the old five-card leftover intro"
 );
 assert(
   !localPage.includes("2 Climate"),

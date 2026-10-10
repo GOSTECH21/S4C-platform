@@ -20,7 +20,13 @@ export type LocalSponsorRecord = {
   logoUrl?: string | null;
   tagline?: string | null;
   source?: "example" | "uploaded" | "registered";
+  postcode?: string;
+  acceptedTerms?: boolean;
+  signerName?: string;
+  signedAt?: string;
 };
+
+export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee. Fans can take £0.20 from your Climate Sponsorship Wallet and donate it to a Climate Projects of their choice. Your business name & logo will appear to Fans that takes £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
 
 function isLocalRecord(value: unknown): value is LocalSponsorRecord {
   if (!value || typeof value !== "object") return false;
