@@ -10,17 +10,19 @@ export function BrandLogoField({
   onChange,
   error,
   hint,
+  label = "Brand logo",
 }: {
   brandName: string;
   logoUrl: string | null;
   onChange: (logoDataUrl: string) => void;
   error?: string | null;
   hint?: string;
+  label?: string;
 }) {
   const [localError, setLocalError] = useState<string | null>(null);
   return (
     <label className="block text-sm text-slate-400">
-      Brand logo
+      {label}
       <div className="mt-2 flex items-center gap-4">
         <BrandMark name={brandName || "Brand"} logoUrl={logoUrl} large />
         <input

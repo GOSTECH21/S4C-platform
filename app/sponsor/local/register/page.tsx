@@ -207,6 +207,7 @@ export default function LocalSponsorRegisterPage() {
           brandName={companyName}
           logoUrl={logoUrl}
           error={logoError}
+          label="Business logo"
           hint="Upload your business logo if available. Your business name and logo appear to fans who take £0.20 from your Carbon Wallet."
           onChange={(next) => {
             setLogoError(null);
@@ -269,14 +270,9 @@ export default function LocalSponsorRegisterPage() {
         </div>
         <div className="space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-5">
           <h2 className="text-xl font-black text-white">
-            Terms and Conditions and sign-off
+            Score-4-Planet Terms & Conditions
           </h2>
-          <p className="text-sm text-slate-300">
-            Terms and Conditions apply. Sign off this Local Business Climate
-            Sponsorship before you SUBMIT it for the club Sustainability
-            Director.
-          </p>
-          <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
+          <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200">
             {LOCAL_SPONSOR_TERMS}
           </div>
           <label className="flex items-start gap-3 text-sm text-slate-300">
@@ -287,7 +283,7 @@ export default function LocalSponsorRegisterPage() {
               className="mt-1"
               required
             />
-            I have read and agree to the Terms and Conditions.
+            I have read and agree to the Score-4-Planet Terms & Conditions.
           </label>
           <label className="block text-sm text-slate-400">
             Signature (type your full name)
@@ -307,7 +303,7 @@ export default function LocalSponsorRegisterPage() {
           }
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
-          {loading ? "Submitting..." : "SUBMIT sponsorship"}
+          {loading ? "Submitting..." : "Sign & SUBMIT"}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">

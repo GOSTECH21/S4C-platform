@@ -723,7 +723,7 @@ assert(
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
   localPage.includes("MatchSponsorshipPicker") &&
-    localPage.includes("SUBMIT sponsorship") &&
+    localPage.includes("Sign & SUBMIT") &&
     localPage.includes("matchSponsorships") &&
     localPage.includes("LOCAL_SPONSOR_TERMS") &&
     localPage.includes("acceptedTerms") &&

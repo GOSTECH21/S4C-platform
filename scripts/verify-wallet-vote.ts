@@ -743,6 +743,9 @@ assert(
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
   localPage.includes("LOCAL_SPONSOR_TERMS") &&
+    localPage.includes("Sign & SUBMIT") &&
+    localPage.includes("I have read and agree to the Score-4-Planet Terms & Conditions.") &&
+    !localPage.includes("Terms and Conditions apply. Sign off this Local Business Climate") &&
     readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
       "plus a 10% management fee"
     ) &&

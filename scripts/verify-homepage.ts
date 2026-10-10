@@ -136,7 +136,9 @@ assert(
 assert(
   localPage.includes("ClubNetworkPicker") &&
     localPage.includes("business postcode") &&
-    localPage.includes("Score-4-Planet"),
+    localPage.includes("Score-4-Planet") &&
+    localPage.includes("Sign & SUBMIT") &&
+    !localPage.includes("Terms and Conditions apply. Sign off this Local Business Climate"),
   "Local registration asks for postcode, logo if available, club, T&Cs, then Sign & SUBMIT"
 );
 assert(
