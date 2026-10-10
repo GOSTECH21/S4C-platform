@@ -135,3 +135,28 @@ console.log(
     ? "OK: the old Choose-the-club / five-card intro was present and has been replaced"
     : "The old intro was not found; the numbered steps should still be in the file"
 );
+
+const BRANCH = "cursor/demo-club-fixtures-18f9";
+const FIXTURE_FILES = [
+  "app/lib/demo-club-fixtures.ts",
+  "app/components/sponsor/MatchSponsorshipPicker.tsx",
+  "app/sponsor/local/register/page.tsx",
+  "app/services/club-fixtures.service.ts",
+];
+
+for (const rel of FIXTURE_FILES) {
+  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`${response.status}`);
+    }
+    writeFileSync(rel, await response.text());
+    console.log("Pulled", rel);
+  } catch (err) {
+    console.error(
+      `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
+      err instanceof Error ? err.message : err
+    );
+  }
+}

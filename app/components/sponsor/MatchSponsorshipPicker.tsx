@@ -1,14 +1,83 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   formatKickoff,
   formatMatchDate,
 } from "@/app/lib/upcoming-matches";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
+import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
+import { demoFixturesForClub } from "@/app/lib/demo-club-fixtures";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
-import { loadClubFixtures } from "@/app/services/club-fixtures.service";
+
+function FixtureRows({
+  fixtures,
+  selectable,
+  selected,
+  amounts,
+  onToggle,
+  onAmount,
+}: {
+  fixtures: ClubFixture[];
+  selectable: boolean;
+  selected: string[];
+  amounts: Record<string, string>;
+  onToggle: (fixtureName: string) => void;
+  onAmount: (fixtureName: string, amount: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {fixtures.map((fixture) => {
+        const on = selected.includes(fixture.fixtureName);
+        return (
+          <label
+            key={fixture.id}
+            className={`flex flex-col gap-2 rounded-2xl border-2 p-4 sm:flex-row sm:items-center sm:justify-between ${
+              on
+                ? "border-green-400 bg-emerald-950"
+                : "border-green-700 bg-black/40"
+            }`}
+          >
+            <span className="flex items-start gap-3">
+              {selectable ? (
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => onToggle(fixture.fixtureName)}
+                  className="mt-1 h-4 w-4"
+                />
+              ) : null}
+              <span>
+                <span className="block font-semibold text-white">
+                  {fixture.fixtureName}
+                </span>
+                <span className="text-xs text-green-200">
+                  {formatMatchDate(fixture.date)} · {formatKickoff(fixture.kickoff)}
+                  {fixture.venue ? ` · ${fixture.venue}` : ""}
+                </span>
+              </span>
+            </span>
+            {selectable && on ? (
+              <label className="text-sm text-green-100">
+                Sponsorship amount
+                <input
+                  type="number"
+                  min={LOCAL_SPONSOR_MIN_GBP}
+                  step={50}
+                  value={amounts[fixture.fixtureName] ?? String(LOCAL_SPONSOR_MIN_GBP)}
+                  onChange={(event) =>
+                    onAmount(fixture.fixtureName, event.target.value)
+                  }
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-white sm:w-36"
+                />
+              </label>
+            ) : null}
+          </label>
+        );
+      })}
+    </div>
+  );
+}
 
 export function MatchSponsorshipPicker({
   clubName,
@@ -23,105 +92,56 @@ export function MatchSponsorshipPicker({
   onToggle: (fixtureName: string) => void;
   onAmount: (fixtureName: string, amount: string) => void;
 }) {
-  const [fixtures, setFixtures] = useState<ClubFixture[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!clubName.trim()) {
-      setFixtures([]);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    void loadClubFixtures(clubName)
-      .then((rows) => {
-        if (!cancelled) setFixtures(rows);
-      })
-      .catch(() => {
-        if (!cancelled) setFixtures([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [clubName]);
-
   if (!clubName.trim()) {
     return (
-      <p className="text-sm text-slate-500">
-        Choose the club first, then select the Match or Matches you wish to
-        sponsor.
-      </p>
-    );
-  }
-  if (loading) {
-    return (
-      <p className="text-sm text-slate-500">
-        Loading published fixtures for {clubName}...
-      </p>
-    );
-  }
-  if (fixtures.length === 0) {
-    return (
-      <p className="text-sm text-slate-500">
-        No published upcoming fixtures are listed for {clubName} yet.
-      </p>
-    );
-  }
-  return (
-    <div className="space-y-3">
-      {fixtures.map((fixture) => {
-        const on = selected.includes(fixture.fixtureName);
-        return (
-          <label
-            key={fixture.id}
-            className={`flex flex-col gap-2 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
-              on
-                ? "border-green-500 bg-slate-800"
-                : "border-slate-700 bg-slate-950"
-            }`}
+      <div id="fixture-lists" className="space-y-6">
+        {DEMO_CLUB_NAMES.map((club) => (
+          <section
+            key={club}
+            className="rounded-2xl border-2 border-green-400 bg-black/30 p-4"
           >
-            <span className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={on}
-                onChange={() => onToggle(fixture.fixtureName)}
-                className="mt-1 h-4 w-4"
-              />
-              <span>
-                <span className="block font-semibold text-white">
-                  {fixture.fixtureName}
-                </span>
-                <span className="text-xs text-slate-400">
-                  {formatMatchDate(fixture.date)} · {formatKickoff(fixture.kickoff)}
-                  {fixture.venue ? ` · ${fixture.venue}` : ""}
-                </span>
-              </span>
-            </span>
-            {on && (
-              <label className="text-sm text-slate-400">
-                Sponsorship amount
-                <input
-                  type="number"
-                  min={LOCAL_SPONSOR_MIN_GBP}
-                  step={50}
-                  value={amounts[fixture.fixtureName] ?? String(LOCAL_SPONSOR_MIN_GBP)}
-                  onChange={(event) =>
-                    onAmount(fixture.fixtureName, event.target.value)
-                  }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-white sm:w-36"
-                />
-              </label>
-            )}
-          </label>
-        );
-      })}
-      <p className="text-xs text-slate-500">
-        From {formatMoney(LOCAL_SPONSOR_MIN_GBP)} per selected published Match.
-        SUBMIT sends these amounts to the {clubName} Sustainability Director.
+            <h3 className="mb-3 text-lg font-black text-green-300">
+              {club} fixture list
+            </h3>
+            <FixtureRows
+              fixtures={demoFixturesForClub(club)}
+              selectable={false}
+              selected={[]}
+              amounts={{}}
+              onToggle={onToggle}
+              onAmount={onAmount}
+            />
+          </section>
+        ))}
+        <p className="text-sm text-green-100">
+          Choose the club first, then tick the Matches you wish to sponsor on
+          that club&apos;s list.
+        </p>
+      </div>
+    );
+  }
+
+  const fixtures = demoFixturesForClub(clubName);
+  return (
+    <section
+      id="fixture-lists"
+      className="space-y-3 rounded-2xl border-2 border-green-400 bg-black/30 p-4"
+    >
+      <h3 className="text-lg font-black text-green-300">
+        {clubName} fixture list
+      </h3>
+      <FixtureRows
+        fixtures={fixtures}
+        selectable
+        selected={selected}
+        amounts={amounts}
+        onToggle={onToggle}
+        onAmount={onAmount}
+      />
+      <p className="text-xs text-green-100">
+        From {formatMoney(LOCAL_SPONSOR_MIN_GBP)} per selected Match. SUBMIT
+        sends these amounts to the {clubName} Sustainability Director.
       </p>
-    </div>
+    </section>
   );
 }

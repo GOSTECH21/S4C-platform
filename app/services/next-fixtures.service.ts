@@ -9,6 +9,7 @@ import {
   type UpcomingMatch,
 } from "../lib/upcoming-matches";
 import { isCurrentSeasonLeagueFixture } from "../lib/current-season";
+import { withDemoUpcomingFixtures } from "../lib/demo-club-fixtures";
 
 const MONTHS: Record<string, number> = {
   january: 0,
@@ -657,8 +658,9 @@ export async function getPublishedFixturesForClub(
   ]);
   const extras = [...fromBbc, ...fromFeed, ...fromDb];
   const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed, fromDb]);
-  return fillHomeVenues(enrichVenues(live, extras))
+  const published = fillHomeVenues(enrichVenues(live, extras))
     .filter((match) => Boolean(match.date) && match.date >= todayStamp())
     .sort((left, right) => matchSortKey(left).localeCompare(matchSortKey(right)))
     .slice(0, 16);
+  return withDemoUpcomingFixtures(name, published);
 }
