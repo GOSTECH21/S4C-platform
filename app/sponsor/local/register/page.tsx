@@ -151,9 +151,13 @@ export default function LocalSponsorRegisterPage() {
       <h1 className="mt-3 text-4xl font-black">
         Register as a Local Sponsor
       </h1>
-      <p className="mt-4 text-slate-300">
-        {`Enter all required registration info including business postcode; Upload your business logo (if available); Select the Club you wish to sponsor: read and agree to Score-4-Planet Terms & Conditions; Sign & SUBMIT`}
-      </p>
+      <ol className="mt-4 list-decimal space-y-1 pl-5 text-slate-300">
+        <li>Enter all required registration info including business postcode</li>
+        <li>Upload your business logo (if available)</li>
+        <li>Select the Club you wish to sponsor</li>
+        <li>read and agree to Score-4-Planet Terms & Conditions</li>
+        <li>Sign & SUBMIT</li>
+      </ol>
 
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
