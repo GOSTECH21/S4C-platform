@@ -741,7 +741,16 @@ assert(
 );
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
-assert(localPage.includes("10%"), "Local registration states the 10% management fee");
+assert(
+  localPage.includes("LOCAL_SPONSOR_TERMS") &&
+    readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
+      "plus a 10% management fee"
+    ) &&
+    readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
+      "paid for and cleared before it will appear in your Wallet"
+    ),
+  "Local registration T&Cs include the 10% fee and cleared-payment wallet rule"
+);
 
 assert(MATCH_DAY_FOLDER_NAME === "Match-Day", "The folder is called Match-Day");
 

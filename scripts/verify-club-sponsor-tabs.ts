@@ -730,7 +730,7 @@ assert(
     localPage.includes("signerName") &&
     localPage.includes("BrandLogoField") &&
     localPage.includes("signedAt"),
-  "Local Business Climate Sponsors upload a logo, agree T&Cs, sign off, then SUBMIT"
+  "Local Business Climate Sponsors can upload a logo, agree T&Cs, sign off, then SUBMIT"
 );
 assert(
   preview.includes("SEEDED_ARSENAL_LOCALS") &&

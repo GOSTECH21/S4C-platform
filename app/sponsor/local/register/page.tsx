@@ -27,7 +27,6 @@ import {
   stadiumSiteForClub,
 } from "@/app/lib/project-site";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
-import { localWalletTopUp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -72,12 +71,6 @@ export default function LocalSponsorRegisterPage() {
     }
     if (selectedMatches.length === 0) {
       setError("Select the Match or Matches you wish to sponsor.");
-      return;
-    }
-    if (!logoUrl) {
-      setError(
-        "Upload your brand logo. It appears once on the club's Our Climate Sponsors list."
-      );
       return;
     }
     if (!acceptedTerms) {
@@ -159,15 +152,7 @@ export default function LocalSponsorRegisterPage() {
         Register as a Local Sponsor
       </h1>
       <p className="mt-4 text-slate-300">
-        Choose the club, select the Match or Matches you wish to sponsor, enter
-        your sponsorship amounts, upload your logo, agree to the Terms and
-        Conditions and sign off, then SUBMIT. From £{LOCAL_SPONSOR_MIN_GBP} per
-        Match your business appears once on the club&apos;s Our Climate Sponsors
-        list as a Local Business Climate Sponsor. A 10% management fee is added
-        on top of the amount you submit (for example £750 + 10% ={" "}
-        {formatWalletGbp(localWalletTopUp(750).paidGbp)} paid, with{" "}
-        {formatWalletGbp(750)} remaining in the Climate Sponsorship Wallet).
-        Fans take £0.20 per FUND-IT from that wallet.
+        {`Enter all required registration info including business postcode; Upload your business logo (if available); Select the Club you wish to sponsor: read and agree to Score-4-Planet Terms & Conditions; Sign & SUBMIT`}
       </p>
 
       {error && (
@@ -222,7 +207,7 @@ export default function LocalSponsorRegisterPage() {
           brandName={companyName}
           logoUrl={logoUrl}
           error={logoError}
-          hint="Upload your brand mark. It appears once on the club's Our Climate Sponsors list as a Local Business Climate Sponsor."
+          hint="Upload your business logo if available. Your business name and logo appear to fans who take £0.20 from your Carbon Wallet."
           onChange={(next) => {
             setLogoError(null);
             setLogoUrl(next);
@@ -318,7 +303,7 @@ export default function LocalSponsorRegisterPage() {
         <button
           type="submit"
           disabled={
-            loading || !acceptedTerms || !signerName.trim() || !logoUrl
+            loading || !acceptedTerms || !signerName.trim()
           }
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
