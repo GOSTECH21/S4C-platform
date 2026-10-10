@@ -141,7 +141,7 @@ export function ClimateProjectSponsors({
       <div>
         <h2 className="text-3xl font-black">Climate Project Sponsor</h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          {FUND_IT_COPY}. By the end of Day 5 every Carbon Wallet should show{" "}
+          {FUND_IT_COPY} By the end of Day 5 every Carbon Wallet should show{" "}
           {formatWalletGbp(0)}.
         </p>
       </div>

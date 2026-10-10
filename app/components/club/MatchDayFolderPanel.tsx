@@ -51,8 +51,9 @@ export function MatchDayFolderPanel({
       <p className="mt-3 max-w-3xl text-slate-300">
         Three days before kick-off, identify every Climate Project Sponsor who
         wants to help {clubName} address this Match Day carbon footprint, and
-        how much they have committed. Save that list, save the five Climate
-        Projects fans should fund, then press SUBMIT so registered fans of{" "}
+        how much they have committed. Save that list, save the{" "}
+        {MATCH_DAY_PROJECT_COUNT} Climate Projects fans should fund, then press
+        SUBMIT so registered fans of{" "}
         {clubName} can take cash from those wallets.
       </p>
 
