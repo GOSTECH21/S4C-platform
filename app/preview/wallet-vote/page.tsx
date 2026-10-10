@@ -12,7 +12,6 @@ import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
   formatWalletGbp,
-  remainingGbp,
   walletVoteNotice,
   type ClimateWallet,
   type NumberedClimateProject,
@@ -22,6 +21,7 @@ import {
   FEATURED_GSS_WORLD_NAME,
 } from "@/app/lib/sccan-catalog";
 import {
+  applyRemainingToSponsorsFile,
   buildProjectsFile,
   buildSponsorsFile,
   emptyMatchDayFolder,
@@ -29,6 +29,7 @@ import {
   saveSponsorsIntoFolder,
   sponsorRowsFromWallets,
   submitMatchDayFolder,
+  withLiveWalletRemaining,
   type MatchDayFolder,
 } from "@/app/lib/match-day-folder";
 
@@ -40,7 +41,7 @@ const INITIAL_PROJECTS: NumberedClimateProject[] = [
   { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 0 },
   { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 4, fundedGbp: 0, votesReceived: 0 },
   { id: "porty", name: "Porty Community Energy", number: 5, fundedGbp: 0, votesReceived: 0 },
-  { id: "craigshill", name: "Growing Together Craigshill", number: 6, fundedGbp: 0, votesReceived: 0 },
+  { id: "trees", name: "Edinburgh Tree Planting", number: 6, fundedGbp: 0, votesReceived: 0 },
 ];
 
 function seedWallets(): ClimateWallet[] {
@@ -56,6 +57,11 @@ function seedWallets(): ClimateWallet[] {
       brandName: "Top Cellar",
       sponsorshipGbp: 750,
     }),
+    createLocalWallet({
+      clubName: "Hibernian",
+      brandName: "Malmaison Hotel Leith",
+      sponsorshipGbp: 1200,
+    }),
   ];
 }
 
@@ -68,31 +74,32 @@ export default function WalletVotePreviewPage() {
       clubName: "Hibernian",
       matchDate: MATCH_DATE,
     });
-    return saveProjectsIntoFolder(
-      saveSponsorsIntoFolder(
-        empty,
-        buildSponsorsFile({
-          matchDate: MATCH_DATE,
-          sponsors: sponsorRowsFromWallets(seedWallets(), "Hibernian"),
-          clubName: "Hibernian",
-        })
-      ),
-      buildProjectsFile({ matchDate: MATCH_DATE, projects: INITIAL_PROJECTS })
+    return submitMatchDayFolder(
+      saveProjectsIntoFolder(
+        saveSponsorsIntoFolder(
+          empty,
+          buildSponsorsFile({
+            matchDate: MATCH_DATE,
+            sponsors: sponsorRowsFromWallets(
+              seedWallets().filter((wallet) => wallet.kind === "lead"),
+              "Hibernian"
+            ),
+            clubName: "Hibernian",
+          })
+        ),
+        buildProjectsFile({ matchDate: MATCH_DATE, projects: INITIAL_PROJECTS })
+      )
     );
   });
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [usedSponsorNames, setUsedSponsorNames] = useState<string[]>([]);
   const submitted = Boolean(folder.submittedAt);
 
   const sponsors = useMemo(
     () =>
-      wallets.map((wallet) => ({
-        brandName: wallet.brandName,
-        kind: wallet.kind,
-        remainingGbp: remainingGbp(wallet),
-        committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
-      })),
-    [wallets]
+      withLiveWalletRemaining(folder.sponsorsFile?.sponsors ?? [], wallets),
+    [folder.sponsorsFile, wallets]
   );
 
   function vote(brandName: string, projectNumber: string) {
@@ -112,7 +119,23 @@ export default function WalletVotePreviewPage() {
     setWallets((prev) =>
       prev.map((row) => (row.brandName === result.wallet.brandName ? result.wallet : row))
     );
+    setFolder((prev) =>
+      prev.sponsorsFile
+        ? {
+            ...prev,
+            sponsorsFile: applyRemainingToSponsorsFile(
+              prev.sponsorsFile,
+              result.wallet
+            ),
+          }
+        : prev
+    );
     setProjects(result.projects);
+    setUsedSponsorNames((prev) =>
+      prev.includes(result.wallet.brandName)
+        ? prev
+        : [...prev, result.wallet.brandName]
+    );
     setNotice(walletVoteNotice(result));
   }
 
@@ -126,10 +149,11 @@ export default function WalletVotePreviewPage() {
           </p>
           <h1 className="mt-2 text-4xl font-black">Wallet vote · 10th October 2026</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Top Cellar pays £750 + 10% into the Climate Sponsorship Wallet.
-            Select Wee Spoke Hub from the Local Business drop-down and press {FUND_IT_LABEL}: the wallet
-            shows {formatWalletGbp(750 - DEFAULT_WALLET_VOTE_GBP)} Remaining and
-            Wee Spoke Hub receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
+            Malmaison Hotel Leith starts at £1,200 even when it is missing from
+            the Sponsors File. Select Edinburgh Tree Planting next to that wallet
+            and press {FUND_IT_LABEL}: the Carbon Wallet shows{" "}
+            {formatWalletGbp(1200 - DEFAULT_WALLET_VOTE_GBP)} and Edinburgh Tree
+            Planting receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
             Lead wallets fund a Global Schools Solar version (75%) and split 25%
             across local Climate Projects.
           </p>
@@ -226,6 +250,7 @@ export default function WalletVotePreviewPage() {
                   name: project.name,
                 }))}
                 projectCount={projects.length}
+                usedSponsorNames={usedSponsorNames}
                 onVote={({ brandName, projectNumber }) =>
                   vote(brandName, projectNumber ?? "")
                 }

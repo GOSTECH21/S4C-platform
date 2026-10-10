@@ -35,6 +35,8 @@ import {
   sponsorsFileName,
   uniqueSponsorRows,
   submitMatchDayFolder,
+  withLiveWalletRemaining,
+  applyRemainingToSponsorsFile,
 } from "../app/lib/match-day-folder";
 import {
   MS_PER_DAY,
@@ -234,6 +236,79 @@ if (voted.ok) {
     "Remaining cash is shown with pence"
   );
 }
+
+const treeProjects = [
+  ...projects,
+  {
+    id: "trees",
+    name: "Edinburgh Tree Planting",
+    number: 7,
+    fundedGbp: 0,
+    votesReceived: 0,
+  },
+];
+const malmaison = createLocalWallet({
+  clubName: "Hibernian",
+  brandName: "Malmaison Hotel Leith",
+  sponsorshipGbp: 1200,
+});
+const malmaisonVoted = allocateWalletVote({
+  wallet: malmaison,
+  projects: treeProjects,
+  projectNumber: 7,
+});
+assert(malmaisonVoted.ok, "Selecting Edinburgh Tree Planting next to Malmaison and pressing FUND-IT succeeds");
+if (malmaisonVoted.ok) {
+  assert(
+    remainingGbp(malmaisonVoted.wallet) === 1199.8,
+    "Malmaison's Carbon Wallet then displays £1,199.80 Remaining"
+  );
+  assert(
+    malmaisonVoted.project.name === "Edinburgh Tree Planting" &&
+      malmaisonVoted.project.fundedGbp === 0.2,
+    "Edinburgh Tree Planting displays that it has received £0.20 in Climate funding"
+  );
+  const amexOnlyFile = buildSponsorsFile({
+    matchDate: "2026-10-10",
+    sponsors: sponsorRowsFromWallets([amex]),
+  });
+  const afterLocalTake = applyRemainingToSponsorsFile(
+    amexOnlyFile,
+    malmaisonVoted.wallet
+  );
+  assert(
+    afterLocalTake.sponsors.some(
+      (row) =>
+        row.brandName === "Malmaison Hotel Leith" && row.remainingGbp === 1199.8
+    ),
+    "A local FUND-IT is written onto the Sponsors File even when that brand was missing"
+  );
+  const visible = withLiveWalletRemaining(amexOnlyFile.sponsors, [
+    { ...amex, allocatedGbp: 0.4 },
+    malmaisonVoted.wallet,
+  ]);
+  const malmaisonRow = visible.find(
+    (row) => row.brandName === "Malmaison Hotel Leith"
+  );
+  const amexRow = visible.find((row) => row.brandName === "American Express");
+  assert(
+    malmaisonRow?.remainingGbp === 1199.8,
+    "Climate Sponsors subtracts £0.20 from the Malmaison Carbon Wallet"
+  );
+  assert(
+    amexRow?.remainingGbp === 2999.6,
+    "Climate Sponsors still shows the Lead Carbon Wallet remaining after a local take"
+  );
+}
+assert(
+  readFileSync("app/services/match-day-folder.service.ts", "utf8").includes(
+    "withLiveWalletRemaining"
+  ) &&
+    readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
+      "remainingGbp(wallet)"
+    ),
+  "My S4P Climate Sponsors remaining comes from the live Carbon Wallet, not the original pledge"
+);
 
 const localOnGss = allocateWalletVote({
   wallet: topCellar,
@@ -784,11 +859,111 @@ assert(
   "Match Day Votes record the cash taken from a Carbon Wallet"
 );
 
-if (failures.length > 0) {
-  console.error(failures.join("\n"));
-  process.exit(1);
+const memory = new Map<string, string>();
+(globalThis as { window?: unknown }).window = {
+  localStorage: {
+    getItem(key: string) {
+      return memory.has(key) ? memory.get(key)! : null;
+    },
+    setItem(key: string, value: string) {
+      memory.set(key, String(value));
+    },
+    removeItem(key: string) {
+      memory.delete(key);
+    },
+    clear() {
+      memory.clear();
+    },
+    key(index: number) {
+      return [...memory.keys()][index] ?? null;
+    },
+    get length() {
+      return memory.size;
+    },
+  },
+  dispatchEvent() {
+    return true;
+  },
+  addEventListener() {},
+  removeEventListener() {},
+};
+
+async function verifyStoredLocalRemaining() {
+  const { writeClimateWallet } = await import(
+    "../app/services/sponsor-wallet.service"
+  );
+  const {
+    applyFanWalletVote,
+    fanVisibleSponsors,
+    writeMatchDayFolder,
+  } = await import("../app/services/match-day-folder.service");
+  writeClimateWallet(amex);
+  writeClimateWallet(malmaison);
+  const posted = writeMatchDayFolder(
+    submitMatchDayFolder(
+      saveProjectsIntoFolder(
+        saveSponsorsIntoFolder(
+          emptyMatchDayFolder({
+            clubId: "hibs-malmaison",
+            clubName: "Hibernian",
+            matchDate: "2026-10-10",
+          }),
+          buildSponsorsFile({
+            matchDate: "2026-10-10",
+            sponsors: sponsorRowsFromWallets([amex]),
+            clubName: "Hibernian",
+          })
+        ),
+        buildProjectsFile({ matchDate: "2026-10-10", projects: treeProjects })
+      )
+    )
+  );
+  const treeNumber = fanVisibleSponsors(posted).length
+    ? treeProjects.find((row) => row.name === "Edinburgh Tree Planting")?.number
+    : 7;
+  const result = applyFanWalletVote({
+    clubId: "hibs-malmaison",
+    clubName: "Hibernian",
+    brandName: "Malmaison Hotel Leith",
+    projectNumber: treeNumber,
+    supporterId: "barry",
+    projects: treeProjects,
+  });
+  assert(result.ok, "My S4P accepts a Malmaison FUND-IT onto Edinburgh Tree Planting");
+  if (!result.ok) return;
+  assert(
+    remainingGbp(result.wallet) === 1199.8,
+    "The stored Malmaison Carbon Wallet is debited by £0.20"
+  );
+  assert(
+    result.project.name === "Edinburgh Tree Planting" &&
+      result.project.fundedGbp === 0.2,
+    "Edinburgh Tree Planting still shows the £0.20 take"
+  );
+  const visible = fanVisibleSponsors(result.folder ?? posted, {
+    clubId: "hibs-malmaison",
+    clubName: "Hibernian",
+  });
+  const malmaisonRow = visible.find(
+    (row) => row.brandName === "Malmaison Hotel Leith"
+  );
+  assert(
+    malmaisonRow?.remainingGbp === 1199.8,
+    "Climate Sponsors subtracts £0.20 from Malmaison even when that brand was missing from the Sponsors File"
+  );
 }
 
-console.log(
-  "FUND-IT moves £0.20 from any Carbon Wallet into one numbered Climate Project; posts disappear after 5 days."
-);
+verifyStoredLocalRemaining()
+  .then(() => {
+    if (failures.length > 0) {
+      console.error(failures.join("\n"));
+      process.exit(1);
+    }
+    console.log(
+      "FUND-IT moves £0.20 from any Carbon Wallet into one numbered Climate Project; posts disappear after 5 days."
+    );
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

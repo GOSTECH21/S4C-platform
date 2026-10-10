@@ -19,6 +19,7 @@ import {
   sponsorRowsFromWallets,
   uniqueWalletsByBrand,
   uniqueSponsorRows,
+  withLiveWalletRemaining,
   submitMatchDayFolder as stampSubmitted,
   type MatchDayFolder,
 } from "../lib/match-day-folder";
@@ -26,7 +27,6 @@ import {
   allocateSplitWalletVote,
   allocateWalletVote,
   numberClimateProjects,
-  remainingGbp,
   walletVoteAmount,
   type ClimateWallet,
   type NumberedClimateProject,
@@ -378,14 +378,18 @@ export function applyFanWalletVote({
         "The Sustainability Director has not posted Climate Projects for this Match Day yet.",
     };
   }
-  let wallets = listClimateWalletsForClub(folder?.clubName || clubName);
-  if (wallets.length === 0) {
-    wallets = identifyClubSponsorWallets({ clubId, clubName });
-  }
+  const wallets = identifyClubSponsorWallets({
+    clubId,
+    clubName: folder?.clubName || clubName,
+  });
   const wallet =
     wallets.find(
       (row) => row.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
-    ) ?? null;
+    ) ??
+    listClimateWalletsForClub(folder?.clubName || clubName).find(
+      (row) => row.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
+    ) ??
+    null;
   if (!wallet) {
     return { ok: false, error: `No Carbon Wallet found for ${brandName}.` };
   }
@@ -462,11 +466,7 @@ export function fanVisibleSponsors(
   const rows = folder?.sponsorsFile?.sponsors ?? [];
   const clubName = folder?.clubName || options?.clubName || "";
   let wallets = clubName ? healLocalWalletsForClub(clubName) : [];
-  if (
-    wallets.length === 0 &&
-    options?.clubId &&
-    options.clubName
-  ) {
+  if (options?.clubId && options.clubName) {
     wallets = identifyClubSponsorWallets({
       clubId: options.clubId,
       clubName: options.clubName,
@@ -474,23 +474,5 @@ export function fanVisibleSponsors(
       gbpPerGoal: options.gbpPerGoal,
     });
   }
-  if (rows.length === 0) {
-    return wallets.map((wallet) => ({
-      brandName: wallet.brandName,
-      kind: wallet.kind,
-      remainingGbp: remainingGbp(wallet),
-      committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
-      commitmentFeeGbp: wallet.commitmentFeeGbp,
-      gbpPerGoal: wallet.gbpPerGoal,
-    }));
-  }
-  return rows.map((row) => {
-    const wallet = wallets.find(
-      (item) => item.brandName.trim().toLowerCase() === row.brandName.trim().toLowerCase()
-    );
-    return {
-      ...row,
-      remainingGbp: wallet ? remainingGbp(wallet) : row.remainingGbp,
-    };
-  });
+  return withLiveWalletRemaining(rows, wallets);
 }
