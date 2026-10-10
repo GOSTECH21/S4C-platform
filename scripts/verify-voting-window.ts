@@ -90,11 +90,11 @@ assert(
   "Climate Projects intro is cumulative FUND copy with Closing Date applies"
 );
 assert(
-  fanVotingWindowCopy().includes("Wednesday at 15:00") &&
-    fanVotingWindowCopy().includes("Monday at 15:00") &&
-    fanVotingWindowCopy().includes("Fund allocation opens") &&
-    fanVotingWindowCopy().includes("Match ended"),
-  "Fan copy uses the Saturday 15:00 fund-allocation example"
+  fanVotingWindowCopy() ===
+    "Fund allocation opens 3 days before kick-off; closes & disappears 2 days after Match ended." &&
+    !fanVotingWindowCopy().includes("Wednesday at 15:00") &&
+    !fanVotingWindowCopy().includes("Monday at 15:00"),
+  "Fan copy opens 3 days before kick-off and closes 2 days after Match ended"
 );
 assert(
   clubVotingWindowCopy(4).includes("3 days before kick-off") &&
@@ -136,9 +136,10 @@ assert(
   "Climate Projects uses the cumulative FUND copy with Closing Date applies"
 );
 assert(
-  fanWalletDrainCopy("£0").includes("each Club disappears") &&
-    fanWalletDrainCopy("£0").includes("bring it to £0 by Day 5"),
-  "Fans are told to drain Carbon Wallets to £0 by Day 5"
+  fanWalletDrainCopy("£0") ===
+    "Posted Climate Projects by Club disappears after 5 days." &&
+    !fanWalletDrainCopy("£0").includes("bring it to"),
+  "Fan copy says posted Climate Projects disappear after 5 days"
 );
 
 if (failures.length > 0) {
