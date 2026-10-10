@@ -257,8 +257,12 @@ export default function LocalSponsorRegisterPage() {
           </div>
         </div>
         <div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm font-semibold text-slate-200">
             Select the Match / Matches you wish to sponsor
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Tick every Match you want to sponsor and enter the amount for that
+            fixture. Hearts, Hibernian and Arsenal each have their own fixture list.
           </p>
           <div className="mt-3">
             <MatchSponsorshipPicker

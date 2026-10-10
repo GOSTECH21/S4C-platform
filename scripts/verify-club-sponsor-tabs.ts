@@ -21,6 +21,10 @@ import {
   matchDetailsLines,
   sameNamedFixture,
 } from "../app/lib/club-fixtures";
+import {
+  demoFixturesForClub,
+  withDemoClubFixtures,
+} from "../app/lib/demo-club-fixtures";
 import { campaignHeadline } from "../app/lib/sponsorship-auction";
 import {
   LOCAL_SPONSOR_MIN_GBP,
@@ -656,6 +660,35 @@ assert(
     "getPublishedFixturesForClub"
   ),
   "Sponsors load club fixtures from the published fixtures API"
+);
+assert(
+  readFileSync("app/services/next-fixtures.service.ts", "utf8").includes(
+    "withDemoUpcomingFixtures"
+  ) &&
+    readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "withDemoClubFixtures"
+    ),
+  "Demo club fixture lists fill the local register picker when live feeds are empty"
+);
+assert(
+  demoFixturesForClub("Arsenal").length >= 6 &&
+    demoFixturesForClub("Hearts").length >= 6 &&
+    demoFixturesForClub("Hibernian").length >= 6 &&
+    demoFixturesForClub("Hearts of Midlothian").some((row) =>
+      row.fixtureName.includes("Celtic")
+    ) &&
+    demoFixturesForClub("Hibernian").some((row) =>
+      row.fixtureName.includes("Celtic")
+    ) &&
+    demoFixturesForClub("Arsenal").some((row) =>
+      row.fixtureName.includes("Leeds United")
+    ),
+  "Arsenal, Hearts and Hibernian each have a named upcoming fixture list"
+);
+assert(
+  withDemoClubFixtures("Hibernian", []).map((row) => row.fixtureName).join(",") ===
+    demoFixturesForClub("Hibernian").map((row) => row.fixtureName).join(","),
+  "An empty live feed still shows the Hibernian fixture list"
 );
 
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");

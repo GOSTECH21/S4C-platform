@@ -6,6 +6,7 @@ import {
   formatMatchDate,
 } from "@/app/lib/upcoming-matches";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
+import { withDemoClubFixtures } from "@/app/lib/demo-club-fixtures";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
@@ -29,16 +30,19 @@ export function MatchSponsorshipPicker({
   useEffect(() => {
     if (!clubName.trim()) {
       setFixtures([]);
+      setLoading(false);
       return;
     }
     let cancelled = false;
-    setLoading(true);
+    const fallback = withDemoClubFixtures(clubName, []);
+    setFixtures(fallback);
+    setLoading(fallback.length === 0);
     void loadClubFixtures(clubName)
       .then((rows) => {
-        if (!cancelled) setFixtures(rows);
+        if (!cancelled) setFixtures(withDemoClubFixtures(clubName, rows));
       })
       .catch(() => {
-        if (!cancelled) setFixtures([]);
+        if (!cancelled) setFixtures(fallback);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -66,12 +70,12 @@ export function MatchSponsorshipPicker({
   if (fixtures.length === 0) {
     return (
       <p className="text-sm text-slate-500">
-        No published upcoming fixtures are listed for {clubName} yet.
+        No upcoming fixtures are listed for {clubName} yet.
       </p>
     );
   }
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-950 p-4">
       {fixtures.map((fixture) => {
         const on = selected.includes(fixture.fixtureName);
         return (
