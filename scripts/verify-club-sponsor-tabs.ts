@@ -666,9 +666,15 @@ assert(
     "withDemoUpcomingFixtures"
   ) &&
     readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "demoFixturesForClub"
+    ) &&
+    readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(
+      "Fixture lists"
+    ) &&
+    readFileSync("app/services/club-fixtures.service.ts", "utf8").includes(
       "withDemoClubFixtures"
     ),
-  "Demo club fixture lists fill the local register picker when live feeds are empty"
+  "Demo club fixture lists are painted on local register without waiting for a live feed"
 );
 assert(
   demoFixturesForClub("Arsenal").length >= 6 &&

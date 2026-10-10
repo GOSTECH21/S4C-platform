@@ -27,6 +27,8 @@ import {
   stadiumSiteForClub,
 } from "@/app/lib/project-site";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
+import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
+import { demoFixturesForClub } from "@/app/lib/demo-club-fixtures";
 
 export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -158,6 +160,17 @@ export default function LocalSponsorRegisterPage() {
         <li>read and agree to Score-4-Planet Terms & Conditions</li>
         <li>Sign & SUBMIT</li>
       </ol>
+      <div className="mt-6 space-y-3 rounded-2xl border-2 border-green-400 bg-black/30 p-4 text-sm text-white">
+        <p className="font-black text-green-300">Fixture lists</p>
+        {DEMO_CLUB_NAMES.map((club) => (
+          <p key={club}>
+            <span className="font-semibold text-green-200">{club}: </span>
+            {demoFixturesForClub(club)
+              .map((row) => row.fixtureName)
+              .join(" · ")}
+          </p>
+        ))}
+      </div>
 
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -251,7 +264,6 @@ export default function LocalSponsorRegisterPage() {
                 setSelectedMatches([]);
                 setAmounts({});
               }}
-              compact
               single
             />
           </div>
