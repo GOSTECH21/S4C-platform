@@ -6,6 +6,7 @@ import { LEAD_CLIMATE_SPONSOR_LABEL } from "@/app/lib/dual-sponsor";
 import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
 import { fanInviteRegisterPath } from "@/app/lib/climate-funding";
 import { FAN_REGISTER_PATH } from "@/app/lib/routes";
+import { featuredFromList, localFromList } from "@/app/lib/featured-gss";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
@@ -13,6 +14,8 @@ import {
   canPressFundIt,
   formatWalletGbp,
   fundItCopy,
+  leadFundItCopy,
+  localFundItCopy,
   normalizeKey,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
@@ -99,6 +102,8 @@ export function ClimateProjectSponsors({
           number: index + 1,
           name: `Climate Project ${index + 1}`,
         }));
+  const leadChoices = featuredFromList(projectChoices);
+  const localChoices = localFromList(projectChoices);
 
   function fundLead() {
     if (!lead) return;
@@ -146,6 +151,9 @@ export function ClimateProjectSponsors({
           <p className="px-4 pt-3 text-center text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-emerald-300">
             Lead Climate Project Sponsor
           </p>
+          <p className="px-4 pt-2 text-center text-sm text-slate-400">
+            {leadFundItCopy()}
+          </p>
           <div className="mt-3 flex flex-col gap-4 p-4 xl:flex-row xl:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-xl bg-white px-4 py-3">
               <BrandMark name={lead.brandName} logoUrl={leadLogo} large />
@@ -161,11 +169,14 @@ export function ClimateProjectSponsors({
             <CarbonWalletBox amount={lead.remainingGbp} />
             <FundProjectSelect
               brandName={lead.brandName}
-              projects={projectChoices}
+              projects={leadChoices}
               numberValue={leadNumber}
               used={leadUsed}
               onNumber={setLeadNumber}
               testIdPrefix="lead"
+              label="Global Schools Solar"
+              emptyLabel="Select a Global Schools Solar version"
+              ariaLabel={`Select a Global Schools Solar version to receive funding from ${lead.brandName}`}
             />
             <FundItButton
               disabled={leadBlocked}
@@ -184,7 +195,7 @@ export function ClimateProjectSponsors({
 
       <div>
         <h3 className="text-2xl font-black">Local Business Climate Sponsors</h3>
-        <p className="mt-1 text-sm text-slate-400">{FUND_IT_COPY}</p>
+        <p className="mt-1 text-sm text-slate-400">{localFundItCopy()}</p>
       </div>
 
       {localRows.length === 0 ? (
@@ -226,7 +237,7 @@ export function ClimateProjectSponsors({
                 <CarbonWalletBox amount={row.remainingGbp} compact />
                 <FundProjectSelect
                   brandName={row.brandName}
-                  projects={projectChoices}
+                  projects={localChoices}
                   numberValue={value}
                   used={already}
                   onNumber={(next) =>
@@ -309,6 +320,9 @@ function FundProjectSelect({
   used,
   onNumber,
   testIdPrefix,
+  label = "Climate Project",
+  emptyLabel = "Select a Climate Project",
+  ariaLabel,
 }: {
   brandName: string;
   projects: Array<{ number: number; name: string }>;
@@ -316,10 +330,13 @@ function FundProjectSelect({
   used: boolean;
   onNumber: (value: string) => void;
   testIdPrefix: string;
+  label?: string;
+  emptyLabel?: string;
+  ariaLabel?: string;
 }) {
   return (
     <label className="flex min-w-[14rem] flex-1 flex-col gap-1 text-sm text-slate-300">
-      <span className="font-semibold">Climate Project</span>
+      <span className="font-semibold">{label}</span>
       <select
         id={testIdPrefix === "lead" ? "lead-project-select" : undefined}
         value={numberValue}
@@ -327,9 +344,12 @@ function FundProjectSelect({
         onChange={(event) => onNumber(event.target.value)}
         className="h-10 w-full rounded-md border-2 border-white/70 bg-slate-950 px-2 text-sm font-bold text-white disabled:opacity-40"
         data-testid={`${testIdPrefix}-project-select`}
-        aria-label={`Select a Climate Project to receive ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}`}
+        aria-label={
+          ariaLabel ??
+          `Select a Climate Project to receive ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}`
+        }
       >
-        <option value="">Select a Climate Project</option>
+        <option value="">{emptyLabel}</option>
         {projects.map((project) => (
           <option key={project.number} value={String(project.number)}>
             {project.name}

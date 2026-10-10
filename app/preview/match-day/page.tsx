@@ -4,14 +4,23 @@ import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { TodaysClimateSponsors } from "@/app/components/fan/TodaysClimateSponsors";
 import { resolveMatchDayBranding } from "@/app/lib/match-day-branding";
 import { emptySponsor } from "@/app/lib/climate-sponsors";
+import {
+  FEATURED_GSS_LOCAL,
+  FEATURED_GSS_WORLD,
+} from "@/app/lib/sccan-catalog";
 
 const PROJECTS = [
   {
-    id: "gss",
-    name: "Global Schools Solar",
-    description:
-      "Install rooftop solar systems in schools around the world so classrooms can run on clean energy.",
-    category: "Solar Energy",
+    id: "gss-local",
+    name: FEATURED_GSS_LOCAL.name,
+    description: FEATURED_GSS_LOCAL.description,
+    category: FEATURED_GSS_LOCAL.category,
+  },
+  {
+    id: "gss-world",
+    name: FEATURED_GSS_WORLD.name,
+    description: FEATURED_GSS_WORLD.description,
+    category: FEATURED_GSS_WORLD.category,
   },
   {
     id: "wee",

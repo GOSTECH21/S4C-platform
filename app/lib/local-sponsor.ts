@@ -4,11 +4,11 @@ import { isDemoClubName } from "./current-season";
 import { isRemovedSponsorBrand } from "./climate-sponsors";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
-/** Fans may FUND-IT onto any of the Match Day five; leftover-only branding is retired. */
+/** Fans may FUND-IT onto the Match Day list; leftover-only branding is retired. */
 export const FAN_VOTE_PICK_COUNT = MATCH_DAY_PROJECT_COUNT;
 export const LOCAL_SPONSOR_LEFTOVER_COUNT =
   MATCH_DAY_PROJECT_COUNT - FAN_VOTE_PICK_COUNT;
-export const LOCAL_SPONSORS_PER_MATCH = MATCH_DAY_PROJECT_COUNT;
+export const LOCAL_SPONSORS_PER_MATCH = 5;
 export const LOCAL_SPONSOR_STORAGE = "s4p.sponsor.local";
 export const LOCAL_SPONSORS_BY_CLUB_STORAGE = "s4p.local-sponsors-by-club";
 

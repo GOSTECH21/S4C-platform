@@ -13,9 +13,14 @@ import {
   FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
+  walletVoteNotice,
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
+import {
+  FEATURED_GSS_LOCAL_NAME,
+  FEATURED_GSS_WORLD_NAME,
+} from "@/app/lib/sccan-catalog";
 import {
   buildProjectsFile,
   buildSponsorsFile,
@@ -30,11 +35,12 @@ import {
 const MATCH_DATE = "2026-10-10";
 
 const INITIAL_PROJECTS: NumberedClimateProject[] = [
-  { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
-  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 0 },
-  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 0 },
-  { id: "craigshill", name: "Growing Together Craigshill", number: 5, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss-local", name: FEATURED_GSS_LOCAL_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss-world", name: FEATURED_GSS_WORLD_NAME, number: 2, fundedGbp: 0, votesReceived: 0 },
+  { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 0 },
+  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 4, fundedGbp: 0, votesReceived: 0 },
+  { id: "porty", name: "Porty Community Energy", number: 5, fundedGbp: 0, votesReceived: 0 },
+  { id: "craigshill", name: "Growing Together Craigshill", number: 6, fundedGbp: 0, votesReceived: 0 },
 ];
 
 function seedWallets(): ClimateWallet[] {
@@ -107,9 +113,7 @@ export default function WalletVotePreviewPage() {
       prev.map((row) => (row.brandName === result.wallet.brandName ? result.wallet : row))
     );
     setProjects(result.projects);
-    setNotice(
-      `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-    );
+    setNotice(walletVoteNotice(result));
   }
 
   return (
@@ -123,9 +127,11 @@ export default function WalletVotePreviewPage() {
           <h1 className="mt-2 text-4xl font-black">Wallet vote · 10th October 2026</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Top Cellar pays £750 + 10% into the Climate Sponsorship Wallet.
-            Select Wee Spoke Hub from the drop-down next to that wallet and press {FUND_IT_LABEL}: the wallet
+            Select Wee Spoke Hub from the Local Business drop-down and press {FUND_IT_LABEL}: the wallet
             shows {formatWalletGbp(750 - DEFAULT_WALLET_VOTE_GBP)} Remaining and
             Wee Spoke Hub receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
+            Lead wallets fund a Global Schools Solar version (75%) and split 25%
+            across local Climate Projects.
           </p>
         </div>
 
@@ -134,7 +140,7 @@ export default function WalletVotePreviewPage() {
           matchDate={MATCH_DATE}
           onMatchDateChange={() => undefined}
           folder={folder}
-          selectedCount={5}
+          selectedCount={6}
           onSaveSponsors={() =>
             setFolder((prev) =>
               saveSponsorsIntoFolder(

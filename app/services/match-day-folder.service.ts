@@ -1,3 +1,4 @@
+import { withFeaturedGssVersions } from "../lib/featured-gss";
 import { MATCH_DAY_PROJECT_COUNT } from "../lib/partner-projects";
 import {
   hasFanVotedSponsor,
@@ -362,11 +363,13 @@ export function applyFanWalletVote({
     };
   }
   const folder = visibleMatchDayFolderForClub({ clubId, clubName });
-  const projects = loadFundedProjects(
-    clubId,
-    folder?.projectsFile?.projects?.length
-      ? folder.projectsFile.projects
-      : fallbackProjects
+  const projects = numberedFeaturedGss(
+    loadFundedProjects(
+      clubId,
+      folder?.projectsFile?.projects?.length
+        ? folder.projectsFile.projects
+        : fallbackProjects
+    )
   );
   if (projects.length === 0) {
     return {
@@ -403,7 +406,11 @@ export function applyFanWalletVote({
     amountGbp: result.amount,
     projectName: split
       ? result.projects.map((project) => project.name).join(", ")
-      : result.project.name,
+      : result.shares && result.shares.length > 1
+        ? result.shares
+            .map((share) => `${share.project.name} (£${share.amount.toFixed(2)})`)
+            .join("; ")
+        : result.project.name,
     brandName: result.wallet.brandName,
     clubName: result.wallet.clubName,
   });
@@ -430,7 +437,17 @@ export function fanVisibleProjects(
     folder?.projectsFile?.projects?.length
       ? folder.projectsFile.projects
       : fallback;
-  return clubId ? loadFundedProjects(clubId, base) : base;
+  const funded = clubId ? loadFundedProjects(clubId, base) : base;
+  return numberedFeaturedGss(funded);
+}
+
+function numberedFeaturedGss(
+  projects: NumberedClimateProject[]
+): NumberedClimateProject[] {
+  return withFeaturedGssVersions(projects).map((project, index) => ({
+    ...project,
+    number: index + 1,
+  }));
 }
 
 export function fanVisibleSponsors(

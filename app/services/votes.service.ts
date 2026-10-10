@@ -14,6 +14,8 @@ import {
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
+import { expandFeaturedGssVersions, isFeaturedGssName } from "../lib/featured-gss";
+import { MATCH_DAY_CHOICE_COUNT } from "../lib/partner-projects";
 import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { seasonNamesMatch } from "../lib/current-season";
 import {
@@ -80,8 +82,6 @@ export type Supporter = {
 const PROJECT_FIELDS =
   "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured, location";
 
-const FEATURED_PROJECT_NAME = "Global Schools Solar";
-
 export function describeDataError(error: unknown, fallback = "Request failed."): string {
   if (error instanceof Error && error.message.trim()) return error.message;
   if (error && typeof error === "object") {
@@ -112,28 +112,36 @@ function throwIfQueryError(error: unknown, fallback: string) {
 export function isFeaturedClimateProject(
   project: Pick<ClimateProject, "name" | "featured">
 ): boolean {
-  if (project.featured) return true;
-  return /global\s+schools\s+solar/i.test(project.name ?? "");
+  if (isFeaturedGssName(project.name)) return true;
+  return Boolean(project.featured);
 }
 
-export async function getFeaturedClimateProject(): Promise<ClimateProject | null> {
+export async function getFeaturedClimateProjects(): Promise<ClimateProject[]> {
   const byFlag = await supabase
     .from("climate_projects")
     .select(PROJECT_FIELDS)
     .eq("featured", true)
-    .eq("status", "active")
-    .limit(1)
-    .maybeSingle();
+    .eq("status", "active");
 
-  if (byFlag.data) return byFlag.data as ClimateProject;
+  let rows = ((byFlag.data ?? []) as ClimateProject[]).filter(
+    (project) => isFeaturedClimateProject(project)
+  );
 
-  const byName = await supabase
-    .from("climate_projects")
-    .select(PROJECT_FIELDS)
-    .ilike("name", FEATURED_PROJECT_NAME)
-    .maybeSingle();
+  if (rows.length === 0) {
+    const byName = await supabase
+      .from("climate_projects")
+      .select(PROJECT_FIELDS)
+      .ilike("name", "%Global Schools Solar%");
+    rows = (byName.data ?? []) as ClimateProject[];
+  }
 
-  return (byName.data as ClimateProject | null) ?? null;
+  const fromList = rows.filter(isFeaturedClimateProject);
+  return expandFeaturedGssVersions(fromList);
+}
+
+export async function getFeaturedClimateProject(): Promise<ClimateProject | null> {
+  const featured = await getFeaturedClimateProjects();
+  return featured[0] ?? null;
 }
 
 async function splitFeaturedProjects(
@@ -142,20 +150,22 @@ async function splitFeaturedProjects(
   featuredProject: ClimateProject | null;
   clubProjects: ClimateProject[];
 }> {
-  // Featured is platform-level (Global Schools Solar) and sits above the
-  // club sustainability director's five match projects — never as one of them.
-  const featuredProject =
-    (await getFeaturedClimateProject()) ??
-    projects.find(isFeaturedClimateProject) ??
-    null;
+  // Featured GSS versions sit above the SD's four partner choices.
+  const fromList = projects.filter(isFeaturedClimateProject);
+  const featuredRows = expandFeaturedGssVersions(
+    fromList.length > 0 ? fromList : await getFeaturedClimateProjects()
+  );
+  const featuredIds = new Set(featuredRows.map((project) => project.id));
   const clubProjects = projects
     .filter(
       (project) =>
-        project.id !== featuredProject?.id &&
-        !isFeaturedClimateProject(project)
+        !featuredIds.has(project.id) && !isFeaturedClimateProject(project)
     )
-    .slice(0, 5);
-  return { featuredProject, clubProjects };
+    .slice(0, MATCH_DAY_CHOICE_COUNT);
+  return {
+    featuredProject: featuredRows[0] ?? null,
+    clubProjects: [...featuredRows.slice(1), ...clubProjects],
+  };
 }
 
 async function resolveOpenCampaignId(

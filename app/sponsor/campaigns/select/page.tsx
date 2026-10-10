@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
-  loadFeaturedMatchDayProject,
+  loadFeaturedMatchDayProjects,
   loadPartnerClimateProjectLists,
 } from "@/app/services/club-match-day.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
@@ -39,7 +39,7 @@ export default function SponsorCreateCampaignPage() {
   const [internationalProjects, setInternationalProjects] = useState<
     ClimateProject[]
   >([]);
-  const [featured, setFeatured] = useState<ClimateProject | null>(null);
+  const [featured, setFeatured] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [list, setList] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(true);
@@ -77,7 +77,7 @@ export default function SponsorCreateCampaignPage() {
       const lists = await loadPartnerClimateProjectLists({ clubName });
       setLocalProjects(lists.local);
       setInternationalProjects(lists.international);
-      setFeatured(await loadFeaturedMatchDayProject());
+      setFeatured(await loadFeaturedMatchDayProjects());
       const club = await resolveClubForSponsor(clubName);
       setClubEmail(club.email);
     }
@@ -105,13 +105,13 @@ export default function SponsorCreateCampaignPage() {
       setClubEmail(club.email);
       const catalog = [...localProjects, ...internationalProjects];
       const chosen = catalog.filter((project) => selected.has(project.id));
-      const five = featured ? [featured, ...chosen] : chosen;
+      const portfolio = featured.length > 0 ? [...featured, ...chosen] : chosen;
       const proposal = await sendSponsorProposalToClub({
         clubId: club.id ?? `name:${club.name}`,
         clubName: club.name,
         sponsorName: brand,
         sponsorEmail: email,
-        projects: five,
+        projects: portfolio,
       });
       const mailto = proposalMailtoToDirector(club.email, proposal);
       setSentProposal(proposal);
@@ -136,10 +136,10 @@ export default function SponsorCreateCampaignPage() {
       </Link>
       <h1 className="mt-6 text-4xl font-black">Create Your Sponsorship Campaign</h1>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Do the same thing the Sustainability Director does: Global Schools Solar
-        is included, then choose 4 from List 1 ({localCountry}) and List 2
-        (International). Send the 5 to the Sustainability Director so they can
-        push them to fans.
+        Do the same thing the Sustainability Director does: two Global Schools
+        Solar versions are included, then choose 4 from List 1 ({localCountry})
+        and List 2 (International). Send the {MATCH_DAY_PROJECT_COUNT} to the
+        Sustainability Director so they can push them to fans.
       </p>
 
       <label className="mt-8 block max-w-xl text-sm text-slate-400">
@@ -162,13 +162,20 @@ export default function SponsorCreateCampaignPage() {
         </select>
       </label>
 
-      {featured && (
-        <div className="mt-8 rounded-2xl border border-green-500/40 bg-green-500/10 p-6">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
-            Included · UK and International
-          </p>
-          <h2 className="mt-2 text-2xl font-bold">{featured.name}</h2>
-          <p className="mt-2 text-slate-300">{featured.description}</p>
+      {featured.length > 0 && (
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          {featured.map((project) => (
+            <div
+              key={project.id}
+              className="rounded-2xl border border-green-500/40 bg-green-500/10 p-6"
+            >
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
+                Included · UK and International
+              </p>
+              <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
+              <p className="mt-2 text-slate-300">{project.description}</p>
+            </div>
+          ))}
         </div>
       )}
 
@@ -206,7 +213,7 @@ export default function SponsorCreateCampaignPage() {
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {visible.map((project) => {
-          if (featured && project.id === featured.id) return null;
+          if (featured.some((row) => row.id === project.id)) return null;
           const isOn = selected.has(project.id);
           const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
           return (

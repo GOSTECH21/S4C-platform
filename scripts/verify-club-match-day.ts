@@ -57,7 +57,7 @@ const ids = Array.from({ length: 20 }, (_, index) => index + 1);
 assert(partnerProjectPage(ids, 0).length === PARTNER_PAGE_SIZE, "Page 1 has 10 projects");
 assert(partnerProjectPage(ids, 1).join(",") === "11,12,13,14,15,16,17,18,19,20", "Page 2 has the next 10");
 assert(partnerPageCount(20) === 2, "20 partner projects paginate into 2 pages");
-assert(MATCH_DAY_PROJECT_COUNT === 5, "Match Day portfolio is 5 projects including featured GSS");
+assert(MATCH_DAY_PROJECT_COUNT === 6, "Match Day portfolio is 6 projects including two GSS versions");
 assert(MATCH_DAY_CHOICE_COUNT === 4, "SD chooses 4 partner projects; GSS is included as a must");
 assert(
   partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 0).every((project) =>
@@ -527,7 +527,7 @@ assert(
 );
 assert(
   clubClimateProjectsIntroCopy().includes(
-    "Global Schools Solar Project is included in every Match Day List"
+    "Two Global Schools Solar Projects are included in every Match Day List"
   ) &&
     clubClimateProjectsIntroCopy().includes(
       "Climate Partner Projects executable in Your Country"

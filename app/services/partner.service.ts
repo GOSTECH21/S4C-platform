@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase";
+import { isFeaturedGssName } from "../lib/featured-gss";
 import {
-  FEATURED_PROJECT_NAME,
   PARTNER_MATCH_DAY_CATALOG,
   SCCAN_LOCATION_TAG,
   type PartnerCatalogProject,
@@ -156,7 +156,7 @@ export async function loadPublishedPartnerProjects(): Promise<ClimateProject[]> 
   return PARTNER_MATCH_DAY_CATALOG.map((item) => byName.get(item.name.toLowerCase()))
     .filter((project): project is ClimateProject => Boolean(project))
     .map((project) =>
-      project.name === FEATURED_PROJECT_NAME
+      isFeaturedGssName(project.name)
         ? { ...project, featured: true, country: project.country || "International" }
         : project
     );
@@ -205,7 +205,7 @@ function uniqueUploaded(rows: ClimateProject[]): ClimateProject[] {
 }
 
 function isFeaturedName(name: string | null | undefined) {
-  return (name ?? "").trim().toLowerCase() === FEATURED_PROJECT_NAME.toLowerCase();
+  return isFeaturedGssName(name);
 }
 
 export async function loadPartnerLibrary(): Promise<ClimateProject[]> {

@@ -20,6 +20,7 @@ import {
   type SignedSponsorship,
 } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
+import { expandFeaturedGssVersions } from "@/app/lib/featured-gss";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
   climateProjectCountryLabel,
@@ -234,9 +235,11 @@ export default function ClubDashboardPage() {
       : [];
   const clubRow = cilt.find((row) => row.isClub);
   const orderedSelected = useMemo(() => {
-    const featured = selected.find(isFeaturedClimateProject);
-    if (!featured) return selected;
-    return [featured, ...selected.filter((project) => project.id !== featured.id)];
+    const featured = selected.filter(isFeaturedClimateProject);
+    const others = selected.filter(
+      (project) => !isFeaturedClimateProject(project)
+    );
+    return [...expandFeaturedGssVersions(featured), ...others];
   }, [selected]);
   const readySponsorBrands = useMemo(() => {
     if (!roster) return [];
@@ -488,8 +491,8 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {selected.length >= MATCH_DAY_PROJECT_COUNT
-                ? "Save these five in the Match-Day folder as the Climate Projects File. Fans press FUND-IT up to 5 times: £0.20 once from each Carbon Wallet onto any of these five Projects."
-                : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Global Schools Solar is included automatically and is UK and International.`}
+                ? `Save these ${MATCH_DAY_PROJECT_COUNT} in the Match-Day folder as the Climate Projects File. Fans press FUND-IT up to 5 times: £0.20 once from each Carbon Wallet. Lead wallets fund Global Schools Solar (75%) plus local projects (25%); Local Business wallets fund local Climate Projects only.`
+                : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Two Global Schools Solar versions are included automatically.`}
             </p>
           </div>
 
@@ -509,7 +512,7 @@ export default function ClubDashboardPage() {
               {readySponsorBrands.length
                 ? ` and to ${readySponsorBrands.map((row) => row.brandName).join(", ")}.`
                 : roster?.selectedIds.length
-                  ? ` Selected Climate Sponsors will see these five once they lock ${club.name} for this Match Day.`
+                  ? ` Selected Climate Sponsors will see these ${MATCH_DAY_PROJECT_COUNT} once they lock ${club.name} for this Match Day.`
                   : ". No Climate Sponsor was selected, so brand dashboards were not updated."}{" "}
               Supporters of {club.name} will see the Sponsors File and Climate
               Projects File on My S4P and Climate Projects as soon as they open
@@ -546,8 +549,8 @@ export default function ClubDashboardPage() {
               </p>
             )}
             <ProjectGrid
-              projects={selected}
-              empty={`No projects selected for this Match Day yet. Global Schools Solar will be included automatically once you choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects.`}
+              projects={orderedSelected}
+              empty={`No projects selected for this Match Day yet. Two Global Schools Solar versions will be included automatically once you choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects.`}
               badge="Selected"
               clubName={club.name}
               clubCountry={club.country}
@@ -667,7 +670,7 @@ export default function ClubDashboardPage() {
                 Selected and voted projects, kept for lookback
               </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
-                Every confirmed Match Day five is stored once in this club file
+                Every confirmed Match Day list is stored once in this club file
                 record so the Sustainability Director can look back later.
                 Incomplete or unstamped copies of the same five are merged into
                 that lookback. When a second brand signs those projects, that

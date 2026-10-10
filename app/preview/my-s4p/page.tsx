@@ -18,14 +18,23 @@ import {
   fanVotingWindowCopy,
   fanWalletDrainCopy,
 } from "@/app/lib/voting-window";
+import {
+  FEATURED_GSS_LOCAL,
+  FEATURED_GSS_WORLD,
+} from "@/app/lib/sccan-catalog";
 
 const PROJECTS = [
   {
-    id: "gss",
-    name: "Global Schools Solar",
-    description:
-      "Install rooftop solar systems in schools around the world so classrooms can run on clean energy.",
-    category: "Solar Energy",
+    id: "gss-local",
+    name: FEATURED_GSS_LOCAL.name,
+    description: FEATURED_GSS_LOCAL.description,
+    category: FEATURED_GSS_LOCAL.category,
+  },
+  {
+    id: "gss-world",
+    name: FEATURED_GSS_WORLD.name,
+    description: FEATURED_GSS_WORLD.description,
+    category: FEATURED_GSS_WORLD.category,
   },
   {
     id: "wee",
@@ -168,10 +177,10 @@ export default function MyS4PPreviewPage() {
           <h2 className="text-3xl font-black">Climate Projects List</h2>
           <p className="mt-2 text-sm text-slate-400">
             Project titles are shown first. Open a project to read the details.
-            To put £0.20 into a Climate Project, open Climate Project Sponsors,
-            select the project by name, then press FUND-IT. You can FUND-IT up
-            to 5 times — £0.20 once from each Carbon Wallet onto any Climate
-            Project.
+            To put £0.20 into a school, open Climate Project Sponsors, select
+            the project by name from the Lead Climate Sponsor box, then press
+            FUND-IT. Local Business wallets fund the other Climate Projects.
+            You can FUND-IT up to 5 times — £0.20 once from each Carbon Wallet.
           </p>
           <div className="mt-6 space-y-2">
             {PROJECTS.map((project, index) => (

@@ -7,15 +7,20 @@ import { loadFundedProjects } from "@/app/lib/climate-funding";
 import { climateProjectsReceivedCopy } from "@/app/lib/voting-window";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy } from "@/app/lib/project-site";
+import {
+  FEATURED_GSS_LOCAL_NAME,
+  FEATURED_GSS_WORLD_NAME,
+} from "@/app/lib/sccan-catalog";
 
 const PREVIEW_CLUB = "preview-hibs";
 
 const INITIAL: NumberedClimateProject[] = [
-  { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 7 },
-  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 12 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 4 },
-  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 9 },
-  { id: "craigshill", name: "Growing Together Craigshill", number: 5, fundedGbp: 0, votesReceived: 2 },
+  { id: "gss-local", name: FEATURED_GSS_LOCAL_NAME, number: 1, fundedGbp: 0, votesReceived: 7 },
+  { id: "gss-world", name: FEATURED_GSS_WORLD_NAME, number: 2, fundedGbp: 0, votesReceived: 5 },
+  { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 12 },
+  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 4, fundedGbp: 0, votesReceived: 4 },
+  { id: "porty", name: "Porty Community Energy", number: 5, fundedGbp: 0, votesReceived: 9 },
+  { id: "craigshill", name: "Growing Together Craigshill", number: 6, fundedGbp: 0, votesReceived: 2 },
 ];
 
 export default function ClimateProjectsPreviewPage() {
