@@ -10,16 +10,16 @@ import {
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import {
-  SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
+  SPONSOR_WALLET_PATH,
 } from "@/app/lib/routes";
 import {
   LOCAL_SPONSOR_MIN_GBP,
+  LOCAL_SPONSOR_TERMS,
   writeLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
-import { localWalletTopUp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -27,9 +27,12 @@ export default function LocalSponsorRegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clubName, setClubName] = useState("");
+  const [postcode, setPostcode] = useState("");
   const [pledgeGbp, setPledgeGbp] = useState(String(LOCAL_SPONSOR_MIN_GBP));
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [signerName, setSignerName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,10 +44,22 @@ export default function LocalSponsorRegisterPage() {
       setError("Choose the local club whose stadium your business is near.");
       return;
     }
+    if (!postcode.trim()) {
+      setError("Enter all required registration info including business postcode.");
+      return;
+    }
     if (!Number.isFinite(pledge) || pledge < LOCAL_SPONSOR_MIN_GBP) {
       setError(
         `Local Business Climate Sponsors pay from £${LOCAL_SPONSOR_MIN_GBP}.`
       );
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("Read and agree to the Score-4-Planet Terms & Conditions before you sign off.");
+      return;
+    }
+    if (!signerName.trim()) {
+      setError("Type your full name to sign off this Local Business Climate Sponsorship.");
       return;
     }
     setLoading(true);
@@ -75,13 +90,17 @@ export default function LocalSponsorRegisterPage() {
         createdAt: new Date().toISOString(),
         logoUrl,
         source: "registered",
+        postcode: postcode.trim(),
+        acceptedTerms: true,
+        signerName: signerName.trim(),
+        signedAt: new Date().toISOString(),
       });
       ensureLocalWallet({
         clubName,
         brandName: companyName,
         sponsorshipGbp: pledge,
       });
-      window.location.href = SPONSOR_DASHBOARD_PATH;
+      window.location.href = SPONSOR_WALLET_PATH;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
       setLoading(false);
@@ -96,15 +115,13 @@ export default function LocalSponsorRegisterPage() {
       <h1 className="mt-3 text-4xl font-black">
         Register as a Local Sponsor
       </h1>
-      <p className="mt-4 text-slate-300">
-        From £{LOCAL_SPONSOR_MIN_GBP} your logo appears on one of the five
-        Match Day Climate Project cards posted to fans. Pay the amount you want
-        fans to take from your Climate Sponsorship Wallet; a 10% management fee
-        is added on top (for example £750 + 10% = {formatWalletGbp(localWalletTopUp(750).paidGbp)}
-        paid, with {formatWalletGbp(750)} remaining in the wallet). A £1,500 pledge receives
-        three times the fan exposures of a £{LOCAL_SPONSOR_MIN_GBP} pledge, and
-        takes a more prominent card — Global Schools Solar first.
-      </p>
+      <ol className="mt-4 list-decimal space-y-1 pl-5 text-slate-300">
+        <li>Enter all required registration info including business postcode</li>
+        <li>Upload your business logo (if available)</li>
+        <li>Select the Club you wish to sponsor</li>
+        <li>read and agree to Score-4-Planet Terms & Conditions</li>
+        <li>Sign & SUBMIT</li>
+      </ol>
 
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -154,27 +171,29 @@ export default function LocalSponsorRegisterPage() {
             required
           />
         </label>
-        <label className="block text-sm text-slate-400">
-          Sponsorship from £{LOCAL_SPONSOR_MIN_GBP}
-          <input
-            type="number"
-            min={LOCAL_SPONSOR_MIN_GBP}
-            step={50}
-            value={pledgeGbp}
-            onChange={(event) => setPledgeGbp(event.target.value)}
-            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            required
-          />
-        </label>
         <BrandLogoField
           brandName={companyName}
           logoUrl={logoUrl}
           error={logoError}
+          label="Business logo"
+          hint="Upload your business logo if available. Your business name and logo appear to fans who take £0.20 from your Carbon Wallet."
           onChange={(next) => {
             setLogoError(null);
             setLogoUrl(next);
           }}
         />
+        <label className="block text-sm text-slate-400">
+          Business postcode
+          <input
+            type="text"
+            value={postcode}
+            onChange={(event) => setPostcode(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            placeholder="e.g. EH7 5AA"
+            autoComplete="postal-code"
+            required
+          />
+        </label>
         <div>
           <p className="text-sm text-slate-400">
             Local club (near the stadium)
@@ -188,12 +207,52 @@ export default function LocalSponsorRegisterPage() {
             />
           </div>
         </div>
+        <label className="block text-sm text-slate-400">
+          Match Day amount (from £{LOCAL_SPONSOR_MIN_GBP})
+          <input
+            type="number"
+            min={LOCAL_SPONSOR_MIN_GBP}
+            step={50}
+            value={pledgeGbp}
+            onChange={(event) => setPledgeGbp(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            required
+          />
+        </label>
+        <div className="space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-5">
+          <h2 className="text-xl font-black text-white">
+            Score-4-Planet Terms & Conditions
+          </h2>
+          <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200">
+            {LOCAL_SPONSOR_TERMS}
+          </div>
+          <label className="flex items-start gap-3 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+              className="mt-1"
+              required
+            />
+            I have read and agree to the Score-4-Planet Terms & Conditions.
+          </label>
+          <label className="block text-sm text-slate-400">
+            Signature (type your full name)
+            <input
+              type="text"
+              value={signerName}
+              onChange={(event) => setSignerName(event.target.value)}
+              className="mt-2 w-full rounded-lg bg-slate-800 p-3 font-serif text-2xl text-white"
+              required
+            />
+          </label>
+        </div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !acceptedTerms || !signerName.trim()}
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
-          {loading ? "Saving..." : `Confirm from £${LOCAL_SPONSOR_MIN_GBP}`}
+          {loading ? "Submitting..." : "Sign & SUBMIT"}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">

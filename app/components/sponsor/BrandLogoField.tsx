@@ -9,16 +9,20 @@ export function BrandLogoField({
   logoUrl,
   onChange,
   error,
+  hint,
+  label = "Brand logo",
 }: {
   brandName: string;
   logoUrl: string | null;
   onChange: (logoDataUrl: string) => void;
   error?: string | null;
+  hint?: string;
+  label?: string;
 }) {
   const [localError, setLocalError] = useState<string | null>(null);
   return (
     <label className="block text-sm text-slate-400">
-      Brand logo
+      {label}
       <div className="mt-2 flex items-center gap-4">
         <BrandMark name={brandName || "Brand"} logoUrl={logoUrl} large />
         <input
@@ -40,8 +44,8 @@ export function BrandLogoField({
         />
       </div>
       <p className="mt-2 text-xs text-slate-500">
-        Upload your brand mark so it appears next to Signed in as on the
-        Sponsorship Dashboard.
+        {hint ??
+          "Upload your brand mark so it appears next to Signed in as on the Sponsorship Dashboard."}
       </p>
       {(error || localError) && (
         <p className="mt-2 text-sm text-red-300">{error || localError}</p>
