@@ -345,6 +345,21 @@ export function submittedLocalSponsorsForClub(
     });
 }
 
+export function clubNameForLocalBrand(
+  brandName: string | null | undefined
+): string | null {
+  const name = (brandName ?? "").trim().toLowerCase();
+  if (!name) return null;
+  const record = readLocalSponsorRecord() ?? localRecordFromProfile();
+  if (record && record.brandName.trim().toLowerCase() === name) {
+    return record.clubName;
+  }
+  const fromClubs = allLocalSponsors().find(
+    (row) => row.brandName.trim().toLowerCase() === name
+  );
+  return fromClubs?.clubName ?? null;
+}
+
 export function localSponsorForClub(clubName: string): LocalSponsorRecord | null {
   const ranked = [...localSponsorsForClub(clubName)].sort((left, right) => {
     if (right.pledgeGbp !== left.pledgeGbp) return right.pledgeGbp - left.pledgeGbp;

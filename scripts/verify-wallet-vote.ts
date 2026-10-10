@@ -713,9 +713,16 @@ assert(
   "Remaining is only shown on the local wallet"
 );
 assert(
-  !walletForm.includes("Sponsorship amount (from") &&
+  walletForm.includes("Amount in Carbon Wallet") &&
+    walletForm.includes("Put into Carbon Wallet") &&
+    walletForm.includes("onLocalDeposit") &&
     !walletForm.includes("Pay into Climate Sponsorship Wallet"),
-  "Local wallet does not ask for a second sponsorship amount"
+  "Local Business Climate Sponsors only enter how much goes into the Carbon Wallet"
+);
+assert(
+  walletPage.includes("depositLocalClimateWallet") &&
+    walletPage.includes("isLocalClimateSponsor"),
+  "The wallet page classifies Local Business Climate Sponsors before showing the Lead form"
 );
 assert(
   walletPage.includes(

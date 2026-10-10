@@ -8,7 +8,10 @@ import {
   LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
-import { sponsorHomePath } from "@/app/lib/sponsor-home";
+import {
+  rememberLocalSponsorSession,
+  sponsorHomePath,
+} from "@/app/lib/sponsor-home";
 import { roleLoginAccount } from "@/app/lib/role-login";
 
 export default function SponsorLoginPage() {
@@ -26,7 +29,10 @@ export default function SponsorLoginPage() {
     try {
       await loginSponsor({ email, password });
       const sponsor = await getCurrentSponsor();
-      window.location.href = sponsorHomePath(String(sponsor.name ?? ""));
+      rememberLocalSponsorSession(sponsor);
+      window.location.href = sponsorHomePath(String(sponsor.name ?? ""), {
+        jobTitle: String(sponsor.industry ?? ""),
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
       setLoading(false);

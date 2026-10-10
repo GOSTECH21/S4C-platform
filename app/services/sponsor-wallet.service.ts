@@ -203,6 +203,25 @@ export function topUpLocalClimateWallet({
   );
 }
 
+/** Local Business Climate Sponsors only deposit a Carbon Wallet amount. */
+export function depositLocalClimateWallet({
+  clubName,
+  brandName,
+  sponsorshipGbp,
+}: {
+  clubName: string;
+  brandName: string;
+  sponsorshipGbp: number;
+}): ClimateWallet {
+  const existing = readClimateWallet(clubName, brandName);
+  if (!existing || existing.kind !== "local") {
+    return writeClimateWallet(
+      createLocalWallet({ clubName, brandName, sponsorshipGbp })
+    );
+  }
+  return topUpLocalClimateWallet({ clubName, brandName, sponsorshipGbp });
+}
+
 export function healLocalWalletsForClub(clubName: string): ClimateWallet[] {
   return listClimateWalletsForClub(clubName).map((wallet) => {
     if (wallet.kind !== "local") return wallet;

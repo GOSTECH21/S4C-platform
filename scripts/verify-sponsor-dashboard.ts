@@ -21,6 +21,7 @@ import {
 } from "../app/lib/sponsor-dashboard";
 import {
   SPONSOR_DASHBOARD_PATH,
+  SPONSOR_WALLET_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
   SPONSOR_RECEIVE_SECTION_ID,
   SPONSOR_SIGNED_SECTION_ID,
@@ -581,6 +582,11 @@ assert(
 assert(
   sponsorHomePath("American Express") === SPONSOR_DASHBOARD_PATH,
   "American Express stays on the Lead Climate Sponsor dashboard"
+);
+assert(
+  sponsorHomePath("Top Cellar") === SPONSOR_WALLET_PATH &&
+    sponsorHomePath("The Fountain") === SPONSOR_WALLET_PATH,
+  "Local Business Climate Sponsors land on the Carbon Wallet, not the Lead dashboard"
 );
 
 const localRegisterPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
