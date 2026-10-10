@@ -321,8 +321,8 @@ assert(
 );
 
 assert(
-  MATCH_DAY_PROJECT_COUNT === 5,
-  "Posted portfolio remains five climate projects"
+  MATCH_DAY_PROJECT_COUNT === 6,
+  "Posted portfolio remains six climate projects including two GSS versions"
 );
 assert(
   lockCopy().includes("72 hours") &&

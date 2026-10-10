@@ -27,7 +27,6 @@ import {
   stadiumSiteForClub,
 } from "@/app/lib/project-site";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
-import { localWalletTopUp, formatWalletGbp } from "@/app/lib/sponsor-wallet";
 
 export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -72,12 +71,6 @@ export default function LocalSponsorRegisterPage() {
     }
     if (selectedMatches.length === 0) {
       setError("Select the Match or Matches you wish to sponsor.");
-      return;
-    }
-    if (!logoUrl) {
-      setError(
-        "Upload your brand logo. It appears once on the club's Our Climate Sponsors list."
-      );
       return;
     }
     if (!acceptedTerms) {
@@ -158,17 +151,13 @@ export default function LocalSponsorRegisterPage() {
       <h1 className="mt-3 text-4xl font-black">
         Register as a Local Sponsor
       </h1>
-      <p className="mt-4 text-slate-300">
-        Choose the club, select the Match or Matches you wish to sponsor, enter
-        your sponsorship amounts, upload your logo, agree to the Terms and
-        Conditions and sign off, then SUBMIT. From £{LOCAL_SPONSOR_MIN_GBP} per
-        Match your business appears once on the club&apos;s Our Climate Sponsors
-        list as a Local Business Climate Sponsor. A 10% management fee is added
-        on top of the amount you submit (for example £750 + 10% ={" "}
-        {formatWalletGbp(localWalletTopUp(750).paidGbp)} paid, with{" "}
-        {formatWalletGbp(750)} remaining in the Climate Sponsorship Wallet).
-        Fans take £0.20 per FUND-IT from that wallet.
-      </p>
+      <ol className="mt-4 list-decimal space-y-1 pl-5 text-slate-300">
+        <li>Enter all required registration info including business postcode</li>
+        <li>Upload your business logo (if available)</li>
+        <li>Select the Club you wish to sponsor</li>
+        <li>read and agree to Score-4-Planet Terms & Conditions</li>
+        <li>Sign & SUBMIT</li>
+      </ol>
 
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -222,7 +211,8 @@ export default function LocalSponsorRegisterPage() {
           brandName={companyName}
           logoUrl={logoUrl}
           error={logoError}
-          hint="Upload your brand mark. It appears once on the club's Our Climate Sponsors list as a Local Business Climate Sponsor."
+          label="Business logo"
+          hint="Upload your business logo if available. Your business name and logo appear to fans who take £0.20 from your Carbon Wallet."
           onChange={(next) => {
             setLogoError(null);
             setLogoUrl(next);
@@ -284,14 +274,9 @@ export default function LocalSponsorRegisterPage() {
         </div>
         <div className="space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-5">
           <h2 className="text-xl font-black text-white">
-            Terms and Conditions and sign-off
+            Score-4-Planet Terms & Conditions
           </h2>
-          <p className="text-sm text-slate-300">
-            Terms and Conditions apply. Sign off this Local Business Climate
-            Sponsorship before you SUBMIT it for the club Sustainability
-            Director.
-          </p>
-          <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
+          <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200">
             {LOCAL_SPONSOR_TERMS}
           </div>
           <label className="flex items-start gap-3 text-sm text-slate-300">
@@ -302,7 +287,7 @@ export default function LocalSponsorRegisterPage() {
               className="mt-1"
               required
             />
-            I have read and agree to the Terms and Conditions.
+            I have read and agree to the Score-4-Planet Terms & Conditions.
           </label>
           <label className="block text-sm text-slate-400">
             Signature (type your full name)
@@ -318,11 +303,11 @@ export default function LocalSponsorRegisterPage() {
         <button
           type="submit"
           disabled={
-            loading || !acceptedTerms || !signerName.trim() || !logoUrl
+            loading || !acceptedTerms || !signerName.trim()
           }
           className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
         >
-          {loading ? "Submitting..." : "SUBMIT sponsorship"}
+          {loading ? "Submitting..." : "Sign & SUBMIT"}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">

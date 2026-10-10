@@ -26,6 +26,11 @@ export type PartnerCatalogProject = {
   address?: string;
 };
 
+export const FEATURED_GSS_LOCAL_NAME =
+  "Global Schools Solar — Local School (near the stadium)";
+export const FEATURED_GSS_WORLD_NAME =
+  "Global Schools Solar — School anywhere in the world";
+
 export const FEATURED_GLOBAL_SCHOOLS_SOLAR: PartnerCatalogProject = {
   name: FEATURED_PROJECT_NAME,
   description:
@@ -38,6 +43,27 @@ export const FEATURED_GLOBAL_SCHOOLS_SOLAR: PartnerCatalogProject = {
   featured: true,
   source: "S4P Featured Climate Project",
 };
+
+export const FEATURED_GSS_LOCAL: PartnerCatalogProject = {
+  ...FEATURED_GLOBAL_SCHOOLS_SOLAR,
+  name: FEATURED_GSS_LOCAL_NAME,
+  description:
+    "Install rooftop solar at a school near this club's stadium so local classrooms run on clean energy.",
+  location: "Featured · Local school near the stadium",
+};
+
+export const FEATURED_GSS_WORLD: PartnerCatalogProject = {
+  ...FEATURED_GLOBAL_SCHOOLS_SOLAR,
+  name: FEATURED_GSS_WORLD_NAME,
+  description:
+    "Install rooftop solar at a school anywhere else in the world so classrooms can run on clean energy.",
+  location: "Featured · School anywhere in the world",
+};
+
+export const FEATURED_GSS_VERSIONS: PartnerCatalogProject[] = [
+  FEATURED_GSS_LOCAL,
+  FEATURED_GSS_WORLD,
+];
 
 /** Chosen from SCCAN current projects, Spaces and Member of the Month stories. */
 export const SCCAN_CLIMATE_PROJECTS: PartnerCatalogProject[] = [
@@ -1094,9 +1120,9 @@ export function selectableCatalogForCountry(
 export const SELECTABLE_MATCH_DAY_CATALOG: PartnerCatalogProject[] =
   selectableCatalogForCountry("Scotland");
 
-/** Published catalog: featured Global Schools Solar plus every local and international project. */
+/** Published catalog: two Global Schools Solar versions plus every local and international project. */
 export const PARTNER_MATCH_DAY_CATALOG: PartnerCatalogProject[] = [
-  FEATURED_GLOBAL_SCHOOLS_SOLAR,
+  ...FEATURED_GSS_VERSIONS,
   ...ALL_LOCAL_CLIMATE_PROJECTS,
   ...INTERNATIONAL_CLIMATE_PROJECTS,
 ];

@@ -42,6 +42,7 @@ import {
 import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
 import { listClubSignedSponsorships } from "./sponsor-offers.service";
 import { sponsorLogoSrc } from "./teams.service";
+import { expandFeaturedGssVersions } from "../lib/featured-gss";
 import {
   isFeaturedClimateProject,
   type ClimateProject,
@@ -137,9 +138,14 @@ export async function loadPartnerClimateProjectLists(
   );
 }
 
-export async function loadFeaturedMatchDayProject(): Promise<ClimateProject | null> {
+export async function loadFeaturedMatchDayProjects(): Promise<ClimateProject[]> {
   const published = await publishSccanCatalog();
-  return published.find(isFeaturedClimateProject) ?? null;
+  return expandFeaturedGssVersions(published.filter(isFeaturedClimateProject));
+}
+
+export async function loadFeaturedMatchDayProject(): Promise<ClimateProject | null> {
+  const featured = await loadFeaturedMatchDayProjects();
+  return featured[0] ?? null;
 }
 
 const ACCOUNT_FIELDS =
@@ -790,12 +796,19 @@ async function ensureFeaturedSelection(
   selected: ClimateProject[]
 ): Promise<ClimateProject[]> {
   if (selected.length === 0) return [];
-  const featured = await loadFeaturedMatchDayProject();
-  if (!featured) return uniqueProjects(selected).slice(0, MATCH_DAY_PROJECT_COUNT);
+  const featured = await loadFeaturedMatchDayProjects();
+  if (featured.length === 0) {
+    return uniqueProjects(selected).slice(0, MATCH_DAY_PROJECT_COUNT);
+  }
+  const featuredIds = new Set(featured.map((project) => project.id));
   const others = selected.filter(
-    (project) => project.id !== featured.id && !isFeaturedClimateProject(project)
+    (project) =>
+      !featuredIds.has(project.id) && !isFeaturedClimateProject(project)
   );
-  return uniqueProjects([featured, ...others]).slice(0, MATCH_DAY_PROJECT_COUNT);
+  return uniqueProjects([...featured, ...others]).slice(
+    0,
+    MATCH_DAY_PROJECT_COUNT
+  );
 }
 
 function snapshotProject(project: {
@@ -1120,23 +1133,24 @@ export async function saveMatchDaySelection({
   gbpPerVote?: number;
   expectedSponsorship?: number;
 }): Promise<MatchDaySelection> {
-  const featured = await loadFeaturedMatchDayProject();
-  if (!featured) {
+  const featured = await loadFeaturedMatchDayProjects();
+  if (featured.length === 0) {
     throw new Error("The Featured Climate Project could not be loaded.");
   }
   const selectable = await loadPartnerClimateProjects({ clubName, country });
   const validIds = new Set(selectable.map((project) => project.id));
+  const featuredIds = new Set(featured.map((project) => project.id));
   const chosen = [
     ...new Set(
-      projectIds.filter((id) => id !== featured.id && validIds.has(id))
+      projectIds.filter((id) => !featuredIds.has(id) && validIds.has(id))
     ),
   ];
   if (chosen.length !== MATCH_DAY_CHOICE_COUNT) {
     throw new Error(
-      `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar is included automatically.`
+      `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Two Global Schools Solar versions are included automatically.`
     );
   }
-  const portfolioIds = [featured.id, ...chosen];
+  const portfolioIds = [...featured.map((project) => project.id), ...chosen];
   const stored = readStoredMatchDay(clubId);
   const campaign = await findOpenClubCampaign(clubId, clubName);
   const auction = withAuctionDefaults({

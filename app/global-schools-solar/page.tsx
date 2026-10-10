@@ -15,7 +15,7 @@ export default function GlobalSchoolsSolarPage() {
     <SolutionPage
       kicker="Solutions"
       title="Global Schools Solar"
-      intro={`${project.description} It is included automatically in every Match Day five and is classified as ${UK_CLIMATE_REGION} and ${INTERNATIONAL_CLIMATE_REGION}.`}
+      intro={`${project.description} Fans choose a local school near the stadium or a school anywhere in the world. Funding comes from Lead Climate Sponsor Carbon Wallets (75% to GSS, 25% to local Climate Projects) and is classified as ${UK_CLIMATE_REGION} and ${INTERNATIONAL_CLIMATE_REGION}.`}
       currentPath={GLOBAL_SCHOOLS_SOLAR_PATH}
     >
       <div className="grid gap-6 md:grid-cols-3">
@@ -23,11 +23,12 @@ export default function GlobalSchoolsSolarPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-green-400">
             Featured on every Match Day
           </p>
-          <h2 className="mt-4 text-2xl font-black">Always in the five</h2>
+          <h2 className="mt-4 text-2xl font-black">Two versions on every list</h2>
           <p className="mt-4 text-slate-300">
-            Sustainability Directors choose four Climate Partner projects. Global
-            Schools Solar is locked in as the fifth, so every club&apos;s fans can
-            vote for school rooftop solar.
+            Sustainability Directors choose four Climate Partner projects. Two
+            Global Schools Solar versions are locked in: a local school near the
+            stadium, and a school anywhere in the world. Fans fund them from
+            Lead Climate Sponsor wallets.
           </p>
         </div>
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8">

@@ -8,16 +8,19 @@ import {
   leadCarbonWalletGbp,
   leadSponsorshipFromGoalsGbp,
   liveGoalsScored,
+  localWalletTopUp,
   remainingGbp,
   type ClimateWallet,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
+import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 
 export function ClimateSponsorshipWallet({
   kind,
   wallet,
   clubName,
   onLeadDeposit,
+  onLocalDeposit,
   busy = false,
   notice,
   error,
@@ -30,6 +33,7 @@ export function ClimateSponsorshipWallet({
     gbpPerGoal: number;
     maximumSponsorshipGbp: number;
   }) => void;
+  onLocalDeposit?: (input: { sponsorshipGbp: number }) => void;
   busy?: boolean;
   notice?: string | null;
   error?: string | null;
@@ -37,7 +41,9 @@ export function ClimateSponsorshipWallet({
   const [commitmentFee, setCommitmentFee] = useState("1000");
   const [gbpPerGoal, setGbpPerGoal] = useState("3000");
   const [maximumSponsorship, setMaximumSponsorship] = useState("0");
+  const [localAmount, setLocalAmount] = useState(String(LOCAL_SPONSOR_MIN_GBP));
   const liveGoals = wallet ? liveGoalsScored(wallet) : 0;
+  const localTopUp = localWalletTopUp(Number(localAmount) || 0);
 
   useEffect(() => {
     if (!wallet || kind !== "lead") return;
@@ -55,7 +61,7 @@ export function ClimateSponsorshipWallet({
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "lead"
           ? "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
-          : `Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from this wallet. The sponsorship amount you submitted is shown above, with the 10% management fee already added.`}
+          : `As a Local Business Climate Sponsor, put the amount you are sponsoring into this Carbon Wallet. Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from it onto local Climate Projects. Goal-scored sponsorship is only for Lead Climate Sponsors.`}
       </p>
 
       {wallet && kind === "lead" ? (
@@ -98,17 +104,47 @@ export function ClimateSponsorshipWallet({
       ) : null}
 
       {kind === "local" ? (
-        wallet ? (
-          <p className="mt-6 text-sm text-green-300">
-            Fans take {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from
-            the {formatWalletGbp(remainingGbp(wallet))} remaining.
+        <form
+          className="mt-8 space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onLocalDeposit?.({
+              sponsorshipGbp: Number(localAmount) || 0,
+            });
+          }}
+        >
+          <label className="block max-w-md text-sm text-slate-400">
+            Amount in Carbon Wallet
+            <input
+              type="number"
+              min={0}
+              step={50}
+              value={localAmount}
+              onChange={(event) => setLocalAmount(event.target.value)}
+              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+              data-testid="local-wallet-amount"
+            />
+          </label>
+          <p className="max-w-2xl text-sm text-slate-400">
+            A 10% management fee is added on top. You pay{" "}
+            {formatWalletGbp(localTopUp.paidGbp)};{" "}
+            {formatWalletGbp(localTopUp.sponsorshipGbp)} goes into the Carbon
+            Wallet.
           </p>
-        ) : (
-          <p className="mt-6 text-sm text-slate-500">
-            The sponsorship amount you submitted on registration appears here
-            once the wallet is created. There is no second amount to enter.
-          </p>
-        )
+          {wallet ? (
+            <p className="text-sm text-green-300">
+              Fans take {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT
+              from the {formatWalletGbp(remainingGbp(wallet))} remaining.
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={busy}
+            className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
+          >
+            {busy ? "Saving..." : "Put into Carbon Wallet"}
+          </button>
+        </form>
       ) : (
         <form
           className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"

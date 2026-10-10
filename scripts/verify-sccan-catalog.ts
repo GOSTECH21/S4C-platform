@@ -1,7 +1,8 @@
 import {
   ENGLAND_CLIMATE_PROJECTS,
   FEATURED_GLOBAL_SCHOOLS_SOLAR,
-  FEATURED_PROJECT_NAME,
+  FEATURED_GSS_LOCAL_NAME,
+  FEATURED_GSS_WORLD_NAME,
   INTERNATIONAL_CLIMATE_PROJECTS,
   ITALY_CLIMATE_PROJECTS,
   LOCAL_CLIMATE_PROJECTS_BY_COUNTRY,
@@ -77,8 +78,9 @@ assert(
   "Default selectable catalog is 10 local + 10 international"
 );
 assert(
-  PARTNER_MATCH_DAY_CATALOG[0].name === FEATURED_PROJECT_NAME,
-  "Global Schools Solar is first in the published catalog"
+  PARTNER_MATCH_DAY_CATALOG[0].name === FEATURED_GSS_LOCAL_NAME &&
+    PARTNER_MATCH_DAY_CATALOG[1].name === FEATURED_GSS_WORLD_NAME,
+  "Two Global Schools Solar versions lead the published catalog"
 );
 assert(
   FEATURED_GLOBAL_SCHOOLS_SOLAR.featured === true,

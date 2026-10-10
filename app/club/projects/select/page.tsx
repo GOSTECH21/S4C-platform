@@ -7,7 +7,7 @@ import type { ClimateProject } from "@/app/services/votes.service";
 import {
   loadClubSession,
   loadPartnerClimateProjectLists,
-  loadFeaturedMatchDayProject,
+  loadFeaturedMatchDayProjects,
   readStoredMatchDay,
   saveMatchDaySelection,
 } from "@/app/services/club-match-day.service";
@@ -50,7 +50,7 @@ export default function SelectMatchDayProjectsPage() {
   const [internationalProjects, setInternationalProjects] = useState<
     ClimateProject[]
   >([]);
-  const [featured, setFeatured] = useState<ClimateProject | null>(null);
+  const [featured, setFeatured] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -84,9 +84,10 @@ export default function SelectMatchDayProjectsPage() {
         setLocalProjects(lists.local);
         setInternationalProjects(lists.international);
         const catalog = [...lists.local, ...lists.international];
-        const featuredProject = await loadFeaturedMatchDayProject();
-        setFeatured(featuredProject);
+        const featuredProjects = await loadFeaturedMatchDayProjects();
+        setFeatured(featuredProjects);
         const validIds = new Set(catalog.map((project) => project.id));
+        const featuredIds = new Set(featuredProjects.map((project) => project.id));
         if (clubShouldStartBlank(session.club.id, session.club.name)) {
           try {
             await clearClubProjectsAndSponsors(session.club.name);
@@ -97,7 +98,7 @@ export default function SelectMatchDayProjectsPage() {
         const stored = readStoredMatchDay(session.club.id);
         if (stored && !clubShouldStartBlank(session.club.id, session.club.name)) {
           const chosen = stored.projectIds.filter(
-            (id) => id !== featuredProject?.id && validIds.has(id)
+            (id) => !featuredIds.has(id) && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
         }
@@ -135,7 +136,7 @@ export default function SelectMatchDayProjectsPage() {
     if (!clubId) return;
     if (selected.size !== MATCH_DAY_CHOICE_COUNT) {
       setError(
-        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Global Schools Solar Project is included in every Match Day List.`
+        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Two Global Schools Solar versions are included in every Match Day List.`
       );
       return;
     }
@@ -190,20 +191,27 @@ export default function SelectMatchDayProjectsPage() {
           </p>
         ) : null}
 
-        {featured && (
-          <div className="mt-8 rounded-2xl border border-green-500/40 bg-green-500/10 p-6">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
-              Featured Climate Project · included in every Match Day
-            </p>
-            <h2 className="mt-2 text-2xl font-bold">{featured.name}</h2>
-            <p className="mt-2 text-slate-300">{featured.description}</p>
-            <p className="mt-3 text-sm text-slate-400">
-              {climateProjectCountryLabel(featured, {
-                clubName,
-                country: clubCountry,
-              })}
-            </p>
-            <ClimateProjectCivBlock project={featured} compact={false} />
+        {featured.length > 0 && (
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {featured.map((project) => (
+              <div
+                key={project.id}
+                className="rounded-2xl border border-green-500/40 bg-green-500/10 p-6"
+              >
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
+                  Featured Climate Project · included in every Match Day
+                </p>
+                <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
+                <p className="mt-2 text-slate-300">{project.description}</p>
+                <p className="mt-3 text-sm text-slate-400">
+                  {climateProjectCountryLabel(project, {
+                    clubName,
+                    country: clubCountry,
+                  })}
+                </p>
+                <ClimateProjectCivBlock project={project} compact={false} />
+              </div>
+            ))}
           </div>
         )}
 
@@ -320,9 +328,11 @@ export default function SelectMatchDayProjectsPage() {
           <p className="mt-2 max-w-3xl text-sm text-slate-400">
             Fans press {FUND_IT_LABEL} up to 5 times and take{" "}
             {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon
-            Wallet onto any of these Climate Projects. Goal-scored funding is
-            already set by the Lead Climate Sponsor in the Climate Sponsorship
-            Wallet.
+            Wallet. Lead Climate Sponsor wallets fund Global Schools Solar
+            (75%) and local Climate Projects (25%). Local Business Climate
+            Sponsor wallets fund local Climate Projects only. Goal-scored
+            funding is already set by the Lead Climate Sponsor in the Climate
+            Sponsorship Wallet.
           </p>
           <button
             onClick={confirm}

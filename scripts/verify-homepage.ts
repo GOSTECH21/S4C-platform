@@ -134,9 +134,13 @@ assert(
   "Local registration states the £500 minimum"
 );
 assert(
-  localPage.includes("Our Climate Sponsors") &&
-    localPage.includes("ClubNetworkPicker"),
-  "Local registration picks a demo club and shows the logo on Our Climate Sponsors"
+  localPage.includes("ClubNetworkPicker") &&
+    localPage.includes("business postcode") &&
+    localPage.includes("Score-4-Planet") &&
+    localPage.includes("Sign & SUBMIT") &&
+    localPage.includes("<ol") &&
+    !localPage.includes("Terms and Conditions apply. Sign off this Local Business Climate"),
+  "Local registration asks for postcode, logo if available, club, T&Cs, then Sign & SUBMIT"
 );
 assert(
   localPage.includes("Match / Matches"),

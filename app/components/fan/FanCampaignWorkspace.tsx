@@ -37,10 +37,11 @@ import {
   identifyClubSponsorWallets,
   visibleMatchDayFolderForClub,
 } from "@/app/services/match-day-folder.service";
+import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import {
-  FUND_IT_LABEL,
   formatWalletGbp,
   remainingGbp,
+  walletVoteNotice,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
 import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
@@ -424,9 +425,7 @@ function CampaignPanel({
       } catch {
         // Wallet cash has already moved even if the campaign vote row cannot be stored.
       }
-      setNotice(
-        `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${formatWalletGbp(remainingGbp(result.wallet))}.`
-      );
+      setNotice(walletVoteNotice(result));
     } catch (err) {
       console.error("Failed to submit vote:", describeDataError(err));
       setError(describeDataError(err, "Failed to submit your vote."));
@@ -472,10 +471,13 @@ function CampaignPanel({
           <section className="mt-10">
             <h2 className="text-3xl font-black">Climate Projects List</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Project titles are shown first. Open a project to read the details.
-              To put £0.20 into a Climate Project, open Climate Project Sponsors,
-              select the project by name, then press FUND-IT. You can FUND-IT up to 5 times — £0.20 once from each Carbon Wallet onto any Climate
-              Project.
+              Two Global Schools Solar versions sit at the top: a local school
+              near the stadium, and a school anywhere in the world. Open a
+              project to read the details. To put £0.20 into a school, open
+              Climate Project Sponsors, select the project by name from the Lead
+              Climate Sponsor box, then press FUND-IT. Local Business wallets
+              fund the other Climate Projects. You can FUND-IT up to 5 times —
+              £0.20 once from each Carbon Wallet.
             </p>
             <div className="mt-6 space-y-2">
               {voteable.map((project, index) => {
@@ -545,7 +547,8 @@ function CampaignPanel({
 }
 
 function voteableProjects(campaign: S4PCampaign): CampaignProject[] {
-  return campaign.featuredProject
+  const listed = campaign.featuredProject
     ? [campaign.featuredProject, ...campaign.projects]
     : campaign.projects;
+  return withFeaturedGssVersions(listed);
 }

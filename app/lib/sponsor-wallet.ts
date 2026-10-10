@@ -1,5 +1,11 @@
 /** Climate Sponsorship Wallets: fans take cash from a sponsor and put it on a project. */
 
+import {
+  LEAD_FEATURED_SHARE,
+  isFeaturedGssName,
+  localFromList,
+} from "./featured-gss";
+
 /** Standard amount taken from any Carbon Wallet when a fan presses FUND-IT. */
 export const DEFAULT_WALLET_VOTE_GBP = 0.2;
 /** Lead and Local Business Climate Sponsors use the same FUND-IT amount. */
@@ -41,12 +47,18 @@ export type NumberedClimateProject = {
   votesReceived: number;
 };
 
+export type WalletVoteShare = {
+  project: NumberedClimateProject;
+  amount: number;
+};
+
 export type WalletVoteSuccess = {
   ok: true;
   amount: number;
   wallet: ClimateWallet;
   project: NumberedClimateProject;
   projects: NumberedClimateProject[];
+  shares?: WalletVoteShare[];
 };
 
 export type WalletVoteFailure = {
@@ -399,24 +411,129 @@ export function allocateWalletVote({
       error: `Project ${number} is not on this Match Day list.`,
     };
   }
-  const nextProject = {
-    ...project,
-    fundedGbp: roundGbp(Math.max(0, Number(project.fundedGbp) || 0) + voteGbp),
-    votesReceived: Math.max(0, Math.round(Number(project.votesReceived) || 0)) + 1,
-  };
+  if (wallet.kind === "local" && isFeaturedGssName(project.name)) {
+    return {
+      ok: false,
+      error:
+        "Local Business Climate Sponsors fund local Climate Projects only. Select a local Climate Project from the drop-down.",
+    };
+  }
+  if (wallet.kind === "lead") {
+    return allocateLeadWalletVote({
+      wallet,
+      projects,
+      chosen: project,
+      voteGbp,
+      now,
+    });
+  }
+  const nextProject = creditProject(project, voteGbp);
   return {
     ok: true,
     amount: voteGbp,
-    wallet: {
-      ...wallet,
-      allocatedGbp: roundGbp(Math.max(0, Number(wallet.allocatedGbp) || 0) + voteGbp),
-      updatedAt: asIso(now),
-    },
+    wallet: debitWallet(wallet, voteGbp, now),
     project: nextProject,
-    projects: projects.map((row) =>
-      row.number === nextProject.number ? nextProject : row
-    ),
+    projects: replaceProject(projects, nextProject),
+    shares: [{ project: nextProject, amount: voteGbp }],
   };
+}
+
+function allocateLeadWalletVote({
+  wallet,
+  projects,
+  chosen,
+  voteGbp,
+  now,
+}: {
+  wallet: ClimateWallet;
+  projects: NumberedClimateProject[];
+  chosen: NumberedClimateProject;
+  voteGbp: number;
+  now: Date | string;
+}): WalletVoteResult {
+  if (!isFeaturedGssName(chosen.name)) {
+    return {
+      ok: false,
+      error:
+        "Lead Climate Sponsors fund Global Schools Solar. Select a local school near the stadium or a school anywhere in the world.",
+    };
+  }
+  const featuredGbp = roundGbp(voteGbp * LEAD_FEATURED_SHARE);
+  const localGbp = roundGbp(voteGbp - featuredGbp);
+  const locals = localFromList(projects);
+  const featuredNext = creditProject(chosen, featuredGbp);
+  const localShares = splitAcrossProjects(locals, localGbp);
+  const credited = new Map<string, NumberedClimateProject>([
+    [featuredNext.id, featuredNext],
+    ...localShares.map((share) => [share.project.id, share.project] as const),
+  ]);
+  const nextProjects = projects.map((row) => credited.get(row.id) ?? row);
+  return {
+    ok: true,
+    amount: voteGbp,
+    wallet: debitWallet(wallet, voteGbp, now),
+    project: featuredNext,
+    projects: nextProjects,
+    shares: [
+      { project: featuredNext, amount: featuredGbp },
+      ...localShares,
+    ],
+  };
+}
+
+function splitAcrossProjects(
+  projects: NumberedClimateProject[],
+  amountGbp: number
+): WalletVoteShare[] {
+  const total = roundGbp(amountGbp);
+  if (!(total > 0) || projects.length === 0) return [];
+  const each = roundGbp(total / projects.length);
+  let spent = 0;
+  return projects.map((project, index) => {
+    const amount =
+      index === projects.length - 1 ? roundGbp(total - spent) : each;
+    spent = roundGbp(spent + amount);
+    return { project: creditProject(project, amount), amount };
+  });
+}
+
+function creditProject(
+  project: NumberedClimateProject,
+  amountGbp: number
+): NumberedClimateProject {
+  const amount = roundGbp(amountGbp);
+  return {
+    ...project,
+    fundedGbp: roundGbp(Math.max(0, Number(project.fundedGbp) || 0) + amount),
+    votesReceived:
+      Math.max(0, Math.round(Number(project.votesReceived) || 0)) +
+      (amount > 0 ? 1 : 0),
+  };
+}
+
+function debitWallet(
+  wallet: ClimateWallet,
+  amountGbp: number,
+  now: Date | string
+): ClimateWallet {
+  return {
+    ...wallet,
+    allocatedGbp: roundGbp(
+      Math.max(0, Number(wallet.allocatedGbp) || 0) + roundGbp(amountGbp)
+    ),
+    updatedAt: asIso(now),
+  };
+}
+
+function replaceProject(
+  projects: NumberedClimateProject[],
+  nextProject: NumberedClimateProject
+): NumberedClimateProject[] {
+  return projects.map((row) =>
+    row.number === nextProject.number || row.id === nextProject.id
+      ? nextProject
+      : row
+  );
 }
 
 /** Legacy split take: no longer shown in the fan UI. */
@@ -477,11 +594,34 @@ export function formatWalletGbp(amount: number): string {
 }
 
 export function fundItTimesCopy(): string {
-  return `You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times. Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet and put it on any Climate Project.`;
+  return `You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times. Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet. Lead wallets fund Global Schools Solar; Local Business wallets fund local Climate Projects.`;
+}
+
+export function leadFundItCopy(): string {
+  return `Select a Global Schools Solar version. ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} comes from this Lead wallet: 75% to the school you pick, 25% split across local Climate Projects.`;
+}
+
+export function localFundItCopy(): string {
+  return `Select a Climate Project from the drop-down next to that wallet. Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project. Local Business wallets fund local Climate Projects only.`;
 }
 
 export function fundItCopy(): string {
-  return `Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet; select a Climate Project from the drop-down next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project`;
+  return `Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet. Lead Climate Sponsor: ${leadFundItCopy()} Local Business Climate Sponsors: select a Climate Project from the drop-down next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project.`;
+}
+
+export function walletVoteNotice(result: WalletVoteSuccess): string {
+  const remaining = formatWalletGbp(remainingGbp(result.wallet));
+  const shares = (result.shares ?? []).filter((share) => share.amount > 0);
+  if (shares.length > 1) {
+    const parts = shares
+      .map(
+        (share) =>
+          `${formatWalletGbp(share.amount)} to ${share.project.name}`
+      )
+      .join("; ");
+    return `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet (${parts}). Carbon Wallet now ${remaining}.`;
+  }
+  return `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${remaining}.`;
 }
 
 export function numberClimateProjects<T extends { id: string; name: string }>(

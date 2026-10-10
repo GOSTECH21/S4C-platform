@@ -48,6 +48,11 @@ import {
 } from "../app/lib/climate-funding";
 import { mergePlatformStats, formatFundingGbp } from "../app/lib/platform-stats";
 import { withWalletTakes } from "../app/lib/climate-wallet-takes";
+import {
+  FEATURED_GSS_LOCAL_NAME,
+  FEATURED_GSS_WORLD_NAME,
+} from "../app/lib/sccan-catalog";
+import { LEAD_FEATURED_SHARE, LEAD_LOCAL_SHARE } from "../app/lib/featured-gss";
 
 const failures: string[] = [];
 
@@ -199,27 +204,30 @@ assert(
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
 const projects = [
-  { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
-  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 0 },
-  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 0 },
-  { id: "craigshill", name: "Growing Together Craigshill", number: 5, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss-local", name: FEATURED_GSS_LOCAL_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss-world", name: FEATURED_GSS_WORLD_NAME, number: 2, fundedGbp: 0, votesReceived: 0 },
+  { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 0 },
+  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 4, fundedGbp: 0, votesReceived: 0 },
+  { id: "porty", name: "Porty Community Energy", number: 5, fundedGbp: 0, votesReceived: 0 },
+  { id: "craigshill", name: "Growing Together Craigshill", number: 6, fundedGbp: 0, votesReceived: 0 },
 ];
+
+assert(LEAD_FEATURED_SHARE === 0.75 && LEAD_LOCAL_SHARE === 0.25, "Lead wallets split 75/25");
 
 const voted = allocateWalletVote({
   wallet: topCellar,
   projects,
-  projectNumber: 2,
+  projectNumber: 3,
 });
-assert(voted.ok, "Inserting 2 next to Top Cellar and pressing FUND-IT succeeds");
+assert(voted.ok, "Selecting Wee Spoke Hub next to Top Cellar and pressing FUND-IT succeeds");
 if (voted.ok) {
   assert(
     remainingGbp(voted.wallet) === 749.8,
     "Top Cellar's wallet then displays £749.80 Remaining"
   );
   assert(
-    voted.project.number === 2 && voted.project.fundedGbp === 0.2,
-    "Project 2 displays that it has received £0.20 in Climate funding"
+    voted.project.number === 3 && voted.project.fundedGbp === 0.2,
+    "Wee Spoke Hub displays that it has received £0.20 in Climate funding"
   );
   assert(
     formatWalletGbp(remainingGbp(voted.wallet)) === "£749.80",
@@ -227,20 +235,41 @@ if (voted.ok) {
   );
 }
 
+const localOnGss = allocateWalletVote({
+  wallet: topCellar,
+  projects,
+  projectNumber: 1,
+});
+assert(!localOnGss.ok, "Local Business wallets cannot fund Global Schools Solar");
+
+const leadOnLocal = allocateWalletVote({
+  wallet: amex,
+  projects,
+  projectNumber: 3,
+});
+assert(!leadOnLocal.ok, "Lead wallets cannot put the chosen £0.20 on a local Climate Project");
+
 const leadVoted = allocateWalletVote({
   wallet: amex,
   projects,
-  projectNumber: 2,
+  projectNumber: 1,
 });
-assert(leadVoted.ok, "Inserting 2 in the Puma Checkbox and pressing FUND-IT succeeds");
+assert(leadVoted.ok, "Selecting a GSS version next to the Lead wallet and pressing FUND-IT succeeds");
 if (leadVoted.ok) {
   assert(
     remainingGbp(leadVoted.wallet) === 2999.8,
     "Amex Carbon Wallet then displays £2,999.80"
   );
   assert(
-    leadVoted.project.number === 2 && leadVoted.project.fundedGbp === 0.2,
-    "Project 2 receives £0.20 from the Amex Carbon Wallet"
+    leadVoted.project.number === 1 && leadVoted.project.fundedGbp === 0.15,
+    "The chosen GSS version receives 75% (£0.15) from the Amex Carbon Wallet"
+  );
+  const localShareTotal = (leadVoted.shares ?? [])
+    .filter((share) => share.project.number > 2)
+    .reduce((sum, share) => sum + share.amount, 0);
+  assert(
+    Math.round(localShareTotal * 100) / 100 === 0.05,
+    "25% (£0.05) of the Lead FUND-IT is split across local Climate Projects"
   );
   assert(
     totalAllocatedGbp([leadVoted.wallet]) === 0.2,
@@ -258,7 +287,7 @@ if (leadVoted.ok) {
 const blocked = allocateWalletVote({
   wallet: { ...topCellar, allocatedGbp: 750 },
   projects,
-  projectNumber: 2,
+  projectNumber: 3,
 });
 assert(!blocked.ok, "A vote is refused when the wallet has no cash remaining");
 
@@ -502,8 +531,10 @@ assert(
 assert(
   fanPage.includes("Climate Projects List") &&
     fanPage.includes("space-y-2") &&
-    fanPage.includes("select the project by name"),
-  "My S4P uses the Climate Projects List heading as a stacked accordion"
+    fanPage.includes("select the project by name") &&
+    fanPage.includes("Two Global Schools Solar versions") &&
+    fanPage.includes("withFeaturedGssVersions"),
+  "My S4P uses the Climate Projects List heading as a stacked accordion with two GSS versions"
 );
 assert(
   !fanPage.includes("Climate Project list"),
@@ -560,11 +591,14 @@ assert(
   sponsorsUi.includes("Carbon Wallet") &&
     sponsorsUi.includes("FundProjectSelect") &&
     sponsorsUi.includes("Select a Climate Project") &&
+    sponsorsUi.includes("Select a Global Schools Solar version") &&
+    sponsorsUi.includes("featuredFromList") &&
+    sponsorsUi.includes("localFromList") &&
     !sponsorsUi.includes(">Checkbox<") &&
     sponsorsUi.includes("FUND_IT_LABEL") &&
     sponsorsUi.includes("canPressFundIt") &&
     !sponsorsUi.includes(">Vote<"),
-  "Each Carbon Wallet has a Climate Project drop-down and a FUND-IT tab"
+  "Lead wallets pick a GSS version; Local Business wallets pick a local Climate Project"
 );
 assert(
   sponsorsUi.includes("fundItCopy") &&
@@ -679,9 +713,16 @@ assert(
   "Remaining is only shown on the local wallet"
 );
 assert(
-  !walletForm.includes("Sponsorship amount (from") &&
+  walletForm.includes("Amount in Carbon Wallet") &&
+    walletForm.includes("Put into Carbon Wallet") &&
+    walletForm.includes("onLocalDeposit") &&
     !walletForm.includes("Pay into Climate Sponsorship Wallet"),
-  "Local wallet does not ask for a second sponsorship amount"
+  "Local Business Climate Sponsors only enter how much goes into the Carbon Wallet"
+);
+assert(
+  walletPage.includes("depositLocalClimateWallet") &&
+    walletPage.includes("isLocalClimateSponsor"),
+  "The wallet page classifies Local Business Climate Sponsors before showing the Lead form"
 );
 assert(
   walletPage.includes(
@@ -700,7 +741,19 @@ assert(
 );
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
-assert(localPage.includes("10%"), "Local registration states the 10% management fee");
+assert(
+  localPage.includes("LOCAL_SPONSOR_TERMS") &&
+    localPage.includes("Sign & SUBMIT") &&
+    localPage.includes("I have read and agree to the Score-4-Planet Terms & Conditions.") &&
+    !localPage.includes("Terms and Conditions apply. Sign off this Local Business Climate") &&
+    readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
+      "plus a 10% management fee"
+    ) &&
+    readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
+      "paid for and cleared before it will appear in your Wallet"
+    ),
+  "Local registration T&Cs include the 10% fee and cleared-payment wallet rule"
+);
 
 assert(MATCH_DAY_FOLDER_NAME === "Match-Day", "The folder is called Match-Day");
 

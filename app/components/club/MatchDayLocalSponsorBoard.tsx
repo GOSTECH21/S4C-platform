@@ -128,7 +128,7 @@ export function MatchDayLocalSponsorBoard({
       </h3>
       <p className="mt-3 max-w-4xl text-slate-300">
         The Lead Climate Sponsor occupies {LEAD_CLIMATE_SPONSOR_SHARE}% of the logo space on every card
-        — only that brand and logo appear on all five. Then attach Local Business
+        — only that brand and logo appear on every card. Then attach Local Business
         Climate Sponsors that have registered for this club, from £
         {LOCAL_SPONSOR_MIN_GBP}. Demo brands are not shown. Together the registered
         locals occupy the remaining {100 - LEAD_CLIMATE_SPONSOR_SHARE}% of logo

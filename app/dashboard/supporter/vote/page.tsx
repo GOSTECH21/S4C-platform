@@ -12,6 +12,7 @@ import {
 } from "@/app/services/votes.service";
 import FanNav from "../components/FanNav";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
 import { getSupportedTeams } from "@/app/services/teams.service";
 import {
@@ -32,9 +33,10 @@ import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
-  return campaign.featuredProject
+  const listed = campaign.featuredProject
     ? [campaign.featuredProject, ...campaign.projects]
     : campaign.projects;
+  return withFeaturedGssVersions(listed);
 }
 
 export default function VotePage() {

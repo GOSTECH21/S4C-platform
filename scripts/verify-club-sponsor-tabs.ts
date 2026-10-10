@@ -723,14 +723,14 @@ assert(
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
   localPage.includes("MatchSponsorshipPicker") &&
-    localPage.includes("SUBMIT sponsorship") &&
+    localPage.includes("Sign & SUBMIT") &&
     localPage.includes("matchSponsorships") &&
     localPage.includes("LOCAL_SPONSOR_TERMS") &&
     localPage.includes("acceptedTerms") &&
     localPage.includes("signerName") &&
     localPage.includes("BrandLogoField") &&
     localPage.includes("signedAt"),
-  "Local Business Climate Sponsors upload a logo, agree T&Cs, sign off, then SUBMIT"
+  "Local Business Climate Sponsors can upload a logo, agree T&Cs, sign off, then SUBMIT"
 );
 assert(
   preview.includes("SEEDED_ARSENAL_LOCALS") &&
