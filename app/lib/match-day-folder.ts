@@ -174,16 +174,8 @@ function preferWallet(
   return String(candidate.updatedAt) > String(current.updatedAt);
 }
 
-export function sponsorRowsFromWallets(
-  wallets: ClimateWallet[],
-  preferredClubName?: string,
-  preferredLeadName?: string | null
-): MatchDaySponsorRow[] {
-  return uniqueWalletsByBrand(
-    wallets,
-    preferredClubName,
-    preferredLeadName
-  ).map((wallet) => ({
+export function sponsorRowFromWallet(wallet: ClimateWallet): MatchDaySponsorRow {
+  return {
     brandName: wallet.brandName,
     kind: wallet.kind,
     committedGbp: committedGbp(wallet),
@@ -193,7 +185,46 @@ export function sponsorRowsFromWallets(
     managementFeeGbp:
       wallet.kind === "local" ? wallet.managementFeeGbp : undefined,
     paidGbp: wallet.kind === "local" ? wallet.paidGbp : undefined,
-  }));
+  };
+}
+
+export function sponsorRowsFromWallets(
+  wallets: ClimateWallet[],
+  preferredClubName?: string,
+  preferredLeadName?: string | null
+): MatchDaySponsorRow[] {
+  return uniqueWalletsByBrand(
+    wallets,
+    preferredClubName,
+    preferredLeadName
+  ).map(sponsorRowFromWallet);
+}
+
+/** Overlay live Carbon Wallet remaining onto the Sponsors File, and include wallets the file omitted. */
+export function withLiveWalletRemaining(
+  rows: MatchDaySponsorRow[],
+  wallets: ClimateWallet[]
+): MatchDaySponsorRow[] {
+  const byBrand = new Map<string, ClimateWallet>();
+  for (const wallet of wallets) {
+    const key = normalizeKey(wallet.brandName);
+    if (!key) continue;
+    const existing = byBrand.get(key);
+    if (!existing || Number(wallet.allocatedGbp) > Number(existing.allocatedGbp)) {
+      byBrand.set(key, wallet);
+    }
+  }
+  const seen = new Set<string>();
+  const overlaid = rows.map((row) => {
+    const key = normalizeKey(row.brandName);
+    if (key) seen.add(key);
+    const wallet = byBrand.get(key);
+    return wallet ? { ...row, ...sponsorRowFromWallet(wallet) } : row;
+  });
+  const extras = [...byBrand.values()]
+    .filter((wallet) => !seen.has(normalizeKey(wallet.brandName)))
+    .map(sponsorRowFromWallet);
+  return [...overlaid, ...extras];
 }
 
 export function buildSponsorsFile({
@@ -339,21 +370,7 @@ export function applyRemainingToSponsorsFile(
 ): MatchDaySponsorsFile {
   return {
     ...file,
-    sponsors: file.sponsors.map((row) =>
-      row.brandName.trim().toLowerCase() === wallet.brandName.trim().toLowerCase()
-        ? {
-            ...row,
-            committedGbp: committedGbp(wallet),
-            remainingGbp: remainingGbp(wallet),
-            commitmentFeeGbp:
-              wallet.kind === "lead" ? wallet.commitmentFeeGbp : row.commitmentFeeGbp,
-            gbpPerGoal: wallet.kind === "lead" ? wallet.gbpPerGoal : row.gbpPerGoal,
-            managementFeeGbp:
-              wallet.kind === "local" ? wallet.managementFeeGbp : row.managementFeeGbp,
-            paidGbp: wallet.kind === "local" ? wallet.paidGbp : row.paidGbp,
-          }
-        : row
-    ),
+    sponsors: withLiveWalletRemaining(file.sponsors, [wallet]),
   };
 }
 

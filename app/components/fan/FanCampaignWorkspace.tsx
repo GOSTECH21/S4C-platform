@@ -351,24 +351,62 @@ function CampaignPanel({
   ]);
 
   const localSponsors = useMemo(() => {
-    const fromWallets = sponsors.filter((row) => row.kind === "local");
-    if (fromWallets.length > 0) {
-      return fromWallets.map((row) => ({
+    const remainingByBrand = new Map<
+      string,
+      { brandName: string; remainingGbp: number; logoUrl?: string | null }
+    >();
+    for (const row of sponsors.filter((item) => item.kind === "local")) {
+      remainingByBrand.set(row.brandName.trim().toLowerCase(), {
         brandName: row.brandName,
-        kind: "local" as const,
         remainingGbp: row.remainingGbp,
         logoUrl:
           rankedLocals.find((local) => local.brandName === row.brandName)?.logoUrl ??
           null,
-      }));
+      });
     }
-    return rankedLocals.map((local) => ({
-      brandName: local.brandName,
+    for (const wallet of identifyClubSponsorWallets({
+      clubId,
+      clubName: campaign.clubName,
+      minAmount: campaign.minimumAmount,
+      gbpPerGoal: campaign.gbpPerGoal,
+    }).filter((item) => item.kind === "local")) {
+      const key = wallet.brandName.trim().toLowerCase();
+      remainingByBrand.set(key, {
+        brandName: remainingByBrand.get(key)?.brandName ?? wallet.brandName,
+        remainingGbp: remainingGbp(wallet),
+        logoUrl: remainingByBrand.get(key)?.logoUrl ?? null,
+      });
+    }
+    for (const local of rankedLocals) {
+      const key = local.brandName.trim().toLowerCase();
+      const existing = remainingByBrand.get(key);
+      if (existing) {
+        remainingByBrand.set(key, {
+          ...existing,
+          logoUrl: local.logoUrl ?? existing.logoUrl,
+        });
+        continue;
+      }
+      remainingByBrand.set(key, {
+        brandName: local.brandName,
+        remainingGbp: totalLocalPledge(local),
+        logoUrl: local.logoUrl ?? null,
+      });
+    }
+    return [...remainingByBrand.values()].map((row) => ({
+      brandName: row.brandName,
       kind: "local" as const,
-      remainingGbp: totalLocalPledge(local),
-      logoUrl: local.logoUrl ?? null,
+      remainingGbp: row.remainingGbp,
+      logoUrl: row.logoUrl ?? null,
     }));
-  }, [sponsors, rankedLocals]);
+  }, [
+    sponsors,
+    rankedLocals,
+    clubId,
+    campaign.clubName,
+    campaign.minimumAmount,
+    campaign.gbpPerGoal,
+  ]);
 
   async function voteFromWallet({
     brandName,
