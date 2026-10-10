@@ -93,6 +93,7 @@ export default function WalletVotePreviewPage() {
   });
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [usedSponsorNames, setUsedSponsorNames] = useState<string[]>([]);
   const submitted = Boolean(folder.submittedAt);
 
   const sponsors = useMemo(
@@ -130,6 +131,11 @@ export default function WalletVotePreviewPage() {
         : prev
     );
     setProjects(result.projects);
+    setUsedSponsorNames((prev) =>
+      prev.includes(result.wallet.brandName)
+        ? prev
+        : [...prev, result.wallet.brandName]
+    );
     setNotice(walletVoteNotice(result));
   }
 
@@ -244,6 +250,7 @@ export default function WalletVotePreviewPage() {
                   name: project.name,
                 }))}
                 projectCount={projects.length}
+                usedSponsorNames={usedSponsorNames}
                 onVote={({ brandName, projectNumber }) =>
                   vote(brandName, projectNumber ?? "")
                 }
