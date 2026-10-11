@@ -1,4 +1,5 @@
 export const S4P_THEME_STORAGE_KEY = "s4p-theme";
+export const S4P_THEME_CHANGE_EVENT = "s4p-theme-change";
 export const DEFAULT_S4P_THEME = "quiet-wave";
 
 export const S4P_THEMES = [
@@ -69,6 +70,7 @@ export function applyS4pTheme(id: S4pThemeId) {
   } catch {
     // Private mode still shows the trial for this page load.
   }
+  window.dispatchEvent(new Event(S4P_THEME_CHANGE_EVENT));
 }
 
 export function restoreQuietWave() {

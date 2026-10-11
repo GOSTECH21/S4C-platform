@@ -23,6 +23,16 @@ assert(
 assert(isS4pThemeId("vivid-wave") && !isS4pThemeId("neon"), "Theme ids are allowlisted");
 assert(S4P_THEME_STORAGE_KEY === "s4p-theme", "Trials persist under s4p-theme");
 assert(
+  readFileSync("app/lib/s4p-themes.ts", "utf8").includes("s4p-theme-change") &&
+    readFileSync("app/components/ThemeTrialBanner.tsx", "utf8").includes(
+      "S4P_THEME_CHANGE_EVENT"
+    ) &&
+    readFileSync("app/components/design/DesignThemePicker.tsx", "utf8").includes(
+      "S4P_THEME_CHANGE_EVENT"
+    ),
+  "The restore bar updates in the same tab when a trial is applied"
+);
+assert(
   S4P_THEME_BOOT_SCRIPT.includes('localStorage.getItem("s4p-theme")') &&
     S4P_THEME_BOOT_SCRIPT.includes("quiet-wave") &&
     S4P_THEME_BOOT_SCRIPT.includes("ivory-canvas"),
@@ -49,6 +59,11 @@ assert(
 );
 assert(css.includes("--s4p-mint: #2a8f4a"), "Ivory canvas uses a darker mint on paper");
 assert(css.includes("color-scheme: light"), "Ivory canvas is a light colour scheme");
+assert(
+  css.includes("--color-slate-200: #3d5c50") &&
+    css.includes('html[data-theme="ivory-canvas"] .text-slate-200'),
+  "Ivory canvas darkens slate-200 so the GOAL line stays readable"
+);
 
 const layout = readFileSync("app/layout.tsx", "utf8");
 assert(layout.includes("data-theme={DEFAULT_S4P_THEME}"), "HTML defaults to quiet wave");

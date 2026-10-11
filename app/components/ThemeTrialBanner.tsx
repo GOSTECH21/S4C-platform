@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DESIGN_PREVIEW_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_S4P_THEME,
+  S4P_THEME_CHANGE_EVENT,
   readStoredS4pTheme,
   restoreQuietWave,
   themeById,
@@ -15,12 +16,19 @@ export default function ThemeTrialBanner() {
   const [themeId, setThemeId] = useState<S4pThemeId>(DEFAULT_S4P_THEME);
 
   useEffect(() => {
-    setThemeId(readStoredS4pTheme());
+    function sync() {
+      setThemeId(readStoredS4pTheme());
+    }
+    sync();
     function onStorage(event: StorageEvent) {
-      if (event.key === "s4p-theme") setThemeId(readStoredS4pTheme());
+      if (event.key === "s4p-theme") sync();
     }
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener(S4P_THEME_CHANGE_EVENT, sync);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(S4P_THEME_CHANGE_EVENT, sync);
+    };
   }, []);
 
   if (themeId === DEFAULT_S4P_THEME) return null;

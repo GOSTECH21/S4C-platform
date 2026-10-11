@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   DEFAULT_S4P_THEME,
+  S4P_THEME_CHANGE_EVENT,
   S4P_THEMES,
   applyS4pTheme,
   readStoredS4pTheme,
@@ -26,7 +27,12 @@ export default function DesignThemePicker() {
   const [active, setActive] = useState<S4pThemeId>(DEFAULT_S4P_THEME);
 
   useEffect(() => {
-    setActive(readStoredS4pTheme());
+    function sync() {
+      setActive(readStoredS4pTheme());
+    }
+    sync();
+    window.addEventListener(S4P_THEME_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(S4P_THEME_CHANGE_EVENT, sync);
   }, []);
 
   function choose(id: S4pThemeId) {

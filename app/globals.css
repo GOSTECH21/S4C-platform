@@ -205,6 +205,7 @@ html[data-theme="ivory-canvas"] {
   --foreground: var(--s4p-ink);
   --color-s4p-mint: #2a8f4a;
   --color-s4p-ivory: #16324a;
+  --color-slate-200: #3d5c50;
   --color-slate-300: #5a7a6c;
   --color-slate-400: #4a6a5c;
   --color-slate-500: #3d5c50;
@@ -215,6 +216,11 @@ html[data-theme="ivory-canvas"] {
 
 html[data-theme="ivory-canvas"] .text-white {
   color: #16324a;
+}
+
+html[data-theme="ivory-canvas"] .text-slate-200,
+html[data-theme="ivory-canvas"] .text-slate-300 {
+  color: #3d5c50;
 }
 
 html[data-theme="ivory-canvas"] .bg-emerald-600.text-white,
