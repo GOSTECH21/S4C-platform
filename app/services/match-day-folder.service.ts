@@ -26,6 +26,7 @@ import {
 import {
   allocateSplitWalletVote,
   allocateWalletVote,
+  brandsMatch,
   numberClimateProjects,
   walletVoteAmount,
   type ClimateWallet,
@@ -39,6 +40,7 @@ import {
   ensureLeadWallet,
   ensureLocalWallet,
   healLocalWalletsForClub,
+  findClimateWallet,
   listClimateWalletsForClub,
   writeClimateWallet,
 } from "./sponsor-wallet.service";
@@ -378,16 +380,16 @@ export function applyFanWalletVote({
         "The Sustainability Director has not posted Climate Projects for this Match Day yet.",
     };
   }
+  const resolvedClub = folder?.clubName || clubName;
   const wallets = identifyClubSponsorWallets({
     clubId,
-    clubName: folder?.clubName || clubName,
+    clubName: resolvedClub,
   });
   const wallet =
-    wallets.find(
-      (row) => row.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
-    ) ??
-    listClimateWalletsForClub(folder?.clubName || clubName).find(
-      (row) => row.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
+    findClimateWallet(resolvedClub, brandName) ??
+    wallets.find((row) => brandsMatch(row.brandName, brandName)) ??
+    listClimateWalletsForClub(resolvedClub).find((row) =>
+      brandsMatch(row.brandName, brandName)
     ) ??
     null;
   if (!wallet) {

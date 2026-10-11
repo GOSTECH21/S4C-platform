@@ -16,6 +16,7 @@ import {
   fundItCopy,
   leadFundItCopy,
   localFundItCopy,
+  normalizeBrandKey,
   normalizeKey,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
@@ -69,14 +70,22 @@ export function ClimateProjectSponsors({
   const [leadNumber, setLeadNumber] = useState("");
   const [localNumbers, setLocalNumbers] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
-  const used = useMemo(
-    () => new Set(usedSponsorNames.map((name) => normalizeKey(name))),
-    [usedSponsorNames]
-  );
+  const used = useMemo(() => {
+    const keys = new Set<string>();
+    for (const name of usedSponsorNames) {
+      keys.add(normalizeKey(name));
+      keys.add(normalizeBrandKey(name));
+    }
+    return keys;
+  }, [usedSponsorNames]);
   const leadLogo = lead
     ? lead.logoUrl || loadBrandLogo(lead.brandName) || sponsorLogoSrc(lead.brandName, lead.logoUrl)
     : null;
-  const leadUsed = Boolean(lead && used.has(normalizeKey(lead.brandName)));
+  const leadUsed = Boolean(
+    lead &&
+      (used.has(normalizeKey(lead.brandName)) ||
+        used.has(normalizeBrandKey(lead.brandName)))
+  );
   const leadBlocked =
     !lead ||
     !canPressFundIt({
@@ -207,7 +216,9 @@ export function ClimateProjectSponsors({
         <div className="space-y-3">
           {localRows.map((row) => {
             const value = localNumbers[row.brandName] ?? "";
-            const already = used.has(normalizeKey(row.brandName));
+            const already =
+              used.has(normalizeKey(row.brandName)) ||
+              used.has(normalizeBrandKey(row.brandName));
             const logo =
               row.logoUrl ||
               loadBrandLogo(row.brandName) ||

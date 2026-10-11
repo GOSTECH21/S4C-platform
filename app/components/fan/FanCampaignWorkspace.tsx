@@ -40,6 +40,7 @@ import {
 import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import {
   formatWalletGbp,
+  normalizeBrandKey,
   remainingGbp,
   walletVoteNotice,
   type NumberedClimateProject,
@@ -318,26 +319,21 @@ function CampaignPanel({
   }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
 
   const leadSponsor = useMemo(() => {
-    const fromWallets = sponsors.find((row) => row.kind === "lead");
-    if (fromWallets) {
-      return {
-        brandName: fromWallets.brandName,
-        kind: "lead" as const,
-        remainingGbp: fromWallets.remainingGbp,
-        logoUrl: leadLogoUrl,
-      };
-    }
-    if (!leadName) return null;
-    const live = identifyClubSponsorWallets({
+    const liveLead = identifyClubSponsorWallets({
       clubId,
       clubName: campaign.clubName,
       minAmount: campaign.minimumAmount,
       gbpPerGoal: campaign.gbpPerGoal,
     }).find((wallet) => wallet.kind === "lead");
+    const fromFile = sponsors.find((row) => row.kind === "lead");
+    const brand = liveLead?.brandName || fromFile?.brandName || leadName;
+    if (!brand) return null;
     return {
-      brandName: leadName,
+      brandName: brand,
       kind: "lead" as const,
-      remainingGbp: live ? remainingGbp(live) : campaign.minimumAmount,
+      remainingGbp: liveLead
+        ? remainingGbp(liveLead)
+        : fromFile?.remainingGbp ?? campaign.minimumAmount,
       logoUrl: leadLogoUrl,
     };
   }, [
@@ -356,7 +352,7 @@ function CampaignPanel({
       { brandName: string; remainingGbp: number; logoUrl?: string | null }
     >();
     for (const row of sponsors.filter((item) => item.kind === "local")) {
-      remainingByBrand.set(row.brandName.trim().toLowerCase(), {
+      remainingByBrand.set(normalizeBrandKey(row.brandName), {
         brandName: row.brandName,
         remainingGbp: row.remainingGbp,
         logoUrl:
@@ -370,7 +366,7 @@ function CampaignPanel({
       minAmount: campaign.minimumAmount,
       gbpPerGoal: campaign.gbpPerGoal,
     }).filter((item) => item.kind === "local")) {
-      const key = wallet.brandName.trim().toLowerCase();
+      const key = normalizeBrandKey(wallet.brandName);
       remainingByBrand.set(key, {
         brandName: remainingByBrand.get(key)?.brandName ?? wallet.brandName,
         remainingGbp: remainingGbp(wallet),
@@ -378,7 +374,7 @@ function CampaignPanel({
       });
     }
     for (const local of rankedLocals) {
-      const key = local.brandName.trim().toLowerCase();
+      const key = normalizeBrandKey(local.brandName);
       const existing = remainingByBrand.get(key);
       if (existing) {
         remainingByBrand.set(key, {

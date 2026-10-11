@@ -1,5 +1,6 @@
 import { FAN_REGISTER_PATH } from "./routes";
 import {
+  brandsMatch,
   normalizeKey,
   roundGbp,
   type NumberedClimateProject,
@@ -75,7 +76,9 @@ export function hasFanVotedSponsor(
   clubId: string,
   brandName: string
 ): boolean {
-  return fanVotedSponsorNames(supporterId, clubId).includes(normalizeKey(brandName));
+  return fanVotedSponsorNames(supporterId, clubId).some(
+    (name) => brandsMatch(name, brandName) || normalizeKey(name) === normalizeKey(brandName)
+  );
 }
 
 export function fanVotedSponsorNames(
