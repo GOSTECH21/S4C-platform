@@ -21,11 +21,6 @@ import {
   writeLocalSponsorRecord,
   type LocalMatchSponsorship,
 } from "@/app/lib/local-sponsor";
-import {
-  assertLocalBusinessNearStadium,
-  localBusinessNearStadiumMessage,
-  stadiumSiteForClub,
-} from "@/app/lib/project-site";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
 import { demoFixturesForClub } from "@/app/lib/demo-club-fixtures";
@@ -62,13 +57,7 @@ export default function LocalSponsorRegisterPage() {
     event.preventDefault();
     if (loading) return;
     if (!clubName) {
-      setError("Choose the local club whose stadium your business is near.");
-      return;
-    }
-    try {
-      assertLocalBusinessNearStadium({ postcode, clubName });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Enter a nearby business postcode.");
+      setError("Select the Club you wish to sponsor.");
       return;
     }
     if (selectedMatches.length === 0) {
@@ -244,16 +233,8 @@ export default function LocalSponsorRegisterPage() {
             required
           />
         </label>
-        <p className="text-xs text-slate-500">
-          {clubName
-            ? localBusinessNearStadiumMessage(clubName)
-            : "Local businesses must trade within 5 miles of the club stadium postcode."}
-          {stadiumSiteForClub(clubName)
-            ? ` Stadium postcode ${stadiumSiteForClub(clubName)?.postcode}.`
-            : ""}
-        </p>
-          <p className="text-sm text-slate-400">
-            Local club (near the stadium)
+          <p className="mt-4 text-sm text-slate-400">
+            Club you wish to sponsor
           </p>
           <div className="mt-3">
             <ClubNetworkPicker

@@ -6,7 +6,6 @@ import { selectableCatalogForClub } from "@/app/lib/featured-climate-country";
 import {
   LISTED_PROJECT_SITES,
   NEARBY_STADIUM_MILES,
-  assertLocalBusinessNearStadium,
   nearbyProjectsCopy,
   nearbyProjectsForClub,
   stadiumSiteForClub,
@@ -25,12 +24,7 @@ const FAR_NAMES = [
 ];
 
 function localBusinessCheck(postcode: string, clubName: string) {
-  try {
-    const miles = assertLocalBusinessNearStadium({ postcode, clubName });
-    return `Within ${miles} miles — can list as a Local Business Climate Sponsor.`;
-  } catch (error) {
-    return error instanceof Error ? error.message : "Rejected.";
-  }
+  return `${postcode} can register as a Local Business Climate Sponsor for ${clubName}.`;
 }
 
 export default function NearbyProjectsPreviewPage() {
@@ -131,20 +125,20 @@ export default function NearbyProjectsPreviewPage() {
             Local Business Climate Sponsors
           </h2>
           <p className="mt-2 max-w-3xl text-sm text-slate-400">
-            A listed local business must trade within {NEARBY_STADIUM_MILES}{" "}
-            miles of the club stadium postcode.
+            A Local Business Climate Sponsor can choose any club. Their brand
+            is shown to that club&apos;s fans, wherever those fans are.
           </p>
           <ul className="mt-4 space-y-2 text-sm text-slate-300">
             <li>
-              EH6 6AD (Leith, Edinburgh Remakery) for Hibernian —{" "}
+              EH6 6AD (Leith) can sponsor Hibernian —{" "}
               {localBusinessCheck("EH6 6AD", "Hibernian")}
             </li>
             <li>
-              G41 2LG (Glasgow Southside) for Hibernian —{" "}
+              G41 2LG (Glasgow Southside) can sponsor Hibernian —{" "}
               {localBusinessCheck("G41 2LG", "Hibernian")}
             </li>
             <li>
-              N7 6PA (Holloway) for Arsenal —{" "}
+              N7 6PA (Holloway) can sponsor Arsenal —{" "}
               {localBusinessCheck("N7 6PA", "Arsenal")}
             </li>
           </ul>
@@ -155,7 +149,7 @@ export default function NearbyProjectsPreviewPage() {
             defaultCountry="Scotland"
             defaultSignerName=""
             heading="Climate Project Form"
-            intro="Postcode and address of implementation are required so fans can FUND-IT local projects and Local Business Climate Sponsors can be matched within 5 miles of the stadium."
+            intro="Postcode and address of implementation are required so fans can FUND-IT local Climate Projects. Local Business Climate Sponsors can choose any club so their brand is visible to that club's fans."
           />
         </div>
       </div>

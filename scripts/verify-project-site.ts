@@ -282,8 +282,18 @@ assert(
 const localRegister = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
   localRegister.includes("Business postcode") &&
-    localRegister.includes("assertLocalBusinessNearStadium"),
-  "Local Business Climate Sponsor registration requires a stadium-nearby postcode"
+    localRegister.includes("Club you wish to sponsor") &&
+    !localRegister.includes("assertLocalBusinessNearStadium") &&
+    !localRegister.includes("5 miles") &&
+    !localRegister.includes("Local club (near the stadium)") &&
+    !localRegister.includes("must trade within"),
+  "Local Business Climate Sponsor registration does not restrict by stadium distance"
+);
+const nearbyPreview = readFileSync("app/preview/nearby-projects/page.tsx", "utf8");
+assert(
+  nearbyPreview.includes("can choose any club") &&
+    !nearbyPreview.includes("must trade within"),
+  "The nearby-projects preview no longer rejects local businesses by stadium distance"
 );
 
 const selectPage = readFileSync("app/club/projects/select/page.tsx", "utf8");
@@ -298,5 +308,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Project sites: Bridgend/Porty/Remakery near Easter Road and Tynecastle; Islington/Holloway/Southwark near Emirates; Cockenzie/South Seeds/Fittie excluded; local businesses gated at ${NEARBY_STADIUM_MILES} miles.`
+  `Project sites: Bridgend/Porty/Remakery near Easter Road and Tynecastle; Islington/Holloway/Southwark near Emirates; Cockenzie/South Seeds/Fittie excluded; local businesses can sponsor any club.`
 );
