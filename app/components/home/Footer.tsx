@@ -3,6 +3,7 @@ import {
   CLIMATE_CREDITS_PATH,
   CLIMATE_IMPACT_LEAGUE_PATH,
   CLIMATE_SPONSORSHIP_PATH,
+  DESIGN_PREVIEW_PATH,
   GLOBAL_SCHOOLS_SOLAR_PATH,
   S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
@@ -44,6 +45,10 @@ export default function Footer() {
 
               <Link href="/" className="block text-slate-400 hover:text-white">
                 Home
+              </Link>
+
+              <Link href={DESIGN_PREVIEW_PATH} className="block text-slate-400 hover:text-white">
+                Try a design
               </Link>
 
               <Link href="/club/register" className="block text-slate-400 hover:text-white">
@@ -139,6 +144,10 @@ export default function Footer() {
 
         <div className="mt-16 border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
           © {new Date().getFullYear()} Score-For-Our-Planet (S4P). All Rights Reserved.
+          {" · "}
+          <Link href={DESIGN_PREVIEW_PATH} className="hover:text-slate-300">
+            Try a design
+          </Link>
           {" · "}
           <Link href="/admin/login" className="hover:text-slate-300">
             S4P staff

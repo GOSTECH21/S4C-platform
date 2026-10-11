@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
-  Quiet navy / teal / forest wallpaper. Ivory carries headlines and body copy.
-  Bright S4P lime is for buttons, icons and selected states only.
+  Quiet navy / teal / forest wallpaper is the default and the restore point.
+  Trials switch html[data-theme] from localStorage without replacing this file.
 */
 :root {
   --s4p-canvas: #082a46;
@@ -14,8 +14,13 @@
   --s4p-muted: #b6e3cf;
   --s4p-gold: #e8c36a;
   --s4p-paper: #fffdf8;
+  --s4p-mark: #5bc662;
   --s4p-panel: rgb(8 42 70 / 0.84);
+  --s4p-glass-950: rgb(8 42 70 / 0.58);
+  --s4p-glass-900: rgb(8 42 70 / 0.72);
+  --s4p-glass-800: rgb(11 58 74 / 0.78);
   --s4p-wallpaper: url("/images/platform-background.png");
+  --s4p-overlay: linear-gradient(168deg, rgb(8 42 70 / 0.42) 0%, rgb(11 74 74 / 0.28) 48%, rgb(23 107 74 / 0.32) 100%);
   --background: var(--s4p-canvas);
   --foreground: var(--s4p-ink);
 }
@@ -50,19 +55,19 @@
 }
 
 .text-s4p-mark {
-  color: #5bc662;
+  color: var(--s4p-mark);
 }
 
 .bg-s4p-mark {
-  background-color: #5bc662;
+  background-color: var(--s4p-mark);
 }
 
 .text-s4p-mint {
-  color: #8fe388;
+  color: var(--s4p-mint);
 }
 
 .text-s4p-ivory {
-  color: #f7f4e8;
+  color: var(--s4p-ivory);
 }
 
 .s4p-navy-panel {
@@ -73,9 +78,7 @@
 html {
   color-scheme: dark;
   background-color: var(--s4p-canvas);
-  background-image:
-    linear-gradient(168deg, rgb(8 42 70 / 0.42) 0%, rgb(11 74 74 / 0.28) 48%, rgb(23 107 74 / 0.32) 100%),
-    var(--s4p-wallpaper);
+  background-image: var(--s4p-overlay), var(--s4p-wallpaper);
   background-size: cover, cover;
   background-position: center center, center center;
   background-repeat: no-repeat, no-repeat;
@@ -96,17 +99,17 @@ body {
 
 /* Deep translucent navy so copy does not sit on the changing wave. */
 [class*="bg-slate-950"] {
-  background-color: rgb(8 42 70 / 0.58) !important;
+  background-color: var(--s4p-glass-950) !important;
   backdrop-filter: blur(12px);
 }
 
 [class*="bg-slate-900"] {
-  background-color: rgb(8 42 70 / 0.72) !important;
+  background-color: var(--s4p-glass-900) !important;
   backdrop-filter: blur(14px);
 }
 
 [class*="bg-slate-800"] {
-  background-color: rgb(11 58 74 / 0.78) !important;
+  background-color: var(--s4p-glass-800) !important;
 }
 
 input,
@@ -135,5 +138,101 @@ textarea::placeholder {
 }
 
 .hover\:bg-red-600:hover {
+  color: #f7f4e8;
+}
+
+html[data-theme="quiet-wave"] {
+  --s4p-wallpaper: url("/images/platform-background.png");
+}
+
+html[data-theme="vivid-wave"] {
+  --s4p-canvas: #082a46;
+  --s4p-canvas-mid: #0b4a4a;
+  --s4p-emerald: #1f8a4c;
+  --s4p-panel: rgb(8 42 70 / 0.78);
+  --s4p-glass-950: rgb(8 42 70 / 0.5);
+  --s4p-glass-900: rgb(8 42 70 / 0.64);
+  --s4p-glass-800: rgb(11 58 74 / 0.72);
+  --s4p-wallpaper: url("/images/themes/vivid-wave.png");
+  --s4p-overlay: linear-gradient(168deg, rgb(8 42 70 / 0.22) 0%, rgb(11 74 74 / 0.14) 48%, rgb(23 107 74 / 0.18) 100%);
+}
+
+html[data-theme="navy-night"] {
+  --s4p-canvas: #051525;
+  --s4p-canvas-mid: #082a46;
+  --s4p-emerald: #0a3a4a;
+  --s4p-panel: rgb(5 21 37 / 0.9);
+  --s4p-glass-950: rgb(5 21 37 / 0.72);
+  --s4p-glass-900: rgb(8 30 48 / 0.82);
+  --s4p-glass-800: rgb(10 40 58 / 0.88);
+  --s4p-wallpaper: none;
+  --s4p-overlay: linear-gradient(168deg, #051525 0%, #082a46 52%, #0a3040 100%);
+  background-image: var(--s4p-overlay);
+}
+
+html[data-theme="forest-dusk"] {
+  --s4p-canvas: #062418;
+  --s4p-canvas-mid: #0b3d28;
+  --s4p-emerald: #1a6b3c;
+  --s4p-mint: #9ee89a;
+  --s4p-muted: #b6e3cf;
+  --s4p-panel: rgb(6 36 24 / 0.86);
+  --s4p-glass-950: rgb(6 36 24 / 0.62);
+  --s4p-glass-900: rgb(8 48 30 / 0.76);
+  --s4p-glass-800: rgb(10 58 36 / 0.82);
+  --s4p-wallpaper: url("/images/themes/quiet-wave.png");
+  --s4p-overlay: linear-gradient(168deg, rgb(6 40 24 / 0.55) 0%, rgb(11 74 50 / 0.4) 48%, rgb(26 122 72 / 0.38) 100%);
+  --color-s4p-mint: #9ee89a;
+}
+
+html[data-theme="ivory-canvas"] {
+  color-scheme: light;
+  --s4p-canvas: #f7f4e8;
+  --s4p-canvas-mid: #efe8d4;
+  --s4p-emerald: #2a8f4a;
+  --s4p-ink: #16324a;
+  --s4p-ivory: #16324a;
+  --s4p-mint: #2a8f4a;
+  --s4p-muted: #4a6a5c;
+  --s4p-paper: #fffdf8;
+  --s4p-panel: rgb(255 253 248 / 0.9);
+  --s4p-glass-950: rgb(255 253 248 / 0.82);
+  --s4p-glass-900: rgb(247 244 232 / 0.9);
+  --s4p-glass-800: rgb(239 232 212 / 0.94);
+  --s4p-wallpaper: none;
+  --s4p-overlay: linear-gradient(180deg, #f7f4e8 0%, #efe8d4 100%);
+  --background: var(--s4p-canvas);
+  --foreground: var(--s4p-ink);
+  --color-s4p-mint: #2a8f4a;
+  --color-s4p-ivory: #16324a;
+  --color-slate-200: #3d5c50;
+  --color-slate-300: #5a7a6c;
+  --color-slate-400: #4a6a5c;
+  --color-slate-500: #3d5c50;
+  --color-slate-600: #2a4a40;
+  --color-slate-700: #1e3a34;
+  background-image: var(--s4p-overlay);
+}
+
+html[data-theme="ivory-canvas"] .text-white {
+  color: #16324a;
+}
+
+html[data-theme="ivory-canvas"] .text-slate-200,
+html[data-theme="ivory-canvas"] .text-slate-300 {
+  color: #3d5c50;
+}
+
+html[data-theme="ivory-canvas"] .bg-emerald-600.text-white,
+html[data-theme="ivory-canvas"] .bg-emerald-700.text-white,
+html[data-theme="ivory-canvas"] .bg-green-600.text-white,
+html[data-theme="ivory-canvas"] .bg-green-500.text-white,
+html[data-theme="ivory-canvas"] .bg-rose-700.text-white,
+html[data-theme="ivory-canvas"] .bg-rose-800.text-white,
+html[data-theme="ivory-canvas"] .bg-blue-600.text-white,
+html[data-theme="ivory-canvas"] .bg-blue-500.text-white,
+html[data-theme="ivory-canvas"] .bg-red-600.text-white,
+html[data-theme="ivory-canvas"] .bg-amber-700.text-white,
+html[data-theme="ivory-canvas"] .bg-black.text-white {
   color: #f7f4e8;
 }

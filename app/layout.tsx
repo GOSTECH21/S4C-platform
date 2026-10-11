@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeBootScript } from "@/app/components/ThemeBootScript";
+import ThemeTrialBanner from "@/app/components/ThemeTrialBanner";
+import { DEFAULT_S4P_THEME } from "@/app/lib/s4p-themes";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,9 +29,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme={DEFAULT_S4P_THEME}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <ThemeBootScript />
+      </head>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ThemeTrialBanner />
+      </body>
     </html>
   );
 }
