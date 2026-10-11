@@ -173,18 +173,6 @@ export default function HomeFrontPage({
 
   return (
     <div className="relative text-white">
-      <div className="absolute inset-0 overflow-hidden">
-        <Image
-          src="/images/home/hero.png"
-          alt=""
-          fill
-          priority
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/25 to-emerald-800/20" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/10 to-slate-950" />
-      </div>
-
       <div className="relative flex flex-col">
         <div className="sticky top-0 z-50 flex justify-end px-5 py-3 md:px-10">
           <div
