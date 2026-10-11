@@ -1,11 +1,11 @@
 export const theme = {
   colors: {
     primary: "#5bc662",
-    background: "#0c3229",
-    surface: "#14463a",
-    card: "#1c5c4c",
-    text: "#fff8ec",
-    textSecondary: "#b6e3cf",
+    background: "#f4f1e8",
+    surface: "#fffdf8",
+    card: "#fffdf8",
+    text: "#14352c",
+    textSecondary: "#3d5c52",
     gold: "#e8c36a",
     success: "#22C55E",
     warning: "#F59E0B",

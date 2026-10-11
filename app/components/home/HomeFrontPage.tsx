@@ -181,8 +181,8 @@ export default function HomeFrontPage({
           priority
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/82 via-slate-950/58 to-emerald-900/25" />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-transparent to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/25 to-emerald-800/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/10 to-slate-950" />
       </div>
 
       <div className="relative flex flex-col">

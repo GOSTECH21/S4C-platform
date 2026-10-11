@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
 /*
-  Pitch-dusk theme: a living forest canvas instead of black, with cream
-  headlines and mint body copy so every role can read the page.
+  Off-white canvas with the same greens as the pitch-dusk theme.
+  Slate 800–950 are paper surfaces; cream headlines remap to forest ink
+  except on saturated green/rose/blue/red fills.
 */
 :root {
-  --s4p-canvas: #0c3229;
-  --s4p-canvas-mid: #14463a;
-  --s4p-ink: #fff8ec;
-  --s4p-muted: #c8ebd6;
+  --s4p-canvas: #f4f1e8;
+  --s4p-canvas-mid: #e8f0ea;
+  --s4p-ink: #14352c;
+  --s4p-muted: #3d5c52;
   --s4p-gold: #e8c36a;
+  --s4p-paper: #fffdf8;
   --background: var(--s4p-canvas);
   --foreground: var(--s4p-ink);
 }
@@ -25,18 +27,20 @@
 @theme {
   --color-s4p-mark: #5bc662;
   --color-s4p-gold: #e8c36a;
+  --color-s4p-paper: #fffdf8;
   --color-white: #fff8ec;
+  --color-black: #245044;
   --color-slate-50: #f9fefb;
-  --color-slate-100: #f4fcf7;
-  --color-slate-200: #e9f9f1;
-  --color-slate-300: #d7f3e6;
-  --color-slate-400: #b6e3cf;
-  --color-slate-500: #7fbfa6;
+  --color-slate-100: #eef6f1;
+  --color-slate-200: #dce8e1;
+  --color-slate-300: #245044;
+  --color-slate-400: #3d5c52;
+  --color-slate-500: #2f6f5d;
   --color-slate-600: #3d8f76;
-  --color-slate-700: #2a7460;
-  --color-slate-800: #1c5c4c;
-  --color-slate-900: #14463a;
-  --color-slate-950: #0c3229;
+  --color-slate-700: #9bb8ac;
+  --color-slate-800: #d5e0d8;
+  --color-slate-900: #fffdf8;
+  --color-slate-950: #f4f1e8;
 }
 
 .text-s4p-mark {
@@ -48,7 +52,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   background-color: var(--s4p-canvas);
 }
 
@@ -70,9 +74,10 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background-image:
-    radial-gradient(ellipse 90% 55% at 8% -10%, rgba(91, 198, 98, 0.28), transparent 58%),
-    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(232, 195, 106, 0.16), transparent 52%),
-    linear-gradient(168deg, #165544 0%, #0c3229 42%, #0a2a22 100%);
+    radial-gradient(ellipse 90% 55% at 8% -10%, rgba(91, 198, 98, 0.22), transparent 58%),
+    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(91, 198, 98, 0.12), transparent 52%),
+    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(232, 195, 106, 0.08), transparent 52%),
+    linear-gradient(168deg, #f7f4ec 0%, #f4f1e8 48%, #efebe3 100%);
 }
 
 input,
@@ -84,4 +89,59 @@ select {
 input::placeholder,
 textarea::placeholder {
   color: color-mix(in srgb, var(--s4p-muted) 80%, transparent);
+}
+
+/* Cream-on-forest utilities become ink-on-paper. Brand-logo fills stay cream. */
+.text-white {
+  color: var(--s4p-ink);
+}
+
+.hover\:text-white:hover {
+  color: var(--s4p-ink);
+}
+
+.text-slate-200 {
+  color: #1a3d34;
+}
+
+.text-green-200 {
+  color: #166534;
+}
+
+.text-green-300 {
+  color: #15803d;
+}
+
+.text-green-400 {
+  color: #16a34a;
+}
+
+.text-emerald-200 {
+  color: #047857;
+}
+
+.text-emerald-300 {
+  color: #059669;
+}
+
+[class*="border-white/"] {
+  border-color: color-mix(in srgb, var(--s4p-ink) 22%, transparent);
+}
+
+.bg-emerald-600.text-white,
+.bg-emerald-700.text-white,
+.bg-green-600.text-white,
+.bg-green-500.text-white,
+.bg-rose-700.text-white,
+.bg-rose-800.text-white,
+.bg-blue-600.text-white,
+.bg-blue-500.text-white,
+.bg-red-600.text-white,
+.bg-amber-700.text-white,
+.bg-black.text-white {
+  color: #fff8ec;
+}
+
+.hover\:bg-red-600:hover {
+  color: #fff8ec;
 }
