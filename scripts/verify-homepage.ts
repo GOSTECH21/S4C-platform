@@ -284,12 +284,11 @@ assert(
   "Top-left S4P wordmark is removed from the hero"
 );
 assert(
-  front.includes("creates the moment") &&
-    front.includes("text-s4p-mark\">Sport") &&
-    front.includes("text-s4p-mark\">Sponsors") &&
-    front.includes("text-s4p-mark\">Fans") &&
-    front.includes("text-s4p-mark\">Impact"),
-  "Hero statement sits between the S4P mark and the stats bar, with Sport, Sponsors, Fans and Impact in the S4P mark green"
+  front.includes("Sport creates the moment.") &&
+    front.includes("Sponsors fund it.") &&
+    front.includes('text-s4p-mint">Fans direct the Impact.') &&
+    !front.includes("text-s4p-mark\">Sport"),
+  "Hero statement is ivory for Sport/Sponsors and mint for Fans direct the Impact"
 );
 assert(
   front.includes("order-2 lg:order-4") &&
@@ -303,13 +302,13 @@ assert(
 assert(
   front.includes("Turning Match-Day Sporting Moments into") &&
     front.includes("Funded Climate Action") &&
-    front.includes('block text-s4p-mark">Funded Climate Action') &&
+    front.includes('block text-s4p-mint">Funded Climate Action') &&
     !front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
-  "The S4P logo tagline is two lines, with Funded Climate Action in the S4P mark green"
+  "The S4P logo tagline is two lines, with Funded Climate Action in mint"
 );
 assert(
-  front.includes('text-s4p-mark">a brighter planet'),
-  "A brighter planet uses the S4P mark green from the numeral 4"
+  front.includes('text-s4p-mint">a brighter planet'),
+  "A brighter planet uses mint on the dark blue, not bright lime"
 );
 
 const globalCss = readFileSync("app/globals.css", "utf8");
@@ -317,6 +316,14 @@ assert(
   globalCss.includes("--color-s4p-mark: #5bc662") &&
     globalCss.includes(".bg-s4p-mark"),
   "S4P mark green is the leaf colour sampled from the numeral 4"
+);
+assert(
+  front.includes("s4p-navy-panel") &&
+    globalCss.includes(".s4p-navy-panel") &&
+    globalCss.includes("--s4p-ivory: #f7f4e8") &&
+    globalCss.includes("--s4p-mint: #8fe388") &&
+    globalCss.includes("#082a46"),
+  "Stats sit on navy glass; ivory and mint tokens are defined"
 );
 assert(
   front.includes("WICKET") &&

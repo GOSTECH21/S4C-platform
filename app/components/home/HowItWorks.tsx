@@ -51,7 +51,7 @@ export default function HowItWorks() {
         {steps.map((step, index) => (
           <div
             key={step.number}
-            className="flex flex-col items-center rounded-3xl bg-slate-950/55 px-4 py-6 text-center backdrop-blur-sm xl:px-5"
+            className="s4p-navy-panel flex flex-col items-center rounded-3xl px-4 py-6 text-center xl:px-5"
           >
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-s4p-mark text-3xl font-black text-black shadow-xl">
               {step.number}

@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 /*
-  Platform wallpaper: the green–navy wave in /images/platform-background.png
-  sits behind every page. Page chrome is glass so the wave stays visible.
-  S4P mark green and emerald/green fills are unchanged.
+  Quiet navy / teal / forest wallpaper. Ivory carries headlines and body copy.
+  Bright S4P lime is for buttons, icons and selected states only.
 */
 :root {
-  --s4p-canvas: #04344a;
-  --s4p-canvas-mid: #0a4a5c;
-  --s4p-ink: #fff8ec;
+  --s4p-canvas: #082a46;
+  --s4p-canvas-mid: #0b4a4a;
+  --s4p-emerald: #176b4a;
+  --s4p-ink: #f7f4e8;
+  --s4p-ivory: #f7f4e8;
+  --s4p-mint: #8fe388;
   --s4p-muted: #b6e3cf;
   --s4p-gold: #e8c36a;
   --s4p-paper: #fffdf8;
+  --s4p-panel: rgb(8 42 70 / 0.84);
   --s4p-wallpaper: url("/images/platform-background.png");
   --background: var(--s4p-canvas);
   --foreground: var(--s4p-ink);
@@ -27,9 +30,11 @@
 /* Leaf green sampled from the numeral 4 in /images/home/s4p-mark.png */
 @theme {
   --color-s4p-mark: #5bc662;
+  --color-s4p-mint: #8fe388;
+  --color-s4p-ivory: #f7f4e8;
   --color-s4p-gold: #e8c36a;
   --color-s4p-paper: #fffdf8;
-  --color-white: #fff8ec;
+  --color-white: #f7f4e8;
   --color-black: #245044;
   --color-slate-50: #f9fefb;
   --color-slate-100: #eef6f1;
@@ -41,7 +46,7 @@
   --color-slate-700: #2a7460;
   --color-slate-800: #0d4a5c;
   --color-slate-900: #0a3a4a;
-  --color-slate-950: #062836;
+  --color-slate-950: #082a46;
 }
 
 .text-s4p-mark {
@@ -52,14 +57,29 @@
   background-color: #5bc662;
 }
 
+.text-s4p-mint {
+  color: #8fe388;
+}
+
+.text-s4p-ivory {
+  color: #f7f4e8;
+}
+
+.s4p-navy-panel {
+  background-color: var(--s4p-panel) !important;
+  backdrop-filter: blur(18px);
+}
+
 html {
   color-scheme: dark;
   background-color: var(--s4p-canvas);
-  background-image: var(--s4p-wallpaper);
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-image:
+    linear-gradient(168deg, rgb(8 42 70 / 0.42) 0%, rgb(11 74 74 / 0.28) 48%, rgb(23 107 74 / 0.32) 100%),
+    var(--s4p-wallpaper);
+  background-size: cover, cover;
+  background-position: center center, center center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
 }
 
 html,
@@ -74,19 +94,19 @@ body {
   background-image: none;
 }
 
-/* Page fills that used to be cream paper become glass over the wave. */
+/* Deep translucent navy so copy does not sit on the changing wave. */
 [class*="bg-slate-950"] {
-  background-color: rgb(6 40 54 / 0.16) !important;
-  backdrop-filter: blur(10px);
+  background-color: rgb(8 42 70 / 0.58) !important;
+  backdrop-filter: blur(12px);
 }
 
 [class*="bg-slate-900"] {
-  background-color: rgb(6 40 54 / 0.42) !important;
+  background-color: rgb(8 42 70 / 0.72) !important;
   backdrop-filter: blur(14px);
 }
 
 [class*="bg-slate-800"] {
-  background-color: rgb(8 50 64 / 0.58) !important;
+  background-color: rgb(11 58 74 / 0.78) !important;
 }
 
 input,
@@ -111,9 +131,9 @@ textarea::placeholder {
 .bg-red-600.text-white,
 .bg-amber-700.text-white,
 .bg-black.text-white {
-  color: #fff8ec;
+  color: #f7f4e8;
 }
 
 .hover\:bg-red-600:hover {
-  color: #fff8ec;
+  color: #f7f4e8;
 }

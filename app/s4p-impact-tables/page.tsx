@@ -37,8 +37,8 @@ type PageProps = {
 function filterChipClass(active: boolean) {
   return `rounded-full px-3 py-1.5 text-sm font-bold ${
     active
-      ? "bg-emerald-500 text-slate-950"
-      : "border border-slate-700 text-emerald-200 hover:bg-slate-800"
+      ? "bg-s4p-mark text-slate-950"
+      : "border border-slate-700 text-s4p-mint hover:bg-slate-800"
   }`;
 }
 
@@ -255,8 +255,8 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
                 scroll={false}
                 className={`rounded-md px-3 py-2 ${
                   board.id === item.id
-                    ? "bg-emerald-500 text-slate-950"
-                    : "text-emerald-200 hover:bg-slate-800"
+                    ? "bg-s4p-mark text-slate-950"
+                    : "text-s4p-mint hover:bg-slate-800"
                 }`}
               >
                 {item.shortName}
@@ -267,7 +267,7 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
 
         {tab === "cilt" ? <CiltFilters tab={tab} filter={filter} /> : null}
 
-        <div className="mt-10 overflow-hidden rounded-3xl border border-slate-800 bg-slate-900">
+        <div className="s4p-navy-panel mt-10 overflow-hidden rounded-3xl border border-white/10">
           <div className="md:hidden">
             <SimpleRows rows={rows} emptyLabel={board.emptyLabel} />
           </div>

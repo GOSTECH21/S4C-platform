@@ -21,7 +21,7 @@ export default function S4pImpactTables({
   const topRows = board.rows.slice(0, IMPACT_TABLE_TOP_COUNT);
 
   return (
-    <aside className="flex h-fit flex-col self-center rounded-3xl border border-emerald-400/30 bg-slate-950/85 p-4 shadow-xl backdrop-blur md:p-5">
+    <aside className="s4p-navy-panel flex h-fit flex-col self-center rounded-3xl border border-white/10 p-4 shadow-xl md:p-5">
       <h2 className="text-center text-lg font-black tracking-[0.14em] text-white md:text-xl">
         S4P IMPACT TABLES
       </h2>
@@ -45,8 +45,8 @@ export default function S4pImpactTables({
               onClick={() => setActive(tab.id)}
               className={`rounded-md px-2 py-1 ${
                 active === tab.id
-                  ? "bg-emerald-500 text-slate-950"
-                  : "text-emerald-200 hover:bg-slate-800"
+                  ? "bg-s4p-mark text-slate-950"
+                  : "text-s4p-mint hover:bg-slate-800"
               }`}
             >
               {tab.shortName}
@@ -54,7 +54,7 @@ export default function S4pImpactTables({
           </span>
         ))}
       </div>
-      <p className="mt-3 text-center text-[0.82rem] font-semibold leading-snug text-emerald-300">
+      <p className="mt-3 text-center text-[0.82rem] font-semibold leading-snug text-s4p-mint">
         {board.topHeading}
       </p>
       <ol className="mt-3 space-y-1">
@@ -83,7 +83,7 @@ export default function S4pImpactTables({
       </ol>
       <a
         href={`${S4P_IMPACT_TABLES_PATH}?tab=${board.id}`}
-        className="mt-3 block text-center text-xs font-bold text-emerald-300 hover:text-white"
+        className="mt-3 block text-center text-xs font-bold text-s4p-mint hover:text-white"
       >
         {board.viewFullLabel}
       </a>

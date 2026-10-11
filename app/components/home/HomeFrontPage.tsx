@@ -213,7 +213,7 @@ export default function HomeFrontPage({
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight drop-shadow md:text-6xl lg:text-[4.4rem]">
               Every score
               <br />
-              <span className="text-s4p-mark">a brighter planet</span>
+              <span className="text-s4p-mint">a brighter planet</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-slate-200 md:text-base">
               Every <span className="font-black text-white">GOAL</span>, every{" "}
@@ -238,7 +238,7 @@ export default function HomeFrontPage({
             />
             <p className="mt-1 max-w-xl text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-2xl lg:text-[1.35rem]">
               <span className="block">Turning Match-Day Sporting Moments into</span>
-              <span className="block text-s4p-mark">Funded Climate Action</span>
+              <span className="block text-s4p-mint">Funded Climate Action</span>
             </p>
           </div>
 
@@ -250,23 +250,15 @@ export default function HomeFrontPage({
         <div className="order-2 lg:order-4">{children}</div>
 
         <p className="order-3 mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:order-2 lg:mb-20 lg:text-4xl">
-          <span className="block">
-            <span className="text-s4p-mark">Sport</span>
-            <span className="text-white"> creates the moment.</span>
-          </span>
-          <span className="block">
-            <span className="text-s4p-mark">Sponsors</span>
-            <span className="text-white"> fund it. </span>
-            <span className="text-s4p-mark">Fans</span>
-            <span className="text-white"> direct the </span>
-            <span className="text-s4p-mark">Impact</span>
-          </span>
+          <span className="block text-white">Sport creates the moment.</span>
+          <span className="block text-white">Sponsors fund it.</span>
+          <span className="block text-s4p-mint">Fans direct the Impact.</span>
         </p>
 
         <section className="order-4 mx-4 md:mx-10 lg:order-3">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-slate-950/80 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="s4p-navy-panel grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-white/10 sm:grid-cols-3 lg:grid-cols-5">
             {STATS.map((stat) => (
-              <div key={stat.key} className="bg-slate-950/40 px-3 py-5 text-center">
+              <div key={stat.key} className="px-3 py-5 text-center">
                 <div className="flex justify-center">
                   <StatIcon name={stat.icon} />
                 </div>
@@ -348,26 +340,26 @@ export default function HomeFrontPage({
 
           <div className="mt-12 grid gap-5 text-center text-sm text-slate-300 sm:grid-cols-2 lg:grid-cols-5">
             <p>
-              <span className="font-black text-emerald-300">Real Impact</span>
+              <span className="font-black text-s4p-mint">Real Impact</span>
               <br />
               Funding verified climate projects
             </p>
             <p>
-              <span className="font-black text-emerald-300">Stronger Communities</span>
+              <span className="font-black text-s4p-mint">Stronger Communities</span>
               <br />
               Local and global benefits
             </p>
             <p>
-              <span className="font-black text-emerald-300">Transparent &amp; Credible</span>
+              <span className="font-black text-s4p-mint">Transparent &amp; Credible</span>
               <br />
               Track progress and outcomes
             </p>
             <p>
-              <span className="font-black text-emerald-300">A Healthier Planet</span>
+              <span className="font-black text-s4p-mint">A Healthier Planet</span>
               <br />
               For future generations
             </p>
-            <p className="font-[Georgia,Times,serif] text-lg italic text-emerald-200 lg:text-xl">
+            <p className="font-[Georgia,Times,serif] text-lg italic text-s4p-mint lg:text-xl">
               Every Score Counts.
             </p>
           </div>
