@@ -27,6 +27,7 @@ export type CarbonWalletSponsor = {
   brandName: string;
   kind: SponsorWalletKind;
   remainingGbp: number;
+  committedGbp?: number;
   logoUrl?: string | null;
 };
 
@@ -83,6 +84,7 @@ export function ClimateProjectSponsors({
     : null;
   const leadUsed = Boolean(
     lead &&
+      walletTakeUsed(lead) &&
       (used.has(normalizeKey(lead.brandName)) ||
         used.has(normalizeBrandKey(lead.brandName)))
   );
@@ -217,8 +219,9 @@ export function ClimateProjectSponsors({
           {localRows.map((row) => {
             const value = localNumbers[row.brandName] ?? "";
             const already =
-              used.has(normalizeKey(row.brandName)) ||
-              used.has(normalizeBrandKey(row.brandName));
+              walletTakeUsed(row) &&
+              (used.has(normalizeKey(row.brandName)) ||
+                used.has(normalizeBrandKey(row.brandName)));
             const logo =
               row.logoUrl ||
               loadBrandLogo(row.brandName) ||
@@ -397,6 +400,13 @@ function FundItButton({
       {used ? "Already used" : FUND_IT_LABEL}
     </button>
   );
+}
+
+function walletTakeUsed(row: CarbonWalletSponsor): boolean {
+  const remaining = Number(row.remainingGbp) || 0;
+  const committed = Number(row.committedGbp);
+  if (!(committed > 0)) return true;
+  return remaining + DEFAULT_WALLET_VOTE_GBP <= committed + 0.001;
 }
 
 function roundDisplay(value: number): number {

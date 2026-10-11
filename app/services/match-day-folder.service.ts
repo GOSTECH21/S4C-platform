@@ -28,6 +28,7 @@ import {
   allocateWalletVote,
   brandsMatch,
   numberClimateProjects,
+  remainingGbp,
   walletVoteAmount,
   type ClimateWallet,
   type NumberedClimateProject,
@@ -358,12 +359,6 @@ export function applyFanWalletVote({
   supporterId?: string | null;
   projects?: NumberedClimateProject[];
 }): WalletVoteResult & { folder?: MatchDayFolder } {
-  if (hasFanVotedSponsor(supporterId, clubId, brandName)) {
-    return {
-      ok: false,
-      error: `You can only take money once from ${brandName} during this 5-day Vote.`,
-    };
-  }
   const folder = visibleMatchDayFolderForClub({ clubId, clubName });
   const projects = numberedFeaturedGss(
     loadFundedProjects(
@@ -396,6 +391,13 @@ export function applyFanWalletVote({
     return { ok: false, error: `No Carbon Wallet found for ${brandName}.` };
   }
   const voteAmount = amount ?? walletVoteAmount(wallet);
+  const alreadyTaken = Number(wallet.allocatedGbp) >= voteAmount - 0.001;
+  if (hasFanVotedSponsor(supporterId, clubId, brandName) && alreadyTaken) {
+    return {
+      ok: false,
+      error: `You can only take money once from ${brandName} during this 5-day Vote.`,
+    };
+  }
   const result = split
     ? allocateSplitWalletVote({ wallet, projects, amount: voteAmount })
     : allocateWalletVote({

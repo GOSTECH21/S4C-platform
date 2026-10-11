@@ -334,6 +334,9 @@ function CampaignPanel({
       remainingGbp: liveLead
         ? remainingGbp(liveLead)
         : fromFile?.remainingGbp ?? campaign.minimumAmount,
+      committedGbp: liveLead
+        ? remainingGbp(liveLead) + liveLead.allocatedGbp
+        : fromFile?.committedGbp ?? campaign.minimumAmount,
       logoUrl: leadLogoUrl,
     };
   }, [
@@ -349,12 +352,18 @@ function CampaignPanel({
   const localSponsors = useMemo(() => {
     const remainingByBrand = new Map<
       string,
-      { brandName: string; remainingGbp: number; logoUrl?: string | null }
+      {
+        brandName: string;
+        remainingGbp: number;
+        committedGbp?: number;
+        logoUrl?: string | null;
+      }
     >();
     for (const row of sponsors.filter((item) => item.kind === "local")) {
       remainingByBrand.set(normalizeBrandKey(row.brandName), {
         brandName: row.brandName,
         remainingGbp: row.remainingGbp,
+        committedGbp: row.committedGbp,
         logoUrl:
           rankedLocals.find((local) => local.brandName === row.brandName)?.logoUrl ??
           null,
@@ -370,6 +379,7 @@ function CampaignPanel({
       remainingByBrand.set(key, {
         brandName: remainingByBrand.get(key)?.brandName ?? wallet.brandName,
         remainingGbp: remainingGbp(wallet),
+        committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
         logoUrl: remainingByBrand.get(key)?.logoUrl ?? null,
       });
     }
@@ -386,6 +396,7 @@ function CampaignPanel({
       remainingByBrand.set(key, {
         brandName: local.brandName,
         remainingGbp: totalLocalPledge(local),
+        committedGbp: totalLocalPledge(local),
         logoUrl: local.logoUrl ?? null,
       });
     }
@@ -393,6 +404,7 @@ function CampaignPanel({
       brandName: row.brandName,
       kind: "local" as const,
       remainingGbp: row.remainingGbp,
+      committedGbp: row.committedGbp,
       logoUrl: row.logoUrl ?? null,
     }));
   }, [
