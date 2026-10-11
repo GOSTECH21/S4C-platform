@@ -367,9 +367,16 @@ assert(
     impactWidget.includes("h-fit") &&
     impactWidget.includes("text-s4p-mark") &&
     impactWidget.includes("text-amber-300") &&
+    impactWidget.includes("Impact Moments") &&
+    impactWidget.includes("Climate Funding") &&
+    impactWidget.includes("Climate Impact") &&
+    impactWidget.includes("board.entityColumn") &&
+    impactWidget.includes("row.impactMoments") &&
+    impactWidget.includes("row.funding") &&
+    impactWidget.includes("row.climateImpact") &&
     !impactWidget.includes("h-full") &&
     !impactWidget.includes("flex-1"),
-  "Impact Tables widget has CILT, CIST and CIFT tabs, gold metrics and a compact View Full link"
+  "Impact Tables widget has CILT, CIST and CIFT tabs plus Pos, Club, Impact Moments, Climate Funding and Climate Impact"
 );
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");

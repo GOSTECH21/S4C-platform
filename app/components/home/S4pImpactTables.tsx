@@ -57,30 +57,47 @@ export default function S4pImpactTables({
       <p className="mt-3 text-center text-[0.82rem] font-semibold leading-snug text-s4p-mint">
         {board.topHeading}
       </p>
-      <ol className="mt-3 space-y-1">
+      <div className="mt-3 overflow-x-auto">
         {topRows.length === 0 ? (
-          <li className="py-6 text-center text-sm font-semibold text-amber-300">
+          <p className="py-6 text-center text-sm font-semibold text-amber-300">
             {board.emptyLabel}
-          </li>
+          </p>
         ) : (
-          topRows.map((row) => (
-            <li
-              key={`${board.id}-${row.rank}-${row.name}`}
-              className="flex items-baseline justify-between gap-3 rounded-lg bg-slate-900/70 px-3 py-1.5"
-            >
-              <span className="min-w-0 truncate text-base font-bold text-white">
-                <span className="mr-2 font-black text-s4p-mark">
-                  {row.rank}.
-                </span>
-                {row.name}
-              </span>
-              <span className="shrink-0 text-sm font-semibold text-amber-300">
-                {row.metric}
-              </span>
-            </li>
-          ))
+          <table className="w-full min-w-[22rem] text-left">
+            <thead className="text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-slate-400">
+              <tr>
+                <th className="py-2 pr-2 font-semibold">Pos</th>
+                <th className="py-2 pr-2 font-semibold">{board.entityColumn}</th>
+                <th className="py-2 pr-2 text-right font-semibold">Impact Moments</th>
+                <th className="py-2 pr-2 text-right font-semibold">Climate Funding</th>
+                <th className="py-2 text-right font-semibold">Climate Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topRows.map((row) => (
+                <tr
+                  key={`${board.id}-${row.rank}-${row.name}`}
+                  className="border-t border-white/10"
+                >
+                  <td className="py-1.5 pr-2 font-black text-s4p-mark">{row.rank}</td>
+                  <td className="max-w-[7rem] truncate py-1.5 pr-2 text-sm font-semibold text-white">
+                    {row.name}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right text-sm font-semibold text-amber-300">
+                    {row.impactMoments}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right text-sm font-semibold text-amber-300">
+                    {row.funding}
+                  </td>
+                  <td className="py-1.5 text-right text-sm font-semibold text-amber-300">
+                    {row.climateImpact}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
-      </ol>
+      </div>
       <a
         href={`${S4P_IMPACT_TABLES_PATH}?tab=${board.id}`}
         className="mt-3 block text-center text-xs font-bold text-s4p-mint hover:text-white"
