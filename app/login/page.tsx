@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center text-white">
       <div className="w-full max-w-md rounded-xl border border-emerald-400/25 bg-slate-900 p-8 shadow-xl">
-        <h1 className="mb-6 text-3xl font-bold text-green-400">Login</h1>
+        <h1 className="mb-6 text-3xl font-bold text-white">Login</h1>
 
         <form id={account.formId} onSubmit={handleLogin} autoComplete="on">
           <input

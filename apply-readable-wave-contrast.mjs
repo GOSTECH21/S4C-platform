@@ -9,6 +9,7 @@ const FILES = [
   "app/components/home/S4pImpactTables.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/s4p-impact-tables/page.tsx",
+  "app/login/page.tsx",
   "scripts/verify-pitch-theme.ts",
   "scripts/verify-homepage.ts",
   "public/images/platform-background.png",
