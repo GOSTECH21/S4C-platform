@@ -1,9 +1,9 @@
-import { isSponsorBlockedFromClub } from "./climate-sponsors";
+import { clubsMatch, isSponsorBlockedFromClub } from "./climate-sponsors";
 import { formatLongMatchDate } from "./s4p-climate-projects";
 import {
   committedGbp,
   remainingGbp,
-  normalizeKey,
+  normalizeBrandKey,
   type ClimateWallet,
   type NumberedClimateProject,
   type SponsorWalletKind,
@@ -90,7 +90,7 @@ export function uniqueWalletsByBrand(
 ): ClimateWallet[] {
   const byBrand = new Map<string, ClimateWallet>();
   for (const wallet of wallets) {
-    const key = normalizeKey(wallet.brandName);
+    const key = normalizeBrandKey(wallet.brandName);
     if (!key) continue;
     const existing = byBrand.get(key);
     if (!existing || preferWallet(wallet, existing, preferredClubName)) {
@@ -111,7 +111,7 @@ export function uniqueSponsorRows(
 ): MatchDaySponsorRow[] {
   const byBrand = new Map<string, MatchDaySponsorRow>();
   for (const row of sponsors) {
-    const key = normalizeKey(row.brandName);
+    const key = normalizeBrandKey(row.brandName);
     if (!key) continue;
     const existing = byBrand.get(key);
     if (!existing) {
@@ -122,7 +122,11 @@ export function uniqueSponsorRows(
       row.kind === "lead" && existing.kind !== "lead"
         ? true
         : row.kind === existing.kind &&
-          (Number(row.committedGbp) || 0) > (Number(existing.committedGbp) || 0);
+          ((Number(row.committedGbp) || 0) > (Number(existing.committedGbp) || 0) ||
+            ((Number(row.committedGbp) || 0) ===
+              (Number(existing.committedGbp) || 0) &&
+              (Number(row.remainingGbp) || 0) <
+                (Number(existing.remainingGbp) || 0)));
     if (takeCandidate) byBrand.set(key, { ...row });
   }
   return exclusiveLeadItems(
@@ -145,14 +149,14 @@ function exclusiveLeadItems<T extends { brandName: string; kind: string }>(
     : items;
   const leads = allowed.filter((row) => row.kind === "lead");
   if (leads.length <= 1) return allowed;
-  const preferredKey = normalizeKey(preferredLeadName ?? "");
+  const preferredKey = normalizeBrandKey(preferredLeadName ?? "");
   const keeper =
     (preferredKey
-      ? leads.find((row) => normalizeKey(row.brandName) === preferredKey)
+      ? leads.find((row) => normalizeBrandKey(row.brandName) === preferredKey)
       : null) ?? leads[0];
-  const keeperKey = normalizeKey(keeper.brandName);
+  const keeperKey = normalizeBrandKey(keeper.brandName);
   return allowed.filter(
-    (row) => row.kind !== "lead" || normalizeKey(row.brandName) === keeperKey
+    (row) => row.kind !== "lead" || normalizeBrandKey(row.brandName) === keeperKey
   );
 }
 
@@ -161,10 +165,12 @@ function preferWallet(
   current: ClimateWallet,
   preferredClubName?: string
 ): boolean {
+  const candidateTaken = Math.max(0, Number(candidate.allocatedGbp) || 0);
+  const currentTaken = Math.max(0, Number(current.allocatedGbp) || 0);
+  if (candidateTaken !== currentTaken) return candidateTaken > currentTaken;
   if (preferredClubName) {
-    const wanted = normalizeKey(preferredClubName);
-    const candidateClub = normalizeKey(candidate.clubName) === wanted;
-    const currentClub = normalizeKey(current.clubName) === wanted;
+    const candidateClub = clubsMatch(candidate.clubName, preferredClubName);
+    const currentClub = clubsMatch(current.clubName, preferredClubName);
     if (candidateClub !== currentClub) return candidateClub;
   }
   if (candidate.kind !== current.kind) return candidate.kind === "lead";
@@ -207,7 +213,7 @@ export function withLiveWalletRemaining(
 ): MatchDaySponsorRow[] {
   const byBrand = new Map<string, ClimateWallet>();
   for (const wallet of wallets) {
-    const key = normalizeKey(wallet.brandName);
+    const key = normalizeBrandKey(wallet.brandName);
     if (!key) continue;
     const existing = byBrand.get(key);
     if (!existing || Number(wallet.allocatedGbp) > Number(existing.allocatedGbp)) {
@@ -216,13 +222,13 @@ export function withLiveWalletRemaining(
   }
   const seen = new Set<string>();
   const overlaid = rows.map((row) => {
-    const key = normalizeKey(row.brandName);
+    const key = normalizeBrandKey(row.brandName);
     if (key) seen.add(key);
     const wallet = byBrand.get(key);
     return wallet ? { ...row, ...sponsorRowFromWallet(wallet) } : row;
   });
   const extras = [...byBrand.values()]
-    .filter((wallet) => !seen.has(normalizeKey(wallet.brandName)))
+    .filter((wallet) => !seen.has(normalizeBrandKey(wallet.brandName)))
     .map(sponsorRowFromWallet);
   return [...overlaid, ...extras];
 }

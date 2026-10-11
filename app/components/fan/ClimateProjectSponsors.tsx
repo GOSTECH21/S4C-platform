@@ -16,6 +16,7 @@ import {
   fundItCopy,
   leadFundItCopy,
   localFundItCopy,
+  normalizeBrandKey,
   normalizeKey,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
@@ -26,6 +27,7 @@ export type CarbonWalletSponsor = {
   brandName: string;
   kind: SponsorWalletKind;
   remainingGbp: number;
+  committedGbp?: number;
   logoUrl?: string | null;
 };
 
@@ -69,14 +71,23 @@ export function ClimateProjectSponsors({
   const [leadNumber, setLeadNumber] = useState("");
   const [localNumbers, setLocalNumbers] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
-  const used = useMemo(
-    () => new Set(usedSponsorNames.map((name) => normalizeKey(name))),
-    [usedSponsorNames]
-  );
+  const used = useMemo(() => {
+    const keys = new Set<string>();
+    for (const name of usedSponsorNames) {
+      keys.add(normalizeKey(name));
+      keys.add(normalizeBrandKey(name));
+    }
+    return keys;
+  }, [usedSponsorNames]);
   const leadLogo = lead
     ? lead.logoUrl || loadBrandLogo(lead.brandName) || sponsorLogoSrc(lead.brandName, lead.logoUrl)
     : null;
-  const leadUsed = Boolean(lead && used.has(normalizeKey(lead.brandName)));
+  const leadUsed = Boolean(
+    lead &&
+      walletTakeUsed(lead) &&
+      (used.has(normalizeKey(lead.brandName)) ||
+        used.has(normalizeBrandKey(lead.brandName)))
+  );
   const leadBlocked =
     !lead ||
     !canPressFundIt({
@@ -207,7 +218,10 @@ export function ClimateProjectSponsors({
         <div className="space-y-3">
           {localRows.map((row) => {
             const value = localNumbers[row.brandName] ?? "";
-            const already = used.has(normalizeKey(row.brandName));
+            const already =
+              walletTakeUsed(row) &&
+              (used.has(normalizeKey(row.brandName)) ||
+                used.has(normalizeBrandKey(row.brandName)));
             const logo =
               row.logoUrl ||
               loadBrandLogo(row.brandName) ||
@@ -386,6 +400,13 @@ function FundItButton({
       {used ? "Already used" : FUND_IT_LABEL}
     </button>
   );
+}
+
+function walletTakeUsed(row: CarbonWalletSponsor): boolean {
+  const remaining = Number(row.remainingGbp) || 0;
+  const committed = Number(row.committedGbp);
+  if (!(committed > 0)) return true;
+  return remaining + DEFAULT_WALLET_VOTE_GBP <= committed + 0.001;
 }
 
 function roundDisplay(value: number): number {

@@ -14,6 +14,7 @@ import {
   normalizeClimateWallet,
   localWalletTopUp,
   remainingGbp,
+  brandsMatch,
   capLocalWalletSponsorship,
   walletVoteAmount,
   totalAllocatedGbp,
@@ -34,6 +35,7 @@ import {
   sponsorRowsFromWallets,
   sponsorsFileName,
   uniqueSponsorRows,
+  uniqueWalletsByBrand,
   submitMatchDayFolder,
   withLiveWalletRemaining,
   applyRemainingToSponsorsFile,
@@ -215,6 +217,50 @@ const projects = [
 ];
 
 assert(LEAD_FEATURED_SHARE === 0.75 && LEAD_LOCAL_SHARE === 0.25, "Lead wallets split 75/25");
+assert(
+  brandsMatch("Gillette UK", "Gillette"),
+  "Gillette UK and Gillette are the same Lead Climate Sponsor wallet"
+);
+
+const gillette = createLeadWallet({
+  clubName: "Hearts",
+  brandName: "Gillette UK",
+  commitmentFeeGbp: 1000,
+});
+const gilletteVoted = allocateWalletVote({
+  wallet: gillette,
+  projects,
+  projectNumber: 1,
+});
+assert(gilletteVoted.ok, "Selecting a GSS version next to Gillette and pressing FUND-IT succeeds");
+if (gilletteVoted.ok) {
+  assert(
+    remainingGbp(gilletteVoted.wallet) === 999.8,
+    "Gillette's Carbon Wallet then displays £999.80 Remaining"
+  );
+  const heartsAlias = createLeadWallet({
+    clubName: "Hearts of Midlothian FC",
+    brandName: "Gillette",
+    commitmentFeeGbp: 1000,
+  });
+  const kept = uniqueWalletsByBrand(
+    [heartsAlias, gilletteVoted.wallet],
+    "Hearts of Midlothian FC",
+    "Gillette UK"
+  );
+  assert(
+    kept.length === 1 && remainingGbp(kept[0]) === 999.8,
+    "A Hearts of Midlothian FC Gillette clone does not restore the £1,000 wallet after FUND-IT"
+  );
+  const visibleLead = withLiveWalletRemaining(
+    sponsorRowsFromWallets([heartsAlias]),
+    [heartsAlias, gilletteVoted.wallet]
+  ).find((row) => row.kind === "lead");
+  assert(
+    visibleLead?.remainingGbp === 999.8,
+    "Climate Sponsors subtracts £0.20 from the Lead Carbon Wallet whenever FUND-IT is used"
+  );
+}
 
 const voted = allocateWalletVote({
   wallet: topCellar,

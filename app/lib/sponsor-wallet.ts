@@ -80,6 +80,21 @@ export function normalizeKey(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** Gillette UK and Gillette are the same Carbon Wallet brand. */
+export function normalizeBrandKey(value: string): string {
+  return normalizeKey(value)
+    .replace(/\b(u k|uk|limited|ltd|llp|plc|inc|europe|group)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function brandsMatch(left: string, right: string): boolean {
+  const a = normalizeBrandKey(left);
+  const b = normalizeBrandKey(right);
+  if (!a || !b) return false;
+  return a === b;
+}
+
 export function localWalletTopUp(sponsorshipGbp: number): {
   sponsorshipGbp: number;
   managementFeeGbp: number;
