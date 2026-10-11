@@ -668,7 +668,10 @@ assert(
     readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
       "demoFixturesForClub"
     ) &&
-    readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(
+    readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      'id="fixture-lists"'
+    ) &&
+    !readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(
       "Fixture lists"
     ) &&
     readFileSync("app/services/club-fixtures.service.ts", "utf8").includes(
