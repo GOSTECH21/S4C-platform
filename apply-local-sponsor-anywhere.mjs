@@ -1,7 +1,7 @@
 import { writeFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/local-sponsor-anywhere-18f9";
+const BRANCH = "cursor/remove-fixture-lists-box-18f9";
 const FILES = [
   "app/sponsor/local/register/page.tsx",
   "app/preview/nearby-projects/page.tsx",
@@ -16,6 +16,9 @@ for (const rel of FILES) {
     const text = await response.text();
     if (rel.includes("register") && text.includes("must trade within 5 miles")) {
       throw new Error("Downloaded register page still has the 5-mile rule");
+    }
+    if (rel.includes("register") && text.includes("Fixture lists")) {
+      throw new Error("Downloaded register page still has the duplicate Fixture lists box");
     }
     mkdirSync(dirname(join(rel)), { recursive: true });
     writeFileSync(rel, text);

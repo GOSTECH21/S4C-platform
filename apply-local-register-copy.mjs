@@ -136,7 +136,7 @@ console.log(
     : "The old intro was not found; the numbered steps should still be in the file"
 );
 
-const BRANCH = "cursor/local-sponsor-anywhere-18f9";
+const BRANCH = "cursor/remove-fixture-lists-box-18f9";
 const FIXTURE_FILES = [
   "app/lib/demo-club-fixtures.ts",
   "app/components/sponsor/MatchSponsorshipPicker.tsx",
