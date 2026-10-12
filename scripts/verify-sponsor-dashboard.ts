@@ -475,10 +475,14 @@ assert(
   "Goal Sponsorship Network sits above the Climate Sponsorship Wallet"
 );
 assert(
-  sponsorDashboardPage.includes("scrollToClubTable") &&
-    sponsorDashboardPage.includes("onMouseDown") &&
-    sponsorDashboardPage.includes("goal-sponsorship-network"),
-  "Clicking Select a club scrolls to the Goal Sponsorship Network teams table"
+  !sponsorDashboardPage.includes("scrollToClubTable") &&
+    !sponsorDashboardPage.includes("onMouseDown") &&
+    !sponsorDashboardPage.includes("onFocus={scrollToClubTable}"),
+  "Select a club no longer jumps down to Goal Sponsorship Network"
+);
+assert(
+  sponsorDashboardPage.includes('id="goal-sponsorship-network"'),
+  "Goal Sponsorship Network keeps its section id"
 );
 assert(
   sponsorDashboardPage.includes("scrollToLockIn") &&
