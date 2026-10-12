@@ -32,7 +32,6 @@ import {
   displayLockFixture,
   lockCopy,
   leagueFromMatchLabel,
-  clubNetworkLeagueId,
   occupyingLeadClimateSponsor,
   secondLeadClimateSponsorRejectedMessage,
   unlockedMatchDay,
@@ -350,19 +349,6 @@ export default function SponsorDashboardPage() {
     applyMatchDayLock(cleared.clubName, "");
   }
 
-  function scrollToClubTable() {
-    const league = leagueFromMatchLabel(lockLabel);
-    const targetId = league
-      ? clubNetworkLeagueId(league)
-      : "goal-sponsorship-network";
-    window.requestAnimationFrame(() => {
-      document.getElementById(targetId)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  }
-
   function scrollToLockIn() {
     window.setTimeout(() => {
       document.getElementById("match-day-lock-in")?.scrollIntoView({
@@ -440,11 +426,6 @@ export default function SponsorDashboardPage() {
               Club
               <select
                 value={lockClub}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  scrollToClubTable();
-                }}
-                onFocus={scrollToClubTable}
                 onChange={(event) => {
                   const club = event.target.value;
                   if (!club) {
@@ -455,7 +436,7 @@ export default function SponsorDashboardPage() {
                   setLockFixture("");
                 }}
                 className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-                aria-label="Select a club, then choose from the teams table"
+                aria-label="Select a club"
               >
                 <option value="">Select a club</option>
                 {(
