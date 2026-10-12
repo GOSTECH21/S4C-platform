@@ -449,13 +449,10 @@ assert(
   "The S4P Sponsorship Dashboard heading no longer explains Lead-only wallet copy"
 );
 assert(
-  sponsorDashboardPage.includes(
-    "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
-  ) ||
-    lockCopy().includes(
-      "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
-    ),
-  "Match Day lock-in tells sponsors to lock a club for Goal-Sponsorship"
+  lockCopy().includes("choose a Club you wish to sponsor") &&
+    lockCopy().includes("the Match you wish to lock-in") &&
+    lockCopy().includes("for that Match"),
+  "Match Day lock-in tells sponsors to lock a club and a Match for Goal-Sponsorship"
 );
 assert(
   sponsorDashboardPage.includes("Select a Club") &&
@@ -643,7 +640,7 @@ assert(
 );
 assert(
   sponsorDashboardPage.includes("setChosenFixture(fixture)") &&
-    sponsorDashboardPage.includes("ensureMatchDayClubLock") &&
+    sponsorDashboardPage.includes("setLockFixture(fixture.fixtureName)") &&
     !sponsorDashboardPage.includes('setLockClub(persisted?.clubName ?? "")'),
   "A rejected second Lead still keeps the chosen Club, Match and Match details on screen"
 );

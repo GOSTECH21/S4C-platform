@@ -13,7 +13,6 @@ import {
 import {
   clearMatchDayLock,
   ensureGoalNetwork,
-  ensureMatchDayClubLock,
   loadBrandLogo,
   loadMatchDayLock,
   lockMatchDayClub,
@@ -336,20 +335,7 @@ export default function SponsorDashboardPage() {
       setFixtureNotice(
         err instanceof Error
           ? err.message
-          : secondLeadClimateSponsorRejectedMessage(club, "")
-      );
-      setLock(
-        ensureMatchDayClubLock({
-          brandName: brand,
-          clubName: club,
-          matchLabel: fixture.competition,
-          fixtureName: fixture.fixtureName,
-          competition: fixture.competition,
-          fixtureDate: fixture.date,
-          kickoff: fixture.kickoff,
-          venue: fixture.venue,
-          sourceUrl: fixture.sourceUrl,
-        })
+          : secondLeadClimateSponsorRejectedMessage(club, "", fixture.fixtureName)
       );
     }
   }

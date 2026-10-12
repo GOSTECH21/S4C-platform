@@ -208,6 +208,46 @@ assert(
   "Locked sponsor dashboards only show the locked club's posted five"
 );
 
+const leftoverHearts = offersForLockedSponsor(
+  [
+    {
+      clubName: "Hearts",
+      matchTitle: "Hearts of Midlothian FC Match",
+      matchDate: "2026-09-25",
+      targetBrandNames: ["American Express"],
+    },
+    {
+      clubName: "Hearts",
+      matchTitle: "Hearts v Aberdeen",
+      matchDate: "2026-10-31",
+      targetBrandNames: ["American Express"],
+    },
+  ],
+  {
+    brandName: "American Express",
+    network: {
+      brandKey: "american express",
+      brandName: "American Express",
+      email: null,
+      clubNames: ["Hearts"],
+      leagues: ["Scottish Premiership"],
+    },
+    lock: {
+      brandKey: "american express",
+      clubName: "Hearts",
+      matchLabel: "Scottish Premiership Match",
+      fixtureName: "Hearts v Aberdeen",
+      fixtureDate: "2026-10-31",
+      lockedAt: new Date().toISOString(),
+    },
+  }
+);
+assert(
+  leftoverHearts.length === 1 &&
+    leftoverHearts[0].matchTitle === "Hearts v Aberdeen",
+  "American Express sign-off shows Hearts v Aberdeen, not a leftover September offer"
+);
+
 const ready = selectedBrandsReadyToReceive(
   {
     clubId: "ars",
@@ -340,9 +380,12 @@ assert(
   "Cup competitions without a league table still fall back to the network block"
 );
 assert(
-  /import\s*\{\s*offersForLockedSponsor\s*\}/.test(
-    readFileSync("app/services/sponsor-offers.service.ts", "utf8")
-  ),
+  readFileSync("app/services/sponsor-offers.service.ts", "utf8").includes(
+    "offersForLockedSponsor"
+  ) &&
+    readFileSync("app/services/sponsor-offers.service.ts", "utf8").includes(
+      "offerMatchesLockedMatch"
+    ),
   "Sponsor dashboard imports offersForLockedSponsor so the folder can load"
 );
 

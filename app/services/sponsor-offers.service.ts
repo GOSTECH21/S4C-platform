@@ -6,9 +6,14 @@ import {
 } from "../lib/current-season";
 import {
   brandsMatch,
+  displayLockFixture,
+  isNamedFixture,
   isRemovedSponsorBrand,
   networkHasClub,
+  offerMatchesLockedMatch,
+  offersForLockedSponsor,
 } from "../lib/climate-sponsors";
+import { sameNamedFixture } from "../lib/club-fixtures";
 import {
   includeBrandOnTargets,
   notifySignedSponsorship,
@@ -33,7 +38,6 @@ import {
   loadGoalNetwork,
   loadMatchDayLock,
 } from "./climate-sponsors.service";
-import { offersForLockedSponsor } from "../lib/climate-sponsors";
 import { signedOrPostedBrandForClub as brandFromPostedOffers } from "../lib/campaign-sponsor";
 import { clubShouldStartBlank } from "../lib/clear-club-data";
 
@@ -187,6 +191,17 @@ export async function lookupClubMatchContext(
   return { matchTitle, matchDate, scoreLabel };
 }
 
+function sameClubMatchOffer(
+  left: Pick<SponsorMatchOffer, "clubName" | "matchTitle">,
+  right: Pick<SponsorMatchOffer, "clubName" | "matchTitle">
+): boolean {
+  if (!clubsMatch(left.clubName, right.clubName)) return false;
+  if (isNamedFixture(left.matchTitle) && isNamedFixture(right.matchTitle)) {
+    return sameNamedFixture(left.matchTitle, right.matchTitle);
+  }
+  return left.matchTitle.trim() === right.matchTitle.trim();
+}
+
 export async function publishSponsorMatchOffer({
   clubId,
   clubName,
@@ -197,6 +212,8 @@ export async function publishSponsorMatchOffer({
   gbpPerGoal,
   maxAmount,
   targetBrandNames,
+  matchTitle,
+  matchDate,
 }: {
   clubId: string;
   clubName: string;
@@ -207,23 +224,27 @@ export async function publishSponsorMatchOffer({
   gbpPerGoal?: number | null;
   maxAmount?: number | null;
   targetBrandNames?: string[] | null;
+  matchTitle?: string | null;
+  matchDate?: string | null;
 }): Promise<SponsorMatchOffer> {
   const context = await lookupClubMatchContext(clubId, clubName);
+  const title = String(matchTitle ?? "").trim() || context.matchTitle;
+  const date = String(matchDate ?? "").trim() || context.matchDate;
   const offer: SponsorMatchOffer = {
     id: crypto.randomUUID(),
     clubId,
     clubName,
     clubEmail: clubEmail ?? null,
-    matchTitle: context.matchTitle,
-    matchDate: context.matchDate,
+    matchTitle: title,
+    matchDate: date,
     scoreLabel: context.scoreLabel,
     projectIds: projects.map((project) => project.id),
     projects: projects.map(snapshotProject),
     postedAt: new Date().toISOString(),
     headline: sponsorOfferHeadline({
       clubName,
-      matchTitle: context.matchTitle,
-      matchDate: context.matchDate,
+      matchTitle: title,
+      matchDate: date,
       scoreLabel: context.scoreLabel,
     }),
     sponsorshipAmountGbp:
@@ -238,7 +259,12 @@ export async function publishSponsorMatchOffer({
   const local = readJson<SponsorMatchOffer[]>(OFFER_STORAGE, []);
   writeJson(
     OFFER_STORAGE,
-    [offer, ...local.filter((row) => row.clubId !== clubId)].slice(0, 50)
+    [
+      offer,
+      ...local.filter(
+        (row) => row.id !== offer.id && !sameClubMatchOffer(row, offer)
+      ),
+    ].slice(0, 50)
   );
 
   void supabase.from("sponsor_match_offers").insert({
@@ -403,21 +429,15 @@ export async function ensureOfferFromLockedClubUploads(options: {
   const uploaded = await uploadedProjectsForLockedClub(lock.clubName);
   const allOffers = await listSponsorMatchOffers();
   const signatures = await listOfferSignatures();
-  const clubOffers = allOffers.filter((offer) =>
-    clubsMatch(offer.clubName, lock.clubName)
+  const matchOffers = allOffers.filter((offer) =>
+    offerMatchesLockedMatch(offer, lock)
   );
   const visiblePending = unsignedMatchOffers(
-    offersForLockedSponsor(clubOffers, { brandName, network, lock }),
+    offersForLockedSponsor(matchOffers, { brandName, network, lock }),
     signatures
   );
   if (visiblePending[0]) {
     return includeBrandOnStoredOffer(visiblePending[0], brandName);
-  }
-
-  const unsignedClub = unsignedMatchOffers(clubOffers, signatures);
-  if (unsignedClub[0]) {
-    const retargeted = includeBrandOnStoredOffer(unsignedClub[0], brandName);
-    if (retargeted.projects.length > 0) return retargeted;
   }
 
   if (
@@ -430,6 +450,7 @@ export async function ensureOfferFromLockedClubUploads(options: {
     return null;
   }
 
+  const fixture = displayLockFixture(lock);
   return publishSponsorMatchOffer({
     clubId: uploaded.clubId,
     clubName: uploaded.clubName,
@@ -439,6 +460,8 @@ export async function ensureOfferFromLockedClubUploads(options: {
     maxAmount: uploaded.maxAmount,
     gbpPerVote: uploaded.gbpPerVote,
     targetBrandNames: [brandName],
+    matchTitle: isNamedFixture(fixture) ? fixture : undefined,
+    matchDate: lock.fixtureDate,
   });
 }
 

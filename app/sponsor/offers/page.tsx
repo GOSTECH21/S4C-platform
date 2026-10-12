@@ -77,17 +77,19 @@ export default function NewSponsorshipOfferPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">New Sponsorship/Score Offer</h1>
       <p className="mt-4 text-slate-300">
-        These are the 5 Climate Projects the Sustainability Director has
-        already uploaded for the club you locked in. They are pulled here
-        immediately. Read them, then the Signed Sponsorship section opens for
-        you to sign off.
+        These are the 5 Climate Projects the Sustainability Director uploaded
+        for the Match you locked in. They belong to this brand and this Match
+        only — never a leftover offer from another sponsor or another Match
+        Day. Read them, then the Signed Sponsorship section opens for you to
+        sign off.
       </p>
 
       {!offer ? (
         <p className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
-          No posted Climate Projects for the club you have locked in. Lock a
-          club 72 hours before Match Day, and only that club&apos;s five will
-          appear here after the Sustainability Director posts them to you.
+          No posted Climate Projects for the Match you have locked in. Lock a
+          club and a named Match 72 hours before kick-off, and only that
+          club&apos;s five for that Match Day will appear here after the
+          Sustainability Director posts them to you.
         </p>
       ) : (
         <OfferPreview offer={offer} brandDefault={brandDefault} />
