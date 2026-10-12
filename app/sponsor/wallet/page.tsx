@@ -10,7 +10,6 @@ import {
   readClimateWallet,
 } from "@/app/services/sponsor-wallet.service";
 import {
-  clubNameForLocalBrand,
   localRecordFromProfile,
   readLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
@@ -75,7 +74,6 @@ export default function SponsorWalletPage() {
         const club =
           lock?.clubName ||
           localForBrand?.clubName ||
-          clubNameForLocalBrand(brandName) ||
           clubFromQuery ||
           "";
         setClubName(club);

@@ -4,6 +4,7 @@ import { dirname, join } from "path";
 const BRANCH = "cursor/single-club-match-block-18f9";
 const FILES = [
   "app/sponsor/dashboard/page.tsx",
+  "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
   "app/components/sponsor/SeeMatchDetails.tsx",
   "scripts/verify-sponsor-dashboard.ts",
@@ -42,6 +43,26 @@ for (const rel of ["app/lib/routes.ts", "app/lib/s4p-themes.ts"]) {
     src += `\n${previewLine}\n`;
     writeFileSync(rel, src);
     console.log("Patched", rel);
+  }
+}
+
+const localSponsor = "app/lib/local-sponsor.ts";
+if (existsSync(localSponsor)) {
+  let src = readFileSync(localSponsor, "utf8");
+  if (!src.includes("export function clubNameForLocalBrand")) {
+    src += `
+export function clubNameForLocalBrand(brandName) {
+  const name = String(brandName ?? "").trim().toLowerCase();
+  if (!name) return null;
+  const record = readLocalSponsorRecord() ?? localRecordFromProfile();
+  if (record && record.brandName.trim().toLowerCase() === name) {
+    return record.clubName;
+  }
+  return null;
+}
+`;
+    writeFileSync(localSponsor, src);
+    console.log("Patched", localSponsor);
   }
 }
 

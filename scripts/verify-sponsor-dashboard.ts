@@ -627,8 +627,9 @@ assert(
     walletPage.includes("ensureOfferFromLockedClubUploads") &&
     walletPage.includes("sponsorOfferSignOffPath") &&
     walletPage.includes("bindFundedSponsorToClub") &&
-    !walletPage.includes("sponsorDashboardReceivePath"),
-  "Depositing into the Climate Sponsorship Wallet locks funding to the club and opens Terms & Conditions + sign-off"
+    !walletPage.includes("sponsorDashboardReceivePath") &&
+    !walletPage.includes("clubNameForLocalBrand"),
+  "Depositing into the Climate Sponsorship Wallet locks funding to the club and opens Terms & Conditions + sign-off without a missing local-sponsor export"
 );
 assert(
   readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
