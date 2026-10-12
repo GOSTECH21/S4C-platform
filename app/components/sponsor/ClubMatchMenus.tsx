@@ -6,14 +6,16 @@ import type { ClubFixture } from "@/app/lib/club-fixtures";
 
 function useDismiss(open: boolean, onClose: () => void) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     function onDoc(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) onClose();
+      if (!rootRef.current?.contains(event.target as Node)) onCloseRef.current();
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
-  }, [open, onClose]);
+  }, [open]);
   return rootRef;
 }
 
@@ -72,7 +74,9 @@ export function ClubLeagueMenu({
                       type="button"
                       role="option"
                       aria-selected={selected}
-                      onClick={() => {
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
                         onChange(club);
                         setOpen(false);
                       }}
@@ -125,7 +129,7 @@ export function MatchFixtureMenu({
     fixtures.find(
       (row) => row.id === value || row.fixtureName === value
     ) ?? null;
-  const disabled = !clubName || loading;
+  const disabled = !clubName;
 
   return (
     <div ref={rootRef} className="relative">
@@ -171,7 +175,9 @@ export function MatchFixtureMenu({
                     type="button"
                     role="option"
                     aria-selected={on}
-                    onClick={() => {
+                    onPointerDown={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
                       onChange(fixture);
                       setOpen(false);
                     }}

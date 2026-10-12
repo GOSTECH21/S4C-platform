@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
@@ -81,6 +81,9 @@ export default function SponsorDashboardPage() {
   const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
   const [fixturesLoading, setFixturesLoading] = useState(false);
   const [fixtureNotice, setFixtureNotice] = useState<string | null>(null);
+  const [chosenFixture, setChosenFixture] = useState<ClubFixture | null>(null);
+  const lockFixtureRef = useRef(lockFixture);
+  lockFixtureRef.current = lockFixture;
   const [email, setEmail] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -168,7 +171,6 @@ export default function SponsorDashboardPage() {
     if (!lockClub) {
       setClubFixtures([]);
       setFixturesLoading(false);
-      setFixtureNotice(null);
       return;
     }
     let cancelled = false;
@@ -177,18 +179,16 @@ export default function SponsorDashboardPage() {
       .then((rows) => {
         if (cancelled) return;
         setClubFixtures(rows);
-        const current = lockFixture || (lock ? displayLockFixture(lock) : "");
-        if (!current) {
-          setFixtureNotice(null);
-          return;
-        }
+        const current = lockFixtureRef.current;
+        if (!current) return;
         const published = fixtureByIdOrName(rows, current);
         if (published) {
           setLockFixture(published.fixtureName);
           setLockLabel(published.competition);
-          setFixtureNotice(null);
+          setChosenFixture(published);
           if (
             lock &&
+            clubsMatch(lock.clubName, lockClub) &&
             (lock.fixtureDate !== published.date ||
               lock.venue !== published.venue ||
               lock.kickoff !== published.kickoff)
@@ -218,13 +218,6 @@ export default function SponsorDashboardPage() {
               );
             }
           }
-          return;
-        }
-        if (rows.length > 0) {
-          setLockFixture("");
-          setFixtureNotice(
-            `${current} is not a published fixture. Select a listed Match.`
-          );
         }
       })
       .catch(() => {
@@ -294,25 +287,31 @@ export default function SponsorDashboardPage() {
 
   function applyMatchDayLock(clubName: string, fixture: ClubFixture | null) {
     const club = clubName.trim();
-    setLockFixture(fixture?.fixtureName ?? "");
-    if (fixture?.competition) setLockLabel(fixture.competition);
-    setFixtureNotice(null);
     if (!club) {
       clearMatchDayLock(brand);
       setLock(null);
       setLockClub("");
       setLockFixture("");
+      setChosenFixture(null);
+      setFixtureNotice(null);
       void refreshFolder();
       return;
     }
     if (!fixture) {
       setLockClub(club);
+      setLockFixture("");
+      setChosenFixture(null);
+      setFixtureNotice(null);
       if (lock && !clubsMatch(lock.clubName, club)) {
         clearMatchDayLock(brand);
         setLock(null);
       }
       return;
     }
+    setLockClub(club);
+    setLockFixture(fixture.fixtureName);
+    setChosenFixture(fixture);
+    if (fixture.competition) setLockLabel(fixture.competition);
     try {
       const next = lockMatchDayClub({
         brandName: brand,
@@ -330,8 +329,7 @@ export default function SponsorDashboardPage() {
         clubNames: [club],
       });
       setLock(next);
-      setLockClub(club);
-      setLockFixture(fixture.fixtureName);
+      setFixtureNotice(null);
       void refreshFolder();
     } catch (err) {
       setFixtureNotice(
@@ -339,10 +337,7 @@ export default function SponsorDashboardPage() {
           ? err.message
           : secondLeadClimateSponsorRejectedMessage(club, "")
       );
-      const persisted = loadMatchDayLock(brand);
-      setLock(persisted);
-      setLockClub(persisted?.clubName ?? "");
-      setLockFixture(persisted ? displayLockFixture(persisted) : "");
+      setLock(loadMatchDayLock(brand));
     }
   }
 
@@ -351,7 +346,10 @@ export default function SponsorDashboardPage() {
     applyMatchDayLock(cleared.clubName, null);
   }
 
-  const selectedFixture = fixtureByIdOrName(clubFixtures, lockFixture);
+  const selectedFixture =
+    chosenFixture && chosenFixture.fixtureName === lockFixture
+      ? chosenFixture
+      : fixtureByIdOrName(clubFixtures, lockFixture);
   const matchLocked = Boolean(lockClub && (selectedFixture || lockFixture));
 
   if (loading) {

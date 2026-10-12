@@ -639,10 +639,10 @@ assert(
   "Open Climate Sponsorship Wallet carries the locked club onto the wallet"
 );
 assert(
-  readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
-    "const persisted = loadMatchDayLock(brand)"
-  ),
-  "A rejected second Lead lock does not keep Match Day on that club"
+  sponsorDashboardPage.includes("setChosenFixture(fixture)") &&
+    sponsorDashboardPage.includes("setLock(loadMatchDayLock(brand))") &&
+    !sponsorDashboardPage.includes('setLockClub(persisted?.clubName ?? "")'),
+  "A rejected second Lead still keeps the chosen Club, Match and Match details on screen"
 );
 
 const offerService = readFileSync(
