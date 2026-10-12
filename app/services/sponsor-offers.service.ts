@@ -17,6 +17,7 @@ import { sameNamedFixture } from "../lib/club-fixtures";
 import {
   includeBrandOnTargets,
   notifySignedSponsorship,
+  resolveCommittedMatchFunding,
   shouldPullLockedClubUploads,
 } from "../lib/sponsor-completion-flow";
 import { scoreLabelForSport } from "../lib/sports";
@@ -38,6 +39,7 @@ import {
   loadGoalNetwork,
   loadMatchDayLock,
 } from "./climate-sponsors.service";
+import { readClimateWallet } from "./sponsor-wallet.service";
 import { signedOrPostedBrandForClub as brandFromPostedOffers } from "../lib/campaign-sponsor";
 import { clubShouldStartBlank } from "../lib/clear-club-data";
 
@@ -297,6 +299,34 @@ function writeLocalOffer(offer: SponsorMatchOffer): SponsorMatchOffer {
   return offer;
 }
 
+function stampCommittedFundingOnOffer(
+  offer: SponsorMatchOffer,
+  brandName: string,
+  lock: ReturnType<typeof loadMatchDayLock>
+): SponsorMatchOffer {
+  const funding = resolveCommittedMatchFunding({
+    lock,
+    wallet: lock?.clubName
+      ? readClimateWallet(lock.clubName, brandName)
+      : null,
+    offer,
+  });
+  const next = {
+    ...offer,
+    sponsorshipAmountGbp: funding.baseAmount || offer.sponsorshipAmountGbp,
+    gbpPerGoal: funding.gbpPerGoal || offer.gbpPerGoal || null,
+    maxAmount: funding.maxAmount || offer.maxAmount || null,
+  };
+  if (
+    next.sponsorshipAmountGbp === offer.sponsorshipAmountGbp &&
+    next.gbpPerGoal === offer.gbpPerGoal &&
+    next.maxAmount === offer.maxAmount
+  ) {
+    return offer;
+  }
+  return writeLocalOffer(next);
+}
+
 function includeBrandOnStoredOffer(
   offer: SponsorMatchOffer,
   brandName: string
@@ -437,7 +467,11 @@ export async function ensureOfferFromLockedClubUploads(options: {
     signatures
   );
   if (visiblePending[0]) {
-    return includeBrandOnStoredOffer(visiblePending[0], brandName);
+    return stampCommittedFundingOnOffer(
+      includeBrandOnStoredOffer(visiblePending[0], brandName),
+      brandName,
+      lock
+    );
   }
 
   if (
@@ -451,13 +485,22 @@ export async function ensureOfferFromLockedClubUploads(options: {
   }
 
   const fixture = displayLockFixture(lock);
+  const funding = resolveCommittedMatchFunding({
+    lock,
+    wallet: readClimateWallet(lock.clubName, brandName),
+    offer: {
+      sponsorshipAmountGbp: uploaded.minAmount,
+      gbpPerGoal: uploaded.gbpPerGoal,
+      maxAmount: uploaded.maxAmount,
+    },
+  });
   return publishSponsorMatchOffer({
     clubId: uploaded.clubId,
     clubName: uploaded.clubName,
     projects: uploaded.projects,
-    sponsorshipAmountGbp: uploaded.minAmount,
-    gbpPerGoal: uploaded.gbpPerGoal,
-    maxAmount: uploaded.maxAmount,
+    sponsorshipAmountGbp: funding.baseAmount || uploaded.minAmount,
+    gbpPerGoal: funding.gbpPerGoal || uploaded.gbpPerGoal,
+    maxAmount: funding.maxAmount || uploaded.maxAmount,
     gbpPerVote: uploaded.gbpPerVote,
     targetBrandNames: [brandName],
     matchTitle: isNamedFixture(fixture) ? fixture : undefined,

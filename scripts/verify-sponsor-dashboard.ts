@@ -427,6 +427,9 @@ assert(
   ) &&
     readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
       "Signed Sponsorship"
+    ) &&
+    readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+      "resolveCommittedMatchFunding"
     ),
   "The sign-off form is the Signed Sponsorship section"
 );

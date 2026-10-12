@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
-import { applyWalletFundingLock, includeBrandOnTargets, isWalletFundingLocked, shouldPullLockedClubUploads } from "../app/lib/sponsor-completion-flow";
+import { applyWalletFundingLock, includeBrandOnTargets, isWalletFundingLocked, resolveCommittedMatchFunding, shouldPullLockedClubUploads } from "../app/lib/sponsor-completion-flow";
+import { formatSponsorPayableCopy } from "../app/lib/sponsorship-auction";
 import { sponsorDashboardReceivePath } from "../app/lib/routes";
 import { SPONSOR_DASHBOARD_PATH } from "../app/lib/routes";
 
@@ -195,9 +196,9 @@ window.localStorage.setItem(
       projects,
       postedAt: "2026-10-07T10:00:00.000Z",
       headline: "5 Climate Projects Sponsorship for Goals scored by Hibernian players during Hibernian v Celtic",
-      sponsorshipAmountGbp: 2500,
-      gbpPerGoal: 3500,
-      maxAmount: 7500,
+      sponsorshipAmountGbp: 1000,
+      gbpPerGoal: 0,
+      maxAmount: 0,
       targetBrandNames: ["Puma"],
     },
   ])
@@ -218,6 +219,39 @@ assert(
   pulled?.projects.map((project) => project.name).join(",") ===
     projects.map((project) => project.name).join(","),
   "The pulled offer is the Sustainability Director's uploaded Climate Projects"
+);
+assert(
+  pulled?.sponsorshipAmountGbp === 2500 &&
+    pulled?.gbpPerGoal === 3500 &&
+    pulled?.maxAmount === 7500,
+  "Sign-off stores the wallet Commitment Fee, £/Goal and Maximum, not the leftover £1,000"
+);
+assert(
+  formatSponsorPayableCopy({
+    ...resolveCommittedMatchFunding({
+      lock: loadMatchDayLock("Puma"),
+      wallet: readClimateWallet("Hibernian", "Puma"),
+      offer: { sponsorshipAmountGbp: 1000, gbpPerGoal: 0, maxAmount: 0 },
+    }),
+    clubName: "Hibernian",
+  }).includes("£2,500") &&
+    formatSponsorPayableCopy({
+      ...resolveCommittedMatchFunding({
+        lock: loadMatchDayLock("Puma"),
+        wallet: readClimateWallet("Hibernian", "Puma"),
+        offer: { sponsorshipAmountGbp: 1000 },
+      }),
+      clubName: "Hibernian",
+    }).includes("£3,500") &&
+    !formatSponsorPayableCopy({
+      ...resolveCommittedMatchFunding({
+        lock: loadMatchDayLock("Puma"),
+        wallet: readClimateWallet("Hibernian", "Puma"),
+        offer: { sponsorshipAmountGbp: 1000 },
+      }),
+      clubName: "Hibernian",
+    }).includes("£1,000"),
+  "Agree to be Goal Sponsor states the deposited amounts, not a leftover £1,000"
 );
 
 const liveFolder = publishMatchDayFolderFromSignedOffer({

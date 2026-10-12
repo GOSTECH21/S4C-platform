@@ -7,6 +7,8 @@ import {
   signSponsorOffer,
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
+import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
+import { readClimateWallet } from "@/app/services/sponsor-wallet.service";
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
@@ -15,9 +17,9 @@ import {
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
+import { resolveCommittedMatchFunding } from "@/app/lib/sponsor-completion-flow";
 import {
   formatSponsorPayableCopy,
-  formatStipulatedRate,
   EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
 
@@ -68,6 +70,12 @@ export function OfferSignOffForm({
   const [signedBrand, setSignedBrand] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const funding = resolveCommittedMatchFunding({
+    lock: loadMatchDayLock(brandName || brandDefault),
+    wallet: readClimateWallet(offer.clubName, brandName || brandDefault),
+    offer,
+  });
 
   useEffect(() => {
     setBrandName(brandDefault);
@@ -148,14 +156,11 @@ export function OfferSignOffForm({
           <h2 className="text-2xl font-black">Agree to be Goal Sponsor</h2>
           <p className="text-slate-300">
             {formatSponsorPayableCopy({
-              baseAmount: offer.sponsorshipAmountGbp,
-              gbpPerGoal: offer.gbpPerGoal,
-              maxAmount: offer.maxAmount,
+              baseAmount: funding.baseAmount,
+              gbpPerGoal: funding.gbpPerGoal,
+              maxAmount: funding.maxAmount,
               clubName: offer.clubName,
             })}{" "}
-            {offer.gbpPerVote
-              ? `${formatStipulatedRate(offer.gbpPerVote)} is the brand-exposure counter (${EXPOSURES_PER_POST} exposures per posted fan).`
-              : ""}{" "}
             Terms and Conditions apply.
           </p>
           <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
