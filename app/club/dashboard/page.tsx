@@ -10,6 +10,7 @@ import {
   fileRecordDownloadName,
   postMatchDayProjectsToFans,
   readStoredMatchDay,
+  saveMatchDaySelection,
   matchDayWindowCopy,
   type ClubAccount,
   type ClubFileRecord,
@@ -20,8 +21,12 @@ import {
   type SignedSponsorship,
 } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
-import { expandFeaturedGssVersions } from "@/app/lib/featured-gss";
+import {
+  chosenFeaturedProject,
+  expandFeaturedGssVersions,
+} from "@/app/lib/featured-gss";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
+import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
 import {
   climateProjectCountryLabel,
   localCatalogCountryForClub,
@@ -113,6 +118,7 @@ export default function ClubDashboardPage() {
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
   const [leadSponsors, setLeadSponsors] = useState<LeadClubSponsorRow[]>([]);
   const [localSponsors, setLocalSponsors] = useState<LocalSponsorRecord[]>([]);
+  const [featuredId, setFeaturedId] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
@@ -149,6 +155,11 @@ export default function ClubDashboardPage() {
       setRecords(board.records);
       const stored = readStoredMatchDay(session.club.id);
       setPostedAt(stored?.postedAt ?? null);
+      setFeaturedId(
+        stored?.featuredProjectId ??
+          chosenFeaturedProject(board.selected, stored?.featuredProjectId)?.id ??
+          null
+      );
       const storedMin =
         stored?.minAmount && stored.minAmount > 0 ? stored.minAmount : null;
       const boardMin =
@@ -195,6 +206,7 @@ export default function ClubDashboardPage() {
       const stored = readStoredMatchDay(club.id);
       setPostedAt(stored?.postedAt ?? null);
       setFolder(readMatchDayFolder(club.id));
+      setFeaturedId(stored?.featuredProjectId ?? null);
       try {
         const board = await loadClubProjectBoard(club.id, club.name);
         setSelected(board.selected);
@@ -234,13 +246,52 @@ export default function ClubDashboardPage() {
       ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
       : [];
   const clubRow = cilt.find((row) => row.isClub);
+  const featuredOptions = useMemo(
+    () =>
+      expandFeaturedGssVersions(selected.filter(isFeaturedClimateProject)),
+    [selected]
+  );
   const orderedSelected = useMemo(() => {
-    const featured = selected.filter(isFeaturedClimateProject);
     const others = selected.filter(
       (project) => !isFeaturedClimateProject(project)
     );
-    return [...expandFeaturedGssVersions(featured), ...others];
-  }, [selected]);
+    const chosen = chosenFeaturedProject(selected, featuredId);
+    return chosen ? [chosen, ...others] : others;
+  }, [selected, featuredId]);
+  const needsFeaturedChoice = featuredOptions.length > 1 && !featuredId;
+  const matchDayReady =
+    Boolean(featuredId) && orderedSelected.length >= MATCH_DAY_PROJECT_COUNT;
+
+  async function chooseFeatured(id: string) {
+    if (!club) return;
+    setFeaturedId(id);
+    const partners = selected.filter(
+      (project) => !isFeaturedClimateProject(project)
+    );
+    if (partners.length !== MATCH_DAY_CHOICE_COUNT) return;
+    try {
+      await saveMatchDaySelection({
+        clubId: club.id,
+        clubName: club.name,
+        country: club.country,
+        featuredProjectId: id,
+        projectIds: partners.map((project) => project.id),
+        minAmount: minAmount ?? 0,
+        gbpPerGoal: gbpPerGoal ?? undefined,
+        maxAmount: maxAmount ?? undefined,
+        gbpPerVote: gbpPerVote ?? undefined,
+      });
+      const board = await loadClubProjectBoard(club.id, club.name);
+      setSelected(board.selected);
+    } catch (err) {
+      setPostError(
+        err instanceof Error
+          ? err.message
+          : "Could not save the Featured Climate Project."
+      );
+    }
+  }
+
   const readySponsorBrands = useMemo(() => {
     if (!roster) return [];
     return selectedBrandsReadyToReceive(roster, {
@@ -485,14 +536,14 @@ export default function ClubDashboardPage() {
               S4P Climate Projects
             </p>
             <h2 className="mt-3 text-4xl font-black md:text-5xl">
-              {selected.length >= MATCH_DAY_PROJECT_COUNT
+              {matchDayReady
                 ? `Here's your ${MATCH_DAY_PROJECT_COUNT} chosen Projects for this Match Day`
                 : "S4P Climate Projects"}
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
-              {selected.length >= MATCH_DAY_PROJECT_COUNT
+              {matchDayReady
                 ? `Save these ${MATCH_DAY_PROJECT_COUNT} in the Match-Day folder as the Climate Projects File. Fans press FUND-IT up to 5 times: £0.20 once from each Carbon Wallet. Lead wallets fund Global Schools Solar (75%) plus local projects (25%); Local Business wallets fund local Climate Projects only.`
-                : `Open S4P Climate Projects to choose 4 Climate Partner projects from List 1 (${localCountry}) and List 2 (International). Two Global Schools Solar versions are included automatically.`}
+                : `Open S4P Climate Projects to choose one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects from List 1 (${localCountry}) and List 2 (International). There can never be two Featured projects.`}
             </p>
           </div>
 
@@ -502,7 +553,7 @@ export default function ClubDashboardPage() {
               posting ? "pointer-events-none cursor-wait opacity-70" : ""
             }`}
           >
-            {selected.length >= MATCH_DAY_PROJECT_COUNT
+            {matchDayReady
               ? "S4P Climate Projects — change List 1 and List 2"
               : "S4P Climate Projects"}
           </Link>
@@ -548,10 +599,28 @@ export default function ClubDashboardPage() {
                 each Carbon Wallet
               </p>
             )}
+            {(needsFeaturedChoice || featuredOptions.length > 1) && (
+              <div className="mt-6">
+                <FeaturedGssPicker
+                  options={featuredOptions}
+                  chosenId={featuredId}
+                  onChoose={(id) => void chooseFeatured(id)}
+                  clubName={club.name}
+                  clubCountry={club.country}
+                />
+              </div>
+            )}
             <ProjectGrid
-              projects={orderedSelected}
-              empty={`No projects selected for this Match Day yet. Two Global Schools Solar versions will be included automatically once you choose ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects.`}
+              projects={
+                featuredOptions.length > 1
+                  ? orderedSelected.filter(
+                      (project) => !isFeaturedClimateProject(project)
+                    )
+                  : orderedSelected
+              }
+              empty={`No projects selected for this Match Day yet. Choose one Featured Global Schools Solar project, then ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. There can never be two Featured projects.`}
               badge="Selected"
+              featuredId={featuredId}
               clubName={club.name}
               clubCountry={club.country}
             />
@@ -838,6 +907,7 @@ function ProjectGrid({
   empty,
   funded = false,
   badge,
+  featuredId = null,
   clubName,
   clubCountry,
 }: {
@@ -845,6 +915,7 @@ function ProjectGrid({
   empty: string;
   funded?: boolean;
   badge?: string;
+  featuredId?: string | null;
   clubName?: string | null;
   clubCountry?: string | null;
 }) {
@@ -870,13 +941,21 @@ function ProjectGrid({
         >
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-xl font-bold">{project.name}</h3>
-            {(funded || badge || isFeaturedClimateProject(project)) && (
+            {(funded ||
+              badge ||
+              (featuredId
+                ? project.id === featuredId
+                : isFeaturedClimateProject(project))) && (
               <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
                 {funded
                   ? "Funded"
-                  : isFeaturedClimateProject(project)
-                    ? "Featured"
-                    : badge}
+                  : featuredId
+                    ? project.id === featuredId
+                      ? "Featured"
+                      : badge
+                    : isFeaturedClimateProject(project)
+                      ? "Featured"
+                      : badge}
               </span>
             )}
           </div>

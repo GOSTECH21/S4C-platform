@@ -111,7 +111,7 @@ export function fanWalletDrainCopy(_zeroLabel = "£0"): string {
 }
 
 export function clubVotingWindowCopy(choiceCount: number): string {
-  return `Select ${choiceCount} Climate Partner projects at least ${VOTING_OPENS_DAYS_BEFORE_KICKOFF} days before kick-off. ${fanVotingWindowCopy()} Two Global Schools Solar versions are included in every Match Day list. After you post, fans see them on My S4P and Climate Projects immediately.`;
+  return `Select ${choiceCount} Climate Partner projects at least ${VOTING_OPENS_DAYS_BEFORE_KICKOFF} days before kick-off. ${fanVotingWindowCopy()} Choose one Featured Global Schools Solar project — a local school near the stadium, or a school anywhere in the world. There can never be two Featured projects. After you post, fans see them on My S4P and Climate Projects immediately.`;
 }
 
 export function clubMatchDayFolderCopy(): string {

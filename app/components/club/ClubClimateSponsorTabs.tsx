@@ -230,8 +230,8 @@ function TabButton({
       onClick={onClick}
       className={`rounded-xl px-5 py-3 text-sm font-bold ${
         selected
-          ? "bg-amber-400 text-slate-950"
-          : "border border-slate-600 bg-slate-950 text-slate-200 hover:border-amber-300"
+          ? "bg-s4p-mark text-slate-950 hover:brightness-110"
+          : "border border-slate-600 bg-slate-950 text-slate-200 hover:border-s4p-mark"
       }`}
     >
       {children}

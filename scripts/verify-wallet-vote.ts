@@ -653,9 +653,9 @@ assert(
   fanPage.includes("Climate Projects List") &&
     fanPage.includes("space-y-2") &&
     fanPage.includes("select the project by name") &&
-    fanPage.includes("Two Global Schools Solar versions") &&
+    fanPage.includes("There is never a second") &&
     fanPage.includes("withFeaturedGssVersions"),
-  "My S4P uses the Climate Projects List heading as a stacked accordion with two GSS versions"
+  "My S4P uses the Climate Projects List heading as a stacked accordion with one Featured GSS"
 );
 assert(
   !fanPage.includes("Climate Project list"),

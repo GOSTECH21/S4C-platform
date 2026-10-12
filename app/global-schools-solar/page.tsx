@@ -23,12 +23,13 @@ export default function GlobalSchoolsSolarPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-green-400">
             Featured on every Match Day
           </p>
-          <h2 className="mt-4 text-2xl font-black">Two versions on every list</h2>
+          <h2 className="mt-4 text-2xl font-black">Choose one Featured project</h2>
           <p className="mt-4 text-slate-300">
-            Sustainability Directors choose four Climate Partner projects. Two
-            Global Schools Solar versions are locked in: a local school near the
-            stadium, and a school anywhere in the world. Fans fund them from
-            Lead Climate Sponsor wallets.
+            Sustainability Directors choose one Featured Climate Project: a
+            local school near the stadium, or a school anywhere in the world.
+            There can never be two Featured projects. They then choose four
+            Climate Partner projects. Fans fund the chosen school from Lead
+            Climate Sponsor wallets.
           </p>
         </div>
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8">

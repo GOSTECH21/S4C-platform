@@ -136,8 +136,8 @@ export default function SponsorCreateCampaignPage() {
       </Link>
       <h1 className="mt-6 text-4xl font-black">Create Your Sponsorship Campaign</h1>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Do the same thing the Sustainability Director does: two Global Schools
-        Solar versions are included, then choose 4 from List 1 ({localCountry})
+        Do the same thing the Sustainability Director does: choose one Featured
+        Global Schools Solar project, then choose 4 from List 1 ({localCountry})
         and List 2 (International). Send the {MATCH_DAY_PROJECT_COUNT} to the
         Sustainability Director so they can push them to fans.
       </p>

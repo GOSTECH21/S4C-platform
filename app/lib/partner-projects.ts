@@ -1,11 +1,11 @@
 /** Climate Project Partner catalog shown to club Sustainability Directors. */
 
 export const PARTNER_PAGE_SIZE = 10;
-/** Two Global Schools Solar versions auto-included on every Match Day. */
-export const MATCH_DAY_FEATURED_COUNT = 2;
-/** Projects the Sustainability Director actually chooses; GSS versions are included as a must. */
+/** One Featured Global Schools Solar version — local or international, never both. */
+export const MATCH_DAY_FEATURED_COUNT = 1;
+/** Projects the Sustainability Director actually chooses; one GSS version is the Featured project. */
 export const MATCH_DAY_CHOICE_COUNT = 4;
-/** Total Match Day portfolio: two GSS versions plus the SD's partner choices. */
+/** Total Match Day portfolio: one Featured GSS plus the SD's partner choices. */
 export const MATCH_DAY_PROJECT_COUNT =
   MATCH_DAY_FEATURED_COUNT + MATCH_DAY_CHOICE_COUNT;
 /** Hours before kick-off the Sustainability Director should post; fan voting also opens then (3 days). */
@@ -13,7 +13,7 @@ export const MATCH_DAY_LEAD_HOURS = 72;
 const MATCH_DAY_LEAD_DAYS = MATCH_DAY_LEAD_HOURS / 24;
 
 export function clubClimateProjectsIntroCopy(): string {
-  return `Two Global Schools Solar Projects are included in every Match Day List: a local school near the stadium, and a school anywhere in the world. They apply to UK & International. Choose ${MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
+  return `Choose one Featured Climate Project: Global Schools Solar for a local school near the stadium, or Global Schools Solar for a school anywhere in the world. There can never be two Featured projects. Then choose ${MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
 }
 
 export function partnerProjectPage<T>(projects: T[], page: number): T[] {

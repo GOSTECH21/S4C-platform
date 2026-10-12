@@ -883,8 +883,23 @@ assert(
     tabs.includes("Signed off by") &&
     tabs.includes("splitClubClimateSponsorsForTabs") &&
     tabs.includes('setTab("lead")') &&
-    tabs.includes("aria-pressed"),
-  "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
+    tabs.includes("aria-pressed") &&
+    tabs.includes("bg-s4p-mark") &&
+    !tabs.includes("bg-amber-400"),
+  "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor, in S4P green"
+);
+assert(
+  readFileSync("app/club/dashboard/page.tsx", "utf8").includes("FeaturedGssPicker") &&
+    readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
+      "FeaturedGssPicker"
+    ) &&
+    readFileSync("app/components/club/FeaturedGssPicker.tsx", "utf8").includes(
+      "There can never be two Featured projects"
+    ) &&
+    readFileSync("app/preview/featured-gss/page.tsx", "utf8").includes(
+      "FeaturedGssPicker"
+    ),
+  "Club dashboard and Climate Projects force a choice of one Featured GSS"
 );
 assert(
   !dashboard.includes("MatchDayLocalSponsorBoard") &&

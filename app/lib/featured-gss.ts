@@ -42,12 +42,31 @@ export function expandFeaturedGssVersions<T extends { id: string; name: string }
   ];
 }
 
+export function chosenFeaturedProject<T extends { id: string; name: string }>(
+  projects: T[],
+  chosenId?: string | null
+): T | null {
+  const featured = featuredFromList(projects);
+  if (chosenId) {
+    const match = featured.find((project) => project.id === chosenId);
+    if (match) return match;
+  }
+  return featured.length === 1 ? featured[0] : null;
+}
+
+export function withChosenFeaturedProject<T extends { id: string; name: string }>(
+  projects: T[],
+  chosenId?: string | null
+): T[] {
+  const others = localFromList(projects);
+  const chosen = chosenFeaturedProject(projects, chosenId);
+  return chosen ? [chosen, ...others] : others;
+}
+
 export function withFeaturedGssVersions<T extends { id: string; name: string }>(
   projects: T[]
 ): T[] {
-  const featured = projects.filter((project) => isFeaturedGssName(project.name));
-  const locals = projects.filter((project) => !isFeaturedGssName(project.name));
-  return [...expandFeaturedGssVersions(featured), ...locals];
+  return [...featuredFromList(projects), ...localFromList(projects)];
 }
 
 export function featuredFromList<T extends { name: string }>(projects: T[]): T[] {
