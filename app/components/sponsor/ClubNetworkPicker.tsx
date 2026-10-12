@@ -94,11 +94,9 @@ export function ClubNetworkPicker({
                     type="button"
                     onClick={() => toggle(club)}
                     className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
-                      locked
-                        ? "border-amber-400 bg-amber-400 text-slate-950"
-                        : on
-                          ? "border-green-400 bg-green-400 text-slate-950"
-                          : "border-slate-700 bg-slate-900 text-white"
+                      locked || on
+                        ? "border-s4p-mark bg-s4p-mark text-slate-950"
+                        : "border-slate-700 bg-slate-900 text-slate-950"
                     }`}
                   >
                     {locked ? "Match Day · " : on ? "✓ " : ""}

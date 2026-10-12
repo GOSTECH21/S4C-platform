@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
+import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
 
+const tabClass = "rounded-lg px-5 py-2 text-sm font-bold";
+
 export function SponsorNav() {
+  const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -26,14 +31,29 @@ export function SponsorNav() {
     };
   }, []);
 
+  async function logout() {
+    await logoutSponsor();
+    setLoggedIn(false);
+    router.push(SPONSOR_LOGIN_PATH);
+  }
+
   if (loggedIn) {
     return (
-      <Link
-        href={SPONSOR_DASHBOARD_PATH}
-        className="rounded-full bg-emerald-400 px-5 py-2 text-sm font-bold text-slate-950 shadow-[0_0_0_4px_rgba(52,211,153,0.25)] hover:bg-emerald-300"
-      >
-        Dashboard
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          href={SPONSOR_DASHBOARD_PATH}
+          className={`${tabClass} bg-s4p-mark text-slate-950 hover:brightness-110`}
+        >
+          Dashboard
+        </Link>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className={`${tabClass} bg-red-500 text-white hover:bg-red-600`}
+        >
+          Logout
+        </button>
+      </div>
     );
   }
 
