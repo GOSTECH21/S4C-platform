@@ -581,7 +581,13 @@ export function lockedBrandNameForClub(clubName: string): string | null {
 
 export function loadMatchDayLock(brandName: string): MatchDayClubLock | null {
   const store = readJson<LockStore>(LOCK_KEY, {});
-  return store[brandKey(brandName)] ?? null;
+  const exact = store[brandKey(brandName)];
+  if (exact) return exact;
+  const match = Object.entries(store).find(
+    ([key, row]) =>
+      brandsMatch(key, brandName) || brandsMatch(row.brandKey, brandName)
+  );
+  return match?.[1] ?? null;
 }
 
 export function lockMatchDayClub({
