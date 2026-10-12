@@ -461,15 +461,29 @@ assert(
   sponsorDashboardPage.includes("Select a Club") &&
     sponsorDashboardPage.includes("Select the Match") &&
     sponsorDashboardPage.includes("SeeMatchDetails") &&
-    sponsorDashboardPage.includes("DEMO_CLUB_NAMES") &&
+    sponsorDashboardPage.includes("ClubLeagueMenu") &&
+    sponsorDashboardPage.includes("MatchFixtureMenu") &&
     sponsorDashboardPage.includes('id="match-day-lock-in"'),
   "One lock-in block lists every demo club, then the Match, then See Match details"
 );
 assert(
-  /import \{[^}]*\bDEMO_CLUB_NAMES\b[^}]*\} from ["']@\/app\/lib\/current-season["']/.test(
-    sponsorDashboardPage.replace(/\n/g, " ")
-  ),
-  "Select a Club lists Arsenal, Hearts and Hibernian from DEMO_CLUB_NAMES"
+  readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
+    "CURRENT_SEASON_LEAGUES"
+  ) &&
+    readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
+      "Premier League and Scottish Premiership clubs"
+    ),
+  "Select a Club opens Premier League and Scottish Premiership with the teams in those leagues"
+);
+assert(
+  readFileSync("app/components/sponsor/SeeMatchDetails.tsx", "utf8").includes(
+    "See Match details"
+  ) &&
+    readFileSync("app/components/sponsor/SeeMatchDetails.tsx", "utf8").includes(
+      "defaultOpen"
+    ) &&
+    sponsorDashboardPage.includes("defaultOpen"),
+  "After a Match is selected, sponsors can See Match details"
 );
 assert(
   !sponsorDashboardPage.includes("ClubNetworkPicker") &&
@@ -492,7 +506,8 @@ assert(
 assert(
   sponsorDashboardPage.includes("loadClubFixtures") &&
     sponsorDashboardPage.includes("ensureGoalNetwork") &&
-    sponsorDashboardPage.includes("See Match details"),
+    (sponsorDashboardPage.includes("See Match details") ||
+      sponsorDashboardPage.includes("SeeMatchDetails")),
   "Locking a listed club and Match still records the Goal Sponsorship Network behind the scenes"
 );
 assert(

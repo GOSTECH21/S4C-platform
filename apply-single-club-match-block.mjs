@@ -4,6 +4,8 @@ import { dirname, join } from "path";
 const BRANCH = "cursor/single-club-match-block-18f9";
 const FILES = [
   "app/sponsor/dashboard/page.tsx",
+  "app/components/sponsor/ClubMatchMenus.tsx",
+  "app/components/sponsor/SeeMatchDetails.tsx",
   "scripts/verify-sponsor-dashboard.ts",
 ];
 

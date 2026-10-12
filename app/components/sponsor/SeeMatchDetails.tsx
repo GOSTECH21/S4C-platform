@@ -1,25 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { matchDetailsLines } from "@/app/lib/club-fixtures";
 
 export function SeeMatchDetails({
   date,
   venue,
   kickoff,
+  defaultOpen = false,
 }: {
   date?: string | null;
   venue?: string | null;
   kickoff?: string | null;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const details = matchDetailsLines({ date, venue, kickoff });
+
+  useEffect(() => {
+    setOpen(defaultOpen);
+  }, [defaultOpen, date, venue, kickoff]);
+
   return (
     <div>
       <button
         type="button"
+        aria-expanded={open}
+        aria-label={open ? "Hide Match details" : "See Match details"}
         onClick={() => setOpen((current) => !current)}
-        className="mt-2 text-sm font-semibold text-green-300 hover:underline"
+        className="mt-4 rounded-xl bg-s4p-mark px-4 py-2 text-sm font-bold text-slate-950"
       >
         {open ? "Hide Match details" : "See Match details"}
       </button>

@@ -32,7 +32,10 @@ import {
 import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
-import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
+import {
+  ClubLeagueMenu,
+  MatchFixtureMenu,
+} from "@/app/components/sponsor/ClubMatchMenus";
 import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
@@ -289,9 +292,8 @@ export default function SponsorDashboardPage() {
     });
   }
 
-  function applyMatchDayLock(clubName: string, fixtureValue: string) {
+  function applyMatchDayLock(clubName: string, fixture: ClubFixture | null) {
     const club = clubName.trim();
-    const fixture = club ? fixtureByIdOrName(clubFixtures, fixtureValue) : null;
     setLockFixture(fixture?.fixtureName ?? "");
     if (fixture?.competition) setLockLabel(fixture.competition);
     setFixtureNotice(null);
@@ -346,15 +348,11 @@ export default function SponsorDashboardPage() {
 
   function unlockMatchDay() {
     const cleared = unlockedMatchDay(lockLabel);
-    applyMatchDayLock(cleared.clubName, "");
+    applyMatchDayLock(cleared.clubName, null);
   }
 
-  const listedClubs = Array.from(
-    new Set<string>([...DEMO_CLUB_NAMES, lockClub].filter(Boolean))
-  );
-  const matchLocked = Boolean(
-    lockClub && lockFixture && fixtureByIdOrName(clubFixtures, lockFixture)
-  );
+  const selectedFixture = fixtureByIdOrName(clubFixtures, lockFixture);
+  const matchLocked = Boolean(lockClub && (selectedFixture || lockFixture));
 
   if (loading) {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
@@ -400,14 +398,14 @@ export default function SponsorDashboardPage() {
 
       <section
         id="match-day-lock-in"
-        className="scroll-mt-6 rounded-3xl border border-green-500/30 bg-slate-900 p-8"
+        className="scroll-mt-6 overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
           Match Day lock-in
         </p>
         <h2 className="mt-2 text-3xl font-black">Select a Club</h2>
         <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
-        <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
+        <div className="mt-6 overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
           <p className="text-sm uppercase tracking-[0.2em] text-green-300">
             {matchLocked
               ? "Locked in"
@@ -416,47 +414,17 @@ export default function SponsorDashboardPage() {
                 : "Select a Club"}
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="block text-sm text-slate-400">
-              Club
-              <select
-                value={lockClub}
-                onChange={(event) => applyMatchDayLock(event.target.value, "")}
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-                aria-label="Select a club"
-              >
-                <option value="">Select a club</option>
-                {listedClubs.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm text-slate-400">
-              Match
-              <select
-                value={
-                  fixtureByIdOrName(clubFixtures, lockFixture)?.id ?? ""
-                }
-                disabled={!lockClub || fixturesLoading}
-                onChange={(event) =>
-                  applyMatchDayLock(lockClub, event.target.value)
-                }
-                className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white disabled:opacity-50"
-                aria-label="Select the Match"
-              >
-                <option value="">
-                  {fixturesLoading
-                    ? "Loading published fixtures..."
-                    : "Select the Match"}
-                </option>
-                {clubFixtures.map((fixture) => (
-                  <option key={fixture.id} value={fixture.id}>
-                    {fixture.fixtureName}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <ClubLeagueMenu
+              value={lockClub}
+              onChange={(club) => applyMatchDayLock(club, null)}
+            />
+            <MatchFixtureMenu
+              clubName={lockClub}
+              value={lockFixture}
+              fixtures={clubFixtures}
+              loading={fixturesLoading}
+              onChange={(fixture) => applyMatchDayLock(lockClub, fixture)}
+            />
           </div>
           {fixtureNotice && (
             <p className="mt-4 text-sm font-semibold text-amber-300">
@@ -473,31 +441,32 @@ export default function SponsorDashboardPage() {
                 dashboard until you change this lock.
               </p>
               <SeeMatchDetails
+                key={lockFixture}
+                defaultOpen
                 date={
                   lock?.fixtureDate ||
-                  fixtureByIdOrName(clubFixtures, lockFixture)?.date
+                  selectedFixture?.date
                 }
                 venue={
                   lock?.venue ||
-                  fixtureByIdOrName(clubFixtures, lockFixture)?.venue
+                  selectedFixture?.venue
                 }
                 kickoff={
                   lock?.kickoff ||
-                  fixtureByIdOrName(clubFixtures, lockFixture)?.kickoff
+                  selectedFixture?.kickoff
                 }
               />
             </>
           ) : lockClub ? (
             <p className="mt-4 text-sm text-slate-400">
-              {lockClub} is selected. Choose the Match you wish to sponsor —
-              then you can See Match details before opening the Climate
-              Sponsorship Wallet.
+              {lockClub} is selected. Choose the Match you wish to sponsor, then
+              See Match details before opening the Climate Sponsorship Wallet.
             </p>
           ) : (
             <p className="mt-4 text-sm text-slate-400">
-              Select a club from the listed clubs, then select the Match you
-              wish to sponsor. After that you can See Match details, then open
-              the Climate Sponsorship Wallet.
+              Select a club from Premier League or Scottish Premiership, then
+              select the Match you wish to sponsor. You can then See Match
+              details and open the Climate Sponsorship Wallet.
             </p>
           )}
           <button
