@@ -33,11 +33,16 @@ import {
 } from "../app/lib/routes";
 import {
   cistRowsForSponsor,
+  committedGbpForSignedHome,
   defaultCalendarMonth,
   fundedClimateProjectsFromSigned,
+  fundedClimateProjectsForHome,
+  hasCompletedMatchSponsorship,
   matchesOnDate,
   monthCells,
   showsSignedSponsorHome,
+  sponsoredMatchesForHome,
+  sponsoredMatchesFromLock,
   sponsoredMatchesFromSigned,
 } from "../app/lib/sponsor-signed-home";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
@@ -128,6 +133,20 @@ assert(
     clubName: "Arsenal",
   }).length === 0,
   "Arsenal SD does not receive United's signed copy"
+);
+assert(
+  pairSignedSponsorships([offer, otherOffer], [signature], {
+    sponsorId: "new-login-id",
+    brandName: "Puma",
+  })[0]?.offer.id === "offer-1",
+  "Re-login still lodges the signed folder when the brand matches and the sponsor id changed"
+);
+assert(
+  pairSignedSponsorships([offer, otherOffer], [signature], {
+    sponsorId: "new-login-id",
+    brandName: "Pepsi Cola",
+  }).length === 0,
+  "A different brand on re-login does not inherit another sponsor's signed folder"
 );
 
 const payload = signedCopyPayload(signed[0]);
@@ -796,6 +815,16 @@ assert(
     applyMixed.includes("Click here to initiate a New Sponsorship"),
   "The apply script pulls the signed-off Match-Day calendar home onto mixed PC files"
 );
+const applyLoginHome = readFileSync(
+  "apply-sponsor-login-calendar.mjs",
+  "utf8"
+);
+assert(
+  applyLoginHome.includes("app/lib/sponsor-signed-home.ts") &&
+    applyLoginHome.includes("app/sponsor/dashboard/page.tsx") &&
+    applyLoginHome.includes("hasCompletedMatchSponsorship"),
+  "The login-calendar apply script pulls the returning-sponsor home onto mixed PC files"
+);
 
 const amexHeartsSigned = {
   offer: {
@@ -881,14 +910,83 @@ assert(
 assert(
   showsSignedSponsorHome(1, false) &&
     !showsSignedSponsorHome(1, true) &&
-    !showsSignedSponsorHome(0, false),
-  "Signed-off home hides lock-in until New Sponsorship is initiated"
+    !showsSignedSponsorHome(0, false) &&
+    showsSignedSponsorHome(0, false, true) &&
+    !showsSignedSponsorHome(0, true, true),
+  "Login shows calendar home after a signed or funded Match, and lock-in only for New Sponsorship"
+);
+const pepsiLock = {
+  brandKey: "pepsi cola",
+  clubName: "Arsenal",
+  matchLabel: "Premier League Match",
+  fixtureName: "Manchester City v Arsenal",
+  fixtureDate: "2026-11-21",
+  lockedAt: "2026-10-12T12:00:00.000Z",
+  fundingLockedAt: "2026-10-12T12:30:00.000Z",
+  commitmentFeeGbp: 2300,
+  gbpPerGoal: 4000,
+  maximumSponsorshipGbp: 7500,
+};
+assert(
+  hasCompletedMatchSponsorship(pepsiLock) &&
+    !hasCompletedMatchSponsorship({
+      ...pepsiLock,
+      fundingLockedAt: undefined,
+      commitmentFeeGbp: 0,
+    }) &&
+    hasCompletedMatchSponsorship(
+      {
+        ...pepsiLock,
+        fundingLockedAt: undefined,
+        commitmentFeeGbp: 0,
+      },
+      { commitmentFeeGbp: 2300 }
+    ),
+  "Sponsoring a club and its Goals scored counts as a completed Match for login"
+);
+const pepsiMatches = sponsoredMatchesFromLock(pepsiLock);
+assert(
+  pepsiMatches[0]?.fixtureName === "Manchester City v Arsenal" &&
+    pepsiMatches[0]?.date === "2026-11-21" &&
+    sponsoredMatchesForHome([], pepsiLock)[0]?.clubName === "Arsenal",
+  "Returning Pepsi Cola login spotlights the sponsored Arsenal Match on the calendar"
+);
+assert(
+  committedGbpForSignedHome({
+    signedExpenditureGbp: 0,
+    lock: pepsiLock,
+  }) === 2300,
+  "CIST uses the deposited Commitment Fee when the signed folder is empty"
+);
+assert(
+  fundedClimateProjectsForHome(
+    [],
+    [
+      {
+        clubId: "arsenal-demo",
+        clubName: "Arsenal",
+        matchTitle: "Manchester City v Arsenal",
+        projects: [
+          { id: "gss", name: "Global Schools Solar", fundedGbp: 2300 },
+        ],
+      },
+    ],
+    { "arsenal-demo": [{ id: "gss", fundedGbp: 2300 }] }
+  )[0]?.name === "Global Schools Solar",
+  "Where your money went lists Climate Projects even before signatures pair"
 );
 assert(
   sponsorDashboardPage.includes("showsSignedSponsorHome") &&
+    sponsorDashboardPage.includes("hasCompletedMatchSponsorship") &&
+    sponsorDashboardPage.includes("completedMatch") &&
     sponsorDashboardPage.indexOf("loadSponsorFolder") <
       sponsorDashboardPage.indexOf("setLoading(false)"),
-  "The dashboard waits for signed sponsorships before leaving the loading state"
+  "The dashboard waits for signed or funded Matches before leaving the loading state"
+);
+assert(
+  offerService.includes("pairSignedSponsorships(allOffers, signatures") &&
+    offerService.includes("brandName,"),
+  "The sponsor folder pairs signatures against every brand offer, not the lock-filtered inbox"
 );
 assert(
   sponsorNewSponsorshipPath() === `${SPONSOR_DASHBOARD_PATH}?new=1` &&
@@ -910,6 +1008,8 @@ const cistSource = readFileSync(
 );
 assert(
   sponsorDashboardPage.includes("SignedSponsorHome") &&
+    sponsorDashboardPage.includes("lock={lock}") &&
+    signedHomeSource.includes("sponsoredMatchesForHome") &&
     signedHomeSource.includes("SPONSOR_NEW_SPONSORSHIP_LABEL") &&
     signedHomeSource.includes('role="tab"') &&
     signedHomeSource.indexOf("<SponsorCistTable") <
