@@ -47,17 +47,20 @@ export function SignedSponsorHome({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onNewSponsorship}
-        className="w-full rounded-2xl bg-green-500 px-6 py-5 text-left text-lg font-black text-slate-950 hover:brightness-110"
-      >
-        {SPONSOR_NEW_SPONSORSHIP_LABEL}
-      </button>
-
       <SponsoredMatchCalendar matches={matches} />
       <FundedClimateProjectsList projects={projects} />
       <SponsorCistTable brandName={brand} ownFundingGbp={committedGbp} />
+
+      <div role="tablist" aria-label="Sponsorship actions">
+        <button
+          type="button"
+          role="tab"
+          onClick={onNewSponsorship}
+          className="rounded-lg bg-s4p-mark px-5 py-2 text-sm font-bold text-slate-950 hover:brightness-110"
+        >
+          {SPONSOR_NEW_SPONSORSHIP_LABEL}
+        </button>
+      </div>
     </div>
   );
 }

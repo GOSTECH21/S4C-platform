@@ -75,7 +75,7 @@ export function SponsoredMatchCalendar({
             <button
               key={cell.key}
               type="button"
-              disabled={!cell.inMonth}
+              disabled={!sponsored}
               onClick={() => cell.date && setSelectedDate(cell.date)}
               className={`min-h-14 rounded-xl p-2 text-sm font-semibold ${
                 !cell.inMonth
@@ -84,7 +84,7 @@ export function SponsoredMatchCalendar({
                     ? "bg-green-500 text-slate-950"
                     : sponsored
                       ? "bg-green-500/20 text-green-200 ring-1 ring-green-400"
-                      : "bg-slate-950 text-slate-300 hover:border-green-500"
+                      : "cursor-default bg-slate-950 text-slate-300"
               }`}
               aria-pressed={selected}
               aria-label={

@@ -30,11 +30,19 @@ export function FundedClimateProjectsList({
         {(fanFunded.length > 0 ? fanFunded : projects).map((project) => (
           <details
             key={project.id}
-            className="rounded-2xl border border-slate-700 bg-slate-950 p-5"
+            className="group rounded-2xl border border-slate-700 bg-slate-950 p-5"
           >
             <summary className="cursor-pointer list-none font-bold">
               <span className="flex items-start justify-between gap-4">
-                <span>{project.name}</span>
+                <span>
+                  <span
+                    aria-hidden
+                    className="mr-2 inline-block text-green-400 transition group-open:rotate-90"
+                  >
+                    ▸
+                  </span>
+                  {project.name}
+                </span>
                 <span className="shrink-0 text-sm font-semibold text-green-300">
                   {formatFundingGbp(project.fundedGbp)}
                 </span>

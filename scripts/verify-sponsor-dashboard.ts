@@ -37,6 +37,7 @@ import {
   fundedClimateProjectsFromSigned,
   matchesOnDate,
   monthCells,
+  showsSignedSponsorHome,
   sponsoredMatchesFromSigned,
 } from "../app/lib/sponsor-signed-home";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
@@ -855,21 +856,61 @@ assert(
     cist.find((row) => row.name === "American Express")?.rank === 2,
   "Climate Impact Sponsorship Table highlights American Express in position"
 );
+const cistRaised = cistRowsForSponsor({
+  rows: [
+    { name: "Puma", donationGbp: 5000 },
+    { name: "American Express", donationGbp: 1000 },
+  ],
+  brandName: "American Express",
+  ownFundingGbp: 7500,
+});
+assert(
+  cistRaised.find((row) => row.highlighted)?.rank === 1 &&
+    cistRaised.find((row) => row.name === "American Express")?.funding.includes(
+      "7,500"
+    ),
+  "CIST uses the signed Commitment Fee and Goals-scored Sponsorship for the highlighted position"
+);
+assert(
+  showsSignedSponsorHome(1, false) &&
+    !showsSignedSponsorHome(1, true) &&
+    !showsSignedSponsorHome(0, false),
+  "Signed-off home hides lock-in until New Sponsorship is initiated"
+);
+assert(
+  sponsorDashboardPage.includes("showsSignedSponsorHome") &&
+    sponsorDashboardPage.indexOf("loadSponsorFolder") <
+      sponsorDashboardPage.indexOf("setLoading(false)"),
+  "The dashboard waits for signed sponsorships before leaving the loading state"
+);
 assert(
   sponsorNewSponsorshipPath() === `${SPONSOR_DASHBOARD_PATH}?new=1` &&
     isNewSponsorshipRequest("?new=1") &&
     !isNewSponsorshipRequest(""),
   "New Sponsorship opens the lock-in flow from the signed-off home"
 );
+const signedHomeSource = readFileSync(
+  "app/components/sponsor/SignedSponsorHome.tsx",
+  "utf8"
+);
+const calendarSource = readFileSync(
+  "app/components/sponsor/SponsoredMatchCalendar.tsx",
+  "utf8"
+);
+const cistSource = readFileSync(
+  "app/components/sponsor/SponsorCistTable.tsx",
+  "utf8"
+);
 assert(
   sponsorDashboardPage.includes("SignedSponsorHome") &&
-    readFileSync("app/components/sponsor/SignedSponsorHome.tsx", "utf8").includes(
-      "SPONSOR_NEW_SPONSORSHIP_LABEL"
-    ) &&
-    readFileSync(
-      "app/components/sponsor/SponsoredMatchCalendar.tsx",
-      "utf8"
-    ).includes("highlighted Match Day") &&
+    signedHomeSource.includes("SPONSOR_NEW_SPONSORSHIP_LABEL") &&
+    signedHomeSource.includes('role="tab"') &&
+    signedHomeSource.indexOf("<SponsorCistTable") <
+      signedHomeSource.indexOf('role="tab"') &&
+    calendarSource.includes("highlighted Match Day") &&
+    calendarSource.includes("disabled={!sponsored}") &&
+    cistSource.includes("Impact Moments") &&
+    cistSource.includes("Climate Impact") &&
     readFileSync(
       "app/sponsor/offers/OfferSignOff.tsx",
       "utf8"

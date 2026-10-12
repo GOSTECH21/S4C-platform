@@ -5,7 +5,6 @@ import {
   cistRowsForSponsor,
 } from "@/app/lib/sponsor-signed-home";
 import { impactTableMeta } from "@/app/lib/s4p-impact-tables";
-import { S4P_IMPACT_TABLES_PATH } from "@/app/lib/routes";
 import { loadSponsorLeaderboard } from "@/app/services/sponsor-leaderboard.service";
 
 export function SponsorCistTable({
@@ -60,8 +59,10 @@ export function SponsorCistTable({
           <thead className="bg-slate-950 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
             <tr>
               <th className="px-4 py-3 font-semibold">Pos</th>
-              <th className="px-4 py-3 font-semibold">Sponsor</th>
+              <th className="px-4 py-3 font-semibold">{meta.entityColumn}</th>
+              <th className="px-4 py-3 text-right font-semibold">Impact Moments</th>
               <th className="px-4 py-3 text-right font-semibold">Climate Funding</th>
+              <th className="px-4 py-3 text-right font-semibold">Climate Impact</th>
             </tr>
           </thead>
           <tbody>
@@ -84,19 +85,19 @@ export function SponsorCistTable({
                   ) : null}
                 </td>
                 <td className="px-4 py-3.5 text-right font-semibold text-green-300">
+                  {row.impactMoments}
+                </td>
+                <td className="px-4 py-3.5 text-right font-semibold text-green-300">
                   {row.funding}
+                </td>
+                <td className="px-4 py-3.5 text-right font-semibold text-green-300">
+                  {row.climateImpact}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <a
-        href={`${S4P_IMPACT_TABLES_PATH}?tab=cist`}
-        className="mt-4 inline-flex text-sm font-semibold text-green-400"
-      >
-        {meta.viewFullLabel}
-      </a>
     </section>
   );
 }

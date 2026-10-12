@@ -49,6 +49,7 @@ import {
   sponsorWalletPath,
 } from "@/app/lib/routes";
 import { SignedSponsorHome } from "@/app/components/sponsor/SignedSponsorHome";
+import { showsSignedSponsorHome } from "@/app/lib/sponsor-signed-home";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import {
   formatMatchFundingLine,
@@ -129,7 +130,6 @@ export default function SponsorDashboardPage() {
         else if (currentLock?.matchLabel && !currentLock.fixtureName) {
           setLockLabel(currentLock.matchLabel);
         }
-        setLoading(false);
         const folder = await loadSponsorFolder({
           sponsorId,
           brandName: sponsorName,
@@ -364,7 +364,7 @@ export default function SponsorDashboardPage() {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
   }
 
-  if (signed.length > 0 && !newSponsorship) {
+  if (showsSignedSponsorHome(signed.length, newSponsorship)) {
     return (
       <SignedSponsorHome
         brand={brand}

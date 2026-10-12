@@ -13,7 +13,6 @@ import { readClimateWallet } from "@/app/services/sponsor-wallet.service";
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
-  SPONSOR_SIGNED_SECTION_ID,
 } from "@/app/lib/routes";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
@@ -145,7 +144,7 @@ export function OfferSignOffForm({
             lodged in your Dashboard folder.
           </p>
           <Link
-            href={`${SPONSOR_DASHBOARD_PATH}#${SPONSOR_SIGNED_SECTION_ID}`}
+            href={SPONSOR_DASHBOARD_PATH}
             className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
           >
             Open your sponsored Match Days

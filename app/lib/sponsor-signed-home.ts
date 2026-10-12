@@ -223,12 +223,19 @@ export function cistRowsForSponsor({
     funding: row.funding ?? formatFundingGbp(Number(row.donationGbp) || 0),
     climateImpact: "—",
   }));
-  if (
-    brandName.trim() &&
-    !entries.some((row) => brandsMatch(row.name, brandName))
-  ) {
+  const ownName = brandName.trim();
+  const existing = ownName
+    ? entries.find((row) => brandsMatch(row.name, ownName))
+    : undefined;
+  if (existing) {
+    if (ownFundingGbp > existing.sortValue) {
+      existing.sortValue = ownFundingGbp;
+      existing.metric = formatFundingGbp(ownFundingGbp);
+      existing.funding = formatFundingGbp(ownFundingGbp);
+    }
+  } else if (ownName) {
     entries.push({
-      name: brandName.trim(),
+      name: ownName,
       metric: formatFundingGbp(ownFundingGbp),
       sortValue: ownFundingGbp,
       impactMoments: "0",
@@ -240,4 +247,11 @@ export function cistRowsForSponsor({
     ...row,
     highlighted: brandsMatch(row.name, brandName),
   }));
+}
+
+export function showsSignedSponsorHome(
+  signedCount: number,
+  newSponsorship: boolean
+): boolean {
+  return signedCount > 0 && !newSponsorship;
 }
