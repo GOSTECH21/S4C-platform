@@ -1287,7 +1287,7 @@ export async function postMatchDayProjectsToFans({
   const selected = await ensureFeaturedSelection(
     board.selected,
     stored?.featuredProjectId
- mar  );
+  );
   if (selected.length < MATCH_DAY_PROJECT_COUNT) {
     throw new Error(
       `Choose ${MATCH_DAY_PROJECT_COUNT} Match Day projects before posting them to your fans.`
