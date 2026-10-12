@@ -320,10 +320,10 @@ assert(
 assert(
   front.includes("s4p-navy-panel") &&
     globalCss.includes(".s4p-navy-panel") &&
-    globalCss.includes("--s4p-ivory: #f7f4e8") &&
-    globalCss.includes("--s4p-mint: #8fe388") &&
-    globalCss.includes("#082a46"),
-  "Stats sit on navy glass; ivory and mint tokens are defined"
+    globalCss.includes("--s4p-ink: #111111") &&
+    globalCss.includes("--s4p-mint: #2a8f4a") &&
+    globalCss.includes("#f7f4e8"),
+  "Stats sit on paper panels; copy is black and green on ivory"
 );
 assert(
   front.includes("WICKET") &&
@@ -366,7 +366,8 @@ assert(
     impactLib.includes("View Full Climate Impact Fans Table →") &&
     impactWidget.includes("h-fit") &&
     impactWidget.includes("text-s4p-mark") &&
-    impactWidget.includes("text-amber-300") &&
+    impactWidget.includes("text-s4p-mint") &&
+    !impactWidget.includes("text-amber-300") &&
     impactWidget.includes("Impact Moments") &&
     impactWidget.includes("Climate Funding") &&
     impactWidget.includes("Climate Impact") &&

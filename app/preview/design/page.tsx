@@ -10,8 +10,8 @@ export default function DesignPreviewPage() {
         </p>
         <h1 className="mt-3 text-4xl font-black text-s4p-ivory">Try a new look</h1>
         <p className="mt-4 max-w-3xl text-lg leading-7 text-slate-300">
-          Quiet wave is saved as the restore point — the design the platform is using now.
-          Trials live only in this browser. Restore puts Quiet wave back on every page.
+          Ivory canvas is the live design — paper pages, black copy and one green.
+          Trials live only in this browser. Restore puts Ivory canvas back on every page.
         </p>
         <p className="mt-3 text-sm text-slate-400">
           <Link href="/" className="text-s4p-mint underline-offset-2 hover:underline">

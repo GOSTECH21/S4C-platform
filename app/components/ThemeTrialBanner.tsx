@@ -6,8 +6,9 @@ import { DESIGN_PREVIEW_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_S4P_THEME,
   S4P_THEME_CHANGE_EVENT,
+  S4P_THEME_STORAGE_KEY,
   readStoredS4pTheme,
-  restoreQuietWave,
+  restoreDefaultTheme,
   themeById,
   type S4pThemeId,
 } from "@/app/lib/s4p-themes";
@@ -21,7 +22,7 @@ export default function ThemeTrialBanner() {
     }
     sync();
     function onStorage(event: StorageEvent) {
-      if (event.key === "s4p-theme") sync();
+      if (event.key === S4P_THEME_STORAGE_KEY) sync();
     }
     window.addEventListener("storage", onStorage);
     window.addEventListener(S4P_THEME_CHANGE_EVENT, sync);
@@ -51,7 +52,7 @@ export default function ThemeTrialBanner() {
             type="button"
             className="rounded-md bg-s4p-mark px-3 py-1.5 font-semibold text-slate-950"
             onClick={() => {
-              restoreQuietWave();
+              restoreDefaultTheme();
               setThemeId(DEFAULT_S4P_THEME);
             }}
           >

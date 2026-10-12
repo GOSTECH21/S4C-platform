@@ -20,7 +20,7 @@ export default function Footer() {
 
           <div>
 
-            <h2 className="text-2xl font-black text-green-400">
+            <h2 className="text-2xl font-black text-s4p-mint">
               S4P
             </h2>
 

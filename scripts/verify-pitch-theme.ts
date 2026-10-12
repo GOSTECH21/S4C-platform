@@ -7,37 +7,34 @@ function assert(condition: boolean, message: string) {
 
 assert(
   existsSync("public/images/platform-background.png"),
-  "The green–navy wave wallpaper is in public/images"
+  "The quiet-wave wallpaper is still backed up"
 );
 
 const css = readFileSync("app/globals.css", "utf8");
-assert(
-  css.includes('url("/images/platform-background.png")'),
-  "Every page uses the wave wallpaper as the background"
-);
-assert(css.includes("background-attachment: fixed"), "The wallpaper stays fixed behind every page");
-assert(css.includes("--s4p-ivory: #f7f4e8"), "Primary copy is ivory");
-assert(css.includes("--s4p-mint: #8fe388"), "Green on dark blue is mint, not fluorescent lime");
-assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons and icons");
-assert(css.includes(".s4p-navy-panel"), "Info panels sit on a consistent navy glass");
-assert(css.includes("#082a46"), "Canvas falls back to deep navy");
-assert(css.includes("#0b4a4a"), "Teal is in the atmosphere overlay");
-assert(css.includes("#176b4a"), "Restrained emerald is in the atmosphere overlay");
-assert(!css.includes("#0a0a0a"), "The old black canvas token is gone");
+assert(css.includes("--s4p-canvas: #f7f4e8"), "The live canvas is ivory paper");
+assert(css.includes("--s4p-ink: #111111"), "Primary copy is black");
+assert(css.includes("--s4p-mint: #2a8f4a"), "Accent copy is one green");
+assert(css.includes("--s4p-gold: #2a8f4a"), "The old gold token is the same green");
+assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
+assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
+assert(css.includes('url("/images/platform-background.png")'), "Quiet wave remains as a trial wallpaper");
+assert(css.includes("html[data-theme=\"quiet-wave\"]"), "Quiet wave can still be tried");
 assert(!css.includes("#0c3229"), "The old pitch-dusk canvas token is gone");
 
 const home = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 assert(!home.includes("#04140f") && !home.includes("#07150f"), "Home no longer uses near-black overlays");
-assert(!home.includes("hero.png"), "Home no longer covers the wallpaper with the stadium hero photo");
-assert(home.includes('text-s4p-mint">a brighter planet'), "A brighter planet is mint");
-assert(home.includes("Sport creates the moment."), "Sport creates the moment is ivory");
-assert(home.includes("s4p-navy-panel"), "The stats strip uses navy glass");
+assert(!home.includes("hero.png"), "Home no longer covers the canvas with the stadium hero photo");
+assert(home.includes('text-s4p-mint">a brighter planet'), "A brighter planet is green");
+assert(home.includes("Sport creates the moment."), "Sport creates the moment stays in the hero");
+assert(home.includes("s4p-navy-panel"), "The stats strip uses a panel");
 
 const tables = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
-assert(tables.includes("s4p-navy-panel"), "CILT sits on navy glass");
+assert(tables.includes("s4p-navy-panel"), "CILT sits on a panel");
+assert(tables.includes("text-s4p-mint"), "CILT metrics are green");
+assert(!tables.includes("text-amber-300"), "CILT no longer uses gold metric text");
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("Quiet wave: ivory copy, mint accents, navy panels, lime reserved for UI.");
+console.log("Ivory canvas: black copy, one green, lime reserved for buttons.");
