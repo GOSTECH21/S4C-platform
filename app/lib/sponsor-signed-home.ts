@@ -1,13 +1,22 @@
 /** Post-sign-off sponsor home: Match-Day calendar, funded projects, CIST highlight. */
 
-import { brandsMatch } from "./climate-sponsors";
+import {
+  brandsMatch,
+  displayLockFixture,
+  isNamedFixture,
+  type MatchDayClubLock,
+} from "./climate-sponsors";
+import {
+  isWalletFundingLocked,
+  resolveCommittedMatchFunding,
+} from "./sponsor-completion-flow";
 import { DEFAULT_WALLET_VOTE_GBP } from "./sponsor-wallet";
 import { formatFundingGbp } from "./platform-stats";
 import {
   rankImpactRows,
   type ImpactTableRow,
 } from "./s4p-impact-tables";
-import type { SignedSponsorship } from "./sponsor-dashboard";
+import type { FolderOffer, SignedSponsorship } from "./sponsor-dashboard";
 import { votedProjectsOnSignedOffer } from "./sponsor-dashboard";
 
 export const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -87,6 +96,66 @@ export function sponsoredMatchesFromSigned(
     );
 }
 
+export function hasCompletedMatchSponsorship(
+  lock: MatchDayClubLock | null | undefined,
+  wallet?: { commitmentFeeGbp?: number | null } | null
+): boolean {
+  if (!lock?.clubName?.trim()) return false;
+  if (!isNamedFixture(displayLockFixture(lock))) return false;
+  if (isWalletFundingLocked(lock)) return true;
+  return Number(wallet?.commitmentFeeGbp) > 0;
+}
+
+export function sponsoredMatchesFromLock(
+  lock: MatchDayClubLock | null | undefined
+): SponsoredMatchListing[] {
+  if (!lock?.clubName?.trim()) return [];
+  const fixture = displayLockFixture(lock);
+  if (!isNamedFixture(fixture)) return [];
+  const date =
+    matchDateKey(lock.fixtureDate) ||
+    matchDateKey(lock.lockedAt) ||
+    matchDateKey(lock.fundingLockedAt);
+  if (!date) return [];
+  return [
+    {
+      date,
+      clubName: lock.clubName,
+      fixtureName: fixture,
+      headline: `${lock.clubName} · ${fixture}`,
+      offerId: `lock:${lock.brandKey}:${date}`,
+    },
+  ];
+}
+
+export function sponsoredMatchesForHome(
+  signed: SignedSponsorship[],
+  lock?: MatchDayClubLock | null
+): SponsoredMatchListing[] {
+  const fromSigned = sponsoredMatchesFromSigned(signed);
+  if (fromSigned.length > 0) return fromSigned;
+  return sponsoredMatchesFromLock(lock);
+}
+
+export function committedGbpForSignedHome({
+  signedExpenditureGbp,
+  lock,
+  wallet,
+}: {
+  signedExpenditureGbp?: number | null;
+  lock?: MatchDayClubLock | null;
+  wallet?: {
+    commitmentFeeGbp?: number | null;
+    gbpPerGoal?: number | null;
+    maximumSponsorshipGbp?: number | null;
+  } | null;
+}): number {
+  const signedAmount = Number(signedExpenditureGbp) || 0;
+  if (signedAmount > 0) return signedAmount;
+  const funding = resolveCommittedMatchFunding({ lock, wallet });
+  return funding.baseAmount || funding.maxAmount || 0;
+}
+
 export function sponsoredDates(matches: SponsoredMatchListing[]): Set<string> {
   return new Set(matches.map((row) => row.date));
 }
@@ -158,21 +227,23 @@ export function shiftMonth(
   return { year: next.getUTCFullYear(), month: next.getUTCMonth() };
 }
 
-export function fundedClimateProjectsFromSigned(
-  signed: SignedSponsorship[],
+export function fundedClimateProjectsFromOffers(
+  offers: Array<
+    Pick<FolderOffer, "clubId" | "clubName" | "matchTitle" | "projects">
+  >,
   votedByClub: Record<string, Array<{ id: string; fundedGbp?: number | null }>> = {}
 ): FundedSponsorProject[] {
   const byId = new Map<string, FundedSponsorProject>();
-  for (const row of signed) {
+  for (const offer of offers) {
     const voted = votedProjectsOnSignedOffer(
-      row.offer,
-      votedByClub[row.offer.clubId] ?? []
+      offer,
+      votedByClub[offer.clubId] ?? []
     );
     const votedIds = new Set(voted.map((project) => project.id));
     const votedFunded = new Map(
       voted.map((project) => [project.id, Number(project.fundedGbp) || 0])
     );
-    for (const project of row.offer.projects) {
+    for (const project of offer.projects) {
       const fanFunded = votedIds.has(project.id);
       const fromVotes = votedFunded.get(project.id) ?? 0;
       const fromOffer = Number(project.fundedGbp) || 0;
@@ -184,11 +255,8 @@ export function fundedClimateProjectsFromSigned(
         byId.set(project.id, {
           id: project.id,
           name: project.name,
-          clubName: row.offer.clubName,
-          matchTitle: fixtureLabelFromOffer(
-            row.offer.matchTitle,
-            row.offer.clubName
-          ),
+          clubName: offer.clubName,
+          matchTitle: fixtureLabelFromOffer(offer.matchTitle, offer.clubName),
           description: project.description ?? null,
           fundedGbp,
           fanFunded,
@@ -203,6 +271,28 @@ export function fundedClimateProjectsFromSigned(
     if (right.fundedGbp !== left.fundedGbp) return right.fundedGbp - left.fundedGbp;
     return left.name.localeCompare(right.name);
   });
+}
+
+export function fundedClimateProjectsFromSigned(
+  signed: SignedSponsorship[],
+  votedByClub: Record<string, Array<{ id: string; fundedGbp?: number | null }>> = {}
+): FundedSponsorProject[] {
+  return fundedClimateProjectsFromOffers(
+    signed.map((row) => row.offer),
+    votedByClub
+  );
+}
+
+export function fundedClimateProjectsForHome(
+  signed: SignedSponsorship[],
+  pending: Array<
+    Pick<FolderOffer, "clubId" | "clubName" | "matchTitle" | "projects">
+  > = [],
+  votedByClub: Record<string, Array<{ id: string; fundedGbp?: number | null }>> = {}
+): FundedSponsorProject[] {
+  const fromSigned = fundedClimateProjectsFromSigned(signed, votedByClub);
+  if (fromSigned.length > 0) return fromSigned;
+  return fundedClimateProjectsFromOffers(pending, votedByClub);
 }
 
 export function cistRowsForSponsor({
@@ -251,7 +341,8 @@ export function cistRowsForSponsor({
 
 export function showsSignedSponsorHome(
   signedCount: number,
-  newSponsorship: boolean
+  newSponsorship: boolean,
+  completedMatch = false
 ): boolean {
-  return signedCount > 0 && !newSponsorship;
+  return (signedCount > 0 || completedMatch) && !newSponsorship;
 }

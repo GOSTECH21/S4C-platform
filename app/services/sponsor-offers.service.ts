@@ -907,22 +907,27 @@ export async function loadSponsorFolder(options?: {
     listSponsorMatchOffers(),
     listOfferSignatures(),
   ]);
-  const offers = brandName
+  const lock = brandName ? loadMatchDayLock(brandName) : null;
+  const network = brandName
+    ? loadGoalNetwork(brandName, options?.brandEmail)
+    : null;
+  const inbox = brandName
     ? offersForLockedSponsor(allOffers, {
         brandName,
-        network: loadGoalNetwork(brandName, options?.brandEmail),
-        lock: loadMatchDayLock(brandName),
+        network,
+        lock,
       })
     : allOffers;
-  const signed = pairSignedSponsorships(offers, signatures, {
+  const signed = pairSignedSponsorships(allOffers, signatures, {
     sponsorId: options?.sponsorId,
+    brandName,
   });
-  const pending = unsignedMatchOffers(offers, signatures);
+  const pending = unsignedMatchOffers(inbox, signatures);
   const fanVotes = await countFansWhoVotedOnProjects(
     signed.flatMap((row) => row.offer.projectIds)
   );
   return {
-    offers,
+    offers: inbox,
     signatures,
     pending,
     signed,

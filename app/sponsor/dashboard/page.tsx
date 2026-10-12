@@ -22,6 +22,7 @@ import {
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   MATCH_DAY_LOCK_LABELS,
+  brandsMatch,
   clubsMatch,
   displayLockFixture,
   lockCopy,
@@ -49,7 +50,12 @@ import {
   sponsorWalletPath,
 } from "@/app/lib/routes";
 import { SignedSponsorHome } from "@/app/components/sponsor/SignedSponsorHome";
-import { showsSignedSponsorHome } from "@/app/lib/sponsor-signed-home";
+import {
+  committedGbpForSignedHome,
+  hasCompletedMatchSponsorship,
+  showsSignedSponsorHome,
+} from "@/app/lib/sponsor-signed-home";
+import { findClimateWallet } from "@/app/services/sponsor-wallet.service";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import {
   formatMatchFundingLine,
@@ -94,6 +100,8 @@ export default function SponsorDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newSponsorship, setNewSponsorship] = useState(false);
+  const [completedMatch, setCompletedMatch] = useState(false);
+  const [committedGbp, setCommittedGbp] = useState(0);
 
   useEffect(() => {
     setNewSponsorship(isNewSponsorshipRequest(window.location.search));
@@ -135,8 +143,25 @@ export default function SponsorDashboardPage() {
           brandName: sponsorName,
           brandEmail: sponsorEmail,
         });
+        const wallet = currentLock?.clubName
+          ? findClimateWallet(currentLock.clubName, sponsorName)
+          : null;
         setPending(folder.pending);
         setSigned(folder.signed);
+        setCompletedMatch(
+          folder.signed.length > 0 ||
+            hasCompletedMatchSponsorship(currentLock, wallet) ||
+            folder.signatures.some((row) =>
+              brandsMatch(row.brandName, sponsorName)
+            )
+        );
+        setCommittedGbp(
+          committedGbpForSignedHome({
+            signedExpenditureGbp: folder.stats.expenditureGbp,
+            lock: currentLock,
+            wallet,
+          })
+        );
         const clubIds = [
           ...new Set(
             [
@@ -266,9 +291,29 @@ export default function SponsorDashboardPage() {
   }, [loading, pending.length, signed.length]);
 
   async function refreshFolder() {
-    const folder = await loadSponsorFolder({ brandName: brand, brandEmail: email });
+    const folder = await loadSponsorFolder({
+      brandName: brand,
+      brandEmail: email,
+    });
+    const currentLock = loadMatchDayLock(brand);
+    const wallet = currentLock?.clubName
+      ? findClimateWallet(currentLock.clubName, brand)
+      : null;
+    setLock(currentLock);
     setPending(folder.pending);
     setSigned(folder.signed);
+    setCompletedMatch(
+      folder.signed.length > 0 ||
+        hasCompletedMatchSponsorship(currentLock, wallet) ||
+        folder.signatures.some((row) => brandsMatch(row.brandName, brand))
+    );
+    setCommittedGbp(
+      committedGbpForSignedHome({
+        signedExpenditureGbp: folder.stats.expenditureGbp,
+        lock: currentLock,
+        wallet,
+      })
+    );
     const clubIds = [
       ...new Set(
         [
@@ -364,14 +409,16 @@ export default function SponsorDashboardPage() {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
   }
 
-  if (showsSignedSponsorHome(signed.length, newSponsorship)) {
+  if (showsSignedSponsorHome(signed.length, newSponsorship, completedMatch)) {
     return (
       <SignedSponsorHome
         brand={brand}
         logoUrl={logoUrl}
         signed={signed}
         votedByClub={votedByClub}
-        committedGbp={stats.expenditureGbp}
+        committedGbp={committedGbp || stats.expenditureGbp}
+        lock={lock}
+        pendingOffers={pending}
         onNewSponsorship={() => {
           setNewSponsorship(true);
           router.replace(sponsorNewSponsorshipPath());

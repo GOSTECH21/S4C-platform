@@ -131,22 +131,49 @@ export function sponsorshipFundedProposals<T extends ClubProposalRef>(
   return proposals.filter((row) => isFundedSponsorProposal(row.status));
 }
 
+function compactSponsorName(value: string | null | undefined): string {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function signatureBelongsToSponsor(
+  signature: FolderSignature,
+  filter?: { sponsorId?: string | null; brandName?: string | null }
+): boolean {
+  if (!filter?.sponsorId && !filter?.brandName) return true;
+  const brandOk = Boolean(
+    filter.brandName &&
+      (brandsMatch(signature.brandName, filter.brandName) ||
+        compactSponsorName(signature.brandName) ===
+          compactSponsorName(filter.brandName))
+  );
+  const idOk = Boolean(
+    filter.sponsorId &&
+      signature.sponsorId &&
+      signature.sponsorId === filter.sponsorId
+  );
+  if (filter.brandName) return brandOk || (!signature.brandName && idOk);
+  if (filter.sponsorId) return !signature.sponsorId || idOk;
+  return true;
+}
+
 export function pairSignedSponsorships(
   offers: FolderOffer[],
   signatures: FolderSignature[],
-  filter?: { sponsorId?: string | null; clubId?: string; clubName?: string }
+  filter?: {
+    sponsorId?: string | null;
+    brandName?: string | null;
+    clubId?: string;
+    clubName?: string;
+  }
 ): SignedSponsorship[] {
   return signatures
     .map((signature) => {
       const offer = offers.find((row) => row.id === signature.offerId);
       if (!offer) return null;
-      if (
-        filter?.sponsorId &&
-        signature.sponsorId &&
-        signature.sponsorId !== filter.sponsorId
-      ) {
-        return null;
-      }
+      if (!signatureBelongsToSponsor(signature, filter)) return null;
       if (filter?.clubId || filter?.clubName) {
         const clubIdMatch = Boolean(
           filter.clubId && offer.clubId && offer.clubId === filter.clubId

@@ -8,9 +8,10 @@ import {
   SPONSOR_NEW_SPONSORSHIP_LABEL,
 } from "@/app/lib/routes";
 import {
-  fundedClimateProjectsFromSigned,
-  sponsoredMatchesFromSigned,
+  fundedClimateProjectsForHome,
+  sponsoredMatchesForHome,
 } from "@/app/lib/sponsor-signed-home";
+import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
 import type { SignedSponsorship } from "@/app/lib/sponsor-dashboard";
 
 export function SignedSponsorHome({
@@ -19,6 +20,8 @@ export function SignedSponsorHome({
   signed,
   votedByClub,
   committedGbp,
+  lock,
+  pendingOffers,
   onNewSponsorship,
 }: {
   brand: string;
@@ -26,10 +29,16 @@ export function SignedSponsorHome({
   signed: SignedSponsorship[];
   votedByClub: Record<string, Array<{ id: string; fundedGbp?: number | null }>>;
   committedGbp: number;
+  lock?: MatchDayClubLock | null;
+  pendingOffers?: Parameters<typeof fundedClimateProjectsForHome>[1];
   onNewSponsorship: () => void;
 }) {
-  const matches = sponsoredMatchesFromSigned(signed);
-  const projects = fundedClimateProjectsFromSigned(signed, votedByClub);
+  const matches = sponsoredMatchesForHome(signed, lock);
+  const projects = fundedClimateProjectsForHome(
+    signed,
+    pendingOffers ?? [],
+    votedByClub
+  );
 
   return (
     <div className="space-y-10">
