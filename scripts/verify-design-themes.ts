@@ -6,7 +6,7 @@ import {
   S4P_THEMES,
   isS4pThemeId,
 } from "../app/lib/s4p-themes";
-import { DESIGN_PREVIEW_PATH } from "../app/lib/routes";
+import { DESIGN_PREVIEW_PATH } from "../app/lib/s4p-themes";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -74,6 +74,12 @@ assert(
   "Footer links to the design trials"
 );
 assert(DESIGN_PREVIEW_PATH === "/preview/design", "Design trials live at /preview/design");
+assert(
+  readFileSync("app/lib/s4p-themes.ts", "utf8").includes(
+    'export const DESIGN_PREVIEW_PATH = "/preview/design"'
+  ),
+  "The design preview path is defined with the theme helpers"
+);
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));

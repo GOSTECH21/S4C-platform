@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DESIGN_PREVIEW_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_S4P_THEME,
+  DESIGN_PREVIEW_PATH,
   S4P_THEME_CHANGE_EVENT,
   S4P_THEME_STORAGE_KEY,
   readStoredS4pTheme,

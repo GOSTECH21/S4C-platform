@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/ivory-black-green-18f9";
@@ -6,6 +6,7 @@ const FILES = [
   "app/globals.css",
   "app/layout.tsx",
   "app/lib/s4p-themes.ts",
+  "app/lib/routes.ts",
   "app/styles/theme.ts",
   "app/components/ThemeBootScript.tsx",
   "app/components/ThemeTrialBanner.tsx",
@@ -37,6 +38,29 @@ for (const rel of FILES) {
     );
   }
 }
+
+function ensureDesignPreviewPath() {
+  const rel = "app/lib/routes.ts";
+  if (!existsSync(rel)) return;
+  let src = readFileSync(rel, "utf8");
+  if (src.includes("DESIGN_PREVIEW_PATH")) {
+    console.log("routes.ts already exports DESIGN_PREVIEW_PATH");
+    return;
+  }
+  const line = 'export const DESIGN_PREVIEW_PATH = "/preview/design";';
+  if (src.includes("GLOBAL_SCHOOLS_SOLAR_PATH")) {
+    src = src.replace(
+      /export const GLOBAL_SCHOOLS_SOLAR_PATH = "\/global-schools-solar";/,
+      `$&\n${line}`
+    );
+  } else {
+    src += `\n${line}\n`;
+  }
+  writeFileSync(rel, src);
+  console.log("Patched", rel);
+}
+
+ensureDesignPreviewPath();
 
 if (failed) process.exit(1);
 console.log(

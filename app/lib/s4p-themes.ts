@@ -1,6 +1,7 @@
 export const S4P_THEME_STORAGE_KEY = "s4p-theme-v2";
 export const S4P_THEME_CHANGE_EVENT = "s4p-theme-change";
 export const DEFAULT_S4P_THEME = "ivory-canvas";
+export const DESIGN_PREVIEW_PATH = "/preview/design";
 
 export const S4P_THEMES = [
   {

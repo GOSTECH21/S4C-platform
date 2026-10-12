@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { DESIGN_PREVIEW_PATH } from "@/app/lib/s4p-themes";
 import {
   CLIMATE_CREDITS_PATH,
   CLIMATE_IMPACT_LEAGUE_PATH,
   CLIMATE_SPONSORSHIP_PATH,
-  DESIGN_PREVIEW_PATH,
   GLOBAL_SCHOOLS_SOLAR_PATH,
   S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
