@@ -1,34 +1,46 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
-const rel = "app/lib/routes.ts";
-if (!existsSync(rel)) {
-  console.error("Stay in the S4C-platform folder (the one that contains app\\lib\\routes.ts).");
-  process.exit(1);
+const LINE = 'export const DESIGN_PREVIEW_PATH = "/preview/design";';
+
+function ensure(rel, insertAfter) {
+  if (!existsSync(rel)) {
+    console.error(`Missing ${rel}. Stay in the S4C-platform folder.`);
+    return false;
+  }
+  let src = readFileSync(rel, "utf8");
+  if (src.includes('export { DESIGN_PREVIEW_PATH } from "./s4p-themes"')) {
+    src = src.replace(
+      /export \{ DESIGN_PREVIEW_PATH \} from "\.\/s4p-themes";?/,
+      LINE
+    );
+    writeFileSync(rel, src);
+    console.log("Replaced s4p-themes re-export in", rel);
+    return true;
+  }
+  if (/export const DESIGN_PREVIEW_PATH/.test(src)) {
+    console.log("OK:", rel, "already defines DESIGN_PREVIEW_PATH");
+    return true;
+  }
+  if (insertAfter && src.includes(insertAfter)) {
+    src = src.replace(insertAfter, `${insertAfter}\n${LINE}`);
+  } else {
+    src += `\n${LINE}\n`;
+  }
+  writeFileSync(rel, src);
+  console.log("Patched", rel);
+  return true;
 }
 
-let src = readFileSync(rel, "utf8");
-if (src.includes("DESIGN_PREVIEW_PATH")) {
-  console.log("OK: DESIGN_PREVIEW_PATH is already in app/lib/routes.ts. Stop npm run dev, start it again, and hard-refresh.");
-  process.exit(0);
-}
+const okRoutes = ensure(
+  "app/lib/routes.ts",
+  'export const GLOBAL_SCHOOLS_SOLAR_PATH = "/global-schools-solar";'
+);
+const okThemes = ensure(
+  "app/lib/s4p-themes.ts",
+  'export const DEFAULT_S4P_THEME = "ivory-canvas";'
+);
 
-const line = 'export const DESIGN_PREVIEW_PATH = "/preview/design";';
-if (src.includes("GLOBAL_SCHOOLS_SOLAR_PATH")) {
-  src = src.replace(
-    /export const GLOBAL_SCHOOLS_SOLAR_PATH = "\/global-schools-solar";/,
-    `$&\n${line}`
-  );
-} else {
-  src += `\n${line}\n`;
-}
-
-if (!src.includes("DESIGN_PREVIEW_PATH")) {
-  console.error("Could not insert DESIGN_PREVIEW_PATH. Add this line to app/lib/routes.ts:");
-  console.error(line);
-  process.exit(1);
-}
-
-writeFileSync(rel, src);
+if (!okRoutes || !okThemes) process.exit(1);
 console.log(
-  "OK: added DESIGN_PREVIEW_PATH. Stop npm run dev, start it again, and hard-refresh."
+  "OK: DESIGN_PREVIEW_PATH is defined. Stop npm run dev, start it again, and hard-refresh."
 );
