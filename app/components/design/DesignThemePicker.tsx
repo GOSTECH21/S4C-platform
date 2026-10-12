@@ -8,7 +8,7 @@ import {
   S4P_THEMES,
   applyS4pTheme,
   readStoredS4pTheme,
-  restoreQuietWave,
+  restoreDefaultTheme,
   type S4pThemeId,
 } from "@/app/lib/s4p-themes";
 
@@ -47,7 +47,7 @@ export default function DesignThemePicker() {
           type="button"
           className="rounded-lg bg-s4p-mark px-5 py-3 font-semibold text-slate-950"
           onClick={() => {
-            restoreQuietWave();
+            restoreDefaultTheme();
             setActive(DEFAULT_S4P_THEME);
           }}
         >

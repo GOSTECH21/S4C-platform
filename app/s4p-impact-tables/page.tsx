@@ -120,7 +120,7 @@ function SimpleRows({
 }) {
   if (rows.length === 0) {
     return (
-      <p className="p-8 text-center font-semibold text-amber-300">{emptyLabel}</p>
+      <p className="p-8 text-center font-semibold text-s4p-mint">{emptyLabel}</p>
     );
   }
   return (
@@ -134,7 +134,7 @@ function SimpleRows({
             <span className="mr-3 font-black text-s4p-mark">{row.rank}.</span>
             {row.name}
           </span>
-          <span className="shrink-0 text-sm font-semibold text-amber-300">
+          <span className="shrink-0 text-sm font-semibold text-s4p-mint">
             {row.metric}
           </span>
         </li>
@@ -154,7 +154,7 @@ function FullRows({
 }) {
   if (rows.length === 0) {
     return (
-      <p className="p-8 text-center font-semibold text-amber-300">{emptyLabel}</p>
+      <p className="p-8 text-center font-semibold text-s4p-mint">{emptyLabel}</p>
     );
   }
   return (
@@ -176,13 +176,13 @@ function FullRows({
           >
             <td className="px-4 py-3.5 font-black text-s4p-mark">{row.rank}</td>
             <td className="px-4 py-3.5 font-semibold">{row.name}</td>
-            <td className="px-4 py-3.5 text-right font-semibold text-amber-300">
+            <td className="px-4 py-3.5 text-right font-semibold text-s4p-mint">
               {row.impactMoments}
             </td>
-            <td className="px-4 py-3.5 text-right font-semibold text-amber-300">
+            <td className="px-4 py-3.5 text-right font-semibold text-s4p-mint">
               {row.funding}
             </td>
-            <td className="px-4 py-3.5 text-right font-semibold text-amber-300">
+            <td className="px-4 py-3.5 text-right font-semibold text-s4p-mint">
               {row.climateImpact}
             </td>
           </tr>
@@ -231,10 +231,10 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
           S4P Impact Tables
         </p>
         <h1 className="mt-3 text-center text-4xl font-black">{heading}</h1>
-        <p className="mx-auto mt-4 max-w-3xl text-center font-semibold text-amber-300">
+        <p className="mx-auto mt-4 max-w-3xl text-center font-semibold text-s4p-mint">
           {IMPACT_TABLE_INTRO}
         </p>
-        <p className="mx-auto mt-3 max-w-3xl text-center text-sm font-semibold text-amber-200">
+        <p className="mx-auto mt-3 max-w-3xl text-center text-sm font-semibold text-s4p-mint">
           {board.description}
         </p>
 
@@ -280,7 +280,7 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <p className="mt-4 text-center text-sm font-semibold text-amber-300">
+        <p className="mt-4 text-center text-sm font-semibold text-s4p-mint">
           {rows.length
             ? `Showing ${start}–${end} of ${Math.min(rankedRows.length, IMPACT_TABLE_FULL_LIMIT)}`
             : "No entries yet"}

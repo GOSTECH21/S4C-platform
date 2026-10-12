@@ -59,7 +59,7 @@ export default function S4pImpactTables({
       </p>
       <div className="mt-3 overflow-x-auto">
         {topRows.length === 0 ? (
-          <p className="py-6 text-center text-sm font-semibold text-amber-300">
+          <p className="py-6 text-center text-sm font-semibold text-s4p-mint">
             {board.emptyLabel}
           </p>
         ) : (
@@ -83,13 +83,13 @@ export default function S4pImpactTables({
                   <td className="max-w-[7rem] truncate py-1.5 pr-2 text-sm font-semibold text-white">
                     {row.name}
                   </td>
-                  <td className="py-1.5 pr-2 text-right text-sm font-semibold text-amber-300">
+                  <td className="py-1.5 pr-2 text-right text-sm font-semibold text-s4p-mint">
                     {row.impactMoments}
                   </td>
-                  <td className="py-1.5 pr-2 text-right text-sm font-semibold text-amber-300">
+                  <td className="py-1.5 pr-2 text-right text-sm font-semibold text-s4p-mint">
                     {row.funding}
                   </td>
-                  <td className="py-1.5 text-right text-sm font-semibold text-amber-300">
+                  <td className="py-1.5 text-right text-sm font-semibold text-s4p-mint">
                     {row.climateImpact}
                   </td>
                 </tr>

@@ -126,10 +126,11 @@ assert(
   "CILT offers Global, Sport, Competition, Country and Season filters"
 );
 assert(
-  page.includes("text-amber-300") &&
+  page.includes("text-s4p-mint") &&
     page.includes("{row.metric}") &&
-    page.includes("{board.emptyLabel}"),
-  "Full CILT, CIST and CIFT subtexts use the gold metric colour"
+    page.includes("{board.emptyLabel}") &&
+    !page.includes("text-amber-300"),
+  "Full CILT, CIST and CIFT subtexts use the same green as the rest of the copy"
 );
 assert(
   page.includes("{IMPACT_TABLE_INTRO}") && page.includes("{board.description}"),
@@ -140,8 +141,9 @@ const widget = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
 assert(
   widget.includes("Table sponsored by") &&
     widget.includes(S4P_IMPACT_TABLES_PATH) &&
-    widget.includes("text-amber-300"),
-  "Each table can be sponsored by a brand later and uses gold metric text"
+    widget.includes("text-s4p-mint") &&
+    !widget.includes("text-amber-300"),
+  "Each table can be sponsored by a brand later and uses green metric text"
 );
 assert(
   widget.includes("h-fit") &&

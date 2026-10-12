@@ -1,13 +1,23 @@
-export const S4P_THEME_STORAGE_KEY = "s4p-theme";
+export const S4P_THEME_STORAGE_KEY = "s4p-theme-v2";
 export const S4P_THEME_CHANGE_EVENT = "s4p-theme-change";
-export const DEFAULT_S4P_THEME = "quiet-wave";
+export const DEFAULT_S4P_THEME = "ivory-canvas";
+export const DESIGN_PREVIEW_PATH = "/preview/design";
 
 export const S4P_THEMES = [
   {
+    id: "ivory-canvas",
+    name: "Ivory canvas",
+    restore: true,
+    tagline: "Current design — paper, black and green",
+    description:
+      "Off-white paper across the platform. Copy is black or green only. Lime stays on buttons.",
+    wallpaper: null,
+  },
+  {
     id: "quiet-wave",
     name: "Quiet wave",
-    restore: true,
-    tagline: "Current design — the restore point",
+    restore: false,
+    tagline: "The previous navy–teal wave",
     description:
       "Darkened navy–teal–forest wave, ivory headlines, mint on dark blue, lime only on buttons and selected rows.",
     wallpaper: "/images/themes/quiet-wave.png",
@@ -39,15 +49,6 @@ export const S4P_THEMES = [
       "The quiet wave with a denser forest wash. More green in the atmosphere, same readable navy glass.",
     wallpaper: "/images/themes/quiet-wave.png",
   },
-  {
-    id: "ivory-canvas",
-    name: "Ivory canvas",
-    restore: false,
-    tagline: "Paper pages, ink type",
-    description:
-      "Off-white paper, dark navy ink, and a deeper mint so green copy stays readable on cream. Lime stays on buttons.",
-    wallpaper: null,
-  },
 ] as const;
 
 export type S4pThemeId = (typeof S4P_THEMES)[number]["id"];
@@ -73,8 +74,13 @@ export function applyS4pTheme(id: S4pThemeId) {
   window.dispatchEvent(new Event(S4P_THEME_CHANGE_EVENT));
 }
 
-export function restoreQuietWave() {
+export function restoreDefaultTheme() {
   applyS4pTheme(DEFAULT_S4P_THEME);
+}
+
+/** @deprecated Use restoreDefaultTheme — Ivory canvas is the live restore point. */
+export function restoreQuietWave() {
+  restoreDefaultTheme();
 }
 
 export function readStoredS4pTheme(): S4pThemeId {
