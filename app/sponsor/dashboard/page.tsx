@@ -37,14 +37,18 @@ import {
   MatchFixtureMenu,
 } from "@/app/components/sponsor/ClubMatchMenus";
 import {
+  SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
   SPONSOR_RECEIVE_SECTION_ID,
   SPONSOR_SIGNED_SECTION_ID,
   SPONSOR_WALLET_PATH,
+  isNewSponsorshipRequest,
+  sponsorNewSponsorshipPath,
   sponsorOfferSignOffPath,
   sponsorWalletPath,
 } from "@/app/lib/routes";
+import { SignedSponsorHome } from "@/app/components/sponsor/SignedSponsorHome";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import {
   formatMatchFundingLine,
@@ -88,6 +92,11 @@ export default function SponsorDashboardPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newSponsorship, setNewSponsorship] = useState(false);
+
+  useEffect(() => {
+    setNewSponsorship(isNewSponsorshipRequest(window.location.search));
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -355,6 +364,22 @@ export default function SponsorDashboardPage() {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
   }
 
+  if (signed.length > 0 && !newSponsorship) {
+    return (
+      <SignedSponsorHome
+        brand={brand}
+        logoUrl={logoUrl}
+        signed={signed}
+        votedByClub={votedByClub}
+        committedGbp={stats.expenditureGbp}
+        onNewSponsorship={() => {
+          setNewSponsorship(true);
+          router.replace(sponsorNewSponsorshipPath());
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-10">
       <div>
@@ -386,6 +411,19 @@ export default function SponsorDashboardPage() {
           S4P SPONSORSHIP DASHBOARD
         </h1>
       </div>
+
+      {signed.length > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            setNewSponsorship(false);
+            router.replace(SPONSOR_DASHBOARD_PATH);
+          }}
+          className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold"
+        >
+          Back to your sponsored Match Days
+        </button>
+      )}
 
       {error && (
         <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
@@ -497,6 +535,7 @@ export default function SponsorDashboardPage() {
         </p>
       </Link>
 
+      {signed.length === 0 && (
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Climate Projects sponsored"
@@ -515,6 +554,7 @@ export default function SponsorDashboardPage() {
           value={formatVoteCount(stats.fanVotes)}
         />
       </section>
+      )}
 
       <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
         <Link
@@ -542,6 +582,7 @@ export default function SponsorDashboardPage() {
         </Link>
       </section>
 
+      {signed.length === 0 && (
       <section
         id={SPONSOR_SIGNED_SECTION_ID}
         className="scroll-mt-6 rounded-3xl border border-slate-700 bg-slate-900 p-8"
@@ -647,6 +688,7 @@ export default function SponsorDashboardPage() {
           </div>
         )}
       </section>
+      )}
     </div>
   );
 }

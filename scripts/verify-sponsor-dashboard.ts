@@ -25,10 +25,20 @@ import {
   SPONSOR_OFFER_SIGN_SECTION_ID,
   SPONSOR_RECEIVE_SECTION_ID,
   SPONSOR_SIGNED_SECTION_ID,
+  isNewSponsorshipRequest,
   sponsorDashboardReceivePath,
+  sponsorNewSponsorshipPath,
   sponsorOfferSignOffPath,
   sponsorWalletPath,
 } from "../app/lib/routes";
+import {
+  cistRowsForSponsor,
+  defaultCalendarMonth,
+  fundedClimateProjectsFromSigned,
+  matchesOnDate,
+  monthCells,
+  sponsoredMatchesFromSigned,
+} from "../app/lib/sponsor-signed-home";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
 import { lockCopy } from "../app/lib/climate-sponsors";
@@ -777,6 +787,94 @@ assert(
     applyMixed.includes("rememberLocalSponsorSession") &&
     applyMixed.includes("isLocalClimateSponsor"),
   "The apply script pulls sponsor-home so mixed gss-lead-split files still build"
+);
+
+const amexHeartsSigned = {
+  offer: {
+    id: "amex-hearts-aberdeen",
+    clubId: "hearts-demo",
+    clubName: "Hearts",
+    headline: "Hearts v Aberdeen Goal Sponsor",
+    matchTitle: "Hearts v Aberdeen",
+    matchDate: "2026-10-31",
+    projectIds: ["gss", "spoke"],
+    projects: [
+      { id: "gss", name: "Global Schools Solar", fundedGbp: 2300 },
+      { id: "spoke", name: "Wee Spoke Hub", fundedGbp: 0 },
+    ],
+    postedAt: "2026-10-12T12:00:00.000Z",
+    sponsorshipAmountGbp: 2300,
+  },
+  signature: {
+    id: "sig-amex",
+    offerId: "amex-hearts-aberdeen",
+    sponsorId: "amex",
+    signerName: "American Express",
+    brandName: "American Express",
+    acceptedTerms: true,
+    signedAt: "2026-10-12T17:36:00.000Z",
+  },
+};
+const amexMatches = sponsoredMatchesFromSigned([amexHeartsSigned]);
+assert(
+  amexMatches.length === 1 &&
+    amexMatches[0].date === "2026-10-31" &&
+    amexMatches[0].fixtureName === "Hearts v Aberdeen",
+  "The signed-off calendar lists Hearts v Aberdeen on 31 October"
+);
+assert(
+  matchesOnDate(amexMatches, "2026-10-31")[0]?.fixtureName ===
+    "Hearts v Aberdeen" &&
+    matchesOnDate(amexMatches, "2026-10-24").length === 0,
+  "Clicking 31 October shows Hearts v Aberdeen and other days stay empty"
+);
+const october = monthCells(2026, 9);
+assert(
+  october.some((cell) => cell.date === "2026-10-31") &&
+    defaultCalendarMonth(amexMatches).month === 9,
+  "October 2026 calendar includes the 31st and opens on that Match Day month"
+);
+const funded = fundedClimateProjectsFromSigned([amexHeartsSigned], {
+  "hearts-demo": [{ id: "gss", fundedGbp: 2300 }],
+});
+assert(
+  funded.find((row) => row.id === "gss")?.fanFunded === true &&
+    funded.find((row) => row.id === "gss")?.fundedGbp === 2300,
+  "The collapsible list shows Climate Projects fans funded from the sponsor's money"
+);
+const cist = cistRowsForSponsor({
+  rows: [
+    { name: "Puma", donationGbp: 5000 },
+    { name: "Diageo", donationGbp: 1200 },
+  ],
+  brandName: "American Express",
+  ownFundingGbp: 2300,
+});
+assert(
+  cist.find((row) => row.highlighted)?.name === "American Express" &&
+    cist.find((row) => row.name === "American Express")?.rank === 2,
+  "Climate Impact Sponsorship Table highlights American Express in position"
+);
+assert(
+  sponsorNewSponsorshipPath() === `${SPONSOR_DASHBOARD_PATH}?new=1` &&
+    isNewSponsorshipRequest("?new=1") &&
+    !isNewSponsorshipRequest(""),
+  "New Sponsorship opens the lock-in flow from the signed-off home"
+);
+assert(
+  sponsorDashboardPage.includes("SignedSponsorHome") &&
+    readFileSync("app/components/sponsor/SignedSponsorHome.tsx", "utf8").includes(
+      "SPONSOR_NEW_SPONSORSHIP_LABEL"
+    ) &&
+    readFileSync(
+      "app/components/sponsor/SponsoredMatchCalendar.tsx",
+      "utf8"
+    ).includes("highlighted Match Day") &&
+    readFileSync(
+      "app/sponsor/offers/OfferSignOff.tsx",
+      "utf8"
+    ).includes("router.replace(SPONSOR_DASHBOARD_PATH)"),
+  "After sign-off the dashboard is calendar, funded projects, CIST and New Sponsorship"
 );
 
 if (failures.length > 0) {

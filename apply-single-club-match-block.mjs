@@ -9,6 +9,12 @@ const FILES = [
   "app/sponsor/offers/OfferSignOff.tsx",
   "app/sponsor/offers/OfferSignOffPage.tsx",
   "app/lib/sponsor-completion-flow.ts",
+  "app/lib/sponsor-signed-home.ts",
+  "app/lib/routes.ts",
+  "app/components/sponsor/SignedSponsorHome.tsx",
+  "app/components/sponsor/SponsoredMatchCalendar.tsx",
+  "app/components/sponsor/FundedClimateProjectsList.tsx",
+  "app/components/sponsor/SponsorCistTable.tsx",
   "app/services/climate-sponsors.service.ts",
   "app/services/sponsor-offers.service.ts",
   "app/components/sponsor/ClubMatchMenus.tsx",
@@ -17,7 +23,6 @@ const FILES = [
   "app/lib/climate-sponsors.ts",
   "app/lib/sponsor-home.ts",
   "app/lib/local-sponsor.ts",
-  "app/lib/routes.ts",
   "scripts/verify-sponsor-dashboard.ts",
 ];
 

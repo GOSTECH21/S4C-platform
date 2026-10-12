@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   listOfferSignatures,
   signSponsorOffer,
@@ -64,6 +65,7 @@ export function OfferSignOffForm({
   brandDefault: string;
   showProjects?: boolean;
 }) {
+  const router = useRouter();
   const [signerName, setSignerName] = useState("");
   const [brandName, setBrandName] = useState(brandDefault);
   const [accepted, setAccepted] = useState(false);
@@ -110,6 +112,7 @@ export function OfferSignOffForm({
         brandName: brandName || brandDefault,
       });
       setSignedBrand(signed.brandName);
+      router.replace(SPONSOR_DASHBOARD_PATH);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your signature."
@@ -145,7 +148,7 @@ export function OfferSignOffForm({
             href={`${SPONSOR_DASHBOARD_PATH}#${SPONSOR_SIGNED_SECTION_ID}`}
             className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
           >
-            Open Dashboard folder
+            Open your sponsored Match Days
           </Link>
         </div>
       ) : (
