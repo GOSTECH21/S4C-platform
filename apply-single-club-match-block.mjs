@@ -7,6 +7,9 @@ const FILES = [
   "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
   "app/components/sponsor/SeeMatchDetails.tsx",
+  "app/lib/sponsor-home.ts",
+  "app/lib/local-sponsor.ts",
+  "app/lib/routes.ts",
   "scripts/verify-sponsor-dashboard.ts",
 ];
 
@@ -63,6 +66,70 @@ export function clubNameForLocalBrand(brandName) {
 `;
     writeFileSync(localSponsor, src);
     console.log("Patched", localSponsor);
+  }
+}
+
+const sponsorHome = "app/lib/sponsor-home.ts";
+if (existsSync(sponsorHome)) {
+  let src = readFileSync(sponsorHome, "utf8");
+  let patched = false;
+  if (!src.includes("export function isLocalClimateSponsor")) {
+    src += `
+export function isLocalClimateSponsor(brandName, hints = {}) {
+  const name = String(brandName ?? "").trim();
+  const job = String(hints.jobTitle ?? "");
+  if (/local\\s+business/i.test(job)) return true;
+  return false;
+}
+`;
+    patched = true;
+  }
+  if (!src.includes("export function isLeadSponsorHome")) {
+    src += `
+export function isLeadSponsorHome(brandName, hints = {}) {
+  return !isLocalClimateSponsor(brandName, hints);
+}
+`;
+    patched = true;
+  }
+  if (!src.includes("export function rememberLocalSponsorSession")) {
+    src += `
+export function rememberLocalSponsorSession(sponsor) {
+  if (typeof window === "undefined") return;
+  const companyName = String(sponsor?.name ?? "").trim();
+  const jobTitle = String(sponsor?.industry ?? "").trim();
+  if (!companyName) return;
+  try {
+    const raw = window.localStorage.getItem("s4p.sponsor.profile");
+    const previous = raw ? JSON.parse(raw) : {};
+    window.localStorage.setItem(
+      "s4p.sponsor.profile",
+      JSON.stringify({
+        ...previous,
+        companyName,
+        jobTitle: jobTitle || previous.jobTitle || "Local Business Climate Sponsor",
+        tier: /local\\s+business/i.test(jobTitle) ? "local" : previous.tier,
+        clubName: previous.clubName ?? null,
+      })
+    );
+  } catch {}
+}
+`;
+    patched = true;
+  }
+  if (!src.includes("export function sponsorHomePath")) {
+    src += `
+export function sponsorHomePath(brandName, hints = {}) {
+  return isLocalClimateSponsor(brandName, hints)
+    ? "/sponsor/wallet"
+    : "/sponsor/dashboard";
+}
+`;
+    patched = true;
+  }
+  if (patched) {
+    writeFileSync(sponsorHome, src);
+    console.log("Patched", sponsorHome);
   }
 }
 

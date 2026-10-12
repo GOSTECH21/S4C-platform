@@ -769,6 +769,14 @@ assert(
   "Logout keeps cream copy on the red tab so it stays readable"
 );
 
+const applyMixed = readFileSync("apply-single-club-match-block.mjs", "utf8");
+assert(
+  applyMixed.includes("app/lib/sponsor-home.ts") &&
+    applyMixed.includes("rememberLocalSponsorSession") &&
+    applyMixed.includes("isLocalClimateSponsor"),
+  "The apply script pulls sponsor-home so mixed gss-lead-split files still build"
+);
+
 if (failures.length > 0) {
   console.error("verify-sponsor-dashboard failed:");
   for (const failure of failures) console.error(`- ${failure}`);
