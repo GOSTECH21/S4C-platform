@@ -468,6 +468,13 @@ assert(
   "Match Day lock-in sits above the Climate Sponsorship Wallet"
 );
 assert(
+  sponsorDashboardPage.indexOf('id="goal-sponsorship-network"') <
+    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
+    sponsorDashboardPage.indexOf("Choose the Club. Future Matches to be played in Competitions") <
+      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
+  "Goal Sponsorship Network sits above the Climate Sponsorship Wallet"
+);
+assert(
   sponsorDashboardPage.includes("scrollToClubTable") &&
     sponsorDashboardPage.includes("onMouseDown") &&
     sponsorDashboardPage.includes("goal-sponsorship-network"),

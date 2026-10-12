@@ -547,26 +547,6 @@ export default function SponsorDashboardPage() {
         </div>
       </section>
 
-      <Link
-        href={SPONSOR_WALLET_PATH}
-        className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
-      >
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
-          Climate Sponsorship Wallet
-        </p>
-        <h2 className="mt-3 text-2xl font-black">
-          Top up the cash fans will put into Climate Projects
-        </h2>
-        <p className="mt-3 max-w-3xl text-slate-300">
-          Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship
-          Cash. Fans then take cash from this wallet and put it on a numbered
-          Climate Project.
-        </p>
-        <p className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950">
-          Open Climate Sponsorship Wallet
-        </p>
-      </Link>
-
       {invites.some((row) => row.status === "pending") && (
         <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">
@@ -708,6 +688,26 @@ export default function SponsorDashboardPage() {
           />
         </div>
       </section>
+
+      <Link
+        href={SPONSOR_WALLET_PATH}
+        className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
+          Climate Sponsorship Wallet
+        </p>
+        <h2 className="mt-3 text-2xl font-black">
+          Top up the cash fans will put into Climate Projects
+        </h2>
+        <p className="mt-3 max-w-3xl text-slate-300">
+          Deposit your Day 1 Commitment Fee and agree Goals-scored Sponsorship
+          Cash. Fans then take cash from this wallet and put it on a numbered
+          Climate Project.
+        </p>
+        <p className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950">
+          Open Climate Sponsorship Wallet
+        </p>
+      </Link>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
