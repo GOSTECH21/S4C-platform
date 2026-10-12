@@ -235,6 +235,7 @@ export default function HomeFrontPage({
               height={454}
               className="h-auto w-[16rem] object-contain sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
               priority
+              unoptimized
             />
             <p className="mt-1 max-w-xl text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-2xl lg:text-[1.35rem]">
               <span className="block">Turning Match-Day Sporting Moments into</span>

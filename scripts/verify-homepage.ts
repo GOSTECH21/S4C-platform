@@ -311,7 +311,9 @@ assert(
   "A brighter planet uses mint on the dark blue, not bright lime"
 );
 assert(
-  front.includes('src="/images/home/s4p-mark.png"') && !front.includes("drop-shadow-2xl"),
+  front.includes('src="/images/home/s4p-mark.png"') &&
+    !front.includes("drop-shadow-2xl") &&
+    front.includes("unoptimized"),
   "The S4P mark sits on the paper without a drop-shadow box"
 );
 

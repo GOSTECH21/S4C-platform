@@ -43,6 +43,7 @@ assert(home.includes("Sport creates the moment."), "Sport creates the moment sta
 assert(home.includes("s4p-navy-panel"), "The stats strip uses a panel");
 assert(home.includes('src="/images/home/s4p-mark.png"'), "Home still uses the S4P mark");
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
+assert(home.includes("unoptimized"), "The mark is served as the transparent PNG, not a flattened optimized copy");
 
 const tables = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
 assert(tables.includes("s4p-navy-panel"), "CILT sits on a panel");
