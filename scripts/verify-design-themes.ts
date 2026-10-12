@@ -80,6 +80,15 @@ assert(
   ),
   "The design preview path is defined with the theme helpers"
 );
+assert(
+  readFileSync("app/lib/routes.ts", "utf8").includes(
+    'export const DESIGN_PREVIEW_PATH = "/preview/design"'
+  ) &&
+    !readFileSync("app/lib/routes.ts", "utf8").includes(
+      'export { DESIGN_PREVIEW_PATH } from "./s4p-themes"'
+    ),
+  "routes.ts defines DESIGN_PREVIEW_PATH itself so an older s4p-themes.ts cannot break the build"
+);
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));

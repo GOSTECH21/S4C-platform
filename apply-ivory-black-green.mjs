@@ -40,24 +40,39 @@ for (const rel of FILES) {
 }
 
 function ensureDesignPreviewPath() {
-  const rel = "app/lib/routes.ts";
-  if (!existsSync(rel)) return;
-  let src = readFileSync(rel, "utf8");
-  if (src.includes("DESIGN_PREVIEW_PATH")) {
-    console.log("routes.ts already exports DESIGN_PREVIEW_PATH");
-    return;
-  }
   const line = 'export const DESIGN_PREVIEW_PATH = "/preview/design";';
-  if (src.includes("GLOBAL_SCHOOLS_SOLAR_PATH")) {
-    src = src.replace(
-      /export const GLOBAL_SCHOOLS_SOLAR_PATH = "\/global-schools-solar";/,
-      `$&\n${line}`
-    );
-  } else {
-    src += `\n${line}\n`;
+  for (const rel of ["app/lib/routes.ts", "app/lib/s4p-themes.ts"]) {
+    if (!existsSync(rel)) continue;
+    let src = readFileSync(rel, "utf8");
+    if (src.includes('export { DESIGN_PREVIEW_PATH } from "./s4p-themes"')) {
+      src = src.replace(
+        /export \{ DESIGN_PREVIEW_PATH \} from "\.\/s4p-themes";?/,
+        line
+      );
+      writeFileSync(rel, src);
+      console.log("Replaced s4p-themes re-export in", rel);
+      continue;
+    }
+    if (/export const DESIGN_PREVIEW_PATH/.test(src)) {
+      console.log(rel, "already exports DESIGN_PREVIEW_PATH");
+      continue;
+    }
+    if (src.includes("GLOBAL_SCHOOLS_SOLAR_PATH")) {
+      src = src.replace(
+        /export const GLOBAL_SCHOOLS_SOLAR_PATH = "\/global-schools-solar";/,
+        `$&\n${line}`
+      );
+    } else if (src.includes('export const DEFAULT_S4P_THEME')) {
+      src = src.replace(
+        /export const DEFAULT_S4P_THEME = "[^"]+";/,
+        `$&\n${line}`
+      );
+    } else {
+      src += `\n${line}\n`;
+    }
+    writeFileSync(rel, src);
+    console.log("Patched", rel);
   }
-  writeFileSync(rel, src);
-  console.log("Patched", rel);
 }
 
 ensureDesignPreviewPath();

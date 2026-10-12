@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/deposit-to-signoff-18f9";
@@ -6,6 +6,7 @@ const FILES = [
   "app/sponsor/wallet/page.tsx",
   "app/sponsor/dashboard/page.tsx",
   "app/lib/routes.ts",
+  "app/lib/s4p-themes.ts",
   "app/services/climate-sponsors.service.ts",
   "scripts/verify-sponsor-dashboard.ts",
   "scripts/verify-sponsor-completion-flow.ts",
@@ -26,6 +27,24 @@ for (const rel of FILES) {
       `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
       err instanceof Error ? err.message : err
     );
+  }
+}
+
+const previewLine = 'export const DESIGN_PREVIEW_PATH = "/preview/design";';
+for (const rel of ["app/lib/routes.ts", "app/lib/s4p-themes.ts"]) {
+  if (!existsSync(rel)) continue;
+  let src = readFileSync(rel, "utf8");
+  if (src.includes('export { DESIGN_PREVIEW_PATH } from "./s4p-themes"')) {
+    src = src.replace(
+      /export \{ DESIGN_PREVIEW_PATH \} from "\.\/s4p-themes";?/,
+      previewLine
+    );
+    writeFileSync(rel, src);
+    console.log("Replaced s4p-themes re-export in", rel);
+  } else if (!/export const DESIGN_PREVIEW_PATH/.test(src)) {
+    src += `\n${previewLine}\n`;
+    writeFileSync(rel, src);
+    console.log("Patched", rel);
   }
 }
 
