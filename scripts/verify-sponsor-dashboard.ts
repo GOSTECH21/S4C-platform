@@ -689,6 +689,44 @@ assert(
   "Receive, Signed Sponsorship, and live sign-off anchors stay stable"
 );
 
+const sponsorNav = readFileSync("app/sponsor/sponsor-nav.tsx", "utf8");
+assert(
+  sponsorNav.includes("flex items-center gap-2") &&
+    sponsorNav.includes("Dashboard") &&
+    sponsorNav.includes("Logout") &&
+    sponsorNav.includes("bg-s4p-mark text-slate-950") &&
+    !sponsorNav.includes("bg-emerald-400"),
+  "Dashboard and Logout sit on one header line, with Dashboard in the Register lime"
+);
+assert(
+  !sponsorDashboardPage.includes("Logout") &&
+    !sponsorDashboardPage.includes("logoutSponsor"),
+  "Logout is not a second tab in the dashboard body"
+);
+assert(
+  sponsorDashboardPage.includes("Open Climate Sponsorship Wallet") &&
+    sponsorDashboardPage.includes(
+      "inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+    ) &&
+    !sponsorDashboardPage.includes("bg-emerald-400"),
+  "Open Climate Sponsorship Wallet uses the same lime tab as Register, with black copy"
+);
+
+const clubPicker = readFileSync(
+  "app/components/sponsor/ClubNetworkPicker.tsx",
+  "utf8"
+);
+assert(
+  clubPicker.includes("bg-s4p-mark text-slate-950") &&
+    !clubPicker.includes("bg-amber-400") &&
+    !clubPicker.includes("bg-green-400"),
+  "Match Day club tabs use the lime mark green with black copy"
+);
+assert(
+  readFileSync("app/globals.css", "utf8").includes(".bg-red-500.text-white"),
+  "Logout keeps cream copy on the red tab so it stays readable"
+);
+
 if (failures.length > 0) {
   console.error("verify-sponsor-dashboard failed:");
   for (const failure of failures) console.error(`- ${failure}`);

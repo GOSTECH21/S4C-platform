@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   loadSponsorFolder,
@@ -274,11 +273,6 @@ export default function SponsorDashboardPage() {
     };
   }, [loading, pending.length, signed.length]);
 
-  async function logout() {
-    await logoutSponsor();
-    router.push(SPONSOR_LOGIN_PATH);
-  }
-
   async function refreshFolder() {
     const folder = await loadSponsorFolder({ brandName: brand, brandEmail: email });
     setPending(folder.pending);
@@ -390,42 +384,34 @@ export default function SponsorDashboardPage() {
 
   return (
     <div className="space-y-10">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-4">
-            <BrandMark name={brand} logoUrl={logoUrl} large />
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-                Signed in as {brand}
-              </p>
-              <label className="mt-2 inline-flex cursor-pointer items-center rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-green-400">
-                {logoUrl ? "Change brand logo" : "Upload brand logo"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) return;
-                    void readLogoFile(file).then((next) => {
-                      setLogoUrl(next);
-                      saveBrandLogo(brand, next);
-                    });
-                  }}
-                  className="sr-only"
-                />
-              </label>
-            </div>
+      <div>
+        <div className="flex items-center gap-4">
+          <BrandMark name={brand} logoUrl={logoUrl} large />
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+              Signed in as {brand}
+            </p>
+            <label className="mt-2 inline-flex cursor-pointer items-center rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-green-400">
+              {logoUrl ? "Change brand logo" : "Upload brand logo"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  void readLogoFile(file).then((next) => {
+                    setLogoUrl(next);
+                    saveBrandLogo(brand, next);
+                  });
+                }}
+                className="sr-only"
+              />
+            </label>
           </div>
-          <h1 className="mt-3 text-4xl font-black tracking-tight">
-            S4P SPONSORSHIP DASHBOARD
-          </h1>
         </div>
-        <button
-          onClick={() => void logout()}
-          className="rounded-xl bg-red-500 px-5 py-3 font-semibold"
-        >
-          Logout
-        </button>
+        <h1 className="mt-3 text-4xl font-black tracking-tight">
+          S4P SPONSORSHIP DASHBOARD
+        </h1>
       </div>
 
       {error && (
@@ -576,7 +562,7 @@ export default function SponsorDashboardPage() {
           Cash. Fans then take cash from this wallet and put it on a numbered
           Climate Project.
         </p>
-        <p className="mt-5 inline-flex rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950">
+        <p className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950">
           Open Climate Sponsorship Wallet
         </p>
       </Link>
