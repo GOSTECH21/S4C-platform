@@ -45,6 +45,61 @@ export function isWalletFundingLocked(
   return Number(lock.commitmentFeeGbp) > 0;
 }
 
+function firstPositiveGbp(
+  ...values: Array<number | string | null | undefined>
+): number {
+  for (const value of values) {
+    const amount = Number(value);
+    if (amount > 0) return amount;
+  }
+  return 0;
+}
+
+/** Wallet deposit for this Match wins over a leftover £1,000 posted offer. */
+export function resolveCommittedMatchFunding({
+  lock,
+  wallet,
+  offer,
+}: {
+  lock?: {
+    commitmentFeeGbp?: number | null;
+    gbpPerGoal?: number | null;
+    maximumSponsorshipGbp?: number | null;
+  } | null;
+  wallet?: {
+    commitmentFeeGbp?: number | null;
+    gbpPerGoal?: number | null;
+    maximumSponsorshipGbp?: number | null;
+  } | null;
+  offer?: {
+    sponsorshipAmountGbp?: number | null;
+    gbpPerGoal?: number | null;
+    maxAmount?: number | null;
+  } | null;
+}): {
+  baseAmount: number;
+  gbpPerGoal: number;
+  maxAmount: number;
+} {
+  return {
+    baseAmount: firstPositiveGbp(
+      lock?.commitmentFeeGbp,
+      wallet?.commitmentFeeGbp,
+      offer?.sponsorshipAmountGbp
+    ),
+    gbpPerGoal: firstPositiveGbp(
+      lock?.gbpPerGoal,
+      wallet?.gbpPerGoal,
+      offer?.gbpPerGoal
+    ),
+    maxAmount: firstPositiveGbp(
+      lock?.maximumSponsorshipGbp,
+      wallet?.maximumSponsorshipGbp,
+      offer?.maxAmount
+    ),
+  };
+}
+
 export function includeBrandOnTargets(
   targets: string[] | null | undefined,
   brandName: string

@@ -19,7 +19,6 @@ import {
 } from "@/app/lib/partner-projects";
 import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
 import {
-  climateProjectCountryLabel,
   localCatalogCountryForClub,
 } from "@/app/lib/featured-climate-country";
 import {
@@ -33,6 +32,8 @@ import {
   CLUB_LOGIN_PATH,
 } from "@/app/lib/routes";
 import ClubNav from "@/app/components/club/ClubNav";
+import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
+import { chosenFeaturedProject } from "@/app/lib/featured-gss";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import { clubGateCopy } from "@/app/lib/signed-in-role";
@@ -51,6 +52,7 @@ export default function SelectMatchDayProjectsPage() {
     ClimateProject[]
   >([]);
   const [featured, setFeatured] = useState<ClimateProject[]>([]);
+  const [featuredId, setFeaturedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -101,6 +103,15 @@ export default function SelectMatchDayProjectsPage() {
             (id) => !featuredIds.has(id) && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
+          const storedFeatured =
+            stored.featuredProjectId && featuredIds.has(stored.featuredProjectId)
+              ? stored.featuredProjectId
+              : chosenFeaturedProject(
+                  featuredProjects.filter((project) =>
+                    stored.projectIds.includes(project.id)
+                  )
+                )?.id ?? null;
+          setFeaturedId(storedFeatured);
         }
       } catch (err) {
         setError(
@@ -134,9 +145,15 @@ export default function SelectMatchDayProjectsPage() {
 
   async function confirm() {
     if (!clubId) return;
+    if (!featuredId) {
+      setError(
+        "Choose one Featured Climate Project. There can never be two Featured projects."
+      );
+      return;
+    }
     if (selected.size !== MATCH_DAY_CHOICE_COUNT) {
       setError(
-        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. Two Global Schools Solar versions are included in every Match Day List.`
+        `Select exactly ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects after choosing one Featured Global Schools Solar project.`
       );
       return;
     }
@@ -149,6 +166,7 @@ export default function SelectMatchDayProjectsPage() {
         clubId,
         clubName,
         country: clubCountry,
+        featuredProjectId: featuredId,
         projectIds: [...selected],
         minAmount: funding.minAmount,
         gbpPerGoal: funding.gbpPerGoal,
@@ -192,26 +210,14 @@ export default function SelectMatchDayProjectsPage() {
         ) : null}
 
         {featured.length > 0 && (
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {featured.map((project) => (
-              <div
-                key={project.id}
-                className="rounded-2xl border border-green-500/40 bg-green-500/10 p-6"
-              >
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
-                  Featured Climate Project · included in every Match Day
-                </p>
-                <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
-                <p className="mt-2 text-slate-300">{project.description}</p>
-                <p className="mt-3 text-sm text-slate-400">
-                  {climateProjectCountryLabel(project, {
-                    clubName,
-                    country: clubCountry,
-                  })}
-                </p>
-                <ClimateProjectCivBlock project={project} compact={false} />
-              </div>
-            ))}
+          <div className="mt-8">
+            <FeaturedGssPicker
+              options={featured}
+              chosenId={featuredId}
+              onChoose={setFeaturedId}
+              clubName={clubName}
+              clubCountry={clubCountry}
+            />
           </div>
         )}
 
@@ -336,7 +342,9 @@ export default function SelectMatchDayProjectsPage() {
           </p>
           <button
             onClick={confirm}
-            disabled={saving || selected.size !== MATCH_DAY_CHOICE_COUNT}
+            disabled={
+              saving || !featuredId || selected.size !== MATCH_DAY_CHOICE_COUNT
+            }
             className="mt-6 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
             {saving

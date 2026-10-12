@@ -70,11 +70,14 @@ export const SECOND_LEAD_CLIMATE_SPONSOR_REJECTED =
 
 export function secondLeadClimateSponsorRejectedMessage(
   clubName: string,
-  occupantName: string
+  occupantName: string,
+  fixtureName?: string | null
 ): string {
   const club = clubName.trim() || "this club";
   const occupant = occupantName.trim() || "another brand";
-  return `${SECOND_LEAD_CLIMATE_SPONSOR_REJECTED} ${occupant} already holds ${club}.`;
+  const fixture = String(fixtureName ?? "").trim();
+  const matchBit = isNamedFixture(fixture) ? ` for ${fixture}` : "";
+  return `${SECOND_LEAD_CLIMATE_SPONSOR_REJECTED} ${occupant} already holds ${club}${matchBit}. A different Lead can sponsor a later ${club} Match.`;
 }
 
 /** True only for designated Lead Climate Sponsor brands — one type per club. */
@@ -541,6 +544,27 @@ export function pickSoleLeadClimateSponsor(
   return ranked[0] ?? null;
 }
 
+/** True when this lock occupies the named club on this named Match Day. */
+export function lockHoldsClubFixture(
+  lock: MatchDayClubLock | null | undefined,
+  clubName: string,
+  fixtureName?: string | null
+): boolean {
+  if (!lock || !clubName.trim()) return false;
+  const fixture = String(fixtureName ?? "").trim();
+  if (!isNamedFixture(fixture)) return false;
+  const rows: Array<{ clubName: string; fixtureName?: string }> = [
+    { clubName: lock.clubName, fixtureName: displayLockFixture(lock) },
+    ...(lock.matches ?? []),
+  ];
+  return rows.some(
+    (row) =>
+      clubsMatch(row.clubName, clubName) &&
+      isNamedFixture(row.fixtureName) &&
+      sameNamedFixture(String(row.fixtureName), fixture)
+  );
+}
+
 export function occupyingLeadClimateSponsor({
   clubName,
   networks,
@@ -563,15 +587,48 @@ export function occupyingLeadClimateSponsor({
   );
 }
 
+/** One Lead Climate Sponsor per club per Match Day — not per club for the season. */
+export function occupyingLeadClimateSponsorForMatch({
+  clubName,
+  fixtureName,
+  networks,
+  locks,
+  excludeBrandKeys = [],
+}: {
+  clubName: string;
+  fixtureName?: string | null;
+  networks: GoalSponsorshipNetwork[];
+  locks: MatchDayClubLock[];
+  excludeBrandKeys?: string[];
+}): LeadClubSponsorRow | null {
+  const fixture = String(fixtureName ?? "").trim();
+  if (!clubName.trim() || !isNamedFixture(fixture)) return null;
+  const matchingLocks = locks.filter((lock) =>
+    lockHoldsClubFixture(lock, clubName, fixture)
+  );
+  if (matchingLocks.length === 0) return null;
+  return pickSoleLeadClimateSponsor(
+    sponsorsForClubFromStores({
+      clubName,
+      networks,
+      locks: matchingLocks,
+      excludeBrandKeys,
+    }),
+    clubName
+  );
+}
+
 export function canClaimLeadClimateSponsor({
   clubName,
   brandName,
+  fixtureName,
   networks,
   locks,
   excludeBrandKeys = [],
 }: {
   clubName: string;
   brandName: string;
+  fixtureName?: string | null;
   networks: GoalSponsorshipNetwork[];
   locks: MatchDayClubLock[];
   excludeBrandKeys?: string[];
@@ -579,8 +636,10 @@ export function canClaimLeadClimateSponsor({
   if (!clubName.trim() || !brandName.trim()) return false;
   if (isSponsorBlockedFromClub(brandName, clubName)) return false;
   if (!isLeadClimateSponsorName(brandName)) return true;
-  const occupant = occupyingLeadClimateSponsor({
+  if (!isNamedFixture(fixtureName)) return true;
+  const occupant = occupyingLeadClimateSponsorForMatch({
     clubName,
+    fixtureName,
     networks,
     locks,
     excludeBrandKeys,
@@ -600,13 +659,63 @@ export function leadSponsorsForClubFromStores({
   locks: MatchDayClubLock[];
   excludeBrandKeys?: string[];
 }): LeadClubSponsorRow[] {
-  const occupant = occupyingLeadClimateSponsor({
+  const rows = sponsorsForClubFromStores({
     clubName,
     networks,
     locks,
     excludeBrandKeys,
   });
-  return occupant ? [occupant] : [];
+  const fixtures: string[] = [];
+  function addFixture(name: string | null | undefined) {
+    const trimmed = String(name ?? "").trim();
+    if (!isNamedFixture(trimmed)) return;
+    if (fixtures.some((existing) => sameNamedFixture(existing, trimmed))) return;
+    fixtures.push(trimmed);
+  }
+  for (const lock of locks) {
+    addFixture(displayLockFixture(lock));
+    for (const match of lock.matches ?? []) {
+      if (!match.clubName || clubsMatch(match.clubName, clubName)) {
+        addFixture(match.fixtureName);
+      }
+    }
+  }
+  for (const row of rows) {
+    for (const name of row.matches) addFixture(name);
+  }
+  const keepers = new Map<string, LeadClubSponsorRow>();
+  for (const fixture of fixtures) {
+    const occupant = occupyingLeadClimateSponsorForMatch({
+      clubName,
+      fixtureName: fixture,
+      networks,
+      locks,
+      excludeBrandKeys,
+    });
+    if (!occupant) continue;
+    const current = keepers.get(occupant.brandKey);
+    if (!current) {
+      keepers.set(occupant.brandKey, occupant);
+      continue;
+    }
+    const matches = [...current.matches];
+    for (const name of occupant.matches) {
+      if (
+        !matches.some((existing) =>
+          sameNamedFixture(existing, name)
+        )
+      ) {
+        matches.push(name);
+      }
+    }
+    keepers.set(occupant.brandKey, { ...current, matches });
+  }
+  return [...keepers.values()].sort((left, right) => {
+    if (right.matches.length !== left.matches.length) {
+      return right.matches.length - left.matches.length;
+    }
+    return left.brandName.localeCompare(right.brandName);
+  });
 }
 
 /** Brands that chose this club but are not the Lead Climate Sponsor. */
@@ -629,10 +738,10 @@ export function localBusinessSponsorsForClubFromStores({
   }).filter((row) => !isLeadClimateSponsorName(row.brandName));
 }
 
-/** The one Lead Climate Sponsor for this club — never a second brand. */
+/** The one Lead Climate Sponsor for this club on this Match Day. */
 export function leadSponsorBrandForFixture({
   clubName,
-  fixtureName: _fixtureName,
+  fixtureName,
   locks,
   networks = [],
 }: {
@@ -642,6 +751,16 @@ export function leadSponsorBrandForFixture({
   networks?: GoalSponsorshipNetwork[];
 }): string | null {
   if (!clubName.trim()) return null;
+  if (isNamedFixture(fixtureName)) {
+    return (
+      occupyingLeadClimateSponsorForMatch({
+        clubName,
+        fixtureName,
+        networks,
+        locks,
+      })?.brandName?.trim() || null
+    );
+  }
   return (
     occupyingLeadClimateSponsor({
       clubName,
@@ -835,8 +954,36 @@ export function sponsorCanReceiveClubPost({
   return true;
 }
 
+/** Bind an offer to the locked club AND the named Match, never a leftover from another Match Day. */
+export function offerMatchesLockedMatch<
+  T extends {
+    clubName: string;
+    matchTitle?: string | null;
+    matchDate?: string | null;
+  },
+>(offer: T, lock: MatchDayClubLock | null): boolean {
+  if (!lock?.clubName?.trim()) return false;
+  if (!clubsMatch(offer.clubName, lock.clubName)) return false;
+  const fixture = displayLockFixture(lock);
+  if (!isNamedFixture(fixture)) return true;
+  const title = String(offer.matchTitle ?? "").trim();
+  if (!title) return true;
+  if (isNamedFixture(title)) return sameNamedFixture(title, fixture);
+  const lockDate = String(lock.fixtureDate ?? "").slice(0, 10);
+  const offerDate = String(offer.matchDate ?? "").slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(lockDate) && /^\d{4}-\d{2}-\d{2}$/.test(offerDate)) {
+    return lockDate === offerDate;
+  }
+  return false;
+}
+
 export function offersForLockedSponsor<
-  T extends { clubName: string; targetBrandNames?: string[] | null },
+  T extends {
+    clubName: string;
+    matchTitle?: string | null;
+    matchDate?: string | null;
+    targetBrandNames?: string[] | null;
+  },
 >(
   offers: T[],
   {
@@ -849,14 +996,15 @@ export function offersForLockedSponsor<
     lock: MatchDayClubLock | null;
   }
 ): T[] {
-  return offers.filter((offer) =>
-    sponsorCanReceiveClubPost({
-      network,
-      lock,
-      clubName: offer.clubName,
-      brandName,
-      targetBrandNames: offer.targetBrandNames,
-    })
+  return offers.filter(
+    (offer) =>
+      sponsorCanReceiveClubPost({
+        network,
+        lock,
+        clubName: offer.clubName,
+        brandName,
+        targetBrandNames: offer.targetBrandNames,
+      }) && offerMatchesLockedMatch(offer, lock)
   );
 }
 
@@ -882,7 +1030,7 @@ export function selectedBrandsReadyToReceive(
 }
 
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
-  return `${hours} hours before kick-off, choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship. Posted Climate Projects from sponsored club will now be available for sign-off.`;
+  return `${hours} hours before kick-off, choose a Club you wish to sponsor and the Match you wish to lock-in for Goal-Sponsorship. Posted Climate Projects from the sponsored club for that Match will now be available for sign-off.`;
 }
 
 export function unlockedMatchDay(matchLabel = MATCH_DAY_LOCK_LABELS[0]): {

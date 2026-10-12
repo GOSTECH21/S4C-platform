@@ -136,6 +136,16 @@ assert(
   }).includes("even if Manchester City players score no Goals"),
   "Sponsor copy states the base is payable at 0–0"
 );
+assert(
+  formatSponsorPayableCopy({
+    baseAmount: 2300,
+    gbpPerGoal: 4000,
+    maxAmount: 7500,
+    clubName: "Hearts",
+  }) ===
+    "You pay the £2,300 Base Match Sponsorship even if Hearts players score no Goals, plus £4,000 for each Goal scored, up to a maximum of £7,500.",
+  "Amex Hearts sign-off copy uses the deposited Commitment Fee, £/Goal and Maximum"
+);
 
 assert(
   formatSponsorshipRate(3000, "Goal") === "£3,000/Goal",

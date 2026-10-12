@@ -9,6 +9,9 @@ import {
   nextFanMatchForClub,
   nextSignedOffFixtureForClub,
   occupyingLeadClimateSponsor,
+  occupyingLeadClimateSponsorForMatch,
+  offerMatchesLockedMatch,
+  brandsMatch,
   isSponsorBlockedFromClub,
   SECOND_LEAD_CLIMATE_SPONSOR_REJECTED,
   secondLeadClimateSponsorRejectedMessage,
@@ -132,31 +135,43 @@ const leads = leadSponsorsForClubFromStores({
   excludeBrandKeys: ["The Stadium Cafe"],
 });
 assert(
-  leads.map((row) => row.brandName).join(",") === "Diageo",
-  "Arsenal Lead tab keeps only the first Lead Climate Sponsor"
+  leads.map((row) => row.brandName).sort().join(",") === "Diageo,Puma",
+  "Arsenal Lead tab lists Diageo and Puma when they sponsor different Match Days"
 );
 assert(
-  leads[0].matches.includes("Arsenal v Chelsea") &&
-    leads[0].matches.includes("Bayern Munich v Arsenal"),
+  leads.find((row) => row.brandName === "Diageo")?.matches.includes("Arsenal v Chelsea") &&
+    leads.find((row) => row.brandName === "Diageo")?.matches.includes("Bayern Munich v Arsenal"),
   "Diageo shows the Arsenal matches it chose to sponsor"
 );
 assert(
-  !leads.some((row) => row.brandName === "Puma"),
-  "A second Lead Climate Sponsor is rejected from Arsenal's Lead tab"
+  leads.some((row) => row.brandName === "Puma"),
+  "Puma appears on Arsenal's Lead tab for a later Match Day"
 );
 assert(
   !canClaimLeadClimateSponsor({
     clubName: "Arsenal",
     brandName: "Puma",
+    fixtureName: "Arsenal v Chelsea",
     networks: [diageo, puma, cafe],
     locks: [afterSecond, pumaLock],
   }),
-  "Puma cannot claim Arsenal after Diageo is already the Lead Climate Sponsor"
+  "Puma cannot claim Arsenal v Chelsea on the same Match Day as Diageo"
+);
+assert(
+  canClaimLeadClimateSponsor({
+    clubName: "Arsenal",
+    brandName: "Puma",
+    fixtureName: "Arsenal v Manchester United",
+    networks: [diageo, puma, cafe],
+    locks: [afterSecond, pumaLock],
+  }),
+  "Puma can lock a later Arsenal Match Day after Diageo has this week's match"
 );
 assert(
   canClaimLeadClimateSponsor({
     clubName: "Arsenal",
     brandName: "Diageo",
+    fixtureName: "Arsenal v Tottenham",
     networks: [diageo, puma, cafe],
     locks: [afterSecond, pumaLock],
   }),
@@ -180,13 +195,11 @@ assert(
   "Arsenal Local tab is The Fountain, not Puma or Diageo"
 );
 assert(
-  leadSponsorsForClubFromStores({
+  !leadSponsorsForClubFromStores({
     clubName: "Arsenal",
     networks: [diageo, puma, fountainNetwork],
     locks: [afterSecond, pumaLock],
-  })
-    .map((row) => row.brandName)
-    .join(",") === "Diageo",
+  }).some((row) => row.brandName === "The Fountain"),
   "The Fountain stays off Arsenal's Lead Climate Sponsor tab"
 );
 
@@ -326,6 +339,7 @@ assert(
   !canClaimLeadClimateSponsor({
     clubName: "Hibernian",
     brandName: "Budweiser Europe",
+    fixtureName: "Hibernian v Celtic",
     networks: [budweiserEurope, pumaHibs],
     locks: [hibsFirstLock, hibsSecondLock],
   }),
@@ -335,6 +349,7 @@ assert(
   canClaimLeadClimateSponsor({
     clubName: "Hibernian",
     brandName: "Puma",
+    fixtureName: "Hibernian v Celtic",
     networks: [budweiserEurope, pumaHibs],
     locks: [hibsFirstLock, hibsSecondLock],
   }),
@@ -390,10 +405,8 @@ const liverpool = leadSponsorsForClubFromStores({
   locks: [afterSecond, pumaLock],
 });
 assert(
-  liverpool.length === 1 &&
-    liverpool[0].brandName === "Diageo" &&
-    liverpool[0].matches.length === 0,
-  "Liverpool sees Diageo as opted-in without Arsenal fixtures attached"
+  liverpool.length === 0,
+  "Liverpool has no Lead Climate Sponsor until a brand locks a Liverpool Match Day"
 );
 
 const local: LocalSponsorRecord = {
@@ -636,8 +649,143 @@ assert(
     fixtureName: "Arsenal v Chelsea",
     locks: [pumaLeedsLock, pumaDatedLock],
     networks: [puma, diageo],
-  }) === "Puma",
-  "Arsenal has one Lead Climate Sponsor in all circumstances"
+  }) == null,
+  "Arsenal v Chelsea has no Lead Climate Sponsor until a brand locks that Match Day"
+);
+
+const amexHeartsAberdeen: MatchDayClubLock = {
+  brandKey: "american express",
+  clubName: "Hearts",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Hearts v Aberdeen",
+  fixtureDate: "2026-10-31",
+  lockedAt: now,
+};
+const pumaHeartsRangers: MatchDayClubLock = {
+  brandKey: "puma",
+  clubName: "Hearts",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Hearts v Rangers",
+  fixtureDate: "2026-11-07",
+  lockedAt: now,
+};
+const pumaHeartsHibs: MatchDayClubLock = {
+  brandKey: "puma",
+  clubName: "Hearts",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Hearts v Hibernian",
+  fixtureDate: "2026-11-14",
+  lockedAt: now,
+};
+const pumaHibsHearts: MatchDayClubLock = {
+  brandKey: "puma",
+  clubName: "Hibernian",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Hearts v Hibernian",
+  fixtureDate: "2026-11-14",
+  lockedAt: now,
+  matches: [
+    {
+      clubName: "Hearts",
+      fixtureName: "Hearts v Hibernian",
+      fixtureDate: "2026-11-14",
+      lockedAt: now,
+    },
+    {
+      clubName: "Hibernian",
+      fixtureName: "Hearts v Hibernian",
+      fixtureDate: "2026-11-14",
+      lockedAt: now,
+    },
+  ],
+};
+assert(
+  canClaimLeadClimateSponsor({
+    clubName: "Hearts",
+    brandName: "Puma",
+    fixtureName: "Hearts v Rangers",
+    networks: [],
+    locks: [amexHeartsAberdeen],
+  }),
+  "Puma can sponsor a later Hearts Match after American Express locked Hearts v Aberdeen"
+);
+assert(
+  !canClaimLeadClimateSponsor({
+    clubName: "Hearts",
+    brandName: "Puma",
+    fixtureName: "Hearts v Aberdeen",
+    networks: [],
+    locks: [amexHeartsAberdeen],
+  }),
+  "Puma cannot sponsor Hearts v Aberdeen on the same Match Day as American Express"
+);
+assert(
+  brandsMatch(
+    occupyingLeadClimateSponsorForMatch({
+      clubName: "Hearts",
+      fixtureName: "Hearts v Aberdeen",
+      networks: [],
+      locks: [amexHeartsAberdeen, pumaHeartsRangers],
+    })?.brandName ?? "",
+    "American Express"
+  ) &&
+    brandsMatch(
+      occupyingLeadClimateSponsorForMatch({
+        clubName: "Hearts",
+        fixtureName: "Hearts v Rangers",
+        networks: [],
+        locks: [amexHeartsAberdeen, pumaHeartsRangers],
+      })?.brandName ?? "",
+      "Puma"
+    ),
+  "Hearts Lead occupancy is per Match Day, not for the whole season"
+);
+assert(
+  canClaimLeadClimateSponsor({
+    clubName: "Hibernian",
+    brandName: "Puma",
+    fixtureName: "Hearts v Hibernian",
+    networks: [],
+    locks: [pumaHeartsHibs],
+  }) &&
+    brandsMatch(
+      occupyingLeadClimateSponsorForMatch({
+        clubName: "Hearts",
+        fixtureName: "Hibernian v Hearts",
+        networks: [],
+        locks: [pumaHibsHearts],
+      })?.brandName ?? "",
+      "Puma"
+    ) &&
+    brandsMatch(
+      occupyingLeadClimateSponsorForMatch({
+        clubName: "Hibernian",
+        fixtureName: "Hearts v Hibernian",
+        networks: [],
+        locks: [pumaHibsHearts],
+      })?.brandName ?? "",
+      "Puma"
+    ),
+  "Puma can be Lead for Hearts goals and, after a second login, Lead for Hibernian goals in the same fixture"
+);
+assert(
+  !offerMatchesLockedMatch(
+    {
+      clubName: "Hearts of Midlothian",
+      matchTitle: "Hearts of Midlothian FC Match",
+      matchDate: "2026-09-25",
+    },
+    amexHeartsAberdeen
+  ) &&
+    offerMatchesLockedMatch(
+      {
+        clubName: "Hearts of Midlothian",
+        matchTitle: "Hearts v Aberdeen",
+        matchDate: "2026-10-31",
+      },
+      amexHeartsAberdeen
+    ),
+  "Sign-off never reuses a leftover Hearts offer from another Match Day"
 );
 assert(
   readFileSync("app/components/fan/FanGoalAlertBanner.tsx", "utf8").includes(
@@ -714,7 +862,9 @@ const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
 assert(
   preview.includes("leadClimateSponsorsForClub") &&
     preview.includes("localBusinessClimateSponsorsForClub") &&
-    preview.includes("A second Lead Climate Sponsor on Hibernian must be rejected"),
+    preview.includes(
+      "A second Lead Climate Sponsor on the same Hibernian Match Day must be rejected"
+    ),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 
@@ -724,7 +874,8 @@ assert(
     tabs.includes("Our Local Businesses Sponsor") &&
     tabs.includes("Local Businesses Climate Sponsors") &&
     tabs.includes("signed up to sponsor your Club") &&
-    tabs.includes("Any second Lead Climate Sponsor is rejected") &&
+    tabs.includes("Any second Lead Climate") &&
+    tabs.includes("for that Match is rejected") &&
     tabs.includes("Four Local Business") &&
     tabs.includes("accepted each Match Day") &&
     !tabs.includes("When a Lead Climate Sponsor registers") &&
@@ -732,8 +883,23 @@ assert(
     tabs.includes("Signed off by") &&
     tabs.includes("splitClubClimateSponsorsForTabs") &&
     tabs.includes('setTab("lead")') &&
-    tabs.includes("aria-pressed"),
-  "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor"
+    tabs.includes("aria-pressed") &&
+    tabs.includes("bg-s4p-mark") &&
+    !tabs.includes("bg-amber-400"),
+  "The two tabs are Our Lead Climate Sponsor and Our Local Businesses Sponsor, in S4P green"
+);
+assert(
+  readFileSync("app/club/dashboard/page.tsx", "utf8").includes("FeaturedGssPicker") &&
+    readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
+      "FeaturedGssPicker"
+    ) &&
+    readFileSync("app/components/club/FeaturedGssPicker.tsx", "utf8").includes(
+      "There can never be two Featured projects"
+    ) &&
+    readFileSync("app/preview/featured-gss/page.tsx", "utf8").includes(
+      "FeaturedGssPicker"
+    ),
+  "Club dashboard and Climate Projects force a choice of one Featured GSS"
 );
 assert(
   !dashboard.includes("MatchDayLocalSponsorBoard") &&

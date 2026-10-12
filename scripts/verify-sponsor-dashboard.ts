@@ -25,10 +25,21 @@ import {
   SPONSOR_OFFER_SIGN_SECTION_ID,
   SPONSOR_RECEIVE_SECTION_ID,
   SPONSOR_SIGNED_SECTION_ID,
+  isNewSponsorshipRequest,
   sponsorDashboardReceivePath,
+  sponsorNewSponsorshipPath,
   sponsorOfferSignOffPath,
   sponsorWalletPath,
 } from "../app/lib/routes";
+import {
+  cistRowsForSponsor,
+  defaultCalendarMonth,
+  fundedClimateProjectsFromSigned,
+  matchesOnDate,
+  monthCells,
+  showsSignedSponsorHome,
+  sponsoredMatchesFromSigned,
+} from "../app/lib/sponsor-signed-home";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
 import { lockCopy } from "../app/lib/climate-sponsors";
@@ -427,6 +438,9 @@ assert(
   ) &&
     readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
       "Signed Sponsorship"
+    ) &&
+    readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+      "resolveCommittedMatchFunding"
     ),
   "The sign-off form is the Signed Sponsorship section"
 );
@@ -449,53 +463,63 @@ assert(
   "The S4P Sponsorship Dashboard heading no longer explains Lead-only wallet copy"
 );
 assert(
-  sponsorDashboardPage.includes(
-    "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
-  ) ||
-    lockCopy().includes(
-      "choose a Club you wish to sponsor; lock-in this Club for Goal-Sponsorship"
-    ),
-  "Match Day lock-in tells sponsors to lock a club for Goal-Sponsorship"
+  lockCopy().includes("choose a Club you wish to sponsor") &&
+    lockCopy().includes("the Match you wish to lock-in") &&
+    lockCopy().includes("for that Match"),
+  "Match Day lock-in tells sponsors to lock a club and a Match for Goal-Sponsorship"
 );
 assert(
-  sponsorDashboardPage.includes(
-    "Choose the Club. Future Matches to be played in Competitions"
-  ),
-  "Goal Sponsorship Network tells sponsors to choose the Club and the Match"
-);
-assert(
-  sponsorDashboardPage.indexOf("Select the club whose Goals you will sponsor") <
-    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
-  "Match Day lock-in sits above the Climate Sponsorship Wallet"
-);
-assert(
-  sponsorDashboardPage.indexOf('id="goal-sponsorship-network"') <
-    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
-    sponsorDashboardPage.indexOf("Choose the Club. Future Matches to be played in Competitions") <
-      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
-  "Goal Sponsorship Network sits above the Climate Sponsorship Wallet"
-);
-assert(
-  !sponsorDashboardPage.includes("scrollToClubTable") &&
-    !sponsorDashboardPage.includes("onMouseDown") &&
-    !sponsorDashboardPage.includes("onFocus={scrollToClubTable}"),
-  "Select a club no longer jumps down to Goal Sponsorship Network"
-);
-assert(
-  sponsorDashboardPage.includes('id="goal-sponsorship-network"'),
-  "Goal Sponsorship Network keeps its section id"
-);
-assert(
-  sponsorDashboardPage.includes("scrollToLockIn") &&
-    sponsorDashboardPage.includes("lockClubFromNetwork") &&
+  sponsorDashboardPage.includes("Select a Club") &&
+    sponsorDashboardPage.includes("Select the Match") &&
+    sponsorDashboardPage.includes("SeeMatchDetails") &&
+    sponsorDashboardPage.includes("ClubLeagueMenu") &&
+    sponsorDashboardPage.includes("MatchFixtureMenu") &&
     sponsorDashboardPage.includes('id="match-day-lock-in"'),
-  "Selecting a club from the teams table scrolls back up to Match Day lock-in"
+  "One lock-in block lists every demo club, then the Match, then See Match details"
+);
+assert(
+  readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
+    "CURRENT_SEASON_LEAGUES"
+  ) &&
+    readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
+      "Premier League and Scottish Premiership clubs"
+    ),
+  "Select a Club opens Premier League and Scottish Premiership with the teams in those leagues"
+);
+assert(
+  readFileSync("app/components/sponsor/SeeMatchDetails.tsx", "utf8").includes(
+    "See Match details"
+  ) &&
+    readFileSync("app/components/sponsor/SeeMatchDetails.tsx", "utf8").includes(
+      "defaultOpen"
+    ) &&
+    sponsorDashboardPage.includes("defaultOpen"),
+  "After a Match is selected, sponsors can See Match details"
+);
+assert(
+  !sponsorDashboardPage.includes("ClubNetworkPicker") &&
+    !sponsorDashboardPage.includes('id="goal-sponsorship-network"') &&
+    !sponsorDashboardPage.includes("lockClubFromNetwork") &&
+    !sponsorDashboardPage.includes("scrollToLockIn") &&
+    !sponsorDashboardPage.includes("scrollToClubTable") &&
+    !sponsorDashboardPage.includes("Goal Sponsorship Network"),
+  "The S4P Sponsorship Dashboard no longer duplicates Goal Sponsorship Network as a second club picker"
+);
+assert(
+  sponsorDashboardPage.indexOf("Select a Club") <
+    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
+    sponsorDashboardPage.indexOf("Select the Match") <
+      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet") &&
+    sponsorDashboardPage.indexOf("SeeMatchDetails") <
+      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
+  "Select a Club, Select the Match, and See Match details sit above the Climate Sponsorship Wallet"
 );
 assert(
   sponsorDashboardPage.includes("loadClubFixtures") &&
-    sponsorDashboardPage.includes("Select the Match") &&
-    sponsorDashboardPage.includes("SeeMatchDetails"),
-  "Lead Climate Sponsors select a published Match and can See Match details"
+    sponsorDashboardPage.includes("ensureGoalNetwork") &&
+    (sponsorDashboardPage.includes("See Match details") ||
+      sponsorDashboardPage.includes("SeeMatchDetails")),
+  "Locking a listed club and Match still records the Goal Sponsorship Network behind the scenes"
 );
 assert(
   sponsorDashboardPage.includes(
@@ -613,9 +637,12 @@ assert(
   walletPage.includes("lockWalletFundingToClub") &&
     walletPage.includes("ensureOfferFromLockedClubUploads") &&
     walletPage.includes("sponsorOfferSignOffPath") &&
+    walletPage.includes("ensureMatchDayClubLock") &&
     walletPage.includes("bindFundedSponsorToClub") &&
-    !walletPage.includes("sponsorDashboardReceivePath"),
-  "Depositing into the Climate Sponsorship Wallet locks funding to the club and opens Terms & Conditions + sign-off"
+    !walletPage.includes("sponsorDashboardReceivePath") &&
+    !walletPage.includes("clubNameForLocalBrand") &&
+    !walletPage.includes("isLeadSponsorHome(brand) && !lock?.clubName"),
+  "Depositing into the Climate Sponsorship Wallet locks funding to the selected club and opens Terms & Conditions + sign-off"
 );
 assert(
   readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
@@ -626,10 +653,10 @@ assert(
   "Open Climate Sponsorship Wallet carries the locked club onto the wallet"
 );
 assert(
-  readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
-    "const persisted = loadMatchDayLock(brand)"
-  ),
-  "A rejected second Lead lock does not keep Match Day on that club"
+  sponsorDashboardPage.includes("setChosenFixture(fixture)") &&
+    sponsorDashboardPage.includes("setLockFixture(fixture.fixtureName)") &&
+    !sponsorDashboardPage.includes('setLockClub(persisted?.clubName ?? "")'),
+  "A rejected second Lead still keeps the chosen Club, Match and Match details on screen"
 );
 
 const offerService = readFileSync(
@@ -753,6 +780,149 @@ assert(
 assert(
   readFileSync("app/globals.css", "utf8").includes(".bg-red-500.text-white"),
   "Logout keeps cream copy on the red tab so it stays readable"
+);
+
+const applyMixed = readFileSync("apply-single-club-match-block.mjs", "utf8");
+assert(
+  applyMixed.includes("app/lib/sponsor-home.ts") &&
+    applyMixed.includes("rememberLocalSponsorSession") &&
+    applyMixed.includes("isLocalClimateSponsor"),
+  "The apply script pulls sponsor-home so mixed gss-lead-split files still build"
+);
+assert(
+  applyMixed.includes("app/components/sponsor/SignedSponsorHome.tsx") &&
+    applyMixed.includes("app/lib/sponsor-signed-home.ts") &&
+    applyMixed.includes("app/preview/signed-sponsor-home/page.tsx") &&
+    applyMixed.includes("Click here to initiate a New Sponsorship"),
+  "The apply script pulls the signed-off Match-Day calendar home onto mixed PC files"
+);
+
+const amexHeartsSigned = {
+  offer: {
+    id: "amex-hearts-aberdeen",
+    clubId: "hearts-demo",
+    clubName: "Hearts",
+    headline: "Hearts v Aberdeen Goal Sponsor",
+    matchTitle: "Hearts v Aberdeen",
+    matchDate: "2026-10-31",
+    projectIds: ["gss", "spoke"],
+    projects: [
+      { id: "gss", name: "Global Schools Solar", fundedGbp: 2300 },
+      { id: "spoke", name: "Wee Spoke Hub", fundedGbp: 0 },
+    ],
+    postedAt: "2026-10-12T12:00:00.000Z",
+    sponsorshipAmountGbp: 2300,
+  },
+  signature: {
+    id: "sig-amex",
+    offerId: "amex-hearts-aberdeen",
+    sponsorId: "amex",
+    signerName: "American Express",
+    brandName: "American Express",
+    acceptedTerms: true,
+    signedAt: "2026-10-12T17:36:00.000Z",
+  },
+};
+const amexMatches = sponsoredMatchesFromSigned([amexHeartsSigned]);
+assert(
+  amexMatches.length === 1 &&
+    amexMatches[0].date === "2026-10-31" &&
+    amexMatches[0].fixtureName === "Hearts v Aberdeen",
+  "The signed-off calendar lists Hearts v Aberdeen on 31 October"
+);
+assert(
+  matchesOnDate(amexMatches, "2026-10-31")[0]?.fixtureName ===
+    "Hearts v Aberdeen" &&
+    matchesOnDate(amexMatches, "2026-10-24").length === 0,
+  "Clicking 31 October shows Hearts v Aberdeen and other days stay empty"
+);
+const october = monthCells(2026, 9);
+assert(
+  october.some((cell) => cell.date === "2026-10-31") &&
+    defaultCalendarMonth(amexMatches).month === 9,
+  "October 2026 calendar includes the 31st and opens on that Match Day month"
+);
+const funded = fundedClimateProjectsFromSigned([amexHeartsSigned], {
+  "hearts-demo": [{ id: "gss", fundedGbp: 2300 }],
+});
+assert(
+  funded.find((row) => row.id === "gss")?.fanFunded === true &&
+    funded.find((row) => row.id === "gss")?.fundedGbp === 2300,
+  "The collapsible list shows Climate Projects fans funded from the sponsor's money"
+);
+const cist = cistRowsForSponsor({
+  rows: [
+    { name: "Puma", donationGbp: 5000 },
+    { name: "Diageo", donationGbp: 1200 },
+  ],
+  brandName: "American Express",
+  ownFundingGbp: 2300,
+});
+assert(
+  cist.find((row) => row.highlighted)?.name === "American Express" &&
+    cist.find((row) => row.name === "American Express")?.rank === 2,
+  "Climate Impact Sponsorship Table highlights American Express in position"
+);
+const cistRaised = cistRowsForSponsor({
+  rows: [
+    { name: "Puma", donationGbp: 5000 },
+    { name: "American Express", donationGbp: 1000 },
+  ],
+  brandName: "American Express",
+  ownFundingGbp: 7500,
+});
+assert(
+  cistRaised.find((row) => row.highlighted)?.rank === 1 &&
+    cistRaised.find((row) => row.name === "American Express")?.funding.includes(
+      "7,500"
+    ),
+  "CIST uses the signed Commitment Fee and Goals-scored Sponsorship for the highlighted position"
+);
+assert(
+  showsSignedSponsorHome(1, false) &&
+    !showsSignedSponsorHome(1, true) &&
+    !showsSignedSponsorHome(0, false),
+  "Signed-off home hides lock-in until New Sponsorship is initiated"
+);
+assert(
+  sponsorDashboardPage.includes("showsSignedSponsorHome") &&
+    sponsorDashboardPage.indexOf("loadSponsorFolder") <
+      sponsorDashboardPage.indexOf("setLoading(false)"),
+  "The dashboard waits for signed sponsorships before leaving the loading state"
+);
+assert(
+  sponsorNewSponsorshipPath() === `${SPONSOR_DASHBOARD_PATH}?new=1` &&
+    isNewSponsorshipRequest("?new=1") &&
+    !isNewSponsorshipRequest(""),
+  "New Sponsorship opens the lock-in flow from the signed-off home"
+);
+const signedHomeSource = readFileSync(
+  "app/components/sponsor/SignedSponsorHome.tsx",
+  "utf8"
+);
+const calendarSource = readFileSync(
+  "app/components/sponsor/SponsoredMatchCalendar.tsx",
+  "utf8"
+);
+const cistSource = readFileSync(
+  "app/components/sponsor/SponsorCistTable.tsx",
+  "utf8"
+);
+assert(
+  sponsorDashboardPage.includes("SignedSponsorHome") &&
+    signedHomeSource.includes("SPONSOR_NEW_SPONSORSHIP_LABEL") &&
+    signedHomeSource.includes('role="tab"') &&
+    signedHomeSource.indexOf("<SponsorCistTable") <
+      signedHomeSource.indexOf('role="tab"') &&
+    calendarSource.includes("highlighted Match Day") &&
+    calendarSource.includes("disabled={!sponsored}") &&
+    cistSource.includes("Impact Moments") &&
+    cistSource.includes("Climate Impact") &&
+    readFileSync(
+      "app/sponsor/offers/OfferSignOff.tsx",
+      "utf8"
+    ).includes("router.replace(SPONSOR_DASHBOARD_PATH)"),
+  "After sign-off the dashboard is calendar, funded projects, CIST and New Sponsorship"
 );
 
 if (failures.length > 0) {

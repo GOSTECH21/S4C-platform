@@ -11,18 +11,16 @@ import {
   loadGoalNetwork,
   loadMatchDayLock,
 } from "@/app/services/climate-sponsors.service";
+import { readClimateWallet } from "@/app/services/sponsor-wallet.service";
 import { sponsorCanReceiveClubPost } from "@/app/lib/climate-sponsors";
+import { resolveCommittedMatchFunding } from "@/app/lib/sponsor-completion-flow";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
 } from "@/app/lib/routes";
-import {
-  EXPOSURES_PER_POST,
-  formatSponsorPayableCopy,
-  formatStipulatedRate,
-} from "@/app/lib/sponsorship-auction";
+import { formatSponsorPayableCopy } from "@/app/lib/sponsorship-auction";
 import { OfferSignOffForm } from "./OfferSignOff";
 
 export function OfferSignOffPage({ offerId }: { offerId?: string }) {
@@ -98,14 +96,13 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
         These are the 5 Climate Projects {offer.clubName} posted to fans.
         Agree to be Goal Sponsor for this match.{" "}
         {formatSponsorPayableCopy({
-          baseAmount: offer.sponsorshipAmountGbp,
-          gbpPerGoal: offer.gbpPerGoal,
-          maxAmount: offer.maxAmount,
+          ...resolveCommittedMatchFunding({
+            lock: loadMatchDayLock(brandDefault),
+            wallet: readClimateWallet(offer.clubName, brandDefault),
+            offer,
+          }),
           clubName: offer.clubName,
-        })}{" "}
-        {offer.gbpPerVote
-          ? `${formatStipulatedRate(offer.gbpPerVote)} is the brand-exposure counter: 1 post = 1 eyeball = ${EXPOSURES_PER_POST} exposures.`
-          : ""}
+        })}
       </p>
       <OfferSignOffForm offer={offer} brandDefault={brandDefault} showProjects />
     </div>

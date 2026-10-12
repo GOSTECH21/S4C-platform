@@ -105,10 +105,10 @@ function seedStores() {
       brandName: "Puma",
       clubName: "Hibernian",
       matchLabel: "Scottish Premiership Match",
-      fixtureName: "Hibernian v Celtic",
+      fixtureName: "Hibernian v Hearts",
     });
   } catch {
-    // A second Lead Climate Sponsor on Hibernian must be rejected.
+    // A second Lead Climate Sponsor on the same Hibernian Match Day must be rejected.
   }
   for (const brandName of hibsLocals) {
     saveGoalNetwork(network(brandName, "Hibernian", `${brandName}@local.test`));

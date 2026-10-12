@@ -150,21 +150,22 @@ async function splitFeaturedProjects(
   featuredProject: ClimateProject | null;
   clubProjects: ClimateProject[];
 }> {
-  // Featured GSS versions sit above the SD's four partner choices.
   const fromList = projects.filter(isFeaturedClimateProject);
-  const featuredRows = expandFeaturedGssVersions(
-    fromList.length > 0 ? fromList : await getFeaturedClimateProjects()
-  );
-  const featuredIds = new Set(featuredRows.map((project) => project.id));
+  const featuredProject =
+    fromList.length === 1
+      ? fromList[0]
+      : fromList.length > 1
+        ? fromList[0]
+        : (await getFeaturedClimateProjects())[0] ?? null;
   const clubProjects = projects
     .filter(
       (project) =>
-        !featuredIds.has(project.id) && !isFeaturedClimateProject(project)
+        project.id !== featuredProject?.id && !isFeaturedClimateProject(project)
     )
     .slice(0, MATCH_DAY_CHOICE_COUNT);
   return {
-    featuredProject: featuredRows[0] ?? null,
-    clubProjects: [...featuredRows.slice(1), ...clubProjects],
+    featuredProject,
+    clubProjects,
   };
 }
 

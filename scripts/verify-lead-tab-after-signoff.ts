@@ -84,25 +84,37 @@ async function main() {
     "A Local Business Climate Sponsor sign-off does not occupy the Lead tab"
   );
 
-  let secondRejected = false;
+  let sameMatchRejected = false;
   try {
     lockMatchDayClub({
       brandName: "Puma",
       clubName: "Hibernian",
       matchLabel: "Scottish Premiership Match",
-      fixtureName: "Hibernian v Hearts",
+      fixtureName: "Hibernian v Celtic",
       competition: "Scottish Premiership Match",
     });
   } catch (err) {
-    secondRejected = /only one lead climate sponsor/i.test(
+    sameMatchRejected = /only one lead climate sponsor/i.test(
       err instanceof Error ? err.message : String(err)
     );
   }
   assert(
-    secondRejected &&
+    sameMatchRejected &&
       leadClimateSponsorsForClub("Hibernian")[0]?.brandName ===
         "American Express",
-    "A second Lead Climate Sponsor is still rejected after Amex sign-off"
+    "A second Lead Climate Sponsor is rejected on the same Hibernian Match Day"
+  );
+
+  const laterMatch = lockMatchDayClub({
+    brandName: "Puma",
+    clubName: "Hibernian",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hibernian v Hearts",
+    competition: "Scottish Premiership Match",
+  });
+  assert(
+    laterMatch.fixtureName === "Hibernian v Hearts",
+    "Puma can lock a later Hibernian Match Day after American Express signed this week"
   );
 
   const pumaAttempt = recordSignedLeadClimateSponsor({
@@ -111,8 +123,14 @@ async function main() {
     fixtureName: "Hibernian v Hearts",
   });
   assert(
-    pumaAttempt?.brandName === "American Express",
-    "Signing off a second Lead leaves American Express on the Lead tab"
+    pumaAttempt?.brandName === "Puma" &&
+      leadClimateSponsorsForClub("Hibernian").some(
+        (row) => row.brandName === "American Express"
+      ) &&
+      leadClimateSponsorsForClub("Hibernian").some(
+        (row) => row.brandName === "Puma"
+      ),
+    "Signing off Puma on a later Match keeps American Express on the earlier Hibernian Match"
   );
 
   const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
@@ -167,7 +185,7 @@ async function main() {
       {
         lead: hibsLeads[0]?.brandName,
         matches: hibsLeads[0]?.matches,
-        secondRejected,
+        sameMatchRejected,
       },
       null,
       2

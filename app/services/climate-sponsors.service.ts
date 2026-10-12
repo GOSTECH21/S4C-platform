@@ -5,6 +5,7 @@ import {
   appendChosenMatch,
   brandKey,
   brandsMatch,
+  clubsMatch,
   emptySponsor,
   ensureSponsorSelected,
   inviteMatchesSponsor,
@@ -15,6 +16,7 @@ import {
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   occupyingLeadClimateSponsor,
+  occupyingLeadClimateSponsorForMatch,
   secondLeadClimateSponsorRejectedMessage,
   localBusinessSponsorsForClubFromStores,
   removeSponsor,
@@ -613,13 +615,14 @@ export function lockMatchDayClub({
 }): MatchDayClubLock {
   if (isSponsorBlockedFromClub(brandName, clubName)) {
     throw new Error(
-      secondLeadClimateSponsorRejectedMessage(clubName, "Puma")
+      secondLeadClimateSponsorRejectedMessage(clubName, "Puma", fixtureName)
     );
   }
   const lockedAt = new Date().toISOString();
   const store = readJson<LockStore>(LOCK_KEY, {});
-  const occupant = occupyingLeadClimateSponsor({
+  const occupant = occupyingLeadClimateSponsorForMatch({
     clubName,
+    fixtureName,
     networks: listGoalNetworks(),
     locks: Object.values(store).filter((row) => row && row.clubName),
   });
@@ -629,7 +632,11 @@ export function lockMatchDayClub({
     !brandsMatch(occupant.brandName, brandName)
   ) {
     throw new Error(
-      secondLeadClimateSponsorRejectedMessage(clubName, occupant.brandName)
+      secondLeadClimateSponsorRejectedMessage(
+        clubName,
+        occupant.brandName,
+        fixtureName
+      )
     );
   }
   const existing = store[brandKey(brandName)] ?? null;
@@ -661,6 +668,52 @@ export function lockMatchDayClub({
   return lock;
 }
 
+/** Persist this brand's club/match so wallet Deposit can open Terms & sign-off. */
+export function ensureMatchDayClubLock({
+  brandName,
+  clubName,
+  matchLabel,
+  fixtureName,
+  competition,
+  fixtureDate,
+  kickoff,
+  venue,
+  sourceUrl,
+}: {
+  brandName: string;
+  clubName: string;
+  matchLabel?: string;
+  fixtureName?: string;
+  competition?: string;
+  fixtureDate?: string;
+  kickoff?: string | null;
+  venue?: string | null;
+  sourceUrl?: string | null;
+}): MatchDayClubLock {
+  const club = clubName.trim();
+  const existing = loadMatchDayLock(brandName);
+  const label =
+    String(matchLabel ?? "").trim() ||
+    existing?.matchLabel ||
+    `${club} Match Day`;
+  try {
+    return lockMatchDayClub({
+      brandName,
+      clubName: club,
+      matchLabel: label,
+      fixtureName: fixtureName || existing?.fixtureName || `${club} Match Day`,
+      competition: competition || existing?.competition || label,
+      fixtureDate: fixtureDate || existing?.fixtureDate,
+      kickoff: kickoff ?? existing?.kickoff,
+      venue: venue ?? existing?.venue,
+      sourceUrl: sourceUrl ?? existing?.sourceUrl,
+    });
+  } catch (error) {
+    if (existing && clubsMatch(existing.clubName, club)) return existing;
+    throw error;
+  }
+}
+
 /** After a Lead signs off a match, they occupy this club's Lead Climate Sponsor tab. */
 export function recordSignedLeadClimateSponsor({
   brandName,
@@ -688,6 +741,7 @@ export function recordSignedLeadClimateSponsor({
   const canClaim = canClaimLeadClimateSponsor({
     clubName: club,
     brandName: brand,
+    fixtureName,
     networks: listGoalNetworks(),
     locks: listMatchDayLocks(),
   });
@@ -721,7 +775,13 @@ export function recordSignedLeadClimateSponsor({
     brandName: brand,
   });
 
-  return leadClimateSponsorsForClub(club)[0] ?? null;
+  return (
+    leadClimateSponsorsForClub(club).find((row) =>
+      brandsMatch(row.brandName, brand)
+    ) ??
+    leadClimateSponsorsForClub(club)[0] ??
+    null
+  );
 }
 
 export function lockWalletFundingToClub({

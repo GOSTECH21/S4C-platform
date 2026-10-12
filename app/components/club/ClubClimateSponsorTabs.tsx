@@ -76,8 +76,10 @@ export function ClubClimateSponsorTabs({
       <p className="mt-3 max-w-3xl text-slate-300">
         Interested Lead Climate Sponsors and Local Business Climate Sponsors who
         signed up to sponsor your Club will automatically appear here. Only one
-        Lead Climate Sponsor is allowed. Any second Lead Climate Sponsor is rejected.
-        Four Local Business Climate Sponsors are accepted each Match Day.
+        Lead Climate Sponsor is allowed on each Match Day. Any second Lead Climate
+        Sponsor for that Match is rejected. A different Lead can sponsor a later
+        Match. The same brand can lock both clubs in a head-to-head Match by
+        signing in separately for each club&apos;s Climate Projects. Four Local Business Climate Sponsors are accepted each Match Day.
       </p>
 
       <div
@@ -228,8 +230,8 @@ function TabButton({
       onClick={onClick}
       className={`rounded-xl px-5 py-3 text-sm font-bold ${
         selected
-          ? "bg-amber-400 text-slate-950"
-          : "border border-slate-600 bg-slate-950 text-slate-200 hover:border-amber-300"
+          ? "bg-s4p-mark text-slate-950 hover:brightness-110"
+          : "border border-slate-600 bg-slate-950 text-slate-200 hover:border-s4p-mark"
       }`}
     >
       {children}

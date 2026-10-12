@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import {
   MATCH_DAY_CHOICE_COUNT,
+  MATCH_DAY_FEATURED_COUNT,
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
   clubClimateProjectsIntroCopy,
@@ -34,6 +35,11 @@ import {
   isFanPostVisible,
 } from "../app/lib/match-day-post";
 import { MS_PER_DAY } from "../app/lib/voting-window";
+import {
+  chosenFeaturedProject,
+  expandFeaturedGssVersions,
+  withChosenFeaturedProject,
+} from "../app/lib/featured-gss";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
   isCampaignIdNotNullError,
@@ -57,8 +63,22 @@ const ids = Array.from({ length: 20 }, (_, index) => index + 1);
 assert(partnerProjectPage(ids, 0).length === PARTNER_PAGE_SIZE, "Page 1 has 10 projects");
 assert(partnerProjectPage(ids, 1).join(",") === "11,12,13,14,15,16,17,18,19,20", "Page 2 has the next 10");
 assert(partnerPageCount(20) === 2, "20 partner projects paginate into 2 pages");
-assert(MATCH_DAY_PROJECT_COUNT === 6, "Match Day portfolio is 6 projects including two GSS versions");
-assert(MATCH_DAY_CHOICE_COUNT === 4, "SD chooses 4 partner projects; GSS is included as a must");
+assert(MATCH_DAY_FEATURED_COUNT === 1, "Only one Featured Climate Project is allowed");
+assert(MATCH_DAY_PROJECT_COUNT === 5, "Match Day portfolio is 5 projects: one Featured GSS plus four partner projects");
+assert(MATCH_DAY_CHOICE_COUNT === 4, "SD chooses 4 partner projects after choosing one Featured GSS");
+const gssPair = expandFeaturedGssVersions([
+  { id: "gss", name: "Global Schools Solar" },
+]);
+assert(
+  gssPair.length === 2 &&
+    chosenFeaturedProject(gssPair) === null &&
+    chosenFeaturedProject(gssPair, gssPair[0].id)?.id === gssPair[0].id &&
+    withChosenFeaturedProject(
+      [...gssPair, { id: "southwark", name: "Southwark Community Solar" }],
+      gssPair[1].id
+    ).map((row) => row.id).join(",") === `${gssPair[1].id},southwark`,
+  "A Match Day list keeps one chosen Featured GSS and never both"
+);
 assert(
   partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 0).every((project) =>
     /scotland/i.test(project.country)
@@ -527,7 +547,7 @@ assert(
 );
 assert(
   clubClimateProjectsIntroCopy().includes(
-    "Two Global Schools Solar Projects are included in every Match Day List"
+    "There can never be two Featured projects"
   ) &&
     clubClimateProjectsIntroCopy().includes(
       "Climate Partner Projects executable in Your Country"

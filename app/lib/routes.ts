@@ -49,6 +49,9 @@ export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
+export const SPONSOR_NEW_SPONSORSHIP_QUERY = "new";
+export const SPONSOR_NEW_SPONSORSHIP_LABEL =
+  "Click here to initiate a New Sponsorship";
 export const SPONSOR_WALLET_PATH = "/sponsor/wallet";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 
@@ -60,6 +63,17 @@ export function sponsorWalletPath(clubName?: string | null): string {
 
 export function sponsorDashboardReceivePath(): string {
   return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_RECEIVE_SECTION_ID}`;
+}
+
+export function sponsorNewSponsorshipPath(): string {
+  return `${SPONSOR_DASHBOARD_PATH}?${SPONSOR_NEW_SPONSORSHIP_QUERY}=1`;
+}
+
+export function isNewSponsorshipRequest(
+  search: string | null | undefined
+): boolean {
+  const query = String(search ?? "").replace(/^\?/, "");
+  return new URLSearchParams(query).get(SPONSOR_NEW_SPONSORSHIP_QUERY) === "1";
 }
 export const SPONSOR_OFFER_SIGN_OFF_PATH = "/sponsor/offers/sign-off";
 export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";
