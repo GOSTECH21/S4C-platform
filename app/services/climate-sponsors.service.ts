@@ -661,6 +661,78 @@ export function lockMatchDayClub({
   return lock;
 }
 
+/** Persist this brand's club/match so wallet Deposit can open Terms & sign-off. */
+export function ensureMatchDayClubLock({
+  brandName,
+  clubName,
+  matchLabel,
+  fixtureName,
+  competition,
+  fixtureDate,
+  kickoff,
+  venue,
+  sourceUrl,
+}: {
+  brandName: string;
+  clubName: string;
+  matchLabel?: string;
+  fixtureName?: string;
+  competition?: string;
+  fixtureDate?: string;
+  kickoff?: string | null;
+  venue?: string | null;
+  sourceUrl?: string | null;
+}): MatchDayClubLock {
+  const club = clubName.trim();
+  const existing = loadMatchDayLock(brandName);
+  const label =
+    String(matchLabel ?? "").trim() ||
+    existing?.matchLabel ||
+    `${club} Match Day`;
+  try {
+    return lockMatchDayClub({
+      brandName,
+      clubName: club,
+      matchLabel: label,
+      fixtureName: fixtureName || existing?.fixtureName || `${club} Match Day`,
+      competition: competition || existing?.competition || label,
+      fixtureDate: fixtureDate || existing?.fixtureDate,
+      kickoff: kickoff ?? existing?.kickoff,
+      venue: venue ?? existing?.venue,
+      sourceUrl: sourceUrl ?? existing?.sourceUrl,
+    });
+  } catch {
+    const store = readJson<LockStore>(LOCK_KEY, {});
+    const current = store[brandKey(brandName)] ?? existing ?? null;
+    const keepFunding =
+      current && offerBelongsToClub(current.clubName, club)
+        ? {
+            fundingLockedAt: current.fundingLockedAt,
+            commitmentFeeGbp: current.commitmentFeeGbp,
+            gbpPerGoal: current.gbpPerGoal,
+            maximumSponsorshipGbp: current.maximumSponsorshipGbp,
+          }
+        : {};
+    const next: MatchDayClubLock = {
+      brandKey: brandKey(brandName),
+      clubName: club,
+      matchLabel: label,
+      fixtureName: fixtureName || current?.fixtureName || `${club} Match Day`,
+      competition: competition || current?.competition || label,
+      fixtureDate: fixtureDate || current?.fixtureDate,
+      kickoff: kickoff ?? current?.kickoff,
+      venue: venue ?? current?.venue,
+      sourceUrl: sourceUrl ?? current?.sourceUrl,
+      lockedAt: current?.lockedAt || new Date().toISOString(),
+      ...keepFunding,
+    };
+    const lock = appendChosenMatch(current, next);
+    store[brandKey(brandName)] = lock;
+    writeJson(LOCK_KEY, store);
+    return lock;
+  }
+}
+
 /** After a Lead signs off a match, they occupy this club's Lead Climate Sponsor tab. */
 export function recordSignedLeadClimateSponsor({
   brandName,

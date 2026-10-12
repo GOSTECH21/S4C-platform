@@ -5,6 +5,7 @@ const BRANCH = "cursor/single-club-match-block-18f9";
 const FILES = [
   "app/sponsor/dashboard/page.tsx",
   "app/sponsor/wallet/page.tsx",
+  "app/services/climate-sponsors.service.ts",
   "app/components/sponsor/ClubMatchMenus.tsx",
   "app/components/sponsor/SeeMatchDetails.tsx",
   "app/lib/sponsor-home.ts",

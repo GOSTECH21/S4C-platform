@@ -17,6 +17,7 @@ import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
 import {
   bindFundedSponsorToClub,
   ensureGoalNetwork,
+  ensureMatchDayClubLock,
   loadMatchDayLock,
   lockWalletFundingToClub,
 } from "@/app/services/climate-sponsors.service";
@@ -187,15 +188,22 @@ export default function SponsorWalletPage() {
             setError("Lock a club for this Match Day first.");
             return;
           }
-          const lock = loadMatchDayLock(brand);
-          if (isLeadSponsorHome(brand) && !lock?.clubName) {
-            setError("Lock a club for this Match Day first.");
-            return;
-          }
           setBusy(true);
           setError(null);
           void (async () => {
             try {
+              const existing = loadMatchDayLock(brand);
+              ensureMatchDayClubLock({
+                brandName: brand,
+                clubName,
+                matchLabel: existing?.matchLabel,
+                fixtureName: existing?.fixtureName,
+                competition: existing?.competition,
+                fixtureDate: existing?.fixtureDate,
+                kickoff: existing?.kickoff,
+                venue: existing?.venue,
+                sourceUrl: existing?.sourceUrl,
+              });
               const next = depositLeadClimateWallet({
                 clubName,
                 brandName: brand,

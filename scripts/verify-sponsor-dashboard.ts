@@ -626,10 +626,12 @@ assert(
   walletPage.includes("lockWalletFundingToClub") &&
     walletPage.includes("ensureOfferFromLockedClubUploads") &&
     walletPage.includes("sponsorOfferSignOffPath") &&
+    walletPage.includes("ensureMatchDayClubLock") &&
     walletPage.includes("bindFundedSponsorToClub") &&
     !walletPage.includes("sponsorDashboardReceivePath") &&
-    !walletPage.includes("clubNameForLocalBrand"),
-  "Depositing into the Climate Sponsorship Wallet locks funding to the club and opens Terms & Conditions + sign-off without a missing local-sponsor export"
+    !walletPage.includes("clubNameForLocalBrand") &&
+    !walletPage.includes("isLeadSponsorHome(brand) && !lock?.clubName"),
+  "Depositing into the Climate Sponsorship Wallet locks funding to the selected club and opens Terms & Conditions + sign-off"
 );
 assert(
   readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
@@ -641,7 +643,7 @@ assert(
 );
 assert(
   sponsorDashboardPage.includes("setChosenFixture(fixture)") &&
-    sponsorDashboardPage.includes("setLock(loadMatchDayLock(brand))") &&
+    sponsorDashboardPage.includes("ensureMatchDayClubLock") &&
     !sponsorDashboardPage.includes('setLockClub(persisted?.clubName ?? "")'),
   "A rejected second Lead still keeps the chosen Club, Match and Match details on screen"
 );
