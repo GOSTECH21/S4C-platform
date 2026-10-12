@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="en"
       data-theme={DEFAULT_S4P_THEME}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <head>
         <ThemeBootScript />

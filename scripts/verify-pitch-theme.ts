@@ -12,9 +12,18 @@ assert(
 
 const css = readFileSync("app/globals.css", "utf8");
 assert(css.includes("--s4p-canvas: #f7f4e8"), "The live canvas is ivory paper");
-assert(css.includes("--s4p-ink: #111111"), "Primary copy is black");
-assert(css.includes("--s4p-mint: #2a8f4a"), "Accent copy is one green");
-assert(css.includes("--s4p-gold: #2a8f4a"), "The old gold token is the same green");
+assert(css.includes("--s4p-ink: #000000"), "Primary copy is true black");
+assert(css.includes("--s4p-mint: #0c5c2c"), "Accent copy is a darker green on paper");
+assert(css.includes("--s4p-gold: #0c5c2c"), "The old gold token is the same green");
+assert(css.includes("-webkit-font-smoothing: auto"), "Ivory type uses subpixel smoothing so it stays sharp");
+assert(
+  !readFileSync("app/layout.tsx", "utf8").includes("antialiased"),
+  "The greying antialiased class is off the live canvas"
+);
+assert(
+  !readFileSync("app/components/home/HomeFrontPage.tsx", "utf8").includes("drop-shadow md:text-6xl"),
+  "Hero headlines no longer sit in a grey drop-shadow"
+);
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(css.includes('url("/images/platform-background.png")'), "Quiet wave remains as a trial wallpaper");

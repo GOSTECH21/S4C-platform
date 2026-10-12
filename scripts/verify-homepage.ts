@@ -320,8 +320,8 @@ assert(
 assert(
   front.includes("s4p-navy-panel") &&
     globalCss.includes(".s4p-navy-panel") &&
-    globalCss.includes("--s4p-ink: #111111") &&
-    globalCss.includes("--s4p-mint: #2a8f4a") &&
+    globalCss.includes("--s4p-ink: #000000") &&
+    globalCss.includes("--s4p-mint: #0c5c2c") &&
     globalCss.includes("#f7f4e8"),
   "Stats sit on paper panels; copy is black and green on ivory"
 );
