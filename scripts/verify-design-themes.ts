@@ -49,8 +49,8 @@ assert(css.includes('html[data-theme="vivid-wave"]'), "Vivid wave has a data-the
 assert(css.includes('html[data-theme="navy-night"]'), "Navy night has a data-theme");
 assert(css.includes('html[data-theme="forest-dusk"]'), "Forest dusk has a data-theme");
 assert(css.includes('html[data-theme="ivory-canvas"]'), "Ivory canvas has a data-theme");
-assert(css.includes("--s4p-ink: #111111"), "Live copy is black");
-assert(css.includes("--s4p-mint: #2a8f4a"), "Live accent copy is green");
+assert(css.includes("--s4p-ink: #000000"), "Live copy is true black");
+assert(css.includes("--s4p-mint: #0c5c2c"), "Live accent copy is a darker green");
 assert(css.includes("color-scheme: light"), "Ivory canvas is a light colour scheme");
 
 const layout = readFileSync("app/layout.tsx", "utf8");

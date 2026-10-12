@@ -7,41 +7,41 @@
 :root {
   --s4p-canvas: #f7f4e8;
   --s4p-canvas-mid: #efe8d4;
-  --s4p-emerald: #2a8f4a;
-  --s4p-ink: #111111;
-  --s4p-ivory: #111111;
-  --s4p-mint: #2a8f4a;
-  --s4p-muted: #111111;
-  --s4p-gold: #2a8f4a;
+  --s4p-emerald: #0c5c2c;
+  --s4p-ink: #000000;
+  --s4p-ivory: #000000;
+  --s4p-mint: #0c5c2c;
+  --s4p-muted: #000000;
+  --s4p-gold: #0c5c2c;
   --s4p-paper: #fffdf8;
   --s4p-mark: #5bc662;
-  --s4p-panel: rgb(255 253 248 / 0.9);
-  --s4p-glass-950: rgb(255 253 248 / 0.82);
-  --s4p-glass-900: rgb(247 244 232 / 0.9);
-  --s4p-glass-800: rgb(239 232 212 / 0.94);
+  --s4p-panel: #fffdf8;
+  --s4p-glass-950: #fffdf8;
+  --s4p-glass-900: #fffdf8;
+  --s4p-glass-800: #f7f4e8;
   --s4p-wallpaper: none;
   --s4p-overlay: linear-gradient(180deg, #f7f4e8 0%, #efe8d4 100%);
   --background: var(--s4p-canvas);
   --foreground: var(--s4p-ink);
-  --color-s4p-mint: #2a8f4a;
-  --color-s4p-ivory: #111111;
-  --color-s4p-gold: #2a8f4a;
-  --color-slate-200: #111111;
-  --color-slate-300: #111111;
-  --color-slate-400: #111111;
-  --color-slate-500: #111111;
-  --color-slate-600: #111111;
-  --color-slate-700: #111111;
-  --color-amber-200: #2a8f4a;
-  --color-amber-300: #2a8f4a;
-  --color-amber-400: #2a8f4a;
-  --color-green-100: #2a8f4a;
-  --color-green-200: #2a8f4a;
-  --color-green-300: #2a8f4a;
-  --color-green-400: #2a8f4a;
-  --color-emerald-200: #2a8f4a;
-  --color-emerald-300: #2a8f4a;
-  --color-emerald-400: #2a8f4a;
+  --color-s4p-mint: #0c5c2c;
+  --color-s4p-ivory: #000000;
+  --color-s4p-gold: #0c5c2c;
+  --color-slate-200: #000000;
+  --color-slate-300: #000000;
+  --color-slate-400: #000000;
+  --color-slate-500: #000000;
+  --color-slate-600: #000000;
+  --color-slate-700: #000000;
+  --color-amber-200: #0c5c2c;
+  --color-amber-300: #0c5c2c;
+  --color-amber-400: #0c5c2c;
+  --color-green-100: #0c5c2c;
+  --color-green-200: #0c5c2c;
+  --color-green-300: #0c5c2c;
+  --color-green-400: #0c5c2c;
+  --color-emerald-200: #0c5c2c;
+  --color-emerald-300: #0c5c2c;
+  --color-emerald-400: #0c5c2c;
 }
 
 @theme inline {
@@ -54,33 +54,33 @@
 /* Leaf green sampled from the numeral 4 in /images/home/s4p-mark.png */
 @theme {
   --color-s4p-mark: #5bc662;
-  --color-s4p-mint: #2a8f4a;
-  --color-s4p-ivory: #111111;
-  --color-s4p-gold: #2a8f4a;
+  --color-s4p-mint: #0c5c2c;
+  --color-s4p-ivory: #000000;
+  --color-s4p-gold: #0c5c2c;
   --color-s4p-paper: #fffdf8;
   --color-white: #fffdf8;
-  --color-black: #111111;
+  --color-black: #000000;
   --color-slate-50: #f9fefb;
   --color-slate-100: #eef6f1;
-  --color-slate-200: #111111;
-  --color-slate-300: #111111;
-  --color-slate-400: #111111;
-  --color-slate-500: #111111;
-  --color-slate-600: #111111;
-  --color-slate-700: #111111;
+  --color-slate-200: #000000;
+  --color-slate-300: #000000;
+  --color-slate-400: #000000;
+  --color-slate-500: #000000;
+  --color-slate-600: #000000;
+  --color-slate-700: #000000;
   --color-slate-800: #dce8e1;
   --color-slate-900: #fffdf8;
-  --color-slate-950: #111111;
-  --color-amber-200: #2a8f4a;
-  --color-amber-300: #2a8f4a;
-  --color-amber-400: #2a8f4a;
-  --color-green-100: #2a8f4a;
-  --color-green-200: #2a8f4a;
-  --color-green-300: #2a8f4a;
-  --color-green-400: #2a8f4a;
-  --color-emerald-200: #2a8f4a;
-  --color-emerald-300: #2a8f4a;
-  --color-emerald-400: #2a8f4a;
+  --color-slate-950: #000000;
+  --color-amber-200: #0c5c2c;
+  --color-amber-300: #0c5c2c;
+  --color-amber-400: #0c5c2c;
+  --color-green-100: #0c5c2c;
+  --color-green-200: #0c5c2c;
+  --color-green-300: #0c5c2c;
+  --color-green-400: #0c5c2c;
+  --color-emerald-200: #0c5c2c;
+  --color-emerald-300: #0c5c2c;
+  --color-emerald-400: #0c5c2c;
 }
 
 .text-s4p-mark {
@@ -101,7 +101,7 @@
 
 .s4p-navy-panel {
   background-color: var(--s4p-panel) !important;
-  backdrop-filter: blur(18px);
+  backdrop-filter: none;
 }
 
 html {
@@ -112,6 +112,9 @@ html {
   background-position: center center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
 }
 
 html,
@@ -128,12 +131,12 @@ body {
 
 [class*="bg-slate-950"] {
   background-color: var(--s4p-glass-950) !important;
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
 }
 
 [class*="bg-slate-900"] {
   background-color: var(--s4p-glass-900) !important;
-  backdrop-filter: blur(14px);
+  backdrop-filter: none;
 }
 
 [class*="bg-slate-800"] {
@@ -148,7 +151,7 @@ select {
 
 input::placeholder,
 textarea::placeholder {
-  color: color-mix(in srgb, var(--s4p-ink) 55%, transparent);
+  color: color-mix(in srgb, var(--s4p-ink) 78%, transparent);
 }
 
 .text-white {
@@ -215,6 +218,29 @@ html[data-theme="forest-dusk"] {
   background-position: center center, center center;
   background-repeat: no-repeat, no-repeat;
   background-attachment: fixed, fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-theme="quiet-wave"] .s4p-navy-panel,
+html[data-theme="vivid-wave"] .s4p-navy-panel,
+html[data-theme="navy-night"] .s4p-navy-panel,
+html[data-theme="forest-dusk"] .s4p-navy-panel {
+  backdrop-filter: blur(18px);
+}
+
+html[data-theme="quiet-wave"] [class*="bg-slate-950"],
+html[data-theme="vivid-wave"] [class*="bg-slate-950"],
+html[data-theme="navy-night"] [class*="bg-slate-950"],
+html[data-theme="forest-dusk"] [class*="bg-slate-950"] {
+  backdrop-filter: blur(12px);
+}
+
+html[data-theme="quiet-wave"] [class*="bg-slate-900"],
+html[data-theme="vivid-wave"] [class*="bg-slate-900"],
+html[data-theme="navy-night"] [class*="bg-slate-900"],
+html[data-theme="forest-dusk"] [class*="bg-slate-900"] {
+  backdrop-filter: blur(14px);
 }
 
 html[data-theme="quiet-wave"] .text-white,
