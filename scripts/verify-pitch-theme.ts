@@ -9,6 +9,11 @@ assert(
   existsSync("public/images/platform-background.png"),
   "The quiet-wave wallpaper is still backed up"
 );
+assert(
+  existsSync("public/images/home/s4p-mark.png") &&
+    readFileSync("public/images/home/s4p-mark.png")[25] === 6,
+  "The S4P mark is a transparent PNG so the paper shows through"
+);
 
 const css = readFileSync("app/globals.css", "utf8");
 assert(css.includes("--s4p-canvas: #f7f4e8"), "The live canvas is ivory paper");
@@ -36,6 +41,8 @@ assert(!home.includes("hero.png"), "Home no longer covers the canvas with the st
 assert(home.includes('text-s4p-mint">a brighter planet'), "A brighter planet is green");
 assert(home.includes("Sport creates the moment."), "Sport creates the moment stays in the hero");
 assert(home.includes("s4p-navy-panel"), "The stats strip uses a panel");
+assert(home.includes('src="/images/home/s4p-mark.png"'), "Home still uses the S4P mark");
+assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 
 const tables = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
 assert(tables.includes("s4p-navy-panel"), "CILT sits on a panel");
