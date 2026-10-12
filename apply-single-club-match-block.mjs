@@ -15,6 +15,7 @@ const FILES = [
   "app/components/sponsor/SponsoredMatchCalendar.tsx",
   "app/components/sponsor/FundedClimateProjectsList.tsx",
   "app/components/sponsor/SponsorCistTable.tsx",
+  "app/preview/signed-sponsor-home/page.tsx",
   "app/services/climate-sponsors.service.ts",
   "app/services/sponsor-offers.service.ts",
   "app/components/sponsor/ClubMatchMenus.tsx",
@@ -148,5 +149,5 @@ export function sponsorHomePath(brandName, hints = {}) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Sponsor dashboard now has one Select a Club / Select the Match block above the Climate Sponsorship Wallet. Stop npm run dev, start it again, and hard-refresh."
+  "OK: After sign-off the dashboard is the Match-Day calendar, collapsible fan-funded Climate Projects, highlighted CIST, and Click here to initiate a New Sponsorship. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
 );

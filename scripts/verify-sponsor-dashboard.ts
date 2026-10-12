@@ -789,6 +789,13 @@ assert(
     applyMixed.includes("isLocalClimateSponsor"),
   "The apply script pulls sponsor-home so mixed gss-lead-split files still build"
 );
+assert(
+  applyMixed.includes("app/components/sponsor/SignedSponsorHome.tsx") &&
+    applyMixed.includes("app/lib/sponsor-signed-home.ts") &&
+    applyMixed.includes("app/preview/signed-sponsor-home/page.tsx") &&
+    applyMixed.includes("Click here to initiate a New Sponsorship"),
+  "The apply script pulls the signed-off Match-Day calendar home onto mixed PC files"
+);
 
 const amexHeartsSigned = {
   offer: {
