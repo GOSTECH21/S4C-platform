@@ -458,44 +458,42 @@ assert(
   "Match Day lock-in tells sponsors to lock a club for Goal-Sponsorship"
 );
 assert(
-  sponsorDashboardPage.includes(
-    "Choose the Club. Future Matches to be played in Competitions"
-  ),
-  "Goal Sponsorship Network tells sponsors to choose the Club and the Match"
-);
-assert(
-  sponsorDashboardPage.indexOf("Select the club whose Goals you will sponsor") <
-    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
-  "Match Day lock-in sits above the Climate Sponsorship Wallet"
-);
-assert(
-  sponsorDashboardPage.indexOf('id="goal-sponsorship-network"') <
-    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
-    sponsorDashboardPage.indexOf("Choose the Club. Future Matches to be played in Competitions") <
-      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
-  "Goal Sponsorship Network sits above the Climate Sponsorship Wallet"
-);
-assert(
-  !sponsorDashboardPage.includes("scrollToClubTable") &&
-    !sponsorDashboardPage.includes("onMouseDown") &&
-    !sponsorDashboardPage.includes("onFocus={scrollToClubTable}"),
-  "Select a club no longer jumps down to Goal Sponsorship Network"
-);
-assert(
-  sponsorDashboardPage.includes('id="goal-sponsorship-network"'),
-  "Goal Sponsorship Network keeps its section id"
-);
-assert(
-  sponsorDashboardPage.includes("scrollToLockIn") &&
-    sponsorDashboardPage.includes("lockClubFromNetwork") &&
+  sponsorDashboardPage.includes("Select a Club") &&
+    sponsorDashboardPage.includes("Select the Match") &&
+    sponsorDashboardPage.includes("SeeMatchDetails") &&
+    sponsorDashboardPage.includes("DEMO_CLUB_NAMES") &&
     sponsorDashboardPage.includes('id="match-day-lock-in"'),
-  "Selecting a club from the teams table scrolls back up to Match Day lock-in"
+  "One lock-in block lists every demo club, then the Match, then See Match details"
+);
+assert(
+  /import \{[^}]*\bDEMO_CLUB_NAMES\b[^}]*\} from ["']@\/app\/lib\/current-season["']/.test(
+    sponsorDashboardPage.replace(/\n/g, " ")
+  ),
+  "Select a Club lists Arsenal, Hearts and Hibernian from DEMO_CLUB_NAMES"
+);
+assert(
+  !sponsorDashboardPage.includes("ClubNetworkPicker") &&
+    !sponsorDashboardPage.includes('id="goal-sponsorship-network"') &&
+    !sponsorDashboardPage.includes("lockClubFromNetwork") &&
+    !sponsorDashboardPage.includes("scrollToLockIn") &&
+    !sponsorDashboardPage.includes("scrollToClubTable") &&
+    !sponsorDashboardPage.includes("Goal Sponsorship Network"),
+  "The S4P Sponsorship Dashboard no longer duplicates Goal Sponsorship Network as a second club picker"
+);
+assert(
+  sponsorDashboardPage.indexOf("Select a Club") <
+    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
+    sponsorDashboardPage.indexOf("Select the Match") <
+      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet") &&
+    sponsorDashboardPage.indexOf("SeeMatchDetails") <
+      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
+  "Select a Club, Select the Match, and See Match details sit above the Climate Sponsorship Wallet"
 );
 assert(
   sponsorDashboardPage.includes("loadClubFixtures") &&
-    sponsorDashboardPage.includes("Select the Match") &&
-    sponsorDashboardPage.includes("SeeMatchDetails"),
-  "Lead Climate Sponsors select a published Match and can See Match details"
+    sponsorDashboardPage.includes("ensureGoalNetwork") &&
+    sponsorDashboardPage.includes("See Match details"),
+  "Locking a listed club and Match still records the Goal Sponsorship Network behind the scenes"
 );
 assert(
   sponsorDashboardPage.includes(

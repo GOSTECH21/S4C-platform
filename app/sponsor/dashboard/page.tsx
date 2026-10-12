@@ -13,36 +13,26 @@ import {
 import {
   clearMatchDayLock,
   ensureGoalNetwork,
-  listInvitesForSponsor,
   loadBrandLogo,
-  loadGoalNetwork,
-  listGoalNetworks,
-  listMatchDayLocks,
   loadMatchDayLock,
   lockMatchDayClub,
   readLogoFile,
-  respondToNetworkInvite,
   saveBrandLogo,
 } from "@/app/services/climate-sponsors.service";
-import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   MATCH_DAY_LOCK_LABELS,
   clubsMatch,
   displayLockFixture,
   lockCopy,
-  leagueFromMatchLabel,
-  occupyingLeadClimateSponsor,
   secondLeadClimateSponsorRejectedMessage,
   unlockedMatchDay,
-  type GoalSponsorshipNetwork,
   type MatchDayClubLock,
-  type NetworkInvite,
 } from "@/app/lib/climate-sponsors";
 import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
-import { leagueForClubName } from "@/app/lib/current-season";
+import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
 import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
@@ -81,16 +71,13 @@ export default function SponsorDashboardPage() {
     {}
   );
   const [stats, setStats] = useState<SponsorDashboardStats>(EMPTY_STATS);
-  const [network, setNetwork] = useState<GoalSponsorshipNetwork | null>(null);
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
-  const [invites, setInvites] = useState<NetworkInvite[]>([]);
   const [lockClub, setLockClub] = useState("");
   const [lockFixture, setLockFixture] = useState("");
   const [lockLabel, setLockLabel] = useState(MATCH_DAY_LOCK_LABELS[0]);
   const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
   const [fixturesLoading, setFixturesLoading] = useState(false);
   const [fixtureNotice, setFixtureNotice] = useState<string | null>(null);
-  const [networkClubs, setNetworkClubs] = useState<string[]>([]);
   const [email, setEmail] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,9 +104,6 @@ export default function SponsorDashboardPage() {
         setLogoUrl(
           uploaded || fromRecord || sponsorLogoSrc(sponsorName, fromRecord)
         );
-        const existing = loadGoalNetwork(sponsorName, sponsorEmail);
-        setNetwork(existing);
-        setNetworkClubs(existing?.clubNames ?? []);
         const currentLock = loadMatchDayLock(sponsorName);
         setLock(currentLock);
         setLockClub(currentLock?.clubName ?? "");
@@ -130,7 +114,6 @@ export default function SponsorDashboardPage() {
         else if (currentLock?.matchLabel && !currentLock.fixtureName) {
           setLockLabel(currentLock.matchLabel);
         }
-        setInvites(listInvitesForSponsor(sponsorName, sponsorEmail));
         setLoading(false);
         const folder = await loadSponsorFolder({
           sponsorId,
@@ -218,6 +201,10 @@ export default function SponsorDashboardPage() {
                 kickoff: published.kickoff,
                 venue: published.venue,
                 sourceUrl: published.sourceUrl,
+              });
+              ensureGoalNetwork({
+                brandName: brand,
+                clubNames: [lockClub],
               });
               setLock(next);
             } catch (err) {
@@ -318,6 +305,10 @@ export default function SponsorDashboardPage() {
     }
     if (!fixture) {
       setLockClub(club);
+      if (lock && !clubsMatch(lock.clubName, club)) {
+        clearMatchDayLock(brand);
+        setLock(null);
+      }
       return;
     }
     try {
@@ -331,6 +322,10 @@ export default function SponsorDashboardPage() {
         kickoff: fixture.kickoff,
         venue: fixture.venue,
         sourceUrl: fixture.sourceUrl,
+      });
+      ensureGoalNetwork({
+        brandName: brand,
+        clubNames: [club],
       });
       setLock(next);
       setLockClub(club);
@@ -354,20 +349,12 @@ export default function SponsorDashboardPage() {
     applyMatchDayLock(cleared.clubName, "");
   }
 
-  function scrollToLockIn() {
-    window.setTimeout(() => {
-      document.getElementById("match-day-lock-in")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 50);
-  }
-
-  function lockClubFromNetwork(club: string) {
-    setLockClub(club);
-    setLockFixture("");
-    scrollToLockIn();
-  }
+  const listedClubs = Array.from(
+    new Set<string>([...DEMO_CLUB_NAMES, lockClub].filter(Boolean))
+  );
+  const matchLocked = Boolean(
+    lockClub && lockFixture && fixtureByIdOrName(clubFixtures, lockFixture)
+  );
 
   if (loading) {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
@@ -418,42 +405,31 @@ export default function SponsorDashboardPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
           Match Day lock-in
         </p>
-        <h2 className="mt-2 text-3xl font-black">
-          Select the club whose Goals you will sponsor
-        </h2>
+        <h2 className="mt-2 text-3xl font-black">Select a Club</h2>
         <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
         <div className="mt-6 rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
           <p className="text-sm uppercase tracking-[0.2em] text-green-300">
-            {lockClub ? "Locked in" : "Choose a club"}
+            {matchLocked
+              ? "Locked in"
+              : lockClub
+                ? "Select the Match"
+                : "Select a Club"}
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <label className="block text-sm text-slate-400">
               Club
               <select
                 value={lockClub}
-                onChange={(event) => {
-                  const club = event.target.value;
-                  if (!club) {
-                    applyMatchDayLock("", "");
-                    return;
-                  }
-                  setLockClub(club);
-                  setLockFixture("");
-                }}
+                onChange={(event) => applyMatchDayLock(event.target.value, "")}
                 className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
                 aria-label="Select a club"
               >
                 <option value="">Select a club</option>
-                {(
-                  Array.from(
-                    new Set([...(network?.clubNames ?? []), lockClub].filter(Boolean))
-                  ) as string[]
-                ).map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  )
-                )}
+                {listedClubs.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="block text-sm text-slate-400">
@@ -467,6 +443,7 @@ export default function SponsorDashboardPage() {
                   applyMatchDayLock(lockClub, event.target.value)
                 }
                 className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white disabled:opacity-50"
+                aria-label="Select the Match"
               >
                 <option value="">
                   {fixturesLoading
@@ -486,7 +463,7 @@ export default function SponsorDashboardPage() {
               {fixtureNotice}
             </p>
           )}
-          {lockClub && lockFixture && fixtureByIdOrName(clubFixtures, lockFixture) ? (
+          {matchLocked ? (
             <>
               <p className="mt-4 text-2xl font-black">
                 {lockClub} · {lockFixture}
@@ -512,14 +489,15 @@ export default function SponsorDashboardPage() {
             </>
           ) : lockClub ? (
             <p className="mt-4 text-sm text-slate-400">
-              {lockClub} is selected. Choose a published Match from the fixtures
-              list — Date, Venue and Kick-off are on See Match details.
+              {lockClub} is selected. Choose the Match you wish to sponsor —
+              then you can See Match details before opening the Climate
+              Sponsorship Wallet.
             </p>
           ) : (
             <p className="mt-4 text-sm text-slate-400">
-              Unlock cleared the club from this box. Pick a club on the left and
-              the Match on the right — or tap a club in your Goal
-              Sponsorship Network.
+              Select a club from the listed clubs, then select the Match you
+              wish to sponsor. After that you can See Match details, then open
+              the Climate Sponsorship Wallet.
             </p>
           )}
           <button
@@ -530,148 +508,6 @@ export default function SponsorDashboardPage() {
           >
             Unlock
           </button>
-        </div>
-      </section>
-
-      {invites.some((row) => row.status === "pending") && (
-        <section className="rounded-3xl border border-blue-500/30 bg-slate-900 p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-300">
-            LinkedIn-style requests
-          </p>
-          <h2 className="mt-2 text-3xl font-black">Goal Sponsorship Network</h2>
-          <div className="mt-6 space-y-4">
-            {invites
-              .filter((row) => row.status === "pending")
-              .map((invite) => {
-                const league = leagueForClubName(invite.fromClubName);
-                return (
-                  <div
-                    key={invite.id}
-                    className="rounded-2xl border border-slate-700 bg-slate-950 p-5"
-                  >
-                    <p className="text-sm text-slate-400">
-                      From {invite.fromDirectorName} at {invite.fromClubName}
-                    </p>
-                    <p className="mt-2 text-slate-200">{invite.message}</p>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          respondToNetworkInvite({
-                            inviteId: invite.id,
-                            brandName: brand,
-                            email,
-                            accept: true,
-                            includeLeague: false,
-                          });
-                          const next = loadGoalNetwork(brand, email);
-                          setNetwork(next);
-                          setNetworkClubs(next?.clubNames ?? []);
-                          if (next?.clubNames[0] && !lock) {
-                            setLockClub(next.clubNames[0]);
-                          }
-                          setInvites(listInvitesForSponsor(brand, email));
-                        }}
-                        className="rounded-xl bg-green-500 px-4 py-3 font-bold text-slate-950"
-                      >
-                        Add {invite.fromClubName}
-                      </button>
-                      {league && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            respondToNetworkInvite({
-                            inviteId: invite.id,
-                            brandName: brand,
-                            email,
-                            accept: true,
-                            includeLeague: true,
-                          });
-                          const next = loadGoalNetwork(brand, email);
-                          setNetwork(next);
-                          setNetworkClubs(next?.clubNames ?? []);
-                          if (next?.clubNames[0] && !lock) {
-                            setLockClub(next.clubNames[0]);
-                          }
-                          setInvites(listInvitesForSponsor(brand, email));
-                          }}
-                          className="rounded-xl border border-green-500/40 px-4 py-3 font-semibold text-green-300"
-                        >
-                          Add every {league} club
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          respondToNetworkInvite({
-                            inviteId: invite.id,
-                            brandName: brand,
-                            email,
-                            accept: false,
-                            includeLeague: false,
-                          });
-                          setInvites(listInvitesForSponsor(brand, email));
-                        }}
-                        className="rounded-xl border border-slate-600 px-4 py-3 text-sm"
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </section>
-      )}
-
-      <section
-        id="goal-sponsorship-network"
-        className="scroll-mt-6 rounded-3xl border border-slate-700 bg-slate-900 p-8"
-      >
-        <h2 className="text-2xl font-black">Goal Sponsorship Network</h2>
-        <p className="mt-2 text-slate-400">
-          Choose the Club. Future Matches to be played in Competitions (League,
-          Cups and Europe) will be visible. Choose the Match. Only one Lead
-          Climate Sponsor is allowed for each club.
-        </p>
-        {fixtureNotice ? (
-          <p className="mt-4 text-sm font-semibold text-amber-300">
-            {fixtureNotice}
-          </p>
-        ) : null}
-        <div className="mt-6">
-          <ClubNetworkPicker
-            selected={networkClubs}
-            matchDayClub={lockClub}
-            highlightLeague={leagueFromMatchLabel(lockLabel)}
-            onChooseMatchDayClub={lockClubFromNetwork}
-            onChange={(clubs) => {
-              const next = ensureGoalNetwork({
-                brandName: brand,
-                clubNames: clubs,
-              });
-              setNetwork(next);
-              setNetworkClubs(next.clubNames);
-              const rejected = clubs.filter(
-                (club) =>
-                  !next.clubNames.some((kept) => clubsMatch(kept, club))
-              );
-              if (rejected.length > 0) {
-                const club = rejected[0] ?? "";
-                const occupant = occupyingLeadClimateSponsor({
-                  clubName: club,
-                  networks: listGoalNetworks(),
-                  locks: listMatchDayLocks(),
-                });
-                setFixtureNotice(
-                  secondLeadClimateSponsorRejectedMessage(
-                    club,
-                    occupant?.brandName ?? ""
-                  )
-                );
-              }
-            }}
-          />
         </div>
       </section>
 
