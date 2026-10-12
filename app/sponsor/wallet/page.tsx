@@ -21,9 +21,11 @@ import {
   loadMatchDayLock,
   lockWalletFundingToClub,
 } from "@/app/services/climate-sponsors.service";
+import { ensureOfferFromLockedClubUploads } from "@/app/services/sponsor-offers.service";
 import {
   SPONSOR_LOGIN_PATH,
-  sponsorDashboardReceivePath,
+  SPONSOR_OFFERS_PATH,
+  sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import {
   isLeadSponsorHome,
@@ -65,10 +67,16 @@ export default function SponsorWalletPage() {
             ? local
             : null;
         const lock = loadMatchDayLock(brandName);
+        const clubFromQuery =
+          typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("club")?.trim() ||
+              ""
+            : "";
         const club =
+          lock?.clubName ||
           localForBrand?.clubName ||
           clubNameForLocalBrand(brandName) ||
-          lock?.clubName ||
+          clubFromQuery ||
           "";
         setClubName(club);
         setKind(
@@ -181,43 +189,59 @@ export default function SponsorWalletPage() {
             setError("Lock a club for this Match Day first.");
             return;
           }
+          const lock = loadMatchDayLock(brand);
+          if (isLeadSponsorHome(brand) && !lock?.clubName) {
+            setError("Lock a club for this Match Day first.");
+            return;
+          }
           setBusy(true);
           setError(null);
-          try {
-            const next = depositLeadClimateWallet({
-              clubName,
-              brandName: brand,
-              ...input,
-            });
-            lockWalletFundingToClub({
-              brandName: brand,
-              clubName,
-              commitmentFeeGbp: next.commitmentFeeGbp,
-              gbpPerGoal: next.gbpPerGoal,
-              maximumSponsorshipGbp: next.maximumSponsorshipGbp,
-            });
-            ensureGoalNetwork({
-              brandName: brand,
-              clubNames: [clubName],
-            });
-            bindFundedSponsorToClub({
-              clubName,
-              brandName: brand,
-              spentGbp: next.commitmentFeeGbp,
-            });
-            setWallet(next);
-            setNotice(
-              `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for ${clubName}.`
-            );
-            if (isLeadSponsorHome(brand)) {
-              router.push(sponsorDashboardReceivePath());
-              return;
+          void (async () => {
+            try {
+              const next = depositLeadClimateWallet({
+                clubName,
+                brandName: brand,
+                ...input,
+              });
+              lockWalletFundingToClub({
+                brandName: brand,
+                clubName,
+                commitmentFeeGbp: next.commitmentFeeGbp,
+                gbpPerGoal: next.gbpPerGoal,
+                maximumSponsorshipGbp: next.maximumSponsorshipGbp,
+              });
+              ensureGoalNetwork({
+                brandName: brand,
+                clubNames: [clubName],
+              });
+              bindFundedSponsorToClub({
+                clubName,
+                brandName: brand,
+                spentGbp: next.commitmentFeeGbp,
+              });
+              setWallet(next);
+              setNotice(
+                `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for ${clubName}.`
+              );
+              if (isLeadSponsorHome(brand)) {
+                const pulled = await ensureOfferFromLockedClubUploads({
+                  brandName: brand,
+                });
+                router.push(
+                  pulled
+                    ? sponsorOfferSignOffPath(pulled.id)
+                    : SPONSOR_OFFERS_PATH
+                );
+                return;
+              }
+            } catch (err) {
+              setError(
+                err instanceof Error ? err.message : "Could not update the wallet."
+              );
+            } finally {
+              setBusy(false);
             }
-          } catch (err) {
-            setError(err instanceof Error ? err.message : "Could not update the wallet.");
-          } finally {
-            setBusy(false);
-          }
+          })();
         }}
       />
 

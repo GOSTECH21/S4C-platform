@@ -52,6 +52,12 @@ export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_WALLET_PATH = "/sponsor/wallet";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 
+export function sponsorWalletPath(clubName?: string | null): string {
+  const club = String(clubName ?? "").trim();
+  if (!club) return SPONSOR_WALLET_PATH;
+  return `${SPONSOR_WALLET_PATH}?club=${encodeURIComponent(club)}`;
+}
+
 export function sponsorDashboardReceivePath(): string {
   return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_RECEIVE_SECTION_ID}`;
 }

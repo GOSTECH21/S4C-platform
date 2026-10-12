@@ -27,6 +27,7 @@ import {
   SPONSOR_SIGNED_SECTION_ID,
   sponsorDashboardReceivePath,
   sponsorOfferSignOffPath,
+  sponsorWalletPath,
 } from "../app/lib/routes";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
@@ -610,9 +611,25 @@ assert(
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 assert(
   walletPage.includes("lockWalletFundingToClub") &&
-    walletPage.includes("sponsorDashboardReceivePath") &&
-    walletPage.includes("bindFundedSponsorToClub"),
-  "Depositing into the Climate Sponsorship Wallet locks funding to the club and returns to Receive the club's 5"
+    walletPage.includes("ensureOfferFromLockedClubUploads") &&
+    walletPage.includes("sponsorOfferSignOffPath") &&
+    walletPage.includes("bindFundedSponsorToClub") &&
+    !walletPage.includes("sponsorDashboardReceivePath"),
+  "Depositing into the Climate Sponsorship Wallet locks funding to the club and opens Terms & Conditions + sign-off"
+);
+assert(
+  readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
+    "sponsorWalletPath(lockClub)"
+  ) &&
+    sponsorWalletPath("Hearts of Midlothian FC").includes("club=") &&
+    sponsorWalletPath("") === SPONSOR_WALLET_PATH,
+  "Open Climate Sponsorship Wallet carries the locked club onto the wallet"
+);
+assert(
+  readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
+    "const persisted = loadMatchDayLock(brand)"
+  ),
+  "A rejected second Lead lock does not keep Match Day on that club"
 );
 
 const offerService = readFileSync(

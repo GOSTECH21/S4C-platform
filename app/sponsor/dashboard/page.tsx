@@ -50,6 +50,7 @@ import {
   SPONSOR_SIGNED_SECTION_ID,
   SPONSOR_WALLET_PATH,
   sponsorOfferSignOffPath,
+  sponsorWalletPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import {
@@ -341,6 +342,10 @@ export default function SponsorDashboardPage() {
           ? err.message
           : secondLeadClimateSponsorRejectedMessage(club, "")
       );
+      const persisted = loadMatchDayLock(brand);
+      setLock(persisted);
+      setLockClub(persisted?.clubName ?? "");
+      setLockFixture(persisted ? displayLockFixture(persisted) : "");
     }
   }
 
@@ -671,7 +676,7 @@ export default function SponsorDashboardPage() {
       </section>
 
       <Link
-        href={SPONSOR_WALLET_PATH}
+        href={sponsorWalletPath(lockClub)}
         className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">

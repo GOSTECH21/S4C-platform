@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import { applyWalletFundingLock, includeBrandOnTargets, isWalletFundingLocked, shouldPullLockedClubUploads } from "../app/lib/sponsor-completion-flow";
 import { sponsorDashboardReceivePath } from "../app/lib/routes";
 import { SPONSOR_DASHBOARD_PATH } from "../app/lib/routes";
@@ -116,7 +117,16 @@ assert(
 );
 assert(
   sponsorDashboardReceivePath() === `${SPONSOR_DASHBOARD_PATH}#receive-club-projects`,
-  "Step 3 defaults to Receive the club's 5 chosen Climate Projects"
+  "Receive the club's 5 stays available on the dashboard"
+);
+assert(
+  readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+    "sponsorOfferSignOffPath"
+  ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "ensureOfferFromLockedClubUploads"
+    ),
+  "Step 3 after a wallet deposit opens Terms & Conditions + sign-off"
 );
 
 const projects = [
