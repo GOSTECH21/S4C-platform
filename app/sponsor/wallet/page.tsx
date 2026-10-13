@@ -48,13 +48,13 @@ import {
   SPONSOR_OFFERS_PATH,
   SPONSOR_RECEIVE_SECTION_ID,
   isNewSponsorshipRequest,
-  sponsorHomePath,
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import {
   isLeadSponsorHome,
   isLocalClimateSponsor,
   rememberLocalSponsorSession,
+  sponsorHomePath,
 } from "@/app/lib/sponsor-home";
 import {
   LOCAL_FIVE_RECORD_COPY,

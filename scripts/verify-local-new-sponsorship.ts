@@ -92,6 +92,17 @@ assert(
   "Locals can go back from New Sponsorship to the signed Match-Day home"
 );
 
+const routesImport =
+  walletPage.match(/import \{[\s\S]*?\} from "@\/app\/lib\/routes"/)?.[0] ?? "";
+const homeImport =
+  walletPage.match(/import \{[\s\S]*?\} from "@\/app\/lib\/sponsor-home"/)?.[0] ??
+  "";
+assert(
+  !routesImport.includes("sponsorHomePath") &&
+    homeImport.includes("sponsorHomePath"),
+  "sponsorHomePath comes from sponsor-home, not routes — this Form already hit that export error"
+);
+
 if (failures.length > 0) {
   console.error("verify-local-new-sponsorship failed:");
   for (const failure of failures) console.error(`- ${failure}`);

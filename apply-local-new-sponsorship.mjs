@@ -33,6 +33,8 @@ for (const rel of FILES) {
 const wallet = "app/sponsor/wallet/page.tsx";
 if (existsSync(wallet)) {
   const src = readFileSync(wallet, "utf8");
+  const routesImport =
+    src.match(/import \{[\s\S]*?\} from "@\/app\/lib\/routes"/)?.[0] ?? "";
   if (
     !src.includes("SeeMatchDetails") ||
     !src.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") ||
@@ -41,6 +43,12 @@ if (existsSync(wallet)) {
     failed += 1;
     console.error(
       "Local New Sponsorship is missing Club + Match details or the five-project record. Pull the files above, then hard-refresh."
+    );
+  }
+  if (routesImport.includes("sponsorHomePath")) {
+    failed += 1;
+    console.error(
+      "The wallet Form is importing sponsorHomePath from routes again. Pull the files above, then hard-refresh."
     );
   }
 }
