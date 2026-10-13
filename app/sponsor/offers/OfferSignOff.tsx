@@ -11,6 +11,7 @@ import {
 import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
 import { readClimateWallet } from "@/app/services/sponsor-wallet.service";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
 } from "@/app/lib/routes";
@@ -19,9 +20,16 @@ import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import { resolveCommittedMatchFunding } from "@/app/lib/sponsor-completion-flow";
 import {
+  formatLocalSponsorPayableCopy,
   formatSponsorPayableCopy,
   EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
+import {
+  LOCAL_SIGNOFF_TERMS,
+  localSignOffSponsorshipGbp,
+  readLocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
+import { isLocalClimateSponsor, sponsorHomePath } from "@/app/lib/sponsor-home";
 
 export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor the Club's Match Day carbon footprint offset — a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. The Sustainability Director later chooses five Climate Projects for that Match Day; those Projects are your record and the list Fans FUND-IT onto. Each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures. You may display your brand as SPONSORED BY on those Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
@@ -72,11 +80,28 @@ export function OfferSignOffForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const signedBrandName = brandName || brandDefault;
+  const localSponsor = isLocalClimateSponsor(signedBrandName);
+  const wallet = readClimateWallet(offer.clubName, signedBrandName);
   const funding = resolveCommittedMatchFunding({
-    lock: loadMatchDayLock(brandName || brandDefault),
-    wallet: readClimateWallet(offer.clubName, brandName || brandDefault),
+    lock: loadMatchDayLock(signedBrandName),
+    wallet,
     offer,
   });
+  const payableCopy = localSponsor
+    ? formatLocalSponsorPayableCopy({
+        sponsorshipGbp: localSignOffSponsorshipGbp({
+          wallet,
+          record: readLocalSponsorRecord(),
+        }),
+        clubName: offer.clubName,
+      })
+    : formatSponsorPayableCopy({
+        baseAmount: funding.baseAmount,
+        gbpPerGoal: funding.gbpPerGoal,
+        maxAmount: funding.maxAmount,
+        clubName: offer.clubName,
+      });
 
   useEffect(() => {
     setBrandName(brandDefault);
@@ -111,7 +136,7 @@ export function OfferSignOffForm({
         brandName: brandName || brandDefault,
       });
       setSignedBrand(signed.brandName);
-      router.replace(SPONSOR_DASHBOARD_PATH);
+      router.replace(sponsorHomePath(signed.brandName) || LOCAL_SPONSOR_HOME_PATH);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your signature."
@@ -134,7 +159,11 @@ export function OfferSignOffForm({
 
       {signedBrand ? (
         <div className="mt-10 rounded-2xl border border-green-500/40 bg-green-500/10 p-8">
-          <h2 className="text-2xl font-black">Signed as Goal Sponsor</h2>
+          <h2 className="text-2xl font-black">
+            {isLocalClimateSponsor(signedBrand)
+              ? "Signed as Local Business Climate Sponsor"
+              : "Signed as Goal Sponsor"}
+          </h2>
           <p className="mt-3 text-lg font-semibold text-amber-300">
             SPONSORED BY {signedBrand}
           </p>
@@ -146,7 +175,7 @@ export function OfferSignOffForm({
             folder.
           </p>
           <Link
-            href={SPONSOR_DASHBOARD_PATH}
+            href={sponsorHomePath(signedBrand) || SPONSOR_DASHBOARD_PATH}
             className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
           >
             Open your sponsored Match Days
@@ -161,16 +190,10 @@ export function OfferSignOffForm({
             Agree to sponsor this Match Day carbon footprint offset
           </h2>
           <p className="text-slate-300">
-            {formatSponsorPayableCopy({
-              baseAmount: funding.baseAmount,
-              gbpPerGoal: funding.gbpPerGoal,
-              maxAmount: funding.maxAmount,
-              clubName: offer.clubName,
-            })}{" "}
-            Terms and Conditions apply.
+            {payableCopy} Terms and Conditions apply.
           </p>
           <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
-            {GOAL_SPONSOR_TERMS}
+            {localSponsor ? LOCAL_SIGNOFF_TERMS : GOAL_SPONSOR_TERMS}
           </div>
           <label className="flex items-start gap-3 text-sm text-slate-300">
             <input

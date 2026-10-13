@@ -10,6 +10,7 @@ import {
   formatMatchHeadline,
   formatSponsorshipBadge,
   formatSponsorshipRate,
+  formatLocalSponsorPayableCopy,
   formatSponsorPayableCopy,
   formatStipulatedRate,
   totalMatchSponsorshipPayable,
@@ -145,6 +146,13 @@ assert(
   }) ===
     "You pay the £2,300 Base Match Sponsorship even if Hearts players score no Goals, plus £4,000 for each Goal scored, up to a maximum of £7,500.",
   "Amex Hearts sign-off copy uses the deposited Commitment Fee, £/Goal and Maximum"
+);
+assert(
+  formatLocalSponsorPayableCopy({
+    sponsorshipGbp: 750,
+    clubName: "Hibernian",
+  }) === "You pay £750 for this Hibernian Match.",
+  "Local Business Climate Sponsors pay the Match amount, not Goals"
 );
 
 assert(

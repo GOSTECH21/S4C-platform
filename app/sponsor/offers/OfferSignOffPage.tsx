@@ -20,7 +20,15 @@ import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
 } from "@/app/lib/routes";
-import { formatSponsorPayableCopy } from "@/app/lib/sponsorship-auction";
+import {
+  formatLocalSponsorPayableCopy,
+  formatSponsorPayableCopy,
+} from "@/app/lib/sponsorship-auction";
+import {
+  localSignOffSponsorshipGbp,
+  readLocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
+import { isLocalClimateSponsor, sponsorHomePath } from "@/app/lib/sponsor-home";
 import { OfferSignOffForm } from "./OfferSignOff";
 
 export function OfferSignOffPage({ offerId }: { offerId?: string }) {
@@ -83,9 +91,31 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
     );
   }
 
+  const localSponsor = isLocalClimateSponsor(brandDefault);
+  const wallet = readClimateWallet(offer.clubName, brandDefault);
+  const payableCopy = localSponsor
+    ? formatLocalSponsorPayableCopy({
+        sponsorshipGbp: localSignOffSponsorshipGbp({
+          wallet,
+          record: readLocalSponsorRecord(),
+        }),
+        clubName: offer.clubName,
+      })
+    : formatSponsorPayableCopy({
+        ...resolveCommittedMatchFunding({
+          lock: loadMatchDayLock(brandDefault),
+          wallet,
+          offer,
+        }),
+        clubName: offer.clubName,
+      });
+
   return (
     <div className="mx-auto max-w-4xl">
-      <Link href={SPONSOR_DASHBOARD_PATH} className="text-sm font-semibold text-green-400">
+      <Link
+        href={sponsorHomePath(brandDefault) || SPONSOR_DASHBOARD_PATH}
+        className="text-sm font-semibold text-green-400"
+      >
         ← Back to dashboard
       </Link>
       <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
@@ -98,14 +128,7 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
         {offer.projects.length > 0
           ? `The Climate Projects below are the Sustainability Director's chosen five for this Match — your record, and the list Fans FUND-IT onto. `
           : `The club's five chosen Climate Projects will appear here as your record when the Sustainability Director chooses them. `}
-        {formatSponsorPayableCopy({
-          ...resolveCommittedMatchFunding({
-            lock: loadMatchDayLock(brandDefault),
-            wallet: readClimateWallet(offer.clubName, brandDefault),
-            offer,
-          }),
-          clubName: offer.clubName,
-        })}
+        {payableCopy}
       </p>
       <OfferSignOffForm
         offer={offer}
