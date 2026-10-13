@@ -38,6 +38,24 @@ export type LocalSponsorRecord = {
 
 export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee. Fans can take £0.20 from your Climate Sponsorship Wallet and donate it to a Climate Projects of their choice. Your business name & logo will appear to Fans that takes £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
 
+/** Sign-off T&Cs for Local Business Climate Sponsors — no Goals, no Base Match Sponsorship. */
+export const LOCAL_SIGNOFF_TERMS =
+  "S4P Climate Sponsor Terms and Conditions: By signing you agree to sponsor the Club's Match Day carbon footprint offset. The Sustainability Director chooses five Climate Projects for each Match Day. All sponsored Projects (including those that received your monies) will be available to you for your records. Your brand logo is displayed alongside Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.";
+
+export function localSignOffSponsorshipGbp({
+  wallet,
+  record,
+}: {
+  wallet?: { sponsorshipGbp?: number | null } | null;
+  record?: { pledgeGbp?: number | null } | null;
+}): number {
+  const fromWallet = Number(wallet?.sponsorshipGbp);
+  if (fromWallet > 0) return fromWallet;
+  const fromRecord = Number(record?.pledgeGbp);
+  if (fromRecord > 0) return fromRecord;
+  return 0;
+}
+
 function isLocalRecord(value: unknown): value is LocalSponsorRecord {
   if (!value || typeof value !== "object") return false;
   const row = value as LocalSponsorRecord;

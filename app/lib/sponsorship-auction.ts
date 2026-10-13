@@ -266,3 +266,20 @@ export function formatSponsorPayableCopy({
   }
   return `You pay the ${formatMoney(baseAmount)} Base Match Sponsorship even if ${who} score no Goals${capBit}.`;
 }
+
+/** Local Business Climate Sponsors pay a Match amount — they do not sponsor Goals. */
+export function formatLocalSponsorPayableCopy({
+  sponsorshipGbp,
+  clubName,
+}: {
+  sponsorshipGbp: number;
+  clubName?: string;
+}): string {
+  const amount =
+    Number(sponsorshipGbp) > 0
+      ? formatMoney(Number(sponsorshipGbp))
+      : "the amount you put into the Climate Sponsorship Wallet";
+  const club = String(clubName ?? "").trim();
+  if (club) return `You pay ${amount} for this ${club} Match.`;
+  return `You pay ${amount} for this Match.`;
+}
