@@ -72,7 +72,9 @@ assert(
 );
 
 assert(
-  preview.includes("SeeMatchDetails") &&
+    preview.includes("SeeMatchDetails") &&
+    preview.includes("ClubLeagueMenu") &&
+    preview.includes("MatchFixtureMenu") &&
     preview.includes("Unlock") &&
     preview.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
     preview.includes("LOCAL_FIVE_RECORD_COPY") &&
