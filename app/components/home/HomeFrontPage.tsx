@@ -211,9 +211,9 @@ export default function HomeFrontPage({
         <section className="order-1 grid items-center gap-6 px-5 pb-4 pt-4 md:px-10 md:pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1.35fr)_minmax(0,1.15fr)] lg:gap-4 lg:pb-8">
           <div>
             <h1 className="text-4xl font-black uppercase leading-[0.92] tracking-tight md:text-6xl lg:text-[4.4rem]">
-              Every score
+              Turn Goals
               <br />
-              <span className="text-s4p-mint">a brighter planet</span>
+              <span className="text-s4p-mint">into Action</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-slate-200 md:text-base">
               Every <span className="font-black text-white">GOAL</span>, every{" "}

@@ -307,8 +307,11 @@ assert(
   "The S4P logo tagline is two lines, with Funded Climate Action in mint"
 );
 assert(
-  front.includes('text-s4p-mint">a brighter planet'),
-  "A brighter planet uses mint on the dark blue, not bright lime"
+  front.includes("Turn Goals") &&
+    front.includes('text-s4p-mint">into Action') &&
+    !front.includes("a brighter planet") &&
+    !front.includes("Every score"),
+  "Hero headline is Turn Goals into Action, with into Action in mint"
 );
 assert(
   front.includes('src="/images/home/s4p-mark.png"') &&

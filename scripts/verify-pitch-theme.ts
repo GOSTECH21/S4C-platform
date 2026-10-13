@@ -38,7 +38,10 @@ assert(!css.includes("#0c3229"), "The old pitch-dusk canvas token is gone");
 const home = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 assert(!home.includes("#04140f") && !home.includes("#07150f"), "Home no longer uses near-black overlays");
 assert(!home.includes("hero.png"), "Home no longer covers the canvas with the stadium hero photo");
-assert(home.includes('text-s4p-mint">a brighter planet'), "A brighter planet is green");
+assert(
+  home.includes("Turn Goals") && home.includes('text-s4p-mint">into Action'),
+  "Turn Goals into Action uses mint on the second line"
+);
 assert(home.includes("Sport creates the moment."), "Sport creates the moment stays in the hero");
 assert(home.includes("s4p-navy-panel"), "The stats strip uses a panel");
 assert(home.includes('src="/images/home/s4p-mark.png"'), "Home still uses the S4P mark");
