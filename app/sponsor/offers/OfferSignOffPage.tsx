@@ -89,12 +89,15 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
         ← Back to dashboard
       </Link>
       <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-        Match Day five
+        Match Day carbon footprint offset
       </p>
       <h1 className="mt-3 text-4xl font-black">{offer.headline}</h1>
       <p className="mt-4 text-slate-300">
-        These are the 5 Climate Projects {offer.clubName} posted to fans.
-        Agree to be Goal Sponsor for this match.{" "}
+        Sign off your sponsorship of {offer.clubName}&apos;s Match Day carbon
+        footprint offset.{" "}
+        {offer.projects.length > 0
+          ? `The Climate Projects below are the Sustainability Director's chosen five for this Match — your record, and the list Fans FUND-IT onto. `
+          : `The club's five chosen Climate Projects will appear here as your record when the Sustainability Director chooses them. `}
         {formatSponsorPayableCopy({
           ...resolveCommittedMatchFunding({
             lock: loadMatchDayLock(brandDefault),
@@ -104,7 +107,11 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
           clubName: offer.clubName,
         })}
       </p>
-      <OfferSignOffForm offer={offer} brandDefault={brandDefault} showProjects />
+      <OfferSignOffForm
+        offer={offer}
+        brandDefault={brandDefault}
+        showProjects={offer.projects.length > 0}
+      />
     </div>
   );
 }

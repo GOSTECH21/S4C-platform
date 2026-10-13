@@ -43,7 +43,7 @@ function assert(condition: boolean, message: string) {
 async function main() {
 const { lockMatchDayClub, lockWalletFundingToClub, ensureGoalNetwork, bindFundedSponsorToClub, loadMatchDayLock, loadClubSponsorRoster, recordSignedLeadClimateSponsor, leadClimateSponsorsForClub } = await import("../app/services/climate-sponsors.service");
 const { depositLeadClimateWallet, readClimateWallet } = await import("../app/services/sponsor-wallet.service");
-const { ensureOfferFromLockedClubUploads } = await import("../app/services/sponsor-offers.service");
+const { ensureOfferFromLockedClubUploads, ensureCarbonOffsetSponsorshipOffer } = await import("../app/services/sponsor-offers.service");
 const { publishMatchDayFolderFromSignedOffer, uploadedMatchDayFolderForClub } = await import("../app/services/match-day-folder.service");
 const { readFanPostSchedule, writeFanPostSchedule } = await import("../app/lib/match-day-post");
 
@@ -118,16 +118,16 @@ assert(
 );
 assert(
   sponsorDashboardReceivePath() === `${SPONSOR_DASHBOARD_PATH}#receive-club-projects`,
-  "Receive the club's 5 stays available on the dashboard"
+  "The club's 5 chosen Climate Projects record stays available on the dashboard"
 );
 assert(
   readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
     "sponsorOfferSignOffPath"
   ) &&
     readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-      "ensureOfferFromLockedClubUploads"
+      "ensureCarbonOffsetSponsorshipOffer"
     ),
-  "Step 3 after a wallet deposit opens Terms & Conditions + sign-off"
+  "Step 3 after a wallet deposit opens Terms & Conditions + sign-off of the Match Day carbon footprint offset"
 );
 
 const projects = [

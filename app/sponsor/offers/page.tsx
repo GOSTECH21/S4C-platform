@@ -73,23 +73,23 @@ export default function NewSponsorshipOfferPage() {
         ← Back to dashboard
       </Link>
       <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-        Match Day five
+        Match Day record
       </p>
-      <h1 className="mt-3 text-4xl font-black">New Sponsorship/Score Offer</h1>
+      <h1 className="mt-3 text-4xl font-black">Match Day Climate Projects</h1>
       <p className="mt-4 text-slate-300">
-        These are the 5 Climate Projects the Sustainability Director uploaded
-        for the Match you locked in. They belong to this brand and this Match
-        only — never a leftover offer from another sponsor or another Match
-        Day. Read them, then the Signed Sponsorship section opens for you to
-        sign off.
+        You sponsor this Club&apos;s Match Day carbon footprint offset. When
+        the Sustainability Director chooses the five Climate Projects for that
+        Match, they appear here as your record — and Fans FUND-IT onto them.
+        Sign off your sponsorship after the wallet deposit; you do not wait
+        for this list.
       </p>
 
       {!offer ? (
         <p className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
-          No posted Climate Projects for the Match you have locked in. Lock a
-          club and a named Match 72 hours before kick-off, and only that
-          club&apos;s five for that Match Day will appear here after the
-          Sustainability Director posts them to you.
+          No Climate Projects on record yet for the Match you locked in. Lock
+          a Club and Match, deposit your Commitment Fee and Goals-scored
+          Sponsorship, and sign off. This list fills when the Sustainability
+          Director chooses the five Climate Projects for that Match Day.
         </p>
       ) : (
         <OfferPreview offer={offer} brandDefault={brandDefault} />

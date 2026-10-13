@@ -21,7 +21,7 @@ import {
   loadMatchDayLock,
   lockWalletFundingToClub,
 } from "@/app/services/climate-sponsors.service";
-import { ensureOfferFromLockedClubUploads } from "@/app/services/sponsor-offers.service";
+import { ensureCarbonOffsetSponsorshipOffer } from "@/app/services/sponsor-offers.service";
 import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
@@ -171,6 +171,11 @@ export default function SponsorWalletPage() {
               brandName: brand,
               sponsorshipGbp: input.sponsorshipGbp,
             });
+            bindFundedSponsorToClub({
+              clubName,
+              brandName: brand,
+              spentGbp: next.sponsorshipGbp,
+            });
             setWallet(next);
             setNotice(
               `${formatWalletGbp(next.sponsorshipGbp)} is in the Carbon Wallet for ${clubName} (${formatWalletGbp(next.paidGbp)} paid including the 10% management fee).`
@@ -230,12 +235,12 @@ export default function SponsorWalletPage() {
                 `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for ${clubName}.`
               );
               if (isLeadSponsorHome(brand)) {
-                const pulled = await ensureOfferFromLockedClubUploads({
+                const offset = await ensureCarbonOffsetSponsorshipOffer({
                   brandName: brand,
                 });
                 router.push(
-                  pulled
-                    ? sponsorOfferSignOffPath(pulled.id)
+                  offset
+                    ? sponsorOfferSignOffPath(offset.id)
                     : SPONSOR_OFFERS_PATH
                 );
                 return;

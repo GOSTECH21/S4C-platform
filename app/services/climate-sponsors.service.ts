@@ -6,11 +6,14 @@ import {
   brandKey,
   brandsMatch,
   clubsMatch,
+  displayLockFixture,
   emptySponsor,
   ensureSponsorSelected,
   inviteMatchesSponsor,
   canClaimLeadClimateSponsor,
   isLeadClimateSponsorName,
+  isLeadMatchDaySponsorBrand,
+  isNamedFixture,
   isRemovedSponsorBrand,
   isSponsorBlockedFromClub,
   leadSponsorBrandForFixture,
@@ -37,7 +40,10 @@ import {
   isDemoClubName,
 } from "../lib/current-season";
 import { offerBelongsToClub } from "../lib/campaign-sponsor";
-import { applyWalletFundingLock } from "../lib/sponsor-completion-flow";
+import {
+  applyWalletFundingLock,
+  isWalletFundingLocked,
+} from "../lib/sponsor-completion-flow";
 import { isExampleLocalBrand } from "../lib/match-day-branding";
 import {
   allLocalSponsors,
@@ -733,7 +739,7 @@ export function recordSignedLeadClimateSponsor({
   const brand = brandName.trim();
   const club = clubName.trim();
   if (!brand || !club) return null;
-  if (!isLeadClimateSponsorName(brand)) return null;
+  if (!isLeadMatchDaySponsorBrand(brand)) return null;
   if (isRemovedSponsorBrand(brand) || isSponsorBlockedFromClub(brand, club)) {
     return null;
   }
@@ -782,6 +788,33 @@ export function recordSignedLeadClimateSponsor({
     leadClimateSponsorsForClub(club)[0] ??
     null
   );
+}
+
+/** Rebuild Lead occupancy from funded locks so the SD sees a new sponsorship on login. */
+export function hydrateLeadOccupancyFromLocks(clubName: string): LeadClubSponsorRow[] {
+  const club = clubName.trim();
+  if (!club) return leadClimateSponsorsForClub(club);
+  const networks = listGoalNetworks();
+  for (const lock of listMatchDayLocks()) {
+    if (!clubsMatch(lock.clubName, club)) continue;
+    const fixture = displayLockFixture(lock);
+    if (!isNamedFixture(fixture)) continue;
+    if (!isWalletFundingLocked(lock) && !(Number(lock.commitmentFeeGbp) > 0)) {
+      continue;
+    }
+    const network = networks.find((row) =>
+      brandsMatch(row.brandName, lock.brandKey)
+    );
+    const brandName = network?.brandName?.trim() || lock.brandKey;
+    recordSignedLeadClimateSponsor({
+      brandName,
+      clubName: club,
+      fixtureName: fixture,
+      fixtureDate: lock.fixtureDate,
+      competition: lock.competition,
+    });
+  }
+  return leadClimateSponsorsForClub(club);
 }
 
 export function lockWalletFundingToClub({

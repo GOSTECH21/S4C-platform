@@ -3,6 +3,7 @@ import {
   brandsMatch,
   isKnownLocalBusinessSponsorName,
   isLeadClimateSponsorName,
+  isLeadMatchDaySponsorBrand,
   isRemovedSponsorBrand,
   isSponsorBlockedFromClub,
   pickSoleLeadClimateSponsor,
@@ -124,7 +125,7 @@ export function splitClubClimateSponsorsForTabs({
   const occupant = pickSoleLeadClimateSponsor(
     leadSponsors.filter(
       (row) =>
-        isLeadClimateBrand(row.brandName) &&
+        isLeadMatchDaySponsorBrand(row.brandName) &&
         !isSponsorBlockedFromClub(row.brandName, clubName)
     ),
     clubName
@@ -148,7 +149,7 @@ export function splitClubClimateSponsorsForTabs({
 
   for (const row of localSponsors) rememberLocal(row);
   for (const row of leadSponsors) {
-    if (isLeadClimateBrand(row.brandName)) continue;
+    if (isLeadMatchDaySponsorBrand(row.brandName)) continue;
     rememberLocal({
       brandName: row.brandName,
       email: row.email ?? "",

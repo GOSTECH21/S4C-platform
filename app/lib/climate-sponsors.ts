@@ -91,6 +91,13 @@ export function isLeadClimateSponsorName(brandName: string): boolean {
   );
 }
 
+/** Any non-local brand sponsoring a Club's Match Day carbon footprint offset. */
+export function isLeadMatchDaySponsorBrand(brandName: string): boolean {
+  if (!brandName.trim() || isRemovedSponsorBrand(brandName)) return false;
+  if (isKnownLocalBusinessSponsorName(brandName)) return false;
+  return true;
+}
+
 export const MATCH_DAY_LOCK_LABELS = [
   "Premier League Match",
   "Champions League Match",
@@ -523,8 +530,7 @@ export function pickSoleLeadClimateSponsor(
 ): LeadClubSponsorRow | null {
   const leads = rows.filter(
     (row) =>
-      isLeadClimateSponsorName(row.brandName) &&
-      !isRemovedSponsorBrand(row.brandName) &&
+      isLeadMatchDaySponsorBrand(row.brandName) &&
       !isSponsorBlockedFromClub(row.brandName, clubName)
   );
   if (leads.length === 0) return null;
@@ -1030,7 +1036,7 @@ export function selectedBrandsReadyToReceive(
 }
 
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
-  return `${hours} hours before kick-off, choose a Club you wish to sponsor and the Match you wish to lock-in for Goal-Sponsorship. Posted Climate Projects from the sponsored club for that Match will now be available for sign-off.`;
+  return `${hours} hours before kick-off, choose a Club you wish to sponsor and the Match you wish to lock-in for Goal-Sponsorship. Then open the Climate Sponsorship Wallet, deposit your Commitment Fee and Goals-scored Sponsorship, and sign off this Club's Match Day carbon footprint offset. The club's five chosen Climate Projects later appear as your record.`;
 }
 
 export function unlockedMatchDay(matchLabel = MATCH_DAY_LOCK_LABELS[0]): {

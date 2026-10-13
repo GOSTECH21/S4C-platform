@@ -140,6 +140,7 @@ async function main() {
   assert(
     liveRefresh.includes("leadClimateSponsorsForClub") &&
       liveRefresh.includes("setLeadSponsors") &&
+      liveRefresh.includes("hydrateClubSponsorsFromSigned") &&
       dashboard.includes('initialTab="lead"'),
     "The club dashboard refreshes and activates Our Lead Climate Sponsor as soon as a brand signs off"
   );
