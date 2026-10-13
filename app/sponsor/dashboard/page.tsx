@@ -66,6 +66,7 @@ import {
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { isLeadSponsorHome } from "@/app/lib/sponsor-home";
+import { MATCH_DAY_GOALS_SCORED_COPY } from "@/app/lib/match-day-carbon-offset";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -603,32 +604,6 @@ export default function SponsorDashboardPage() {
       </section>
       )}
 
-      <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
-        <Link
-          href={SPONSOR_OFFERS_PATH}
-          className="block rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-            Match Day five
-          </p>
-          <h2 className="mt-3 text-2xl font-black">
-            Receive the club&apos;s 5 chosen Climate Projects
-          </h2>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            After you lock in a club and deposit into the Climate Sponsorship
-            Wallet, that funding is locked to the club. Open New
-            Sponsorship/Score Offer to pull the Sustainability Director&apos;s
-            uploaded five immediately, then sign them off. Posts from other
-            clubs stay hidden while the lock is on.
-          </p>
-          <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
-            {pending.length > 0
-              ? `Open ${pending.length} new offer${pending.length === 1 ? "" : "s"}`
-              : "Open New Sponsorship/Score Offer"}
-          </p>
-        </Link>
-      </section>
-
       {signed.length === 0 && (
       <section
         id={SPONSOR_SIGNED_SECTION_ID}
@@ -639,14 +614,15 @@ export default function SponsorDashboardPage() {
         </p>
         <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
         <p className="mt-2 text-slate-400">
-          Once you sign off a club&apos;s 5 and the sponsorship is settled, it
-          is lodged here — including the Climate Projects fans later FUND-IT
-          from that five.
+          Once you sign off the Club&apos;s Match Day carbon footprint offset,
+          it is lodged here. Climate Projects the Sustainability Director later
+          chooses for that Match Day are added as your record.
         </p>
         {signed.length === 0 ? (
           <p className="mt-6 text-slate-500">
-            No signed sponsorships yet. Receive the club&apos;s 5 chosen
-            Climate Projects, agree, and sign them off.
+            No signed sponsorships yet. Lock a Club and Match, deposit into the
+            Climate Sponsorship Wallet, and sign off the Match Day carbon
+            footprint offset.
           </p>
         ) : (
           <div className="mt-8 space-y-4">
@@ -736,6 +712,32 @@ export default function SponsorDashboardPage() {
         )}
       </section>
       )}
+
+      <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
+        <Link
+          href={SPONSOR_OFFERS_PATH}
+          className="block rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+            Match Day record
+          </p>
+          <h2 className="mt-3 text-2xl font-black">
+            The club&apos;s 5 chosen Climate Projects
+          </h2>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            {MATCH_DAY_GOALS_SCORED_COPY} The five Climate Projects the
+            Sustainability Director chooses for this Match Day are kept here as
+            your record. Fans FUND-IT onto that list. Sign off after you
+            deposit your Commitment Fee and Goals-scored Sponsorship — you do
+            not wait for the five.
+          </p>
+          <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
+            {pending.some((offer) => offer.projects.length > 0)
+              ? "Open your Match Day Climate Projects record"
+              : "Waiting for the club to choose Climate Projects"}
+          </p>
+        </Link>
+      </section>
     </div>
   );
 }

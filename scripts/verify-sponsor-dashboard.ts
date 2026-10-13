@@ -484,8 +484,8 @@ assert(
 assert(
   lockCopy().includes("choose a Club you wish to sponsor") &&
     lockCopy().includes("the Match you wish to lock-in") &&
-    lockCopy().includes("for that Match"),
-  "Match Day lock-in tells sponsors to lock a club and a Match for Goal-Sponsorship"
+    lockCopy().includes("Match Day carbon footprint offset"),
+  "Match Day lock-in tells sponsors to lock a club and a Match, then sign off the carbon offset"
 );
 assert(
   sponsorDashboardPage.includes("Select a Club") &&
@@ -541,19 +541,21 @@ assert(
   "Locking a listed club and Match still records the Goal Sponsorship Network behind the scenes"
 );
 assert(
-  sponsorDashboardPage.includes(
-    "Receive the club's 5 chosen Climate Projects"
-  ) ||
+  sponsorDashboardPage.includes("The club's 5 chosen Climate Projects") ||
     sponsorDashboardPage.includes(
-      "Receive the club&apos;s 5 chosen Climate Projects"
+      "The club&apos;s 5 chosen Climate Projects"
     ),
-  "Sponsorship dashboard keeps Receive the club's 5 chosen Climate Projects"
+  "Sponsorship dashboard keeps the club's 5 chosen Climate Projects as a record"
 );
 assert(
   sponsorDashboardPage.includes("SPONSOR_RECEIVE_SECTION_ID") &&
     sponsorDashboardPage.includes("SPONSOR_SIGNED_SECTION_ID") &&
-    sponsorDashboardPage.includes("scrollIntoView"),
-  "After a wallet deposit the dashboard can default to Receive the club's 5 chosen Climate Projects"
+    sponsorDashboardPage.includes("scrollIntoView") &&
+    sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
+    sponsorDashboardPage.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
+    sponsorDashboardPage.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") <
+      sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}"),
+  "Sign-off sits above the five Climate Projects record; Goals-scored copy names the carbon offset"
 );
 assert(
   sponsorDashboardPage.includes("FUND-IT up to 5 times") &&
@@ -654,7 +656,7 @@ assert(
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 assert(
   walletPage.includes("lockWalletFundingToClub") &&
-    walletPage.includes("ensureOfferFromLockedClubUploads") &&
+    walletPage.includes("ensureCarbonOffsetSponsorshipOffer") &&
     walletPage.includes("sponsorOfferSignOffPath") &&
     walletPage.includes("ensureMatchDayClubLock") &&
     walletPage.includes("bindFundedSponsorToClub") &&
@@ -683,17 +685,19 @@ const offerService = readFileSync(
   "utf8"
 );
 assert(
-  offerService.includes("ensureOfferFromLockedClubUploads") &&
+  offerService.includes("ensureCarbonOffsetSponsorshipOffer") &&
+    offerService.includes("attachProjectsToClubSponsorships") &&
+    offerService.includes("hydrateClubSponsorsFromSigned") &&
     offerService.includes("publishSignedSponsorshipToFans") &&
     offerService.includes("recordSignedLeadClimateSponsor"),
-  "Locked-in sponsors pull the SD's uploaded five immediately, then sign-off publishes them and activates the club Lead tab"
+  "Sponsors sign off the Match Day carbon offset; the SD's five later attach as a record and publish to fans"
 );
 assert(
   readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
     "lockWalletFundingToClub"
   ) &&
     readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
-      "ensureOfferFromLockedClubUploads"
+      "ensureCarbonOffsetSponsorshipOffer"
     ) &&
     readFileSync("scripts/verify-lead-tab-after-signoff.ts", "utf8").includes(
       "recordSignedLeadClimateSponsor"

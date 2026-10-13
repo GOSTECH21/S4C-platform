@@ -23,7 +23,7 @@ import {
   EXPOSURES_PER_POST,
 } from "@/app/lib/sponsorship-auction";
 
-export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus the Sustainability Director's Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. The stipulated amount per Climate Project is a brand-exposure counter: each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures (the five Climate Projects), even if the fan chooses 3. You may then display your brand name as SPONSORED BY on those five Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
+export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor the Club's Match Day carbon footprint offset — a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. The Sustainability Director later chooses five Climate Projects for that Match Day; those Projects are your record and the list Fans FUND-IT onto. Each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures. You may display your brand as SPONSORED BY on those Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
 export function OfferProjectList({ offer }: { offer: SponsorMatchOffer }) {
   return (
@@ -140,8 +140,10 @@ export function OfferSignOffForm({
           </p>
           <p className="mt-2 text-slate-300">
             Fans of {offer.clubName} and the club Sustainability Director can
-            now see these signed-off Climate Projects immediately. This copy is
-            lodged in your Dashboard folder.
+            now see this Match Day carbon footprint offset sponsorship
+            immediately. Climate Projects the club later chooses for this Match
+            appear as your record. This copy is lodged in your Dashboard
+            folder.
           </p>
           <Link
             href={SPONSOR_DASHBOARD_PATH}
@@ -155,7 +157,9 @@ export function OfferSignOffForm({
           onSubmit={sign}
           className="mt-10 space-y-5 rounded-2xl border border-slate-700 bg-slate-900 p-8"
         >
-          <h2 className="text-2xl font-black">Agree to be Goal Sponsor</h2>
+          <h2 className="text-2xl font-black">
+            Agree to sponsor this Match Day carbon footprint offset
+          </h2>
           <p className="text-slate-300">
             {formatSponsorPayableCopy({
               baseAmount: funding.baseAmount,

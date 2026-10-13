@@ -367,8 +367,8 @@ assert(
 assert(
   lockCopy().includes("72 hours") &&
     lockCopy().includes("choose a Club you wish to sponsor") &&
-    lockCopy().includes("available for sign-off"),
-  "Sponsorship Managers are told to lock a club 72 hours before kick-off for Goal-Sponsorship"
+    lockCopy().includes("Match Day carbon footprint offset"),
+  "Sponsorship Managers are told to lock a club 72 hours before kick-off and sign off the carbon offset"
 );
 assert(
   leagueFromMatchLabel("Premier League Match") === "Premier League" &&

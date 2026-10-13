@@ -17,6 +17,7 @@ import {
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import {
+  hydrateClubSponsorsFromSigned,
   listClubSignedSponsorships,
   type SignedSponsorship,
 } from "@/app/services/sponsor-offers.service";
@@ -168,6 +169,7 @@ export default function ClubDashboardPage() {
       setGbpPerGoal(stored?.gbpPerGoal && stored.gbpPerGoal > 0 ? stored.gbpPerGoal : null);
       setMaxAmount(stored?.maxAmount && stored.maxAmount > 0 ? stored.maxAmount : null);
       setGbpPerVote(stored?.gbpPerVote ?? null);
+      await hydrateClubSponsorsFromSigned(session.club.id, session.club.name);
       setSignedCopies(
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
@@ -192,6 +194,7 @@ export default function ClubDashboardPage() {
     if (!club) return;
     async function refreshSignedLive() {
       if (!club) return;
+      await hydrateClubSponsorsFromSigned(club.id, club.name);
       setSignedCopies(
         await listClubSignedSponsorships(club.id, club.name)
       );

@@ -1228,7 +1228,60 @@ export async function saveMatchDaySelection({
     voted: votedProjects,
   });
   markClubSelectionLive(clubId);
+  await publishChosenProjectsToSponsorsAndFans({
+    clubId,
+    clubName,
+    projects: selectedProjects,
+    selection: auction,
+  });
   return auction;
+}
+
+async function publishChosenProjectsToSponsorsAndFans({
+  clubId,
+  clubName,
+  projects,
+  selection,
+}: {
+  clubId: string;
+  clubName: string;
+  projects: Awaited<ReturnType<typeof loadProjectsByIds>>;
+  selection: MatchDaySelection;
+}) {
+  if (projects.length < MATCH_DAY_PROJECT_COUNT) return;
+  try {
+    const { leadClimateSponsorsForClub, localBusinessClimateSponsorsForClub } =
+      await import("./climate-sponsors.service");
+    const { shouldPublishChosenMatchDayProjects } = await import(
+      "../lib/match-day-carbon-offset"
+    );
+    const leads = leadClimateSponsorsForClub(clubName);
+    const locals = localBusinessClimateSponsorsForClub(clubName);
+    if (
+      !shouldPublishChosenMatchDayProjects({
+        projectCount: projects.length,
+        inboundSponsorCount: leads.length + locals.length,
+      })
+    ) {
+      return;
+    }
+    await postMatchDayProjectsToFans({ clubId, clubName });
+    const { attachProjectsToClubSponsorships } = await import(
+      "./sponsor-offers.service"
+    );
+    await attachProjectsToClubSponsorships({
+      clubId,
+      clubName,
+      projects,
+      minAmount: selection.minAmount,
+      gbpPerGoal: selection.gbpPerGoal,
+      maxAmount: selection.maxAmount,
+      gbpPerVote: selection.gbpPerVote,
+      targetBrandNames: leads.map((row) => row.brandName),
+    });
+  } catch {
+    // Selection is stored even if live publish to fans or sponsor records cannot complete.
+  }
 }
 
 async function writeClubPortfolio(
