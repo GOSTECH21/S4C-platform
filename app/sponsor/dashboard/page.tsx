@@ -38,6 +38,7 @@ import {
   MatchFixtureMenu,
 } from "@/app/components/sponsor/ClubMatchMenus";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
@@ -126,7 +127,7 @@ export default function SponsorDashboardPage() {
         setBrand(sponsorName);
         setEmail(sponsorEmail);
         if (!isLeadSponsorHome(sponsorName, { jobTitle })) {
-          router.replace(SPONSOR_WALLET_PATH);
+          router.replace(LOCAL_SPONSOR_HOME_PATH);
           return;
         }
         const uploaded = loadBrandLogo(sponsorName);

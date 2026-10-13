@@ -14,8 +14,10 @@ import {
 
 export function SponsoredMatchCalendar({
   matches,
+  intro = "Spotlighted days are Match Days you have signed as Goal Sponsor. Click a highlighted day to see the Match or Matches you sponsored.",
 }: {
   matches: SponsoredMatchListing[];
+  intro?: string;
 }) {
   const initial = defaultCalendarMonth(matches);
   const [year, setYear] = useState(initial.year);
@@ -39,10 +41,7 @@ export function SponsoredMatchCalendar({
         Sponsored Match Days
       </p>
       <h2 className="mt-2 text-3xl font-black">Your calendar</h2>
-      <p className="mt-3 max-w-3xl text-slate-300">
-        Spotlighted days are Match Days you have signed as Goal Sponsor. Click a
-        highlighted day to see the Match or Matches you sponsored.
-      </p>
+      <p className="mt-3 max-w-3xl text-slate-300">{intro}</p>
       <div className="mt-6 flex items-center justify-between gap-4">
         <button
           type="button"
