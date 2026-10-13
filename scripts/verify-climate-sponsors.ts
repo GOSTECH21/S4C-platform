@@ -9,6 +9,7 @@ import {
   brandsMatch,
   emptySponsor,
   isRemovedSponsorBrand,
+  localLockCopy,
   lockCopy,
   leagueFromMatchLabel,
   clubNetworkLeagueId,
@@ -368,7 +369,14 @@ assert(
   lockCopy().includes("72 hours") &&
     lockCopy().includes("choose a Club you wish to sponsor") &&
     lockCopy().includes("Match Day carbon footprint offset"),
-  "Sponsorship Managers are told to lock a club 72 hours before kick-off and sign off the carbon offset"
+  "Lead Climate Sponsors are told to lock a club 72 hours before kick-off and sign off the carbon offset"
+);
+assert(
+  localLockCopy().includes("72 hours") &&
+    localLockCopy().includes("the specific Match") &&
+    localLockCopy().includes("insert your Sponsorship amount") &&
+    localLockCopy().includes("your Dashboard for your records"),
+  "Local Business Climate Sponsors lock a Club and Match, then insert a Sponsorship amount"
 );
 assert(
   leagueFromMatchLabel("Premier League Match") === "Premier League" &&

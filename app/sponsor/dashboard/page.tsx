@@ -65,7 +65,10 @@ import {
 } from "@/app/lib/sponsorship-auction";
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
-import { isLeadSponsorHome } from "@/app/lib/sponsor-home";
+import {
+  isLeadSponsorHome,
+  rememberLocalSponsorSession,
+} from "@/app/lib/sponsor-home";
 import { MATCH_DAY_GOALS_SCORED_COPY } from "@/app/lib/match-day-carbon-offset";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
@@ -118,9 +121,11 @@ export default function SponsorDashboardPage() {
         sponsorName = String(sponsor.name ?? "your brand");
         sponsorId = String(sponsor.id ?? "");
         sponsorEmail = (sponsor.email as string | null) ?? null;
+        const jobTitle = String(sponsor.industry ?? "");
+        rememberLocalSponsorSession(sponsor);
         setBrand(sponsorName);
         setEmail(sponsorEmail);
-        if (!isLeadSponsorHome(sponsorName)) {
+        if (!isLeadSponsorHome(sponsorName, { jobTitle })) {
           router.replace(SPONSOR_WALLET_PATH);
           return;
         }
