@@ -842,7 +842,9 @@ assert(
 );
 assert(
   walletPage.includes("depositLocalClimateWallet") &&
-    walletPage.includes("isLocalClimateSponsor"),
+    walletPage.includes("isLocalClimateSponsor") &&
+    walletPage.includes("localLockCopy") &&
+    walletPage.includes("ClubLeagueMenu"),
   "The wallet page classifies Local Business Climate Sponsors before showing the Lead form"
 );
 assert(

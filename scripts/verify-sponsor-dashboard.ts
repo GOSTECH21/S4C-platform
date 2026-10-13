@@ -47,7 +47,7 @@ import {
 } from "../app/lib/sponsor-signed-home";
 import { signedOrPostedBrandForClub } from "../app/lib/campaign-sponsor";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
-import { lockCopy } from "../app/lib/climate-sponsors";
+import { localLockCopy, lockCopy } from "../app/lib/climate-sponsors";
 import {
   applyWalletFundingLock,
   includeBrandOnTargets,
@@ -484,8 +484,31 @@ assert(
 assert(
   lockCopy().includes("choose a Club you wish to sponsor") &&
     lockCopy().includes("the Match you wish to lock-in") &&
+    lockCopy().includes("Goal-Sponsorship") &&
     lockCopy().includes("Match Day carbon footprint offset"),
-  "Match Day lock-in tells sponsors to lock a club and a Match, then sign off the carbon offset"
+  "Match Day lock-in tells Lead Climate Sponsors to lock a club and a Match, then sign off the carbon offset"
+);
+assert(
+  localLockCopy().includes("the specific Match") &&
+    localLockCopy().includes("insert your Sponsorship amount") &&
+    localLockCopy().includes("Accept the Terms & Conditions") &&
+    localLockCopy().includes("Sign-off your sponsorship") &&
+    !localLockCopy().includes("Goal-Sponsorship") &&
+    !localLockCopy().includes("Goals-scored Sponsorship"),
+  "Local Business Climate Sponsors are told to insert a Sponsorship amount, not Goals-scored"
+);
+assert(
+  sponsorDashboardPage.includes("lockCopy()") &&
+    !sponsorDashboardPage.includes("localLockCopy()"),
+  "The S4P Sponsorship Dashboard keeps Goal-Sponsorship lock-in copy for Lead Climate Sponsors"
+);
+assert(
+  readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes("localLockCopy()") &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes("ClubLeagueMenu") &&
+    readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
+      "isLeadSponsorHome(sponsorName, { jobTitle })"
+    ),
+  "Locals lock a Club and Match on the wallet; the Lead dashboard sends them there"
 );
 assert(
   sponsorDashboardPage.includes("Select a Club") &&
@@ -642,7 +665,8 @@ assert(
 );
 assert(
   sponsorHomePath("Top Cellar") === SPONSOR_WALLET_PATH &&
-    sponsorHomePath("The Fountain") === SPONSOR_WALLET_PATH,
+    sponsorHomePath("The Fountain") === SPONSOR_WALLET_PATH &&
+    sponsorHomePath("Piazza Italiana") === SPONSOR_WALLET_PATH,
   "Local Business Climate Sponsors land on the Carbon Wallet, not the Lead dashboard"
 );
 
@@ -773,8 +797,9 @@ assert(
     sponsorNav.includes("Dashboard") &&
     sponsorNav.includes("Logout") &&
     sponsorNav.includes("bg-s4p-mark text-slate-950") &&
+    sponsorNav.includes("sponsorHomePath") &&
     !sponsorNav.includes("bg-emerald-400"),
-  "Dashboard and Logout sit on one header line, with Dashboard in the Register lime"
+  "Dashboard and Logout sit on one header line; Dashboard opens the Local wallet or Lead home"
 );
 assert(
   !sponsorDashboardPage.includes("Logout") &&

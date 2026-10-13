@@ -21,7 +21,8 @@ assert(
     isLeadMatchDaySponsorBrand("American Express") &&
     isLeadMatchDaySponsorBrand("Puma") &&
     !isLeadMatchDaySponsorBrand("Top Cellar") &&
-    !isLeadMatchDaySponsorBrand("The Fountain"),
+    !isLeadMatchDaySponsorBrand("The Fountain") &&
+    !isLeadMatchDaySponsorBrand("Piazza Italiana"),
   "Lead Match Day occupancy includes Pepsi Cola and listed Leads, never Local Business Climate Sponsors"
 );
 

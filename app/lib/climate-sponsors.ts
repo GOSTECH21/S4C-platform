@@ -31,6 +31,7 @@ export const KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES = [
   "Mash Tun",
   "Interval",
   "The Fountain",
+  "Piazza Italiana",
 ];
 
 function compactSponsorKey(name: string): string {
@@ -1037,6 +1038,11 @@ export function selectedBrandsReadyToReceive(
 
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
   return `${hours} hours before kick-off, choose a Club you wish to sponsor and the Match you wish to lock-in for Goal-Sponsorship. Then open the Climate Sponsorship Wallet, deposit your Commitment Fee and Goals-scored Sponsorship, and sign off this Club's Match Day carbon footprint offset. The club's five chosen Climate Projects later appear as your record.`;
+}
+
+/** Local Business Climate Sponsors lock a Club and Match, then fund an amount — not Goals-scored. */
+export function localLockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
+  return `${hours} hours before kick-off, choose a Club you wish to sponsor and the specific Match. Then open the Climate Sponsorship Wallet; insert your Sponsorship amount; Accept the Terms & Conditions; & Sign-off your sponsorship. The club's five chosen Climate Projects will later appear on your Dashboard for your records.`;
 }
 
 export function unlockedMatchDay(matchLabel = MATCH_DAY_LOCK_LABELS[0]): {
