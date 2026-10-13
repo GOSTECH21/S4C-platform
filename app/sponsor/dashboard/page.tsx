@@ -603,32 +603,6 @@ export default function SponsorDashboardPage() {
       </section>
       )}
 
-      <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
-        <Link
-          href={SPONSOR_OFFERS_PATH}
-          className="block rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-            Match Day record
-          </p>
-          <h2 className="mt-3 text-2xl font-black">
-            The club&apos;s 5 chosen Climate Projects
-          </h2>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            You are sponsoring this Club&apos;s Match Day carbon footprint
-            offset. The five Climate Projects the Sustainability Director
-            chooses for this Match Day are kept here as your record. Fans
-            FUND-IT onto that list. Sign off after you deposit your Commitment
-            Fee and Goals-scored Sponsorship — you do not wait for the five.
-          </p>
-          <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
-            {pending.some((offer) => offer.projects.length > 0)
-              ? "Open your Match Day Climate Projects record"
-              : "Waiting for the club to choose Climate Projects"}
-          </p>
-        </Link>
-      </section>
-
       {signed.length === 0 && (
       <section
         id={SPONSOR_SIGNED_SECTION_ID}
@@ -737,6 +711,33 @@ export default function SponsorDashboardPage() {
         )}
       </section>
       )}
+
+      <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
+        <Link
+          href={SPONSOR_OFFERS_PATH}
+          className="block rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+            Match Day record
+          </p>
+          <h2 className="mt-3 text-2xl font-black">
+            The club&apos;s 5 chosen Climate Projects
+          </h2>
+          <p className="mt-3 max-w-3xl text-slate-300">
+            You are sponsoring this Club&apos;s Match Day Goals-scored to help
+            offset their carbon footprint. The five Climate Projects the
+            Sustainability Director chooses for this Match Day are kept here as
+            your record. Fans FUND-IT onto that list. Sign off after you
+            deposit your Commitment Fee and Goals-scored Sponsorship — you do
+            not wait for the five.
+          </p>
+          <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
+            {pending.some((offer) => offer.projects.length > 0)
+              ? "Open your Match Day Climate Projects record"
+              : "Waiting for the club to choose Climate Projects"}
+          </p>
+        </Link>
+      </section>
     </div>
   );
 }

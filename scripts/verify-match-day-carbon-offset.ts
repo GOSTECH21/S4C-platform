@@ -107,8 +107,13 @@ const matchDay = readFileSync("app/services/club-match-day.service.ts", "utf8");
 assert(
   wallet.includes("ensureCarbonOffsetSponsorshipOffer") &&
     dashboard.includes("Match Day carbon footprint offset") &&
+    dashboard.includes(
+      "You are sponsoring this Club&apos;s Match Day Goals-scored to help"
+    ) &&
     (dashboard.includes("The club's 5 chosen Climate Projects") ||
       dashboard.includes("The club&apos;s 5 chosen Climate Projects")) &&
+    dashboard.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") <
+      dashboard.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") &&
     offers.includes("hydrateClubSponsorsFromSigned") &&
     clubDash.includes("hydrateClubSponsorsFromSigned") &&
     matchDay.includes("publishChosenProjectsToSponsorsAndFans") &&

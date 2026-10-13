@@ -45,10 +45,15 @@ for (const rel of FILES) {
 const dashboard = "app/sponsor/dashboard/page.tsx";
 if (existsSync(dashboard)) {
   const src = readFileSync(dashboard, "utf8");
-  if (!src.includes("Match Day carbon footprint offset")) {
+  if (
+    !src.includes("Match Day carbon footprint offset") ||
+    !src.includes("Match Day Goals-scored to help") ||
+    src.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") >
+      src.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}")
+  ) {
     failed += 1;
     console.error(
-      "Dashboard is missing Match Day carbon footprint offset copy. Pull the files above, then hard-refresh."
+      "Dashboard is missing Sign-off above the five, or the Goals-scored carbon offset copy. Pull the files above, then hard-refresh."
     );
   }
 }

@@ -551,8 +551,13 @@ assert(
   sponsorDashboardPage.includes("SPONSOR_RECEIVE_SECTION_ID") &&
     sponsorDashboardPage.includes("SPONSOR_SIGNED_SECTION_ID") &&
     sponsorDashboardPage.includes("scrollIntoView") &&
-    sponsorDashboardPage.includes("Match Day carbon footprint offset"),
-  "After a wallet deposit the five Climate Projects are a record, not a sign-off gate"
+    sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
+    sponsorDashboardPage.includes(
+      "You are sponsoring this Club&apos;s Match Day Goals-scored to help"
+    ) &&
+    sponsorDashboardPage.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") <
+      sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}"),
+  "Sign-off sits above the five Climate Projects record; Goals-scored copy names the carbon offset"
 );
 assert(
   sponsorDashboardPage.includes("FUND-IT up to 5 times") &&
