@@ -14,6 +14,7 @@ import {
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
+import { TOP_UP_CASH_HEADING } from "@/app/lib/match-day-carbon-offset";
 
 export function ClimateSponsorshipWallet({
   kind,
@@ -57,7 +58,9 @@ export function ClimateSponsorshipWallet({
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
         Climate Sponsorship Wallet
       </p>
-      <h2 className="mt-2 text-3xl font-black">Climate Sponsorship Wallet</h2>
+      <h2 className="mt-2 text-3xl font-black">
+        {kind === "local" ? TOP_UP_CASH_HEADING : "Climate Sponsorship Wallet"}
+      </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "lead"
           ? "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ClimateSponsorshipWallet } from "@/app/components/sponsor/ClimateSponsorshipWallet";
+import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   depositLeadClimateWallet,
@@ -29,23 +31,35 @@ import {
 import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import {
+  clubsMatch,
   displayLockFixture,
   localLockCopy,
+  unlockedMatchDay,
+  type MatchDayClubLock,
 } from "@/app/lib/climate-sponsors";
-import { ensureCarbonOffsetSponsorshipOffer } from "@/app/services/sponsor-offers.service";
+import {
+  ensureCarbonOffsetSponsorshipOffer,
+  loadSponsorFolder,
+  type SponsorMatchOffer,
+} from "@/app/services/sponsor-offers.service";
 import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
+  SPONSOR_RECEIVE_SECTION_ID,
   isNewSponsorshipRequest,
+  sponsorHomePath,
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import {
   isLeadSponsorHome,
   isLocalClimateSponsor,
   rememberLocalSponsorSession,
-  sponsorHomePath,
 } from "@/app/lib/sponsor-home";
+import {
+  LOCAL_FIVE_RECORD_COPY,
+  MATCH_DAY_PROJECTS_RECORD_LABEL,
+} from "@/app/lib/match-day-carbon-offset";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
@@ -54,9 +68,13 @@ export default function SponsorWalletPage() {
   const router = useRouter();
   const [brand, setBrand] = useState("");
   const [clubName, setClubName] = useState("");
+  const [lock, setLock] = useState<MatchDayClubLock | null>(null);
   const [lockFixture, setLockFixture] = useState("");
+  const [chosenFixture, setChosenFixture] = useState<ClubFixture | null>(null);
   const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
   const [fixturesLoading, setFixturesLoading] = useState(false);
+  const [fixtureNotice, setFixtureNotice] = useState<string | null>(null);
+  const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
   const [kind, setKind] = useState<"lead" | "local">("lead");
   const [wallet, setWallet] = useState<ClimateWallet | null>(null);
   const [busy, setBusy] = useState(false);
@@ -82,19 +100,20 @@ export default function SponsorWalletPage() {
           local.brandName.trim().toLowerCase() === brandName.trim().toLowerCase()
             ? local
             : null;
-        const lock = loadMatchDayLock(brandName);
+        const matchLock = loadMatchDayLock(brandName);
         const clubFromQuery =
           typeof window !== "undefined"
             ? new URLSearchParams(window.location.search).get("club")?.trim() ||
               ""
             : "";
         const club =
-          lock?.clubName ||
+          matchLock?.clubName ||
           localForBrand?.clubName ||
           clubFromQuery ||
           "";
+        setLock(matchLock);
         setClubName(club);
-        setLockFixture(lock ? displayLockFixture(lock) : "");
+        setLockFixture(matchLock ? displayLockFixture(matchLock) : "");
         const localKind = isLocalClimateSponsor(brandName, { jobTitle });
         setKind(localKind ? "local" : "lead");
         if (localKind && !isNewSponsorshipRequest(window.location.search)) {
@@ -102,6 +121,13 @@ export default function SponsorWalletPage() {
           return;
         }
         if (club) setWallet(readClimateWallet(club, brandName));
+        if (localKind) {
+          const folder = await loadSponsorFolder({
+            brandName,
+            brandEmail: (sponsor.email as string | null) ?? null,
+          });
+          setPending(folder.pending);
+        }
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
         return;
@@ -151,8 +177,11 @@ export default function SponsorWalletPage() {
     const club = nextClub.trim();
     if (!club) {
       if (brand) clearMatchDayLock(brand);
+      setLock(null);
       setClubName("");
       setLockFixture("");
+      setChosenFixture(null);
+      setFixtureNotice(null);
       setWallet(null);
       return;
     }
@@ -160,11 +189,17 @@ export default function SponsorWalletPage() {
     if (brand) setWallet(readClimateWallet(club, brand));
     if (!fixture) {
       setLockFixture("");
+      setChosenFixture(null);
+      if (lock && !clubsMatch(lock.clubName, club)) {
+        clearMatchDayLock(brand);
+        setLock(null);
+      }
       return;
     }
     setLockFixture(fixture.fixtureName);
+    setChosenFixture(fixture);
     try {
-      lockMatchDayClub({
+      const next = lockMatchDayClub({
         brandName: brand,
         clubName: club,
         matchLabel: fixture.competition,
@@ -176,13 +211,26 @@ export default function SponsorWalletPage() {
         sourceUrl: fixture.sourceUrl,
       });
       ensureGoalNetwork({ brandName: brand, clubNames: [club] });
+      setLock(next);
       setError(null);
+      setFixtureNotice(null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not lock this Match."
-      );
+      const message =
+        err instanceof Error ? err.message : "Could not lock this Match.";
+      setError(message);
+      setFixtureNotice(message);
     }
   }
+
+  function unlockMatchDay() {
+    applyLocalLock(unlockedMatchDay().clubName, null);
+  }
+
+  const selectedFixture =
+    chosenFixture && chosenFixture.fixtureName === lockFixture
+      ? chosenFixture
+      : fixtureByIdOrName(clubFixtures, lockFixture);
+  const matchLocked = Boolean(clubName && (selectedFixture || lockFixture));
 
   if (loading) {
     return <p className="text-slate-400">Loading Climate Sponsorship Wallet...</p>;
@@ -194,7 +242,9 @@ export default function SponsorWalletPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           {kind === "local" ? "Local Business Climate Sponsor" : brand}
         </p>
-        <h1 className="mt-2 text-4xl font-black">Climate Sponsorship Wallet</h1>
+        <h1 className="mt-2 text-4xl font-black">
+          {kind === "local" ? "New Sponsorship" : "Climate Sponsorship Wallet"}
+        </h1>
         {kind === "local" ? (
           <p className="mt-1 text-sm font-semibold text-slate-400">{brand}</p>
         ) : (
@@ -204,6 +254,16 @@ export default function SponsorWalletPage() {
           </p>
         )}
       </div>
+
+      {kind === "local" ? (
+        <button
+          type="button"
+          onClick={() => router.push(LOCAL_SPONSOR_HOME_PATH)}
+          className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold"
+        >
+          Back to your sponsored Match Days
+        </button>
+      ) : null}
 
       {kind === "local" ? (
         <section
@@ -217,7 +277,7 @@ export default function SponsorWalletPage() {
           <p className="mt-3 max-w-3xl text-slate-300">{localLockCopy()}</p>
           <div className="mt-6 overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
             <p className="text-sm uppercase tracking-[0.2em] text-green-300">
-              {clubName && (lockFixture || fixtureByIdOrName(clubFixtures, lockFixture))
+              {matchLocked
                 ? "Locked in"
                 : clubName
                   ? "Select the Match"
@@ -236,15 +296,50 @@ export default function SponsorWalletPage() {
                 onChange={(fixture) => applyLocalLock(clubName, fixture)}
               />
             </div>
-            {clubName && lockFixture ? (
-              <p className="mt-4 text-2xl font-black">
-                {clubName} · {lockFixture}
+            {fixtureNotice && (
+              <p className="mt-4 text-sm font-semibold text-amber-300">
+                {fixtureNotice}
               </p>
-            ) : null}
+            )}
+            {matchLocked ? (
+              <>
+                <p className="mt-4 text-2xl font-black">
+                  {clubName} · {lockFixture}
+                </p>
+                <SeeMatchDetails
+                  key={lockFixture}
+                  defaultOpen
+                  date={lock?.fixtureDate || selectedFixture?.date}
+                  venue={lock?.venue || selectedFixture?.venue}
+                  kickoff={lock?.kickoff || selectedFixture?.kickoff}
+                />
+              </>
+            ) : clubName ? (
+              <p className="mt-4 text-sm text-slate-400">
+                {clubName} is selected. Choose the Match you wish to sponsor,
+                then See Match details before topping up the cash fans will put
+                into Climate Projects.
+              </p>
+            ) : (
+              <p className="mt-4 text-sm text-slate-400">
+                Select a club from Premier League or Scottish Premiership, then
+                select the Match you wish to sponsor. You can then See Match
+                details and top up the cash fans will put into Climate Projects.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={unlockMatchDay}
+              disabled={!clubName}
+              className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm disabled:opacity-40"
+            >
+              Unlock
+            </button>
           </div>
         </section>
       ) : null}
 
+      <div id="top-up-cash" className="scroll-mt-6">
       <ClimateSponsorshipWallet
         kind={kind}
         wallet={wallet}
@@ -357,6 +452,31 @@ export default function SponsorWalletPage() {
           })();
         }}
       />
+      </div>
+
+      {kind === "local" ? (
+        <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
+          <Link
+            href={SPONSOR_OFFERS_PATH}
+            className="block rounded-3xl border border-slate-700 bg-slate-900 p-8 hover:border-green-500"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+              Match Day record
+            </p>
+            <h2 className="mt-3 text-2xl font-black">
+              {MATCH_DAY_PROJECTS_RECORD_LABEL}
+            </h2>
+            <p className="mt-3 max-w-3xl text-slate-300">
+              {LOCAL_FIVE_RECORD_COPY}
+            </p>
+            <p className="mt-5 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950">
+              {pending.some((offer) => offer.projects.length > 0)
+                ? "Open your Match Day Climate Projects record"
+                : "Waiting for the club to choose Climate Projects"}
+            </p>
+          </Link>
+        </section>
+      ) : null}
 
       {isLeadSponsorHome(brand) ? (
         <button

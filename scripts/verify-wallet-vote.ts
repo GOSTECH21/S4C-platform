@@ -844,7 +844,10 @@ assert(
   walletPage.includes("depositLocalClimateWallet") &&
     walletPage.includes("isLocalClimateSponsor") &&
     walletPage.includes("localLockCopy") &&
-    walletPage.includes("ClubLeagueMenu"),
+    walletPage.includes("ClubLeagueMenu") &&
+    walletPage.includes("SeeMatchDetails") &&
+    walletPage.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
+    !walletPage.includes("MATCH_DAY_GOALS_SCORED_COPY"),
   "The wallet page classifies Local Business Climate Sponsors before showing the Lead form"
 );
 assert(
