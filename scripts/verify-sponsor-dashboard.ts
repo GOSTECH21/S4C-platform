@@ -20,6 +20,7 @@ import {
   fanVotesOnSignedOffers,
 } from "../app/lib/sponsor-dashboard";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_WALLET_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
@@ -664,17 +665,17 @@ assert(
   "American Express stays on the Lead Climate Sponsor dashboard"
 );
 assert(
-  sponsorHomePath("Top Cellar") === SPONSOR_WALLET_PATH &&
-    sponsorHomePath("The Fountain") === SPONSOR_WALLET_PATH &&
-    sponsorHomePath("Piazza Italiana") === SPONSOR_WALLET_PATH,
-  "Local Business Climate Sponsors land on the Carbon Wallet, not the Lead dashboard"
+  sponsorHomePath("Top Cellar") === LOCAL_SPONSOR_HOME_PATH &&
+    sponsorHomePath("The Fountain") === LOCAL_SPONSOR_HOME_PATH &&
+    sponsorHomePath("Piazza Italiana") === LOCAL_SPONSOR_HOME_PATH,
+  "Local Business Climate Sponsors land on the LOBI home, not the Lead dashboard"
 );
 
 const localRegisterPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
-  localRegisterPage.includes("SPONSOR_WALLET_PATH") &&
+  localRegisterPage.includes("LOCAL_SPONSOR_HOME_PATH") &&
     !localRegisterPage.includes("SPONSOR_DASHBOARD_PATH"),
-  "Local Business Climate Sponsors register into the Climate Sponsorship Wallet, not the Lead dashboard"
+  "Local Business Climate Sponsors register into the LOBI home, not the Lead dashboard"
 );
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");

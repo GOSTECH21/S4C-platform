@@ -48,6 +48,7 @@ export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
+export const LOCAL_SPONSOR_HOME_PATH = "/sponsor/local";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_NEW_SPONSORSHIP_QUERY = "new";
 export const SPONSOR_NEW_SPONSORSHIP_LABEL =
@@ -67,6 +68,10 @@ export function sponsorDashboardReceivePath(): string {
 
 export function sponsorNewSponsorshipPath(): string {
   return `${SPONSOR_DASHBOARD_PATH}?${SPONSOR_NEW_SPONSORSHIP_QUERY}=1`;
+}
+
+export function localNewSponsorshipPath(): string {
+  return `${SPONSOR_WALLET_PATH}?${SPONSOR_NEW_SPONSORSHIP_QUERY}=1`;
 }
 
 export function isNewSponsorshipRequest(

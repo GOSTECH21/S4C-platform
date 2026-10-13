@@ -11,9 +11,9 @@ import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import { MatchSponsorshipPicker } from "@/app/components/sponsor/MatchSponsorshipPicker";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
-  SPONSOR_WALLET_PATH,
 } from "@/app/lib/routes";
 import {
   LOCAL_SPONSOR_MIN_GBP,
@@ -125,7 +125,7 @@ export default function LocalSponsorRegisterPage() {
         brandName: companyName,
         sponsorshipGbp: pledge,
       });
-      window.location.href = SPONSOR_WALLET_PATH;
+      window.location.href = LOCAL_SPONSOR_HOME_PATH;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
       setLoading(false);

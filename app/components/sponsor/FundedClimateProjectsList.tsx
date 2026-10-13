@@ -5,8 +5,10 @@ import type { FundedSponsorProject } from "@/app/lib/sponsor-signed-home";
 
 export function FundedClimateProjectsList({
   projects,
+  kind = "lead",
 }: {
   projects: FundedSponsorProject[];
+  kind?: "lead" | "local";
 }) {
   const fanFunded = projects.filter((row) => row.fanFunded || row.fundedGbp > 0);
   return (
@@ -16,9 +18,9 @@ export function FundedClimateProjectsList({
       </p>
       <h2 className="mt-2 text-3xl font-black">Where your money went</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Fans take your Commitment Fee and Goals-scored Sponsorship and put that
-        cash onto numbered Climate Projects. Open a project to see how much of
-        your money it has received.
+        {kind === "local"
+          ? "Fans take £0.20 from your Climate Sponsorship Wallet onto numbered Climate Projects. Open a project to see how much of your money it has received."
+          : "Fans take your Commitment Fee and Goals-scored Sponsorship and put that cash onto numbered Climate Projects. Open a project to see how much of your money it has received."}
       </p>
       {fanFunded.length === 0 ? (
         <p className="mt-6 text-slate-400">
@@ -56,7 +58,9 @@ export function FundedClimateProjectsList({
             ) : null}
             <p className="mt-3 text-sm text-slate-400">
               {project.fanFunded
-                ? `Fans have put ${formatFundingGbp(project.fundedGbp)} of your Commitment Fee and Goals-scored Sponsorship onto this Climate Project.`
+                ? kind === "local"
+                  ? `Fans have put ${formatFundingGbp(project.fundedGbp)} from your Climate Sponsorship Wallet onto this Climate Project.`
+                  : `Fans have put ${formatFundingGbp(project.fundedGbp)} of your Commitment Fee and Goals-scored Sponsorship onto this Climate Project.`
                 : "Waiting for fans to FUND-IT from your Climate Sponsorship Wallet onto this Climate Project."}
             </p>
           </details>

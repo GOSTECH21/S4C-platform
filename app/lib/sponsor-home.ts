@@ -8,7 +8,10 @@ import {
   readLocalSponsorRecord,
   readSponsorTier,
 } from "./local-sponsor";
-import { SPONSOR_DASHBOARD_PATH, SPONSOR_WALLET_PATH } from "./routes";
+import {
+  LOCAL_SPONSOR_HOME_PATH,
+  SPONSOR_DASHBOARD_PATH,
+} from "./routes";
 
 export type SponsorHomeHints = {
   jobTitle?: string | null;
@@ -61,14 +64,14 @@ export function isLocalClimateSponsor(
   );
 }
 
-/** Lead Climate Sponsors use the S4P Sponsorship Dashboard. Locals use the wallet. */
+/** Lead Climate Sponsors use the S4P Sponsorship Dashboard. Locals use the LOBI home. */
 export function sponsorHomePath(
   brandName?: string | null,
   hints: SponsorHomeHints = {}
 ): string {
-  if (isLocalClimateSponsor(brandName, hints)) return SPONSOR_WALLET_PATH;
+  if (isLocalClimateSponsor(brandName, hints)) return LOCAL_SPONSOR_HOME_PATH;
   if (brandName && isLeadClimateBrand(brandName)) return SPONSOR_DASHBOARD_PATH;
-  if (readSponsorTier() === "local") return SPONSOR_WALLET_PATH;
+  if (readSponsorTier() === "local") return LOCAL_SPONSOR_HOME_PATH;
   return SPONSOR_DASHBOARD_PATH;
 }
 

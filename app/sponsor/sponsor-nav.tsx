@@ -7,10 +7,10 @@ import { supabase } from "@/app/lib/supabase";
 import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
-  SPONSOR_WALLET_PATH,
 } from "@/app/lib/routes";
 import {
   rememberLocalSponsorSession,
@@ -83,7 +83,7 @@ export function SponsorNav() {
     return (
       <div className="flex items-center gap-2">
         <Link
-          href={homePath || SPONSOR_WALLET_PATH}
+          href={homePath || LOCAL_SPONSOR_HOME_PATH}
           className={`${tabClass} bg-s4p-mark text-slate-950 hover:brightness-110`}
         >
           Dashboard

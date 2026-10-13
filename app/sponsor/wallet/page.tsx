@@ -34,8 +34,10 @@ import {
 } from "@/app/lib/climate-sponsors";
 import { ensureCarbonOffsetSponsorshipOffer } from "@/app/services/sponsor-offers.service";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
+  isNewSponsorshipRequest,
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import {
@@ -93,9 +95,12 @@ export default function SponsorWalletPage() {
           "";
         setClubName(club);
         setLockFixture(lock ? displayLockFixture(lock) : "");
-        setKind(
-          isLocalClimateSponsor(brandName, { jobTitle }) ? "local" : "lead"
-        );
+        const localKind = isLocalClimateSponsor(brandName, { jobTitle });
+        setKind(localKind ? "local" : "lead");
+        if (localKind && !isNewSponsorshipRequest(window.location.search)) {
+          router.replace(LOCAL_SPONSOR_HOME_PATH);
+          return;
+        }
         if (club) setWallet(readClimateWallet(club, brandName));
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
