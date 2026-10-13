@@ -3,6 +3,7 @@
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
 import {
   MATCH_DAY_CARBON_OFFSET_LABEL,
+  MATCH_DAY_GOALS_SCORED_COPY,
   MATCH_DAY_PROJECTS_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
 } from "@/app/lib/match-day-carbon-offset";
@@ -34,13 +35,25 @@ export default function MatchDayCarbonOffsetPreview() {
 
       <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+          Folder
+        </p>
+        <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
+        <p className="mt-3 max-w-3xl text-slate-400">
+          Once you sign off the Club&apos;s Match Day carbon footprint offset,
+          it is lodged here. Climate Projects the Sustainability Director later
+          chooses for that Match Day are added as your record.
+        </p>
+      </section>
+
+      <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
           Match Day record
         </p>
         <h2 className="mt-2 text-3xl font-black">
           {MATCH_DAY_PROJECTS_RECORD_LABEL}
         </h2>
         <p className="mt-3 max-w-3xl text-slate-300">
-          {MATCH_DAY_PROJECTS_RECORD_COPY}
+          {MATCH_DAY_GOALS_SCORED_COPY} {MATCH_DAY_PROJECTS_RECORD_COPY}
         </p>
       </section>
 

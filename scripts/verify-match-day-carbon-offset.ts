@@ -107,8 +107,9 @@ const matchDay = readFileSync("app/services/club-match-day.service.ts", "utf8");
 assert(
   wallet.includes("ensureCarbonOffsetSponsorshipOffer") &&
     dashboard.includes("Match Day carbon footprint offset") &&
-    dashboard.includes(
-      "You are sponsoring this Club&apos;s Match Day Goals-scored to help"
+    dashboard.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
+    readFileSync("app/lib/match-day-carbon-offset.ts", "utf8").includes(
+      "You are sponsoring this Club's Match Day Goals-scored to help offset their carbon footprint."
     ) &&
     (dashboard.includes("The club's 5 chosen Climate Projects") ||
       dashboard.includes("The club&apos;s 5 chosen Climate Projects")) &&
@@ -120,7 +121,16 @@ assert(
     matchDay.includes("attachProjectsToClubSponsorships") &&
     readFileSync("apply-match-day-carbon-offset.mjs", "utf8").includes(
       "app/lib/match-day-carbon-offset.ts"
-    ),
+    ) &&
+    readFileSync("app/preview/match-day-carbon-offset/page.tsx", "utf8").includes(
+      "MATCH_DAY_GOALS_SCORED_COPY"
+    ) &&
+    readFileSync("app/preview/match-day-carbon-offset/page.tsx", "utf8").indexOf(
+      "Signed sponsorships"
+    ) <
+      readFileSync("app/preview/match-day-carbon-offset/page.tsx", "utf8").indexOf(
+        "{MATCH_DAY_PROJECTS_RECORD_LABEL}"
+      ),
   "Wallet sign-off, SD login occupancy, and SD-chosen five publish are wired through"
 );
 

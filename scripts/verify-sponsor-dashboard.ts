@@ -552,9 +552,7 @@ assert(
     sponsorDashboardPage.includes("SPONSOR_SIGNED_SECTION_ID") &&
     sponsorDashboardPage.includes("scrollIntoView") &&
     sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
-    sponsorDashboardPage.includes(
-      "You are sponsoring this Club&apos;s Match Day Goals-scored to help"
-    ) &&
+    sponsorDashboardPage.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     sponsorDashboardPage.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") <
       sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}"),
   "Sign-off sits above the five Climate Projects record; Goals-scored copy names the carbon offset"

@@ -47,7 +47,7 @@ if (existsSync(dashboard)) {
   const src = readFileSync(dashboard, "utf8");
   if (
     !src.includes("Match Day carbon footprint offset") ||
-    !src.includes("Match Day Goals-scored to help") ||
+    !src.includes("MATCH_DAY_GOALS_SCORED_COPY") ||
     src.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") >
       src.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}")
   ) {

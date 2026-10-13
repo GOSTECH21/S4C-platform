@@ -66,6 +66,7 @@ import {
 import { votedProjectsOnSignedOffer, fanVotesOnSignedOffers } from "@/app/lib/sponsor-dashboard";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
 import { isLeadSponsorHome } from "@/app/lib/sponsor-home";
+import { MATCH_DAY_GOALS_SCORED_COPY } from "@/app/lib/match-day-carbon-offset";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -724,8 +725,7 @@ export default function SponsorDashboardPage() {
             The club&apos;s 5 chosen Climate Projects
           </h2>
           <p className="mt-3 max-w-3xl text-slate-300">
-            You are sponsoring this Club&apos;s Match Day Goals-scored to help
-            offset their carbon footprint. The five Climate Projects the
+            {MATCH_DAY_GOALS_SCORED_COPY} The five Climate Projects the
             Sustainability Director chooses for this Match Day are kept here as
             your record. Fans FUND-IT onto that list. Sign off after you
             deposit your Commitment Fee and Goals-scored Sponsorship — you do
