@@ -20,6 +20,13 @@ export const MATCH_DAY_PROJECTS_RECORD_COPY =
 export const MATCH_DAY_PROJECTS_WAITING_COPY =
   "Waiting for the club Sustainability Director to choose the Climate Projects for this Match Day. When they do, those Projects appear here as your record, and Fans can FUND-IT onto them.";
 
+export const TOP_UP_CASH_HEADING =
+  "Top up the cash fans will put into Climate Projects";
+
+/** Local Business Climate Sponsors keep the five as a record — no Goals-scored copy. */
+export const LOCAL_FIVE_RECORD_COPY =
+  "The five Climate Projects the Sustainability Director chooses for this Match Day are kept here as your record. Fans FUND-IT onto that list. Sign off after you insert your Sponsorship amount — you do not wait for the five.";
+
 export function chosenProjectsReadyForMatchDay(
   projectCount: number
 ): boolean {

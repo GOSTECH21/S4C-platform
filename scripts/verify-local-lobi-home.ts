@@ -130,7 +130,7 @@ assert(
 );
 assert(
   localNewSponsorshipPath() === "/sponsor/wallet?new=1",
-  "New Local sponsorship still opens the Climate Sponsorship Wallet"
+  "New Local sponsorship still opens Club + Match, the cash table, and the five-project record"
 );
 
 const homePage = readFileSync("app/sponsor/local/page.tsx", "utf8");
@@ -142,6 +142,12 @@ assert(
     walletPage.includes("LOCAL_SPONSOR_HOME_PATH") &&
     registerPage.includes("LOCAL_SPONSOR_HOME_PATH"),
   "Local login, wallet bounce, and register all use the LOBI home"
+);
+assert(
+  walletPage.includes("SeeMatchDetails") &&
+    walletPage.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
+    walletPage.includes("LOCAL_FIVE_RECORD_COPY"),
+  "Local New Sponsorship shows See Match details, the cash table, and the five as a record"
 );
 assert(
   readFileSync("app/components/sponsor/LocalSignedSponsorHome.tsx", "utf8").includes(
