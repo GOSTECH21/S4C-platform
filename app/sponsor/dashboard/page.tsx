@@ -39,6 +39,7 @@ import {
 } from "@/app/components/sponsor/ClubMatchMenus";
 import {
   LOCAL_SPONSOR_HOME_PATH,
+  SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
@@ -484,6 +485,28 @@ export default function SponsorDashboardPage() {
           {error}
         </div>
       )}
+
+      <Link
+        href={SPONSOR_CALENDAR_PATH}
+        className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
+          2026/27 Sporting Calendar
+        </p>
+        <h2 className="mt-3 text-2xl font-black">
+          See every Match on a given day, then sponsor several at once
+        </h2>
+        <p className="mt-3 max-w-3xl text-slate-300">
+          Mine Premier League, Championship, League One, Women&apos;s Super
+          League, Scottish Premiership, Bundesliga, La Liga, Ligue 1, Serie A,
+          NFL, Rugby Union, Rugby League and NBA. A Global Brand can lock
+          several named Matches on the same day — for example 2 Premier League,
+          1 Scottish Premiership and 3 La Liga on Saturday 31 October.
+        </p>
+        <p className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950">
+          Open 2026/27 Sporting Calendar
+        </p>
+      </Link>
 
       <section
         id="match-day-lock-in"

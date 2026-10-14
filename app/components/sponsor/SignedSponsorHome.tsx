@@ -4,7 +4,9 @@ import { BrandMark } from "@/app/components/club/BrandMark";
 import { FundedClimateProjectsList } from "@/app/components/sponsor/FundedClimateProjectsList";
 import { SponsorCistTable } from "@/app/components/sponsor/SponsorCistTable";
 import { SponsoredMatchCalendar } from "@/app/components/sponsor/SponsoredMatchCalendar";
+import Link from "next/link";
 import {
+  SPONSOR_CALENDAR_PATH,
   SPONSOR_NEW_SPONSORSHIP_LABEL,
 } from "@/app/lib/routes";
 import {
@@ -60,7 +62,7 @@ export function SignedSponsorHome({
       <FundedClimateProjectsList projects={projects} />
       <SponsorCistTable brandName={brand} ownFundingGbp={committedGbp} />
 
-      <div role="tablist" aria-label="Sponsorship actions">
+      <div role="tablist" aria-label="Sponsorship actions" className="flex flex-wrap gap-3">
         <button
           type="button"
           role="tab"
@@ -69,6 +71,12 @@ export function SignedSponsorHome({
         >
           {SPONSOR_NEW_SPONSORSHIP_LABEL}
         </button>
+        <Link
+          href={SPONSOR_CALENDAR_PATH}
+          className="rounded-lg border border-s4p-mark px-5 py-2 text-sm font-bold text-s4p-mint hover:bg-s4p-mark/15"
+        >
+          2026/27 Sporting Calendar
+        </Link>
       </div>
     </div>
   );

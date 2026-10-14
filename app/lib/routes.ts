@@ -50,6 +50,7 @@ export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const LOCAL_SPONSOR_HOME_PATH = "/sponsor/local";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
+export const SPONSOR_CALENDAR_PATH = "/sponsor/calendar";
 export const SPONSOR_NEW_SPONSORSHIP_QUERY = "new";
 export const SPONSOR_NEW_SPONSORSHIP_LABEL =
   "Click here to initiate a New Sponsorship";
