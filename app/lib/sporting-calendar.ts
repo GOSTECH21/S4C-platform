@@ -24,6 +24,12 @@ export const GLOBAL_MATCH_DAY_EXAMPLE_DATE = "2026-10-31";
 /** First full NFL Sunday after the Budweiser Saturday example. */
 export const NFL_EXAMPLE_DATE = "2026-11-01";
 export const NFL_EXAMPLE_MONTH = { year: 2026, month: 10 };
+/** Guinness Men's Six Nations Super Saturday. */
+export const SIX_NATIONS_EXAMPLE_DATE = "2027-03-13";
+export const SIX_NATIONS_EXAMPLE_MONTH = { year: 2027, month: 2 };
+/** First Rugby Australia-confirmed 2027 Rugby Championship date. */
+export const RUGBY_CHAMPIONSHIP_EXAMPLE_DATE = "2027-07-10";
+export const RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH = { year: 2027, month: 6 };
 
 export function calendarLeagueDomId(league: string): string {
   return `calendar-league-${league.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
@@ -184,4 +190,41 @@ export function findCalendarMatch(
 export function leagueMatchCountOnDate(date: string, league: string): number {
   return matchesOnCalendarDate(date).filter((row) => row.league === league)
     .length;
+}
+
+export function rugbyCalendarHints(leaguesOnDay: readonly string[]): string[] {
+  const names = new Set(leaguesOnDay);
+  const hints: string[] = [];
+  if (names.has("Top 14")) {
+    hints.push(
+      "Top 14 is in the competition row. Click Top 14 to open the collapsible fixture list."
+    );
+  } else {
+    hints.push(
+      "Top 14 is the French club championship and plays most weekends. Saturday 31 October has a Top 14 round."
+    );
+  }
+  if (names.has("Six Nations")) {
+    hints.push(
+      "Six Nations is in the competition row. Click Six Nations to open the collapsible fixture list."
+    );
+  } else {
+    hints.push(
+      "Six Nations is in February and March 2027. Click Load Six Nations Super Saturday 13 March."
+    );
+  }
+  if (names.has("The Rugby Championship")) {
+    hints.push(
+      "The Rugby Championship is in the competition row."
+    );
+  } else if (names.has("Nations Championship")) {
+    hints.push(
+      "The Rugby Championship is paused in 2026. Nations Championship is in the competition row — click it to open the collapsible list."
+    );
+  } else {
+    hints.push(
+      "The Rugby Championship returns in July 2027 (2026 is the Nations Championship). Click Load The Rugby Championship 10 July."
+    );
+  }
+  return hints;
 }

@@ -254,6 +254,54 @@ export const NFL_TEAMS: SportingTeam[] = [
   t("Washington Commanders", "Northwest Stadium"),
 ];
 
+export const TOP_14_TEAMS: SportingTeam[] = [
+  t("Bayonne", "Stade Jean Dauger"),
+  t("Bordeaux Begles", "Stade Chaban-Delmas"),
+  t("Castres", "Stade Pierre Fabre"),
+  t("Clermont", "Stade Marcel Michelin"),
+  t("La Rochelle", "Stade Marcel-Deflandre"),
+  t("Lyon", "Matmut Stadium de Gerland"),
+  t("Montpellier", "Septeo Stadium"),
+  t("Pau", "Stade du Hameau"),
+  t("Perpignan", "Stade Aime Giral"),
+  t("Racing 92", "Paris La Defense Arena"),
+  t("Stade Francais", "Stade Jean Bouin"),
+  t("Toulon", "Stade Mayol"),
+  t("Toulouse", "Stade Ernest-Wallon"),
+  t("Vannes", "Stade de la Rabine"),
+];
+
+export const SIX_NATIONS_TEAMS: SportingTeam[] = [
+  t("England", "Twickenham"),
+  t("France", "Stade de France"),
+  t("Ireland", "Aviva Stadium"),
+  t("Italy", "Stadio Olimpico"),
+  t("Scotland", "Scottish Gas Murrayfield"),
+  t("Wales", "Principality Stadium"),
+];
+
+export const RUGBY_CHAMPIONSHIP_TEAMS: SportingTeam[] = [
+  t("Argentina", "Estadio Mario Alberto Kempes"),
+  t("Australia", "Allianz Stadium"),
+  t("New Zealand", "Eden Park"),
+  t("South Africa", "Ellis Park"),
+];
+
+export const NATIONS_CHAMPIONSHIP_TEAMS: SportingTeam[] = [
+  t("Argentina", "Estadio Mario Alberto Kempes"),
+  t("Australia", "Allianz Stadium"),
+  t("England", "Twickenham"),
+  t("Fiji", "HFC Bank Stadium"),
+  t("France", "Stade de France"),
+  t("Ireland", "Aviva Stadium"),
+  t("Italy", "Stadio Olimpico"),
+  t("Japan", "National Stadium"),
+  t("New Zealand", "Eden Park"),
+  t("Scotland", "Scottish Gas Murrayfield"),
+  t("South Africa", "Ellis Park"),
+  t("Wales", "Principality Stadium"),
+];
+
 export const PREMIERSHIP_RUGBY_TEAMS: SportingTeam[] = [
   t("Bath", "Recreation Ground"),
   t("Bristol Bears", "Ashton Gate"),
@@ -415,6 +463,45 @@ export const SPORTING_CALENDAR_LEAGUES: SportingLeagueDef[] = [
     weekday: 6,
     startDate: "2026-09-05",
     teams: PREMIERSHIP_RUGBY_TEAMS,
+  },
+  {
+    name: "Top 14",
+    sport: "Rugby",
+    country: "France",
+    kickoff: "16:35",
+    weekday: 6,
+    startDate: "2026-09-05",
+    teams: TOP_14_TEAMS,
+  },
+  {
+    name: "Six Nations",
+    sport: "Rugby",
+    country: "Europe",
+    kickoff: "14:10",
+    weekday: 6,
+    startDate: "2027-02-05",
+    singleLegs: 5,
+    teams: SIX_NATIONS_TEAMS,
+  },
+  {
+    name: "The Rugby Championship",
+    sport: "Rugby",
+    country: "International",
+    kickoff: "08:00",
+    weekday: 6,
+    startDate: "2027-07-10",
+    singleLegs: 6,
+    teams: RUGBY_CHAMPIONSHIP_TEAMS,
+  },
+  {
+    name: "Nations Championship",
+    sport: "Rugby",
+    country: "International",
+    kickoff: "15:00",
+    weekday: 6,
+    startDate: "2026-07-04",
+    singleLegs: 6,
+    teams: NATIONS_CHAMPIONSHIP_TEAMS,
   },
   {
     name: "Super League",

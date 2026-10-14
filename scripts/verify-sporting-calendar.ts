@@ -3,12 +3,15 @@ import { currentSeasonTeamCount } from "../app/lib/current-season";
 import {
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
   NFL_EXAMPLE_DATE,
+  RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
+  SIX_NATIONS_EXAMPLE_DATE,
   SPORTING_CALENDAR_LEAGUE_ORDER,
   SPORTING_CALENDAR_SEASON,
   calendarLeagueDomId,
   findCalendarMatch,
   leagueMatchCountOnDate,
   matchesByLeagueOnDate,
+  rugbyCalendarHints,
   matchesOnCalendarDate,
   publishedFixtureSource,
   sportingCalendarMatches,
@@ -60,10 +63,14 @@ assert(
       "Serie A",
       "NFL",
       "Premiership Rugby",
+      "Top 14",
+      "Six Nations",
+      "The Rugby Championship",
+      "Nations Championship",
       "Super League",
       "NBA",
     ].join(" | "),
-  "Calendar mines the requested football leagues plus NFL, Rugby Union, Rugby League and NBA"
+  "Calendar mines football, NFL, Premiership Rugby, Top 14, Six Nations, The Rugby Championship, rugby league and NBA"
 );
 assert(
   publishedFixtureSource().toLowerCase().includes("espn"),
@@ -89,6 +96,7 @@ for (const league of [
   "La Liga",
   "Ligue 1",
   "Serie A",
+  "Top 14",
 ]) {
   assert(
     octoberNames.includes(league),
@@ -358,6 +366,92 @@ assert(
   findCalendarMatch(NFL_EXAMPLE_DATE, "Buffalo Bills v Baltimore Ravens")
     ?.league === "NFL",
   "NFL Sunday names published fixtures such as Buffalo Bills v Baltimore Ravens"
+);
+
+const top14Count = leagueMatchCountOnDate(
+  GLOBAL_MATCH_DAY_EXAMPLE_DATE,
+  "Top 14"
+);
+assert(top14Count >= 6, "Saturday 31 October 2026 has a published Top 14 round");
+assert(
+  fixtureListIsCollapsible(top14Count),
+  "The Top 14 Saturday round uses the same collapsible list as football leagues"
+);
+assert(
+  findCalendarMatch(
+    GLOBAL_MATCH_DAY_EXAMPLE_DATE,
+    "Clermont v Racing 92"
+  )?.league === "Top 14",
+  "Top 14 names published fixtures such as Clermont v Racing 92"
+);
+
+assert(
+  SIX_NATIONS_EXAMPLE_DATE === "2027-03-13",
+  "The Six Nations example is Super Saturday 13 March 2027"
+);
+const sixNationsCount = leagueMatchCountOnDate(
+  SIX_NATIONS_EXAMPLE_DATE,
+  "Six Nations"
+);
+assert(sixNationsCount === 3, "Super Saturday has the three Six Nations Matches");
+assert(
+  fixtureListIsCollapsible(sixNationsCount),
+  "Six Nations Super Saturday uses the collapsible fixture list"
+);
+assert(
+  findCalendarMatch(SIX_NATIONS_EXAMPLE_DATE, "Ireland v France")?.league ===
+    "Six Nations" &&
+    findCalendarMatch("2027-02-05", "Ireland v England")?.league ===
+      "Six Nations",
+  "Six Nations names published 2027 fixtures such as Ireland v England and Ireland v France"
+);
+
+assert(
+  RUGBY_CHAMPIONSHIP_EXAMPLE_DATE === "2027-07-10",
+  "The Rugby Championship example is 10 July 2027"
+);
+assert(
+  findCalendarMatch(
+    RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
+    "Australia v Argentina"
+  )?.league === "The Rugby Championship",
+  "The Rugby Championship names Rugby Australia's published 2027 opener Australia v Argentina"
+);
+assert(
+  leagueMatchCountOnDate("2026-07-04", "Nations Championship") >= 6 &&
+    fixtureListIsCollapsible(
+      leagueMatchCountOnDate("2026-07-04", "Nations Championship")
+    ),
+  "2026 is a Nations Championship year with a collapsible July round"
+);
+
+assert(
+  board.includes("Load Top 14 Saturday 31 October") &&
+    board.includes("Load Six Nations Super Saturday 13 March") &&
+    board.includes("Load The Rugby Championship 10 July") &&
+    board.includes("loadTop14Saturday") &&
+    board.includes("loadSixNations") &&
+    board.includes("loadRugbyChampionship") &&
+    calendarLeagueDomId("Top 14") === "calendar-league-Top-14" &&
+    calendarLeagueDomId("Six Nations") === "calendar-league-Six-Nations" &&
+    calendarLeagueDomId("The Rugby Championship") ===
+      "calendar-league-The-Rugby-Championship",
+  "The calendar jumps to Top 14, Six Nations and The Rugby Championship"
+);
+
+const octHints = rugbyCalendarHints(
+  matchesByLeagueOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE).map((row) => row.league)
+);
+assert(
+  octHints.some((hint) => hint.includes("Top 14 is in the competition row")) &&
+    octHints.some((hint) => hint.includes("Six Nations is in February")) &&
+    octHints.some((hint) => hint.includes("The Rugby Championship returns")),
+  "Saturday 31 October explains Top 14 is here and the other rugby championships sit on later dates"
+);
+assert(
+  catalog.filter((row) => row.league === "Top 14").length >= 150 &&
+    catalog.filter((row) => row.league === "Six Nations").length === 15,
+  "Top 14 has a published 2026/27 season and Six Nations has the 15-Match 2027 championship"
 );
 
 if (failures.length > 0) {
