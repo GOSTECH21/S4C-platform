@@ -6,6 +6,7 @@ import {
   brandKey,
   brandsMatch,
   clubsMatch,
+  removeChosenMatch,
   displayLockFixture,
   emptySponsor,
   ensureSponsorSelected,
@@ -45,6 +46,10 @@ import {
   isWalletFundingLocked,
 } from "../lib/sponsor-completion-flow";
 import { isExampleLocalBrand } from "../lib/match-day-branding";
+import {
+  canAddGlobalPick,
+  type GlobalMatchPick,
+} from "../lib/global-match-day";
 import {
   allLocalSponsors,
   submittedLocalSponsorsForClub,
@@ -672,6 +677,89 @@ export function lockMatchDayClub({
   store[brandKey(brandName)] = lock;
   writeJson(LOCK_KEY, store);
   return lock;
+}
+
+/** Lock several named Matches on one day for a Global Brand. One Lead per club per Match. */
+export function lockGlobalMatchDayPicks({
+  brandName,
+  picks,
+}: {
+  brandName: string;
+  picks: Array<{
+    clubName: string;
+    fixtureName: string;
+    league: string;
+    date: string;
+    kickoff?: string | null;
+    venue?: string | null;
+  }>;
+}): MatchDayClubLock | null {
+  const networks = listGoalNetworks();
+  const locks = listMatchDayLocks();
+  const pending: GlobalMatchPick[] = [];
+  for (const pick of picks) {
+    const row = {
+      date: pick.date,
+      league: pick.league,
+      sport: "Football" as const,
+      fixtureName: pick.fixtureName,
+      clubName: pick.clubName,
+      homeName: pick.clubName,
+      awayName: "",
+      kickoff: pick.kickoff || "",
+      venue: pick.venue || "",
+    };
+    const allowed = canAddGlobalPick({
+      pick: row,
+      brandName,
+      networks,
+      locks,
+      basket: pending,
+    });
+    if (!allowed.ok) throw new Error(allowed.reason);
+    pending.push(row);
+  }
+  let lock: MatchDayClubLock | null = loadMatchDayLock(brandName);
+  const demoClubs: string[] = [];
+  for (const pick of picks) {
+    lock = lockMatchDayClub({
+      brandName,
+      clubName: pick.clubName,
+      matchLabel: `${pick.league} Match`,
+      fixtureName: pick.fixtureName,
+      competition: pick.league,
+      fixtureDate: pick.date,
+      kickoff: pick.kickoff,
+      venue: pick.venue,
+    });
+    if (isDemoClubName(pick.clubName)) demoClubs.push(pick.clubName);
+  }
+  if (demoClubs.length > 0) {
+    ensureGoalNetwork({ brandName, clubNames: demoClubs });
+  }
+  return lock;
+}
+
+export function unlockGlobalMatchPick({
+  brandName,
+  clubName,
+  fixtureName,
+}: {
+  brandName: string;
+  clubName: string;
+  fixtureName: string;
+}): MatchDayClubLock | null {
+  const store = readJson<LockStore>(LOCK_KEY, {});
+  const existing = store[brandKey(brandName)] ?? loadMatchDayLock(brandName);
+  const next = removeChosenMatch(existing, clubName, fixtureName);
+  if (!next) {
+    delete store[brandKey(brandName)];
+    writeJson(LOCK_KEY, store);
+    return null;
+  }
+  store[brandKey(brandName)] = next;
+  writeJson(LOCK_KEY, store);
+  return next;
 }
 
 /** Persist this brand's club/match so wallet Deposit can open Terms & sign-off. */

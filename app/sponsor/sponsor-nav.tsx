@@ -8,6 +8,7 @@ import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   LOCAL_SPONSOR_HOME_PATH,
+  SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
@@ -88,6 +89,14 @@ export function SponsorNav() {
         >
           Dashboard
         </Link>
+        {homePath === SPONSOR_DASHBOARD_PATH ? (
+          <Link
+            href={SPONSOR_CALENDAR_PATH}
+            className={`${tabClass} border border-s4p-mark text-s4p-mint hover:bg-s4p-mark/15`}
+          >
+            Calendar
+          </Link>
+        ) : null}
         <button
           type="button"
           onClick={() => void logout()}

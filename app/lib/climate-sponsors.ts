@@ -434,6 +434,61 @@ export function appendChosenMatch(
   return { ...next, fixtureName, matches };
 }
 
+function lockFromChosenMatch(
+  brandKeyValue: string,
+  lockedAt: string,
+  match: ChosenMatch
+): MatchDayClubLock {
+  return {
+    brandKey: brandKeyValue,
+    clubName: match.clubName,
+    matchLabel: match.competition || match.fixtureName,
+    fixtureName: match.fixtureName,
+    competition: match.competition,
+    fixtureDate: match.fixtureDate,
+    kickoff: match.kickoff,
+    venue: match.venue,
+    sourceUrl: match.sourceUrl,
+    lockedAt,
+    matches: [match],
+  };
+}
+
+/** Drop one named Match from a Global Brand lock without clearing other days. */
+export function removeChosenMatch(
+  existing: MatchDayClubLock | null,
+  clubName: string,
+  fixtureName: string
+): MatchDayClubLock | null {
+  if (!existing) return null;
+  const remaining = (existing.matches ?? []).filter(
+    (item) =>
+      !(
+        clubsMatch(item.clubName, clubName) &&
+        sameNamedFixture(item.fixtureName, fixtureName)
+      )
+  );
+  const primaryGone =
+    clubsMatch(existing.clubName, clubName) &&
+    sameNamedFixture(displayLockFixture(existing), fixtureName);
+  if (remaining.length === 0 && primaryGone) return null;
+  if (remaining.length === 0) {
+    return primaryGone ? null : { ...existing, matches: remaining };
+  }
+  const nextPrimary = remaining[remaining.length - 1];
+  if (!primaryGone) {
+    return { ...existing, matches: remaining };
+  }
+  return {
+    ...lockFromChosenMatch(existing.brandKey, existing.lockedAt, nextPrimary),
+    matches: remaining,
+    fundingLockedAt: existing.fundingLockedAt,
+    commitmentFeeGbp: existing.commitmentFeeGbp,
+    gbpPerGoal: existing.gbpPerGoal,
+    maximumSponsorshipGbp: existing.maximumSponsorshipGbp,
+  };
+}
+
 function sponsorsForClubFromStores({
   clubName,
   networks,
