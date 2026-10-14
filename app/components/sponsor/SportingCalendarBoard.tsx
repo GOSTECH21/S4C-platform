@@ -15,6 +15,7 @@ import {
 } from "@/app/lib/sporting-calendar";
 import {
   GLOBAL_MATCH_DAY_INTRO,
+  GLOBAL_MATCH_DAY_STEPS,
   budweiserExamplePicks,
   countPicksByLeague,
   describeGlobalPicks,
@@ -98,7 +99,14 @@ export function SportingCalendarBoard({
         <h1 className="mt-2 text-4xl font-black tracking-tight">
           Matches on a given day
         </h1>
-        <p className="mt-3 max-w-4xl text-slate-300">{GLOBAL_MATCH_DAY_INTRO}</p>
+        <ol
+          className="mt-3 max-w-4xl list-decimal space-y-1 pl-6 text-slate-300"
+          aria-label={GLOBAL_MATCH_DAY_INTRO}
+        >
+          {GLOBAL_MATCH_DAY_STEPS.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
         {showExampleButton ? (
           <button
             type="button"

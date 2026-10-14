@@ -233,6 +233,27 @@ assert(
     !board.includes("bg-slate-950"),
   "Sporting Calendar days use paper and lime, not dark fills"
 );
+assert(
+  board.includes("GLOBAL_MATCH_DAY_STEPS") &&
+    board.includes("list-decimal") &&
+    !board.includes("Open any day on the 2026/27 Sporting Calendar"),
+  "The calendar intro is the five numbered steps, not the long league paragraph"
+);
+
+const matchDay = readFileSync("app/lib/global-match-day.ts", "utf8");
+assert(
+  matchDay.includes("Look at the Sporting Calendar") &&
+    matchDay.includes("Select any Day of the week") &&
+    matchDay.includes(
+      "Scroll below to see all Sporting Events on that day in various Sports & Leagues"
+    ) &&
+    matchDay.includes("Select the Games you wish to Sponsor & Lock them in") &&
+    matchDay.includes(
+      "Proceed to your Carbon Wallet to complete transaction"
+    ) &&
+    !matchDay.includes("Open any day on the 2026/27 Sporting Calendar"),
+  "Global Match Day copy lists the five Sporting Calendar steps"
+);
 
 const calendarLib = readFileSync("app/lib/sporting-calendar.ts", "utf8");
 assert(
