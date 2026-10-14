@@ -49,8 +49,12 @@ assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
     ?.description.includes("Climate Impact Fans Table (CIFT)") &&
     HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
+      ?.description.includes(
+        "Fund up to 5 Climate Projects with monies from Sponsors on every Match Day"
+      ) &&
+    !HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
       ?.description.includes("FUND-IT up to 5 times"),
-  "Fan narrative mentions CIFT and FUND-IT up to 5 times"
+  "Fan narrative says fund up to 5 Climate Projects from Sponsors on every Match Day"
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A Local Business Climate Sponsor")
