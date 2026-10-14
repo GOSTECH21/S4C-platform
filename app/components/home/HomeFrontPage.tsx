@@ -230,17 +230,13 @@ export default function HomeFrontPage({
           <div className="flex flex-col items-center justify-center">
             <Image
               src="/images/home/s4p-mark.png"
-              alt="S4P Score-4-our-Planet"
-              width={532}
-              height={454}
-              className="h-auto w-[16rem] object-contain sm:w-[20rem] lg:w-[26rem] xl:w-[30rem]"
+              alt="S4P SCORE-FOR-PLANET. Every score counts. Sponsors fund it. Fans direct it."
+              width={1100}
+              height={609}
+              className="h-auto w-[18rem] object-contain sm:w-[22rem] lg:w-[28rem] xl:w-[34rem]"
               priority
               unoptimized
             />
-            <p className="mt-1 max-w-xl text-center text-[1.05rem] font-semibold leading-snug text-white md:mt-1.5 md:text-[1.2rem] lg:max-w-2xl lg:text-[1.35rem]">
-              <span className="block">Turning Match-Day Sporting Moments into</span>
-              <span className="block text-s4p-mint">Funded Climate Action</span>
-            </p>
           </div>
 
           <div className="hidden lg:block">
@@ -250,13 +246,7 @@ export default function HomeFrontPage({
 
         <div className="order-2 lg:order-4">{children}</div>
 
-        <p className="order-3 mx-4 mb-12 px-3 text-center text-2xl font-black uppercase leading-[1.3] tracking-[0.1em] sm:text-3xl md:mx-10 md:mb-16 md:text-[2.15rem] lg:order-2 lg:mb-20 lg:text-4xl">
-          <span className="block text-white">Sport creates the moment.</span>
-          <span className="block text-white">Sponsors fund it.</span>
-          <span className="block text-s4p-mint">Fans direct the Impact.</span>
-        </p>
-
-        <section className="order-4 mx-4 md:mx-10 lg:order-3">
+        <section className="order-3 mx-4 md:mx-10 lg:order-2">
           <div className="s4p-navy-panel grid grid-cols-2 gap-px overflow-hidden rounded-[2rem] border border-white/10 sm:grid-cols-3 lg:grid-cols-5">
             {STATS.map((stat) => (
               <div key={stat.key} className="px-3 py-5 text-center">

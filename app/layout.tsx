@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Score-4-our-Planet",
+  title: "Score-For-Planet",
   description:
     "Every score creates a funded impact moment. Fans, sports clubs, local businesses, national sponsors and climate project providers turn match days into climate action.",
 };

@@ -284,11 +284,12 @@ assert(
   "Top-left S4P wordmark is removed from the hero"
 );
 assert(
-  front.includes("Sport creates the moment.") &&
-    front.includes("Sponsors fund it.") &&
-    front.includes('text-s4p-mint">Fans direct the Impact.') &&
-    !front.includes("text-s4p-mark\">Sport"),
-  "Hero statement is ivory for Sport/Sponsors and mint for Fans direct the Impact"
+  front.includes("SCORE-FOR-PLANET") &&
+    front.includes("Every score counts") &&
+    front.includes("Sponsors fund it. Fans direct it.") &&
+    !front.includes("Score-4-our-Planet") &&
+    !front.includes("Turning Match-Day Sporting Moments into"),
+  "The homepage mark is SCORE-FOR-PLANET with Every score counts branding"
 );
 assert(
   front.includes("order-2 lg:order-4") &&
@@ -300,17 +301,16 @@ assert(
 );
 
 assert(
-  front.includes("Turning Match-Day Sporting Moments into") &&
-    front.includes("Funded Climate Action") &&
-    front.includes('block text-s4p-mint">Funded Climate Action') &&
-    !front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
-  "The S4P logo tagline is two lines, with Funded Climate Action in mint"
+  !front.includes("Turning Match-Day Sporting Moments into") &&
+    !front.includes("Funded Climate Action") &&
+    !front.includes("Sport creates the moment."),
+  "Old Score-4-our-Planet taglines under the mark are gone"
 );
 assert(
   front.includes("Turn Goals") &&
     front.includes('text-s4p-mint">into Action') &&
     !front.includes("a brighter planet") &&
-    !front.includes("Every score"),
+    !front.includes("Every score protects our planet"),
   "Hero headline is Turn Goals into Action, with into Action in mint"
 );
 assert(
