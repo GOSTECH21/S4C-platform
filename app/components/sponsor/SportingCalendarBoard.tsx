@@ -28,6 +28,11 @@ import { formatKickoff, formatMatchDate } from "@/app/lib/upcoming-matches";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
 import { isSponsorBlockedFromClub } from "@/app/lib/climate-sponsors";
 import { sponsorWalletPath } from "@/app/lib/routes";
+import {
+  fixtureAccordionHint,
+  fixtureListIsCollapsible,
+  visibleAccordionItems,
+} from "@/app/lib/fixture-accordion";
 import Link from "next/link";
 
 const EXAMPLE_MONTH = { year: 2026, month: 9 };
@@ -51,10 +56,14 @@ export function SportingCalendarBoard({
   const [month, setMonth] = useState(EXAMPLE_MONTH.month);
   const [selectedDate, setSelectedDate] = useState(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
   const [basket, setBasket] = useState<GlobalMatchPick[]>(initialPicks);
+  const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
   useEffect(() => {
     if (initialPicks.length === 0) return;
     setBasket((current) => (current.length > 0 ? current : initialPicks));
   }, [initialPicks]);
+  useEffect(() => {
+    setOpenLeagues(new Set());
+  }, [selectedDate]);
   const dates = useMemo(() => calendarDatesInMonth(year, month), [year, month]);
   const cells = monthCells(year, month);
   const groups = matchesByLeagueOnDate(selectedDate);
@@ -88,6 +97,16 @@ export function SportingCalendarBoard({
     setYear(EXAMPLE_MONTH.year);
     setMonth(EXAMPLE_MONTH.month);
     setBasket(budweiserExamplePicks());
+    setOpenLeagues(new Set());
+  }
+
+  function toggleLeague(league: string) {
+    setOpenLeagues((current) => {
+      const next = new Set(current);
+      if (next.has(league)) next.delete(league);
+      else next.add(league);
+      return next;
+    });
   }
 
   return (
@@ -191,94 +210,63 @@ export function SportingCalendarBoard({
               } have Matches this day. Tick named Matches to sponsor them together as ${brandName}.`}
         </p>
         <div className="mt-6 space-y-6">
-          {groups.map((group) => (
-            <div
-              key={group.league}
-              className="rounded-2xl border border-slate-300 bg-white p-5"
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {group.sport} · {group.country}
-              </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950">
-                {group.league}{" "}
-                <span className="text-sm font-semibold text-slate-500">
-                  {group.matches.length}{" "}
-                  {group.matches.length === 1 ? "Match" : "Matches"}
-                </span>
-              </h3>
-              <ul className="mt-4 grid gap-2">
-                {group.matches.map((match) => {
-                  const picked = isMatchPicked(basket, match);
-                  const homeBlocked = isSponsorBlockedFromClub(
-                    brandName,
-                    match.homeName
-                  );
-                  const awayBlocked = isSponsorBlockedFromClub(
-                    brandName,
-                    match.awayName
-                  );
-                  const current = basket.find(
-                    (row) =>
-                      row.date === match.date &&
-                      row.fixtureName === match.fixtureName
-                  );
-                  return (
-                    <li
+          {groups.map((group) => {
+            const expanded = openLeagues.has(group.league);
+            const visible = visibleAccordionItems(
+              group.matches,
+              expanded,
+              (match) => isMatchPicked(basket, match)
+            );
+            const collapsible = fixtureListIsCollapsible(group.matches.length);
+            const hint = fixtureAccordionHint(
+              group.matches.length,
+              visible.length,
+              expanded
+            );
+            return (
+              <div
+                key={group.league}
+                className="rounded-2xl border border-slate-300 bg-white p-5"
+              >
+                {collapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleLeague(group.league)}
+                    aria-expanded={expanded}
+                    className="w-full text-left"
+                  >
+                    <LeagueHeading
+                      sport={group.sport}
+                      country={group.country}
+                      league={group.league}
+                      count={group.matches.length}
+                      hint={hint}
+                    />
+                  </button>
+                ) : (
+                  <LeagueHeading
+                    sport={group.sport}
+                    country={group.country}
+                    league={group.league}
+                    count={group.matches.length}
+                    hint={null}
+                  />
+                )}
+                <ul className="mt-4 grid gap-2">
+                  {visible.map((match) => (
+                    <CalendarMatchRow
                       key={match.id}
-                      className={`rounded-xl border px-4 py-3 ${
-                        picked
-                          ? "border-s4p-mark bg-s4p-mark/15"
-                          : "border-slate-300 bg-white"
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <button
-                          type="button"
-                          onClick={() => toggle(match)}
-                          aria-pressed={picked}
-                          className="text-left"
-                        >
-                          <p className="font-bold text-slate-950">
-                            {match.fixtureName}
-                          </p>
-                          <p className="mt-1 text-sm text-slate-500">
-                            {formatKickoff(match.kickoff)} · {match.venue}
-                          </p>
-                        </button>
-                        <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-950">
-                          <input
-                            type="checkbox"
-                            checked={picked}
-                            onChange={() => toggle(match)}
-                          />
-                          Sponsor
-                        </label>
-                      </div>
-                      {picked ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <LeadClubButton
-                            clubName={match.homeName}
-                            selected={
-                              !current ||
-                              current.clubName === match.homeName
-                            }
-                            disabled={homeBlocked}
-                            onClick={() => setLeadClub(match, match.homeName)}
-                          />
-                          <LeadClubButton
-                            clubName={match.awayName}
-                            selected={current?.clubName === match.awayName}
-                            disabled={awayBlocked}
-                            onClick={() => setLeadClub(match, match.awayName)}
-                          />
-                        </div>
-                      ) : null}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+                      match={match}
+                      brandName={brandName}
+                      basket={basket}
+                      onToggle={toggle}
+                      onLeadClub={setLeadClub}
+                    />
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -393,6 +381,103 @@ export function SportingCalendarBoard({
 
 function globalPickListKey(pick: GlobalMatchPick): string {
   return `${pick.date}|${pick.fixtureName}|${pick.clubName}`;
+}
+
+function LeagueHeading({
+  sport,
+  country,
+  league,
+  count,
+  hint,
+}: {
+  sport: string;
+  country: string;
+  league: string;
+  count: number;
+  hint: string | null;
+}) {
+  return (
+    <>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+        {sport} · {country}
+      </p>
+      <h3 className="mt-1 text-2xl font-black text-slate-950">
+        {league}{" "}
+        <span className="text-sm font-semibold text-slate-500">
+          {count} {count === 1 ? "Match" : "Matches"}
+          {hint ? ` · ${hint}` : ""}
+        </span>
+      </h3>
+    </>
+  );
+}
+
+function CalendarMatchRow({
+  match,
+  brandName,
+  basket,
+  onToggle,
+  onLeadClub,
+}: {
+  match: CalendarMatch;
+  brandName: string;
+  basket: GlobalMatchPick[];
+  onToggle: (match: CalendarMatch, clubName?: string) => void;
+  onLeadClub: (match: CalendarMatch, clubName: string) => void;
+}) {
+  const picked = isMatchPicked(basket, match);
+  const homeBlocked = isSponsorBlockedFromClub(brandName, match.homeName);
+  const awayBlocked = isSponsorBlockedFromClub(brandName, match.awayName);
+  const current = basket.find(
+    (row) => row.date === match.date && row.fixtureName === match.fixtureName
+  );
+  return (
+    <li
+      className={`rounded-xl border px-4 py-3 ${
+        picked
+          ? "border-s4p-mark bg-s4p-mark/15"
+          : "border-slate-300 bg-white"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => onToggle(match)}
+          aria-pressed={picked}
+          className="text-left"
+        >
+          <p className="font-bold text-slate-950">{match.fixtureName}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {formatKickoff(match.kickoff)} · {match.venue}
+          </p>
+        </button>
+        <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-950">
+          <input
+            type="checkbox"
+            checked={picked}
+            onChange={() => onToggle(match)}
+          />
+          Sponsor
+        </label>
+      </div>
+      {picked ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <LeadClubButton
+            clubName={match.homeName}
+            selected={!current || current.clubName === match.homeName}
+            disabled={homeBlocked}
+            onClick={() => onLeadClub(match, match.homeName)}
+          />
+          <LeadClubButton
+            clubName={match.awayName}
+            selected={current?.clubName === match.awayName}
+            disabled={awayBlocked}
+            onClick={() => onLeadClub(match, match.awayName)}
+          />
+        </div>
+      ) : null}
+    </li>
+  );
 }
 
 function LeadClubButton({
