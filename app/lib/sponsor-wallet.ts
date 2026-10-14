@@ -613,7 +613,7 @@ export function fundItTimesCopy(): string {
 }
 
 export function leadFundItCopy(): string {
-  return `Select a Global Schools Solar version. ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} comes from this Lead wallet: 75% to the school you pick, 25% split across local Climate Projects.`;
+  return `Choose Local Global Schools Solar or International Global Schools Solar.`;
 }
 
 export function localFundItCopy(): string {
@@ -621,7 +621,7 @@ export function localFundItCopy(): string {
 }
 
 export function fundItCopy(): string {
-  return `Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet. Lead Climate Sponsor: ${leadFundItCopy()} Local Business Climate Sponsors: select a Climate Project from the drop-down next to that wallet; Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project.`;
+  return `1. Look out for a Sponsor; 2. See how much is in their Carbon Wallet; 3. Click on Select a Climate Project to make your choice; 4. Press ${FUND_IT_LABEL}. Each selected Project automatically receives ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from the Carbon Wallet.`;
 }
 
 export function walletVoteNotice(result: WalletVoteSuccess): string {

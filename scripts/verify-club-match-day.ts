@@ -39,7 +39,12 @@ import {
   chosenFeaturedProject,
   expandFeaturedGssVersions,
   withChosenFeaturedProject,
+  withFanGssChoices,
 } from "../app/lib/featured-gss";
+import {
+  FEATURED_GSS_LOCAL_NAME,
+  FEATURED_GSS_WORLD_NAME,
+} from "../app/lib/sccan-catalog";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
   isCampaignIdNotNullError,
@@ -78,6 +83,16 @@ assert(
       gssPair[1].id
     ).map((row) => row.id).join(",") === `${gssPair[1].id},southwark`,
   "A Match Day list keeps one chosen Featured GSS and never both"
+);
+assert(
+  gssPair[0].name === FEATURED_GSS_LOCAL_NAME &&
+    gssPair[1].name === FEATURED_GSS_WORLD_NAME &&
+    withFanGssChoices([
+      { id: "gss", name: "Global Schools Solar" },
+      { id: "wee", name: "Wee Spoke Hub" },
+    ]).map((row) => row.name).join(",") ===
+      `${FEATURED_GSS_LOCAL_NAME},${FEATURED_GSS_WORLD_NAME},Wee Spoke Hub`,
+  "Fans are offered Local and International Global Schools Solar even when the club posted one GSS"
 );
 assert(
   partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 0).every((project) =>

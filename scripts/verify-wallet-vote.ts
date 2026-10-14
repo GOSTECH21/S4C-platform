@@ -56,7 +56,11 @@ import {
   FEATURED_GSS_LOCAL_NAME,
   FEATURED_GSS_WORLD_NAME,
 } from "../app/lib/sccan-catalog";
-import { LEAD_FEATURED_SHARE, LEAD_LOCAL_SHARE } from "../app/lib/featured-gss";
+import {
+  LEAD_FEATURED_SHARE,
+  LEAD_LOCAL_SHARE,
+  withFanGssChoices,
+} from "../app/lib/featured-gss";
 
 const failures: string[] = [];
 
@@ -369,6 +373,33 @@ const leadOnLocal = allocateWalletVote({
   projectNumber: 3,
 });
 assert(!leadOnLocal.ok, "Lead wallets cannot put the chosen £0.20 on a local Climate Project");
+
+const expandedFromOne = withFanGssChoices([
+  { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
+  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
+]).map((project, index) => ({ ...project, number: index + 1 }));
+assert(
+  expandedFromOne.length === 3 &&
+    expandedFromOne[0].name === FEATURED_GSS_LOCAL_NAME &&
+    expandedFromOne[1].name === FEATURED_GSS_WORLD_NAME &&
+    expandedFromOne[2].name === "Wee Spoke Hub",
+  "A single posted Global Schools Solar expands to Local and International for fans"
+);
+const internationalVote = allocateWalletVote({
+  wallet: createLeadWallet({
+    clubName: "Hibernian",
+    brandName: "Gillette UK",
+    commitmentFeeGbp: 2000,
+  }),
+  projects: expandedFromOne,
+  projectNumber: 2,
+});
+assert(
+  internationalVote.ok &&
+    internationalVote.project.name === FEATURED_GSS_WORLD_NAME &&
+    internationalVote.project.fundedGbp === 0.15,
+  "Lead FUND-IT on International Global Schools Solar credits that version 75%"
+);
 
 const leadVoted = allocateWalletVote({
   wallet: amex,
@@ -712,9 +743,9 @@ assert(
   sponsorsUi.includes("Carbon Wallet") &&
     sponsorsUi.includes("FundProjectSelect") &&
     sponsorsUi.includes("Select a Climate Project") &&
-    sponsorsUi.includes("Select a Global Schools Solar version") &&
     sponsorsUi.includes("featuredFromList") &&
     sponsorsUi.includes("localFromList") &&
+    !sponsorsUi.includes("Select a Global Schools Solar version") &&
     !sponsorsUi.includes(">Checkbox<") &&
     sponsorsUi.includes("FUND_IT_LABEL") &&
     sponsorsUi.includes("canPressFundIt") &&
@@ -724,16 +755,19 @@ assert(
 assert(
   sponsorsUi.includes("fundItCopy") &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet"
+      "Look out for a Sponsor"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "select a Climate Project from the drop-down next to that wallet; Press"
+      "Click on Select a Climate Project to make your choice"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "goes from Wallet to Project"
+      "Each selected Project automatically receives"
+    ) &&
+    !readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
+      "Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet. Lead Climate Sponsor:"
     ) &&
     sponsorsUi.includes("By the end of Day 5 every Carbon Wallet should show"),
-  "Climate Project Sponsors tell fans to take £0.20 once from each wallet into a named project"
+  "Climate Project Sponsors tell fans the four FUND-IT steps and that Day 5 wallets show £0"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
