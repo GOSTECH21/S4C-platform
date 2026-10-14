@@ -342,5 +342,14 @@ export function globalPicksFromLock(
   return picks;
 }
 
-export const GLOBAL_MATCH_DAY_INTRO =
-  "Open any day on the 2026/27 Sporting Calendar to see the published Matches being played in the Premier League, Championship, League One, Women's Super League, Scottish Premiership, Bundesliga, La Liga, Ligue 1, Serie A, NFL, Rugby Union, Rugby League and NBA. A Global Brand can lock several named Matches on the same day — one Lead Climate Sponsor per club per named Match. Example: Saturday 31 October 2026, 2 Premier League Matches, 1 Scottish Premiership Match and 3 La Liga Matches.";
+export const GLOBAL_MATCH_DAY_STEPS = [
+  "Look at the Sporting Calendar",
+  "Select any Day of the week",
+  "Scroll below to see all Sporting Events on that day in various Sports & Leagues",
+  "Select the Games you wish to Sponsor & Lock them in",
+  "Proceed to your Carbon Wallet to complete transaction",
+] as const;
+
+export const GLOBAL_MATCH_DAY_INTRO = GLOBAL_MATCH_DAY_STEPS.map(
+  (step, index) => `${index + 1}. ${step}`
+).join("; ");
