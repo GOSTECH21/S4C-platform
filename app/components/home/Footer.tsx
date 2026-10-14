@@ -26,7 +26,7 @@ export default function Footer() {
 
             <p className="mt-4 leading-7 text-slate-400">
 
-              Score-For-Our-Planet transforms every sporting moment into
+              Score-For-Planet transforms every sporting moment into
               meaningful climate action.
 
             </p>
@@ -123,7 +123,7 @@ export default function Footer() {
           <div>
 
             <h3 className="font-bold text-white">
-              Score-For-Our-Planet
+              Score-For-Planet
             </h3>
 
             <div className="mt-5 space-y-3 text-slate-400">
@@ -143,7 +143,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} Score-For-Our-Planet (S4P). All Rights Reserved.
+          © {new Date().getFullYear()} Score-For-Planet (S4P). All Rights Reserved.
           {" · "}
           <Link href={DESIGN_PREVIEW_PATH} className="hover:text-slate-300">
             Try a design

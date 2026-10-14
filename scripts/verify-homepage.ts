@@ -212,12 +212,12 @@ const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
 assert(
   homePage.indexOf("<HowItWorks") < homePage.indexOf("<Footer"),
-  "How Score-For-Our-Planet Works is composed on the front page"
+  "How Score-For-Planet Works is composed on the front page"
 );
 assert(
   homePage.includes("<HowItWorks") &&
     homePage.indexOf("<HomeFrontPage") < homePage.indexOf("<HowItWorks"),
-  "How Score-For-Our-Planet Works sits inside the front page, above Are You"
+  "How Score-For-Planet Works sits inside the front page, above Are You"
 );
 assert(
   !homePage.includes("WHO ARE YOU?"),
@@ -255,7 +255,7 @@ assert(
 assert(
   front.includes("{children}") &&
     front.indexOf("{children}") < front.indexOf("Are You...?"),
-  "How Score-For-Our-Planet Works is rendered above Are You"
+  "How Score-For-Planet Works is rendered above Are You"
 );
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
 assert(
@@ -297,7 +297,7 @@ assert(
     front.includes("lg:hidden") &&
     front.includes("flex flex-col") &&
     front.lastIndexOf("S4pImpactTables") > front.indexOf("Are You...?"),
-  "On mobile, How Score-For-Our-Planet Works sits under the S4P mark and Impact Tables appear only after Are You; desktop keeps Impact Tables in the hero"
+  "On mobile, How Score-For-Planet Works sits under the S4P mark and Impact Tables appear only after Are You; desktop keeps Impact Tables in the hero"
 );
 
 assert(
@@ -391,6 +391,11 @@ assert(
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
+  howItWorks.includes("How Score-For-Planet Works") &&
+    !howItWorks.includes("How Score-For-Our-Planet Works"),
+  "How It Works heading matches the SCORE-FOR-PLANET lockup"
+);
+assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
   "How It Works step numbers 01-05 use the S4P mark green from the numeral 4"
 );
@@ -425,6 +430,13 @@ assert(
   howItWorks.includes("EVERYONE CREATES IMPACT") &&
     howItWorks.includes("Clubs address Match-Day carbon footprints"),
   "Step 05 is EVERYONE CREATES IMPACT"
+);
+
+const footer = readFileSync("app/components/home/Footer.tsx", "utf8");
+assert(
+  footer.includes("Score-For-Planet") &&
+    !footer.includes("Score-For-Our-Planet"),
+  "Footer branding matches Score-For-Planet"
 );
 
 const sql = readFileSync(
