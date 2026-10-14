@@ -430,7 +430,7 @@ export const SPORTING_CALENDAR_LEAGUES: SportingLeagueDef[] = [
     sport: "NBA",
     country: "United States",
     kickoff: "00:00",
-    weekday: 6,
+    weekday: 2,
     startDate: "2026-10-27",
     teams: NBA_TEAMS,
   },

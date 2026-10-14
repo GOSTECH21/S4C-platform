@@ -192,8 +192,8 @@ export function SportingCalendarBoard({
                 {group.sport} · {group.country}
               </p>
               <h3 className="mt-1 text-2xl font-black text-slate-950">
-                {group.league}
-                <span className="ml-2 text-sm font-semibold text-slate-500">
+                {group.league}{" "}
+                <span className="text-sm font-semibold text-slate-500">
                   {group.matches.length}{" "}
                   {group.matches.length === 1 ? "Match" : "Matches"}
                 </span>
