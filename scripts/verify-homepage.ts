@@ -68,8 +68,16 @@ assert(
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
-    ?.description.includes("Climate Impact Sponsor Table (CIST)"),
-  "National sponsor narrative mentions CIST"
+    ?.description.includes("Climate Impact Sponsor Table (CIST)") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
+      ?.description.includes("e.g a Goal-scored") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
+      ?.description.includes(
+        "direct engagement with Fans & Supporters who care about your environmental credentials"
+      ) &&
+    !HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
+      ?.description.includes("measure your environmental impact"),
+  "National sponsor narrative covers Goal-scored, Fan engagement and CIST"
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
