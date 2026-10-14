@@ -22,6 +22,13 @@ import {
   syntheticLockFromPicks,
 } from "../app/lib/global-match-day";
 import { SPONSOR_CALENDAR_PATH } from "../app/lib/routes";
+import {
+  FIXTURE_ACCORDION_PREVIEW,
+  fixtureAccordionHint,
+  fixtureListIsCollapsible,
+  hiddenAccordionCount,
+  visibleAccordionItems,
+} from "../app/lib/fixture-accordion";
 
 const failures: string[] = [];
 
@@ -238,6 +245,48 @@ assert(
     board.includes("list-decimal") &&
     !board.includes("Open any day on the 2026/27 Sporting Calendar"),
   "The calendar intro is the five numbered steps, not the long league paragraph"
+);
+assert(
+  board.includes("visibleAccordionItems") &&
+    board.includes("toggleLeague") &&
+    board.includes("aria-expanded"),
+  "Leagues with more than two Matches collapse behind a clickable accordion heading"
+);
+
+assert(FIXTURE_ACCORDION_PREVIEW === 2, "A league shows two fixtures until it is opened");
+assert(!fixtureListIsCollapsible(1), "A one-Match league stays fully listed");
+assert(!fixtureListIsCollapsible(2), "A two-Match league stays fully listed");
+assert(fixtureListIsCollapsible(3), "A three-Match league uses the accordion");
+assert(
+  visibleAccordionItems(["a", "b", "c", "d", "e", "f"], false).join(",") ===
+    "a,b",
+  "A collapsed six-Match league shows the first two fixtures"
+);
+assert(
+  visibleAccordionItems(
+    ["a", "b", "c", "d"],
+    false,
+    (row) => row === "d"
+  ).join(",") === "a,b,d",
+  "A sponsored Match stays visible even when the rest of the league is collapsed"
+);
+assert(
+  visibleAccordionItems(["a", "b", "c"], true).join(",") === "a,b,c",
+  "Clicking the league heading reveals the hidden fixtures"
+);
+assert(
+  hiddenAccordionCount(6, 2) === 4 &&
+    fixtureAccordionHint(6, 2, false) === "4 more Matches",
+  "Collapsed Premier League copy says how many Matches are still hidden"
+);
+
+const picker = readFileSync(
+  "app/components/sponsor/MatchSponsorshipPicker.tsx",
+  "utf8"
+);
+assert(
+  picker.includes("visibleAccordionItems") && picker.includes("aria-expanded"),
+  "Club fixture lists use the same accordion when they have more than two Matches"
 );
 
 const matchDay = readFileSync("app/lib/global-match-day.ts", "utf8");

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   formatKickoff,
   formatMatchDate,
@@ -9,6 +10,11 @@ import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
 import { demoFixturesForClub } from "@/app/lib/demo-club-fixtures";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
+import {
+  fixtureAccordionHint,
+  fixtureListIsCollapsible,
+  visibleAccordionItems,
+} from "@/app/lib/fixture-accordion";
 
 function FixtureRows({
   fixtures,
@@ -17,6 +23,7 @@ function FixtureRows({
   amounts,
   onToggle,
   onAmount,
+  heading,
 }: {
   fixtures: ClubFixture[];
   selectable: boolean;
@@ -24,10 +31,36 @@ function FixtureRows({
   amounts: Record<string, string>;
   onToggle: (fixtureName: string) => void;
   onAmount: (fixtureName: string, amount: string) => void;
+  heading: string;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = visibleAccordionItems(fixtures, expanded, (row) =>
+    selected.includes(row.fixtureName)
+  );
+  const collapsible = fixtureListIsCollapsible(fixtures.length);
+  const hint = fixtureAccordionHint(fixtures.length, visible.length, expanded);
   return (
     <div className="space-y-3">
-      {fixtures.map((fixture) => {
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((open) => !open)}
+          aria-expanded={expanded}
+          className="w-full text-left"
+        >
+          <h3 className="text-lg font-black text-green-300">
+            {heading}
+            {hint ? (
+              <span className="ml-2 text-sm font-semibold text-green-100">
+                {hint}
+              </span>
+            ) : null}
+          </h3>
+        </button>
+      ) : (
+        <h3 className="text-lg font-black text-green-300">{heading}</h3>
+      )}
+      {visible.map((fixture) => {
         const on = selected.includes(fixture.fixtureName);
         return (
           <label
@@ -100,10 +133,8 @@ export function MatchSponsorshipPicker({
             key={club}
             className="rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
           >
-            <h3 className="mb-3 text-lg font-black text-green-300">
-              {club} fixture list
-            </h3>
             <FixtureRows
+              heading={`${club} fixture list`}
               fixtures={demoFixturesForClub(club)}
               selectable={false}
               selected={[]}
@@ -127,10 +158,8 @@ export function MatchSponsorshipPicker({
       id="fixture-lists"
       className="space-y-3 rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
     >
-      <h3 className="text-lg font-black text-green-300">
-        {clubName} fixture list
-      </h3>
       <FixtureRows
+        heading={`${clubName} fixture list`}
         fixtures={fixtures}
         selectable
         selected={selected}
