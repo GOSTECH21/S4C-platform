@@ -32,10 +32,10 @@ function FixtureRows({
         return (
           <label
             key={fixture.id}
-            className={`flex flex-col gap-2 rounded-2xl border-2 p-4 sm:flex-row sm:items-center sm:justify-between ${
+            className={`flex flex-col gap-2 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
               on
-                ? "border-green-400 bg-emerald-950"
-                : "border-green-700 bg-black/40"
+                ? "border-s4p-mark bg-slate-900"
+                : "border-emerald-400/40 bg-slate-900"
             }`}
           >
             <span className="flex items-start gap-3">
@@ -68,7 +68,7 @@ function FixtureRows({
                   onChange={(event) =>
                     onAmount(fixture.fixtureName, event.target.value)
                   }
-                  className="mt-2 w-full rounded-lg bg-slate-800 p-2 text-white sm:w-36"
+                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 p-2 text-white sm:w-36"
                 />
               </label>
             ) : null}
@@ -98,7 +98,7 @@ export function MatchSponsorshipPicker({
         {DEMO_CLUB_NAMES.map((club) => (
           <section
             key={club}
-            className="rounded-2xl border-2 border-green-400 bg-black/30 p-4"
+            className="rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
           >
             <h3 className="mb-3 text-lg font-black text-green-300">
               {club} fixture list
@@ -125,7 +125,7 @@ export function MatchSponsorshipPicker({
   return (
     <section
       id="fixture-lists"
-      className="space-y-3 rounded-2xl border-2 border-green-400 bg-black/30 p-4"
+      className="space-y-3 rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
     >
       <h3 className="text-lg font-black text-green-300">
         {clubName} fixture list

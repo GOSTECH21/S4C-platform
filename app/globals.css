@@ -143,6 +143,14 @@ body {
   background-color: var(--s4p-glass-800) !important;
 }
 
+[class*="bg-black/"] {
+  background-color: var(--s4p-panel) !important;
+}
+
+[class*="bg-emerald-950"] {
+  background-color: var(--s4p-panel) !important;
+}
+
 input,
 textarea,
 select {
