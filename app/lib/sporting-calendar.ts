@@ -21,6 +21,13 @@ export type { CalendarSport, SportingLeagueDef, SportingTeam };
 
 export const SPORTING_CALENDAR_SEASON = "2026/27";
 export const GLOBAL_MATCH_DAY_EXAMPLE_DATE = "2026-10-31";
+/** First full NFL Sunday after the Budweiser Saturday example. */
+export const NFL_EXAMPLE_DATE = "2026-11-01";
+export const NFL_EXAMPLE_MONTH = { year: 2026, month: 10 };
+
+export function calendarLeagueDomId(league: string): string {
+  return `calendar-league-${league.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
 
 export type CalendarMatch = {
   id: string;

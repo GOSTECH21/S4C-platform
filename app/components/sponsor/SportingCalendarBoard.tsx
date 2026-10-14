@@ -9,7 +9,10 @@ import {
 } from "@/app/lib/sponsor-signed-home";
 import {
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
+  NFL_EXAMPLE_DATE,
+  NFL_EXAMPLE_MONTH,
   calendarDatesInMonth,
+  calendarLeagueDomId,
   matchesByLeagueOnDate,
   type CalendarMatch,
 } from "@/app/lib/sporting-calendar";
@@ -57,18 +60,27 @@ export function SportingCalendarBoard({
   const [selectedDate, setSelectedDate] = useState(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
   const [basket, setBasket] = useState<GlobalMatchPick[]>(initialPicks);
   const [openLeagues, setOpenLeagues] = useState<Set<string>>(new Set());
+  const [pendingScrollLeague, setPendingScrollLeague] = useState<string | null>(
+    null
+  );
   useEffect(() => {
     if (initialPicks.length === 0) return;
     setBasket((current) => (current.length > 0 ? current : initialPicks));
   }, [initialPicks]);
-  useEffect(() => {
-    setOpenLeagues(new Set());
-  }, [selectedDate]);
   const dates = useMemo(() => calendarDatesInMonth(year, month), [year, month]);
   const cells = monthCells(year, month);
   const groups = matchesByLeagueOnDate(selectedDate);
   const longDate = formatLongMatchDate(selectedDate) || selectedDate;
   const leagueCounts = countPicksByLeague(basket);
+  useEffect(() => {
+    if (!pendingScrollLeague) return;
+    const node = document.getElementById(
+      calendarLeagueDomId(pendingScrollLeague)
+    );
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+    setPendingScrollLeague(null);
+  }, [groups, pendingScrollLeague]);
 
   function go(delta: number) {
     const next = shiftMonth(year, month, delta);
@@ -92,12 +104,28 @@ export function SportingCalendarBoard({
     ]);
   }
 
+  function selectDate(date: string, openLeague?: string) {
+    setSelectedDate(date);
+    setOpenLeagues(openLeague ? new Set([openLeague]) : new Set());
+  }
+
   function loadExample() {
-    setSelectedDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
+    selectDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
     setYear(EXAMPLE_MONTH.year);
     setMonth(EXAMPLE_MONTH.month);
     setBasket(budweiserExamplePicks());
-    setOpenLeagues(new Set());
+  }
+
+  function loadNflSunday() {
+    selectDate(NFL_EXAMPLE_DATE, "NFL");
+    setYear(NFL_EXAMPLE_MONTH.year);
+    setMonth(NFL_EXAMPLE_MONTH.month);
+    setPendingScrollLeague("NFL");
+  }
+
+  function jumpToLeague(league: string) {
+    setOpenLeagues(new Set([league]));
+    setPendingScrollLeague(league);
   }
 
   function toggleLeague(league: string) {
@@ -126,15 +154,24 @@ export function SportingCalendarBoard({
             <li key={step}>{step}</li>
           ))}
         </ol>
-        {showExampleButton ? (
+        <div className="mt-5 flex flex-wrap gap-3">
+          {showExampleButton ? (
+            <button
+              type="button"
+              onClick={loadExample}
+              className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+            >
+              Load Budweiser Saturday 31 October
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={loadExample}
-            className="mt-5 rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+            onClick={loadNflSunday}
+            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
           >
-            Load Budweiser Saturday 31 October
+            Load NFL Sunday 1 November
           </button>
-        ) : null}
+        </div>
         <div className="mt-6 flex items-center justify-between gap-4">
           <button
             type="button"
@@ -168,7 +205,7 @@ export function SportingCalendarBoard({
                 key={cell.key}
                 type="button"
                 disabled={!cell.inMonth}
-                onClick={() => cell.date && setSelectedDate(cell.date)}
+                onClick={() => cell.date && selectDate(cell.date)}
                 className={`min-h-14 rounded-xl p-2 text-sm font-semibold ${
                   !cell.inMonth
                     ? "cursor-default text-transparent"
@@ -209,6 +246,29 @@ export function SportingCalendarBoard({
                 groups.length === 1 ? "competition" : "competitions"
               } have Matches this day. Tick named Matches to sponsor them together as ${brandName}.`}
         </p>
+        <p className="mt-2 text-sm text-slate-400">
+          {groups.some((row) => row.league === "NFL")
+            ? "NFL is in the competition row. Click NFL to open the collapsible fixture list."
+            : "NFL fixtures are on Sundays (and some Thursday/Monday nights), not this date. Click Load NFL Sunday 1 November."}
+        </p>
+        {groups.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {groups.map((group) => (
+              <button
+                key={group.league}
+                type="button"
+                onClick={() => jumpToLeague(group.league)}
+                className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
+                  openLeagues.has(group.league)
+                    ? "border-s4p-mark bg-s4p-mark text-slate-950"
+                    : "border-slate-300 bg-white text-slate-950"
+                }`}
+              >
+                {group.league} {group.matches.length}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="mt-6 space-y-6">
           {groups.map((group) => {
             const expanded = openLeagues.has(group.league);
@@ -226,7 +286,8 @@ export function SportingCalendarBoard({
             return (
               <div
                 key={group.league}
-                className="rounded-2xl border border-slate-300 bg-white p-5"
+                id={calendarLeagueDomId(group.league)}
+                className="scroll-mt-6 rounded-2xl border border-slate-300 bg-white p-5"
               >
                 {collapsible ? (
                   <button
