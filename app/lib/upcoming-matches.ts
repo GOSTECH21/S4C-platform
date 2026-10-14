@@ -49,14 +49,20 @@ export function normalizeClubName(value: string): string {
     .trim();
 }
 
-export function namesMatch(a: string, b: string): boolean {
+export function namesExactlyMatch(a: string, b: string): boolean {
   const left = normalizeClubName(a);
   const right = normalizeClubName(b);
   if (!left || !right) return false;
   if (left === right) return true;
   const leftAliases = NAME_ALIASES[left] ?? [left];
   const rightAliases = NAME_ALIASES[right] ?? [right];
-  if (leftAliases.some((alias) => rightAliases.includes(alias))) return true;
+  return leftAliases.some((alias) => rightAliases.includes(alias));
+}
+
+export function namesMatch(a: string, b: string): boolean {
+  if (namesExactlyMatch(a, b)) return true;
+  const left = normalizeClubName(a);
+  const right = normalizeClubName(b);
   return left.includes(right) || right.includes(left);
 }
 

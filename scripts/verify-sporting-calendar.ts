@@ -548,8 +548,15 @@ assert(
 assert(
   cupMatchesForClub("Hearts").some(
     (row) => row.league === "Europa Conference League"
-  ),
-  "Hearts' club picker lists Europa Conference League Matches"
+  ) &&
+    cupMatchesForClub("Hearts").every(
+      (row) =>
+        row.homeName === "Hearts" || row.awayName === "Hearts"
+    ) &&
+    !cupMatchesForClub("Hearts").some((row) =>
+      /kelty/i.test(row.fixtureName)
+    ),
+  "Hearts' club picker lists Europa Conference League Matches, not Kelty Hearts"
 );
 assert(
   clubsOnSportingCalendar().includes("Arsenal") &&

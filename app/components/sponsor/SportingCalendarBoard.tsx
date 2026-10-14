@@ -94,9 +94,17 @@ export function SportingCalendarBoard({
   const calendarClubs = useMemo(() => clubsOnSportingCalendar(), []);
   const clubSuggestions = useMemo(() => {
     const needle = clubQuery.trim().toLowerCase();
-    if (!needle) return calendarClubs.slice(0, 12);
+    if (needle.length < 2) return [];
     return calendarClubs
       .filter((name) => name.toLowerCase().includes(needle))
+      .sort((left, right) => {
+        const a = left.toLowerCase();
+        const b = right.toLowerCase();
+        const aStart = a.startsWith(needle) ? 0 : 1;
+        const bStart = b.startsWith(needle) ? 0 : 1;
+        if (aStart !== bStart) return aStart - bStart;
+        return a.localeCompare(b);
+      })
       .slice(0, 12);
   }, [calendarClubs, clubQuery]);
   const clubCupMatches = useMemo(
@@ -347,9 +355,13 @@ export function SportingCalendarBoard({
                 </button>
               ))}
             </div>
-          ) : (
-            <p className="mt-3 text-sm text-slate-400">
+          ) : clubQuery.trim().length >= 2 ? (
+            <p className="mt-3 text-sm text-slate-500">
               No club matches that search.
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">
+              Type at least two letters to find a club.
             </p>
           )}
           {selectedClub ? (

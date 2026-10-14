@@ -2,7 +2,7 @@
 
 import { fixtureDisplayName } from "./club-fixtures";
 import publishedFixtures from "../data/published-fixtures.json";
-import { namesMatch } from "./upcoming-matches";
+import { namesExactlyMatch } from "./upcoming-matches";
 import {
   CUP_COMPETITION_NAMES,
   SPORTING_CALENDAR_LEAGUE_ORDER,
@@ -205,7 +205,8 @@ export function cupMatchesForClub(clubName: string): CalendarMatch[] {
   return sportingCalendarMatches().filter(
     (row) =>
       isCupCompetitionName(row.league) &&
-      (namesMatch(row.homeName, needle) || namesMatch(row.awayName, needle))
+      (namesExactlyMatch(row.homeName, needle) ||
+        namesExactlyMatch(row.awayName, needle))
   );
 }
 
