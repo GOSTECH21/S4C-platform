@@ -15,6 +15,7 @@ export default function SportingCalendarPreviewPage() {
       <div className="mx-auto max-w-7xl">
         <SportingCalendarBoard
           brandName="Budweiser"
+          logoUrl="/sponsors/budweiser.svg"
           initialPicks={budweiserExamplePicks()}
           notice={notice}
           showExampleButton

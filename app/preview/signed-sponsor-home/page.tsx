@@ -43,7 +43,7 @@ export default function SignedSponsorHomePreview() {
     <div className="min-h-screen bg-slate-950 p-8 text-white">
       <SignedSponsorHome
         brand="American Express"
-        logoUrl={null}
+        logoUrl="/sponsors/amex.svg"
         signed={signed}
         votedByClub={{
           "hearts-demo": [

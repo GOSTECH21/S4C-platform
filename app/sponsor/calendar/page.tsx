@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SportingCalendarBoard } from "@/app/components/sponsor/SportingCalendarBoard";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
+  loadBrandLogo,
   loadMatchDayLock,
   lockGlobalMatchDayPicks,
   unlockGlobalMatchPick,
@@ -14,6 +15,7 @@ import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
+import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   isLeadSponsorHome,
   rememberLocalSponsorSession,
@@ -23,6 +25,7 @@ import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
 export default function SponsorCalendarPage() {
   const router = useRouter();
   const [brand, setBrand] = useState("your brand");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [picks, setPicks] = useState<GlobalMatchPick[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +43,9 @@ export default function SponsorCalendarPage() {
         }
         if (cancelled) return;
         setBrand(name);
+        setLogoUrl(
+          sponsorLogoSrc(name, loadBrandLogo(name) || (sponsor.logo_url as string | null))
+        );
         const lock = loadMatchDayLock(name);
         setPicks(globalPicksFromLock(lock));
       } catch {
@@ -87,6 +93,7 @@ export default function SponsorCalendarPage() {
   return (
     <SportingCalendarBoard
       brandName={brand}
+      logoUrl={logoUrl}
       initialPicks={picks}
       notice={notice}
       onLockPicks={lockPicks}
