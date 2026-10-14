@@ -828,6 +828,18 @@ assert(
   "Demo club fixture lists are painted on local register without waiting for a live feed"
 );
 assert(
+  !readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+    "bg-black/"
+  ) &&
+    !readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "bg-emerald-950"
+    ) &&
+    readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "bg-slate-900"
+    ),
+  "Fixture list cards sit on paper, not dark overlays"
+);
+assert(
   demoFixturesForClub("Arsenal").length >= 6 &&
     demoFixturesForClub("Hearts").length >= 6 &&
     demoFixturesForClub("Hibernian").length >= 6 &&

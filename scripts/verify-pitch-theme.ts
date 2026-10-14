@@ -31,6 +31,11 @@ assert(
 );
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
+assert(
+  css.includes('[class*="bg-black/"]') &&
+    css.includes('[class*="bg-emerald-950"]'),
+  "Black and emerald-950 overlays remap to paper panels"
+);
 assert(css.includes('url("/images/platform-background.png")'), "Quiet wave remains as a trial wallpaper");
 assert(css.includes("html[data-theme=\"quiet-wave\"]"), "Quiet wave can still be tried");
 assert(!css.includes("#0c3229"), "The old pitch-dusk canvas token is gone");
