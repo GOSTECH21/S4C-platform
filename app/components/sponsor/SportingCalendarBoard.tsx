@@ -41,25 +41,31 @@ import {
   fixtureListIsCollapsible,
   visibleAccordionItems,
 } from "@/app/lib/fixture-accordion";
+import { BrandMark } from "@/app/components/club/BrandMark";
 import Link from "next/link";
 
 const EXAMPLE_MONTH = { year: 2026, month: 9 };
 
 export function SportingCalendarBoard({
   brandName,
+  logoUrl = null,
   initialPicks = [],
   notice = null,
   onLockPicks,
   onUnlockPick,
   showExampleButton = false,
+  titleAs = "h1",
 }: {
   brandName: string;
+  logoUrl?: string | null;
   initialPicks?: GlobalMatchPick[];
   notice?: string | null;
   onLockPicks?: (picks: GlobalMatchPick[]) => void;
   onUnlockPick?: (pick: GlobalMatchPick) => void;
   showExampleButton?: boolean;
+  titleAs?: "h1" | "h2";
 }) {
+  const Title = titleAs;
   const [year, setYear] = useState(EXAMPLE_MONTH.year);
   const [month, setMonth] = useState(EXAMPLE_MONTH.month);
   const [selectedDate, setSelectedDate] = useState(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
@@ -166,12 +172,20 @@ export function SportingCalendarBoard({
   return (
     <div className="space-y-8">
       <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-          2026/27 Sporting Calendar
-        </p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight">
+        <div className="flex items-center gap-4">
+          <BrandMark name={brandName} logoUrl={logoUrl} large />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
+              Signed in as {brandName}
+            </p>
+            <Title className="mt-2 text-4xl font-black tracking-tight">
+              {brandName} · 2026/27 Sporting Calendar
+            </Title>
+          </div>
+        </div>
+        <p className="mt-3 text-2xl font-black tracking-tight">
           Matches on a given day
-        </h1>
+        </p>
         <ol
           className="mt-3 max-w-4xl list-decimal space-y-1 pl-6 text-slate-300"
           aria-label={GLOBAL_MATCH_DAY_INTRO}

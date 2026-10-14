@@ -42,6 +42,7 @@ import {
   matchesOnDate,
   monthCells,
   showsSignedSponsorHome,
+  picksForSignedSponsorHome,
   sponsoredMatchesForHome,
   sponsoredMatchesFromLock,
   sponsoredMatchesFromSigned,
@@ -978,8 +979,12 @@ const pepsiMatches = sponsoredMatchesFromLock(pepsiLock);
 assert(
   pepsiMatches[0]?.fixtureName === "Manchester City v Arsenal" &&
     pepsiMatches[0]?.date === "2026-11-21" &&
-    sponsoredMatchesForHome([], pepsiLock)[0]?.clubName === "Arsenal",
-  "Returning Pepsi Cola login spotlights the sponsored Arsenal Match on the calendar"
+    sponsoredMatchesForHome([], pepsiLock)[0]?.clubName === "Arsenal" &&
+    picksForSignedSponsorHome("Pepsi Cola", [], pepsiLock)[0]?.fixtureName ===
+      "Manchester City v Arsenal" &&
+    picksForSignedSponsorHome("Pepsi Cola", [], pepsiLock)[0]?.clubName ===
+      "Arsenal",
+  "Returning Pepsi Cola login keeps the sponsored Arsenal Match on the all-inclusive calendar"
 );
 assert(
   committedGbpForSignedHome({
@@ -1028,8 +1033,8 @@ const signedHomeSource = readFileSync(
   "app/components/sponsor/SignedSponsorHome.tsx",
   "utf8"
 );
-const calendarSource = readFileSync(
-  "app/components/sponsor/SponsoredMatchCalendar.tsx",
+const sportingBoard = readFileSync(
+  "app/components/sponsor/SportingCalendarBoard.tsx",
   "utf8"
 );
 const cistSource = readFileSync(
@@ -1039,20 +1044,24 @@ const cistSource = readFileSync(
 assert(
   sponsorDashboardPage.includes("SignedSponsorHome") &&
     sponsorDashboardPage.includes("lock={lock}") &&
-    signedHomeSource.includes("sponsoredMatchesForHome") &&
+    signedHomeSource.includes("picksForSignedSponsorHome") &&
+    signedHomeSource.includes("SportingCalendarBoard") &&
+    !signedHomeSource.includes("SponsoredMatchCalendar") &&
     signedHomeSource.includes("SPONSOR_NEW_SPONSORSHIP_LABEL") &&
     signedHomeSource.includes('role="tab"') &&
+    signedHomeSource.includes("sponsorLogoSrc") &&
     signedHomeSource.indexOf("<SponsorCistTable") <
       signedHomeSource.indexOf('role="tab"') &&
-    calendarSource.includes("highlighted Match Day") &&
-    calendarSource.includes("disabled={!sponsored}") &&
+    sportingBoard.includes("calendarDatesInMonth") &&
+    sportingBoard.includes("BrandMark") &&
+    sportingBoard.includes("Signed in as {brandName}") &&
     cistSource.includes("Impact Moments") &&
     cistSource.includes("Climate Impact") &&
     readFileSync(
       "app/sponsor/offers/OfferSignOff.tsx",
       "utf8"
-    ).includes("router.replace(SPONSOR_DASHBOARD_PATH)"),
-  "After sign-off the dashboard is calendar, funded projects, CIST and New Sponsorship"
+    ).includes("router.replace(sponsorHomePath(signed.brandName)"),
+  "After sign-off the dashboard is the all-inclusive Sporting Calendar, funded projects, CIST and New Sponsorship"
 );
 
 if (failures.length > 0) {

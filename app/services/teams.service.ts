@@ -60,6 +60,9 @@ export function sponsorLogoSrc(
   if (!key) return null;
   if (key.includes("budweiser")) return "/sponsors/budweiser.svg";
   if (key.includes("gillette")) return "/sponsors/gillette.svg";
+  if (key.includes("american express") || key === "amex") {
+    return "/sponsors/amex.svg";
+  }
   return null;
 }
 

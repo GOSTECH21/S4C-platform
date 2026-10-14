@@ -240,9 +240,30 @@ assert(
   "The Lead dashboard opens the 2026/27 Sporting Calendar and keeps the three-club lock-in"
 );
 
+const signedHome = readFileSync(
+  "app/components/sponsor/SignedSponsorHome.tsx",
+  "utf8"
+);
+assert(
+  signedHome.includes("SportingCalendarBoard") &&
+    signedHome.includes("picksForSignedSponsorHome") &&
+    signedHome.includes("sponsorLogoSrc") &&
+    !signedHome.includes("SponsoredMatchCalendar") &&
+    signedHome.includes("Your 2026/27 Sporting Calendar"),
+  "A logged-in Lead sees the all-inclusive Sporting Calendar on home, not a separate preview file"
+);
+
 const board = readFileSync(
   "app/components/sponsor/SportingCalendarBoard.tsx",
   "utf8"
+);
+assert(
+  board.includes("BrandMark") &&
+    board.includes("logoUrl") &&
+    board.includes("Signed in as {brandName}") &&
+    board.includes("{brandName} · 2026/27 Sporting Calendar") &&
+    board.includes("disabled={!cell.inMonth}"),
+  "The Sporting Calendar names the logged-in sponsor with their logo and lets them open any day"
 );
 assert(
   board.includes("bg-s4p-mark") &&

@@ -18,6 +18,12 @@ import {
 } from "./s4p-impact-tables";
 import type { FolderOffer, SignedSponsorship } from "./sponsor-dashboard";
 import { votedProjectsOnSignedOffer } from "./sponsor-dashboard";
+import { findCalendarMatch } from "./sporting-calendar";
+import {
+  globalPicksFromLock,
+  pickFromCalendarMatch,
+  type GlobalMatchPick,
+} from "./global-match-day";
 
 export const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -135,6 +141,34 @@ export function sponsoredMatchesForHome(
   const fromSigned = sponsoredMatchesFromSigned(signed);
   if (fromSigned.length > 0) return fromSigned;
   return sponsoredMatchesFromLock(lock);
+}
+
+export function picksForSignedSponsorHome(
+  brandName: string,
+  signed: SignedSponsorship[],
+  lock?: MatchDayClubLock | null
+): GlobalMatchPick[] {
+  const fromLock = globalPicksFromLock(lock);
+  if (fromLock.length > 0) return fromLock;
+  const picks: GlobalMatchPick[] = [];
+  for (const listing of sponsoredMatchesFromSigned(signed)) {
+    const match = findCalendarMatch(listing.date, listing.fixtureName);
+    const pick = match
+      ? pickFromCalendarMatch(match, brandName, listing.clubName)
+      : {
+          date: listing.date,
+          league: "",
+          sport: "Football",
+          fixtureName: listing.fixtureName,
+          clubName: listing.clubName,
+          homeName: listing.clubName,
+          awayName: "",
+          kickoff: "",
+          venue: "",
+        };
+    if (pick) picks.push(pick);
+  }
+  return picks;
 }
 
 export function committedGbpForSignedHome({
