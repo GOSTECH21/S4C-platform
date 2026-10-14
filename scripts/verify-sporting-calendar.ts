@@ -414,8 +414,12 @@ assert(
   findCalendarMatch(
     RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
     "Australia v Argentina"
-  )?.league === "The Rugby Championship",
-  "The Rugby Championship names Rugby Australia's published 2027 opener Australia v Argentina"
+  )?.league === "The Rugby Championship" &&
+    findCalendarMatch(
+      RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
+      "Australia v Argentina"
+    )?.kickoff === "",
+  "The Rugby Championship names Rugby Australia's published 2027 opener Australia v Argentina, kickoff TBC"
 );
 assert(
   leagueMatchCountOnDate("2026-07-04", "Nations Championship") >= 6 &&

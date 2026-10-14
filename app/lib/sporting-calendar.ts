@@ -97,7 +97,8 @@ function calendarMatchFromPublished(row: PublishedRow): CalendarMatch | null {
   return {
     id: `${leagueName}:${date}:${home}:${away}`,
     date,
-    kickoff: row.kickoff || league?.kickoff || "",
+    kickoff:
+      typeof row.kickoff === "string" ? row.kickoff : league?.kickoff || "",
     league: leagueName,
     sport,
     country,
