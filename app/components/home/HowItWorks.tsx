@@ -40,7 +40,7 @@ export default function HowItWorks() {
     <section className="mx-auto max-w-[1800px] px-6 pb-16 pt-6 md:px-12 md:py-24 xl:px-16">
       <div className="text-center">
         <h2 className="text-3xl font-black text-white md:text-5xl">
-          How Score-For-Our-Planet Works
+          How Score-For-Planet Works
         </h2>
         <p className="mt-5 text-lg text-slate-300 md:text-xl">
           Five simple steps that transform sporting passion into measurable climate action.

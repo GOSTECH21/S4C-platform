@@ -42,7 +42,12 @@ assert(
   home.includes("Turn Goals") && home.includes('text-s4p-mint">into Action'),
   "Turn Goals into Action uses mint on the second line"
 );
-assert(home.includes("Sport creates the moment."), "Sport creates the moment stays in the hero");
+assert(
+  home.includes("SCORE-FOR-PLANET") &&
+    home.includes("Every score counts") &&
+    !home.includes("Sport creates the moment."),
+  "SCORE-FOR-PLANET lockup replaces the old Sport creates the moment stack"
+);
 assert(home.includes("s4p-navy-panel"), "The stats strip uses a panel");
 assert(home.includes('src="/images/home/s4p-mark.png"'), "Home still uses the S4P mark");
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");

@@ -212,12 +212,12 @@ const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
 assert(
   homePage.indexOf("<HowItWorks") < homePage.indexOf("<Footer"),
-  "How Score-For-Our-Planet Works is composed on the front page"
+  "How Score-For-Planet Works is composed on the front page"
 );
 assert(
   homePage.includes("<HowItWorks") &&
     homePage.indexOf("<HomeFrontPage") < homePage.indexOf("<HowItWorks"),
-  "How Score-For-Our-Planet Works sits inside the front page, above Are You"
+  "How Score-For-Planet Works sits inside the front page, above Are You"
 );
 assert(
   !homePage.includes("WHO ARE YOU?"),
@@ -255,7 +255,7 @@ assert(
 assert(
   front.includes("{children}") &&
     front.indexOf("{children}") < front.indexOf("Are You...?"),
-  "How Score-For-Our-Planet Works is rendered above Are You"
+  "How Score-For-Planet Works is rendered above Are You"
 );
 assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
 assert(
@@ -284,11 +284,12 @@ assert(
   "Top-left S4P wordmark is removed from the hero"
 );
 assert(
-  front.includes("Sport creates the moment.") &&
-    front.includes("Sponsors fund it.") &&
-    front.includes('text-s4p-mint">Fans direct the Impact.') &&
-    !front.includes("text-s4p-mark\">Sport"),
-  "Hero statement is ivory for Sport/Sponsors and mint for Fans direct the Impact"
+  front.includes("SCORE-FOR-PLANET") &&
+    front.includes("Every score counts") &&
+    front.includes("Sponsors fund it. Fans direct it.") &&
+    !front.includes("Score-4-our-Planet") &&
+    !front.includes("Turning Match-Day Sporting Moments into"),
+  "The homepage mark is SCORE-FOR-PLANET with Every score counts branding"
 );
 assert(
   front.includes("order-2 lg:order-4") &&
@@ -296,21 +297,20 @@ assert(
     front.includes("lg:hidden") &&
     front.includes("flex flex-col") &&
     front.lastIndexOf("S4pImpactTables") > front.indexOf("Are You...?"),
-  "On mobile, How Score-For-Our-Planet Works sits under the S4P mark and Impact Tables appear only after Are You; desktop keeps Impact Tables in the hero"
+  "On mobile, How Score-For-Planet Works sits under the S4P mark and Impact Tables appear only after Are You; desktop keeps Impact Tables in the hero"
 );
 
 assert(
-  front.includes("Turning Match-Day Sporting Moments into") &&
-    front.includes("Funded Climate Action") &&
-    front.includes('block text-s4p-mint">Funded Climate Action') &&
-    !front.includes("Turning Match-Day Sporting Moments into Funded Climate Action"),
-  "The S4P logo tagline is two lines, with Funded Climate Action in mint"
+  !front.includes("Turning Match-Day Sporting Moments into") &&
+    !front.includes("Funded Climate Action") &&
+    !front.includes("Sport creates the moment."),
+  "Old Score-4-our-Planet taglines under the mark are gone"
 );
 assert(
   front.includes("Turn Goals") &&
     front.includes('text-s4p-mint">into Action') &&
     !front.includes("a brighter planet") &&
-    !front.includes("Every score"),
+    !front.includes("Every score protects our planet"),
   "Hero headline is Turn Goals into Action, with into Action in mint"
 );
 assert(
@@ -391,6 +391,11 @@ assert(
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
+  howItWorks.includes("How Score-For-Planet Works") &&
+    !howItWorks.includes("How Score-For-Our-Planet Works"),
+  "How It Works heading matches the SCORE-FOR-PLANET lockup"
+);
+assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
   "How It Works step numbers 01-05 use the S4P mark green from the numeral 4"
 );
@@ -425,6 +430,13 @@ assert(
   howItWorks.includes("EVERYONE CREATES IMPACT") &&
     howItWorks.includes("Clubs address Match-Day carbon footprints"),
   "Step 05 is EVERYONE CREATES IMPACT"
+);
+
+const footer = readFileSync("app/components/home/Footer.tsx", "utf8");
+assert(
+  footer.includes("Score-For-Planet") &&
+    !footer.includes("Score-For-Our-Planet"),
+  "Footer branding matches Score-For-Planet"
 );
 
 const sql = readFileSync(
