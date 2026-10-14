@@ -122,33 +122,33 @@ export const BUDWEISER_EXAMPLE_FIXTURES: Array<{
 }> = [
   {
     league: "Premier League",
-    fixtureName: "Liverpool v Manchester City",
-    clubName: "Liverpool",
+    fixtureName: "Chelsea v Manchester United",
+    clubName: "Chelsea",
   },
   {
     league: "Premier League",
-    fixtureName: "Manchester United v Tottenham Hotspur",
-    clubName: "Manchester United",
+    fixtureName: "Manchester City v Brighton",
+    clubName: "Manchester City",
   },
   {
     league: "Scottish Premiership",
-    fixtureName: "Celtic v Dundee United",
-    clubName: "Celtic",
+    fixtureName: "Motherwell v St Mirren",
+    clubName: "Motherwell",
   },
   {
     league: "La Liga",
-    fixtureName: "Real Madrid v Barcelona",
-    clubName: "Real Madrid",
-  },
-  {
-    league: "La Liga",
-    fixtureName: "Atletico Madrid v Athletic Club",
+    fixtureName: "Levante v Atletico Madrid",
     clubName: "Atletico Madrid",
   },
   {
     league: "La Liga",
-    fixtureName: "Sevilla v Valencia",
-    clubName: "Sevilla",
+    fixtureName: "Rayo Vallecano v Celta Vigo",
+    clubName: "Rayo Vallecano",
+  },
+  {
+    league: "La Liga",
+    fixtureName: "Barcelona v Alaves",
+    clubName: "Barcelona",
   },
 ];
 
@@ -343,4 +343,4 @@ export function globalPicksFromLock(
 }
 
 export const GLOBAL_MATCH_DAY_INTRO =
-  "Open any day on the 2026/27 Sporting Calendar to see the Matches being played in the Premier League, Championship, League One, Women's Super League, Scottish Premiership, Bundesliga, La Liga, Ligue 1, Serie A, NFL, Rugby Union, Rugby League and NBA. A Global Brand can lock several named Matches on the same day — one Lead Climate Sponsor per club per named Match. Example: Saturday 31 October 2026, 2 Premier League Matches, 1 Scottish Premiership Match and 3 La Liga Matches.";
+  "Open any day on the 2026/27 Sporting Calendar to see the published Matches being played in the Premier League, Championship, League One, Women's Super League, Scottish Premiership, Bundesliga, La Liga, Ligue 1, Serie A, NFL, Rugby Union, Rugby League and NBA. A Global Brand can lock several named Matches on the same day — one Lead Climate Sponsor per club per named Match. Example: Saturday 31 October 2026, 2 Premier League Matches, 1 Scottish Premiership Match and 3 La Liga Matches.";

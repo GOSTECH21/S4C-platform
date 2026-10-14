@@ -2,13 +2,13 @@ import { readFileSync } from "fs";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
 import {
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
-  OCTOBER_31_2026_SLATES,
   SPORTING_CALENDAR_LEAGUE_ORDER,
   SPORTING_CALENDAR_SEASON,
   findCalendarMatch,
   leagueMatchCountOnDate,
   matchesByLeagueOnDate,
   matchesOnCalendarDate,
+  publishedFixtureSource,
   sportingCalendarMatches,
 } from "../app/lib/sporting-calendar";
 import {
@@ -56,52 +56,76 @@ assert(
     ].join(" | "),
   "Calendar mines the requested football leagues plus NFL, Rugby Union, Rugby League and NBA"
 );
+assert(
+  publishedFixtureSource().toLowerCase().includes("espn"),
+  "The calendar is sourced from published ESPN fixtures, not a generated round-robin"
+);
 
 const catalog = sportingCalendarMatches();
 assert(catalog.length > 2000, "The mined 2026/27 calendar has a full season of Matches");
+assert(
+  catalog.every((row) => row.date.startsWith("2026") || row.date.startsWith("2027")),
+  "Published Matches sit in the 2026/27 season window"
+);
 
 const october31 = matchesByLeagueOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
 const octoberNames = october31.map((row) => row.league);
-for (const league of SPORTING_CALENDAR_LEAGUE_ORDER) {
+for (const league of [
+  "Premier League",
+  "EFL Championship",
+  "EFL League One",
+  "Women's Super League",
+  "Scottish Premiership",
+  "Bundesliga",
+  "La Liga",
+  "Ligue 1",
+  "Serie A",
+]) {
   assert(
     octoberNames.includes(league),
-    `Saturday 31 October 2026 lists ${league} Matches`
+    `Saturday 31 October 2026 lists published ${league} Matches`
   );
 }
 
 assert(
-  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Premier League") === 10,
-  "Premier League has a 10-Match Saturday slate on 31 October"
+  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Premier League") === 8,
+  "Premier League has eight published Matches on 31 October 2026"
 );
 assert(
-  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Scottish Premiership") === 6,
-  "Scottish Premiership has a 6-Match Saturday slate on 31 October"
+  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Scottish Premiership") === 3,
+  "Scottish Premiership has three published Matches on 31 October 2026"
 );
 assert(
-  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "La Liga") === 10,
-  "La Liga has a 10-Match Saturday slate on 31 October"
-);
-
-const chelseaArsenal = findCalendarMatch(
-  GLOBAL_MATCH_DAY_EXAMPLE_DATE,
-  "Chelsea v Arsenal"
+  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "La Liga") === 4,
+  "La Liga has four published Matches on 31 October 2026"
 );
 assert(
-  chelseaArsenal?.league === "Premier League" &&
-    chelseaArsenal.kickoff === "17:30",
-  "Chelsea v Arsenal remains on the Premier League 31 October slate"
+  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Premiership Rugby") === 4,
+  "Premiership Rugby has four published Matches on 31 October 2026"
 );
 assert(
-  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Hearts v Aberdeen")
+  leagueMatchCountOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "NBA") >= 1,
+  "NBA has published Matches on 31 October 2026 after daily fill"
+);
+assert(
+  !findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Chelsea v Arsenal"),
+  "Invented Chelsea v Arsenal is not on the published 31 October slate"
+);
+assert(
+  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Chelsea v Manchester United")
+    ?.league === "Premier League",
+  "Chelsea v Manchester United is the published 12:30 Premier League Match on 31 October"
+);
+assert(
+  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Dundee United v Hearts")
     ?.league === "Scottish Premiership",
-  "Hearts v Aberdeen is on the Scottish Premiership 31 October slate"
+  "Dundee United v Hearts is on the published Scottish Premiership 31 October slate"
 );
 
 function uniqueTeams(league: string): boolean {
-  const names = (OCTOBER_31_2026_SLATES[league] ?? []).flatMap((row) => [
-    row.homeName,
-    row.awayName,
-  ]);
+  const names = matchesOnCalendarDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE)
+    .filter((row) => row.league === league)
+    .flatMap((row) => [row.homeName, row.awayName]);
   return new Set(names).size === names.length && names.length > 0;
 }
 
@@ -136,37 +160,34 @@ assert(
         pick.fixtureName === row.fixtureName && pick.clubName === row.clubName
     )
   ),
-  "Budweiser example names Liverpool, Manchester United, Celtic, Real Madrid, Atletico Madrid and Sevilla"
+  "Budweiser example names Chelsea, Manchester City, Motherwell, Atletico Madrid, Rayo Vallecano and Barcelona"
 );
 
-const hibs = findCalendarMatch(
-  GLOBAL_MATCH_DAY_EXAMPLE_DATE,
-  "Rangers v Hibernian"
-);
-assert(Boolean(hibs), "Rangers v Hibernian is on 31 October");
+const hibs = findCalendarMatch("2026-10-25", "Hibernian v Celtic");
+assert(Boolean(hibs), "Hibernian v Celtic is a published Scottish Premiership Match");
 assert(
-  defaultLeadClubForMatch(hibs!, "Budweiser") === "Rangers",
-  "Budweiser cannot occupy Hibernian and defaults to Rangers"
+  defaultLeadClubForMatch(hibs!, "Budweiser") === "Celtic",
+  "Budweiser cannot occupy Hibernian and defaults to Celtic"
 );
 assert(
   pickFromCalendarMatch(hibs!, "Budweiser", "Hibernian") === null,
-  "Budweiser cannot pick Hibernian as Lead on Rangers v Hibernian"
+  "Budweiser cannot pick Hibernian as Lead on Hibernian v Celtic"
 );
 
 const budweiserLock = syntheticLockFromPicks("Budweiser", picks);
-const liverpool = pickFromCalendarMatch(
-  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Liverpool v Manchester City")!,
+const chelsea = pickFromCalendarMatch(
+  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Chelsea v Manchester United")!,
   "Gillette",
-  "Liverpool"
+  "Chelsea"
 );
-assert(Boolean(liverpool), "Gillette can name Liverpool v Manchester City");
+assert(Boolean(chelsea), "Gillette can name Chelsea v Manchester United");
 assert(
   canAddGlobalPick({
-    pick: liverpool!,
+    pick: chelsea!,
     brandName: "Gillette",
     locks: budweiserLock ? [budweiserLock] : [],
   }).ok === false,
-  "A second Lead is rejected for Liverpool on the same named Match"
+  "A second Lead is rejected for Chelsea on the same named Match"
 );
 assert(
   canAddGlobalPick({
@@ -177,19 +198,19 @@ assert(
   "Budweiser keeps the six Matches it already holds"
 );
 
-const citySide = pickFromCalendarMatch(
-  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Liverpool v Manchester City")!,
+const unitedSide = pickFromCalendarMatch(
+  findCalendarMatch(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Chelsea v Manchester United")!,
   "Puma",
-  "Manchester City"
+  "Manchester United"
 );
 assert(
-  Boolean(citySide) &&
+  Boolean(unitedSide) &&
     canAddGlobalPick({
-      pick: citySide!,
+      pick: unitedSide!,
       brandName: "Puma",
       locks: budweiserLock ? [budweiserLock] : [],
     }).ok,
-  "Puma can still Lead Manchester City on the same named Match"
+  "Puma can still Lead Manchester United on the same named Match"
 );
 
 assert(SPONSOR_CALENDAR_PATH === "/sponsor/calendar", "Calendar lives at /sponsor/calendar");
@@ -213,6 +234,14 @@ assert(
   "Sporting Calendar days use paper and lime, not dark fills"
 );
 
+const calendarLib = readFileSync("app/lib/sporting-calendar.ts", "utf8");
+assert(
+  calendarLib.includes("published-fixtures.json") &&
+    !calendarLib.includes("function generateLeague") &&
+    !calendarLib.includes("OCTOBER_31_2026_SLATES"),
+  "The sporting calendar loads published-fixtures.json instead of generating slates"
+);
+
 const currentSeason = readFileSync("app/lib/current-season.ts", "utf8");
 assert(
   currentSeason.includes('Premier League": ["Arsenal"]') &&
@@ -221,9 +250,8 @@ assert(
 );
 
 assert(
-  matchesOnCalendarDate("2026-11-01").some((row) => row.league === "NFL") ||
-    matchesOnCalendarDate("2026-11-08").some((row) => row.league === "NFL"),
-  "NFL Sundays are mined on the 2026 calendar"
+  matchesOnCalendarDate("2026-11-01").some((row) => row.league === "NFL"),
+  "NFL Sundays are mined on the published 2026 calendar"
 );
 
 if (failures.length > 0) {
@@ -232,5 +260,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `2026/27 sporting calendar passed (${catalog.length} Matches; Budweiser ${describeGlobalPicks(picks)}).`
+  `2026/27 published fixtures passed (${catalog.length} Matches; Budweiser ${describeGlobalPicks(picks)}).`
 );
