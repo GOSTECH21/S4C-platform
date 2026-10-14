@@ -33,8 +33,20 @@ assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for butt
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(
   css.includes('[class*="bg-black/"]') &&
-    css.includes('[class*="bg-emerald-950"]'),
-  "Black and emerald-950 overlays remap to paper panels"
+    css.includes('[class*="bg-emerald-950"]') &&
+    css.includes('[class~="bg-green-400"]') &&
+    css.includes('[class*="bg-green-950"]') &&
+    css.includes('[class*="bg-zinc-900"]'),
+  "Dark green, black and zinc fills remap to paper; lime stays on buttons"
+);
+assert(
+  readFileSync("app/components/fan/MyTeamsList.tsx", "utf8").includes(
+    "border-emerald-400/40 bg-slate-900"
+  ) &&
+    !readFileSync("app/components/fan/MyTeamsList.tsx", "utf8").includes(
+      "bg-green-400 p-4"
+    ),
+  "My Teams club cards sit on paper, not mint-green fills"
 );
 assert(css.includes('url("/images/platform-background.png")'), "Quiet wave remains as a trial wallpaper");
 assert(css.includes("html[data-theme=\"quiet-wave\"]"), "Quiet wave can still be tried");

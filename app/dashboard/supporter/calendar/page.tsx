@@ -148,7 +148,7 @@ export default function SupporterCalendarPage() {
                   <span
                     className={`h-fit rounded-full px-4 py-2 text-sm font-bold ${
                       fixture.status === "active"
-                        ? "bg-green-400 text-slate-950"
+                        ? "bg-s4p-mark text-slate-950"
                         : "bg-slate-800 text-slate-300"
                     }`}
                   >

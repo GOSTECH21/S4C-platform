@@ -51,7 +51,7 @@ export default async function ClimateImpactTablePage({
               key={row.club}
               className={`grid grid-cols-4 gap-4 border-b border-slate-800 p-5 ${
                 row.club === "Arsenal"
-                  ? "bg-green-400 text-slate-950"
+                  ? "bg-s4p-mark/15 text-slate-950"
                   : ""
               }`}
             >
