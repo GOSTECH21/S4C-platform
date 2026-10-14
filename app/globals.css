@@ -151,6 +151,38 @@ body {
   background-color: var(--s4p-panel) !important;
 }
 
+/*
+  Ivory surfaces stay paper. Mint green-400 is for copy, not big fills.
+  Lime buttons use bg-s4p-mark / bg-green-500 and keep the mark colour.
+*/
+[class~="bg-green-400"]:not(button):not(a) {
+  background-color: var(--s4p-panel) !important;
+}
+
+button[class~="bg-green-400"],
+a[class~="bg-green-400"] {
+  background-color: var(--s4p-mark) !important;
+}
+
+[class*="bg-green-700"],
+[class*="bg-green-800"],
+[class*="bg-green-900"],
+[class*="bg-green-950"],
+[class*="bg-emerald-700"],
+[class*="bg-emerald-800"],
+[class*="bg-emerald-900"],
+[class*="bg-zinc-800"],
+[class*="bg-zinc-900"],
+[class*="bg-zinc-950"],
+[class*="bg-neutral-800"],
+[class*="bg-neutral-900"],
+[class*="bg-neutral-950"],
+[class*="bg-gray-800"],
+[class*="bg-gray-900"],
+[class*="bg-gray-950"] {
+  background-color: var(--s4p-panel) !important;
+}
+
 input,
 textarea,
 select {

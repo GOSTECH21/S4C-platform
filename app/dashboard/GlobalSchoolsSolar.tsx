@@ -45,7 +45,7 @@ export default function GlobalSchoolsSolar() {
           <div className="mt-3 h-5 overflow-hidden rounded-full bg-slate-800">
 
             <div
-              className="h-full bg-green-400"
+              className="h-full bg-s4p-mark"
               style={{ width: "76%" }}
             />
 

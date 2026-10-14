@@ -114,7 +114,7 @@ export default function TeamPicker({
                             onClick={() => toggle(team)}
                             className={`rounded-xl border p-4 text-left font-semibold ${
                               active
-                                ? "border-green-400 bg-green-400 text-slate-950"
+                                ? "border-s4p-mark bg-s4p-mark text-slate-950"
                                 : "border-slate-700 bg-slate-900 text-white"
                             }`}
                           >
