@@ -2,22 +2,28 @@
 
 import { fixtureDisplayName } from "./club-fixtures";
 import publishedFixtures from "../data/published-fixtures.json";
+import { namesExactlyMatch } from "./upcoming-matches";
 import {
+  CUP_COMPETITION_NAMES,
   SPORTING_CALENDAR_LEAGUE_ORDER,
   SPORTING_CALENDAR_LEAGUES,
+  isCupCompetitionName,
   sportingLeagueByName,
   venueForTeam,
   type CalendarSport,
+  type CupCompetitionName,
   type SportingLeagueDef,
   type SportingTeam,
 } from "./sporting-calendar-leagues";
 
 export {
+  CUP_COMPETITION_NAMES,
   SPORTING_CALENDAR_LEAGUE_ORDER,
   SPORTING_CALENDAR_LEAGUES,
+  isCupCompetitionName,
   sportingLeagueByName,
 };
-export type { CalendarSport, SportingLeagueDef, SportingTeam };
+export type { CalendarSport, CupCompetitionName, SportingLeagueDef, SportingTeam };
 
 export const SPORTING_CALENDAR_SEASON = "2026/27";
 export const GLOBAL_MATCH_DAY_EXAMPLE_DATE = "2026-10-31";
@@ -191,6 +197,68 @@ export function findCalendarMatch(
 export function leagueMatchCountOnDate(date: string, league: string): number {
   return matchesOnCalendarDate(date).filter((row) => row.league === league)
     .length;
+}
+
+export function cupMatchesForClub(clubName: string): CalendarMatch[] {
+  const needle = clubName.trim();
+  if (!needle) return [];
+  return sportingCalendarMatches().filter(
+    (row) =>
+      isCupCompetitionName(row.league) &&
+      (namesExactlyMatch(row.homeName, needle) ||
+        namesExactlyMatch(row.awayName, needle))
+  );
+}
+
+export function clubsOnSportingCalendar(): string[] {
+  const names = new Set<string>();
+  for (const league of SPORTING_CALENDAR_LEAGUES) {
+    if (league.sport !== "Football") continue;
+    if (isCupCompetitionName(league.name)) continue;
+    for (const team of league.teams) names.add(team.name);
+  }
+  for (const match of sportingCalendarMatches()) {
+    if (!isCupCompetitionName(match.league)) continue;
+    names.add(match.homeName);
+    names.add(match.awayName);
+  }
+  return [...names].sort((left, right) => left.localeCompare(right));
+}
+
+export function busyCupDate(league: string): string | null {
+  const counts = new Map<string, number>();
+  for (const row of sportingCalendarMatches()) {
+    if (row.league !== league) continue;
+    counts.set(row.date, (counts.get(row.date) ?? 0) + 1);
+  }
+  let best: string | null = null;
+  let n = 0;
+  for (const [date, count] of counts) {
+    if (count > n) {
+      best = date;
+      n = count;
+    }
+  }
+  return best;
+}
+
+export function monthFromIsoDate(date: string): { year: number; month: number } | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match) return null;
+  return { year: Number(match[1]), month: Number(match[2]) - 1 };
+}
+
+export function cupCalendarHints(leaguesOnDay: readonly string[]): string[] {
+  const names = new Set(leaguesOnDay);
+  const present = CUP_COMPETITION_NAMES.filter((league) => names.has(league));
+  if (present.length > 0) {
+    return [
+      `Cup competitions in the row: ${present.join(", ")}. Click a club you wish to sponsor to see that club's Cup Match and tick Sponsor.`,
+    ];
+  }
+  return [
+    "Cup competitions (Champions League, Europa Cup, Europa Conference League, FA Cup, Carabao Cup, Scottish Cup, Italian Cup, German Cup, French Cup, Spanish Cup) sit on their own dates. Search a club to see every published Cup Match they play.",
+  ];
 }
 
 export function rugbyCalendarHints(leaguesOnDay: readonly string[]): string[] {

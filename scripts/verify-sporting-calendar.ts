@@ -1,14 +1,20 @@
 import { readFileSync } from "fs";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
 import {
+  CUP_COMPETITION_NAMES,
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
   NFL_EXAMPLE_DATE,
   RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
   SIX_NATIONS_EXAMPLE_DATE,
   SPORTING_CALENDAR_LEAGUE_ORDER,
   SPORTING_CALENDAR_SEASON,
+  busyCupDate,
   calendarLeagueDomId,
+  clubsOnSportingCalendar,
+  cupCalendarHints,
+  cupMatchesForClub,
   findCalendarMatch,
+  isCupCompetitionName,
   leagueMatchCountOnDate,
   matchesByLeagueOnDate,
   rugbyCalendarHints,
@@ -61,6 +67,16 @@ assert(
       "La Liga",
       "Ligue 1",
       "Serie A",
+      "Champions League",
+      "Europa Cup",
+      "Europa Conference League",
+      "FA Cup",
+      "Carabao Cup",
+      "Scottish Cup",
+      "Italian Cup",
+      "German Cup",
+      "French Cup",
+      "Spanish Cup",
       "NFL",
       "Premiership Rugby",
       "Top 14",
@@ -70,7 +86,27 @@ assert(
       "Super League",
       "NBA",
     ].join(" | "),
-  "Calendar mines football, NFL, Premiership Rugby, Top 14, Six Nations, The Rugby Championship, rugby league and NBA"
+  "Calendar mines football, cup competitions, NFL, Premiership Rugby, Top 14, Six Nations, The Rugby Championship, rugby league and NBA"
+);
+assert(
+  CUP_COMPETITION_NAMES.join(" | ") ===
+    [
+      "Champions League",
+      "Europa Cup",
+      "Europa Conference League",
+      "FA Cup",
+      "Carabao Cup",
+      "Scottish Cup",
+      "Italian Cup",
+      "German Cup",
+      "French Cup",
+      "Spanish Cup",
+    ].join(" | "),
+  "All ten cup competitions sit on the Sporting Calendar"
+);
+assert(
+  CUP_COMPETITION_NAMES.every((name) => isCupCompetitionName(name)),
+  "Each cup competition uses the calendar cup name"
 );
 assert(
   publishedFixtureSource().toLowerCase().includes("espn"),
@@ -477,6 +513,81 @@ assert(
   catalog.filter((row) => row.league === "Top 14").length >= 150 &&
     catalog.filter((row) => row.league === "Six Nations").length === 15,
   "Top 14 has a published 2026/27 season and Six Nations has the 15-Match 2027 championship"
+);
+
+for (const cup of [
+  "Champions League",
+  "Europa Cup",
+  "Europa Conference League",
+  "Carabao Cup",
+  "Scottish Cup",
+  "Italian Cup",
+  "German Cup",
+  "Spanish Cup",
+] as const) {
+  const count = catalog.filter((row) => row.league === cup).length;
+  assert(count >= 8, `${cup} has published 2026/27 Matches (${count})`);
+  assert(Boolean(busyCupDate(cup)), `${cup} has a date a sponsor can load`);
+}
+
+const champions = catalog.filter((row) => row.league === "Champions League");
+assert(champions.length >= 50, "Champions League has a published league-phase catalog");
+const cupClub = champions[0]?.homeName ?? "";
+assert(
+  Boolean(cupClub) &&
+    cupMatchesForClub(cupClub).some((row) => row.league === "Champions League"),
+  "Clicking a Champions League club returns that club's Cup Match"
+);
+assert(
+  cupMatchesForClub("Arsenal").some((row) => row.league === "Champions League") &&
+    cupMatchesForClub("Arsenal").some((row) => row.league === "Carabao Cup") &&
+    findCalendarMatch("2026-10-21", "Bayern Munich v Arsenal")?.league ===
+      "Champions League",
+  "Arsenal's club picker lists Champions League and Carabao Cup Matches"
+);
+assert(
+  cupMatchesForClub("Hearts").some(
+    (row) => row.league === "Europa Conference League"
+  ) &&
+    cupMatchesForClub("Hearts").every(
+      (row) =>
+        row.homeName === "Hearts" || row.awayName === "Hearts"
+    ) &&
+    !cupMatchesForClub("Hearts").some((row) =>
+      /kelty/i.test(row.fixtureName)
+    ),
+  "Hearts' club picker lists Europa Conference League Matches, not Kelty Hearts"
+);
+assert(
+  clubsOnSportingCalendar().includes("Arsenal") &&
+    clubsOnSportingCalendar().includes("Hearts") &&
+    clubsOnSportingCalendar().includes("Barcelona"),
+  "The club picker lists Sporting Calendar clubs including Arsenal, Hearts and Barcelona"
+);
+assert(
+  board.includes("Sponsor a club in a Cup") &&
+    board.includes("Club you wish to sponsor") &&
+    board.includes("selectClub") &&
+    board.includes("cupMatchesForClub") &&
+    board.includes("onSelectClub") &&
+    board.includes("loadCupDate") &&
+    board.includes("Load {league}"),
+  "Sponsors click a club, see that club's Cup Match, and tick Sponsor"
+);
+const octCupHints = cupCalendarHints(
+  matchesByLeagueOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE).map((row) => row.league)
+);
+assert(
+  octCupHints.length > 0 &&
+    octCupHints.some(
+      (hint) =>
+        hint.includes("Cup competitions") || hint.includes("Click a club")
+    ),
+  "The calendar explains how to open a club's Cup Match"
+);
+assert(
+  currentSeasonTeamCount() === 3,
+  "Cup competitions do not add clubs to the three-club demo catalog"
 );
 
 if (failures.length > 0) {

@@ -38,7 +38,16 @@ export function competitionLockLabel(
   if (/\bfa cup\b/i.test(name)) return "FA Cup Match";
   if (/scottish premiership/i.test(name)) return "Scottish Premiership Match";
   if (/la liga/i.test(name)) return "La Liga Match";
-  if (/league cup|carabao/i.test(name)) return "Other Match Day";
+  if (/league cup|carabao/i.test(name)) return "Carabao Cup Match";
+  if (/europa conference|conference league/i.test(name)) {
+    return "Europa Conference League Match";
+  }
+  if (/europa/i.test(name)) return "Europa Cup Match";
+  if (/scottish cup/i.test(name)) return "Scottish Cup Match";
+  if (/italian cup|coppa/i.test(name)) return "Italian Cup Match";
+  if (/german cup|pokal/i.test(name)) return "German Cup Match";
+  if (/french cup|coupe de france/i.test(name)) return "French Cup Match";
+  if (/spanish cup|copa del rey/i.test(name)) return "Spanish Cup Match";
   if (!name) return "Other Match Day";
   return /match$/i.test(name) ? name : `${name} Match`;
 }

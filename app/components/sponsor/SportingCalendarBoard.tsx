@@ -8,6 +8,7 @@ import {
   shiftMonth,
 } from "@/app/lib/sponsor-signed-home";
 import {
+  CUP_COMPETITION_NAMES,
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
   NFL_EXAMPLE_DATE,
   NFL_EXAMPLE_MONTH,
@@ -15,8 +16,13 @@ import {
   RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH,
   SIX_NATIONS_EXAMPLE_DATE,
   SIX_NATIONS_EXAMPLE_MONTH,
+  busyCupDate,
   calendarDatesInMonth,
   calendarLeagueDomId,
+  clubsOnSportingCalendar,
+  cupCalendarHints,
+  cupMatchesForClub,
+  monthFromIsoDate,
   matchesByLeagueOnDate,
   rugbyCalendarHints,
   type CalendarMatch,
@@ -74,6 +80,8 @@ export function SportingCalendarBoard({
   const [pendingScrollLeague, setPendingScrollLeague] = useState<string | null>(
     null
   );
+  const [clubQuery, setClubQuery] = useState("");
+  const [selectedClub, setSelectedClub] = useState<string | null>(null);
   useEffect(() => {
     if (initialPicks.length === 0) return;
     setBasket((current) => (current.length > 0 ? current : initialPicks));
@@ -83,15 +91,42 @@ export function SportingCalendarBoard({
   const groups = matchesByLeagueOnDate(selectedDate);
   const longDate = formatLongMatchDate(selectedDate) || selectedDate;
   const leagueCounts = countPicksByLeague(basket);
+  const calendarClubs = useMemo(() => clubsOnSportingCalendar(), []);
+  const clubSuggestions = useMemo(() => {
+    const needle = clubQuery.trim().toLowerCase();
+    if (needle.length < 2) return [];
+    return calendarClubs
+      .filter((name) => name.toLowerCase().includes(needle))
+      .sort((left, right) => {
+        const a = left.toLowerCase();
+        const b = right.toLowerCase();
+        const aStart = a.startsWith(needle) ? 0 : 1;
+        const bStart = b.startsWith(needle) ? 0 : 1;
+        if (aStart !== bStart) return aStart - bStart;
+        return a.localeCompare(b);
+      })
+      .slice(0, 12);
+  }, [calendarClubs, clubQuery]);
+  const clubCupMatches = useMemo(
+    () => (selectedClub ? cupMatchesForClub(selectedClub) : []),
+    [selectedClub]
+  );
+  const cupLoadLeagues = useMemo(
+    () =>
+      CUP_COMPETITION_NAMES.filter((league) => Boolean(busyCupDate(league))),
+    []
+  );
   useEffect(() => {
     if (!pendingScrollLeague) return;
-    const node = document.getElementById(
-      calendarLeagueDomId(pendingScrollLeague)
-    );
+    const id =
+      pendingScrollLeague === "club-cups"
+        ? "calendar-club-cups"
+        : calendarLeagueDomId(pendingScrollLeague);
+    const node = document.getElementById(id);
     if (!node) return;
     node.scrollIntoView({ behavior: "smooth", block: "start" });
     setPendingScrollLeague(null);
-  }, [groups, pendingScrollLeague]);
+  }, [groups, pendingScrollLeague, clubCupMatches]);
 
   function go(delta: number) {
     const next = shiftMonth(year, month, delta);
@@ -153,6 +188,34 @@ export function SportingCalendarBoard({
     setYear(EXAMPLE_MONTH.year);
     setMonth(EXAMPLE_MONTH.month);
     setPendingScrollLeague("Top 14");
+  }
+
+  function loadCupDate(league: string) {
+    const date = busyCupDate(league);
+    if (!date) return;
+    const month = monthFromIsoDate(date);
+    if (month) {
+      setYear(month.year);
+      setMonth(month.month);
+    }
+    selectDate(date, league);
+    setPendingScrollLeague(league);
+  }
+
+  function selectClub(clubName: string) {
+    setSelectedClub(clubName);
+    setClubQuery(clubName);
+    const cups = cupMatchesForClub(clubName);
+    const first = cups[0];
+    if (!first) return;
+    const month = monthFromIsoDate(first.date);
+    if (month) {
+      setYear(month.year);
+      setMonth(month.month);
+    }
+    selectDate(first.date, first.league);
+    setOpenLeagues(new Set(cups.map((row) => row.league)));
+    setPendingScrollLeague("club-cups");
   }
 
   function jumpToLeague(league: string) {
@@ -232,6 +295,123 @@ export function SportingCalendarBoard({
           >
             Load The Rugby Championship 10 July
           </button>
+          {cupLoadLeagues.map((league) => (
+            <button
+              key={league}
+              type="button"
+              onClick={() => loadCupDate(league)}
+              className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+            >
+              Load {league}
+            </button>
+          ))}
+        </div>
+        <div
+          id="calendar-club-cups"
+          className="mt-6 rounded-2xl border border-slate-300 bg-white p-5"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+            Sponsor a club in a Cup
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-slate-950">
+            Click a club, see their Cup Match, tick Sponsor
+          </h2>
+          <p className="mt-2 max-w-3xl text-slate-600">
+            Champions League, Europa Cup, Europa Conference League, FA Cup,
+            Carabao Cup, Scottish Cup, Italian Cup, German Cup, French Cup and
+            Spanish Cup are on this calendar. Search a club you wish to
+            sponsor. Published Cup Matches for that club appear here so you can
+            tick Sponsor on the named Match.
+          </p>
+          <label className="mt-4 block text-sm font-semibold text-slate-950">
+            Club you wish to sponsor
+            <input
+              type="search"
+              value={clubQuery}
+              onChange={(event) => {
+                setClubQuery(event.target.value);
+                if (selectedClub && event.target.value !== selectedClub) {
+                  setSelectedClub(null);
+                }
+              }}
+              placeholder="Arsenal, Bayern Munich, Barcelona…"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-slate-950"
+            />
+          </label>
+          {clubSuggestions.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {clubSuggestions.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => selectClub(name)}
+                  className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
+                    selectedClub === name
+                      ? "border-s4p-mark bg-s4p-mark text-slate-950"
+                      : "border-slate-300 bg-white text-slate-950"
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          ) : clubQuery.trim().length >= 2 ? (
+            <p className="mt-3 text-sm text-slate-500">
+              No club matches that search.
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">
+              Type at least two letters to find a club.
+            </p>
+          )}
+          {selectedClub ? (
+            <div className="mt-5">
+              <h3 className="text-xl font-black text-slate-950">
+                {selectedClub} · Cup Matches
+              </h3>
+              {clubCupMatches.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-600">
+                  No published Cup Match for {selectedClub} yet. FA Cup First
+                  Round is 7 November 2026; Scottish Premiership clubs enter the
+                  Scottish Cup on 16 January 2027. Tick a Cup Match here as soon
+                  as that draw is published.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-4">
+                  {CUP_COMPETITION_NAMES.map((league) => {
+                    const rows = clubCupMatches.filter(
+                      (row) => row.league === league
+                    );
+                    if (rows.length === 0) return null;
+                    return (
+                      <div
+                        key={league}
+                        className="rounded-2xl border border-slate-300 bg-white p-4"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          {league}
+                        </p>
+                        <ul className="mt-3 grid gap-2">
+                          {rows.map((match) => (
+                            <CalendarMatchRow
+                              key={match.id}
+                              match={match}
+                              brandName={brandName}
+                              basket={basket}
+                              showDate
+                              onToggle={() => toggle(match, selectedClub)}
+                              onLeadClub={setLeadClub}
+                              onSelectClub={selectClub}
+                            />
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
         <div className="mt-6 flex items-center justify-between gap-4">
           <button
@@ -312,6 +492,11 @@ export function SportingCalendarBoard({
             ? "NFL is in the competition row. Click NFL to open the collapsible fixture list."
             : "NFL fixtures are on Sundays (and some Thursday/Monday nights), not this date. Click Load NFL Sunday 1 November."}
         </p>
+        {cupCalendarHints(groups.map((row) => row.league)).map((hint) => (
+          <p key={hint} className="mt-2 text-sm text-slate-400">
+            {hint}
+          </p>
+        ))}
         {rugbyCalendarHints(groups.map((row) => row.league)).map((hint) => (
           <p key={hint} className="mt-2 text-sm text-slate-400">
             {hint}
@@ -388,6 +573,7 @@ export function SportingCalendarBoard({
                       basket={basket}
                       onToggle={toggle}
                       onLeadClub={setLeadClub}
+                      onSelectClub={selectClub}
                     />
                   ))}
                 </ul>
@@ -545,12 +731,16 @@ function CalendarMatchRow({
   basket,
   onToggle,
   onLeadClub,
+  onSelectClub,
+  showDate = false,
 }: {
   match: CalendarMatch;
   brandName: string;
   basket: GlobalMatchPick[];
   onToggle: (match: CalendarMatch, clubName?: string) => void;
   onLeadClub: (match: CalendarMatch, clubName: string) => void;
+  onSelectClub?: (clubName: string) => void;
+  showDate?: boolean;
 }) {
   const picked = isMatchPicked(basket, match);
   const homeBlocked = isSponsorBlockedFromClub(brandName, match.homeName);
@@ -567,17 +757,23 @@ function CalendarMatchRow({
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => onToggle(match)}
-          aria-pressed={picked}
-          className="text-left"
-        >
-          <p className="font-bold text-slate-950">{match.fixtureName}</p>
-          <p className="mt-1 text-sm text-slate-500">
-            {formatKickoff(match.kickoff)} · {match.venue}
+        <div className="text-left">
+          <p className="font-bold text-slate-950">
+            <ClubNameButton
+              clubName={match.homeName}
+              onSelectClub={onSelectClub}
+            />
+            <span> v </span>
+            <ClubNameButton
+              clubName={match.awayName}
+              onSelectClub={onSelectClub}
+            />
           </p>
-        </button>
+          <p className="mt-1 text-sm text-slate-500">
+            {showDate ? `${formatMatchDate(match.date)} · ` : ""}
+            {formatKickoff(match.kickoff)} · {match.venue || "TBC"}
+          </p>
+        </div>
         <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-950">
           <input
             type="checkbox"
@@ -604,6 +800,25 @@ function CalendarMatchRow({
         </div>
       ) : null}
     </li>
+  );
+}
+
+function ClubNameButton({
+  clubName,
+  onSelectClub,
+}: {
+  clubName: string;
+  onSelectClub?: (clubName: string) => void;
+}) {
+  if (!onSelectClub) return <>{clubName}</>;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelectClub(clubName)}
+      className="underline decoration-s4p-mark decoration-2 underline-offset-2"
+    >
+      {clubName}
+    </button>
   );
 }
 

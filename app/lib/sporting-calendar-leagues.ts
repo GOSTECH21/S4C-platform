@@ -446,6 +446,106 @@ export const SPORTING_CALENDAR_LEAGUES: SportingLeagueDef[] = [
     teams: SERIE_A_TEAMS,
   },
   {
+    name: "Champions League",
+    sport: "Football",
+    country: "Europe",
+    kickoff: "20:00",
+    weekday: 2,
+    startDate: "2026-09-08",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "Europa Cup",
+    sport: "Football",
+    country: "Europe",
+    kickoff: "20:00",
+    weekday: 3,
+    startDate: "2026-09-16",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "Europa Conference League",
+    sport: "Football",
+    country: "Europe",
+    kickoff: "20:00",
+    weekday: 3,
+    startDate: "2026-10-15",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "FA Cup",
+    sport: "Football",
+    country: "England",
+    kickoff: "15:00",
+    weekday: 6,
+    startDate: "2026-11-07",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "Carabao Cup",
+    sport: "Football",
+    country: "England",
+    kickoff: "20:00",
+    weekday: 2,
+    startDate: "2026-08-06",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "Scottish Cup",
+    sport: "Football",
+    country: "Scotland",
+    kickoff: "15:00",
+    weekday: 6,
+    startDate: "2026-08-01",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "Italian Cup",
+    sport: "Football",
+    country: "Italy",
+    kickoff: "20:00",
+    weekday: 2,
+    startDate: "2026-08-09",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "German Cup",
+    sport: "Football",
+    country: "Germany",
+    kickoff: "20:00",
+    weekday: 2,
+    startDate: "2026-08-15",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "French Cup",
+    sport: "Football",
+    country: "France",
+    kickoff: "20:00",
+    weekday: 6,
+    startDate: "2026-11-14",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
+    name: "Spanish Cup",
+    sport: "Football",
+    country: "Spain",
+    kickoff: "21:00",
+    weekday: 3,
+    startDate: "2026-10-27",
+    singleLegs: 1,
+    teams: [],
+  },
+  {
     name: "NFL",
     sport: "NFL",
     country: "United States",
@@ -522,6 +622,28 @@ export const SPORTING_CALENDAR_LEAGUES: SportingLeagueDef[] = [
     teams: NBA_TEAMS,
   },
 ];
+
+export const CUP_COMPETITION_NAMES = [
+  "Champions League",
+  "Europa Cup",
+  "Europa Conference League",
+  "FA Cup",
+  "Carabao Cup",
+  "Scottish Cup",
+  "Italian Cup",
+  "German Cup",
+  "French Cup",
+  "Spanish Cup",
+] as const;
+
+export type CupCompetitionName = (typeof CUP_COMPETITION_NAMES)[number];
+
+export function isCupCompetitionName(
+  name: string | null | undefined
+): boolean {
+  const needle = String(name ?? "").trim();
+  return (CUP_COMPETITION_NAMES as readonly string[]).includes(needle);
+}
 
 export const SPORTING_CALENDAR_LEAGUE_ORDER = SPORTING_CALENDAR_LEAGUES.map(
   (league) => league.name
