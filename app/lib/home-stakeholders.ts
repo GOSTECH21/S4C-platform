@@ -62,7 +62,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
   {
     title: "A National/Global Climate Sponsor",
     description:
-      "Sponsor sporting moments at scale, measure your environmental impact and feature on the Climate Impact Sponsor Table (CIST).",
+      "Sponsor sporting moments at scale (e.g a Goal-scored); have a direct engagement with Fans & Supporters who care about your environmental credentials; and feature on our Climate Impact Sponsor Table (CIST).",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Register as a Sponsor →",
