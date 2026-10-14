@@ -185,9 +185,9 @@ export function ClimateProjectSponsors({
               used={leadUsed}
               onNumber={setLeadNumber}
               testIdPrefix="lead"
-              label="Global Schools Solar"
-              emptyLabel="Select a Global Schools Solar version"
-              ariaLabel={`Select a Global Schools Solar version to receive funding from ${lead.brandName}`}
+              label="Climate Project"
+              emptyLabel="Select a Climate Project"
+              ariaLabel={`Select a Climate Project to receive funding from ${lead.brandName}`}
             />
             <FundItButton
               disabled={leadBlocked}

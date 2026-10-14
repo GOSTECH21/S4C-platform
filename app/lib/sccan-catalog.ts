@@ -26,10 +26,8 @@ export type PartnerCatalogProject = {
   address?: string;
 };
 
-export const FEATURED_GSS_LOCAL_NAME =
-  "Global Schools Solar — Local School (near the stadium)";
-export const FEATURED_GSS_WORLD_NAME =
-  "Global Schools Solar — School anywhere in the world";
+export const FEATURED_GSS_LOCAL_NAME = "Local Global Schools Solar";
+export const FEATURED_GSS_WORLD_NAME = "International Global Schools Solar";
 
 export const FEATURED_GLOBAL_SCHOOLS_SOLAR: PartnerCatalogProject = {
   name: FEATURED_PROJECT_NAME,

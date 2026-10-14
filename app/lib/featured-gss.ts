@@ -14,11 +14,19 @@ export function isFeaturedGssName(name: string | null | undefined): boolean {
 }
 
 export function isFeaturedGssLocalName(name: string | null | undefined): boolean {
-  return /local school/i.test(name ?? "") && isFeaturedGssName(name);
+  const value = name ?? "";
+  return (
+    isFeaturedGssName(value) &&
+    (/local school/i.test(value) || /local\s+global\s+schools\s+solar/i.test(value))
+  );
 }
 
 export function isFeaturedGssWorldName(name: string | null | undefined): boolean {
-  return /anywhere in the world/i.test(name ?? "") && isFeaturedGssName(name);
+  const value = name ?? "";
+  return (
+    isFeaturedGssName(value) &&
+    (/anywhere in the world/i.test(value) || /international/i.test(value))
+  );
 }
 
 export function expandFeaturedGssVersions<T extends { id: string; name: string }>(
@@ -31,7 +39,7 @@ export function expandFeaturedGssVersions<T extends { id: string; name: string }
   return [
     local ?? {
       ...base,
-      id: `${base.id}::gss-local`,
+      ...(world ? { id: `${base.id}::gss-local` } : {}),
       name: FEATURED_GSS_LOCAL_NAME,
     },
     world ?? {
@@ -67,6 +75,16 @@ export function withFeaturedGssVersions<T extends { id: string; name: string }>(
   projects: T[]
 ): T[] {
   return [...featuredFromList(projects), ...localFromList(projects)];
+}
+
+/** Fan FUND-IT lists both GSS versions even when the club posted only one. */
+export function withFanGssChoices<T extends { id: string; name: string }>(
+  projects: T[]
+): T[] {
+  return [
+    ...expandFeaturedGssVersions(featuredFromList(projects)),
+    ...localFromList(projects),
+  ];
 }
 
 export function featuredFromList<T extends { name: string }>(projects: T[]): T[] {

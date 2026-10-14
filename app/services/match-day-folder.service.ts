@@ -1,4 +1,4 @@
-import { withFeaturedGssVersions } from "../lib/featured-gss";
+import { withFanGssChoices } from "../lib/featured-gss";
 import { MATCH_DAY_PROJECT_COUNT } from "../lib/partner-projects";
 import {
   hasFanVotedSponsor,
@@ -445,14 +445,14 @@ export function fanVisibleProjects(
     folder?.projectsFile?.projects?.length
       ? folder.projectsFile.projects
       : fallback;
-  const funded = clubId ? loadFundedProjects(clubId, base) : base;
-  return numberedFeaturedGss(funded);
+  const expanded = numberedFeaturedGss(base);
+  return clubId ? loadFundedProjects(clubId, expanded) : expanded;
 }
 
 function numberedFeaturedGss(
   projects: NumberedClimateProject[]
 ): NumberedClimateProject[] {
-  return withFeaturedGssVersions(projects).map((project, index) => ({
+  return withFanGssChoices(projects).map((project, index) => ({
     ...project,
     number: index + 1,
   }));
