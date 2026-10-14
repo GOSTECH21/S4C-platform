@@ -1,0 +1,204 @@
+{
+  "season": "2026/27",
+  "source": "Guinness Men's Six Nations and Rugby Australia published calendars",
+  "matches": [
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-05",
+      "kickoff": "20:10",
+      "homeName": "Ireland",
+      "awayName": "England",
+      "venue": "Aviva Stadium",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-06",
+      "kickoff": "14:10",
+      "homeName": "Scotland",
+      "awayName": "Italy",
+      "venue": "Scottish Gas Murrayfield",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-06",
+      "kickoff": "16:40",
+      "homeName": "France",
+      "awayName": "Wales",
+      "venue": "Stade de France",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-13",
+      "kickoff": "14:10",
+      "homeName": "Italy",
+      "awayName": "Ireland",
+      "venue": "Stadio Olimpico",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-13",
+      "kickoff": "16:40",
+      "homeName": "Scotland",
+      "awayName": "Wales",
+      "venue": "Scottish Gas Murrayfield",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-14",
+      "kickoff": "15:10",
+      "homeName": "England",
+      "awayName": "France",
+      "venue": "Twickenham",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-20",
+      "kickoff": "14:10",
+      "homeName": "Wales",
+      "awayName": "Ireland",
+      "venue": "Principality Stadium",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-20",
+      "kickoff": "16:40",
+      "homeName": "England",
+      "awayName": "Italy",
+      "venue": "Twickenham",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-02-21",
+      "kickoff": "15:10",
+      "homeName": "France",
+      "awayName": "Scotland",
+      "venue": "Stade de France",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-03-05",
+      "kickoff": "20:10",
+      "homeName": "Scotland",
+      "awayName": "Ireland",
+      "venue": "Scottish Gas Murrayfield",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-03-06",
+      "kickoff": "14:10",
+      "homeName": "Italy",
+      "awayName": "France",
+      "venue": "Stadio Olimpico",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-03-06",
+      "kickoff": "16:40",
+      "homeName": "Wales",
+      "awayName": "England",
+      "venue": "Principality Stadium",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-03-13",
+      "kickoff": "14:10",
+      "homeName": "Italy",
+      "awayName": "Wales",
+      "venue": "Stadio Olimpico",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-03-13",
+      "kickoff": "16:40",
+      "homeName": "England",
+      "awayName": "Scotland",
+      "venue": "Twickenham",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "Six Nations",
+      "sport": "Rugby",
+      "country": "Europe",
+      "date": "2027-03-13",
+      "kickoff": "20:10",
+      "homeName": "Ireland",
+      "awayName": "France",
+      "venue": "Aviva Stadium",
+      "source": "six-nations-rugby"
+    },
+    {
+      "league": "The Rugby Championship",
+      "sport": "Rugby",
+      "country": "International",
+      "date": "2027-07-10",
+      "kickoff": "",
+      "homeName": "Australia",
+      "awayName": "Argentina",
+      "venue": "Allianz Stadium",
+      "source": "rugby-australia"
+    },
+    {
+      "league": "The Rugby Championship",
+      "sport": "Rugby",
+      "country": "International",
+      "date": "2027-07-17",
+      "kickoff": "",
+      "homeName": "Australia",
+      "awayName": "Argentina",
+      "venue": "Queensland Country Bank Stadium",
+      "source": "rugby-australia"
+    },
+    {
+      "league": "The Rugby Championship",
+      "sport": "Rugby",
+      "country": "International",
+      "date": "2027-07-31",
+      "kickoff": "",
+      "homeName": "Australia",
+      "awayName": "New Zealand",
+      "venue": "TBC",
+      "source": "rugby-australia"
+    }
+  ]
+}

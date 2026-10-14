@@ -56,9 +56,14 @@ SOURCES = [
     ("Serie A", "Football", "Italy", "soccer/ita.1", "Europe/London", FOOTBALL_MONTHS),
     ("NFL", "NFL", "United States", "football/nfl", "America/New_York", NFL_MONTHS),
     ("Premiership Rugby", "Rugby", "England", "rugby/267979", "Europe/London", RUGBY_MONTHS),
+    ("Top 14", "Rugby", "France", "rugby/270559", "Europe/Paris", RUGBY_MONTHS),
+    ("Six Nations", "Rugby", "Europe", "rugby/180659", "Europe/London", ["202702", "202703"]),
+    ("The Rugby Championship", "Rugby", "International", "rugby/244293", "Pacific/Auckland", ["202707", "202708"]),
+    ("Nations Championship", "Rugby", "International", "rugby/17567", "Europe/London", ["202607", "202611"]),
     ("NBA", "NBA", "United States", "basketball/nba", "America/New_York", NBA_MONTHS),
     # Super League (rugby league) is not on ESPN's rugby-league/3 scoreboard (that id is NRL).
     # Do not mine United Rugby Championship (270557) as Super League.
+    # The Rugby Championship is paused in 2026 (Nations Championship year) and returns in 2027.
 ]
 
 NAME_ALIASES = {
@@ -77,6 +82,13 @@ NAME_ALIASES = {
     "FC Schalke 04": "Schalke 04",
     "St. Mirren": "St Mirren",
     "St. Johnstone": "St Johnstone",
+    "LOU Rugby": "Lyon",
+    "Bordeaux": "Bordeaux Begles",
+    "Stade Francais Paris": "Stade Francais",
+    "Montpellier Herault": "Montpellier",
+    "Clermont Auvergne": "Clermont",
+    "Stade Toulousain": "Toulouse",
+    "Castres Olympique": "Castres",
 }
 
 

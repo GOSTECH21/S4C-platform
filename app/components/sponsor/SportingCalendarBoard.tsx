@@ -11,9 +11,14 @@ import {
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
   NFL_EXAMPLE_DATE,
   NFL_EXAMPLE_MONTH,
+  RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
+  RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH,
+  SIX_NATIONS_EXAMPLE_DATE,
+  SIX_NATIONS_EXAMPLE_MONTH,
   calendarDatesInMonth,
   calendarLeagueDomId,
   matchesByLeagueOnDate,
+  rugbyCalendarHints,
   type CalendarMatch,
 } from "@/app/lib/sporting-calendar";
 import {
@@ -123,6 +128,27 @@ export function SportingCalendarBoard({
     setPendingScrollLeague("NFL");
   }
 
+  function loadSixNations() {
+    selectDate(SIX_NATIONS_EXAMPLE_DATE, "Six Nations");
+    setYear(SIX_NATIONS_EXAMPLE_MONTH.year);
+    setMonth(SIX_NATIONS_EXAMPLE_MONTH.month);
+    setPendingScrollLeague("Six Nations");
+  }
+
+  function loadRugbyChampionship() {
+    selectDate(RUGBY_CHAMPIONSHIP_EXAMPLE_DATE, "The Rugby Championship");
+    setYear(RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH.year);
+    setMonth(RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH.month);
+    setPendingScrollLeague("The Rugby Championship");
+  }
+
+  function loadTop14Saturday() {
+    selectDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Top 14");
+    setYear(EXAMPLE_MONTH.year);
+    setMonth(EXAMPLE_MONTH.month);
+    setPendingScrollLeague("Top 14");
+  }
+
   function jumpToLeague(league: string) {
     setOpenLeagues(new Set([league]));
     setPendingScrollLeague(league);
@@ -170,6 +196,27 @@ export function SportingCalendarBoard({
             className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
           >
             Load NFL Sunday 1 November
+          </button>
+          <button
+            type="button"
+            onClick={loadTop14Saturday}
+            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+          >
+            Load Top 14 Saturday 31 October
+          </button>
+          <button
+            type="button"
+            onClick={loadSixNations}
+            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+          >
+            Load Six Nations Super Saturday 13 March
+          </button>
+          <button
+            type="button"
+            onClick={loadRugbyChampionship}
+            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
+          >
+            Load The Rugby Championship 10 July
           </button>
         </div>
         <div className="mt-6 flex items-center justify-between gap-4">
@@ -251,6 +298,11 @@ export function SportingCalendarBoard({
             ? "NFL is in the competition row. Click NFL to open the collapsible fixture list."
             : "NFL fixtures are on Sundays (and some Thursday/Monday nights), not this date. Click Load NFL Sunday 1 November."}
         </p>
+        {rugbyCalendarHints(groups.map((row) => row.league)).map((hint) => (
+          <p key={hint} className="mt-2 text-sm text-slate-400">
+            {hint}
+          </p>
+        ))}
         {groups.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {groups.map((group) => (
