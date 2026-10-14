@@ -79,7 +79,7 @@ export default function MyTeamsList({
                           >
                             <p className="font-semibold">✓ {team.displayName}</p>
                             <div className="mt-3 border-t border-green-700/30 pt-3">
-                              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-800">
+                              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-s4p-mint">
                                 Next matches
                               </p>
                               <MatchLines
@@ -90,7 +90,7 @@ export default function MyTeamsList({
                             </div>
                             {cups.length > 0 && (
                               <div className="mt-3 border-t border-green-700/30 pt-3">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-800">
+                                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-s4p-mint">
                                   Cup competitions
                                 </p>
                                 <MatchLines
