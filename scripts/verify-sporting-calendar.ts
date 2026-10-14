@@ -2,8 +2,10 @@ import { readFileSync } from "fs";
 import { currentSeasonTeamCount } from "../app/lib/current-season";
 import {
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
+  NFL_EXAMPLE_DATE,
   SPORTING_CALENDAR_LEAGUE_ORDER,
   SPORTING_CALENDAR_SEASON,
+  calendarLeagueDomId,
   findCalendarMatch,
   leagueMatchCountOnDate,
   matchesByLeagueOnDate,
@@ -320,8 +322,42 @@ assert(
 );
 
 assert(
-  matchesOnCalendarDate("2026-11-01").some((row) => row.league === "NFL"),
-  "NFL Sundays are mined on the published 2026 calendar"
+  NFL_EXAMPLE_DATE === "2026-11-01",
+  "The NFL example Sunday is 1 November 2026"
+);
+const nflSundayCount = leagueMatchCountOnDate(NFL_EXAMPLE_DATE, "NFL");
+assert(
+  nflSundayCount >= 10,
+  "Sunday 1 November 2026 has a published NFL slate"
+);
+assert(
+  fixtureListIsCollapsible(nflSundayCount),
+  "The NFL Sunday slate uses the same collapsible list as football leagues"
+);
+assert(
+  matchesByLeagueOnDate(NFL_EXAMPLE_DATE).some((row) => row.league === "NFL") &&
+    matchesByLeagueOnDate("2026-11-29").some(
+      (row) => row.league === "NFL" && row.matches.length >= 8
+    ),
+  "NFL fixtures are grouped on Sunday 1 November and Sunday 29 November"
+);
+assert(
+  board.includes("Load NFL Sunday 1 November") &&
+    board.includes("loadNflSunday") &&
+    board.includes("jumpToLeague") &&
+    board.includes("calendarLeagueDomId") &&
+    calendarLeagueDomId("NFL") === "calendar-league-NFL",
+  "The calendar jumps to NFL and lists that Sunday's collapsible fixtures"
+);
+assert(
+  board.includes("NFL fixtures are on Sundays") &&
+    board.includes("pendingScrollLeague"),
+  "The calendar explains that NFL sits on Sundays and scrolls to the collapsible NFL list"
+);
+assert(
+  findCalendarMatch(NFL_EXAMPLE_DATE, "Buffalo Bills v Baltimore Ravens")
+    ?.league === "NFL",
+  "NFL Sunday names published fixtures such as Buffalo Bills v Baltimore Ravens"
 );
 
 if (failures.length > 0) {
