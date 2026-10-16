@@ -1,6 +1,10 @@
 /** Club climate-sponsor roster, Goal Sponsorship Network, and match-day lock-in. */
 
 import { CURRENT_SEASON_LEAGUES, leagueForClubName } from "./current-season";
+import {
+  leagueForSportingCalendarClub,
+  sportingCalendarClubGroups,
+} from "./calendar-clubs";
 import { clubsMatch, normalizeClubName } from "./sponsor-dashboard";
 export { clubsMatch };
 import { MATCH_DAY_LEAD_HOURS } from "./partner-projects";
@@ -962,7 +966,11 @@ export function addLeagueToNetwork(
   network: GoalSponsorshipNetwork,
   leagueName: string
 ): GoalSponsorshipNetwork {
-  const clubs = CURRENT_SEASON_LEAGUES[leagueName] ?? [];
+  const clubs =
+    CURRENT_SEASON_LEAGUES[leagueName] ??
+    sportingCalendarClubGroups().find((row) => row.league === leagueName)
+      ?.clubs ??
+    [];
   const leagues = network.leagues.some((row) => row === leagueName)
     ? network.leagues
     : [...network.leagues, leagueName];
@@ -976,7 +984,9 @@ export function acceptInviteIntoNetwork(
 ): GoalSponsorshipNetwork {
   let next = addClubsToNetwork(network, [invite.fromClubName]);
   if (includeLeague) {
-    const league = leagueForClubName(invite.fromClubName);
+    const league =
+      leagueForClubName(invite.fromClubName) ??
+      leagueForSportingCalendarClub(invite.fromClubName);
     if (league) next = addLeagueToNetwork(next, league);
   }
   return next;

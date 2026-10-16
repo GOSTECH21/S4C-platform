@@ -60,17 +60,18 @@ export default function SponsorRegisterPage() {
   };
 
   return (
-    <div className="mx-auto max-w-lg py-10">
+    <div className="mx-auto max-w-3xl py-10">
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
         Brand / Sponsor
       </p>
       <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Create your Sponsorship Manager account and choose the clubs whose
-            Goals you want to sponsor at national or global scale. Those clubs
-            join your Goal Sponsorship Network. 72 hours before a Match Day you
-            lock in one club — and only that club&apos;s posted Climate Projects
-            appear here.
+            Goals you want to sponsor at national or global scale — Premier
+            League through NBA, rugby and NFL. Those clubs join your Goal
+            Sponsorship Network. 72 hours before a Match Day you lock in one
+            club — and only that club&apos;s posted Climate Projects appear
+            here.
           </p>
 
       {error && (

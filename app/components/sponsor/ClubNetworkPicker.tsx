@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
+import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
 import { clubNetworkLeagueId } from "@/app/lib/climate-sponsors";
 
 export function ClubNetworkPicker({
@@ -26,13 +26,22 @@ export function ClubNetworkPicker({
 
   const groups = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return Object.entries(CURRENT_SEASON_LEAGUES)
-      .map(([league, clubs]) => ({
-        league,
-        clubs: clubs.filter((club) =>
-          needle ? club.toLowerCase().includes(needle) : true
-        ),
-      }))
+    return sportingCalendarClubGroups()
+      .map((group) => {
+        const leagueHit =
+          Boolean(needle) &&
+          (group.league.toLowerCase().includes(needle) ||
+            group.sport.toLowerCase().includes(needle) ||
+            group.country.toLowerCase().includes(needle));
+        return {
+          ...group,
+          clubs: leagueHit
+            ? group.clubs
+            : group.clubs.filter((club) =>
+                needle ? club.toLowerCase().includes(needle) : true
+              ),
+        };
+      })
       .filter((group) => group.clubs.length > 0);
   }, [query]);
 
@@ -55,58 +64,64 @@ export function ClubNetworkPicker({
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search clubs or type Arsenal, Hibernian..."
-        className="w-full rounded-lg bg-slate-800 p-3 text-white"
+        placeholder="Search clubs or type Arsenal, Barcelona, Patriots…"
+        className="w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-950"
       />
       {selected.length > 0 && (
-        <p className="mt-3 text-sm text-slate-300">
+        <p className="mt-3 text-sm text-slate-600">
           Goal Sponsorship Network: {selected.join(", ")}
         </p>
       )}
-      <div className={`mt-4 space-y-3 ${compact ? "max-h-72 overflow-y-auto pr-1" : ""}`}>
-        {groups.map((group) => (
-          <details
-            key={group.league}
-            id={clubNetworkLeagueId(group.league)}
-            open={
-              Boolean(query) ||
-              group.league === highlightLeague ||
-              group.league === "Premier League" ||
-              group.league === "Scottish Premiership"
-            }
-            className="scroll-mt-6 rounded-xl border border-slate-800 bg-slate-950 p-4"
-          >
-            <summary className="cursor-pointer font-semibold">
-              {group.league}
-              <span className="ml-2 text-sm font-normal text-slate-400">
-                {group.clubs.length} clubs
-              </span>
-            </summary>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-              {group.clubs.map((club) => {
-                const on = selectedSet.has(club.toLowerCase());
-                const locked =
-                  Boolean(matchDayClub) &&
-                  matchDayClub?.toLowerCase() === club.toLowerCase();
-                return (
-                  <button
-                    key={club}
-                    type="button"
-                    onClick={() => toggle(club)}
-                    className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
-                      locked || on
-                        ? "border-s4p-mark bg-s4p-mark text-slate-950"
-                        : "border-slate-700 bg-slate-900 text-slate-950"
-                    }`}
-                  >
-                    {locked ? "Match Day · " : on ? "✓ " : ""}
-                    {club}
-                  </button>
-                );
-              })}
-            </div>
-          </details>
-        ))}
+      <div className={`mt-4 space-y-3 ${compact ? "max-h-96 overflow-y-auto pr-1" : ""}`}>
+        {groups.map((group) => {
+          const hasSelected = group.clubs.some((club) =>
+            selectedSet.has(club.toLowerCase())
+          );
+          return (
+            <details
+              key={group.league}
+              id={clubNetworkLeagueId(group.league)}
+              open={
+                Boolean(query) ||
+                group.league === highlightLeague ||
+                group.league === "Premier League" ||
+                group.league === "Scottish Premiership" ||
+                hasSelected
+              }
+              className="scroll-mt-6 rounded-xl border border-slate-300 bg-white p-4"
+            >
+              <summary className="cursor-pointer font-semibold text-slate-950">
+                {group.league}
+                <span className="ml-2 text-sm font-normal text-slate-500">
+                  {group.sport} · {group.country} · {group.clubs.length} clubs
+                </span>
+              </summary>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+                {group.clubs.map((club) => {
+                  const on = selectedSet.has(club.toLowerCase());
+                  const locked =
+                    Boolean(matchDayClub) &&
+                    matchDayClub?.toLowerCase() === club.toLowerCase();
+                  return (
+                    <button
+                      key={club}
+                      type="button"
+                      onClick={() => toggle(club)}
+                      className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
+                        locked || on
+                          ? "border-s4p-mark bg-s4p-mark text-slate-950"
+                          : "border-slate-300 bg-white text-slate-950"
+                      }`}
+                    >
+                      {locked ? "Match Day · " : on ? "✓ " : ""}
+                      {club}
+                    </button>
+                  );
+                })}
+              </div>
+            </details>
+          );
+        })}
       </div>
     </div>
   );
