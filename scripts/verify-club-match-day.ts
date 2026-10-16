@@ -597,6 +597,31 @@ assert(
   "Club dashboard puts S4P Climate Projects above Our Climate Sponsors and drops the folder, signed copy, Voted-For and Funded blocks"
 );
 
+const tabHelper = readFileSync("app/lib/s4p-tabs.ts", "utf8");
+const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
+const clubNav = readFileSync("app/components/club/ClubNav.tsx", "utf8");
+assert(
+  tabHelper.includes("bg-s4p-mark") &&
+    tabHelper.includes("border-s4p-mark") &&
+    !tabHelper.includes("border-slate-700") &&
+    !tabHelper.includes("bg-slate-800"),
+  "Shared tab helper uses lime mark green, not dark slate fills"
+);
+assert(
+  clubSelect.includes("s4pTabClass") &&
+    !clubSelect.includes("border border-slate-700 text-slate-300") &&
+    clubNav.includes("s4pTabClass") &&
+    !clubNav.includes("bg-slate-800 text-slate-200"),
+  "Club Climate Projects List tabs and Club nav tabs use the lime mark green"
+);
+assert(
+  tabHelper.includes("s4pActionBarClass") &&
+    clubSelect.includes("s4pActionBarClass") &&
+    !clubSelect.includes("bg-slate-700 text-white") &&
+    !clubSelect.includes("bg-slate-800 text-slate-500"),
+  "Select project bars are lime with black text before and after they are chosen"
+);
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);

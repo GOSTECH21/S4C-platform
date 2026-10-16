@@ -41,6 +41,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
+import { s4pActionBarClass, s4pTabClass } from "@/app/lib/s4p-tabs";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -229,22 +230,14 @@ export default function SelectMatchDayProjectsPage() {
             <button
               type="button"
               onClick={() => setPage(0)}
-              className={`rounded-lg px-4 py-2 text-sm font-bold ${
-                page === 0
-                  ? "bg-green-500 text-slate-950"
-                  : "border border-slate-700 text-slate-300"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 0)}`}
             >
               List 1 · {localCountry}
             </button>
             <button
               type="button"
               onClick={() => setPage(1)}
-              className={`rounded-lg px-4 py-2 text-sm font-bold ${
-                page === 1
-                  ? "bg-green-500 text-slate-950"
-                  : "border border-slate-700 text-slate-300"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 1)}`}
             >
               List 2 · International
             </button>
@@ -294,13 +287,7 @@ export default function SelectMatchDayProjectsPage() {
                 <button
                   onClick={() => toggle(project.id)}
                   disabled={full}
-                  className={`mt-6 rounded-xl py-3 font-bold ${
-                    isOn
-                      ? "bg-green-500 text-slate-950"
-                      : full
-                        ? "cursor-not-allowed bg-slate-800 text-slate-500"
-                        : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
+                  className={`mt-6 rounded-xl py-3 font-bold ${s4pActionBarClass(full)}`}
                 >
                   {isOn ? "✓ Selected" : full ? "Limit reached" : "Select project"}
                 </button>
@@ -313,14 +300,14 @@ export default function SelectMatchDayProjectsPage() {
           <button
             onClick={() => setPage(0)}
             disabled={page === 0}
-            className="rounded-xl border border-slate-700 px-5 py-3 font-bold disabled:cursor-not-allowed disabled:text-slate-600"
+            className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 0)}`}
           >
             List 1 · {localCountry}
           </button>
           <button
             onClick={() => setPage(1)}
             disabled={page === 1}
-            className="rounded-xl bg-slate-800 px-5 py-3 font-bold hover:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-600"
+            className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 1)}`}
           >
             List 2 · International
           </button>

@@ -13,6 +13,7 @@ import {
 } from "@/app/lib/routes";
 import { storedFullName, welcomeBackMessage } from "@/app/lib/s4p-admin";
 import { loadClubSession } from "@/app/services/club-match-day.service";
+import { s4pTabClass } from "@/app/lib/s4p-tabs";
 
 const LINKS = [
   {
@@ -92,11 +93,7 @@ export default function ClubNav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                active
-                  ? "bg-green-500 text-slate-950"
-                  : "bg-slate-800 text-slate-200 hover:bg-slate-700"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${s4pTabClass(active)}`}
             >
               {link.label}
             </Link>
@@ -105,7 +102,7 @@ export default function ClubNav() {
 
         <button
           onClick={logout}
-          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-red-600 hover:text-white"
+          className="rounded-lg border border-s4p-mark bg-s4p-mark/15 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-red-600 hover:text-white"
         >
           Logout
         </button>
