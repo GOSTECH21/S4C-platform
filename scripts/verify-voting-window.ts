@@ -102,14 +102,16 @@ assert(
   "Club copy tells the SD to post 3 days before kick-off for fund allocation"
 );
 assert(
-  clubMatchDayFolderCopy().includes("signed & submitted by Sponsors") &&
-    clubMatchDayFolderCopy().includes("Once received, press SUBMIT") &&
-    clubMatchDayFolderCopy().includes("Fund allocation starts") &&
+  clubMatchDayFolderCopy().includes(
+    "Chosen Climate Projects uploaded by you 3 days before Match Kick-off"
+  ) &&
+    clubMatchDayFolderCopy().includes("If sponsored & signed-off by a Sponsor") &&
     clubMatchDayFolderCopy().includes("Wednesday at 15:00") &&
     clubMatchDayFolderCopy().includes("Monday at 15:00") &&
-    clubMatchDayFolderCopy().includes("during this period") &&
+    clubMatchDayFolderCopy().includes("Permitted Cash") &&
+    !clubMatchDayFolderCopy().includes("Once received, press SUBMIT") &&
     !clubMatchDayFolderCopy().includes("save the Sponsors File"),
-  "This Match Day selected-projects copy says sponsored projects appear here, then SUBMIT"
+  "Approved Projects copy says uploaded lists appear after sponsor sign-off"
 );
 assert(
   !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(

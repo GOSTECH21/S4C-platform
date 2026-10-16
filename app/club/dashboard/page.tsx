@@ -8,9 +8,7 @@ import {
   loadClubSession,
   loadClubProjectBoard,
   fileRecordDownloadName,
-  postMatchDayProjectsToFans,
   readStoredMatchDay,
-  saveMatchDaySelection,
   matchDayWindowCopy,
   type ClubAccount,
   type ClubFileRecord,
@@ -22,16 +20,9 @@ import {
   type SignedSponsorship,
 } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
-import {
-  chosenFeaturedProject,
-  expandFeaturedGssVersions,
-} from "@/app/lib/featured-gss";
+import { chosenFeaturedProject } from "@/app/lib/featured-gss";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
-import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
-import {
-  climateProjectCountryLabel,
-  localCatalogCountryForClub,
-} from "@/app/lib/featured-climate-country";
+import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import {
   ciltLeagueForClub,
   ciltPositionLabel,
@@ -40,24 +31,11 @@ import {
 import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
-  MATCH_DAY_CHOICE_COUNT,
   MATCH_DAY_PROJECT_COUNT,
+  clubDashboardClimateProjectsIntroCopy,
 } from "@/app/lib/partner-projects";
-import {
-  DEFAULT_MINIMUM_SPONSORSHIP,
-  formatMatchFundingLine,
-  formatMoney,
-} from "@/app/lib/sponsorship-auction";
-import {
-  DEFAULT_WALLET_VOTE_GBP,
-  FUND_IT_LABEL,
-  formatWalletGbp,
-} from "@/app/lib/sponsor-wallet";
-import {
-  lookbackSponsorForRecord,
-  signedCopyDownloadName,
-  signedCopyPayload,
-} from "@/app/lib/sponsor-dashboard";
+import { formatMoney } from "@/app/lib/sponsorship-auction";
+import { lookbackSponsorForRecord } from "@/app/lib/sponsor-dashboard";
 import {
   leadClimateSponsorsForClub,
   loadClubSponsorRoster,
@@ -81,18 +59,10 @@ import {
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
-import { MatchDayFolderPanel } from "@/app/components/club/MatchDayFolderPanel";
 import ClubNav from "@/app/components/club/ClubNav";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
-import {
-  readMatchDayFolder,
-  saveClubProjectsFile,
-  saveClubSponsorsFile,
-  submitClubMatchDayFolder,
-} from "@/app/services/match-day-folder.service";
-import type { MatchDayFolder } from "@/app/lib/match-day-folder";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -109,12 +79,8 @@ export default function ClubDashboardPage() {
   const [records, setRecords] = useState<ClubFileRecord[]>([]);
   const [unlinked, setUnlinked] = useState(false);
   const [signedInKind, setSignedInKind] = useState<SignedInKind>("unknown");
-  const [posting, setPosting] = useState(false);
   const [postedAt, setPostedAt] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
-  const [matchDate, setMatchDate] = useState("2026-10-10");
-  const [folder, setFolder] = useState<MatchDayFolder | null>(null);
-  const [folderNotice, setFolderNotice] = useState<string | null>(null);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
   const [leadSponsors, setLeadSponsors] = useState<LeadClubSponsorRow[]>([]);
@@ -181,9 +147,6 @@ export default function ClubDashboardPage() {
       });
       setLeadSponsors(inbound.leads);
       setLocalSponsors(inbound.locals);
-      const storedFolder = readMatchDayFolder(session.club.id);
-      setFolder(storedFolder);
-      if (storedFolder?.matchDate) setMatchDate(storedFolder.matchDate);
       setLoading(false);
     }
 
@@ -208,7 +171,6 @@ export default function ClubDashboardPage() {
       setLocalSponsors(inbound.locals);
       const stored = readStoredMatchDay(club.id);
       setPostedAt(stored?.postedAt ?? null);
-      setFolder(readMatchDayFolder(club.id));
       setFeaturedId(stored?.featuredProjectId ?? null);
       try {
         const board = await loadClubProjectBoard(club.id, club.name);
@@ -238,22 +200,11 @@ export default function ClubDashboardPage() {
     [funded, voted]
   );
   const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
-  const localCountry = club
-    ? localCatalogCountryForClub({
-        clubName: club.name,
-        country: club.country,
-      })
-    : "local";
   const cilt =
     club && ciltLeague
       ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
       : [];
   const clubRow = cilt.find((row) => row.isClub);
-  const featuredOptions = useMemo(
-    () =>
-      expandFeaturedGssVersions(selected.filter(isFeaturedClimateProject)),
-    [selected]
-  );
   const orderedSelected = useMemo(() => {
     const others = selected.filter(
       (project) => !isFeaturedClimateProject(project)
@@ -261,39 +212,34 @@ export default function ClubDashboardPage() {
     const chosen = chosenFeaturedProject(selected, featuredId);
     return chosen ? [chosen, ...others] : others;
   }, [selected, featuredId]);
-  const needsFeaturedChoice = featuredOptions.length > 1 && !featuredId;
   const matchDayReady =
     Boolean(featuredId) && orderedSelected.length >= MATCH_DAY_PROJECT_COUNT;
-
-  async function chooseFeatured(id: string) {
-    if (!club) return;
-    setFeaturedId(id);
-    const partners = selected.filter(
-      (project) => !isFeaturedClimateProject(project)
-    );
-    if (partners.length !== MATCH_DAY_CHOICE_COUNT) return;
-    try {
-      await saveMatchDaySelection({
-        clubId: club.id,
-        clubName: club.name,
-        country: club.country,
-        featuredProjectId: id,
-        projectIds: partners.map((project) => project.id),
-        minAmount: minAmount ?? 0,
-        gbpPerGoal: gbpPerGoal ?? undefined,
-        maxAmount: maxAmount ?? undefined,
-        gbpPerVote: gbpPerVote ?? undefined,
-      });
-      const board = await loadClubProjectBoard(club.id, club.name);
-      setSelected(board.selected);
-    } catch (err) {
-      setPostError(
-        err instanceof Error
-          ? err.message
-          : "Could not save the Featured Climate Project."
-      );
+  const approvedProjects = useMemo(() => {
+    const seen = new Set<string>();
+    const list: ClimateProject[] = [];
+    for (const copy of signedCopies) {
+      for (const project of copy.offer.projects) {
+        if (seen.has(project.id)) continue;
+        seen.add(project.id);
+        const full = selected.find((row) => row.id === project.id);
+        list.push(
+          full ?? {
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            category: project.category,
+            country: project.country,
+            estimated_co2: project.estimated_co2,
+            funding_goal: project.funding_goal ?? null,
+            image_url: null,
+            status: project.status ?? null,
+            location: project.location,
+          }
+        );
+      }
     }
-  }
+    return list;
+  }, [signedCopies, selected]);
 
   const readySponsorBrands = useMemo(() => {
     if (!roster) return [];
@@ -336,22 +282,6 @@ export default function ClubDashboardPage() {
     URL.revokeObjectURL(url);
   }
 
-  function downloadSignedCopy(copy: SignedSponsorship) {
-    const blob = new Blob(
-      [JSON.stringify(signedCopyPayload(copy), null, 2)],
-      { type: "application/json" }
-    );
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = signedCopyDownloadName(
-      copy.offer.clubName,
-      copy.signature.brandName
-    );
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   async function logout() {
     const href = clubGateCopy(signedInKind).logoutHref;
     await supabase.auth.signOut();
@@ -374,80 +304,6 @@ export default function ClubDashboardPage() {
         err instanceof Error ? err.message : "Could not clear this club's projects and sponsors."
       );
       setClearing(false);
-    }
-  }
-
-  function saveSponsorsFile() {
-    if (!club) return;
-    setPostError(null);
-    setFolderNotice(null);
-    try {
-      const next = saveClubSponsorsFile({
-        clubId: club.id,
-        clubName: club.name,
-        matchDate,
-        minAmount,
-        gbpPerGoal,
-      });
-      setFolder(next);
-      setFolderNotice(`${next.sponsorsFile?.fileName} saved in the Match-Day folder.`);
-    } catch (err) {
-      setPostError(
-        err instanceof Error ? err.message : "Could not save the Sponsors File."
-      );
-    }
-  }
-
-  function saveProjectsFile() {
-    if (!club) return;
-    setPostError(null);
-    setFolderNotice(null);
-    try {
-      const next = saveClubProjectsFile({
-        clubId: club.id,
-        clubName: club.name,
-        matchDate,
-        projects: orderedSelected.slice(0, MATCH_DAY_PROJECT_COUNT),
-      });
-      setFolder(next);
-      setFolderNotice(
-        `${next.projectsFile?.fileName} saved in the Match-Day folder.`
-      );
-    } catch (err) {
-      setPostError(
-        err instanceof Error
-          ? err.message
-          : "Could not save the Climate Projects File."
-      );
-    }
-  }
-
-  async function submitMatchDayFolder() {
-    if (!club) return;
-    setPosting(true);
-    setPostError(null);
-    setFolderNotice(null);
-    try {
-      const next = submitClubMatchDayFolder(club.id);
-      const posted = await postMatchDayProjectsToFans({
-        clubId: club.id,
-        clubName: club.name,
-        country: club.country,
-      });
-      setFolder(readMatchDayFolder(club.id) ?? next);
-      setPostedAt(posted.postedAt ?? new Date().toISOString());
-      setSignedCopies(await listClubSignedSponsorships(club.id, club.name));
-      setFolderNotice(
-        "SUBMIT posted both Match-Day files. Registered fans of this club can now take cash from sponsor wallets and put it on a numbered Climate Project."
-      );
-    } catch (err) {
-      setPostError(
-        err instanceof Error
-          ? err.message
-          : "Could not submit the Match-Day folder."
-      );
-    } finally {
-      setPosting(false);
     }
   }
 
@@ -489,6 +345,12 @@ export default function ClubDashboardPage() {
     <main className="min-h-screen p-10 text-white">
       <div className="mx-auto max-w-7xl">
         <ClubNav />
+        {postError && (
+          <p className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+            {postError}
+          </p>
+        )}
+
         <div className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-black">{club.name}</h1>
@@ -525,14 +387,6 @@ export default function ClubDashboardPage() {
           </div>
         </div>
 
-        <ClubClimateSponsorTabs
-          key={`${club.name}:${leadSponsors[0]?.brandKey ?? "none"}`}
-          clubName={club.name}
-          leadSponsors={leadSponsors}
-          localSponsors={localSponsors}
-          initialTab="lead"
-        />
-
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
@@ -545,20 +399,16 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {matchDayReady
-                ? `Save these ${MATCH_DAY_PROJECT_COUNT} in the Match-Day folder as the Climate Projects File. Fans press FUND-IT up to 5 times: £0.20 once from each Carbon Wallet. Lead wallets fund Global Schools Solar (75%) plus local projects (25%); Local Business wallets fund local Climate Projects only.`
-                : `Open S4P Climate Projects to choose one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects from List 1 (${localCountry}) and List 2 (International). There can never be two Featured projects.`}
+                ? `These ${MATCH_DAY_PROJECT_COUNT} chosen Projects are visible to interested Sponsors. If sponsored & signed-off, they appear as Approved Projects.`
+                : clubDashboardClimateProjectsIntroCopy()}
             </p>
           </div>
 
           <Link
             href={CLUB_SELECT_PROJECTS_PATH}
-            className={`mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500 ${
-              posting ? "pointer-events-none cursor-wait opacity-70" : ""
-            }`}
+            className="mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
           >
-            {matchDayReady
-              ? "S4P Climate Projects — change List 1 and List 2"
-              : "S4P Climate Projects"}
+            S4P Climate Projects
           </Link>
           {postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
@@ -566,171 +416,33 @@ export default function ClubDashboardPage() {
               {readySponsorBrands.length
                 ? ` and to ${readySponsorBrands.map((row) => row.brandName).join(", ")}.`
                 : roster?.selectedIds.length
-                  ? ` Selected Climate Sponsors will see these ${MATCH_DAY_PROJECT_COUNT} once they lock ${club.name} for this Match Day.`
-                  : ". No Climate Sponsor was selected, so brand dashboards were not updated."}{" "}
-              Supporters of {club.name} will see the Sponsors File and Climate
-              Projects File on My S4P and Climate Projects as soon as they open
-              those pages. They take cash from a sponsor wallet and put it on a
-              numbered Climate Project.
+                  ? ` Interested Sponsors will see these ${MATCH_DAY_PROJECT_COUNT} once they lock ${club.name} for this Match Day.`
+                  : "."}
             </p>
           )}
 
           <div className="mt-10 text-left">
-            <h3 className="text-2xl font-black">
-              This Match Day — Selected Climate Projects
-            </h3>
+            <h3 className="text-2xl font-black">Approved Projects</h3>
             <p className="mt-2 max-w-3xl text-sm text-slate-400">
               {matchDayWindowCopy()}
             </p>
-            {(minAmount != null && Number(minAmount) > 0) ||
-            (gbpPerGoal != null && Number(gbpPerGoal) > 0) ? (
-              <p className="mt-2 text-sm text-green-300">
-                {[
-                  formatMatchFundingLine({
-                    baseAmount: minAmount,
-                    gbpPerGoal,
-                    maxAmount,
-                  }),
-                  `${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from each Carbon Wallet`,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-green-300">
-                {FUND_IT_LABEL} {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from
-                each Carbon Wallet
-              </p>
-            )}
-            {(needsFeaturedChoice || featuredOptions.length > 1) && (
-              <div className="mt-6">
-                <FeaturedGssPicker
-                  options={featuredOptions}
-                  chosenId={featuredId}
-                  onChoose={(id) => void chooseFeatured(id)}
-                  clubName={club.name}
-                  clubCountry={club.country}
-                />
-              </div>
-            )}
             <ProjectGrid
-              projects={
-                featuredOptions.length > 1
-                  ? orderedSelected.filter(
-                      (project) => !isFeaturedClimateProject(project)
-                    )
-                  : orderedSelected
-              }
-              empty={`No projects selected for this Match Day yet. Choose one Featured Global Schools Solar project, then ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects. There can never be two Featured projects.`}
-              badge="Selected"
-              featuredId={featuredId}
+              projects={approvedProjects}
+              empty="No approved projects yet. Upload your Climate Projects with the blue button. When a Sponsor signs them off, they appear here."
+              badge="Approved"
               clubName={club.name}
               clubCountry={club.country}
             />
           </div>
         </section>
 
-        <MatchDayFolderPanel
+        <ClubClimateSponsorTabs
+          key={`${club.name}:${leadSponsors[0]?.brandKey ?? "none"}`}
           clubName={club.name}
-          matchDate={matchDate}
-          onMatchDateChange={setMatchDate}
-          folder={folder}
-          selectedCount={selected.length}
-          onSaveSponsors={saveSponsorsFile}
-          onSaveProjects={saveProjectsFile}
-          onSubmit={() => void submitMatchDayFolder()}
-          busy={posting}
-          error={postError}
-          notice={folderNotice}
+          leadSponsors={leadSponsors}
+          localSponsors={localSponsors}
+          initialTab="lead"
         />
-
-        <section className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-            Sponsorship record
-          </p>
-          <h2 className="mt-2 text-3xl font-black">
-            Signed copy of the sponsorship
-          </h2>
-          <p className="mt-2 max-w-3xl text-slate-300">
-            When a Sponsorship Manager signs off your 5 Climate Projects, the
-            signed copy — brand name, signer, date, and the five projects —
-            is kept here for the club.
-          </p>
-          {signedCopies.length === 0 ? (
-            <p className="mt-6 text-slate-500">
-              Waiting for a Sponsorship Manager to sign off Option 1. After
-              they agree and sign, the signed copy appears in this folder.
-            </p>
-          ) : (
-            <div className="mt-8 space-y-6">
-              {signedCopies.map((copy) => (
-                <div
-                  key={copy.signature.id}
-                  className="rounded-2xl border border-green-500/30 bg-slate-950 p-6"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div>
-                      <p className="text-sm font-semibold text-amber-300">
-                        SPONSORED BY {copy.signature.brandName}
-                      </p>
-                      <h3 className="mt-1 text-xl font-bold">
-                        {copy.offer.headline}
-                      </h3>
-                      <p className="mt-2 text-sm text-slate-400">
-                        Signed by {copy.signature.signerName} on{" "}
-                        {new Date(copy.signature.signedAt).toLocaleString(
-                          "en-GB"
-                        )}
-                      </p>
-                      <p className="mt-1 text-sm text-green-300">
-                        {formatMatchFundingLine({
-                          baseAmount:
-                            Number(copy.offer.sponsorshipAmountGbp) ||
-                            DEFAULT_MINIMUM_SPONSORSHIP,
-                          gbpPerGoal: copy.offer.gbpPerGoal ?? gbpPerGoal,
-                          maxAmount: copy.offer.maxAmount ?? maxAmount,
-                        }) ||
-                          `${formatMoney(
-                            Number(copy.offer.sponsorshipAmountGbp) ||
-                              DEFAULT_MINIMUM_SPONSORSHIP
-                          )} Base Match Sponsorship`}
-                        {` · ${FUND_IT_LABEL} ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}`}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => downloadSignedCopy(copy)}
-                      className="rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
-                    >
-                      Download signed copy
-                    </button>
-                  </div>
-                  <ul className="mt-4 space-y-1 text-slate-300">
-                    {copy.offer.projects.map((project) => (
-                      <li key={project.id}>• {project.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-12">
-          <h2 className="text-3xl font-black">Voted-For Projects</h2>
-          <p className="mt-2 text-slate-400">
-            Climate projects supporters have funded with FUND-IT on your
-            match-day campaign — up to 5 times, £0.20 once from each Carbon
-            Wallet onto any Project.
-          </p>
-          <ProjectGrid
-            projects={voted}
-            empty="No FUND-IT allocations yet. Once fans press FUND-IT on My S4P, those projects appear here."
-            badge="Voted"
-            clubName={club.name}
-            clubCountry={club.country}
-          />
-        </section>
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -739,7 +451,7 @@ export default function ClubDashboardPage() {
                 Match Day File Record
               </p>
               <h2 className="mt-2 text-3xl font-black">
-                Selected and voted projects, kept for lookback
+                Selected and Funded Projects, kept for lookback
               </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
                 Every confirmed Match Day list is stored once in this club file
@@ -809,38 +521,11 @@ export default function ClubDashboardPage() {
                       <li key={project.id}>• {project.name}</li>
                     ))}
                   </ul>
-                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    Voted
-                  </p>
-                  {record.voted.length === 0 ? (
-                    <p className="mt-2 text-slate-500">No votes recorded yet.</p>
-                  ) : (
-                    <ul className="mt-2 space-y-1 text-slate-300">
-                      {record.voted.map((project) => (
-                        <li key={project.id}>• {project.name}</li>
-                      ))}
-                    </ul>
-                  )}
                 </div>
                 );
               })}
             </div>
           )}
-        </section>
-
-        <section className="mt-12">
-          <h2 className="text-3xl font-black">Funded Projects</h2>
-          <p className="mt-2 text-slate-400">
-            Projects unlocked when {club.name} players score and the locked
-            sponsorship is paid.
-          </p>
-          <ProjectGrid
-            projects={funded}
-            empty="No projects have been funded from Goals yet."
-            funded
-            clubName={club.name}
-            clubCountry={club.country}
-          />
         </section>
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">

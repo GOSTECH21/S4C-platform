@@ -5,6 +5,7 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
   clubClimateProjectsIntroCopy,
+  clubDashboardClimateProjectsIntroCopy,
   isPartnerUpload,
   listsWithUploadsFirst,
   partnerPageCount,
@@ -574,6 +575,26 @@ assert(
       "MUST be uploaded at least 3 Days before Match Kick-Off"
     ),
   "S4P Climate Projects intro uses the Match Day List and Your Country / World lists"
+);
+assert(
+  clubDashboardClimateProjectsIntroCopy().includes(
+    "choose only one Featured Global Schools Solar project"
+  ) &&
+    clubDashboardClimateProjectsIntroCopy().includes("List provided") &&
+    clubDashboardClimateProjectsIntroCopy().includes(
+      "Press the blue S4P Climate Projects button"
+    ),
+  "Club dashboard intro tells the SD to press the blue S4P Climate Projects button"
+);
+assert(
+  clubDashboard.indexOf("Approved Projects") <
+    clubDashboard.indexOf("<ClubClimateSponsorTabs") &&
+    clubDashboard.includes("clubDashboardClimateProjectsIntroCopy") &&
+    !clubDashboard.includes("MatchDayFolderPanel") &&
+    !clubDashboard.includes("Signed copy of the sponsorship") &&
+    !clubDashboard.includes("Voted-For Projects") &&
+    clubDashboard.includes("Selected and Funded Projects, kept for lookback"),
+  "Club dashboard puts S4P Climate Projects above Our Climate Sponsors and drops the folder, signed copy, Voted-For and Funded blocks"
 );
 
 if (failures.length > 0) {

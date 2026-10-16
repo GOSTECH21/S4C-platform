@@ -12,6 +12,10 @@ export const MATCH_DAY_PROJECT_COUNT =
 export const MATCH_DAY_LEAD_HOURS = 72;
 const MATCH_DAY_LEAD_DAYS = MATCH_DAY_LEAD_HOURS / 24;
 
+export function clubDashboardClimateProjectsIntroCopy(): string {
+  return `Open S4P Climate Projects to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects from List provided; Press the blue S4P Climate Projects button`;
+}
+
 export function clubClimateProjectsIntroCopy(): string {
   return `Choose one Featured Climate Project: Global Schools Solar for a local school near the stadium, or Global Schools Solar for a school anywhere in the world. There can never be two Featured projects. Then choose ${MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
 }
