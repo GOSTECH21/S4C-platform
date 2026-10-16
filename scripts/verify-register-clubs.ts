@@ -23,13 +23,101 @@ const byLeague = Object.fromEntries(
   groups.map((group) => [group.league, group.clubs])
 );
 
+const premier = byLeague["Premier League"] ?? [];
+const championship = byLeague["EFL Championship"] ?? [];
+const leagueOne = byLeague["EFL League One"] ?? [];
+const wsl = byLeague["Women's Super League"] ?? [];
+const scottish = byLeague["Scottish Premiership"] ?? [];
+const bundesliga = byLeague["Bundesliga"] ?? [];
+const laLiga = byLeague["La Liga"] ?? [];
+const ligue1 = byLeague["Ligue 1"] ?? [];
+const serieA = byLeague["Serie A"] ?? [];
+const superLeague = byLeague["Super League"] ?? [];
+
+assert(premier.length === 20, "Premier League lists all 20 clubs on register");
 assert(
-  (byLeague["Premier League"]?.length ?? 0) === 20,
-  "Premier League lists all 20 clubs on register"
+  premier.includes("Coventry City") &&
+    premier.includes("Hull City") &&
+    premier.includes("Ipswich Town") &&
+    !premier.includes("Burnley") &&
+    !premier.includes("West Ham United") &&
+    !premier.includes("Wolverhampton Wanderers"),
+  "Premier League 2026/27 has Coventry, Hull and Ipswich, not Burnley, West Ham or Wolves"
+);
+assert(championship.length === 24, "Championship lists all 24 2026/27 clubs");
+assert(
+  championship.includes("West Ham United") &&
+    championship.includes("Burnley") &&
+    championship.includes("Wolverhampton Wanderers") &&
+    championship.includes("Lincoln City") &&
+    !championship.includes("Coventry City"),
+  "Championship 2026/27 has the three Premier League relegated clubs and League One promoted clubs"
 );
 assert(
-  (byLeague["Scottish Premiership"]?.length ?? 0) === 12,
-  "Scottish Premiership lists all 12 clubs on register"
+  leagueOne.length === 24 &&
+    leagueOne.includes("Leicester City") &&
+    leagueOne.includes("Bromley") &&
+    leagueOne.includes("Milton Keynes Dons") &&
+    !leagueOne.includes("Lincoln City"),
+  "League One 2026/27 has Leicester, Bromley and MK Dons"
+);
+assert(
+  wsl.length === 14 &&
+    wsl.includes("Birmingham City Women") &&
+    wsl.includes("Crystal Palace Women") &&
+    wsl.includes("Charlton Athletic Women") &&
+    !wsl.includes("Leicester City Women"),
+  "Women's Super League 2026/27 is 14 clubs after expansion"
+);
+assert(scottish.length === 12, "Scottish Premiership lists all 12 clubs on register");
+assert(
+  scottish.includes("St Johnstone") && !scottish.includes("Livingston"),
+  "Scottish Premiership 2026/27 has St Johnstone, not Livingston"
+);
+assert(
+  bundesliga.length === 18 &&
+    bundesliga.includes("Schalke 04") &&
+    bundesliga.includes("SV Elversberg") &&
+    bundesliga.includes("SC Paderborn") &&
+    !bundesliga.includes("VfL Wolfsburg") &&
+    !bundesliga.includes("St Pauli"),
+  "Bundesliga 2026/27 has Schalke, Elversberg and Paderborn"
+);
+assert(
+  laLiga.length === 20 &&
+    laLiga.includes("Racing Santander") &&
+    laLiga.includes("Deportivo La Coruna") &&
+    laLiga.includes("Malaga") &&
+    !laLiga.includes("Girona") &&
+    !laLiga.includes("Mallorca") &&
+    !laLiga.includes("Real Oviedo"),
+  "La Liga 2026/27 has Racing, Deportivo and Malaga"
+);
+assert(
+  ligue1.length === 18 &&
+    ligue1.includes("Troyes") &&
+    ligue1.includes("Le Mans") &&
+    !ligue1.includes("Metz") &&
+    !ligue1.includes("Nantes"),
+  "Ligue 1 2026/27 has Troyes and Le Mans"
+);
+assert(
+  serieA.length === 20 &&
+    serieA.includes("Venezia") &&
+    serieA.includes("Frosinone") &&
+    serieA.includes("Monza") &&
+    !serieA.includes("Cremonese") &&
+    !serieA.includes("Hellas Verona") &&
+    !serieA.includes("Pisa"),
+  "Serie A 2026/27 has Venezia, Frosinone and Monza"
+);
+assert(
+  superLeague.length === 14 &&
+    superLeague.includes("Bradford Bulls") &&
+    superLeague.includes("York Knights") &&
+    superLeague.includes("Toulouse Olympique") &&
+    !superLeague.includes("Salford Red Devils"),
+  "Super League 2026 is 14 clubs after expansion"
 );
 assert(
   (byLeague["EFL Championship"]?.length ?? 0) >= 20 &&

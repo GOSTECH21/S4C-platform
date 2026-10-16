@@ -39,6 +39,8 @@ const NAME_ALIASES: Record<string, string[]> = {
   ],
   "manchester united": ["manchester united", "man utd", "man united"],
   "scotland rugby": ["scotland rugby", "scotland"],
+  deportivo: ["deportivo", "deportivo la coruna"],
+  "deportivo la coruna": ["deportivo", "deportivo la coruna"],
 };
 
 export function normalizeClubName(value: string): string {
