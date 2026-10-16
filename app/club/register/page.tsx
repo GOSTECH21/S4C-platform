@@ -5,6 +5,11 @@ import Link from "next/link";
 import { registerClubSustainabilityDirector } from "@/app/services/club-match-day.service";
 import { CLUB_DASHBOARD_PATH } from "@/app/lib/routes";
 import { SPORT_SELECT_OPTIONS } from "@/app/lib/sports";
+import {
+  clubRegisterCountries,
+  clubRegisterLeaguesFor,
+  leagueStillValidFor,
+} from "@/app/lib/club-register-options";
 
 export default function ClubRegistrationPage() {
   const [step, setStep] = useState(1);
@@ -62,10 +67,20 @@ confirmPassword: "",
 
     const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "sport" || name === "country") {
+        const leagues = clubRegisterLeaguesFor(
+          name === "country" ? value : next.country,
+          name === "sport" ? value : next.sport
+        );
+        if (leagueStillValidFor(next.league, next.country, next.sport)) {
+          return next;
+        }
+        next.league = leagues.length === 1 ? leagues[0] : "";
+      }
+      return next;
+    });
 
   };
 
@@ -205,7 +220,7 @@ confirmPassword: "",
 
     <p className="mt-2 text-slate-400">
 
-      Tell us about your football club.
+      Tell us about your club.
 
     </p>
 
@@ -240,11 +255,41 @@ confirmPassword: "",
           name="sport"
           value={formData.sport}
           onChange={handleChange}
+          aria-label="Sport"
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
         >
 
           {SPORT_SELECT_OPTIONS.map((sport) => (
-            <option key={sport}>{sport}</option>
+            <option key={sport} value={sport}>
+              {sport}
+            </option>
+          ))}
+
+        </select>
+
+      </div>
+
+      <div>
+
+        <label className="mb-2 block text-sm text-slate-400">
+
+          Country
+
+        </label>
+
+        <select
+          name="country"
+          value={formData.country}
+          onChange={handleChange}
+          aria-label="Country"
+          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+        >
+
+          <option value="">Select the Country</option>
+          {clubRegisterCountries().map((country) => (
+            <option key={country} value={country}>
+              {country}
+            </option>
           ))}
 
         </select>
@@ -259,29 +304,29 @@ confirmPassword: "",
 
         </label>
 
-        <input
+        <select
           name="league"
           value={formData.league}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
-        />
+          aria-label="League"
+          disabled={!formData.country}
+          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4 disabled:opacity-50"
+        >
 
-      </div>
+          <option value="">
+            {formData.country
+              ? "Select the League"
+              : "Select a Country first"}
+          </option>
+          {clubRegisterLeaguesFor(formData.country, formData.sport).map(
+            (league) => (
+              <option key={league} value={league}>
+                {league}
+              </option>
+            )
+          )}
 
-      <div>
-
-        <label className="mb-2 block text-sm text-slate-400">
-
-          Country
-
-        </label>
-
-        <input
-          name="country"
-          value={formData.country}
-          onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
-        />
+        </select>
 
       </div>
 
@@ -656,13 +701,13 @@ confirmPassword: "",
       </div>
 
       <div className="flex justify-between border-b border-slate-800 pb-4">
-        <span className="text-slate-400">League</span>
-        <span>{formData.league || "-"}</span>
+        <span className="text-slate-400">Country</span>
+        <span>{formData.country || "-"}</span>
       </div>
 
       <div className="flex justify-between border-b border-slate-800 pb-4">
-        <span className="text-slate-400">Country</span>
-        <span>{formData.country || "-"}</span>
+        <span className="text-slate-400">League</span>
+        <span>{formData.league || "-"}</span>
       </div>
 
       <div className="flex justify-between border-b border-slate-800 pb-4">

@@ -50,13 +50,8 @@ export const SPORT_CATEGORIES: SportCategory[] = [
 
 export const PRIMARY_SPORTS = SPORT_CATEGORIES.map((sport) => sport.name);
 
-/** Club registration and similar pickers: Basketball maps to the NBA 3-Point category. */
-export const SPORT_SELECT_OPTIONS = [
-  "Football",
-  "Rugby",
-  "NFL",
-  "Basketball",
-] as const;
+/** Club registration and similar pickers: every sport on the platform. */
+export const SPORT_SELECT_OPTIONS = [...PRIMARY_SPORTS] as const;
 
 export const SPORT_ORDER = [...PRIMARY_SPORTS];
 
