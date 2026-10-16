@@ -109,6 +109,16 @@ assert(
     page.indexOf('aria-label="Country"') < page.indexOf('aria-label="League"'),
   "Country sits to the left of League"
 );
+assert(
+  page.includes("suppressHydrationWarning") &&
+    page.includes("formReady") &&
+    page.includes('autoComplete="off"') &&
+    page.includes("<form") &&
+    page.includes('name="password"') &&
+    page.indexOf('name="phone"') < page.indexOf('name="password"') &&
+    page.indexOf('name="password"') < page.indexOf('name="confirmPassword"'),
+  "Club Registration waits until the browser is ready so Chrome cannot inject fdprocessedid during hydrate"
+);
 
 assert(
   isSportingCalendarClub("Bournemouth") &&
