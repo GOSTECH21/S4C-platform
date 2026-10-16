@@ -35,7 +35,9 @@ if (existsSync(page)) {
     !src.includes("clubRegisterCountries") ||
     !src.includes("clubRegisterLeaguesFor") ||
     src.indexOf('name="country"') > src.indexOf('name="league"') ||
-    src.includes("Tell us about your football club.")
+    src.includes("Tell us about your football club.") ||
+    !src.includes("Join Score-4-Planet") ||
+    src.includes("Join Score-4-Our-Planet and enable every sporting moment")
   ) {
     failed += 1;
     console.error(

@@ -155,20 +155,14 @@ confirmPassword: "",
         </h1>
 
         <p className="mt-8 max-w-3xl text-xl leading-9 text-slate-300">
-
-          Join Score-4-Our-Planet and enable every sporting moment to
-          generate measurable climate impact through
+          Join Score-4-Planet; turn every Sporting Moment (e.g a Goal
+          Scored), into a Measurable Climate Impact Moment through
+          Brands-led{" "}
+          <span className="font-bold text-green-400">Climate Sponsorship</span>
+          ; and offset your{" "}
           <span className="font-bold text-green-400">
-            {" "}Climate Sponsorship
-          </span>,
-          <span className="font-bold text-green-400">
-            {" "}Climate Credits
+            Match Day carbon footprint
           </span>
-          {" "}and support for the
-          <span className="font-bold text-green-400">
-            {" "}Global Schools Solar Programme.
-          </span>
-
         </p>
 
         {/* Progress */}

@@ -92,7 +92,14 @@ assert(
     page.includes("Select the League") &&
     page.includes("Select a Country first") &&
     page.includes("Tell us about your club.") &&
-    !page.includes("Tell us about your football club."),
+    !page.includes("Tell us about your football club.") &&
+    page.includes("Join Score-4-Planet") &&
+    page.includes("Measurable Climate Impact Moment") &&
+    page.includes("Brands-led") &&
+    page.includes("Match Day carbon footprint") &&
+    !page.includes(
+      "Join Score-4-Our-Planet and enable every sporting moment"
+    ),
   "Club Registration Step 1 uses Sport, Country then League dropdowns"
 );
 assert(
