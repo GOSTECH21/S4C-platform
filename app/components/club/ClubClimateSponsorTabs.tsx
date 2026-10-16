@@ -12,6 +12,7 @@ import {
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import { CLUB_SPONSORS_PATH } from "@/app/lib/routes";
 import Link from "next/link";
+import { s4pTabClass } from "@/app/lib/s4p-tabs";
 
 export type ClimateSponsorTab = "lead" | "local";
 
@@ -228,11 +229,7 @@ function TabButton({
       aria-selected={selected}
       aria-controls={controls}
       onClick={onClick}
-      className={`rounded-xl px-5 py-3 text-sm font-bold ${
-        selected
-          ? "bg-s4p-mark text-slate-950 hover:brightness-110"
-          : "border border-slate-600 bg-slate-950 text-slate-200 hover:border-s4p-mark"
-      }`}
+      className={`rounded-xl px-5 py-3 text-sm font-bold ${s4pTabClass(selected)}`}
     >
       {children}
     </button>

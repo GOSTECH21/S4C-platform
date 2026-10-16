@@ -28,6 +28,7 @@ import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
+import { s4pTabClass } from "@/app/lib/s4p-tabs";
 
 export default function SponsorCreateCampaignPage() {
   const router = useRouter();
@@ -187,18 +188,14 @@ export default function SponsorCreateCampaignPage() {
           <button
             type="button"
             onClick={() => setList(1)}
-            className={`rounded-lg px-4 py-2 text-sm font-bold ${
-              list === 1 ? "bg-green-500 text-slate-950" : "border border-slate-700"
-            }`}
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(list === 1)}`}
           >
             List 1 · {localCountry}
           </button>
           <button
             type="button"
             onClick={() => setList(2)}
-            className={`rounded-lg px-4 py-2 text-sm font-bold ${
-              list === 2 ? "bg-green-500 text-slate-950" : "border border-slate-700"
-            }`}
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(list === 2)}`}
           >
             List 2 · International
           </button>
