@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { registerClubSustainabilityDirector } from "@/app/services/club-match-day.service";
 import { CLUB_DASHBOARD_PATH } from "@/app/lib/routes";
@@ -12,9 +12,14 @@ import {
 } from "@/app/lib/club-register-options";
 
 export default function ClubRegistrationPage() {
+  const [formReady, setFormReady] = useState(false);
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFormReady(true);
+  }, []);
 
 
   const [formData, setFormData] = useState({
@@ -198,7 +203,16 @@ confirmPassword: "",
 
         </div>
 
-        <div className="mt-16 rounded-2xl border border-slate-800 bg-slate-900 p-10">
+        {!formReady ? (
+        <div className="mt-16 min-h-[28rem] rounded-2xl border border-slate-800 bg-slate-900 p-10" />
+        ) : (
+        <form
+          className="mt-16 rounded-2xl border border-slate-800 bg-slate-900 p-10"
+          autoComplete="off"
+          onSubmit={(event) => {
+            event.preventDefault();
+          }}
+        >
             {/* ============================
     STEP 1
 ============================ */}
@@ -229,6 +243,8 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="text"
           name="clubName"
           value={formData.clubName}
           onChange={handleChange}
@@ -246,6 +262,7 @@ confirmPassword: "",
         </label>
 
         <select
+          suppressHydrationWarning
           name="sport"
           value={formData.sport}
           onChange={handleChange}
@@ -272,6 +289,7 @@ confirmPassword: "",
         </label>
 
         <select
+          suppressHydrationWarning
           name="country"
           value={formData.country}
           onChange={handleChange}
@@ -299,6 +317,7 @@ confirmPassword: "",
         </label>
 
         <select
+          suppressHydrationWarning
           name="league"
           value={formData.league}
           onChange={handleChange}
@@ -333,6 +352,8 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="url"
           name="website"
           value={formData.website}
           onChange={handleChange}
@@ -377,6 +398,8 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="text"
           name="firstName"
           value={formData.firstName}
           onChange={handleChange}
@@ -394,6 +417,8 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="text"
           name="lastName"
           value={formData.lastName}
           onChange={handleChange}
@@ -411,6 +436,7 @@ confirmPassword: "",
         </label>
 
         <select
+          suppressHydrationWarning
           name="jobTitle"
           value={formData.jobTitle}
           onChange={handleChange}
@@ -444,6 +470,7 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
           type="email"
           name="email"
           value={formData.email}
@@ -462,39 +489,50 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="text"
           name="phone"
           value={formData.phone}
           onChange={handleChange}
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
         />
-<div>
-  <label className="mb-2 block text-sm font-semibold text-slate-300">
-    Password
-  </label>
 
-  <input
-    type="password"
-    name="password"
-    value={formData.password}
-    onChange={handleChange}
-    className="w-full rounded-xl border border-slate-700 bg-slate-800 p-3 text-white"
-    required
-  />
-  <div>
-  <label className="mb-2 block text-sm font-semibold text-slate-300">
-    Confirm Password
-  </label>
+      </div>
 
-  <input
-    type="password"
-    name="confirmPassword"
-    value={formData.confirmPassword}
-    onChange={handleChange}
-    className="w-full rounded-xl border border-slate-700 bg-slate-800 p-3 text-white"
-    required
-  />
-</div>
-</div>
+      <div>
+
+        <label className="mb-2 block text-sm text-slate-400">
+          Password
+        </label>
+
+        <input
+          suppressHydrationWarning
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          required
+        />
+
+      </div>
+
+      <div>
+
+        <label className="mb-2 block text-sm text-slate-400">
+          Confirm Password
+        </label>
+
+        <input
+          suppressHydrationWarning
+          type="password"
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          required
+        />
+
       </div>
 
     </div>
@@ -524,6 +562,8 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="text"
           name="stadium"
           value={formData.stadium}
           onChange={handleChange}
@@ -537,6 +577,7 @@ confirmPassword: "",
         </label>
 
         <select
+          suppressHydrationWarning
           name="supporterBase"
           value={formData.supporterBase}
           onChange={handleChange}
@@ -557,6 +598,8 @@ confirmPassword: "",
         </label>
 
         <input
+          suppressHydrationWarning
+          type="text"
           name="attendance"
           value={formData.attendance}
           onChange={handleChange}
@@ -570,6 +613,7 @@ confirmPassword: "",
         </label>
 
         <textarea
+          suppressHydrationWarning
           name="sustainability"
           value={formData.sustainability}
           onChange={handleChange}
@@ -603,6 +647,7 @@ confirmPassword: "",
       <label className="flex items-center gap-4">
 
         <input
+          suppressHydrationWarning
           type="checkbox"
           name="climateSponsorship"
           checked={formData.climateSponsorship}
@@ -618,6 +663,7 @@ confirmPassword: "",
       <label className="flex items-center gap-4">
 
         <input
+          suppressHydrationWarning
           type="checkbox"
           name="climateCredits"
           checked={formData.climateCredits}
@@ -634,6 +680,7 @@ confirmPassword: "",
       <label className="flex items-center gap-4">
 
         <input
+          suppressHydrationWarning
           type="checkbox"
           name="globalSchoolsSolar"
           checked={formData.globalSchoolsSolar}
@@ -650,6 +697,7 @@ confirmPassword: "",
       <label className="flex items-center gap-4">
 
         <input
+          suppressHydrationWarning
           type="checkbox"
           name="climateLeague"
           checked={formData.climateLeague}
@@ -763,6 +811,8 @@ confirmPassword: "",
   {step > 1 ? (
 
     <button
+      suppressHydrationWarning
+      type="button"
       onClick={previousStep}
       className="rounded-xl border border-slate-700 px-8 py-3 hover:bg-slate-800"
     >
@@ -783,6 +833,8 @@ confirmPassword: "",
   {step < 5 ? (
 
     <button
+      suppressHydrationWarning
+      type="button"
       onClick={nextStep}
       className="rounded-xl bg-green-500 px-8 py-3 font-bold text-black hover:bg-green-400"
     >
@@ -792,6 +844,8 @@ confirmPassword: "",
   ) : (
 
     <button
+      suppressHydrationWarning
+      type="button"
       onClick={submitRegistration}
       disabled={busy}
       className="rounded-xl bg-green-500 px-8 py-3 font-bold text-black hover:bg-green-400 disabled:opacity-70"
@@ -803,7 +857,8 @@ confirmPassword: "",
 
 </div>
 
-</div>
+</form>
+        )}
 
 </section>
 
