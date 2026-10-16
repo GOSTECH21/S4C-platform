@@ -28,7 +28,7 @@ import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
-import { s4pTabClass } from "@/app/lib/s4p-tabs";
+import { s4pActionBarClass, s4pTabClass } from "@/app/lib/s4p-tabs";
 
 export default function SponsorCreateCampaignPage() {
   const router = useRouter();
@@ -232,11 +232,7 @@ export default function SponsorCreateCampaignPage() {
                 type="button"
                 disabled={full}
                 onClick={() => toggle(project.id)}
-                className={`mt-6 w-full rounded-xl py-3 font-bold ${
-                  isOn
-                    ? "bg-green-500 text-slate-950"
-                    : "bg-slate-700 text-white"
-                }`}
+                className={`mt-6 w-full rounded-xl py-3 font-bold ${s4pActionBarClass(full)}`}
               >
                 {isOn ? "✓ Selected" : "Select project"}
               </button>

@@ -614,6 +614,13 @@ assert(
     !clubNav.includes("bg-slate-800 text-slate-200"),
   "Club Climate Projects List tabs and Club nav tabs use the lime mark green"
 );
+assert(
+  tabHelper.includes("s4pActionBarClass") &&
+    clubSelect.includes("s4pActionBarClass") &&
+    !clubSelect.includes("bg-slate-700 text-white") &&
+    !clubSelect.includes("bg-slate-800 text-slate-500"),
+  "Select project bars are lime with black text before and after they are chosen"
+);
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));

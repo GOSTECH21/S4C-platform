@@ -41,7 +41,7 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
-import { s4pTabClass } from "@/app/lib/s4p-tabs";
+import { s4pActionBarClass, s4pTabClass } from "@/app/lib/s4p-tabs";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -287,13 +287,7 @@ export default function SelectMatchDayProjectsPage() {
                 <button
                   onClick={() => toggle(project.id)}
                   disabled={full}
-                  className={`mt-6 rounded-xl py-3 font-bold ${
-                    isOn
-                      ? "bg-green-500 text-slate-950"
-                      : full
-                        ? "cursor-not-allowed bg-slate-800 text-slate-500"
-                        : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
+                  className={`mt-6 rounded-xl py-3 font-bold ${s4pActionBarClass(full)}`}
                 >
                   {isOn ? "✓ Selected" : full ? "Limit reached" : "Select project"}
                 </button>

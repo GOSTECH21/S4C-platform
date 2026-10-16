@@ -35,16 +35,18 @@ if (existsSync(select)) {
   const src = readFileSync(select, "utf8");
   if (
     !src.includes("s4pTabClass") ||
-    src.includes("border border-slate-700 text-slate-300")
+    !src.includes("s4pActionBarClass") ||
+    src.includes("border border-slate-700 text-slate-300") ||
+    src.includes("bg-slate-700 text-white")
   ) {
     failed += 1;
     console.error(
-      "List 1 / List 2 tabs did not land in lime green. Pull the files above, then hard-refresh."
+      "Lime List tabs or Select project bars did not land. Pull the files above, then hard-refresh."
     );
   }
 }
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Club tabs (nav, List 1 / List 2, Lead / Local) use the lime green. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: Club tabs and Select project bars use lime green with black text. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
 );
