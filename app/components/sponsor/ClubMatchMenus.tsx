@@ -22,20 +22,41 @@ function useDismiss(open: boolean, onClose: () => void) {
 export function ClubLeagueMenu({
   value,
   onChange,
+  clubs,
 }: {
   value: string;
   onChange: (club: string) => void;
+  clubs?: string[];
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useDismiss(open, () => setOpen(false));
-  const groups = Object.entries(CURRENT_SEASON_LEAGUES);
+  const fromRegister = clubs !== undefined;
+  const registered = (clubs ?? []).map((name) => name.trim()).filter(Boolean);
+  const groups = fromRegister
+    ? [["Registered clubs", registered] as [string, string[]]]
+    : Object.entries(CURRENT_SEASON_LEAGUES);
   const extra =
     value &&
-    !groups.some(([, clubs]) =>
-      clubs.some((club) => club.toLowerCase() === value.toLowerCase())
+    !groups.some(([, list]) =>
+      list.some((club) => club.toLowerCase() === value.toLowerCase())
     )
       ? value
       : "";
+  const readOnly = fromRegister && registered.length <= 1;
+
+  if (readOnly) {
+    return (
+      <div>
+        <p className="text-sm text-slate-400">Club</p>
+        <div
+          aria-label="Club"
+          className="mt-2 w-full rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950"
+        >
+          {value || registered[0] || "Club"}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} className="relative">
@@ -44,17 +65,21 @@ export function ClubLeagueMenu({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Select a club"
+        aria-label="Club"
         onClick={() => setOpen((current) => !current)}
         className="mt-2 flex w-full items-center justify-between rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950"
       >
-        <span>{value || "Select a club"}</span>
+        <span>{value || registered[0] || extra || "Club"}</span>
         <span aria-hidden="true">▾</span>
       </button>
       {open ? (
         <div
           role="listbox"
-          aria-label="Premier League and Scottish Premiership clubs"
+          aria-label={
+            registered.length > 0
+              ? "Registered clubs"
+              : "Premier League and Scottish Premiership clubs"
+          }
           className="absolute z-40 mt-2 w-full min-w-[16rem] rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
         >
           {groups.map(([league, clubs]) => (

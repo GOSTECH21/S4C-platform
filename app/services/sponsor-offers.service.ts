@@ -349,6 +349,10 @@ function includeBrandOnStoredOffer(
   return writeLocalOffer({ ...offer, targetBrandNames });
 }
 
+export async function loadClubChosenClimateProjects(clubName: string) {
+  return uploadedProjectsForLockedClub(clubName);
+}
+
 async function uploadedProjectsForLockedClub(clubName: string): Promise<{
   clubId: string;
   clubName: string;

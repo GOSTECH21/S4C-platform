@@ -273,7 +273,7 @@ assert(
   dashboard.includes("SPONSOR_CALENDAR_PATH") &&
     dashboard.includes("Open 2026/27 Sporting Calendar") &&
     dashboard.includes("ClubLeagueMenu"),
-  "The Lead dashboard opens the 2026/27 Sporting Calendar and keeps the three-club lock-in"
+  "The Lead dashboard opens the 2026/27 Sporting Calendar from Match Day Lock-In"
 );
 
 const signedHome = readFileSync(
