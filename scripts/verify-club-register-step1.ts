@@ -1,4 +1,6 @@
 import { readFileSync } from "fs";
+import { currentSeasonTeamCount } from "../app/lib/current-season";
+import { isSportingCalendarClub } from "../app/lib/calendar-clubs";
 import { SPORT_SELECT_OPTIONS } from "../app/lib/sports";
 import {
   clubRegisterCountries,
@@ -106,6 +108,31 @@ assert(
   page.indexOf('name="country"') < page.indexOf('name="league"') &&
     page.indexOf('aria-label="Country"') < page.indexOf('aria-label="League"'),
   "Country sits to the left of League"
+);
+
+assert(
+  isSportingCalendarClub("Bournemouth") &&
+    isSportingCalendarClub("AFC Bournemouth") &&
+    isSportingCalendarClub("Chelsea") &&
+    isSportingCalendarClub("Arsenal") &&
+    isSportingCalendarClub("Hearts of Midlothian FC") &&
+    isSportingCalendarClub("Hibernian") &&
+    !isSportingCalendarClub("Not a real club"),
+  "Club Registration accepts Sporting Calendar clubs such as Bournemouth"
+);
+assert(
+  currentSeasonTeamCount() === 3,
+  "Homepage Sports Teams stays the three-club demo"
+);
+
+const clubService = readFileSync("app/services/club-match-day.service.ts", "utf8");
+assert(
+  clubService.includes("isSportingCalendarClub") &&
+    !clubService.includes(
+      "This demo only includes Hearts of Midlothian FC, Hibernian FC, and Arsenal FC."
+    ) &&
+    clubService.includes("2026/27 Sporting Calendar"),
+  "Complete Club Registration no longer limits the demo to Hearts, Hibernian and Arsenal"
 );
 
 if (failures.length > 0) {
