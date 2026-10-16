@@ -484,11 +484,12 @@ assert(
   "The S4P Sponsorship Dashboard heading no longer explains Lead-only wallet copy"
 );
 assert(
-  lockCopy().includes("choose a Club you wish to sponsor") &&
-    lockCopy().includes("the Match you wish to lock-in") &&
+  lockCopy().includes("choose the Match you wish to lock-in") &&
     lockCopy().includes("Goal-Sponsorship") &&
-    lockCopy().includes("Match Day carbon footprint offset"),
-  "Match Day lock-in tells Lead Climate Sponsors to lock a club and a Match, then sign off the carbon offset"
+    lockCopy().includes("this Club's Match Day chosen Climate Projects") &&
+    lockCopy().includes("sign-off your Match Day sponsorship") &&
+    !lockCopy().includes("choose a Club you wish to sponsor"),
+  "Match Day lock-in tells Lead Climate Sponsors to lock the Match for the club already chosen at register"
 );
 assert(
   localLockCopy().includes("the specific Match") &&
@@ -513,22 +514,34 @@ assert(
   "Locals lock a Club and Match on the wallet; the Lead dashboard sends them there"
 );
 assert(
-  sponsorDashboardPage.includes("Select a Club") &&
-    sponsorDashboardPage.includes("Select the Match") &&
+  sponsorDashboardPage.includes("Match Day Lock-In") &&
+    !sponsorDashboardPage.includes("Select a Club") &&
+    !sponsorDashboardPage.includes(
+      "Select a club from Premier League or Scottish Premiership"
+    ) &&
     sponsorDashboardPage.includes("SeeMatchDetails") &&
     sponsorDashboardPage.includes("ClubLeagueMenu") &&
+    sponsorDashboardPage.includes("clubs={registeredClubs}") &&
     sponsorDashboardPage.includes("MatchFixtureMenu") &&
+    sponsorDashboardPage.includes("loadClubFixtures") &&
+    sponsorDashboardPage.includes("registeredClubForLockIn") &&
     sponsorDashboardPage.includes('id="match-day-lock-in"'),
-  "One lock-in block lists every demo club, then the Match, then See Match details"
+  "Match Day Lock-In auto-fills the registered club and lists that club's Matches"
 );
 assert(
   readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
-    "CURRENT_SEASON_LEAGUES"
+    "Registered clubs"
   ) &&
     readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
-      "Premier League and Scottish Premiership clubs"
+      "fromRegister"
+    ) &&
+    readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
+      "clubs !== undefined"
+    ) &&
+    readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
+      "readOnly"
     ),
-  "Select a Club opens Premier League and Scottish Premiership with the teams in those leagues"
+  "The Club box shows the registered club instead of a Premier League picker"
 );
 assert(
   readFileSync("app/components/sponsor/SeeMatchDetails.tsx", "utf8").includes(
@@ -550,13 +563,13 @@ assert(
   "The S4P Sponsorship Dashboard no longer duplicates Goal Sponsorship Network as a second club picker"
 );
 assert(
-  sponsorDashboardPage.indexOf("Select a Club") <
-    sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
-    sponsorDashboardPage.indexOf("Select the Match") <
-      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet") &&
+  sponsorDashboardPage.indexOf("Match Day Lock-In") <
+    sponsorDashboardPage.indexOf("The club&apos;s 5 chosen Climate Projects") &&
+    sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") <
+      sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
     sponsorDashboardPage.indexOf("SeeMatchDetails") <
       sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
-  "Select a Club, Select the Match, and See Match details sit above the Climate Sponsorship Wallet"
+  "Match Day Lock-In and the five Climate Projects record sit above the Climate Sponsorship Wallet"
 );
 assert(
   sponsorDashboardPage.includes("loadClubFixtures") &&
@@ -578,9 +591,11 @@ assert(
     sponsorDashboardPage.includes("scrollIntoView") &&
     sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
     sponsorDashboardPage.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
-    sponsorDashboardPage.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") <
+    sponsorDashboardPage.includes("loadClubChosenClimateProjects") &&
+    sponsorDashboardPage.includes("MATCH_DAY_PROJECTS_WAITING_COPY") &&
+    sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
       sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}"),
-  "Sign-off sits above the five Climate Projects record; Goals-scored copy names the carbon offset"
+  "The five Climate Projects record sits under Match Day Lock-In and fills when the Sustainability Director uploads them"
 );
 assert(
   sponsorDashboardPage.includes("FUND-IT up to 5 times") &&

@@ -11,6 +11,7 @@ import {
   isRemovedSponsorBrand,
   localLockCopy,
   lockCopy,
+  registeredClubForLockIn,
   leagueFromMatchLabel,
   clubNetworkLeagueId,
   networkHasClub,
@@ -367,9 +368,21 @@ assert(
 );
 assert(
   lockCopy().includes("72 hours") &&
-    lockCopy().includes("choose a Club you wish to sponsor") &&
-    lockCopy().includes("Match Day carbon footprint offset"),
-  "Lead Climate Sponsors are told to lock a club 72 hours before kick-off and sign off the carbon offset"
+    lockCopy().includes("choose the Match you wish to lock-in") &&
+    lockCopy().includes("Goal-Sponsorship") &&
+    lockCopy().includes("Commitment Fee & Goals-scored Sponsorship") &&
+    lockCopy().includes("sign-off your Match Day sponsorship") &&
+    !lockCopy().includes("choose a Club you wish to sponsor"),
+  "Lead Climate Sponsors are told to lock the Match 72 hours before kick-off using the club already chosen at register"
+);
+assert(
+  registeredClubForLockIn(["Bournemouth", "Arsenal"], "") === "Bournemouth" &&
+    registeredClubForLockIn(["Bournemouth"], "Arsenal") === "Bournemouth" &&
+    registeredClubForLockIn(["Bournemouth", "Arsenal"], "Arsenal") ===
+      "Arsenal" &&
+    registeredClubForLockIn([], "Bournemouth") === "Bournemouth" &&
+    registeredClubForLockIn([], "") === "",
+  "Match Day Lock-In auto-fills the club chosen at Register as Sponsor"
 );
 assert(
   localLockCopy().includes("72 hours") &&

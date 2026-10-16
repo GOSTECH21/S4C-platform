@@ -1102,7 +1102,22 @@ export function selectedBrandsReadyToReceive(
 }
 
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
-  return `${hours} hours before kick-off, choose a Club you wish to sponsor and the Match you wish to lock-in for Goal-Sponsorship. Then open the Climate Sponsorship Wallet, deposit your Commitment Fee and Goals-scored Sponsorship, and sign off this Club's Match Day carbon footprint offset. The club's five chosen Climate Projects later appear as your record.`;
+  return `${hours} hours before kick-off, choose the Match you wish to lock-in for Goal-Sponsorship; see this Club's Match Day chosen Climate Projects; open your Climate Sponsorship Wallet; deposit your Commitment Fee & Goals-scored Sponsorship; sign-off your Match Day sponsorship`;
+}
+
+/** Club chosen at Register as Sponsor — not a second Premier League / Scottish Premiership picker. */
+export function registeredClubForLockIn(
+  registeredClubs: string[],
+  lockedClub?: string | null
+): string {
+  const registered = registeredClubs.map((name) => name.trim()).filter(Boolean);
+  const locked = String(lockedClub ?? "").trim();
+  if (locked) {
+    const match = registered.find((name) => clubsMatch(name, locked));
+    if (match) return match;
+    if (registered.length === 0) return locked;
+  }
+  return registered[0] ?? "";
 }
 
 /** Local Business Climate Sponsors lock a Club and Match, then fund an amount — not Goals-scored. */

@@ -114,7 +114,7 @@ assert(
     ) &&
     (dashboard.includes("The club's 5 chosen Climate Projects") ||
       dashboard.includes("The club&apos;s 5 chosen Climate Projects")) &&
-    dashboard.indexOf("id={SPONSOR_SIGNED_SECTION_ID}") <
+    dashboard.indexOf('id="match-day-lock-in"') <
       dashboard.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") &&
     offers.includes("hydrateClubSponsorsFromSigned") &&
     clubDash.includes("hydrateClubSponsorsFromSigned") &&

@@ -935,7 +935,8 @@ assert(
 const sponsorDash = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
 assert(
   sponsorDash.includes("loadClubFixtures") &&
-    sponsorDash.includes("Select the Match") &&
+    sponsorDash.includes("MatchFixtureMenu") &&
+    sponsorDash.includes("Choose the Match") &&
     sponsorDash.includes("SeeMatchDetails"),
   "Lead Climate Sponsors pick a published fixture and can See Match details"
 );
