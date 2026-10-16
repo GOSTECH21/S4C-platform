@@ -652,13 +652,20 @@ assert(
 );
 
 const clubPage = readFileSync("app/club/dashboard/page.tsx", "utf8");
-assert(clubPage.includes("MatchDayFolderPanel"), "The club dashboard has a Match-Day folder");
-assert(clubPage.includes("SUBMIT"), "The club dashboard posts the two files with SUBMIT");
 assert(
-  clubPage.includes("FUND-IT up to 5 times") &&
-    !clubPage.includes("pick 3 of 5") &&
-    clubPage.includes("No FUND-IT allocations yet"),
-  "The club dashboard tells SDs that fans FUND-IT up to 5 times"
+  !clubPage.includes("MatchDayFolderPanel"),
+  "The club dashboard no longer shows a Match-Day folder"
+);
+assert(
+  !clubPage.includes("Voted-For Projects") &&
+    !clubPage.includes("No FUND-IT allocations yet"),
+  "The club dashboard no longer shows Voted-For Projects"
+);
+assert(
+  clubPage.includes("Approved Projects") &&
+    clubPage.includes("Selected and Funded Projects, kept for lookback") &&
+    !clubPage.includes("No projects have been funded from Goals yet"),
+  "The club dashboard keeps Approved Projects and lookback, not a separate Funded Projects block"
 );
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
