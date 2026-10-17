@@ -13,6 +13,7 @@ import {
   clubsOnSportingCalendar,
   cupCalendarHints,
   cupMatchesForClub,
+  matchesForClub,
   findCalendarMatch,
   isCupCompetitionName,
   leagueMatchCountOnDate,
@@ -24,6 +25,7 @@ import {
 } from "../app/lib/sporting-calendar";
 import {
   BUDWEISER_EXAMPLE_FIXTURES,
+  GLOBAL_MATCH_DAY_STEPS,
   budweiserExamplePicks,
   canAddGlobalPick,
   countPicksByLeague,
@@ -310,8 +312,12 @@ assert(
 assert(
   board.includes("GLOBAL_MATCH_DAY_STEPS") &&
     board.includes("list-decimal") &&
-    !board.includes("Open any day on the 2026/27 Sporting Calendar"),
-  "The calendar intro is the five numbered steps, not the long league paragraph"
+    !board.includes("Open any day on the 2026/27 Sporting Calendar") &&
+    GLOBAL_MATCH_DAY_STEPS[0] ===
+      "Type-in the Name of the Club you wish to sponsor" &&
+    GLOBAL_MATCH_DAY_STEPS[3] === "Lock-in that Match" &&
+    GLOBAL_MATCH_DAY_STEPS[4].includes("Carbon Wallet"),
+  "The calendar intro is the five numbered club-first steps"
 );
 assert(
   board.includes("visibleAccordionItems") &&
@@ -358,17 +364,20 @@ assert(
 
 const matchDay = readFileSync("app/lib/global-match-day.ts", "utf8");
 assert(
-  matchDay.includes("Look at the Sporting Calendar") &&
-    matchDay.includes("Select any Day of the week") &&
+  matchDay.includes("Type-in the Name of the Club you wish to sponsor") &&
+    matchDay.includes("Look at the Sporting Calendar") &&
     matchDay.includes(
-      "Scroll below to see all Sporting Events on that day in various Sports & Leagues"
+      "Select any Day of the week and look for Matches to be played by this Club"
     ) &&
-    matchDay.includes("Select the Games you wish to Sponsor & Lock them in") &&
+    matchDay.includes("Lock-in that Match") &&
     matchDay.includes(
       "Proceed to your Carbon Wallet to complete transaction"
     ) &&
-    !matchDay.includes("Open any day on the 2026/27 Sporting Calendar"),
-  "Global Match Day copy lists the five Sporting Calendar steps"
+    !matchDay.includes("Open any day on the 2026/27 Sporting Calendar") &&
+    !matchDay.includes(
+      "Scroll below to see all Sporting Events on that day in various Sports & Leagues"
+    ),
+  "Global Match Day copy lists the five club-first Sporting Calendar steps"
 );
 
 const calendarLib = readFileSync("app/lib/sporting-calendar.ts", "utf8");
@@ -407,17 +416,18 @@ assert(
   "NFL fixtures are grouped on Sunday 1 November and Sunday 29 November"
 );
 assert(
-  board.includes("Load NFL Sunday 1 November") &&
-    board.includes("loadNflSunday") &&
+  !board.includes("Load NFL Sunday 1 November") &&
+    !board.includes("loadNflSunday") &&
     board.includes("jumpToLeague") &&
     board.includes("calendarLeagueDomId") &&
     calendarLeagueDomId("NFL") === "calendar-league-NFL",
-  "The calendar jumps to NFL and lists that Sunday's collapsible fixtures"
+  "The calendar lists NFL fixtures without a green Load NFL tab"
 );
 assert(
   board.includes("NFL fixtures are on Sundays") &&
+    !board.includes("Click Load NFL Sunday 1 November") &&
     board.includes("pendingScrollLeague"),
-  "The calendar explains that NFL sits on Sundays and scrolls to the collapsible NFL list"
+  "The calendar explains that NFL sits on Sundays without a Load tab"
 );
 assert(
   findCalendarMatch(NFL_EXAMPLE_DATE, "Buffalo Bills v Baltimore Ravens")
@@ -487,17 +497,17 @@ assert(
 );
 
 assert(
-  board.includes("Load Top 14 Saturday 31 October") &&
-    board.includes("Load Six Nations Super Saturday 13 March") &&
-    board.includes("Load The Rugby Championship 10 July") &&
-    board.includes("loadTop14Saturday") &&
-    board.includes("loadSixNations") &&
-    board.includes("loadRugbyChampionship") &&
+  !board.includes("Load Top 14 Saturday 31 October") &&
+    !board.includes("Load Six Nations Super Saturday 13 March") &&
+    !board.includes("Load The Rugby Championship 10 July") &&
+    !board.includes("loadTop14Saturday") &&
+    !board.includes("loadSixNations") &&
+    !board.includes("loadRugbyChampionship") &&
     calendarLeagueDomId("Top 14") === "calendar-league-Top-14" &&
     calendarLeagueDomId("Six Nations") === "calendar-league-Six-Nations" &&
     calendarLeagueDomId("The Rugby Championship") ===
       "calendar-league-The-Rugby-Championship",
-  "The calendar jumps to Top 14, Six Nations and The Rugby Championship"
+  "Rugby championships stay on the calendar without green Load tabs"
 );
 
 const octHints = rugbyCalendarHints(
@@ -565,25 +575,33 @@ assert(
   "The club picker lists Sporting Calendar clubs including Arsenal, Hearts and Barcelona"
 );
 assert(
-  board.includes("Sponsor a club in a Cup") &&
+  board.includes("Sponsor any Club of your choice") &&
+    board.includes(
+      "Type-in their Name and see all their League and Cup Matches"
+    ) &&
     board.includes("Club you wish to sponsor") &&
+    !board.includes("Sponsor a club in a Cup") &&
+    !board.includes("Click a club, see their Cup Match, tick Sponsor") &&
+    !board.includes("Champions League, Europa Cup, Europa Conference League") &&
     board.includes("selectClub") &&
-    board.includes("cupMatchesForClub") &&
+    board.includes("matchesForClub") &&
     board.includes("onSelectClub") &&
-    board.includes("loadCupDate") &&
-    board.includes("Load {league}"),
-  "Sponsors click a club, see that club's Cup Match, and tick Sponsor"
+    !board.includes("loadCupDate") &&
+    !board.includes("Load {league}"),
+  "Sponsors type a club name and see that club's League and Cup Matches"
+);
+assert(
+  matchesForClub("Arsenal").some((row) => row.league === "Premier League") &&
+    matchesForClub("Arsenal").some((row) => row.league === "Champions League"),
+  "Typing Arsenal lists League and Cup Matches"
 );
 const octCupHints = cupCalendarHints(
   matchesByLeagueOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE).map((row) => row.league)
 );
 assert(
-  octCupHints.length > 0 &&
-    octCupHints.some(
-      (hint) =>
-        hint.includes("Cup competitions") || hint.includes("Click a club")
-    ),
-  "The calendar explains how to open a club's Cup Match"
+  !octCupHints.some((hint) => hint.includes("Click a club")) &&
+    !octCupHints.some((hint) => hint.includes("Spanish Cup")),
+  "The selected day does not repeat the Cup competition search paragraph"
 );
 assert(
   currentSeasonTeamCount() === 3,
