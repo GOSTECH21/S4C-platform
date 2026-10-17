@@ -265,18 +265,56 @@ export function brandsMatch(
   return Boolean(a && b && a === b);
 }
 
+type LookbackProjectRef = { id: string; name?: string | null };
+
+/** Unsigned copies of the same five still merge if they straddle UTC midnight. */
+export const LOOKBACK_MERGE_WINDOW_MS = 36 * 60 * 60 * 1000;
+
+function lookbackTimeMs(value: string) {
+  const trimmed = String(value ?? "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const noon = Date.parse(`${trimmed}T12:00:00.000Z`);
+    return Number.isFinite(noon) ? noon : null;
+  }
+  const ms = Date.parse(trimmed);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+export function lookbackTimesClose(left: string, right: string) {
+  const a = lookbackTimeMs(left);
+  const b = lookbackTimeMs(right);
+  if (a == null || b == null) {
+    return String(left).slice(0, 10) === String(right).slice(0, 10);
+  }
+  if (Math.abs(a - b) <= LOOKBACK_MERGE_WINDOW_MS) return true;
+  return String(left).slice(0, 10) === String(right).slice(0, 10);
+}
+
+function lookbackProjectNames(projects: LookbackProjectRef[]) {
+  return projects
+    .map((project) => String(project.name ?? "").trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function sameLookbackProjectSet(
-  left: { id: string }[],
-  right: { id: string }[]
+  left: LookbackProjectRef[],
+  right: LookbackProjectRef[]
 ) {
   if (left.length !== right.length) return false;
   const ids = new Set(left.map((project) => project.id));
-  return right.every((project) => ids.has(project.id));
+  if (right.every((project) => ids.has(project.id))) return true;
+  const leftNames = lookbackProjectNames(left);
+  const rightNames = lookbackProjectNames(right);
+  if (leftNames.length !== left.length || rightNames.length !== right.length) {
+    return false;
+  }
+  const names = new Set(leftNames);
+  return rightNames.every((name) => names.has(name));
 }
 
 export function lookbackProjectSetsOverlap(
-  left: { id: string }[],
-  right: { id: string }[]
+  left: LookbackProjectRef[],
+  right: LookbackProjectRef[]
 ) {
   if (left.length === 0 || right.length === 0) {
     return left.length === 0 && right.length === 0;
@@ -284,7 +322,14 @@ export function lookbackProjectSetsOverlap(
   const smaller = left.length <= right.length ? left : right;
   const larger = left.length <= right.length ? right : left;
   const ids = new Set(larger.map((project) => project.id));
-  return smaller.every((project) => ids.has(project.id));
+  if (smaller.every((project) => ids.has(project.id))) return true;
+  const largerNames = new Set(lookbackProjectNames(larger));
+  const smallerNames = lookbackProjectNames(smaller);
+  return (
+    smallerNames.length === smaller.length &&
+    largerNames.size > 0 &&
+    smallerNames.every((name) => largerNames.has(name))
+  );
 }
 
 export function preferFullerLookbackSelected<T extends { id: string }>(
@@ -312,8 +357,8 @@ type LookbackMergeRecord = {
   id?: string;
   campaignId: string | null;
   savedAt: string;
-  selected: { id: string }[];
-  voted?: { id: string }[];
+  selected: LookbackProjectRef[];
+  voted?: LookbackProjectRef[];
   sponsorName?: string | null;
   sponsorLogoUrl?: string | null;
 };
@@ -330,10 +375,10 @@ export function lookbackRecordsShouldMerge(
   const sameCampaign = Boolean(
     left.campaignId && left.campaignId === right.campaignId
   );
-  const sameDay = left.savedAt.slice(0, 10) === right.savedAt.slice(0, 10);
+  const closeInTime = lookbackTimesClose(left.savedAt, right.savedAt);
   return (
     sameCampaign ||
-    (sameDay && lookbackProjectSetsOverlap(left.selected, right.selected))
+    (closeInTime && lookbackProjectSetsOverlap(left.selected, right.selected))
   );
 }
 
@@ -341,24 +386,24 @@ export function findCurrentLookbackRecord<
   T extends {
     campaignId: string | null;
     savedAt: string;
-    selected: { id: string }[];
+    selected: LookbackProjectRef[];
     sponsorName?: string | null;
   },
 >(
   existing: T[],
   query: {
     campaignId: string | null;
-    selected: { id: string }[];
+    selected: LookbackProjectRef[];
     sponsorName?: string | null;
     today?: string;
   }
 ): T | undefined {
-  const today = query.today ?? new Date().toISOString().slice(0, 10);
+  const today = query.today ?? new Date().toISOString();
   const sameSet = (record: T) =>
     sameLookbackProjectSet(record.selected, query.selected);
   const overlaps = (record: T) =>
     lookbackProjectSetsOverlap(record.selected, query.selected);
-  const sameDay = (record: T) => record.savedAt.slice(0, 10) === today;
+  const sameDay = (record: T) => lookbackTimesClose(record.savedAt, today);
   const sameCampaign = (record: T) =>
     Boolean(query.campaignId && record.campaignId === query.campaignId);
   const sameLookback = (record: T) =>
