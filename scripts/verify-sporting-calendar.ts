@@ -13,6 +13,7 @@ import {
   clubsOnSportingCalendar,
   cupCalendarHints,
   cupMatchesForClub,
+  isUpcomingCalendarDate,
   matchesForClub,
   findCalendarMatch,
   isCupCompetitionName,
@@ -300,8 +301,8 @@ assert(
     board.includes("logoUrl") &&
     board.includes("Signed in as {brandName}") &&
     board.includes("{brandName} · 2026/27 Sporting Calendar") &&
-    board.includes("disabled={!cell.inMonth}"),
-  "The Sporting Calendar names the logged-in sponsor with their logo and lets them open any day"
+    board.includes("disabled={!cell.inMonth || !upcoming}"),
+  "The Sporting Calendar names the logged-in sponsor with their logo and lets them open upcoming days"
 );
 assert(
   board.includes("bg-s4p-mark") &&
@@ -594,6 +595,30 @@ assert(
   matchesForClub("Arsenal").some((row) => row.league === "Premier League") &&
     matchesForClub("Arsenal").some((row) => row.league === "Champions League"),
   "Typing Arsenal lists League and Cup Matches"
+);
+assert(
+  isUpcomingCalendarDate("2026-10-18", "2026-10-17") &&
+    isUpcomingCalendarDate("2026-10-17", "2026-10-17") &&
+    !isUpcomingCalendarDate("2026-08-23", "2026-10-17"),
+  "Upcoming Matches include today and later dates, not August results"
+);
+const bournemouthFromToday = matchesForClub("Bournemouth", {
+  fromDate: "2026-10-17",
+});
+assert(
+  bournemouthFromToday.length > 0 &&
+    bournemouthFromToday.every((row) => row.date >= "2026-10-17") &&
+    !bournemouthFromToday.some((row) =>
+      /manchester city v bournemouth/i.test(row.fixtureName)
+    ) &&
+    bournemouthFromToday.some((row) => /sunderland/i.test(row.fixtureName)),
+  "Bournemouth's club list is upcoming Matches only"
+);
+assert(
+  board.includes("isUpcomingCalendarDate") &&
+    board.includes("No upcoming Matches") &&
+    !board.includes("No published Matches for {selectedClub} yet."),
+  "The club picker hides Matches that have already been played"
 );
 const octCupHints = cupCalendarHints(
   matchesByLeagueOnDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE).map((row) => row.league)

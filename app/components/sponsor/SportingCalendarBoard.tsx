@@ -14,6 +14,7 @@ import {
   calendarLeagueDomId,
   clubsOnSportingCalendar,
   cupCalendarHints,
+  isUpcomingCalendarDate,
   matchesForClub,
   monthFromIsoDate,
   matchesByLeagueOnDate,
@@ -79,7 +80,13 @@ export function SportingCalendarBoard({
   }, [initialPicks]);
   const dates = useMemo(() => calendarDatesInMonth(year, month), [year, month]);
   const cells = monthCells(year, month);
-  const groups = matchesByLeagueOnDate(selectedDate);
+  const groups = useMemo(
+    () =>
+      isUpcomingCalendarDate(selectedDate)
+        ? matchesByLeagueOnDate(selectedDate)
+        : [],
+    [selectedDate]
+  );
   const longDate = formatLongMatchDate(selectedDate) || selectedDate;
   const leagueCounts = countPicksByLeague(basket);
   const calendarClubs = useMemo(() => clubsOnSportingCalendar(), []);
@@ -270,7 +277,7 @@ export function SportingCalendarBoard({
               </h3>
               {clubMatches.length === 0 ? (
                 <p className="mt-2 text-sm text-slate-600">
-                  No published Matches for {selectedClub} yet.
+                  No upcoming Matches for {selectedClub}.
                 </p>
               ) : (
                 <div className="mt-3 space-y-4">
@@ -329,18 +336,23 @@ export function SportingCalendarBoard({
         </div>
         <div className="grid grid-cols-7 gap-1">
           {cells.map((cell) => {
-            const hasMatches = Boolean(cell.date && dates.has(cell.date));
+            const upcoming = Boolean(
+              cell.date && isUpcomingCalendarDate(cell.date)
+            );
+            const hasMatches = Boolean(upcoming && cell.date && dates.has(cell.date));
             const selected = cell.date === selectedDate;
             return (
               <button
                 key={cell.key}
                 type="button"
-                disabled={!cell.inMonth}
+                disabled={!cell.inMonth || !upcoming}
                 onClick={() => cell.date && selectDate(cell.date)}
                 className={`min-h-14 rounded-xl p-2 text-sm font-semibold ${
                   !cell.inMonth
                     ? "cursor-default text-transparent"
-                    : selected
+                    : !upcoming
+                      ? "cursor-default bg-white text-slate-400"
+                      : selected
                       ? "bg-s4p-mark text-slate-950"
                       : hasMatches
                         ? "bg-s4p-mark/15 text-s4p-mint ring-1 ring-s4p-mark"
@@ -372,7 +384,9 @@ export function SportingCalendarBoard({
         <h2 className="mt-2 text-3xl font-black">{longDate}</h2>
         <p className="mt-3 text-slate-300">
           {groups.length === 0
-            ? "No scheduled Matches on this day in the 2026/27 Sporting Calendar."
+            ? isUpcomingCalendarDate(selectedDate)
+              ? "No scheduled Matches on this day in the 2026/27 Sporting Calendar."
+              : "This day has already been played. Choose an upcoming Match to sponsor."
             : `${groups.length} ${
                 groups.length === 1 ? "competition" : "competitions"
               } have Matches this day. Tick named Matches to sponsor them together as ${brandName}.`}
