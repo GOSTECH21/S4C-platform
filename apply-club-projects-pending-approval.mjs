@@ -4,6 +4,7 @@ import { dirname, join } from "path";
 const BRANCH = "cursor/club-projects-pending-approval-18f9";
 const FILES = [
   "app/lib/partner-projects.ts",
+  "app/lib/match-day-post.ts",
   "app/club/dashboard/page.tsx",
   "app/services/club-match-day.service.ts",
   "scripts/verify-club-match-day.ts",

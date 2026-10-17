@@ -229,22 +229,20 @@ export function postedMatchDayForFanTeam(
     })
   );
   const schedule = matchedSchedules[0];
-  const store =
-    (schedule && stores.find((row) => row.clubId === schedule.clubId)) ??
-    stores.find((row) => row.clubId === team.id) ??
-    null;
+  // Chosen fives stay off My S4P until a Sponsor signs them off (that write
+  // is the fan post schedule). The SD's local store alone is not a publish.
+  if (!schedule) return null;
+  const store = stores.find((row) => row.clubId === schedule.clubId) ?? null;
   const projectIds =
-    (schedule?.projectIds?.length ? schedule.projectIds : null) ??
+    (schedule.projectIds?.length ? schedule.projectIds : null) ??
     store?.projectIds ??
     [];
-  const clubId = schedule?.clubId || store?.clubId;
-  if (!clubId) return null;
   return {
-    clubId,
-    clubName: schedule?.clubName || team.displayName || team.name,
+    clubId: schedule.clubId,
+    clubName: schedule.clubName || team.displayName || team.name,
     projectIds,
-    campaignId: schedule?.campaignId ?? store?.campaignId ?? null,
-    sponsorNames: schedule?.sponsorNames?.filter(Boolean) ?? [],
+    campaignId: schedule.campaignId ?? store?.campaignId ?? null,
+    sponsorNames: schedule.sponsorNames?.filter(Boolean) ?? [],
   };
 }
 
