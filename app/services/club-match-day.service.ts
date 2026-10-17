@@ -1194,7 +1194,7 @@ export async function saveMatchDaySelection({
     expectedSponsorship,
     savedAt: new Date().toISOString(),
     campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    postedAt: campaign ? stored?.postedAt ?? new Date().toISOString() : stored?.postedAt ?? null,
+    postedAt: stored?.postedAt ?? null,
   });
 
   if (campaign && campaignBelongsToClub(campaign, clubId, clubName)) {
@@ -1202,17 +1202,12 @@ export async function saveMatchDaySelection({
       .from("match_campaigns")
       .update({
         sponsorship_per_goal: auction.minAmount,
-        status: "open",
       })
       .eq("id", campaign.id);
     await writeCampaignProjects(campaign.id, portfolioIds);
   }
 
-  await writeClubPortfolio(
-    clubId,
-    portfolioIds,
-    campaign ? MATCH_DAY_PORTFOLIO_POSTED : MATCH_DAY_PORTFOLIO_SELECTED
-  );
+  await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED);
 
   writeStoredMatchDay(clubId, auction);
   writeCampaignAuction(auction.campaignId, auction);
@@ -1266,7 +1261,6 @@ async function publishChosenProjectsToSponsorsAndFans({
     ) {
       return;
     }
-    await postMatchDayProjectsToFans({ clubId, clubName });
     const { attachProjectsToClubSponsorships } = await import(
       "./sponsor-offers.service"
     );

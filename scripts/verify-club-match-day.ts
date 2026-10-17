@@ -5,7 +5,10 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   PARTNER_PAGE_SIZE,
   clubClimateProjectsIntroCopy,
+  clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
+  MATCH_DAY_APPROVED_LABEL,
+  MATCH_DAY_PENDING_APPROVAL_LABEL,
   isPartnerUpload,
   listsWithUploadsFirst,
   partnerPageCount,
@@ -593,8 +596,33 @@ assert(
     !clubDashboard.includes("MatchDayFolderPanel") &&
     !clubDashboard.includes("Signed copy of the sponsorship") &&
     !clubDashboard.includes("Voted-For Projects") &&
-    clubDashboard.includes("Selected and Funded Projects, kept for lookback"),
+    clubDashboard.includes("Selected and Funded Projects, kept for lookback") &&
+    clubDashboard.includes("orderedSelected") &&
+    clubDashboard.includes("matchDayProjectApprovalLabel") &&
+    clubDashboard.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
+    clubDashboard.includes("MATCH_DAY_APPROVED_LABEL"),
   "Club dashboard puts S4P Climate Projects above Our Climate Sponsors and drops the folder, signed copy, Voted-For and Funded blocks"
+);
+assert(
+  clubDashboardChosenProjectsCopy().includes(MATCH_DAY_PENDING_APPROVAL_LABEL) &&
+    clubDashboardChosenProjectsCopy().includes(MATCH_DAY_APPROVED_LABEL) &&
+    clubDashboardChosenProjectsCopy().includes("published to your fans") &&
+    clubDashboard.includes("clubDashboardChosenProjectsCopy"),
+  "Chosen Match Day projects stay pending approval until sponsor sign-off, then publish to fans"
+);
+const matchDayService = readFileSync("app/services/club-match-day.service.ts", "utf8");
+const chosenPublish = matchDayService.slice(
+  matchDayService.indexOf("async function publishChosenProjectsToSponsorsAndFans"),
+  matchDayService.indexOf("async function writeClubPortfolio")
+);
+assert(
+  !chosenPublish.includes("postMatchDayProjectsToFans") &&
+    chosenPublish.includes("attachProjectsToClubSponsorships") &&
+    matchDayService.includes(
+      "writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED)"
+    ) &&
+    matchDayService.includes("export async function publishSignedSponsorshipToFans"),
+  "SD selection attaches the five for sponsors; fans only receive them after Approved sign-off"
 );
 
 const tabHelper = readFileSync("app/lib/s4p-tabs.ts", "utf8");

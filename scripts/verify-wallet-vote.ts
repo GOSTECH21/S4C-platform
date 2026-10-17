@@ -662,10 +662,11 @@ assert(
   "The club dashboard no longer shows Voted-For Projects"
 );
 assert(
-  clubPage.includes("Approved Projects") &&
+  clubPage.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
+    clubPage.includes("MATCH_DAY_APPROVED_LABEL") &&
     clubPage.includes("Selected and Funded Projects, kept for lookback") &&
     !clubPage.includes("No projects have been funded from Goals yet"),
-  "The club dashboard keeps Approved Projects and lookback, not a separate Funded Projects block"
+  "The club dashboard lists chosen projects as pending approval or Approved, with lookback and no Funded Projects block"
 );
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
