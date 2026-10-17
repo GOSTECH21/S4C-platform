@@ -199,14 +199,21 @@ export function leagueMatchCountOnDate(date: string, league: string): number {
     .length;
 }
 
-export function cupMatchesForClub(clubName: string): CalendarMatch[] {
+export function matchesForClub(clubName: string): CalendarMatch[] {
   const needle = clubName.trim();
   if (!needle) return [];
-  return sportingCalendarMatches().filter(
-    (row) =>
-      isCupCompetitionName(row.league) &&
-      (namesExactlyMatch(row.homeName, needle) ||
-        namesExactlyMatch(row.awayName, needle))
+  return sportingCalendarMatches()
+    .filter(
+      (row) =>
+        namesExactlyMatch(row.homeName, needle) ||
+        namesExactlyMatch(row.awayName, needle)
+    )
+    .sort((left, right) => left.date.localeCompare(right.date));
+}
+
+export function cupMatchesForClub(clubName: string): CalendarMatch[] {
+  return matchesForClub(clubName).filter((row) =>
+    isCupCompetitionName(row.league)
   );
 }
 
@@ -251,14 +258,8 @@ export function monthFromIsoDate(date: string): { year: number; month: number } 
 export function cupCalendarHints(leaguesOnDay: readonly string[]): string[] {
   const names = new Set(leaguesOnDay);
   const present = CUP_COMPETITION_NAMES.filter((league) => names.has(league));
-  if (present.length > 0) {
-    return [
-      `Cup competitions in the row: ${present.join(", ")}. Click a club you wish to sponsor to see that club's Cup Match and tick Sponsor.`,
-    ];
-  }
-  return [
-    "Cup competitions (Champions League, Europa Cup, Europa Conference League, FA Cup, Carabao Cup, Scottish Cup, Italian Cup, German Cup, French Cup, Spanish Cup) sit on their own dates. Search a club to see every published Cup Match they play.",
-  ];
+  if (present.length === 0) return [];
+  return [`Cup competitions in the row: ${present.join(", ")}.`];
 }
 
 export function rugbyCalendarHints(leaguesOnDay: readonly string[]): string[] {

@@ -8,20 +8,13 @@ import {
   shiftMonth,
 } from "@/app/lib/sponsor-signed-home";
 import {
-  CUP_COMPETITION_NAMES,
   GLOBAL_MATCH_DAY_EXAMPLE_DATE,
-  NFL_EXAMPLE_DATE,
-  NFL_EXAMPLE_MONTH,
-  RUGBY_CHAMPIONSHIP_EXAMPLE_DATE,
-  RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH,
-  SIX_NATIONS_EXAMPLE_DATE,
-  SIX_NATIONS_EXAMPLE_MONTH,
-  busyCupDate,
+  SPORTING_CALENDAR_LEAGUE_ORDER,
   calendarDatesInMonth,
   calendarLeagueDomId,
   clubsOnSportingCalendar,
   cupCalendarHints,
-  cupMatchesForClub,
+  matchesForClub,
   monthFromIsoDate,
   matchesByLeagueOnDate,
   rugbyCalendarHints,
@@ -30,7 +23,6 @@ import {
 import {
   GLOBAL_MATCH_DAY_INTRO,
   GLOBAL_MATCH_DAY_STEPS,
-  budweiserExamplePicks,
   countPicksByLeague,
   describeGlobalPicks,
   isMatchPicked,
@@ -59,7 +51,6 @@ export function SportingCalendarBoard({
   notice = null,
   onLockPicks,
   onUnlockPick,
-  showExampleButton = false,
   titleAs = "h1",
 }: {
   brandName: string;
@@ -107,15 +98,23 @@ export function SportingCalendarBoard({
       })
       .slice(0, 12);
   }, [calendarClubs, clubQuery]);
-  const clubCupMatches = useMemo(
-    () => (selectedClub ? cupMatchesForClub(selectedClub) : []),
+  const clubMatches = useMemo(
+    () => (selectedClub ? matchesForClub(selectedClub) : []),
     [selectedClub]
   );
-  const cupLoadLeagues = useMemo(
-    () =>
-      CUP_COMPETITION_NAMES.filter((league) => Boolean(busyCupDate(league))),
-    []
-  );
+  const clubMatchesByLeague = useMemo(() => {
+    const leftover = [
+      ...new Set(
+        clubMatches
+          .map((row) => row.league)
+          .filter((league) => !SPORTING_CALENDAR_LEAGUE_ORDER.includes(league))
+      ),
+    ];
+    return [...SPORTING_CALENDAR_LEAGUE_ORDER, ...leftover].flatMap((league) => {
+      const matches = clubMatches.filter((row) => row.league === league);
+      return matches.length ? [{ league, matches }] : [];
+    });
+  }, [clubMatches]);
   useEffect(() => {
     if (!pendingScrollLeague) return;
     const id =
@@ -126,7 +125,7 @@ export function SportingCalendarBoard({
     if (!node) return;
     node.scrollIntoView({ behavior: "smooth", block: "start" });
     setPendingScrollLeague(null);
-  }, [groups, pendingScrollLeague, clubCupMatches]);
+  }, [groups, pendingScrollLeague, clubMatches]);
 
   function go(delta: number) {
     const next = shiftMonth(year, month, delta);
@@ -155,66 +154,22 @@ export function SportingCalendarBoard({
     setOpenLeagues(openLeague ? new Set([openLeague]) : new Set());
   }
 
-  function loadExample() {
-    selectDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE);
-    setYear(EXAMPLE_MONTH.year);
-    setMonth(EXAMPLE_MONTH.month);
-    setBasket(budweiserExamplePicks());
-  }
-
-  function loadNflSunday() {
-    selectDate(NFL_EXAMPLE_DATE, "NFL");
-    setYear(NFL_EXAMPLE_MONTH.year);
-    setMonth(NFL_EXAMPLE_MONTH.month);
-    setPendingScrollLeague("NFL");
-  }
-
-  function loadSixNations() {
-    selectDate(SIX_NATIONS_EXAMPLE_DATE, "Six Nations");
-    setYear(SIX_NATIONS_EXAMPLE_MONTH.year);
-    setMonth(SIX_NATIONS_EXAMPLE_MONTH.month);
-    setPendingScrollLeague("Six Nations");
-  }
-
-  function loadRugbyChampionship() {
-    selectDate(RUGBY_CHAMPIONSHIP_EXAMPLE_DATE, "The Rugby Championship");
-    setYear(RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH.year);
-    setMonth(RUGBY_CHAMPIONSHIP_EXAMPLE_MONTH.month);
-    setPendingScrollLeague("The Rugby Championship");
-  }
-
-  function loadTop14Saturday() {
-    selectDate(GLOBAL_MATCH_DAY_EXAMPLE_DATE, "Top 14");
-    setYear(EXAMPLE_MONTH.year);
-    setMonth(EXAMPLE_MONTH.month);
-    setPendingScrollLeague("Top 14");
-  }
-
-  function loadCupDate(league: string) {
-    const date = busyCupDate(league);
-    if (!date) return;
-    const month = monthFromIsoDate(date);
-    if (month) {
-      setYear(month.year);
-      setMonth(month.month);
-    }
-    selectDate(date, league);
-    setPendingScrollLeague(league);
-  }
-
   function selectClub(clubName: string) {
     setSelectedClub(clubName);
     setClubQuery(clubName);
-    const cups = cupMatchesForClub(clubName);
-    const first = cups[0];
-    if (!first) return;
+    const matches = matchesForClub(clubName);
+    const first = matches[0];
+    if (!first) {
+      setPendingScrollLeague("club-cups");
+      return;
+    }
     const month = monthFromIsoDate(first.date);
     if (month) {
       setYear(month.year);
       setMonth(month.month);
     }
     selectDate(first.date, first.league);
-    setOpenLeagues(new Set(cups.map((row) => row.league)));
+    setOpenLeagues(new Set(matches.map((row) => row.league)));
     setPendingScrollLeague("club-cups");
   }
 
@@ -257,72 +212,16 @@ export function SportingCalendarBoard({
             <li key={step}>{step}</li>
           ))}
         </ol>
-        <div className="mt-5 flex flex-wrap gap-3">
-          {showExampleButton ? (
-            <button
-              type="button"
-              onClick={loadExample}
-              className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-            >
-              Load Budweiser Saturday 31 October
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={loadNflSunday}
-            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-          >
-            Load NFL Sunday 1 November
-          </button>
-          <button
-            type="button"
-            onClick={loadTop14Saturday}
-            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-          >
-            Load Top 14 Saturday 31 October
-          </button>
-          <button
-            type="button"
-            onClick={loadSixNations}
-            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-          >
-            Load Six Nations Super Saturday 13 March
-          </button>
-          <button
-            type="button"
-            onClick={loadRugbyChampionship}
-            className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-          >
-            Load The Rugby Championship 10 July
-          </button>
-          {cupLoadLeagues.map((league) => (
-            <button
-              key={league}
-              type="button"
-              onClick={() => loadCupDate(league)}
-              className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-            >
-              Load {league}
-            </button>
-          ))}
-        </div>
         <div
           id="calendar-club-cups"
           className="mt-6 rounded-2xl border border-slate-300 bg-white p-5"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-            Sponsor a club in a Cup
+            Sponsor any Club of your choice
           </p>
           <h2 className="mt-2 text-2xl font-black text-slate-950">
-            Click a club, see their Cup Match, tick Sponsor
+            Type-in their Name and see all their League and Cup Matches
           </h2>
-          <p className="mt-2 max-w-3xl text-slate-600">
-            Champions League, Europa Cup, Europa Conference League, FA Cup,
-            Carabao Cup, Scottish Cup, Italian Cup, German Cup, French Cup and
-            Spanish Cup are on this calendar. Search a club you wish to
-            sponsor. Published Cup Matches for that club appear here so you can
-            tick Sponsor on the named Match.
-          </p>
           <label className="mt-4 block text-sm font-semibold text-slate-950">
             Club you wish to sponsor
             <input
@@ -367,47 +266,38 @@ export function SportingCalendarBoard({
           {selectedClub ? (
             <div className="mt-5">
               <h3 className="text-xl font-black text-slate-950">
-                {selectedClub} · Cup Matches
+                {selectedClub} · League and Cup Matches
               </h3>
-              {clubCupMatches.length === 0 ? (
+              {clubMatches.length === 0 ? (
                 <p className="mt-2 text-sm text-slate-600">
-                  No published Cup Match for {selectedClub} yet. FA Cup First
-                  Round is 7 November 2026; Scottish Premiership clubs enter the
-                  Scottish Cup on 16 January 2027. Tick a Cup Match here as soon
-                  as that draw is published.
+                  No published Matches for {selectedClub} yet.
                 </p>
               ) : (
                 <div className="mt-3 space-y-4">
-                  {CUP_COMPETITION_NAMES.map((league) => {
-                    const rows = clubCupMatches.filter(
-                      (row) => row.league === league
-                    );
-                    if (rows.length === 0) return null;
-                    return (
-                      <div
-                        key={league}
-                        className="rounded-2xl border border-slate-300 bg-white p-4"
-                      >
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                          {league}
-                        </p>
-                        <ul className="mt-3 grid gap-2">
-                          {rows.map((match) => (
-                            <CalendarMatchRow
-                              key={match.id}
-                              match={match}
-                              brandName={brandName}
-                              basket={basket}
-                              showDate
-                              onToggle={() => toggle(match, selectedClub)}
-                              onLeadClub={setLeadClub}
-                              onSelectClub={selectClub}
-                            />
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
+                  {clubMatchesByLeague.map((group) => (
+                    <div
+                      key={group.league}
+                      className="rounded-2xl border border-slate-300 bg-white p-4"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        {group.league}
+                      </p>
+                      <ul className="mt-3 grid gap-2">
+                        {group.matches.map((match) => (
+                          <CalendarMatchRow
+                            key={match.id}
+                            match={match}
+                            brandName={brandName}
+                            basket={basket}
+                            showDate
+                            onToggle={() => toggle(match, selectedClub)}
+                            onLeadClub={setLeadClub}
+                            onSelectClub={selectClub}
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -490,7 +380,7 @@ export function SportingCalendarBoard({
         <p className="mt-2 text-sm text-slate-400">
           {groups.some((row) => row.league === "NFL")
             ? "NFL is in the competition row. Click NFL to open the collapsible fixture list."
-            : "NFL fixtures are on Sundays (and some Thursday/Monday nights), not this date. Click Load NFL Sunday 1 November."}
+            : "NFL fixtures are on Sundays (and some Thursday/Monday nights), not this date."}
         </p>
         {cupCalendarHints(groups.map((row) => row.league)).map((hint) => (
           <p key={hint} className="mt-2 text-sm text-slate-400">
