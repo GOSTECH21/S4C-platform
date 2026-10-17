@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
 import {
   loadSponsorFolder,
   type SponsorMatchOffer,
@@ -15,12 +16,14 @@ import {
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
+import { MATCH_DAY_PROJECTS_WAITING_COPY } from "@/app/lib/match-day-carbon-offset";
 import { OfferProjectList, OfferSignOffForm } from "./OfferSignOff";
 
 export default function NewSponsorshipOfferPage() {
   const router = useRouter();
   const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
   const [brandDefault, setBrandDefault] = useState("");
+  const [lockedClub, setLockedClub] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export default function NewSponsorshipOfferPage() {
         const sponsor = await getCurrentSponsor();
         const brand = String(sponsor.name ?? "");
         setBrandDefault(brand);
+        setLockedClub(loadMatchDayLock(brand)?.clubName ?? "");
         const folder = await loadSponsorFolder({
           sponsorId: String(sponsor.id ?? ""),
           brandName: brand,
@@ -77,19 +81,18 @@ export default function NewSponsorshipOfferPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">Match Day Climate Projects</h1>
       <p className="mt-4 text-slate-300">
-        You sponsor this Club&apos;s Match Day carbon footprint offset. When
-        the Sustainability Director chooses the five Climate Projects for that
-        Match, they appear here as your record — and Fans FUND-IT onto them.
-        Sign off your sponsorship after the wallet deposit; you do not wait
-        for this list.
+        You sponsor this Club&apos;s Match Day carbon footprint offset. The
+        five Climate Projects the Sustainability Director chooses for that
+        Match appear here automatically as your record — and Fans FUND-IT onto
+        them. Sign off your sponsorship after the wallet deposit; you do not
+        wait for this list.
       </p>
 
       {!offer ? (
         <p className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
-          No Climate Projects on record yet for the Match you locked in. Lock
-          a Club and Match, deposit your Commitment Fee and Goals-scored
-          Sponsorship, and sign off. This list fills when the Sustainability
-          Director chooses the five Climate Projects for that Match Day.
+          {lockedClub
+            ? `${MATCH_DAY_PROJECTS_WAITING_COPY} Locked club: ${lockedClub}.`
+            : MATCH_DAY_PROJECTS_WAITING_COPY}
         </p>
       ) : (
         <OfferPreview offer={offer} brandDefault={brandDefault} />
@@ -131,7 +134,13 @@ function OfferPreview({
       <h2 className="text-2xl font-black">{offer.headline}</h2>
       {when && <p className="mt-2 text-slate-400">{when}</p>}
       <div className="mt-8">
-        <OfferProjectList offer={offer} />
+        {offer.projects.length > 0 ? (
+          <OfferProjectList offer={offer} />
+        ) : (
+          <p className="rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
+            {MATCH_DAY_PROJECTS_WAITING_COPY}
+          </p>
+        )}
       </div>
       <OfferSignOffForm offer={offer} brandDefault={brandDefault} />
     </div>

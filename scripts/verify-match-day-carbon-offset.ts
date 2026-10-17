@@ -84,11 +84,14 @@ assert(
       projectCount: 5,
       inboundSponsorCount: 1,
     }) &&
-    !shouldPublishChosenMatchDayProjects({
+    shouldPublishChosenMatchDayProjects({
       projectCount: 5,
       inboundSponsorCount: 0,
+    }) &&
+    !shouldPublishChosenMatchDayProjects({
+      projectCount: 4,
     }),
-  "The SD's five go live for sponsors and fans only on a sponsored Match Day"
+  "The SD's five appear for interested sponsors as soon as chosen; fans still wait for Approved sign-off"
 );
 
 assert(
@@ -103,6 +106,7 @@ assert(
 const wallet = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 const dashboard = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
 const offers = readFileSync("app/services/sponsor-offers.service.ts", "utf8");
+const offersPage = readFileSync("app/sponsor/offers/page.tsx", "utf8");
 const clubDash = readFileSync("app/club/dashboard/page.tsx", "utf8");
 const matchDay = readFileSync("app/services/club-match-day.service.ts", "utf8");
 assert(
@@ -120,6 +124,13 @@ assert(
     clubDash.includes("hydrateClubSponsorsFromSigned") &&
     matchDay.includes("publishChosenProjectsToSponsorsAndFans") &&
     matchDay.includes("attachProjectsToClubSponsorships") &&
+    matchDay.includes("leadNames.length ? leadNames : undefined") &&
+    offers.includes("stampOfferWithLockedUploads") &&
+    offers.includes("resolveClubForSponsor") &&
+    offers.includes("findStoredClubSelectionByName") &&
+    !offers.includes("isDemoClubName(offer.clubName)") &&
+    offersPage.includes("MATCH_DAY_PROJECTS_WAITING_COPY") &&
+    offersPage.includes("appear here automatically") &&
     readFileSync("apply-match-day-carbon-offset.mjs", "utf8").includes(
       "app/lib/match-day-carbon-offset.ts"
     ) &&

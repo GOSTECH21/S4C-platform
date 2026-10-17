@@ -635,11 +635,13 @@ const chosenPublish = matchDayService.slice(
 assert(
   !chosenPublish.includes("postMatchDayProjectsToFans") &&
     chosenPublish.includes("attachProjectsToClubSponsorships") &&
+    chosenPublish.includes("leadNames.length ? leadNames : undefined") &&
+    matchDayService.includes("findStoredClubSelectionByName") &&
     matchDayService.includes(
       "writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED)"
     ) &&
     matchDayService.includes("export async function publishSignedSponsorshipToFans"),
-  "SD selection attaches the five for sponsors; fans only receive them after Approved sign-off"
+  "SD selection attaches the five for sponsors as soon as chosen; fans only receive them after Approved sign-off"
 );
 
 const tabHelper = readFileSync("app/lib/s4p-tabs.ts", "utf8");

@@ -4,6 +4,7 @@ import {
   brandsMatch,
   type MatchDayClubLock,
 } from "./climate-sponsors";
+import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
 
 export const SPONSOR_RECEIVE_SECTION_ID = "receive-club-projects";
 export const SPONSOR_SIGNED_SECTION_ID = "signed-folder";
@@ -119,6 +120,21 @@ export function shouldPullLockedClubUploads({
   uploadedProjectCount: number;
 }): boolean {
   return pendingForClub === 0 && uploadedProjectCount > 0;
+}
+
+/** An empty or partial pending offer still receives the SD's uploaded five. */
+export function shouldFillLockedOfferWithUploads({
+  pendingProjectCount,
+  uploadedProjectCount,
+}: {
+  pendingProjectCount: number;
+  uploadedProjectCount: number;
+}): boolean {
+  return (
+    uploadedProjectCount > 0 &&
+    pendingProjectCount < MATCH_DAY_PROJECT_COUNT &&
+    uploadedProjectCount > pendingProjectCount
+  );
 }
 
 export function notifySignedSponsorship(detail: SignedSponsorshipLiveDetail) {
