@@ -39,7 +39,10 @@ import {
   matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
-import { lookbackSponsorForRecord } from "@/app/lib/sponsor-dashboard";
+import {
+  dedupeLookbackRecords,
+  lookbackSponsorForRecord,
+} from "@/app/lib/sponsor-dashboard";
 import {
   leadClimateSponsorsForClub,
   loadClubSponsorRoster,
@@ -218,6 +221,10 @@ export default function ClubDashboardPage() {
   }, [selected, featuredId]);
   const matchDayReady =
     Boolean(featuredId) && orderedSelected.length >= MATCH_DAY_PROJECT_COUNT;
+  const lookbackRecords = useMemo(
+    () => dedupeLookbackRecords(records),
+    [records]
+  );
   const approvedIds = useMemo(() => {
     const ids = new Set<string>();
     for (const copy of signedCopies) {
@@ -255,7 +262,7 @@ export default function ClubDashboardPage() {
         voted,
         funded,
       },
-      records,
+      records: lookbackRecords,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -455,14 +462,14 @@ export default function ClubDashboardPage() {
             </button>
           </div>
 
-          {records.length === 0 ? (
+          {lookbackRecords.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-slate-400">
               No file records yet. Confirm {MATCH_DAY_PROJECT_COUNT} Match Day
               projects to create the first record.
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {records.map((record) => {
+              {lookbackRecords.map((record) => {
                 const sponsor = lookbackSponsorForRecord(
                   record,
                   signedCopies,

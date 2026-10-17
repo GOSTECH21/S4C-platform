@@ -15,6 +15,7 @@ import {
   dedupeLookbackRecords,
   findCurrentLookbackRecord,
   lookbackSponsorForRecord,
+  lookbackTimesClose,
   preferFullerLookbackSelected,
   fanCountFromVotedProjects,
   fanVotesOnSignedOffers,
@@ -409,6 +410,77 @@ assert(
     villaWithUnsigned.some((row) => row.sponsorName === "Budweiser") &&
     villaWithUnsigned.some((row) => row.sponsorName === "Gillette"),
   "Budweiser and Gillette keep separate stamped lookbacks for the same five"
+);
+
+const midnightSplit = dedupeLookbackRecords([
+  {
+    id: "bournemouth-later",
+    campaignId: "campaign-b",
+    savedAt: "2026-10-17T00:28:12.000Z",
+    selected: liverpoolFive,
+  },
+  {
+    id: "bournemouth-earlier",
+    campaignId: null,
+    savedAt: "2026-10-16T23:56:08.000Z",
+    selected: liverpoolFive,
+  },
+]);
+assert(
+  midnightSplit.length === 1 && midnightSplit[0].id === "bournemouth-earlier",
+  "Unsigned copies of the same five do not appear twice across UTC midnight"
+);
+assert(
+  lookbackTimesClose("2026-10-16T23:56:08.000Z", "2026-10-17T00:28:12.000Z"),
+  "Lookback merge window covers the UTC midnight split"
+);
+
+const renamedIds = dedupeLookbackRecords([
+  {
+    id: "names-a",
+    campaignId: null,
+    savedAt: "2026-10-17T01:28:12.000Z",
+    selected: liverpoolFive.map((project, index) => ({
+      ...project,
+      id: `new-${index}`,
+    })),
+  },
+  {
+    id: "names-b",
+    campaignId: null,
+    savedAt: "2026-10-17T00:56:08.000Z",
+    selected: liverpoolFive,
+  },
+]);
+assert(
+  renamedIds.length === 1,
+  "The same project names still collapse when catalog ids change"
+);
+
+const laterMatch = dedupeLookbackRecords([
+  {
+    id: "week-later",
+    campaignId: null,
+    savedAt: "2026-10-24T12:00:00.000Z",
+    selected: liverpoolFive,
+  },
+  {
+    id: "this-week",
+    campaignId: null,
+    savedAt: "2026-10-17T00:56:08.000Z",
+    selected: liverpoolFive,
+  },
+]);
+assert(
+  laterMatch.length === 2,
+  "A later Match Day keeps its own lookback of the same five"
+);
+
+const clubDashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
+assert(
+  clubDashboard.includes("dedupeLookbackRecords") &&
+    clubDashboard.includes("lookbackRecords"),
+  "The club dashboard renders one collapsed lookback list"
 );
 
 assert(
