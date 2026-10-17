@@ -31,8 +31,12 @@ import {
 import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
+  MATCH_DAY_APPROVED_LABEL,
+  MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
+  clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
+  matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import { lookbackSponsorForRecord } from "@/app/lib/sponsor-dashboard";
@@ -214,32 +218,14 @@ export default function ClubDashboardPage() {
   }, [selected, featuredId]);
   const matchDayReady =
     Boolean(featuredId) && orderedSelected.length >= MATCH_DAY_PROJECT_COUNT;
-  const approvedProjects = useMemo(() => {
-    const seen = new Set<string>();
-    const list: ClimateProject[] = [];
+  const approvedIds = useMemo(() => {
+    const ids = new Set<string>();
     for (const copy of signedCopies) {
-      for (const project of copy.offer.projects) {
-        if (seen.has(project.id)) continue;
-        seen.add(project.id);
-        const full = selected.find((row) => row.id === project.id);
-        list.push(
-          full ?? {
-            id: project.id,
-            name: project.name,
-            description: project.description,
-            category: project.category,
-            country: project.country,
-            estimated_co2: project.estimated_co2,
-            funding_goal: project.funding_goal ?? null,
-            image_url: null,
-            status: project.status ?? null,
-            location: project.location,
-          }
-        );
-      }
+      for (const project of copy.offer.projects) ids.add(project.id);
     }
-    return list;
-  }, [signedCopies, selected]);
+    return ids;
+  }, [signedCopies]);
+  const hasApproved = approvedIds.size > 0;
 
   const readySponsorBrands = useMemo(() => {
     if (!roster) return [];
@@ -399,7 +385,7 @@ export default function ClubDashboardPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
               {matchDayReady
-                ? `These ${MATCH_DAY_PROJECT_COUNT} chosen Projects are visible to interested Sponsors. If sponsored & signed-off, they appear as Approved Projects.`
+                ? clubDashboardChosenProjectsCopy()
                 : clubDashboardClimateProjectsIntroCopy()}
             </p>
           </div>
@@ -410,26 +396,26 @@ export default function ClubDashboardPage() {
           >
             S4P Climate Projects
           </Link>
-          {postedAt && !postError && (
+          {hasApproved && postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
-              Posted to your fans on My S4P
+              Approved Projects published to your fans on My S4P
               {readySponsorBrands.length
                 ? ` and to ${readySponsorBrands.map((row) => row.brandName).join(", ")}.`
-                : roster?.selectedIds.length
-                  ? ` Interested Sponsors will see these ${MATCH_DAY_PROJECT_COUNT} once they lock ${club.name} for this Match Day.`
-                  : "."}
+                : "."}
             </p>
           )}
 
           <div className="mt-10 text-left">
-            <h3 className="text-2xl font-black">Approved Projects</h3>
             <p className="mt-2 max-w-3xl text-sm text-slate-400">
               {matchDayWindowCopy()}
             </p>
             <ProjectGrid
-              projects={approvedProjects}
-              empty="No approved projects yet. Upload your Climate Projects with the blue button. When a Sponsor signs them off, they appear here."
-              badge="Approved"
+              projects={matchDayReady ? orderedSelected : []}
+              empty={`No Climate Projects chosen yet. Upload your Climate Projects with the blue button. They appear here tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} until a Sponsor signs them off.`}
+              statusFor={(project) =>
+                matchDayProjectApprovalLabel(approvedIds.has(project.id))
+              }
+              featuredId={featuredId}
               clubName={club.name}
               clubCountry={club.country}
             />
@@ -595,6 +581,7 @@ function ProjectGrid({
   empty,
   funded = false,
   badge,
+  statusFor,
   featuredId = null,
   clubName,
   clubCountry,
@@ -603,6 +590,7 @@ function ProjectGrid({
   empty: string;
   funded?: boolean;
   badge?: string;
+  statusFor?: (project: ClimateProject) => string;
   featuredId?: string | null;
   clubName?: string | null;
   clubCountry?: string | null;
@@ -622,6 +610,11 @@ function ProjectGrid({
           clubName,
           country: clubCountry,
         });
+        const featured =
+          featuredId != null
+            ? project.id === featuredId
+            : isFeaturedClimateProject(project);
+        const status = statusFor?.(project) ?? badge ?? null;
         return (
         <div
           key={project.id}
@@ -629,23 +622,29 @@ function ProjectGrid({
         >
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-xl font-bold">{project.name}</h3>
-            {(funded ||
-              badge ||
-              (featuredId
-                ? project.id === featuredId
-                : isFeaturedClimateProject(project))) && (
-              <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
-                {funded
-                  ? "Funded"
-                  : featuredId
-                    ? project.id === featuredId
-                      ? "Featured"
-                      : badge
-                    : isFeaturedClimateProject(project)
-                      ? "Featured"
-                      : badge}
-              </span>
-            )}
+            <div className="flex shrink-0 flex-wrap justify-end gap-2">
+              {featured && (
+                <span className="rounded-full bg-s4p-mark/15 px-3 py-1 text-xs font-semibold text-slate-950">
+                  Featured
+                </span>
+              )}
+              {funded && (
+                <span className="rounded-full bg-s4p-mark px-3 py-1 text-xs font-semibold text-slate-950">
+                  Funded
+                </span>
+              )}
+              {status && (
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold text-slate-950 ${
+                    status === MATCH_DAY_APPROVED_LABEL
+                      ? "bg-s4p-mark"
+                      : "border border-s4p-mark bg-s4p-mark/15"
+                  }`}
+                >
+                  {status}
+                </span>
+              )}
+            </div>
           </div>
           {country && (
             <p className="mt-1 text-sm text-slate-400">📍 {country}</p>
