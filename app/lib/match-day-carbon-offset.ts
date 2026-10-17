@@ -35,14 +35,11 @@ export function chosenProjectsReadyForMatchDay(
 
 export function shouldPublishChosenMatchDayProjects({
   projectCount,
-  inboundSponsorCount,
 }: {
   projectCount: number;
-  inboundSponsorCount: number;
+  inboundSponsorCount?: number;
 }): boolean {
-  return (
-    chosenProjectsReadyForMatchDay(projectCount) && inboundSponsorCount > 0
-  );
+  return chosenProjectsReadyForMatchDay(projectCount);
 }
 
 export function carbonOffsetHeadline({

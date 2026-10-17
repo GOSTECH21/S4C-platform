@@ -55,6 +55,7 @@ import {
   applyWalletFundingLock,
   includeBrandOnTargets,
   isWalletFundingLocked,
+  shouldFillLockedOfferWithUploads,
   shouldPullLockedClubUploads,
   SIGNED_SPONSORSHIP_EVENT,
 } from "../app/lib/sponsor-completion-flow";
@@ -870,6 +871,27 @@ assert(
       uploadedProjectCount: 5,
     }),
   "Uploaded Climate Projects are pulled when the locked club has no pending offer yet"
+);
+assert(
+  shouldFillLockedOfferWithUploads({
+    pendingProjectCount: 0,
+    uploadedProjectCount: 5,
+  }) &&
+    shouldFillLockedOfferWithUploads({
+      pendingProjectCount: 2,
+      uploadedProjectCount: 5,
+    }) &&
+    !shouldFillLockedOfferWithUploads({
+      pendingProjectCount: 5,
+      uploadedProjectCount: 5,
+    }),
+  "An empty or partial pending offer still receives the SD's uploaded five"
+);
+assert(
+  !offerService.includes("isDemoClubName(offer.clubName)") &&
+    offerService.includes("stampOfferWithLockedUploads") &&
+    offerService.includes("findStoredClubSelectionByName"),
+  "Match Day Climate Projects lists any locked calendar club, not only the 3-club Sports Teams demo"
 );
 assert(
   sponsorDashboardReceivePath() ===

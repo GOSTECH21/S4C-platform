@@ -34,6 +34,7 @@ import {
 } from "../lib/match-day-post";
 import {
   assignLookbackSponsors,
+  clubsMatch,
   dedupeLookbackRecords,
   findCurrentLookbackRecord,
   mergeLookbackProjects,
@@ -861,6 +862,50 @@ function readFileRecords(clubId: string): ClubFileRecord[] {
   }
 }
 
+/** Find a club's stored Match Day five by club name when Sports Teams is still the 3-club demo. */
+export function findStoredClubSelectionByName(clubName: string): {
+  clubId: string;
+  clubName: string;
+  projectIds: string[];
+  projects: ClubFileProject[];
+  minAmount: number | null;
+} | null {
+  if (!clubName.trim() || typeof window === "undefined") return null;
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key?.startsWith(FILE_RECORD_STORAGE_PREFIX)) continue;
+    try {
+      const parsed = JSON.parse(
+        window.localStorage.getItem(key) ?? ""
+      ) as ClubFileRecord[];
+      if (!Array.isArray(parsed)) continue;
+      const record = parsed.find(
+        (row) =>
+          (row.selected?.length ?? 0) > 0 &&
+          (clubsMatch(row.matchLabel, clubName) ||
+            clubsMatch(
+              String(row.matchLabel ?? "").replace(/\s+match day$/i, ""),
+              clubName
+            ))
+      );
+      if (!record) continue;
+      const clubId =
+        record.clubId || key.slice(FILE_RECORD_STORAGE_PREFIX.length);
+      if (!clubId) continue;
+      return {
+        clubId,
+        clubName,
+        projectIds: record.selected.map((project) => project.id).filter(Boolean),
+        projects: record.selected,
+        minAmount: record.minAmount,
+      };
+    } catch {
+      // Skip a malformed row and keep reading the rest.
+    }
+  }
+  return null;
+}
+
 function writeFileRecords(clubId: string, records: ClubFileRecord[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(
@@ -1246,17 +1291,16 @@ async function publishChosenProjectsToSponsorsAndFans({
 }) {
   if (projects.length < MATCH_DAY_PROJECT_COUNT) return;
   try {
-    const { leadClimateSponsorsForClub, localBusinessClimateSponsorsForClub } =
-      await import("./climate-sponsors.service");
+    const { leadClimateSponsorsForClub } = await import(
+      "./climate-sponsors.service"
+    );
     const { shouldPublishChosenMatchDayProjects } = await import(
       "../lib/match-day-carbon-offset"
     );
     const leads = leadClimateSponsorsForClub(clubName);
-    const locals = localBusinessClimateSponsorsForClub(clubName);
     if (
       !shouldPublishChosenMatchDayProjects({
         projectCount: projects.length,
-        inboundSponsorCount: leads.length + locals.length,
       })
     ) {
       return;
@@ -1264,6 +1308,7 @@ async function publishChosenProjectsToSponsorsAndFans({
     const { attachProjectsToClubSponsorships } = await import(
       "./sponsor-offers.service"
     );
+    const leadNames = leads.map((row) => row.brandName);
     await attachProjectsToClubSponsorships({
       clubId,
       clubName,
@@ -1272,7 +1317,7 @@ async function publishChosenProjectsToSponsorsAndFans({
       gbpPerGoal: selection.gbpPerGoal,
       maxAmount: selection.maxAmount,
       gbpPerVote: selection.gbpPerVote,
-      targetBrandNames: leads.map((row) => row.brandName),
+      targetBrandNames: leadNames.length ? leadNames : undefined,
     });
   } catch {
     // Selection is stored even if live publish to fans or sponsor records cannot complete.

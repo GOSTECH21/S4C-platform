@@ -1,7 +1,6 @@
 import { supabase } from "../lib/supabase";
 import {
   LEAGUE_SPORT,
-  isDemoClubName,
   leagueForClubName,
 } from "../lib/current-season";
 import {
@@ -19,6 +18,7 @@ import {
   isWalletFundingLocked,
   notifySignedSponsorship,
   resolveCommittedMatchFunding,
+  shouldFillLockedOfferWithUploads,
   shouldPullLockedClubUploads,
 } from "../lib/sponsor-completion-flow";
 import { scoreLabelForSport } from "../lib/sports";
@@ -258,7 +258,10 @@ export async function publishSponsorMatchOffer({
       Number(gbpPerVote) > 0 ? Number(gbpPerVote) : null,
     gbpPerGoal: Number(gbpPerGoal) > 0 ? Number(gbpPerGoal) : null,
     maxAmount: Number(maxAmount) > 0 ? Number(maxAmount) : null,
-    targetBrandNames: (targetBrandNames ?? []).filter(Boolean),
+    targetBrandNames: (() => {
+      const names = (targetBrandNames ?? []).filter(Boolean);
+      return names.length ? names : undefined;
+    })(),
   };
 
   const local = readJson<SponsorMatchOffer[]>(OFFER_STORAGE, []);
@@ -364,6 +367,7 @@ async function uploadedProjectsForLockedClub(clubName: string): Promise<{
 } | null> {
   const { findClubByPreferenceName } = await import("./teams.service");
   const {
+    findStoredClubSelectionByName,
     loadClubProjectBoard,
     loadProjectsByIds,
     readStoredMatchDay,
@@ -381,20 +385,34 @@ async function uploadedProjectsForLockedClub(clubName: string): Promise<{
   } catch {
     team = null;
   }
+  let registered: { id: string | null; name: string } = {
+    id: null,
+    name: clubName,
+  };
+  try {
+    registered = await resolveClubForSponsor(clubName);
+  } catch {
+    registered = { id: null, name: clubName };
+  }
   const folder = uploadedMatchDayFolderForClub(clubName);
-  const schedule = readAllFanPostSchedules().find(
-    (row) => clubsMatch(row.clubName, clubName)
+  const schedule = readAllFanPostSchedules().find((row) =>
+    clubsMatch(row.clubName, clubName)
   );
-  const store = readAllMatchDayStores().find(
-    (row) =>
-      row.clubId === team?.id ||
-      row.clubId === folder?.clubId ||
-      row.clubId === schedule?.clubId
+  const fileRecord = findStoredClubSelectionByName(clubName);
+  const candidateIds = [
+    team?.id,
+    registered.id,
+    folder?.clubId,
+    schedule?.clubId,
+    fileRecord?.clubId,
+  ].filter((id): id is string => Boolean(id));
+  const store = readAllMatchDayStores().find((row) =>
+    candidateIds.includes(row.clubId)
   );
-  const clubId =
-    team?.id || folder?.clubId || schedule?.clubId || store?.clubId || "";
+  const clubId = candidateIds[0] || store?.clubId || "";
   if (!clubId) return null;
-  const displayName = team?.name || folder?.clubName || clubName;
+  const displayName =
+    team?.name || registered.name || folder?.clubName || clubName;
 
   try {
     const board = await loadClubProjectBoard(clubId, displayName);
@@ -418,15 +436,17 @@ async function uploadedProjectsForLockedClub(clubName: string): Promise<{
     ...(stored?.projectIds ?? []),
     ...(schedule?.projectIds ?? []),
     ...(store?.projectIds ?? []),
+    ...(fileRecord?.projectIds ?? []),
     ...folderIds,
   ].filter(Boolean);
   const uniqueIds = [...new Set(ids)];
-  if (uniqueIds.length === 0) return null;
   let projects: ClimateProject[] = [];
-  try {
-    projects = await loadProjectsByIds(uniqueIds);
-  } catch {
-    projects = [];
+  if (uniqueIds.length > 0) {
+    try {
+      projects = await loadProjectsByIds(uniqueIds);
+    } catch {
+      projects = [];
+    }
   }
   if (projects.length === 0 && folder?.projectsFile?.projects.length) {
     projects = folder.projectsFile.projects.map((project) => ({
@@ -441,16 +461,74 @@ async function uploadedProjectsForLockedClub(clubName: string): Promise<{
       status: null,
     }));
   }
+  if (projects.length === 0 && fileRecord?.projects.length) {
+    projects = fileRecord.projects.map((project) => ({
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      category: project.category,
+      country: project.country,
+      estimated_co2: project.estimated_co2,
+      funding_goal: null,
+      image_url: null,
+      status: null,
+    }));
+  }
   if (projects.length === 0) return null;
   return {
     clubId,
     clubName: displayName,
     projects,
-    minAmount: stored?.minAmount ?? null,
+    minAmount: stored?.minAmount ?? fileRecord?.minAmount ?? null,
     gbpPerGoal: stored?.gbpPerGoal ?? null,
     maxAmount: stored?.maxAmount ?? null,
     gbpPerVote: stored?.gbpPerVote ?? null,
   };
+}
+
+async function stampOfferWithLockedUploads(
+  offer: SponsorMatchOffer,
+  uploaded: Awaited<ReturnType<typeof uploadedProjectsForLockedClub>>,
+  brandName: string,
+  lock: NonNullable<ReturnType<typeof loadMatchDayLock>>
+): Promise<SponsorMatchOffer> {
+  const stamped = stampCommittedFundingOnOffer(
+    includeBrandOnStoredOffer(offer, brandName),
+    brandName,
+    lock
+  );
+  if (
+    !uploaded ||
+    !shouldFillLockedOfferWithUploads({
+      pendingProjectCount: stamped.projects.length,
+      uploadedProjectCount: uploaded.projects.length,
+    })
+  ) {
+    return stamped;
+  }
+  const fixture = displayLockFixture(lock);
+  const filled = await attachProjectsToClubSponsorships({
+    clubId: uploaded.clubId || stamped.clubId,
+    clubName: uploaded.clubName || stamped.clubName,
+    projects: uploaded.projects,
+    matchTitle: isNamedFixture(fixture) ? fixture : stamped.matchTitle,
+    matchDate: lock.fixtureDate || stamped.matchDate,
+    minAmount: uploaded.minAmount,
+    gbpPerGoal: uploaded.gbpPerGoal,
+    maxAmount: uploaded.maxAmount,
+    gbpPerVote: uploaded.gbpPerVote,
+    targetBrandNames: [brandName],
+  });
+  const next =
+    filled.find((row) => row.id === stamped.id) ??
+    filled.find((row) => offerMatchesLockedMatch(row, lock)) ??
+    filled[0] ??
+    stamped;
+  return stampCommittedFundingOnOffer(
+    includeBrandOnStoredOffer(next, brandName),
+    brandName,
+    lock
+  );
 }
 
 export async function ensureCarbonOffsetSponsorshipOffer(options: {
@@ -482,8 +560,7 @@ export async function ensureCarbonOffsetSponsorshipOffer(options: {
         offer.targetBrandNames.some((name) => brandsMatch(name, brandName)))
   );
   if (existing) {
-    const withBrand = includeBrandOnStoredOffer(existing, brandName);
-    return stampCommittedFundingOnOffer(withBrand, brandName, lock);
+    return stampOfferWithLockedUploads(existing, uploaded, brandName, lock);
   }
   const signedForMatch = pairSignedSponsorships(allOffers, signatures, {
     brandName,
@@ -586,10 +663,15 @@ export async function attachProjectsToClubSponsorships({
         gbpPerGoal: Number(gbpPerGoal) > 0 ? Number(gbpPerGoal) : offer.gbpPerGoal,
         maxAmount: Number(maxAmount) > 0 ? Number(maxAmount) : offer.maxAmount,
         gbpPerVote: Number(gbpPerVote) > 0 ? Number(gbpPerVote) : offer.gbpPerVote,
-        targetBrandNames: includeBrandOnTargets(
-          offer.targetBrandNames ?? targetBrandNames,
-          (targetBrandNames ?? [])[0] ?? ""
-        ),
+        targetBrandNames: (() => {
+          const names = includeBrandOnTargets(
+            offer.targetBrandNames ?? targetBrandNames,
+            (targetBrandNames ?? [])[0] ?? ""
+          );
+          return names.length
+            ? names
+            : offer.targetBrandNames ?? targetBrandNames;
+        })(),
       })
     );
   }
@@ -651,8 +733,9 @@ export async function ensureOfferFromLockedClubUploads(options: {
     signatures
   );
   if (visiblePending[0]) {
-    return stampCommittedFundingOnOffer(
-      includeBrandOnStoredOffer(visiblePending[0], brandName),
+    return stampOfferWithLockedUploads(
+      visiblePending[0],
+      uploaded,
       brandName,
       lock
     );
@@ -744,7 +827,6 @@ export async function listSponsorMatchOffers(): Promise<SponsorMatchOffer[]> {
         Number(offer.maxAmount) > 0 ? Number(offer.maxAmount) : offer.maxAmount ?? null,
       targetBrandNames: offer.targetBrandNames,
     }))
-    .filter((offer) => isDemoClubName(offer.clubName))
     .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
 }
 
