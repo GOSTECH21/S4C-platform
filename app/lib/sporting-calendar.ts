@@ -174,11 +174,42 @@ export function matchesByLeagueOnDate(date: string): LeagueDayGroup[] {
   });
 }
 
-export function calendarDatesInMonth(year: number, month: number): Set<string> {
+export function localCalendarDateKey(now: Date = new Date()): string {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function calendarDateKey(value: string | Date): string {
+  if (value instanceof Date) return localCalendarDateKey(value);
+  return String(value ?? "").slice(0, 10);
+}
+
+/** Sponsors lock-in Matches that have not been played yet, including today. */
+export function isUpcomingCalendarDate(
+  date: string | Date,
+  from: string | Date = new Date()
+): boolean {
+  const day = calendarDateKey(date);
+  const start = calendarDateKey(from);
+  return Boolean(day) && Boolean(start) && day >= start;
+}
+
+export function calendarDatesInMonth(
+  year: number,
+  month: number,
+  from: string | Date = new Date()
+): Set<string> {
   const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
   const dates = new Set<string>();
   for (const match of sportingCalendarMatches()) {
-    if (match.date.startsWith(prefix)) dates.add(match.date);
+    if (
+      match.date.startsWith(prefix) &&
+      isUpcomingCalendarDate(match.date, from)
+    ) {
+      dates.add(match.date);
+    }
   }
   return dates;
 }
@@ -199,14 +230,19 @@ export function leagueMatchCountOnDate(date: string, league: string): number {
     .length;
 }
 
-export function matchesForClub(clubName: string): CalendarMatch[] {
+export function matchesForClub(
+  clubName: string,
+  options?: { fromDate?: string | Date }
+): CalendarMatch[] {
   const needle = clubName.trim();
   if (!needle) return [];
+  const from = options?.fromDate ?? new Date();
   return sportingCalendarMatches()
     .filter(
       (row) =>
-        namesExactlyMatch(row.homeName, needle) ||
-        namesExactlyMatch(row.awayName, needle)
+        isUpcomingCalendarDate(row.date, from) &&
+        (namesExactlyMatch(row.homeName, needle) ||
+          namesExactlyMatch(row.awayName, needle))
     )
     .sort((left, right) => left.date.localeCompare(right.date));
 }
