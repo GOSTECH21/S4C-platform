@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
@@ -12,12 +12,8 @@ import {
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
 import {
-  clearMatchDayLock,
-  ensureGoalNetwork,
   loadBrandLogo,
-  loadGoalNetwork,
   loadMatchDayLock,
-  lockMatchDayClub,
   readLogoFile,
   saveBrandLogo,
 } from "@/app/services/climate-sponsors.service";
@@ -25,22 +21,11 @@ import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   brandsMatch,
   clubsMatch,
-  displayLockFixture,
-  lockCopy,
-  registeredClubForLockIn,
-  secondLeadClimateSponsorRejectedMessage,
   type MatchDayClubLock,
 } from "@/app/lib/climate-sponsors";
-import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
-import { loadClubFixtures } from "@/app/services/club-fixtures.service";
-import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
-import {
-  ClubLeagueMenu,
-  MatchFixtureMenu,
-} from "@/app/components/sponsor/ClubMatchMenus";
+import { MatchDayLockIn } from "@/app/components/sponsor/MatchDayLockIn";
 import {
   LOCAL_SPONSOR_HOME_PATH,
-  SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_RECEIVE_SECTION_ID,
@@ -96,15 +81,7 @@ export default function SponsorDashboardPage() {
   const [stats, setStats] = useState<SponsorDashboardStats>(EMPTY_STATS);
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
   const [lockClub, setLockClub] = useState("");
-  const [registeredClubs, setRegisteredClubs] = useState<string[]>([]);
   const [chosenProjects, setChosenProjects] = useState<ClimateProject[]>([]);
-  const [lockFixture, setLockFixture] = useState("");
-  const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
-  const [fixturesLoading, setFixturesLoading] = useState(false);
-  const [fixtureNotice, setFixtureNotice] = useState<string | null>(null);
-  const [chosenFixture, setChosenFixture] = useState<ClubFixture | null>(null);
-  const lockFixtureRef = useRef(lockFixture);
-  lockFixtureRef.current = lockFixture;
   const [email, setEmail] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,15 +118,8 @@ export default function SponsorDashboardPage() {
           uploaded || fromRecord || sponsorLogoSrc(sponsorName, fromRecord)
         );
         const currentLock = loadMatchDayLock(sponsorName);
-        const network = loadGoalNetwork(sponsorName, sponsorEmail);
-        const registered = network?.clubNames ?? [];
-        const club = registeredClubForLockIn(registered, currentLock?.clubName);
-        setRegisteredClubs(registered);
         setLock(currentLock);
-        setLockClub(club);
-        setLockFixture(
-          currentLock ? displayLockFixture(currentLock) : ""
-        );
+        setLockClub(currentLock?.clubName ?? "");
         const folder = await loadSponsorFolder({
           sponsorId,
           brandName: sponsorName,
@@ -212,72 +182,6 @@ export default function SponsorDashboardPage() {
     }
     load();
   }, [router]);
-
-  useEffect(() => {
-    if (!lockClub) {
-      setClubFixtures([]);
-      setFixturesLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setFixturesLoading(true);
-    void loadClubFixtures(lockClub)
-      .then((rows) => {
-        if (cancelled) return;
-        setClubFixtures(rows);
-        const current = lockFixtureRef.current;
-        if (!current) return;
-        const published = fixtureByIdOrName(rows, current);
-        if (published) {
-          setLockFixture(published.fixtureName);
-          setChosenFixture(published);
-          if (
-            lock &&
-            clubsMatch(lock.clubName, lockClub) &&
-            (lock.fixtureDate !== published.date ||
-              lock.venue !== published.venue ||
-              lock.kickoff !== published.kickoff)
-          ) {
-            try {
-              const next = lockMatchDayClub({
-                brandName: brand,
-                clubName: lockClub,
-                matchLabel: published.competition,
-                fixtureName: published.fixtureName,
-                competition: published.competition,
-                fixtureDate: published.date,
-                kickoff: published.kickoff,
-                venue: published.venue,
-                sourceUrl: published.sourceUrl,
-              });
-              ensureGoalNetwork({
-                brandName: brand,
-                clubNames: [lockClub],
-              });
-              setLock(next);
-            } catch (err) {
-              setFixtureNotice(
-                err instanceof Error
-                  ? err.message
-                  : secondLeadClimateSponsorRejectedMessage(lockClub, "")
-              );
-            }
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setClubFixtures([]);
-          setFixtureNotice("Could not load published fixtures for this club.");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setFixturesLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [lockClub, brand]);
 
   useEffect(() => {
     if (!lockClub) {
@@ -376,77 +280,6 @@ export default function SponsorDashboardPage() {
     });
   }
 
-  function applyMatchDayLock(clubName: string, fixture: ClubFixture | null) {
-    const club = clubName.trim();
-    if (!club) {
-      clearMatchDayLock(brand);
-      setLock(null);
-      setLockClub("");
-      setLockFixture("");
-      setChosenFixture(null);
-      setFixtureNotice(null);
-      void refreshFolder();
-      return;
-    }
-    if (!fixture) {
-      setLockClub(club);
-      setLockFixture("");
-      setChosenFixture(null);
-      setFixtureNotice(null);
-      if (lock && !clubsMatch(lock.clubName, club)) {
-        clearMatchDayLock(brand);
-        setLock(null);
-      }
-      return;
-    }
-    setLockClub(club);
-    setLockFixture(fixture.fixtureName);
-    setChosenFixture(fixture);
-    try {
-      const next = lockMatchDayClub({
-        brandName: brand,
-        clubName: club,
-        matchLabel: fixture.competition,
-        fixtureName: fixture.fixtureName,
-        competition: fixture.competition,
-        fixtureDate: fixture.date,
-        kickoff: fixture.kickoff,
-        venue: fixture.venue,
-        sourceUrl: fixture.sourceUrl,
-      });
-      ensureGoalNetwork({
-        brandName: brand,
-        clubNames: [club],
-      });
-      setLock(next);
-      setFixtureNotice(null);
-      void refreshFolder();
-    } catch (err) {
-      setFixtureNotice(
-        err instanceof Error
-          ? err.message
-          : secondLeadClimateSponsorRejectedMessage(club, "", fixture.fixtureName)
-      );
-    }
-  }
-
-  function unlockMatchDay() {
-    const club = registeredClubForLockIn(registeredClubs, lockClub);
-    clearMatchDayLock(brand);
-    setLock(null);
-    setLockFixture("");
-    setChosenFixture(null);
-    setFixtureNotice(null);
-    setLockClub(club);
-    void refreshFolder();
-  }
-
-  const selectedFixture =
-    chosenFixture && chosenFixture.fixtureName === lockFixture
-      ? chosenFixture
-      : fixtureByIdOrName(clubFixtures, lockFixture);
-  const matchLocked = Boolean(lockClub && (selectedFixture || lockFixture));
-
   if (loading) {
     return <p className="text-slate-400">Loading sponsor dashboard...</p>;
   }
@@ -520,103 +353,18 @@ export default function SponsorDashboardPage() {
         </div>
       )}
 
-      <Link
-        href={SPONSOR_CALENDAR_PATH}
-        className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
-      >
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
-          2026/27 Sporting Calendar
-        </p>
-        <h2 className="mt-3 text-2xl font-black">
-          See every Match on a given day, then sponsor several at once
-        </h2>
-        <p className="mt-3 max-w-3xl text-slate-300">
-          Mine Premier League, Championship, League One, Women&apos;s Super
-          League, Scottish Premiership, Bundesliga, La Liga, Ligue 1, Serie A,
-          NFL, Rugby Union, Rugby League and NBA. A Global Brand can lock
-          several named Matches on the same day — for example 2 Premier League,
-          1 Scottish Premiership and 3 La Liga on Saturday 31 October.
-        </p>
-        <p className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950">
-          Open 2026/27 Sporting Calendar
-        </p>
-      </Link>
-
-      <section
-        id="match-day-lock-in"
-        className="scroll-mt-6 overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8"
-      >
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-          Match Day lock-in
-        </p>
-        <h2 className="mt-2 text-3xl font-black">Match Day Lock-In</h2>
-        <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
-        <div className="mt-6 overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
-          <p className="text-sm uppercase tracking-[0.2em] text-green-300">
-            {matchLocked ? "Locked in" : "Choose the Match"}
-          </p>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <ClubLeagueMenu
-              value={lockClub}
-              clubs={registeredClubs}
-              onChange={(club) => applyMatchDayLock(club, null)}
-            />
-            <MatchFixtureMenu
-              clubName={lockClub}
-              value={lockFixture}
-              fixtures={clubFixtures}
-              loading={fixturesLoading}
-              onChange={(fixture) => applyMatchDayLock(lockClub, fixture)}
-            />
-          </div>
-          {fixtureNotice && (
-            <p className="mt-4 text-sm font-semibold text-amber-300">
-              {fixtureNotice}
-            </p>
-          )}
-          {matchLocked ? (
-            <>
-              <p className="mt-4 text-2xl font-black">
-                {lockClub} · {lockFixture}
-              </p>
-              <SeeMatchDetails
-                key={lockFixture}
-                defaultOpen
-                date={
-                  lock?.fixtureDate ||
-                  selectedFixture?.date
-                }
-                venue={
-                  lock?.venue ||
-                  selectedFixture?.venue
-                }
-                kickoff={
-                  lock?.kickoff ||
-                  selectedFixture?.kickoff
-                }
-              />
-            </>
-          ) : lockClub ? (
-            <p className="mt-4 text-sm text-slate-400">
-              Choose the Match {lockClub} will play, then you can view that
-              Match&apos;s details.
-            </p>
-          ) : (
-            <p className="mt-4 text-sm text-slate-400">
-              The Club you chose at Register as Sponsor appears here with that
-              Club&apos;s published Matches.
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={unlockMatchDay}
-            disabled={!lockFixture}
-            className="mt-4 rounded-xl border border-slate-600 px-4 py-2 text-sm disabled:opacity-40"
-          >
-            Unlock
-          </button>
-        </div>
-      </section>
+      <div id="match-day-lock-in" className="scroll-mt-6">
+        <MatchDayLockIn
+          brandName={brand}
+          lock={lock}
+          onClubChange={setLockClub}
+          onLockChange={(next) => {
+            setLock(next);
+            if (next?.clubName) setLockClub(next.clubName);
+            void refreshFolder();
+          }}
+        />
+      </div>
 
       <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
         <div className="rounded-3xl border border-slate-700 bg-slate-900 p-8">

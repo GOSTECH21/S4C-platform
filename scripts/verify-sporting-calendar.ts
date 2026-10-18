@@ -11,14 +11,17 @@ import {
   busyCupDate,
   calendarLeagueDomId,
   clubsOnSportingCalendar,
+  CLUB_MATCH_CALENDAR_COUNT,
   cupCalendarHints,
   cupMatchesForClub,
   isUpcomingCalendarDate,
   matchesForClub,
+  nextClubMatches,
   findCalendarMatch,
   isCupCompetitionName,
   leagueMatchCountOnDate,
   matchesByLeagueOnDate,
+  resolveSportingCalendarClub,
   rugbyCalendarHints,
   matchesOnCalendarDate,
   publishedFixtureSource,
@@ -272,11 +275,33 @@ assert(
 assert(SPONSOR_CALENDAR_PATH === "/sponsor/calendar", "Calendar lives at /sponsor/calendar");
 
 const dashboard = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
+const calendarPage = readFileSync("app/sponsor/calendar/page.tsx", "utf8");
+const lockIn = readFileSync(
+  "app/components/sponsor/MatchDayLockIn.tsx",
+  "utf8"
+);
+const clubCalendar = readFileSync(
+  "app/components/sponsor/ClubMatchCalendar.tsx",
+  "utf8"
+);
 assert(
-  dashboard.includes("SPONSOR_CALENDAR_PATH") &&
-    dashboard.includes("Open 2026/27 Sporting Calendar") &&
-    dashboard.includes("ClubLeagueMenu"),
-  "The Lead dashboard opens the 2026/27 Sporting Calendar from Match Day Lock-In"
+  dashboard.includes("MatchDayLockIn") &&
+    dashboard.includes('id="match-day-lock-in"') &&
+    !dashboard.includes("Open 2026/27 Sporting Calendar") &&
+    !dashboard.includes("ClubLeagueMenu") &&
+    dashboard.indexOf("MatchDayLockIn") <
+      dashboard.indexOf("The club&apos;s 5 chosen Climate Projects"),
+  "Match Day Lock-In sits above the Climate Projects record; the Sporting Calendar is not a standalone card"
+);
+assert(
+  calendarPage.includes("MatchDayLockIn") &&
+    !calendarPage.includes("SportingCalendarBoard") &&
+    lockIn.includes("ClubTypeInMenu") &&
+    lockIn.includes("ClubMatchCalendar") &&
+    clubCalendar.includes("bg-s4p-mark") &&
+    clubCalendar.includes("CLUB_MATCH_CALENDAR_COUNT") &&
+    clubCalendar.includes("League and Cup Dates"),
+  "Select the Match opens that Club's next 10 League and Cup dates from the Sporting Calendar catalog"
 );
 
 const signedHome = readFileSync(
@@ -366,19 +391,20 @@ assert(
 const matchDay = readFileSync("app/lib/global-match-day.ts", "utf8");
 assert(
   matchDay.includes("Type-in the Name of the Club you wish to sponsor") &&
-    matchDay.includes("Look at the Sporting Calendar") &&
+    matchDay.includes("Click Select the Match") &&
     matchDay.includes(
-      "Select any Day of the week and look for Matches to be played by this Club"
+      "Choose one of this Club's next 10 League or Cup Matches"
     ) &&
     matchDay.includes("Lock-in that Match") &&
     matchDay.includes(
       "Proceed to your Carbon Wallet to complete transaction"
     ) &&
+    !matchDay.includes("Look at the Sporting Calendar") &&
     !matchDay.includes("Open any day on the 2026/27 Sporting Calendar") &&
     !matchDay.includes(
       "Scroll below to see all Sporting Events on that day in various Sports & Leagues"
     ),
-  "Global Match Day copy lists the five club-first Sporting Calendar steps"
+  "Global Match Day copy lists the five type-in then Select the Match steps"
 );
 
 const calendarLib = readFileSync("app/lib/sporting-calendar.ts", "utf8");
@@ -595,6 +621,20 @@ assert(
   matchesForClub("Arsenal").some((row) => row.league === "Premier League") &&
     matchesForClub("Arsenal").some((row) => row.league === "Champions League"),
   "Typing Arsenal lists League and Cup Matches"
+);
+const arsenalTen = nextClubMatches("Arsenal", { fromDate: "2026-10-18" });
+assert(
+  CLUB_MATCH_CALENDAR_COUNT === 10 &&
+    arsenalTen.length === 10 &&
+    arsenalTen.every(
+      (row) => row.homeName === "Arsenal" || row.awayName === "Arsenal"
+    ) &&
+    arsenalTen.some((row) => row.league === "Premier League") &&
+    arsenalTen.some((row) => isCupCompetitionName(row.league)) &&
+    !arsenalTen.some((row) => row.league === "Women's Super League") &&
+    !arsenalTen.some((row) => row.league === "NFL" || row.league === "NBA") &&
+    resolveSportingCalendarClub("Arsenal FC") === "Arsenal",
+  "Select the Match shows only this Club's next 10 League and Cup Matches"
 );
 assert(
   isUpcomingCalendarDate("2026-10-18", "2026-10-17") &&

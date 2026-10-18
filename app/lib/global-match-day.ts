@@ -344,8 +344,8 @@ export function globalPicksFromLock(
 
 export const GLOBAL_MATCH_DAY_STEPS = [
   "Type-in the Name of the Club you wish to sponsor",
-  "Look at the Sporting Calendar",
-  "Select any Day of the week and look for Matches to be played by this Club",
+  "Click Select the Match",
+  "Choose one of this Club's next 10 League or Cup Matches",
   "Lock-in that Match",
   "Proceed to your Carbon Wallet to complete transaction",
 ] as const;
