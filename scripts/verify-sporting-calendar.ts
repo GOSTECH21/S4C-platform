@@ -289,8 +289,10 @@ assert(
     dashboard.includes('id="match-day-lock-in"') &&
     !dashboard.includes("Open 2026/27 Sporting Calendar") &&
     !dashboard.includes("ClubLeagueMenu") &&
+    lockIn.includes("ClubChosenProjectsPanel") &&
+    dashboard.includes("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
     dashboard.indexOf("MatchDayLockIn") <
-      dashboard.indexOf("The club&apos;s 5 chosen Climate Projects"),
+      dashboard.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}"),
   "Match Day Lock-In sits above the Climate Projects record; the Sporting Calendar is not a standalone card"
 );
 assert(
@@ -416,7 +418,9 @@ assert(
       "Choose one of this Club's next 10 League or Cup Matches"
     ) &&
     matchDay.includes("Lock-in that Match and go straight to your Carbon Wallet") &&
-    matchDay.includes("Enter your sponsorship amounts") &&
+    matchDay.includes(
+      "See this Club's chosen Climate Projects, then enter your sponsorship amounts"
+    ) &&
     !matchDay.includes("Look at the Sporting Calendar") &&
     !matchDay.includes("Open any day on the 2026/27 Sporting Calendar") &&
     !matchDay.includes(

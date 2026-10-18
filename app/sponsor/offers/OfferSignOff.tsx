@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   listOfferSignatures,
+  loadClubChosenClimateProjects,
   signSponsorOffer,
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
@@ -30,8 +31,12 @@ import {
   readLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import { isLocalClimateSponsor, sponsorHomePath } from "@/app/lib/sponsor-home";
+import {
+  MATCH_DAY_SIGNOFF_PENDING_COPY,
+  chosenProjectsReadyForMatchDay,
+} from "@/app/lib/match-day-carbon-offset";
 
-export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor the Club's Match Day carbon footprint offset — a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. The Sustainability Director later chooses five Climate Projects for that Match Day; those Projects are your record and the list Fans FUND-IT onto. Each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures. You may display your brand as SPONSORED BY on those Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
+export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor the Club's Match Day carbon footprint offset — a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. You must see the Club's five chosen Climate Projects before you sign; those Projects are your record and the list Fans FUND-IT onto. If the Club has not uploaded them yet, sign-off stays pending approval until they do. Each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures. You may display your brand as SPONSORED BY on those Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
 export function OfferProjectList({ offer }: { offer: SponsorMatchOffer }) {
   return (
@@ -79,6 +84,9 @@ export function OfferSignOffForm({
   const [signedBrand, setSignedBrand] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [clubProjectCount, setClubProjectCount] = useState(
+    offer.projects.length
+  );
 
   const signedBrandName = brandName || brandDefault;
   const localSponsor = isLocalClimateSponsor(signedBrandName);
@@ -103,9 +111,33 @@ export function OfferSignOffForm({
         clubName: offer.clubName,
       });
 
+  const projectsReady = chosenProjectsReadyForMatchDay(
+    Math.max(offer.projects.length, clubProjectCount)
+  );
+
   useEffect(() => {
     setBrandName(brandDefault);
   }, [brandDefault]);
+
+  useEffect(() => {
+    if (localSponsor || chosenProjectsReadyForMatchDay(offer.projects.length)) {
+      setClubProjectCount(offer.projects.length);
+      return;
+    }
+    let cancelled = false;
+    void loadClubChosenClimateProjects(offer.clubName)
+      .then((uploaded) => {
+        if (!cancelled) {
+          setClubProjectCount(uploaded?.projects.length ?? 0);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setClubProjectCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [localSponsor, offer.clubName, offer.projects.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,6 +159,10 @@ export function OfferSignOffForm({
   async function sign(event: React.FormEvent) {
     event.preventDefault();
     if (!accepted) return;
+    if (!localSponsor && !projectsReady) {
+      setError(MATCH_DAY_SIGNOFF_PENDING_COPY);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -170,9 +206,8 @@ export function OfferSignOffForm({
           <p className="mt-2 text-slate-300">
             Fans of {offer.clubName} and the club Sustainability Director can
             now see this Match Day carbon footprint offset sponsorship
-            immediately. Climate Projects the club later chooses for this Match
-            appear as your record. This copy is lodged in your Dashboard
-            folder.
+            immediately. The Climate Projects you saw before signing are your
+            record. This copy is lodged in your Dashboard folder.
           </p>
           <Link
             href={sponsorHomePath(signedBrand) || SPONSOR_DASHBOARD_PATH}
@@ -181,6 +216,10 @@ export function OfferSignOffForm({
             Open your sponsored Match Days
           </Link>
         </div>
+      ) : !localSponsor && !projectsReady ? (
+        <p className="mt-10 rounded-2xl border border-amber-400/40 bg-amber-400/10 p-8 font-semibold text-amber-200">
+          {MATCH_DAY_SIGNOFF_PENDING_COPY}
+        </p>
       ) : (
         <form
           onSubmit={sign}

@@ -126,8 +126,14 @@ assert(
   ) &&
     readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
       "ensureCarbonOffsetSponsorshipOffer"
+    ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "chosenProjectsReadyForMatchDay"
+    ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "MATCH_DAY_SIGNOFF_PENDING_COPY"
     ),
-  "Step 3 after a wallet deposit opens Terms & Conditions + sign-off of the Match Day carbon footprint offset"
+  "Step 3 after a wallet deposit opens Terms & Conditions + sign-off only after the Club's Climate Projects are visible"
 );
 
 const projects = [

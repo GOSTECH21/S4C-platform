@@ -25,11 +25,15 @@ export default function MatchDayCarbonOffsetPreview() {
             Open the Climate Sponsorship Wallet and add Commitment Fees and
             Sponsorship/Goal-scored
           </li>
-          <li>Sign off their sponsorship</li>
+          <li>
+            See the Club&apos;s chosen Climate Projects, then sign off their
+            sponsorship
+          </li>
         </ol>
         <p className="mt-4 max-w-3xl text-slate-400">
-          The five Climate Projects are a record for the sponsor and the FUND-IT
-          list for fans — not a gate before sign-off.
+          The five Climate Projects must be visible before sign-off. If the Club
+          has not uploaded them yet, sign-off stays pending approval until they
+          do.
         </p>
       </section>
 
@@ -39,9 +43,10 @@ export default function MatchDayCarbonOffsetPreview() {
         </p>
         <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
         <p className="mt-3 max-w-3xl text-slate-400">
-          Once you sign off the Club&apos;s Match Day carbon footprint offset,
-          it is lodged here. Climate Projects the Sustainability Director later
-          chooses for that Match Day are added as your record.
+          Once you have seen this Club&apos;s chosen Climate Projects and sign
+          off the Match Day carbon footprint offset, it is lodged here. If the
+          Club has not uploaded those Projects yet, sign-off stays pending
+          approval until they do.
         </p>
       </section>
 

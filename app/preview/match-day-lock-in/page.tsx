@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MatchDayLockIn } from "@/app/components/sponsor/MatchDayLockIn";
 import { ClimateSponsorshipWallet } from "@/app/components/sponsor/ClimateSponsorshipWallet";
 import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
+import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
 import {
   SPONSOR_ANOTHER_TEAM_CLICK,
   SPONSOR_ANOTHER_TEAM_PROMPT,
@@ -43,6 +44,7 @@ export default function MatchDayLockInPreviewPage() {
               .
             </p>
           </div>
+          <ClubChosenProjectsPanel clubName={walletClub} />
           <ClimateSponsorshipWallet
             kind="lead"
             clubName={walletClub}

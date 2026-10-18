@@ -648,11 +648,11 @@ assert(
   "The S4P Sponsorship Dashboard no longer duplicates Goal Sponsorship Network as a second club picker"
 );
 assert(
-  sponsorDashboardPage.indexOf("MatchDayLockIn") <
-    sponsorDashboardPage.indexOf("The club&apos;s 5 chosen Climate Projects") &&
+  lockInPage.includes("ClubChosenProjectsPanel") &&
+    sponsorDashboardPage.includes("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
     sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
-      sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") &&
-    sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") <
+      sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
+    sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") <
       sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
   "Match Day Lock-In and the five Climate Projects record sit above the Climate Sponsorship Wallet"
 );
@@ -665,11 +665,14 @@ assert(
     clubMatchCalendar.includes("monthsCoveringMatches"),
   "Locking a typed Club and highlighted Match still records the Goal Sponsorship Network behind the scenes"
 );
+const chosenProjectsPanel = readFileSync(
+  "app/components/sponsor/ClubChosenProjectsPanel.tsx",
+  "utf8"
+);
 assert(
-  sponsorDashboardPage.includes("The club's 5 chosen Climate Projects") ||
-    sponsorDashboardPage.includes(
-      "The club&apos;s 5 chosen Climate Projects"
-    ),
+  lockInPage.includes("ClubChosenProjectsPanel") &&
+    chosenProjectsPanel.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
+    chosenProjectsPanel.includes("MATCH_DAY_PENDING_APPROVAL_LABEL"),
   "Sponsorship dashboard keeps the club's 5 chosen Climate Projects as a record"
 );
 assert(
@@ -677,11 +680,11 @@ assert(
     sponsorDashboardPage.includes("SPONSOR_SIGNED_SECTION_ID") &&
     sponsorDashboardPage.includes("scrollIntoView") &&
     sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
-    sponsorDashboardPage.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
-    sponsorDashboardPage.includes("loadClubChosenClimateProjects") &&
-    sponsorDashboardPage.includes("MATCH_DAY_PROJECTS_WAITING_COPY") &&
+    chosenProjectsPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
+    chosenProjectsPanel.includes("loadClubChosenClimateProjects") &&
+    chosenProjectsPanel.includes("MATCH_DAY_PROJECTS_WAITING_COPY") &&
     sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
-      sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}"),
+      sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}"),
   "The five Climate Projects record sits under Match Day Lock-In and fills when the Sustainability Director uploads them"
 );
 assert(
@@ -788,10 +791,13 @@ assert(
     walletPage.includes("sponsorOfferSignOffPath") &&
     walletPage.includes("ensureMatchDayClubLock") &&
     walletPage.includes("bindFundedSponsorToClub") &&
+    walletPage.includes("ClubChosenProjectsPanel") &&
+    walletPage.includes("chosenProjectsReadyForMatchDay") &&
+    walletPage.includes("MATCH_DAY_SIGNOFF_PENDING_COPY") &&
     !walletPage.includes("sponsorDashboardReceivePath") &&
     !walletPage.includes("clubNameForLocalBrand") &&
     !walletPage.includes("isLeadSponsorHome(brand) && !lock?.clubName"),
-  "Depositing into the Climate Sponsorship Wallet locks funding to the selected club and opens Terms & Conditions + sign-off"
+  "Depositing into the Climate Sponsorship Wallet locks funding to the selected club; sign-off waits until the Club's Climate Projects are visible"
 );
 assert(
   readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(

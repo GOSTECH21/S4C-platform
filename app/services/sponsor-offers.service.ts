@@ -25,7 +25,11 @@ import {
 } from "../lib/sponsor-completion-flow";
 import { scoreLabelForSport } from "../lib/sports";
 import { sponsorOfferHeadline } from "../lib/s4p-climate-projects";
-import { carbonOffsetHeadline } from "../lib/match-day-carbon-offset";
+import {
+  carbonOffsetHeadline,
+  chosenProjectsReadyForMatchDay,
+  MATCH_DAY_SIGNOFF_PENDING_COPY,
+} from "../lib/match-day-carbon-offset";
 import { OPENING_SPONSORSHIP } from "../lib/sponsorship-auction";
 import {
   bestClubMatch,
@@ -900,6 +904,19 @@ export async function signSponsorOffer({
   if (isRemovedSponsorBrand(brandName)) {
     throw new Error("This brand is not available as a Climate Sponsor.");
   }
+  const offer = await getSponsorMatchOffer(offerId);
+  if (isLeadMatchDaySponsorBrand(brandName)) {
+    const uploaded = offer?.clubName
+      ? await uploadedProjectsForLockedClub(offer.clubName)
+      : null;
+    const count = Math.max(
+      offer?.projects.length ?? 0,
+      uploaded?.projects.length ?? 0
+    );
+    if (!chosenProjectsReadyForMatchDay(count)) {
+      throw new Error(MATCH_DAY_SIGNOFF_PENDING_COPY);
+    }
+  }
   let sponsorId: string | null = null;
   try {
     const sponsor = await getCurrentSponsor();
@@ -935,7 +952,6 @@ export async function signSponsorOffer({
   });
 
   try {
-    const offer = await getSponsorMatchOffer(offerId);
     if (offer?.clubName) {
       const { recordSignedLeadClimateSponsor } = await import(
         "./climate-sponsors.service"
