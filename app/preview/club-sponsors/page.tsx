@@ -152,21 +152,17 @@ function seedStores() {
   }
 
   saveGoalNetwork(network("Heineken", "Kilmarnock", "heineken@heineken.test"));
-  writeLocalSponsorRecord({
-    brandName: "The Fountain",
-    email: "fountain@kilmarnock.test",
-    clubName: "Kilmarnock",
-    pledgeGbp: 800,
-    createdAt: "2026-10-04T00:00:00.000Z",
-    submittedAt: "2026-10-04T00:00:00.000Z",
-    source: "registered",
-    acceptedTerms: true,
-    signerName: "Alex",
-    signedAt: "2026-10-04T00:00:00.000Z",
-    matchSponsorships: [
-      { fixtureName: "Kilmarnock v Hearts", amountGbp: 800 },
-    ],
-  });
+  saveGoalNetwork(network("The Fountain", "Kilmarnock", "fountain@kilmarnock.test"));
+  try {
+    lockMatchDayClub({
+      brandName: "The Fountain",
+      clubName: "Kilmarnock",
+      matchLabel: "Scottish Premiership Match",
+      fixtureName: "Kilmarnock v Hearts",
+    });
+  } catch {
+    // Locals never occupy the Lead slot; ignore a stale lock error.
+  }
 }
 
 export default function ClubSponsorsPreviewPage() {
