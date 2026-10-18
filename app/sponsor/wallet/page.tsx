@@ -66,6 +66,8 @@ import {
   MATCH_DAY_PROJECTS_RECORD_LABEL,
   MATCH_DAY_SIGNOFF_PENDING_COPY,
   chosenProjectsReadyForMatchDay,
+  climateWalletFansCopy,
+  climateWalletHeading,
 } from "@/app/lib/match-day-carbon-offset";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
@@ -257,6 +259,10 @@ export default function SponsorWalletPage() {
       ? chosenFixture
       : fixtureByIdOrName(clubFixtures, lockFixture);
   const matchLocked = Boolean(clubName && (selectedFixture || lockFixture));
+  const walletHeading = climateWalletHeading({
+    clubName,
+    fixtureName: lockFixture,
+  });
 
   async function openLeadSignOffAfterProjects() {
     const uploaded = await loadClubChosenClimateProjects(clubName);
@@ -286,15 +292,14 @@ export default function SponsorWalletPage() {
           {kind === "local" ? "Local Business Climate Sponsor" : brand}
         </p>
         <h1 className="mt-2 text-4xl font-black">
-          {kind === "local" ? "New Sponsorship" : "Climate Sponsorship Wallet"}
+          {kind === "local" ? "New Sponsorship" : walletHeading}
         </h1>
         {kind === "local" ? (
           <p className="mt-1 text-sm font-semibold text-slate-400">{brand}</p>
         ) : (
           <>
             <p className="mt-3 max-w-3xl text-slate-300">
-              Fans of {clubName || "your club"} take cash from this wallet and put
-              that cash into a numbered Climate Project.
+              {climateWalletFansCopy(clubName)}
             </p>
             <p className="mt-4 max-w-3xl text-slate-300">
               {SPONSOR_ANOTHER_TEAM_PROMPT}{" "}
@@ -403,6 +408,7 @@ export default function SponsorWalletPage() {
         kind={kind}
         wallet={wallet}
         clubName={clubName}
+        heading={kind === "lead" ? walletHeading : undefined}
         busy={busy}
         error={error}
         notice={notice}

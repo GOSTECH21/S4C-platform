@@ -14,12 +14,16 @@ import {
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
-import { TOP_UP_CASH_HEADING } from "@/app/lib/match-day-carbon-offset";
+import {
+  TOP_UP_CASH_HEADING,
+  climateWalletHeading,
+} from "@/app/lib/match-day-carbon-offset";
 
 export function ClimateSponsorshipWallet({
   kind,
   wallet,
   clubName,
+  heading,
   onLeadDeposit,
   onLocalDeposit,
   busy = false,
@@ -29,6 +33,7 @@ export function ClimateSponsorshipWallet({
   kind: SponsorWalletKind;
   wallet: ClimateWallet | null;
   clubName: string;
+  heading?: string;
   onLeadDeposit: (input: {
     commitmentFeeGbp: number;
     gbpPerGoal: number;
@@ -59,7 +64,7 @@ export function ClimateSponsorshipWallet({
         Climate Sponsorship Wallet
       </p>
       <h2 className="mt-2 text-3xl font-black">
-        {kind === "local" ? TOP_UP_CASH_HEADING : "Climate Sponsorship Wallet"}
+        {kind === "local" ? TOP_UP_CASH_HEADING : heading || climateWalletHeading({ clubName })}
       </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "lead"

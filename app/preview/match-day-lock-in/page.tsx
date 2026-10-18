@@ -5,6 +5,11 @@ import { MatchDayLockIn } from "@/app/components/sponsor/MatchDayLockIn";
 import { ClimateSponsorshipWallet } from "@/app/components/sponsor/ClimateSponsorshipWallet";
 import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
 import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
+import { displayLockFixture } from "@/app/lib/climate-sponsors";
+import {
+  climateWalletFansCopy,
+  climateWalletHeading,
+} from "@/app/lib/match-day-carbon-offset";
 import {
   SPONSOR_ANOTHER_TEAM_CLICK,
   SPONSOR_ANOTHER_TEAM_PROMPT,
@@ -23,11 +28,13 @@ export default function MatchDayLockInPreviewPage() {
               Budweiser
             </p>
             <h1 className="mt-2 text-4xl font-black tracking-tight">
-              Climate Sponsorship Wallet
+              {climateWalletHeading({
+                clubName: walletClub,
+                fixtureName: lock ? displayLockFixture(lock) : "",
+              })}
             </h1>
             <p className="mt-3 max-w-3xl text-slate-300">
-              Fans of {walletClub} take cash from this wallet and put that cash
-              into a numbered Climate Project.
+              {climateWalletFansCopy(walletClub)}
             </p>
             <p className="mt-4 max-w-3xl text-slate-300">
               {SPONSOR_ANOTHER_TEAM_PROMPT}{" "}
@@ -48,6 +55,10 @@ export default function MatchDayLockInPreviewPage() {
           <ClimateSponsorshipWallet
             kind="lead"
             clubName={walletClub}
+            heading={climateWalletHeading({
+              clubName: walletClub,
+              fixtureName: lock ? displayLockFixture(lock) : "",
+            })}
             wallet={null}
             onLeadDeposit={() => undefined}
           />

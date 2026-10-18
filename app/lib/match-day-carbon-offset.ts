@@ -1,7 +1,10 @@
 /** Sponsors fund a Club's Match Day carbon footprint offset, not the five themselves. */
 
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
-import { isLeadMatchDaySponsorBrand } from "./climate-sponsors";
+import {
+  isLeadMatchDaySponsorBrand,
+  isNamedFixture,
+} from "./climate-sponsors";
 
 export { isLeadMatchDaySponsorBrand };
 
@@ -12,10 +15,10 @@ export const MATCH_DAY_PROJECTS_RECORD_LABEL =
   "The club's 5 chosen Climate Projects";
 
 export const MATCH_DAY_GOALS_SCORED_COPY =
-  "You are sponsoring this Club's Match Day Goals-scored to help offset their carbon footprint.";
+  "You are sponsoring this Club's selected Match Day Goals-scored Climate Projects (as shown or to be shown here) to help them offset their carbon footprint.";
 
 export const MATCH_DAY_PROJECTS_RECORD_COPY =
-  "These are the Climate Projects the Sustainability Director chose for the Match Day you sponsored. They are your record of how the Club's Match Day carbon footprint offset is delivered. Fans FUND-IT onto this list.";
+  "Sponsored Projects will be saved in a Folder for your Record";
 
 export const MATCH_DAY_PROJECTS_WAITING_COPY =
   "Waiting for the club Sustainability Director to choose the Climate Projects for this Match Day. When they do, those Projects appear here as your record, and Fans can FUND-IT onto them.";
@@ -53,6 +56,30 @@ export function shouldPublishChosenMatchDayProjects({
   inboundSponsorCount?: number;
 }): boolean {
   return chosenProjectsReadyForMatchDay(projectCount);
+}
+
+export function climateWalletHeading({
+  clubName,
+  fixtureName,
+}: {
+  clubName?: string | null;
+  fixtureName?: string | null;
+}): string {
+  const club = String(clubName ?? "").trim();
+  const fixture = String(fixtureName ?? "").trim();
+  const match = isNamedFixture(fixture)
+    ? fixture
+    : club
+      ? `${club} v Selected Opponent`
+      : "";
+  return match
+    ? `Climate Sponsorship Wallet (${match})`
+    : "Climate Sponsorship Wallet";
+}
+
+export function climateWalletFansCopy(clubName?: string | null): string {
+  const club = String(clubName ?? "").trim() || "your club";
+  return `Fans of ${club} take cash from this wallet and put that cash into their Preferred Climate Project`;
 }
 
 export function carbonOffsetHeadline({
