@@ -52,6 +52,7 @@ export function SportingCalendarBoard({
   notice = null,
   onLockPicks,
   onUnlockPick,
+  onChosenMatch,
   titleAs = "h1",
 }: {
   brandName: string;
@@ -60,6 +61,7 @@ export function SportingCalendarBoard({
   notice?: string | null;
   onLockPicks?: (picks: GlobalMatchPick[]) => void;
   onUnlockPick?: (pick: GlobalMatchPick) => void;
+  onChosenMatch?: (pick: GlobalMatchPick) => void;
   showExampleButton?: boolean;
   titleAs?: "h1" | "h2";
 }) {
@@ -141,7 +143,19 @@ export function SportingCalendarBoard({
   }
 
   function toggle(match: CalendarMatch, clubName?: string) {
-    setBasket((current) => toggleGlobalPick(current, match, brandName, clubName));
+    const wasPicked = isMatchPicked(basket, match);
+    const next = toggleGlobalPick(basket, match, brandName, clubName);
+    setBasket(next);
+    if (wasPicked) return;
+    const added = next.find(
+      (row) => row.date === match.date && row.fixtureName === match.fixtureName
+    );
+    if (!added) return;
+    if (onChosenMatch) {
+      onChosenMatch(added);
+      return;
+    }
+    onLockPicks?.(next);
   }
 
   function setLeadClub(match: CalendarMatch, clubName: string) {

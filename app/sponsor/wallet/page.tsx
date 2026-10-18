@@ -44,6 +44,9 @@ import {
 } from "@/app/services/sponsor-offers.service";
 import {
   LOCAL_SPONSOR_HOME_PATH,
+  SPONSOR_ANOTHER_TEAM_CLICK,
+  SPONSOR_ANOTHER_TEAM_PROMPT,
+  SPONSOR_CLUB_TYPE_IN_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_OFFERS_PATH,
   SPONSOR_RECEIVE_SECTION_ID,
@@ -248,10 +251,22 @@ export default function SponsorWalletPage() {
         {kind === "local" ? (
           <p className="mt-1 text-sm font-semibold text-slate-400">{brand}</p>
         ) : (
-          <p className="mt-3 max-w-3xl text-slate-300">
-            Fans of {clubName || "your club"} take cash from this wallet and put
-            that cash into a numbered Climate Project.
-          </p>
+          <>
+            <p className="mt-3 max-w-3xl text-slate-300">
+              Fans of {clubName || "your club"} take cash from this wallet and put
+              that cash into a numbered Climate Project.
+            </p>
+            <p className="mt-4 max-w-3xl text-slate-300">
+              {SPONSOR_ANOTHER_TEAM_PROMPT}{" "}
+              <Link
+                href={SPONSOR_CLUB_TYPE_IN_PATH}
+                className="font-semibold text-s4p-mint underline decoration-s4p-mark decoration-2 underline-offset-2"
+              >
+                {SPONSOR_ANOTHER_TEAM_CLICK}
+              </Link>
+              .
+            </p>
+          </>
         )}
       </div>
 

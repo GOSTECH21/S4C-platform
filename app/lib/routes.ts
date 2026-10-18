@@ -63,6 +63,11 @@ export function sponsorWalletPath(clubName?: string | null): string {
   return `${SPONSOR_WALLET_PATH}?club=${encodeURIComponent(club)}`;
 }
 
+export const SPONSOR_ANOTHER_TEAM_PROMPT =
+  "Want to see or sponsor another team?";
+export const SPONSOR_ANOTHER_TEAM_CLICK = "Click here";
+export const SPONSOR_CLUB_TYPE_IN_PATH = `${SPONSOR_CALENDAR_PATH}#match-day-lock-in`;
+
 export function sponsorDashboardReceivePath(): string {
   return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_RECEIVE_SECTION_ID}`;
 }
