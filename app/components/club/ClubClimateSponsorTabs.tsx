@@ -14,6 +14,9 @@ import { CLUB_SPONSORS_PATH } from "@/app/lib/routes";
 import Link from "next/link";
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
 
+export const CLUB_DASHBOARD_SPONSORS_INTRO =
+  "Interested Lead Climate Sponsors & Local Business Climate Sponsors who signed up to sponsor your Club will automatically appear here. Only one Lead Climate Sponsor is allowed on each Match Day. Four Local Business Climate Sponsors are accepted each Match Day.";
+
 export type ClimateSponsorTab = "lead" | "local";
 
 export function ClubClimateSponsorTabs({
@@ -75,12 +78,7 @@ export function ClubClimateSponsorTabs({
       </p>
       <h2 className="mt-2 text-4xl font-black">Our Climate Sponsors</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Interested Lead Climate Sponsors and Local Business Climate Sponsors who
-        signed up to sponsor your Club will automatically appear here. Only one
-        Lead Climate Sponsor is allowed on each Match Day. Any second Lead Climate
-        Sponsor for that Match is rejected. A different Lead can sponsor a later
-        Match. The same brand can lock both clubs in a head-to-head Match by
-        signing in separately for each club&apos;s Climate Projects. Four Local Business Climate Sponsors are accepted each Match Day.
+        {CLUB_DASHBOARD_SPONSORS_INTRO}
       </p>
 
       <div
