@@ -595,14 +595,12 @@ assert(
   "S4P Climate Projects intro uses the Match Day List and Your Country / World lists"
 );
 assert(
-  clubDashboardClimateProjectsIntroCopy().includes(
-    "choose only one Featured Global Schools Solar project"
-  ) &&
-    clubDashboardClimateProjectsIntroCopy().includes("List provided") &&
-    clubDashboardClimateProjectsIntroCopy().includes(
-      "Press the blue S4P Climate Projects button"
+  clubDashboardClimateProjectsIntroCopy() ===
+    "Press the blue S4P Climate Projects button to choose only one Featured Global Schools Solar project and 4 Climate Partner Projects from List provided" &&
+    !clubDashboardClimateProjectsIntroCopy().startsWith(
+      "Open S4P Climate Projects"
     ),
-  "Club dashboard intro tells the SD to press the blue S4P Climate Projects button"
+  "Club dashboard intro starts with the blue S4P Climate Projects button"
 );
 assert(
   clubDashboard.indexOf("Approved Projects") <
