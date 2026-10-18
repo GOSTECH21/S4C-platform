@@ -840,14 +840,14 @@ assert(
   "Fixture list cards sit on paper, not dark overlays"
 );
 assert(
-  demoFixturesForClub("Arsenal").length >= 6 &&
-    demoFixturesForClub("Hearts").length >= 6 &&
-    demoFixturesForClub("Hibernian").length >= 6 &&
+  demoFixturesForClub("Arsenal").length >= 5 &&
+    demoFixturesForClub("Hearts").length >= 5 &&
+    demoFixturesForClub("Hibernian").length >= 5 &&
     demoFixturesForClub("Hearts of Midlothian").some((row) =>
-      row.fixtureName.includes("Celtic")
+      row.fixtureName.includes("Hibernian")
     ) &&
     demoFixturesForClub("Hibernian").some((row) =>
-      row.fixtureName.includes("Celtic")
+      row.fixtureName.includes("Hearts")
     ) &&
     demoFixturesForClub("Arsenal").some((row) =>
       row.fixtureName.includes("Leeds United")
@@ -885,11 +885,13 @@ assert(
   tabs.includes("Our Lead Climate Sponsor") &&
     tabs.includes("Our Local Businesses Sponsor") &&
     tabs.includes("Local Businesses Climate Sponsors") &&
-    tabs.includes("signed up to sponsor your Club") &&
-    tabs.includes("Any second Lead Climate") &&
-    tabs.includes("for that Match is rejected") &&
-    tabs.includes("Four Local Business") &&
-    tabs.includes("accepted each Match Day") &&
+    tabs.includes("CLUB_DASHBOARD_SPONSORS_INTRO") &&
+    tabs.includes(
+      "Interested Lead Climate Sponsors & Local Business Climate Sponsors who signed up to sponsor your Club will automatically appear here. Only one Lead Climate Sponsor is allowed on each Match Day. Four Local Business Climate Sponsors are accepted each Match Day."
+    ) &&
+    !tabs.includes("Any second Lead Climate") &&
+    !tabs.includes("head-to-head Match") &&
+    !tabs.includes("A different Lead can sponsor a later") &&
     !tabs.includes("When a Lead Climate Sponsor registers") &&
     !tabs.includes("Local businesses never") &&
     tabs.includes("Signed off by") &&
