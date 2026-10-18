@@ -298,6 +298,47 @@ assert(
   twoLeadTabs.leads.map((row) => row.brandName).join(",") === "Puma",
   "Our Lead Climate Sponsor tab deletes Budweiser from Hibernian and keeps Puma"
 );
+const kilmarnockTabs = splitClubClimateSponsorsForTabs({
+  clubName: "Kilmarnock",
+  leadSponsors: [
+    {
+      brandKey: "heineken",
+      brandName: "Heineken",
+      email: null,
+      matches: [],
+      lockedAt: null,
+      inNetwork: true,
+    },
+  ],
+  localSponsors: [
+    {
+      brandName: "Heineken",
+      email: "heineken@heineken.test",
+      clubName: "Kilmarnock",
+      pledgeGbp: 0,
+      createdAt: "",
+      source: "registered",
+    },
+    {
+      brandName: "The Fountain",
+      email: "fountain@local.test",
+      clubName: "Kilmarnock",
+      pledgeGbp: 800,
+      createdAt: "",
+      submittedAt: "",
+      acceptedTerms: true,
+      signerName: "Alex",
+      signedAt: "",
+      source: "registered",
+    },
+  ],
+});
+assert(
+  kilmarnockTabs.leads.map((row) => row.brandName).join(",") === "Heineken" &&
+    !kilmarnockTabs.locals.some((row) => /heineken/i.test(row.brandName)) &&
+    kilmarnockTabs.locals.some((row) => row.brandName === "The Fountain"),
+  "A Lead Climate Sponsor who signs up for Kilmarnock stays on Our Lead Climate Sponsor, not Local Businesses"
+);
 assert(
   hibsTabs.locals
     .map((row) => row.brandName)

@@ -12,7 +12,6 @@ import {
   ensureSponsorSelected,
   inviteMatchesSponsor,
   canClaimLeadClimateSponsor,
-  isLeadClimateSponsorName,
   isLeadMatchDaySponsorBrand,
   isNamedFixture,
   isRemovedSponsorBrand,
@@ -321,7 +320,7 @@ export function listMatchDayLocks(): MatchDayClubLock[] {
 export function leadClimateSponsorsForClub(clubName: string): LeadClubSponsorRow[] {
   const excluded = allLocalSponsors()
     .map((row) => row.brandName)
-    .filter((name) => !isLeadClimateSponsorName(name));
+    .filter((name) => !isLeadMatchDaySponsorBrand(name));
   return leadSponsorsForClubFromStores({
     clubName,
     networks: listGoalNetworks(),
@@ -384,7 +383,7 @@ export function localBusinessClimateSponsorsForClub(
   const byBrand = new Map<string, LocalSponsorRecord>();
   for (const row of submittedLocalSponsorsForClub(clubName)) {
     if (
-      isLeadClimateSponsorName(row.brandName) ||
+      isLeadMatchDaySponsorBrand(row.brandName) ||
       isExampleLocalBrand(row.brandName) ||
       isRemovedSponsorBrand(row.brandName)
     ) {
@@ -401,7 +400,7 @@ export function localBusinessClimateSponsorsForClub(
     locks: listMatchDayLocks(),
   })) {
     if (
-      isLeadClimateSponsorName(row.brandName) ||
+      isLeadMatchDaySponsorBrand(row.brandName) ||
       isExampleLocalBrand(row.brandName) ||
       isRemovedSponsorBrand(row.brandName)
     ) {
@@ -643,7 +642,7 @@ export function lockMatchDayClub({
     locks: Object.values(store).filter((row) => row && row.clubName),
   });
   if (
-    isLeadClimateSponsorName(brandName) &&
+    isLeadMatchDaySponsorBrand(brandName) &&
     occupant &&
     !brandsMatch(occupant.brandName, brandName)
   ) {

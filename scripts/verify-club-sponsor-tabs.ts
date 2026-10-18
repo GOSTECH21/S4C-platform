@@ -405,8 +405,34 @@ const liverpool = leadSponsorsForClubFromStores({
   locks: [afterSecond, pumaLock],
 });
 assert(
-  liverpool.length === 0,
-  "Liverpool has no Lead Climate Sponsor until a brand locks a Liverpool Match Day"
+  liverpool.map((row) => row.brandName).join(",") === "Diageo",
+  "A Lead Climate Sponsor appears on Liverpool as soon as they opt in to sponsor the Club"
+);
+
+const heineken: GoalSponsorshipNetwork = {
+  brandKey: "heineken",
+  brandName: "Heineken",
+  email: "heineken@heineken.test",
+  clubNames: ["Kilmarnock"],
+  leagues: ["Scottish Premiership"],
+};
+const kilmarnockLeads = leadSponsorsForClubFromStores({
+  clubName: "Kilmarnock",
+  networks: [heineken],
+  locks: [],
+});
+const kilmarnockLocals = localBusinessSponsorsForClubFromStores({
+  clubName: "Kilmarnock",
+  networks: [heineken],
+  locks: [],
+});
+assert(
+  kilmarnockLeads.map((row) => row.brandName).join(",") === "Heineken",
+  "A Lead Climate Sponsor who signs up for Kilmarnock appears on Our Lead Climate Sponsor immediately"
+);
+assert(
+  !kilmarnockLocals.some((row) => row.brandName === "Heineken"),
+  "Heineken is never listed as a Local Business Climate Sponsor"
 );
 
 const local: LocalSponsorRecord = {
@@ -867,7 +893,11 @@ assert(
     dashboard.includes("localBusinessClimateSponsorsForClub") &&
     dashboard.slice(dashboard.indexOf("refreshSignedLive")).includes(
       "leadClimateSponsorsForClub"
-    ),
+    ) &&
+    dashboard.includes("approvedBrandNames") &&
+    dashboard.includes("clubDashboardLookbackCopy") &&
+    dashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
+    dashboard.includes("lookbackProjectFunding"),
   "Club dashboard splits inbound brands so local businesses never stay on the Lead tab, and refreshes that Lead list after sign-off"
 );
 const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
@@ -876,7 +906,12 @@ assert(
     preview.includes("localBusinessClimateSponsorsForClub") &&
     preview.includes(
       "A second Lead Climate Sponsor on the same Hibernian Match Day must be rejected"
-    ),
+    ) &&
+    preview.includes("Heineken") &&
+    preview.includes("Kilmarnock") &&
+    preview.includes("approvedBrandNames") &&
+    preview.includes("clubDashboardLookbackCopy") &&
+    preview.includes("MATCH_DAY_FULLY_FUNDED_LABEL"),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 
@@ -896,6 +931,8 @@ assert(
     !tabs.includes("Local businesses never") &&
     tabs.includes("Signed off by") &&
     tabs.includes("splitClubClimateSponsorsForTabs") &&
+    tabs.includes("approvedBrandNames") &&
+    tabs.includes("isSignedOffLocalSponsor") &&
     tabs.includes('setTab("lead")') &&
     tabs.includes("aria-pressed") &&
     tabs.includes("s4pTabClass") &&

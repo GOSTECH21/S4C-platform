@@ -665,6 +665,8 @@ assert(
   clubPage.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
     clubPage.includes("MATCH_DAY_APPROVED_LABEL") &&
     clubPage.includes("Selected and Funded Projects, kept for lookback") &&
+    clubPage.includes("clubDashboardLookbackCopy") &&
+    clubPage.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
     !clubPage.includes("No projects have been funded from Goals yet"),
   "The club dashboard lists chosen projects as pending approval or Approved, with lookback and no Funded Projects block"
 );

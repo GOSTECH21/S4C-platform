@@ -701,7 +701,7 @@ export function canClaimLeadClimateSponsor({
 }): boolean {
   if (!clubName.trim() || !brandName.trim()) return false;
   if (isSponsorBlockedFromClub(brandName, clubName)) return false;
-  if (!isLeadClimateSponsorName(brandName)) return true;
+  if (!isLeadMatchDaySponsorBrand(brandName)) return true;
   if (!isNamedFixture(fixtureName)) return true;
   const occupant = occupyingLeadClimateSponsorForMatch({
     clubName,
@@ -776,6 +776,12 @@ export function leadSponsorsForClubFromStores({
     }
     keepers.set(occupant.brandKey, { ...current, matches });
   }
+  for (const row of rows) {
+    if (!isLeadMatchDaySponsorBrand(row.brandName)) continue;
+    if (isSponsorBlockedFromClub(row.brandName, clubName)) continue;
+    if (keepers.has(row.brandKey)) continue;
+    keepers.set(row.brandKey, row);
+  }
   return [...keepers.values()].sort((left, right) => {
     if (right.matches.length !== left.matches.length) {
       return right.matches.length - left.matches.length;
@@ -801,7 +807,7 @@ export function localBusinessSponsorsForClubFromStores({
     networks,
     locks,
     excludeBrandKeys,
-  }).filter((row) => !isLeadClimateSponsorName(row.brandName));
+  }).filter((row) => !isLeadMatchDaySponsorBrand(row.brandName));
 }
 
 /** The one Lead Climate Sponsor for this club on this Match Day. */
