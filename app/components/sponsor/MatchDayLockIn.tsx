@@ -28,11 +28,13 @@ export function MatchDayLockIn({
   lock,
   onLockChange,
   onClubChange,
+  onMatchLocked,
 }: {
   brandName: string;
   lock: MatchDayClubLock | null;
   onLockChange?: (lock: MatchDayClubLock | null) => void;
   onClubChange?: (club: string) => void;
+  onMatchLocked?: (clubName: string) => void;
 }) {
   const [lockClub, setLockClub] = useState(lock?.clubName ?? "");
   const [lockFixture, setLockFixture] = useState(
@@ -110,6 +112,7 @@ export function MatchDayLockIn({
       });
       setFixtureNotice(null);
       onLockChange?.(next);
+      onMatchLocked?.(resolved);
     } catch (err) {
       setFixtureNotice(
         err instanceof Error

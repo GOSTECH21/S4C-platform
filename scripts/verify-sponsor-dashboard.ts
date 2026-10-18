@@ -941,6 +941,20 @@ assert(
     !sponsorDashboardPage.includes("bg-emerald-400"),
   "Open Climate Sponsorship Wallet uses the same lime tab as Register, with black copy"
 );
+assert(
+  sponsorDashboardPage.includes("onMatchLocked") &&
+    sponsorDashboardPage.includes("sponsorWalletPath(club)") &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "SPONSOR_ANOTHER_TEAM_PROMPT"
+    ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "SPONSOR_CLUB_TYPE_IN_PATH"
+    ) &&
+    readFileSync("app/lib/routes.ts", "utf8").includes(
+      "Want to see or sponsor another team?"
+    ),
+  "Locking a Match opens the Carbon Wallet; Click here returns to Club type-in"
+);
 
 const clubPicker = readFileSync(
   "app/components/sponsor/ClubNetworkPicker.tsx",

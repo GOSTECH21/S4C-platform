@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { MatchDayLockIn } from "@/app/components/sponsor/MatchDayLockIn";
@@ -27,7 +26,6 @@ export default function SponsorCalendarPage() {
   const [brand, setBrand] = useState("your brand");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
-  const [lockClub, setLockClub] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +46,6 @@ export default function SponsorCalendarPage() {
         );
         const current = loadMatchDayLock(name);
         setLock(current);
-        setLockClub(current?.clubName ?? "");
       } catch {
         router.replace(SPONSOR_LOGIN_PATH);
       } finally {
@@ -83,34 +80,12 @@ export default function SponsorCalendarPage() {
         <MatchDayLockIn
           brandName={brand}
           lock={lock}
-          onClubChange={setLockClub}
-          onLockChange={(next) => {
-            setLock(next);
-            if (next?.clubName) setLockClub(next.clubName);
+          onLockChange={setLock}
+          onMatchLocked={(club) => {
+            router.push(sponsorWalletPath(club));
           }}
         />
       </div>
-
-      {lockClub ? (
-        <Link
-          href={sponsorWalletPath(lockClub)}
-          className="block rounded-3xl border border-emerald-400/40 bg-slate-900 p-8 hover:border-emerald-300"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
-            Climate Sponsorship Wallet
-          </p>
-          <h2 className="mt-3 text-2xl font-black">
-            Proceed to your Carbon Wallet
-          </h2>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            After you lock {lockClub}&apos;s Match, deposit your Commitment Fee
-            and Goals-scored Sponsorship.
-          </p>
-          <p className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950">
-            Open Climate Sponsorship Wallet
-          </p>
-        </Link>
-      ) : null}
     </div>
   );
 }

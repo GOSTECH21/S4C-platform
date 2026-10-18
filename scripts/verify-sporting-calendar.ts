@@ -296,12 +296,16 @@ assert(
 assert(
   calendarPage.includes("MatchDayLockIn") &&
     !calendarPage.includes("SportingCalendarBoard") &&
+    calendarPage.includes("onMatchLocked") &&
+    calendarPage.includes("sponsorWalletPath") &&
+    !calendarPage.includes("Proceed to your Carbon Wallet") &&
     lockIn.includes("ClubTypeInMenu") &&
     lockIn.includes("ClubMatchCalendar") &&
+    lockIn.includes("onMatchLocked") &&
     clubCalendar.includes("bg-s4p-mark") &&
     clubCalendar.includes("CLUB_MATCH_CALENDAR_COUNT") &&
     clubCalendar.includes("League and Cup Dates"),
-  "Select the Match opens that Club's next 10 League and Cup dates from the Sporting Calendar catalog"
+  "Choosing a Match takes the sponsor straight to the Carbon Wallet"
 );
 
 const signedHome = readFileSync(
@@ -320,6 +324,21 @@ assert(
 const board = readFileSync(
   "app/components/sponsor/SportingCalendarBoard.tsx",
   "utf8"
+);
+assert(
+  signedHome.includes("onChosenMatch") &&
+    signedHome.includes("sponsorWalletPath") &&
+    board.includes("onChosenMatch") &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "SPONSOR_ANOTHER_TEAM_PROMPT"
+    ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "SPONSOR_CLUB_TYPE_IN_PATH"
+    ) &&
+    readFileSync("app/lib/routes.ts", "utf8").includes(
+      "Want to see or sponsor another team?"
+    ),
+  "After a Match is chosen the wallet is next; Click here returns to Club type-in"
 );
 assert(
   board.includes("BrandMark") &&
@@ -341,8 +360,9 @@ assert(
     !board.includes("Open any day on the 2026/27 Sporting Calendar") &&
     GLOBAL_MATCH_DAY_STEPS[0] ===
       "Type-in the Name of the Club you wish to sponsor" &&
-    GLOBAL_MATCH_DAY_STEPS[3] === "Lock-in that Match" &&
-    GLOBAL_MATCH_DAY_STEPS[4].includes("Carbon Wallet"),
+    GLOBAL_MATCH_DAY_STEPS[3].includes("Lock-in that Match") &&
+    GLOBAL_MATCH_DAY_STEPS[3].includes("Carbon Wallet") &&
+    GLOBAL_MATCH_DAY_STEPS[4].includes("sponsorship amounts"),
   "The calendar intro is the five numbered club-first steps"
 );
 assert(
@@ -395,10 +415,8 @@ assert(
     matchDay.includes(
       "Choose one of this Club's next 10 League or Cup Matches"
     ) &&
-    matchDay.includes("Lock-in that Match") &&
-    matchDay.includes(
-      "Proceed to your Carbon Wallet to complete transaction"
-    ) &&
+    matchDay.includes("Lock-in that Match and go straight to your Carbon Wallet") &&
+    matchDay.includes("Enter your sponsorship amounts") &&
     !matchDay.includes("Look at the Sporting Calendar") &&
     !matchDay.includes("Open any day on the 2026/27 Sporting Calendar") &&
     !matchDay.includes(

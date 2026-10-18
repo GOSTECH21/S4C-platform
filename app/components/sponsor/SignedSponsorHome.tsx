@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { FundedClimateProjectsList } from "@/app/components/sponsor/FundedClimateProjectsList";
 import { SponsorCistTable } from "@/app/components/sponsor/SponsorCistTable";
 import { SportingCalendarBoard } from "@/app/components/sponsor/SportingCalendarBoard";
-import { SPONSOR_NEW_SPONSORSHIP_LABEL } from "@/app/lib/routes";
+import {
+  SPONSOR_NEW_SPONSORSHIP_LABEL,
+  sponsorWalletPath,
+} from "@/app/lib/routes";
 import {
   fundedClimateProjectsForHome,
   picksForSignedSponsorHome,
@@ -43,6 +47,7 @@ export function SignedSponsorHome({
   pendingOffers?: Parameters<typeof fundedClimateProjectsForHome>[1];
   onNewSponsorship: () => void;
 }) {
+  const router = useRouter();
   const mark = sponsorLogoSrc(brand, logoUrl);
   const [notice, setNotice] = useState<string | null>(null);
   const [picks, setPicks] = useState<GlobalMatchPick[]>(() =>
@@ -113,6 +118,21 @@ export function SignedSponsorHome({
         notice={notice}
         onLockPicks={lockPicks}
         onUnlockPick={unlockPick}
+        onChosenMatch={(pick) => {
+          try {
+            lockGlobalMatchDayPicks({
+              brandName: brand,
+              picks: [pick],
+            });
+            router.push(sponsorWalletPath(pick.clubName));
+          } catch (err) {
+            setNotice(
+              err instanceof Error
+                ? err.message
+                : "Could not lock that Match."
+            );
+          }
+        }}
         showExampleButton={/budweiser/i.test(brand)}
         titleAs="h2"
       />

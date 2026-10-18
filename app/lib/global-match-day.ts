@@ -346,8 +346,8 @@ export const GLOBAL_MATCH_DAY_STEPS = [
   "Type-in the Name of the Club you wish to sponsor",
   "Click Select the Match",
   "Choose one of this Club's next 10 League or Cup Matches",
-  "Lock-in that Match",
-  "Proceed to your Carbon Wallet to complete transaction",
+  "Lock-in that Match and go straight to your Carbon Wallet",
+  "Enter your sponsorship amounts",
 ] as const;
 
 export const GLOBAL_MATCH_DAY_INTRO = GLOBAL_MATCH_DAY_STEPS.map(

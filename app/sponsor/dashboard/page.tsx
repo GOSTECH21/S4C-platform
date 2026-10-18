@@ -363,6 +363,9 @@ export default function SponsorDashboardPage() {
             if (next?.clubName) setLockClub(next.clubName);
             void refreshFolder();
           }}
+          onMatchLocked={(club) => {
+            router.push(sponsorWalletPath(club));
+          }}
         />
       </div>
 
