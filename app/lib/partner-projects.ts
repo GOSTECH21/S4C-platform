@@ -15,6 +15,13 @@ const MATCH_DAY_LEAD_DAYS = MATCH_DAY_LEAD_HOURS / 24;
 export const MATCH_DAY_PENDING_APPROVAL_LABEL = "pending approval";
 export const MATCH_DAY_APPROVED_LABEL = "Approved";
 export const MATCH_DAY_FULLY_FUNDED_LABEL = "Fully-Funded";
+/** One Lead Climate Sponsor slot per Club per Match Day. */
+export const LEAD_CLIMATE_SPONSOR_SLOTS_PER_MATCH = 1;
+
+/** (1) on Our Lead Climate Sponsor once the SD's chosen list is visible. */
+export function clubDashboardLeadTabCount(hasChosenProjects: boolean): number {
+  return hasChosenProjects ? LEAD_CLIMATE_SPONSOR_SLOTS_PER_MATCH : 0;
+}
 
 export function clubDashboardLookbackCopy(): string {
   return "Confirmed and Approved Projects by Sponsors will appear here.";

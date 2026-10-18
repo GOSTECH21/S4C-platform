@@ -37,6 +37,7 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
+  clubDashboardLeadTabCount,
   clubDashboardLookbackCopy,
   matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
@@ -455,6 +456,7 @@ export default function ClubDashboardPage() {
           leadSponsors={leadSponsors}
           localSponsors={localSponsors}
           approvedBrandNames={approvedBrandNames}
+          leadTabCount={clubDashboardLeadTabCount(orderedSelected.length > 0)}
           initialTab="lead"
         />
 

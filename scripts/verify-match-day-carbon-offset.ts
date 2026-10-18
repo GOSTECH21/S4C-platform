@@ -124,7 +124,9 @@ assert(
     clubDash.includes("hydrateClubSponsorsFromSigned") &&
     matchDay.includes("publishChosenProjectsToSponsorsAndFans") &&
     matchDay.includes("attachProjectsToClubSponsorships") &&
-    matchDay.includes("leadNames.length ? leadNames : undefined") &&
+    matchDay.includes("occupyingLeadBrandNames") &&
+    matchDay.includes("leadNames.length === 0") &&
+    !matchDay.includes("leadNames.length ? leadNames : undefined") &&
     offers.includes("stampOfferWithLockedUploads") &&
     offers.includes("resolveClubForSponsor") &&
     offers.includes("findStoredClubSelectionByName") &&

@@ -1299,6 +1299,9 @@ async function publishChosenProjectsToSponsorsAndFans({
     const { leadClimateSponsorsForClub } = await import(
       "./climate-sponsors.service"
     );
+    const { occupyingLeadBrandNames } = await import(
+      "../lib/climate-sponsors"
+    );
     const { shouldPublishChosenMatchDayProjects } = await import(
       "../lib/match-day-carbon-offset"
     );
@@ -1310,10 +1313,14 @@ async function publishChosenProjectsToSponsorsAndFans({
     ) {
       return;
     }
+    const leadNames = occupyingLeadBrandNames(leads);
+    if (leadNames.length === 0) {
+      // Slot (1) is open: the first Lead to sign off this Match Day receives the list.
+      return;
+    }
     const { attachProjectsToClubSponsorships } = await import(
       "./sponsor-offers.service"
     );
-    const leadNames = leads.map((row) => row.brandName);
     await attachProjectsToClubSponsorships({
       clubId,
       clubName,
@@ -1322,7 +1329,7 @@ async function publishChosenProjectsToSponsorsAndFans({
       gbpPerGoal: selection.gbpPerGoal,
       maxAmount: selection.maxAmount,
       gbpPerVote: selection.gbpPerVote,
-      targetBrandNames: leadNames.length ? leadNames : undefined,
+      targetBrandNames: leadNames,
     });
   } catch {
     // Selection is stored even if live publish to fans or sponsor records cannot complete.
