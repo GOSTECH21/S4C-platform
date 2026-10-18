@@ -30,6 +30,17 @@ assert(
   "Copy tells the sponsor to see the Club's Projects before signing"
 );
 
+const typeIn = readFileSync(
+  "app/components/sponsor/ClubMatchMenus.tsx",
+  "utf8"
+);
+assert(
+  typeIn.includes("resolveSportingCalendarClub(next)") &&
+    typeIn.includes("next.trim().toLowerCase()") &&
+    typeIn.includes("resolved.trim().toLowerCase()"),
+  "Typing a Club name does not auto-expand mid-keystroke, so Leeds United stays Leeds United"
+);
+
 const lockIn = readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8");
 const panel = readFileSync(
   "app/components/sponsor/ClubChosenProjectsPanel.tsx",

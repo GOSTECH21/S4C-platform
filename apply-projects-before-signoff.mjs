@@ -6,6 +6,7 @@ const FILES = [
   "app/lib/match-day-carbon-offset.ts",
   "app/lib/global-match-day.ts",
   "app/components/sponsor/ClubChosenProjectsPanel.tsx",
+  "app/components/sponsor/ClubMatchMenus.tsx",
   "app/components/sponsor/MatchDayLockIn.tsx",
   "app/sponsor/wallet/page.tsx",
   "app/sponsor/dashboard/page.tsx",
