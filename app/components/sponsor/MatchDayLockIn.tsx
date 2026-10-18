@@ -22,6 +22,7 @@ import {
   ensureGoalNetwork,
   lockMatchDayClub,
 } from "@/app/services/climate-sponsors.service";
+import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
 
 export function MatchDayLockIn({
   brandName,
@@ -29,12 +30,14 @@ export function MatchDayLockIn({
   onLockChange,
   onClubChange,
   onMatchLocked,
+  projectsSectionId,
 }: {
   brandName: string;
   lock: MatchDayClubLock | null;
   onLockChange?: (lock: MatchDayClubLock | null) => void;
   onClubChange?: (club: string) => void;
   onMatchLocked?: (clubName: string) => void;
+  projectsSectionId?: string;
 }) {
   const [lockClub, setLockClub] = useState(lock?.clubName ?? "");
   const [lockFixture, setLockFixture] = useState(
@@ -136,6 +139,7 @@ export function MatchDayLockIn({
   }
 
   return (
+    <>
     <section className="overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
         Match Day lock-in
@@ -197,5 +201,11 @@ export function MatchDayLockIn({
         </button>
       </div>
     </section>
+    {lockClub ? (
+      <div id={projectsSectionId} className="mt-8 scroll-mt-6">
+        <ClubChosenProjectsPanel clubName={lockClub} />
+      </div>
+    ) : null}
+    </>
   );
 }

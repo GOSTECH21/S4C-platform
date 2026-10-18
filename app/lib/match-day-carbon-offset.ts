@@ -20,6 +20,15 @@ export const MATCH_DAY_PROJECTS_RECORD_COPY =
 export const MATCH_DAY_PROJECTS_WAITING_COPY =
   "Waiting for the club Sustainability Director to choose the Climate Projects for this Match Day. When they do, those Projects appear here as your record, and Fans can FUND-IT onto them.";
 
+export const MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY =
+  "When you type a Club you wish to sponsor, you see that Club's chosen Climate Projects first. You may sign the sponsorship only after they are visible. If the Club has not uploaded them yet, sign-off stays pending approval until they do.";
+
+export const MATCH_DAY_SIGNOFF_PENDING_COPY =
+  "Sign-off stays pending approval until this Club uploads its Climate Projects. You will see those Projects here before you can sign.";
+
+export const MATCH_DAY_PROJECTS_SEEN_COPY =
+  "You have seen this Club's chosen Climate Projects. You may now sign the sponsorship.";
+
 export const TOP_UP_CASH_HEADING =
   "Top up the cash fans will put into Climate Projects";
 
@@ -31,6 +40,10 @@ export function chosenProjectsReadyForMatchDay(
   projectCount: number
 ): boolean {
   return projectCount >= MATCH_DAY_PROJECT_COUNT;
+}
+
+export function matchDaySignOffIsPending(projectCount: number): boolean {
+  return !chosenProjectsReadyForMatchDay(projectCount);
 }
 
 export function shouldPublishChosenMatchDayProjects({

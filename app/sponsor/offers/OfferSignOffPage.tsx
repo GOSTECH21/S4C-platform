@@ -124,10 +124,11 @@ export function OfferSignOffPage({ offerId }: { offerId?: string }) {
       <h1 className="mt-3 text-4xl font-black">{offer.headline}</h1>
       <p className="mt-4 text-slate-300">
         Sign off your sponsorship of {offer.clubName}&apos;s Match Day carbon
-        footprint offset.{" "}
+        footprint offset after you have seen this Club&apos;s chosen Climate
+        Projects.{" "}
         {offer.projects.length > 0
           ? `The Climate Projects below are the Sustainability Director's chosen five for this Match — your record, and the list Fans FUND-IT onto. `
-          : `The club's five chosen Climate Projects will appear here as your record when the Sustainability Director chooses them. `}
+          : `If this Club has not uploaded those Projects yet, sign-off stays pending approval until they do. `}
         {payableCopy}
       </p>
       <OfferSignOffForm

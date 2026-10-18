@@ -64,7 +64,9 @@ assert(
 );
 
 assert(
-  dashboard.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
+  readFileSync("app/components/sponsor/ClubChosenProjectsPanel.tsx", "utf8").includes(
+    "MATCH_DAY_GOALS_SCORED_COPY"
+  ) &&
     dashboard.includes("MatchDayLockIn") &&
     !dashboard.includes("localLockCopy()") &&
     !dashboard.includes("LOCAL_FIVE_RECORD_COPY"),

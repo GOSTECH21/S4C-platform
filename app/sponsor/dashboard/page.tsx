@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
-  loadClubChosenClimateProjects,
   loadSponsorFolder,
   type SignedSponsorship,
   type SponsorDashboardStats,
@@ -20,7 +19,6 @@ import {
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   brandsMatch,
-  clubsMatch,
   type MatchDayClubLock,
 } from "@/app/lib/climate-sponsors";
 import { MatchDayLockIn } from "@/app/components/sponsor/MatchDayLockIn";
@@ -55,11 +53,6 @@ import {
   isLeadSponsorHome,
   rememberLocalSponsorSession,
 } from "@/app/lib/sponsor-home";
-import {
-  MATCH_DAY_GOALS_SCORED_COPY,
-  MATCH_DAY_PROJECTS_RECORD_COPY,
-  MATCH_DAY_PROJECTS_WAITING_COPY,
-} from "@/app/lib/match-day-carbon-offset";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 
@@ -81,7 +74,6 @@ export default function SponsorDashboardPage() {
   const [stats, setStats] = useState<SponsorDashboardStats>(EMPTY_STATS);
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
   const [lockClub, setLockClub] = useState("");
-  const [chosenProjects, setChosenProjects] = useState<ClimateProject[]>([]);
   const [email, setEmail] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -182,32 +174,6 @@ export default function SponsorDashboardPage() {
     }
     load();
   }, [router]);
-
-  useEffect(() => {
-    if (!lockClub) {
-      setChosenProjects([]);
-      return;
-    }
-    let cancelled = false;
-    void loadClubChosenClimateProjects(lockClub)
-      .then((uploaded) => {
-        if (cancelled) return;
-        const fromOffer =
-          pending.find(
-            (offer) =>
-              clubsMatch(offer.clubName, lockClub) && offer.projects.length > 0
-          )?.projects ?? [];
-        setChosenProjects(
-          fromOffer.length > 0 ? fromOffer : uploaded?.projects ?? []
-        );
-      })
-      .catch(() => {
-        if (!cancelled) setChosenProjects([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [lockClub, pending]);
 
   useEffect(() => {
     if (loading) return;
@@ -366,49 +332,9 @@ export default function SponsorDashboardPage() {
           onMatchLocked={(club) => {
             router.push(sponsorWalletPath(club));
           }}
+          projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}
         />
       </div>
-
-      <section id={SPONSOR_RECEIVE_SECTION_ID} className="scroll-mt-6">
-        <div className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-            Match Day record
-          </p>
-          <h2 className="mt-3 text-2xl font-black">
-            The club&apos;s 5 chosen Climate Projects
-          </h2>
-          <p className="mt-3 max-w-3xl text-slate-300">
-            {MATCH_DAY_GOALS_SCORED_COPY}{" "}
-            {chosenProjects.length > 0
-              ? MATCH_DAY_PROJECTS_RECORD_COPY
-              : MATCH_DAY_PROJECTS_WAITING_COPY}
-          </p>
-          {chosenProjects.length > 0 ? (
-            <ul className="mt-6 space-y-2 text-slate-200">
-              {chosenProjects.map((project) => (
-                <li
-                  key={project.id}
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
-                >
-                  <span className="font-semibold">{project.name}</span>
-                  {project.estimated_co2 ? (
-                    <span className="ml-2 text-sm text-slate-400">
-                      {formatVoteCount(Math.round(Number(project.estimated_co2)))}{" "}
-                      tCO₂e
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-6 text-slate-500">
-              {lockClub
-                ? `Waiting for the ${lockClub} Sustainability Director to upload this Club's five Climate Projects.`
-                : "Waiting for the club Sustainability Director to upload this Club's five Climate Projects."}
-            </p>
-          )}
-        </div>
-      </section>
 
       <Link
         href={sponsorWalletPath(lockClub)}
@@ -461,9 +387,10 @@ export default function SponsorDashboardPage() {
         </p>
         <h2 className="mt-2 text-3xl font-black">Signed sponsorships</h2>
         <p className="mt-2 text-slate-400">
-          Once you sign off the Club&apos;s Match Day carbon footprint offset,
-          it is lodged here. Climate Projects the Sustainability Director later
-          chooses for that Match Day are added as your record.
+          Once you have seen this Club&apos;s chosen Climate Projects and sign
+          off the Match Day carbon footprint offset, it is lodged here. If the
+          Club has not uploaded those Projects yet, sign-off stays pending
+          approval until they do.
         </p>
         {signed.length === 0 ? (
           <p className="mt-6 text-slate-500">

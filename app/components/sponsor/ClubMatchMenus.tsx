@@ -80,7 +80,13 @@ export function ClubTypeInMenu({
             return;
           }
           const resolved = resolveSportingCalendarClub(next);
-          if (resolved && resolved !== value) onChange(resolved);
+          if (
+            resolved &&
+            resolved !== value &&
+            resolved.trim().toLowerCase() === next.trim().toLowerCase()
+          ) {
+            onChange(resolved);
+          }
         }}
         onKeyDown={(event) => {
           if (event.key !== "Enter") return;

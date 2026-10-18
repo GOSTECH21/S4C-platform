@@ -3,6 +3,7 @@ import {
   carbonOffsetHeadline,
   chosenProjectsReadyForMatchDay,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
+  matchDaySignOffIsPending,
   shouldPublishChosenMatchDayProjects,
 } from "../app/lib/match-day-carbon-offset";
 import {
@@ -80,6 +81,9 @@ assert(
 assert(
   chosenProjectsReadyForMatchDay(5) &&
     !chosenProjectsReadyForMatchDay(4) &&
+    matchDaySignOffIsPending(0) &&
+    matchDaySignOffIsPending(4) &&
+    !matchDaySignOffIsPending(5) &&
     shouldPublishChosenMatchDayProjects({
       projectCount: 5,
       inboundSponsorCount: 1,
@@ -109,17 +113,22 @@ const offers = readFileSync("app/services/sponsor-offers.service.ts", "utf8");
 const offersPage = readFileSync("app/sponsor/offers/page.tsx", "utf8");
 const clubDash = readFileSync("app/club/dashboard/page.tsx", "utf8");
 const matchDay = readFileSync("app/services/club-match-day.service.ts", "utf8");
+const chosenPanel = readFileSync(
+  "app/components/sponsor/ClubChosenProjectsPanel.tsx",
+  "utf8"
+);
 assert(
   wallet.includes("ensureCarbonOffsetSponsorshipOffer") &&
+    wallet.includes("chosenProjectsReadyForMatchDay") &&
+    wallet.includes("ClubChosenProjectsPanel") &&
     dashboard.includes("Match Day carbon footprint offset") &&
-    dashboard.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
+    chosenPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     readFileSync("app/lib/match-day-carbon-offset.ts", "utf8").includes(
       "You are sponsoring this Club's Match Day Goals-scored to help offset their carbon footprint."
     ) &&
-    (dashboard.includes("The club's 5 chosen Climate Projects") ||
-      dashboard.includes("The club&apos;s 5 chosen Climate Projects")) &&
+    chosenPanel.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
     dashboard.indexOf('id="match-day-lock-in"') <
-      dashboard.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") &&
+      dashboard.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
     offers.includes("hydrateClubSponsorsFromSigned") &&
     clubDash.includes("hydrateClubSponsorsFromSigned") &&
     matchDay.includes("publishChosenProjectsToSponsorsAndFans") &&
@@ -132,6 +141,8 @@ assert(
     offers.includes("findStoredClubSelectionByName") &&
     !offers.includes("isDemoClubName(offer.clubName)") &&
     offersPage.includes("MATCH_DAY_PROJECTS_WAITING_COPY") &&
+    offersPage.includes("MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY") &&
+    !offersPage.includes("you do not wait for this list") &&
     offersPage.includes("appear here automatically") &&
     readFileSync("apply-match-day-carbon-offset.mjs", "utf8").includes(
       "app/lib/match-day-carbon-offset.ts"

@@ -16,8 +16,12 @@ import {
   sponsorOfferSignOffPath,
 } from "@/app/lib/routes";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
-import { MATCH_DAY_PROJECTS_WAITING_COPY } from "@/app/lib/match-day-carbon-offset";
+import {
+  MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY,
+  MATCH_DAY_PROJECTS_WAITING_COPY,
+} from "@/app/lib/match-day-carbon-offset";
 import { OfferProjectList, OfferSignOffForm } from "./OfferSignOff";
+import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
 
 export default function NewSponsorshipOfferPage() {
   const router = useRouter();
@@ -84,16 +88,19 @@ export default function NewSponsorshipOfferPage() {
         You sponsor this Club&apos;s Match Day carbon footprint offset. The
         five Climate Projects the Sustainability Director chooses for that
         Match appear here automatically as your record — and Fans FUND-IT onto
-        them. Sign off your sponsorship after the wallet deposit; you do not
-        wait for this list.
+        them. {MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY}
       </p>
 
       {!offer ? (
-        <p className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
-          {lockedClub
-            ? `${MATCH_DAY_PROJECTS_WAITING_COPY} Locked club: ${lockedClub}.`
-            : MATCH_DAY_PROJECTS_WAITING_COPY}
-        </p>
+        <div className="mt-10 space-y-6">
+          {lockedClub ? (
+            <ClubChosenProjectsPanel clubName={lockedClub} />
+          ) : (
+            <p className="rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
+              {MATCH_DAY_PROJECTS_WAITING_COPY}
+            </p>
+          )}
+        </div>
       ) : (
         <OfferPreview offer={offer} brandDefault={brandDefault} />
       )}
@@ -137,9 +144,7 @@ function OfferPreview({
         {offer.projects.length > 0 ? (
           <OfferProjectList offer={offer} />
         ) : (
-          <p className="rounded-2xl border border-slate-700 bg-slate-900 p-8 text-slate-400">
-            {MATCH_DAY_PROJECTS_WAITING_COPY}
-          </p>
+          <ClubChosenProjectsPanel clubName={offer.clubName} />
         )}
       </div>
       <OfferSignOffForm offer={offer} brandDefault={brandDefault} />
