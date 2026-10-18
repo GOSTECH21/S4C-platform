@@ -32,12 +32,19 @@ import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
   MATCH_DAY_APPROVED_LABEL,
+  MATCH_DAY_FULLY_FUNDED_LABEL,
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
   clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
+  clubDashboardLookbackCopy,
   matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
+import {
+  lookbackProjectFunding,
+  matchDayProjectFundingLine,
+  readProjectFunding,
+} from "@/app/lib/climate-funding";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import {
   dedupeLookbackRecords,
@@ -84,6 +91,9 @@ export default function ClubDashboardPage() {
   const [maxAmount, setMaxAmount] = useState<number | null>(null);
   const [gbpPerVote, setGbpPerVote] = useState<number | null>(null);
   const [records, setRecords] = useState<ClubFileRecord[]>([]);
+  const [fanFunding, setFanFunding] = useState<
+    ReturnType<typeof readProjectFunding>
+  >([]);
   const [unlinked, setUnlinked] = useState(false);
   const [signedInKind, setSignedInKind] = useState<SignedInKind>("unknown");
   const [postedAt, setPostedAt] = useState<string | null>(null);
@@ -127,6 +137,7 @@ export default function ClubDashboardPage() {
       setSelected(board.selected);
       setMinAmount(board.minAmount);
       setRecords(board.records);
+      setFanFunding(readProjectFunding(session.club.id));
       const stored = readStoredMatchDay(session.club.id);
       setPostedAt(stored?.postedAt ?? null);
       setFeaturedId(
@@ -183,6 +194,7 @@ export default function ClubDashboardPage() {
         const board = await loadClubProjectBoard(club.id, club.name);
         setSelected(board.selected);
         setRecords(board.records);
+        setFanFunding(readProjectFunding(club.id));
       } catch {
         // Signed copies still refresh even if the project board cannot.
       }
@@ -233,6 +245,14 @@ export default function ClubDashboardPage() {
     return ids;
   }, [signedCopies]);
   const hasApproved = approvedIds.size > 0;
+  const approvedBrandNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const copy of signedCopies) {
+      const name = copy.signature.brandName?.trim();
+      if (name) names.add(name);
+    }
+    return [...names];
+  }, [signedCopies]);
 
   const readySponsorBrands = useMemo(() => {
     if (!roster) return [];
@@ -434,6 +454,7 @@ export default function ClubDashboardPage() {
           clubName={club.name}
           leadSponsors={leadSponsors}
           localSponsors={localSponsors}
+          approvedBrandNames={approvedBrandNames}
           initialTab="lead"
         />
 
@@ -447,11 +468,7 @@ export default function ClubDashboardPage() {
                 Selected and Funded Projects, kept for lookback
               </h2>
               <p className="mt-2 max-w-2xl text-slate-400">
-                Every confirmed Match Day list is stored once in this club file
-                record so the Sustainability Director can look back later.
-                Incomplete or unstamped copies of the same five are merged into
-                that lookback. When a second brand signs those projects, that
-                brand gets its own stamped card.
+                {clubDashboardLookbackCopy()}
               </p>
             </div>
             <button
@@ -509,10 +526,43 @@ export default function ClubDashboardPage() {
                   <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     Selected
                   </p>
-                  <ul className="mt-2 space-y-1 text-slate-300">
-                    {record.selected.map((project) => (
-                      <li key={project.id}>• {project.name}</li>
-                    ))}
+                  <ul className="mt-2 space-y-2 text-slate-300">
+                    {record.selected.map((project) => {
+                      const approved =
+                        approvedIds.has(project.id) || Boolean(sponsor);
+                      const funding = lookbackProjectFunding({
+                        project,
+                        fanFunding,
+                        catalog: selected,
+                      });
+                      return (
+                        <li
+                          key={project.id}
+                          className="flex flex-wrap items-center gap-2"
+                        >
+                          <span>• {project.name}</span>
+                          {approved ? (
+                            <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
+                              {MATCH_DAY_APPROVED_LABEL}
+                            </span>
+                          ) : null}
+                          {funding.fullyFunded ? (
+                            <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
+                              {MATCH_DAY_FULLY_FUNDED_LABEL}
+                            </span>
+                          ) : null}
+                          {approved &&
+                          (funding.soughtGbp > 0 || funding.receivedGbp > 0) ? (
+                            <span className="text-sm text-green-300">
+                              {matchDayProjectFundingLine(
+                                funding.receivedGbp,
+                                funding.soughtGbp
+                              )}
+                            </span>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
                 );

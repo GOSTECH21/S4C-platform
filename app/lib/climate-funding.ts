@@ -1,4 +1,6 @@
 import { FAN_REGISTER_PATH } from "./routes";
+import { isMatchDayProjectFullyFunded } from "./partner-projects";
+import { formatFundingGbp } from "./platform-stats";
 import {
   brandsMatch,
   normalizeKey,
@@ -69,6 +71,42 @@ export function loadFundedProjects(
   projects: NumberedClimateProject[]
 ): NumberedClimateProject[] {
   return mergeNumberedFunding(projects, readProjectFunding(clubId));
+}
+
+export type LookbackProjectFunding = {
+  receivedGbp: number;
+  soughtGbp: number;
+  fullyFunded: boolean;
+};
+
+export function lookbackProjectFunding({
+  project,
+  fanFunding = [],
+  catalog = [],
+}: {
+  project: { id: string; funding_goal?: number | null };
+  fanFunding?: Array<{ id: string; fundedGbp?: number | null }>;
+  catalog?: Array<{ id: string; funding_goal?: number | null }>;
+}): LookbackProjectFunding {
+  const fan = fanFunding.find((row) => row.id === project.id);
+  const fromCatalog = catalog.find((row) => row.id === project.id);
+  const receivedGbp = roundGbp(Math.max(0, Number(fan?.fundedGbp) || 0));
+  const soughtGbp = Math.max(
+    0,
+    Number(project.funding_goal) || Number(fromCatalog?.funding_goal) || 0
+  );
+  return {
+    receivedGbp,
+    soughtGbp,
+    fullyFunded: isMatchDayProjectFullyFunded(receivedGbp, soughtGbp),
+  };
+}
+
+export function matchDayProjectFundingLine(
+  receivedGbp: number,
+  soughtGbp: number
+): string {
+  return `${formatFundingGbp(receivedGbp)} of ${formatFundingGbp(soughtGbp)}`;
 }
 
 export function hasFanVotedSponsor(

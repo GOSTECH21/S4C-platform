@@ -2,9 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
-import type { LeadClubSponsorRow } from "@/app/lib/climate-sponsors";
+import {
+  brandsMatch,
+  type LeadClubSponsorRow,
+} from "@/app/lib/climate-sponsors";
 import { splitClubClimateSponsorsForTabs } from "@/app/lib/match-day-branding";
 import {
+  isSignedOffLocalSponsor,
   localMatchLabels,
   totalLocalPledge,
   type LocalSponsorRecord,
@@ -23,11 +27,13 @@ export function ClubClimateSponsorTabs({
   clubName,
   leadSponsors,
   localSponsors,
+  approvedBrandNames = [],
   initialTab = "lead",
 }: {
   clubName: string;
   leadSponsors: LeadClubSponsorRow[];
   localSponsors: LocalSponsorRecord[];
+  approvedBrandNames?: string[];
   initialTab?: ClimateSponsorTab;
 }) {
   const { leads, locals } = useMemo(
@@ -45,6 +51,9 @@ export function ClubClimateSponsorTabs({
   );
   const activateLeadWhenSignedOff = useRef(leads.length === 0);
   const localCount = locals.length;
+  function isApprovedBrand(brandName: string) {
+    return approvedBrandNames.some((name) => brandsMatch(name, brandName));
+  }
   const tabPrefix = clubName.trim().toLowerCase().replace(/\s+/g, "-") || "club";
   const leadTabId = `${tabPrefix}-lead-climate-sponsor-tab`;
   const localTabId = `${tabPrefix}-local-businesses-sponsor-tab`;
@@ -57,16 +66,19 @@ export function ClubClimateSponsorTabs({
       activateLeadWhenSignedOff.current = true;
       return;
     }
+    const approvedLead = leads.find((row) =>
+      approvedBrandNames.some((name) => brandsMatch(name, row.brandName))
+    );
     setSelectedLeadKey((current) =>
       current && leads.some((row) => row.brandKey === current)
         ? current
-        : leads[0]!.brandKey
+        : (approvedLead ?? leads[0])!.brandKey
     );
     if (activateLeadWhenSignedOff.current) {
       setTab("lead");
       activateLeadWhenSignedOff.current = false;
     }
-  }, [leads]);
+  }, [leads, approvedBrandNames]);
 
   return (
     <section
@@ -120,7 +132,9 @@ export function ClubClimateSponsorTabs({
           ) : (
             <ul className="mt-6 grid gap-4">
               {leads.map((sponsor) => {
-                const selected = selectedLeadKey === sponsor.brandKey;
+                const approved = isApprovedBrand(sponsor.brandName);
+                const selected =
+                  selectedLeadKey === sponsor.brandKey || approved;
                 return (
                 <li key={sponsor.brandKey}>
                   <button
@@ -186,6 +200,10 @@ export function ClubClimateSponsorTabs({
                 <LocalSponsorCard
                   key={`${sponsor.brandName}:${sponsor.email}`}
                   sponsor={sponsor}
+                  highlighted={
+                    isSignedOffLocalSponsor(sponsor) ||
+                    isApprovedBrand(sponsor.brandName)
+                  }
                 />
               ))}
             </ul>
@@ -258,11 +276,23 @@ function MatchPills({
   );
 }
 
-function LocalSponsorCard({ sponsor }: { sponsor: LocalSponsorRecord }) {
+function LocalSponsorCard({
+  sponsor,
+  highlighted = false,
+}: {
+  sponsor: LocalSponsorRecord;
+  highlighted?: boolean;
+}) {
   const matches = useMemo(() => localMatchLabels(sponsor), [sponsor]);
   const total = totalLocalPledge(sponsor);
   return (
-    <li className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
+    <li
+      className={`rounded-2xl border p-5 ${
+        highlighted
+          ? "border-amber-400 bg-slate-950 ring-2 ring-amber-400/60"
+          : "border-slate-700 bg-slate-950"
+      }`}
+    >
       <div className="flex items-start gap-3">
         <BrandMark name={sponsor.brandName} logoUrl={sponsor.logoUrl} />
         <div className="min-w-0 flex-1">

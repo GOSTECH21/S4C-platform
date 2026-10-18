@@ -14,6 +14,20 @@ const MATCH_DAY_LEAD_DAYS = MATCH_DAY_LEAD_HOURS / 24;
 
 export const MATCH_DAY_PENDING_APPROVAL_LABEL = "pending approval";
 export const MATCH_DAY_APPROVED_LABEL = "Approved";
+export const MATCH_DAY_FULLY_FUNDED_LABEL = "Fully-Funded";
+
+export function clubDashboardLookbackCopy(): string {
+  return "Confirmed and Approved Projects by Sponsors will appear here.";
+}
+
+export function isMatchDayProjectFullyFunded(
+  receivedGbp: number,
+  soughtGbp: number
+): boolean {
+  const received = Math.max(0, Number(receivedGbp) || 0);
+  const sought = Math.max(0, Number(soughtGbp) || 0);
+  return sought > 0 && received >= sought;
+}
 
 export function clubDashboardClimateProjectsIntroCopy(): string {
   return `Press the blue S4P Climate Projects button to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner Projects from List provided`;

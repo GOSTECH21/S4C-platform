@@ -8,13 +8,20 @@ import {
   clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
   MATCH_DAY_APPROVED_LABEL,
+  MATCH_DAY_FULLY_FUNDED_LABEL,
   MATCH_DAY_PENDING_APPROVAL_LABEL,
+  clubDashboardLookbackCopy,
+  isMatchDayProjectFullyFunded,
   matchDayProjectApprovalLabel,
   isPartnerUpload,
   listsWithUploadsFirst,
   partnerPageCount,
   partnerProjectPage,
 } from "../app/lib/partner-projects";
+import {
+  lookbackProjectFunding,
+  matchDayProjectFundingLine,
+} from "../app/lib/climate-funding";
 import { ciltPositionLabel, premierLeagueCilt, scottishPremiershipCilt, climateImpactLeagueTable } from "../app/lib/cilt";
 import { leagueForClubName } from "../app/lib/current-season";
 import { SELECTABLE_MATCH_DAY_CATALOG, selectableCatalogForCountry } from "../app/lib/sccan-catalog";
@@ -610,6 +617,10 @@ assert(
     !clubDashboard.includes("Signed copy of the sponsorship") &&
     !clubDashboard.includes("Voted-For Projects") &&
     clubDashboard.includes("Selected and Funded Projects, kept for lookback") &&
+    clubDashboard.includes("clubDashboardLookbackCopy") &&
+    !clubDashboard.includes("Incomplete or unstamped copies") &&
+    clubDashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
+    clubDashboard.includes("lookbackProjectFunding") &&
     clubDashboard.includes("orderedSelected") &&
     clubDashboard.includes("matchDayProjectApprovalLabel") &&
     clubDashboard.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
@@ -624,6 +635,38 @@ assert(
     matchDayProjectApprovalLabel(false) === MATCH_DAY_PENDING_APPROVAL_LABEL &&
     matchDayProjectApprovalLabel(true) === MATCH_DAY_APPROVED_LABEL,
   "Chosen Match Day projects stay pending approval until sponsor sign-off, then publish to fans"
+);
+assert(
+  clubDashboardLookbackCopy() ===
+    "Confirmed and Approved Projects by Sponsors will appear here." &&
+    MATCH_DAY_FULLY_FUNDED_LABEL === "Fully-Funded" &&
+    !isMatchDayProjectFullyFunded(40, 100) &&
+    isMatchDayProjectFullyFunded(100, 100) &&
+    isMatchDayProjectFullyFunded(120, 100) &&
+    !isMatchDayProjectFullyFunded(10, 0),
+  "Lookback copy is sponsor-approved projects, with Fully-Funded when received meets the Climate Partner goal"
+);
+const fundingState = lookbackProjectFunding({
+  project: { id: "gss", funding_goal: 150000 },
+  fanFunding: [{ id: "gss", fundedGbp: 2300 }],
+});
+assert(
+  fundingState.receivedGbp === 2300 &&
+    fundingState.soughtGbp === 150000 &&
+    !fundingState.fullyFunded &&
+    matchDayProjectFundingLine(2300, 150000) === "£2,300 of £150,000",
+  "Approved lookback projects show fan funds received out of the Climate Partner funding sought"
+);
+const fullyFundedState = lookbackProjectFunding({
+  project: { id: "gss", funding_goal: null },
+  fanFunding: [{ id: "gss", fundedGbp: 8000 }],
+  catalog: [{ id: "gss", funding_goal: 8000 }],
+});
+assert(
+  fullyFundedState.fullyFunded &&
+    fullyFundedState.receivedGbp === 8000 &&
+    fullyFundedState.soughtGbp === 8000,
+  "A lookback project is Fully-Funded when fan funds meet the Climate Partner goal"
 );
 const matchDayService = readFileSync("app/services/club-match-day.service.ts", "utf8");
 const chosenPublish = matchDayService.slice(

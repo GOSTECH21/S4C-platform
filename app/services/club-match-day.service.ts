@@ -100,6 +100,7 @@ export type ClubFileProject = {
   category: string | null;
   country: string | null;
   estimated_co2: number | null;
+  funding_goal?: number | null;
 };
 
 export type ClubFileRecord = {
@@ -832,6 +833,7 @@ function snapshotProject(project: {
   category?: string | null;
   country?: string | null;
   estimated_co2?: number | null;
+  funding_goal?: number | null;
 }): ClubFileProject {
   return {
     id: project.id,
@@ -840,6 +842,7 @@ function snapshotProject(project: {
     category: project.category ?? null,
     country: project.country ?? null,
     estimated_co2: project.estimated_co2 ?? null,
+    funding_goal: project.funding_goal ?? null,
   };
 }
 
@@ -1002,6 +1005,7 @@ export async function persistFileRecord({
     category?: string | null;
     country?: string | null;
     estimated_co2?: number | null;
+    funding_goal?: number | null;
   }>;
   voted: Array<{
     id: string;
@@ -1010,6 +1014,7 @@ export async function persistFileRecord({
     category?: string | null;
     country?: string | null;
     estimated_co2?: number | null;
+    funding_goal?: number | null;
   }>;
   sponsorName?: string | null;
   sponsorLogoUrl?: string | null;

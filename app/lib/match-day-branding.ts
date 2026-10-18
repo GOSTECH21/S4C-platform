@@ -6,7 +6,6 @@ import {
   isLeadMatchDaySponsorBrand,
   isRemovedSponsorBrand,
   isSponsorBlockedFromClub,
-  pickSoleLeadClimateSponsor,
   KNOWN_LOCAL_BUSINESS_SPONSOR_NAMES,
   type ClubClimateSponsor,
   type LeadClubSponsorRow,
@@ -122,21 +121,17 @@ export function splitClubClimateSponsorsForTabs({
   leads: LeadClubSponsorRow[];
   locals: LocalSponsorRecord[];
 } {
-  const occupant = pickSoleLeadClimateSponsor(
-    leadSponsors.filter(
-      (row) =>
-        isLeadMatchDaySponsorBrand(row.brandName) &&
-        !isSponsorBlockedFromClub(row.brandName, clubName)
-    ),
-    clubName
+  const leads = leadSponsors.filter(
+    (row) =>
+      isLeadMatchDaySponsorBrand(row.brandName) &&
+      !isSponsorBlockedFromClub(row.brandName, clubName)
   );
-  const leads = occupant ? [occupant] : [];
   const localsByKey = new Map<string, LocalSponsorRecord>();
 
   function rememberLocal(row: LocalSponsorRecord) {
     if (!row.brandName.trim()) return;
     if (
-      isLeadClimateBrand(row.brandName) ||
+      isLeadMatchDaySponsorBrand(row.brandName) ||
       isExampleLocalBrand(row.brandName) ||
       isRemovedSponsorBrand(row.brandName)
     ) {
