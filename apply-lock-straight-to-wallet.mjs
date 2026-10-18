@@ -11,6 +11,7 @@ const FILES = [
   "app/sponsor/dashboard/page.tsx",
   "app/sponsor/calendar/page.tsx",
   "app/sponsor/wallet/page.tsx",
+  "app/preview/match-day-lock-in/page.tsx",
   "scripts/verify-sporting-calendar.ts",
   "scripts/verify-sponsor-dashboard.ts",
 ];
