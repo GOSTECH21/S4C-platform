@@ -623,14 +623,15 @@ assert(
   "Typing Arsenal lists League and Cup Matches"
 );
 const arsenalTen = nextClubMatches("Arsenal", { fromDate: "2026-10-18" });
-const arsenalUpcoming = matchesForClub("Arsenal", { fromDate: "2026-10-18" });
 assert(
   CLUB_MATCH_CALENDAR_COUNT === 10 &&
-    arsenalTen.length <= 10 &&
-    arsenalTen.length === Math.min(10, arsenalUpcoming.length) &&
+    arsenalTen.length === 10 &&
     arsenalTen.every(
       (row) => row.homeName === "Arsenal" || row.awayName === "Arsenal"
     ) &&
+    arsenalTen.some((row) => row.league === "Premier League") &&
+    arsenalTen.some((row) => isCupCompetitionName(row.league)) &&
+    !arsenalTen.some((row) => row.league === "Women's Super League") &&
     !arsenalTen.some((row) => row.league === "NFL" || row.league === "NBA") &&
     resolveSportingCalendarClub("Arsenal FC") === "Arsenal",
   "Select the Match shows only this Club's next 10 League and Cup Matches"

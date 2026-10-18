@@ -10,6 +10,7 @@ const FILES = [
   "app/components/sponsor/MatchDayLockIn.tsx",
   "app/sponsor/dashboard/page.tsx",
   "app/sponsor/calendar/page.tsx",
+  "app/preview/match-day-lock-in/page.tsx",
   "scripts/verify-sporting-calendar.ts",
   "scripts/verify-sponsor-dashboard.ts",
   "scripts/verify-club-sponsor-tabs.ts",

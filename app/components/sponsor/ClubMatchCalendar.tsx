@@ -55,29 +55,31 @@ export function ClubMatchCalendar({
   }
 
   return (
-    <div>
-      <p className="text-sm text-slate-400">Match</p>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label="Select the Match"
-        onClick={() => {
-          if (disabled) return;
-          setOpen((current) => !current);
-        }}
-        className={`mt-2 flex w-full items-center justify-between rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950 ${
-          disabled ? "opacity-50" : ""
-        }`}
-      >
-        <span>{selected?.fixtureName || "Select the Match"}</span>
-        <span aria-hidden="true">▾</span>
-      </button>
+    <div className="contents">
+      <div>
+        <p className="text-sm text-slate-400">Match</p>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label="Select the Match"
+          onClick={() => {
+            if (disabled) return;
+            setOpen((current) => !current);
+          }}
+          className={`mt-2 flex w-full items-center justify-between rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950 ${
+            disabled ? "opacity-50" : ""
+          }`}
+        >
+          <span>{selected?.fixtureName || "Select the Match"}</span>
+          <span aria-hidden="true">▾</span>
+        </button>
+      </div>
       {open && !disabled ? (
         <div
           role="dialog"
           aria-label={`${clubName}'s next ${CLUB_MATCH_CALENDAR_COUNT} League and Cup Matches`}
-          className="mt-4 rounded-2xl border border-s4p-mark/50 bg-white p-4 text-slate-950"
+          className="mt-4 rounded-2xl border border-s4p-mark/50 bg-white p-4 text-slate-950 md:col-span-2"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
             Next {CLUB_MATCH_CALENDAR_COUNT} Matches

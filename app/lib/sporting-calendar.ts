@@ -7,6 +7,7 @@ import {
 } from "./club-fixtures";
 import publishedFixtures from "../data/published-fixtures.json";
 import { namesExactlyMatch } from "./upcoming-matches";
+import { leagueForSportingCalendarClub } from "./calendar-clubs";
 import {
   CUP_COMPETITION_NAMES,
   SPORTING_CALENDAR_LEAGUE_ORDER,
@@ -263,10 +264,14 @@ export function nextClubMatches(
   options?: { fromDate?: string | Date; limit?: number }
 ): CalendarMatch[] {
   const limit = options?.limit ?? CLUB_MATCH_CALENDAR_COUNT;
-  return matchesForClub(clubName, { fromDate: options?.fromDate }).slice(
-    0,
-    Math.max(0, limit)
-  );
+  const clubLeague = leagueForSportingCalendarClub(clubName);
+  return matchesForClub(clubName, { fromDate: options?.fromDate })
+    .filter((row) => {
+      if (isCupCompetitionName(row.league)) return true;
+      if (!clubLeague) return true;
+      return row.league === clubLeague;
+    })
+    .slice(0, Math.max(0, limit));
 }
 
 export function clubFixtureFromCalendarMatch(match: CalendarMatch): ClubFixture {
