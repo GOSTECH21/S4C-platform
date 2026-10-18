@@ -574,7 +574,7 @@ assert(
   "Local Business Climate Sponsors are told to insert a Sponsorship amount, not Goals-scored"
 );
 assert(
-  sponsorDashboardPage.includes("lockCopy()") &&
+  sponsorDashboardPage.includes("MatchDayLockIn") &&
     !sponsorDashboardPage.includes("localLockCopy()"),
   "The S4P Sponsorship Dashboard keeps Goal-Sponsorship lock-in copy for Lead Climate Sponsors"
 );
@@ -586,20 +586,32 @@ assert(
     ),
   "Locals lock a Club and Match on the wallet; the Lead dashboard sends them there"
 );
+const lockInPage = readFileSync(
+  "app/components/sponsor/MatchDayLockIn.tsx",
+  "utf8"
+);
+const clubMatchCalendar = readFileSync(
+  "app/components/sponsor/ClubMatchCalendar.tsx",
+  "utf8"
+);
 assert(
-  sponsorDashboardPage.includes("Match Day Lock-In") &&
+  sponsorDashboardPage.includes("MatchDayLockIn") &&
     !sponsorDashboardPage.includes("Select a Club") &&
     !sponsorDashboardPage.includes(
       "Select a club from Premier League or Scottish Premiership"
     ) &&
-    sponsorDashboardPage.includes("SeeMatchDetails") &&
-    sponsorDashboardPage.includes("ClubLeagueMenu") &&
-    sponsorDashboardPage.includes("clubs={registeredClubs}") &&
-    sponsorDashboardPage.includes("MatchFixtureMenu") &&
-    sponsorDashboardPage.includes("loadClubFixtures") &&
-    sponsorDashboardPage.includes("registeredClubForLockIn") &&
-    sponsorDashboardPage.includes('id="match-day-lock-in"'),
-  "Match Day Lock-In auto-fills the registered club and lists that club's Matches"
+    !sponsorDashboardPage.includes("ClubLeagueMenu") &&
+    !sponsorDashboardPage.includes("MatchFixtureMenu") &&
+    !sponsorDashboardPage.includes("loadClubFixtures") &&
+    !sponsorDashboardPage.includes("Open 2026/27 Sporting Calendar") &&
+    sponsorDashboardPage.includes('id="match-day-lock-in"') &&
+    lockInPage.includes("Type-in the Name of the Club") &&
+    lockInPage.includes("ClubTypeInMenu") &&
+    lockInPage.includes("ClubMatchCalendar") &&
+    lockInPage.includes("SeeMatchDetails") &&
+    lockInPage.includes("nextClubMatches") &&
+    lockInPage.includes("lockCopy()"),
+  "Match Day Lock-In is first: type-in a Club, then Select the Match from that Club's next 10 dates"
 );
 assert(
   readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
@@ -623,7 +635,7 @@ assert(
     readFileSync("app/components/sponsor/SeeMatchDetails.tsx", "utf8").includes(
       "defaultOpen"
     ) &&
-    sponsorDashboardPage.includes("defaultOpen"),
+    lockInPage.includes("defaultOpen"),
   "After a Match is selected, sponsors can See Match details"
 );
 assert(
@@ -636,20 +648,22 @@ assert(
   "The S4P Sponsorship Dashboard no longer duplicates Goal Sponsorship Network as a second club picker"
 );
 assert(
-  sponsorDashboardPage.indexOf("Match Day Lock-In") <
+  sponsorDashboardPage.indexOf("MatchDayLockIn") <
     sponsorDashboardPage.indexOf("The club&apos;s 5 chosen Climate Projects") &&
+    sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
+      sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") &&
     sponsorDashboardPage.indexOf("id={SPONSOR_RECEIVE_SECTION_ID}") <
-      sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects") &&
-    sponsorDashboardPage.indexOf("SeeMatchDetails") <
-      sponsorDashboardPage.indexOf("Open Climate Sponsorship Wallet"),
+      sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
   "Match Day Lock-In and the five Climate Projects record sit above the Climate Sponsorship Wallet"
 );
 assert(
-  sponsorDashboardPage.includes("loadClubFixtures") &&
-    sponsorDashboardPage.includes("ensureGoalNetwork") &&
-    (sponsorDashboardPage.includes("See Match details") ||
-      sponsorDashboardPage.includes("SeeMatchDetails")),
-  "Locking a listed club and Match still records the Goal Sponsorship Network behind the scenes"
+  lockInPage.includes("ensureGoalNetwork") &&
+    lockInPage.includes("SeeMatchDetails") &&
+    clubMatchCalendar.includes("Select the Match") &&
+    clubMatchCalendar.includes("bg-s4p-mark") &&
+    clubMatchCalendar.includes("CLUB_MATCH_CALENDAR_COUNT") &&
+    clubMatchCalendar.includes("monthsCoveringMatches"),
+  "Locking a typed Club and highlighted Match still records the Goal Sponsorship Network behind the scenes"
 );
 assert(
   sponsorDashboardPage.includes("The club's 5 chosen Climate Projects") ||
@@ -788,9 +802,9 @@ assert(
   "Open Climate Sponsorship Wallet carries the locked club onto the wallet"
 );
 assert(
-  sponsorDashboardPage.includes("setChosenFixture(fixture)") &&
-    sponsorDashboardPage.includes("setLockFixture(fixture.fixtureName)") &&
-    !sponsorDashboardPage.includes('setLockClub(persisted?.clubName ?? "")'),
+  lockInPage.includes("setChosenFixture(fixture)") &&
+    lockInPage.includes("setLockFixture(fixture.fixtureName)") &&
+    !lockInPage.includes('setLockClub(persisted?.clubName ?? "")'),
   "A rejected second Lead still keeps the chosen Club, Match and Match details on screen"
 );
 

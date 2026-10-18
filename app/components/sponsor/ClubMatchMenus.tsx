@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
+import {
+  clubsOnSportingCalendar,
+  resolveSportingCalendarClub,
+} from "@/app/lib/sporting-calendar";
 
 function useDismiss(open: boolean, onClose: () => void) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -17,6 +21,121 @@ function useDismiss(open: boolean, onClose: () => void) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
   return rootRef;
+}
+
+export function ClubTypeInMenu({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (club: string) => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+  const rootRef = useDismiss(open, () => setOpen(false));
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+  const calendarClubs = useMemo(() => clubsOnSportingCalendar(), []);
+  const suggestions = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (needle.length < 2) return [];
+    return calendarClubs
+      .filter((name) => name.toLowerCase().includes(needle))
+      .sort((left, right) => {
+        const a = left.toLowerCase();
+        const b = right.toLowerCase();
+        const aStart = a.startsWith(needle) ? 0 : 1;
+        const bStart = b.startsWith(needle) ? 0 : 1;
+        if (aStart !== bStart) return aStart - bStart;
+        return a.localeCompare(b);
+      })
+      .slice(0, 12);
+  }, [calendarClubs, query]);
+
+  function commit(raw: string) {
+    const typed = raw.trim();
+    const resolved = resolveSportingCalendarClub(typed) || typed;
+    setQuery(resolved);
+    setOpen(false);
+    onChange(resolved);
+  }
+
+  return (
+    <div ref={rootRef} className="relative">
+      <p className="text-sm text-slate-400">Club</p>
+      <input
+        type="search"
+        aria-label="Club"
+        autoComplete="off"
+        value={query}
+        placeholder="Club"
+        onFocus={() => setOpen(true)}
+        onChange={(event) => {
+          const next = event.target.value;
+          setQuery(next);
+          setOpen(true);
+          if (!next.trim()) {
+            if (value) onChange("");
+            return;
+          }
+          const resolved = resolveSportingCalendarClub(next);
+          if (resolved && resolved !== value) onChange(resolved);
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          commit(query);
+        }}
+        onBlur={() => {
+          if (!query.trim()) {
+            if (value) onChange("");
+            return;
+          }
+          const resolved = resolveSportingCalendarClub(query);
+          if (resolved && resolved !== value) onChange(resolved);
+        }}
+        className="mt-2 w-full rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950"
+      />
+      {open && suggestions.length > 0 ? (
+        <div
+          role="listbox"
+          aria-label="Clubs you can sponsor"
+          className="absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
+        >
+          <div className="grid gap-2">
+            {suggestions.map((club) => {
+              const selected = value.toLowerCase() === club.toLowerCase();
+              return (
+                <button
+                  key={club}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    commit(club);
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
+                    selected
+                      ? "border-s4p-mark bg-s4p-mark text-slate-950"
+                      : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
+                  }`}
+                >
+                  {club}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : open && query.trim().length >= 2 ? (
+        <p className="mt-2 text-sm text-slate-500">
+          No club matches that search.
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 export function ClubLeagueMenu({

@@ -65,7 +65,7 @@ assert(
 
 assert(
   dashboard.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
-    dashboard.includes("lockCopy()") &&
+    dashboard.includes("MatchDayLockIn") &&
     !dashboard.includes("localLockCopy()") &&
     !dashboard.includes("LOCAL_FIVE_RECORD_COPY"),
   "Lead New Sponsorship keeps Goal-Sponsorship copy and Goals-scored on the five"

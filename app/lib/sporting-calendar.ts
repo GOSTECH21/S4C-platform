@@ -1,6 +1,10 @@
 /** 2026/27 sport-day catalog: published Matches, grouped by league on a given day. */
 
-import { fixtureDisplayName } from "./club-fixtures";
+import {
+  competitionLockLabel,
+  fixtureDisplayName,
+  type ClubFixture,
+} from "./club-fixtures";
 import publishedFixtures from "../data/published-fixtures.json";
 import { namesExactlyMatch } from "./upcoming-matches";
 import {
@@ -244,7 +248,69 @@ export function matchesForClub(
         (namesExactlyMatch(row.homeName, needle) ||
           namesExactlyMatch(row.awayName, needle))
     )
-    .sort((left, right) => left.date.localeCompare(right.date));
+    .sort((left, right) =>
+      left.date === right.date
+        ? left.kickoff.localeCompare(right.kickoff)
+        : left.date.localeCompare(right.date)
+    );
+}
+
+/** Next League and Cup Matches a sponsor can lock for the typed Club. */
+export const CLUB_MATCH_CALENDAR_COUNT = 10;
+
+export function nextClubMatches(
+  clubName: string,
+  options?: { fromDate?: string | Date; limit?: number }
+): CalendarMatch[] {
+  const limit = options?.limit ?? CLUB_MATCH_CALENDAR_COUNT;
+  return matchesForClub(clubName, { fromDate: options?.fromDate }).slice(
+    0,
+    Math.max(0, limit)
+  );
+}
+
+export function clubFixtureFromCalendarMatch(match: CalendarMatch): ClubFixture {
+  return {
+    id: match.id,
+    homeName: match.homeName,
+    awayName: match.awayName,
+    fixtureName: match.fixtureName,
+    competition: competitionLockLabel(match.league),
+    date: match.date,
+    kickoff: match.kickoff || null,
+    venue: match.venue || null,
+    sourceUrl: null,
+  };
+}
+
+export function monthsCoveringMatches(
+  matches: CalendarMatch[]
+): Array<{ year: number; month: number }> {
+  const seen = new Set<string>();
+  const months: Array<{ year: number; month: number }> = [];
+  for (const match of matches) {
+    const parsed = monthFromIsoDate(match.date);
+    if (!parsed) continue;
+    const key = `${parsed.year}-${parsed.month}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    months.push(parsed);
+  }
+  return months;
+}
+
+export function resolveSportingCalendarClub(query: string): string | null {
+  const needle = query.trim();
+  if (!needle) return null;
+  const clubs = clubsOnSportingCalendar();
+  const exact = clubs.find((name) => namesExactlyMatch(name, needle));
+  if (exact) return exact;
+  const lower = needle.toLowerCase();
+  const starts = clubs.filter((name) => name.toLowerCase().startsWith(lower));
+  if (starts.length === 1) return starts[0];
+  const includes = clubs.filter((name) => name.toLowerCase().includes(lower));
+  if (includes.length === 1) return includes[0];
+  return null;
 }
 
 export function cupMatchesForClub(clubName: string): CalendarMatch[] {
