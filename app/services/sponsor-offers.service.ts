@@ -5,7 +5,9 @@ import {
 } from "../lib/current-season";
 import {
   brandsMatch,
+  canClaimLeadClimateSponsor,
   displayLockFixture,
+  isLeadMatchDaySponsorBrand,
   isNamedFixture,
   isRemovedSponsorBrand,
   networkHasClub,
@@ -39,6 +41,8 @@ import type { ClimateProject } from "./votes.service";
 import { getCurrentSponsor } from "./current-sponsor.service";
 import {
   ensureGoalNetwork,
+  listGoalNetworks,
+  listMatchDayLocks,
   loadGoalNetwork,
   loadMatchDayLock,
 } from "./climate-sponsors.service";
@@ -531,6 +535,21 @@ async function stampOfferWithLockedUploads(
   );
 }
 
+function firstLeadHoldsChosenProjects(
+  brandName: string,
+  clubName: string,
+  fixtureName?: string | null
+): boolean {
+  if (!isLeadMatchDaySponsorBrand(brandName)) return true;
+  return canClaimLeadClimateSponsor({
+    clubName,
+    brandName,
+    fixtureName,
+    networks: listGoalNetworks(),
+    locks: listMatchDayLocks(),
+  });
+}
+
 export async function ensureCarbonOffsetSponsorshipOffer(options: {
   brandName: string;
   brandEmail?: string | null;
@@ -541,6 +560,9 @@ export async function ensureCarbonOffsetSponsorshipOffer(options: {
   if (!lock?.clubName?.trim()) return null;
   const fixture = displayLockFixture(lock);
   if (!isNamedFixture(fixture)) return null;
+  if (!firstLeadHoldsChosenProjects(brandName, lock.clubName, fixture)) {
+    return null;
+  }
   const wallet = readClimateWallet(lock.clubName, brandName);
   if (!isWalletFundingLocked(lock) && !(Number(wallet?.commitmentFeeGbp) > 0)) {
     return null;
@@ -721,6 +743,15 @@ export async function ensureOfferFromLockedClubUploads(options: {
   const lock = loadMatchDayLock(brandName);
   const network = loadGoalNetwork(brandName, options.brandEmail);
   if (!lock?.clubName || !networkHasClub(network, lock.clubName)) return null;
+  if (
+    !firstLeadHoldsChosenProjects(
+      brandName,
+      lock.clubName,
+      displayLockFixture(lock)
+    )
+  ) {
+    return null;
+  }
 
   const uploaded = await uploadedProjectsForLockedClub(lock.clubName);
   const allOffers = await listSponsorMatchOffers();

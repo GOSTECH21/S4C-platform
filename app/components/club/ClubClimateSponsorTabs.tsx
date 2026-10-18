@@ -28,12 +28,14 @@ export function ClubClimateSponsorTabs({
   leadSponsors,
   localSponsors,
   approvedBrandNames = [],
+  leadTabCount = 0,
   initialTab = "lead",
 }: {
   clubName: string;
   leadSponsors: LeadClubSponsorRow[];
   localSponsors: LocalSponsorRecord[];
   approvedBrandNames?: string[];
+  leadTabCount?: number;
   initialTab?: ClimateSponsorTab;
 }) {
   const { leads, locals } = useMemo(
@@ -105,6 +107,7 @@ export function ClubClimateSponsorTabs({
           controls={leadPanelId}
         >
           Our Lead Climate Sponsor
+          {leadTabCount > 0 ? ` (${leadTabCount})` : ""}
         </TabButton>
         <TabButton
           id={localTabId}

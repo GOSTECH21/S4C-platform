@@ -803,7 +803,9 @@ assert(
     offerService.includes("attachProjectsToClubSponsorships") &&
     offerService.includes("hydrateClubSponsorsFromSigned") &&
     offerService.includes("publishSignedSponsorshipToFans") &&
-    offerService.includes("recordSignedLeadClimateSponsor"),
+    offerService.includes("recordSignedLeadClimateSponsor") &&
+    offerService.includes("firstLeadHoldsChosenProjects") &&
+    offerService.includes("canClaimLeadClimateSponsor"),
   "Sponsors sign off the Match Day carbon offset; the SD's five later attach as a record and publish to fans"
 );
 assert(

@@ -10,8 +10,10 @@ import {
   MATCH_DAY_APPROVED_LABEL,
   MATCH_DAY_FULLY_FUNDED_LABEL,
   MATCH_DAY_PENDING_APPROVAL_LABEL,
+  clubDashboardLeadTabCount,
   clubDashboardLookbackCopy,
   isMatchDayProjectFullyFunded,
+  LEAD_CLIMATE_SPONSOR_SLOTS_PER_MATCH,
   matchDayProjectApprovalLabel,
   isPartnerUpload,
   listsWithUploadsFirst,
@@ -621,6 +623,8 @@ assert(
     !clubDashboard.includes("Incomplete or unstamped copies") &&
     clubDashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
     clubDashboard.includes("lookbackProjectFunding") &&
+    clubDashboard.includes("clubDashboardLeadTabCount") &&
+    clubDashboard.includes("leadTabCount") &&
     clubDashboard.includes("orderedSelected") &&
     clubDashboard.includes("matchDayProjectApprovalLabel") &&
     clubDashboard.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
@@ -668,6 +672,12 @@ assert(
     fullyFundedState.soughtGbp === 8000,
   "A lookback project is Fully-Funded when fan funds meet the Climate Partner goal"
 );
+assert(
+  clubDashboardLeadTabCount(false) === 0 &&
+    clubDashboardLeadTabCount(true) === LEAD_CLIMATE_SPONSOR_SLOTS_PER_MATCH &&
+    LEAD_CLIMATE_SPONSOR_SLOTS_PER_MATCH === 1,
+  "Our Lead Climate Sponsor shows (1) as soon as the SD's chosen project list is visible"
+);
 const matchDayService = readFileSync("app/services/club-match-day.service.ts", "utf8");
 const chosenPublish = matchDayService.slice(
   matchDayService.indexOf("async function publishChosenProjectsToSponsorsAndFans"),
@@ -676,7 +686,9 @@ const chosenPublish = matchDayService.slice(
 assert(
   !chosenPublish.includes("postMatchDayProjectsToFans") &&
     chosenPublish.includes("attachProjectsToClubSponsorships") &&
-    chosenPublish.includes("leadNames.length ? leadNames : undefined") &&
+    chosenPublish.includes("occupyingLeadBrandNames") &&
+    chosenPublish.includes("leadNames.length === 0") &&
+    !chosenPublish.includes("leadNames.length ? leadNames : undefined") &&
     matchDayService.includes("findStoredClubSelectionByName") &&
     matchDayService.includes(
       "writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED)"

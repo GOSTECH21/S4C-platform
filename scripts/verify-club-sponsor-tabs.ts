@@ -6,6 +6,7 @@ import {
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
   localBusinessSponsorsForClubFromStores,
+  occupyingLeadBrandNames,
   nextFanMatchForClub,
   nextSignedOffFixtureForClub,
   occupyingLeadClimateSponsor,
@@ -433,6 +434,51 @@ assert(
 assert(
   !kilmarnockLocals.some((row) => row.brandName === "Heineken"),
   "Heineken is never listed as a Local Business Climate Sponsor"
+);
+assert(
+  occupyingLeadBrandNames(kilmarnockLeads).length === 0,
+  "Opting in to Kilmarnock does not occupy the Lead slot until Match Day sign-off"
+);
+const heinekenKillieLock: MatchDayClubLock = {
+  brandKey: "heineken",
+  clubName: "Kilmarnock",
+  matchLabel: "Scottish Premiership Match",
+  fixtureName: "Kilmarnock v Hearts",
+  lockedAt: now,
+};
+assert(
+  occupyingLeadBrandNames(
+    leadSponsorsForClubFromStores({
+      clubName: "Kilmarnock",
+      networks: [heineken],
+      locks: [heinekenKillieLock],
+    })
+  ).join(",") === "Heineken",
+  "The first Lead to lock Kilmarnock v Hearts occupies the Match Day slot"
+);
+assert(
+  canClaimLeadClimateSponsor({
+    clubName: "Kilmarnock",
+    brandName: "Heineken",
+    fixtureName: "Kilmarnock v Hearts",
+    networks: [heineken],
+    locks: [heinekenKillieLock],
+  }) &&
+    !canClaimLeadClimateSponsor({
+      clubName: "Kilmarnock",
+      brandName: "Pepsi Cola",
+      fixtureName: "Kilmarnock v Hearts",
+      networks: [heineken],
+      locks: [heinekenKillieLock],
+    }) &&
+    canClaimLeadClimateSponsor({
+      clubName: "Kilmarnock",
+      brandName: "Pepsi Cola",
+      fixtureName: "Kilmarnock v Celtic",
+      networks: [heineken],
+      locks: [heinekenKillieLock],
+    }),
+  "Heineken's Kilmarnock v Hearts sign-off locks out other Leads for that Match Day only"
 );
 
 const local: LocalSponsorRecord = {
@@ -895,6 +941,8 @@ assert(
       "leadClimateSponsorsForClub"
     ) &&
     dashboard.includes("approvedBrandNames") &&
+    dashboard.includes("clubDashboardLeadTabCount") &&
+    dashboard.includes("leadTabCount") &&
     dashboard.includes("clubDashboardLookbackCopy") &&
     dashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
     dashboard.includes("lookbackProjectFunding"),
@@ -910,6 +958,7 @@ assert(
     preview.includes("Heineken") &&
     preview.includes("Kilmarnock") &&
     preview.includes("approvedBrandNames") &&
+    preview.includes("leadTabCount={1}") &&
     preview.includes("clubDashboardLookbackCopy") &&
     preview.includes("MATCH_DAY_FULLY_FUNDED_LABEL"),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
@@ -932,6 +981,7 @@ assert(
     tabs.includes("Signed off by") &&
     tabs.includes("splitClubClimateSponsorsForTabs") &&
     tabs.includes("approvedBrandNames") &&
+    tabs.includes("leadTabCount") &&
     tabs.includes("isSignedOffLocalSponsor") &&
     tabs.includes('setTab("lead")') &&
     tabs.includes("aria-pressed") &&

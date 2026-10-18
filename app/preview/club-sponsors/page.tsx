@@ -257,6 +257,7 @@ export default function ClubSponsorsPreviewPage() {
             leadSponsors={kilmarnockLeads}
             localSponsors={kilmarnockLocals}
             approvedBrandNames={["Heineken"]}
+            leadTabCount={1}
           />
           <KilmarnockLookbackPreview />
         </section>

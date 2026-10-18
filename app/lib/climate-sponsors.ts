@@ -684,6 +684,21 @@ export function occupyingLeadClimateSponsorForMatch({
   );
 }
 
+/** Named-Match occupants only — opted-in Leads do not yet hold the slot. */
+export function occupyingLeadBrandNames(rows: LeadClubSponsorRow[]): string[] {
+  const names: string[] = [];
+  for (const row of rows) {
+    if (!isLeadMatchDaySponsorBrand(row.brandName)) continue;
+    const holdsMatch =
+      Boolean(row.lockedAt) ||
+      row.matches.some((name) => isNamedFixture(name));
+    if (!holdsMatch) continue;
+    if (names.some((name) => brandsMatch(name, row.brandName))) continue;
+    names.push(row.brandName);
+  }
+  return names;
+}
+
 export function canClaimLeadClimateSponsor({
   clubName,
   brandName,
