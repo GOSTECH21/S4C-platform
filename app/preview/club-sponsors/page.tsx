@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
+import {
+  MATCH_DAY_APPROVED_LABEL,
+  MATCH_DAY_FULLY_FUNDED_LABEL,
+  clubDashboardLookbackCopy,
+} from "@/app/lib/partner-projects";
+import {
+  lookbackProjectFunding,
+  matchDayProjectFundingLine,
+} from "@/app/lib/climate-funding";
 import { SponsorLeaderboard } from "@/app/components/fan/SponsorLeaderboard";
 import { brandKey, type GoalSponsorshipNetwork } from "@/app/lib/climate-sponsors";
 import {
@@ -141,6 +150,23 @@ function seedStores() {
   for (const row of SEEDED_ARSENAL_LOCALS) {
     writeLocalSponsorRecord(row);
   }
+
+  saveGoalNetwork(network("Heineken", "Kilmarnock", "heineken@heineken.test"));
+  writeLocalSponsorRecord({
+    brandName: "The Fountain",
+    email: "fountain@kilmarnock.test",
+    clubName: "Kilmarnock",
+    pledgeGbp: 800,
+    createdAt: "2026-10-04T00:00:00.000Z",
+    submittedAt: "2026-10-04T00:00:00.000Z",
+    source: "registered",
+    acceptedTerms: true,
+    signerName: "Alex",
+    signedAt: "2026-10-04T00:00:00.000Z",
+    matchSponsorships: [
+      { fixtureName: "Kilmarnock v Hearts", amountGbp: 800 },
+    ],
+  });
 }
 
 export default function ClubSponsorsPreviewPage() {
@@ -152,6 +178,12 @@ export default function ClubSponsorsPreviewPage() {
     [] as ReturnType<typeof leadClimateSponsorsForClub>
   );
   const [arsenalLocals, setArsenalLocals] = useState(SEEDED_ARSENAL_LOCALS);
+  const [kilmarnockLeads, setKilmarnockLeads] = useState(
+    [] as ReturnType<typeof leadClimateSponsorsForClub>
+  );
+  const [kilmarnockLocals, setKilmarnockLocals] = useState(
+    [] as ReturnType<typeof localBusinessClimateSponsorsForClub>
+  );
   const [hibsBoard, setHibsBoard] = useState<SponsorLeaderboardRow[]>([]);
   const [arsenalBoard, setArsenalBoard] = useState<SponsorLeaderboardRow[]>([]);
 
@@ -162,10 +194,14 @@ export default function ClubSponsorsPreviewPage() {
       const hibsLocalRows = localBusinessClimateSponsorsForClub("Hibernian");
       const arsenalLeadRows = leadClimateSponsorsForClub("Arsenal");
       const arsenalLocalRows = localBusinessClimateSponsorsForClub("Arsenal");
+      const kilmarnockLeadRows = leadClimateSponsorsForClub("Kilmarnock");
+      const kilmarnockLocalRows = localBusinessClimateSponsorsForClub("Kilmarnock");
       setHibsLeads(hibsLeadRows);
       setHibsLocals(hibsLocalRows);
       setArsenalLeads(arsenalLeadRows);
       setArsenalLocals(arsenalLocalRows);
+      setKilmarnockLeads(kilmarnockLeadRows);
+      setKilmarnockLocals(kilmarnockLocalRows);
       setHibsBoard(
         rankSponsorDonations(
           donationEntriesForClubSponsors({
@@ -199,8 +235,8 @@ export default function ClubSponsorsPreviewPage() {
           <h1 className="mt-2 text-4xl font-black">Club Climate Sponsors</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Each club shows only the brands that chose it. Hibernian Lead is
-            American Express. Arsenal Lead is Puma. Every other inbound brand is
-            a Local Business Climate Sponsor.
+            American Express. Arsenal Lead is Puma. Heineken signing up for
+            Kilmarnock stays on Our Lead Climate Sponsor, not Local Businesses.
           </p>
         </section>
 
@@ -218,6 +254,17 @@ export default function ClubSponsorsPreviewPage() {
           </div>
         </section>
 
+        <section data-club="kilmarnock">
+          <h2 className="text-3xl font-black">Kilmarnock</h2>
+          <ClubClimateSponsorTabs
+            clubName="Kilmarnock"
+            leadSponsors={kilmarnockLeads}
+            localSponsors={kilmarnockLocals}
+            approvedBrandNames={["Heineken"]}
+          />
+          <KilmarnockLookbackPreview />
+        </section>
+
         <section data-club="arsenal">
           <h2 className="text-3xl font-black">Arsenal</h2>
           <ClubClimateSponsorTabs
@@ -232,5 +279,66 @@ export default function ClubSponsorsPreviewPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+const KILMARNOCK_LOOKBACK = [
+  {
+    id: "gss",
+    name: "Global Schools Solar",
+    funding_goal: 150000,
+    fundedGbp: 2300,
+  },
+  {
+    id: "spoke",
+    name: "Wee Spoke Hub",
+    funding_goal: 8000,
+    fundedGbp: 8000,
+  },
+];
+
+function KilmarnockLookbackPreview() {
+  return (
+    <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
+      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+        Match Day File Record
+      </p>
+      <h3 className="mt-2 text-3xl font-black">
+        Selected and Funded Projects, kept for lookback
+      </h3>
+      <p className="mt-2 max-w-2xl text-slate-400">
+        {clubDashboardLookbackCopy()}
+      </p>
+      <ul className="mt-6 space-y-2 text-slate-300">
+        {KILMARNOCK_LOOKBACK.map((project) => {
+          const funding = lookbackProjectFunding({
+            project,
+            fanFunding: [project],
+          });
+          return (
+            <li
+              key={project.id}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <span>• {project.name}</span>
+              <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
+                {MATCH_DAY_APPROVED_LABEL}
+              </span>
+              {funding.fullyFunded ? (
+                <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
+                  {MATCH_DAY_FULLY_FUNDED_LABEL}
+                </span>
+              ) : null}
+              <span className="text-sm text-green-300">
+                {matchDayProjectFundingLine(
+                  funding.receivedGbp,
+                  funding.soughtGbp
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

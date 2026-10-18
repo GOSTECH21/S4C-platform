@@ -15,6 +15,7 @@ const FILES = [
   "scripts/verify-club-match-day.ts",
   "scripts/verify-wallet-vote.ts",
   "scripts/verify-dual-sponsor.ts",
+  "app/preview/club-sponsors/page.tsx",
 ];
 
 let failed = 0;

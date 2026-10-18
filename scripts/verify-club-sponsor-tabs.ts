@@ -906,7 +906,12 @@ assert(
     preview.includes("localBusinessClimateSponsorsForClub") &&
     preview.includes(
       "A second Lead Climate Sponsor on the same Hibernian Match Day must be rejected"
-    ),
+    ) &&
+    preview.includes("Heineken") &&
+    preview.includes("Kilmarnock") &&
+    preview.includes("approvedBrandNames") &&
+    preview.includes("clubDashboardLookbackCopy") &&
+    preview.includes("MATCH_DAY_FULLY_FUNDED_LABEL"),
   "The club-sponsors preview uses the same inbound Lead and Local lists as the dashboard"
 );
 
