@@ -16,7 +16,7 @@ export const MATCH_DAY_PENDING_APPROVAL_LABEL = "pending approval";
 export const MATCH_DAY_APPROVED_LABEL = "Approved";
 
 export function clubDashboardClimateProjectsIntroCopy(): string {
-  return `Open S4P Climate Projects to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner projects from List provided; Press the blue S4P Climate Projects button`;
+  return `Press the blue S4P Climate Projects button to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner Projects from List provided`;
 }
 
 export function clubDashboardChosenProjectsCopy(): string {
