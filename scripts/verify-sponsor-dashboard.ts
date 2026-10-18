@@ -682,7 +682,7 @@ assert(
     sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
     chosenProjectsPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     chosenProjectsPanel.includes("loadClubChosenClimateProjects") &&
-    chosenProjectsPanel.includes("MATCH_DAY_PROJECTS_WAITING_COPY") &&
+    chosenProjectsPanel.includes("MATCH_DAY_PROJECTS_RECORD_COPY") &&
     sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
       sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}"),
   "The five Climate Projects record sits under Match Day Lock-In and fills when the Sustainability Director uploads them"

@@ -2,6 +2,10 @@ import { readFileSync } from "fs";
 import {
   carbonOffsetHeadline,
   chosenProjectsReadyForMatchDay,
+  climateWalletFansCopy,
+  climateWalletHeading,
+  MATCH_DAY_GOALS_SCORED_COPY,
+  MATCH_DAY_PROJECTS_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
   matchDaySignOffIsPending,
   shouldPublishChosenMatchDayProjects,
@@ -123,8 +127,11 @@ assert(
     wallet.includes("ClubChosenProjectsPanel") &&
     dashboard.includes("Match Day carbon footprint offset") &&
     chosenPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
-    readFileSync("app/lib/match-day-carbon-offset.ts", "utf8").includes(
-      "You are sponsoring this Club's Match Day Goals-scored to help offset their carbon footprint."
+    MATCH_DAY_GOALS_SCORED_COPY.includes(
+      "selected Match Day Goals-scored Climate Projects"
+    ) &&
+    MATCH_DAY_PROJECTS_RECORD_COPY.includes(
+      "saved in a Folder for your Record"
     ) &&
     chosenPanel.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
     dashboard.indexOf('id="match-day-lock-in"') <

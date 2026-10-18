@@ -7,11 +7,9 @@ import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import {
   MATCH_DAY_GOALS_SCORED_COPY,
-  MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY,
   MATCH_DAY_PROJECTS_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
   MATCH_DAY_PROJECTS_SEEN_COPY,
-  MATCH_DAY_PROJECTS_WAITING_COPY,
   MATCH_DAY_SIGNOFF_PENDING_COPY,
   chosenProjectsReadyForMatchDay,
 } from "@/app/lib/match-day-carbon-offset";
@@ -65,11 +63,7 @@ export function ClubChosenProjectsPanel({
         {MATCH_DAY_PROJECTS_RECORD_LABEL}
       </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        {MATCH_DAY_GOALS_SCORED_COPY}{" "}
-        {projects.length > 0
-          ? MATCH_DAY_PROJECTS_RECORD_COPY
-          : MATCH_DAY_PROJECTS_WAITING_COPY}{" "}
-        {MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY}
+        {MATCH_DAY_GOALS_SCORED_COPY} {MATCH_DAY_PROJECTS_RECORD_COPY}
       </p>
       {loading ? (
         <p className="mt-6 text-slate-500">
