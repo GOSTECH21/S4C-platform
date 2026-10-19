@@ -14,10 +14,14 @@ export default function TeamPicker({
   catalog,
   selected,
   onChange,
+  showScorePrice = true,
+  openCompetitions = DEFAULT_OPEN,
 }: {
   catalog: TeamGroup[];
   selected: TeamOption[];
   onChange: (teams: TeamOption[]) => void;
+  showScorePrice?: boolean;
+  openCompetitions?: Set<string>;
 }) {
   const [query, setQuery] = useState("");
   const selectedIds = new Set(selected.map((team) => team.id));
@@ -80,7 +84,7 @@ export default function TeamPicker({
                   {category?.icon ? `${category.icon} ` : ""}
                   {group.sport}
                 </h2>
-                {category && (
+                {category && showScorePrice && (
                   <p className="text-sm font-semibold text-slate-300">
                     {category.scoreEvent} · {category.exampleS2PS}
                   </p>
@@ -95,7 +99,7 @@ export default function TeamPicker({
                 {group.competitions.map((competition) => (
                   <details
                     key={competition.name}
-                    open={DEFAULT_OPEN.has(competition.name) || Boolean(query)}
+                    open={openCompetitions.has(competition.name) || Boolean(query)}
                     className="rounded-xl border border-slate-800 bg-slate-950 p-4"
                   >
                     <summary className="cursor-pointer list-none font-semibold text-white">

@@ -5,14 +5,17 @@ import Link from "next/link";
 import { supabase } from "../lib/supabase";
 import TeamPicker from "@/app/components/fan/TeamPicker";
 import {
-  getTeamCatalog,
+  loadFanRegisterCatalog,
   saveSupportedTeams,
   type TeamGroup,
   type TeamOption,
 } from "@/app/services/teams.service";
 import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
-import { CURRENT_SEASON } from "@/app/lib/current-season";
 import { storedFullName } from "@/app/lib/s4p-admin";
+import {
+  FAN_REGISTER_INTRO,
+  FAN_REGISTER_TEAMS_COPY,
+} from "@/app/lib/fan-register-copy";
 import {
   captureClimateInviteFromSearch,
   readInvitedClubs,
@@ -33,9 +36,24 @@ export default function RegisterPage() {
   >(null);
 
   useEffect(() => {
-    setInvitedClub(captureClimateInviteFromSearch() ?? readInvitedClubs()[0] ?? null);
-    getTeamCatalog()
-      .then(setCatalog)
+    const invited =
+      captureClimateInviteFromSearch() ?? readInvitedClubs()[0] ?? null;
+    setInvitedClub(invited);
+    loadFanRegisterCatalog()
+      .then((next) => {
+        setCatalog(next);
+        if (!invited) return;
+        const match = next
+          .flatMap((group) =>
+            group.competitions.flatMap((competition) => competition.teams)
+          )
+          .find(
+            (team) =>
+              team.displayName === invited.clubName ||
+              team.name === invited.clubName
+          );
+        if (match) setTeams([match]);
+      })
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Failed to load teams.")
       );
@@ -50,7 +68,7 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return;
     }
-    if (teams.length === 0 && !invitedClub) {
+    if (teams.length === 0) {
       setError("Select at least one team you want to support.");
       return;
     }
@@ -156,15 +174,7 @@ export default function RegisterPage() {
         </p>
         <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
         <p className="mt-2 text-slate-400">
-          {invitedClub
-            ? `You've been invited to help put remaining Carbon Wallet funds into ${invitedClub.clubName} Climate Projects. You do not need to support that club — register and you can FUND-IT once from each remaining sponsor, up to 5 times.`
-            : `Create your account with your real name and email, then choose the
-          teams you support across the four sports categories: Football (Goal
-          scored), Rugby (Try scored), NFL (Touchdown scored) and NBA (3-Point
-          Score Sponsorship). You can FUND-IT up to 5 times — £0.20 once from
-          each Carbon Wallet onto any Climate Project. You will only see
-          sponsored climate projects when those teams are playing — and you will
-          get a match-day alert when a sponsored match is live.`}
+          {FAN_REGISTER_INTRO}
         </p>
 
         {error && (
@@ -229,14 +239,17 @@ export default function RegisterPage() {
 
           <h2 className="mt-10 text-2xl font-bold">Teams you support</h2>
           <p className="mt-2 text-slate-300">
-            Pick from the current {CURRENT_SEASON} season. This demo includes
-            Hearts of Midlothian FC, Hibernian FC, and Arsenal FC. A Goal for
-            those clubs releases the sponsor amount agreed for that match (for
-            example £10,000/Goal).
+            {FAN_REGISTER_TEAMS_COPY}
           </p>
 
           <div className="mt-6">
-            <TeamPicker catalog={catalog} selected={teams} onChange={setTeams} />
+            <TeamPicker
+              catalog={catalog}
+              selected={teams}
+              onChange={setTeams}
+              showScorePrice={false}
+              openCompetitions={new Set()}
+            />
           </div>
 
           <button

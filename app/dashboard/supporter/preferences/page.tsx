@@ -8,7 +8,7 @@ import MyTeamsList from "@/app/components/fan/MyTeamsList";
 import UpcomingMatches from "@/app/components/fan/UpcomingMatches";
 import {
   getSupportedTeams,
-  getTeamCatalog,
+  loadFanRegisterCatalog,
   saveSupportedTeams,
   type TeamGroup,
   type TeamOption,
@@ -21,6 +21,7 @@ import {
   type UpcomingMatch,
 } from "@/app/lib/upcoming-matches";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
+import { FAN_REGISTER_TEAMS_COPY } from "@/app/lib/fan-register-copy";
 
 async function loadFixtures(teams: TeamOption[]) {
   const response = await fetch("/api/fan/next-fixtures", {
@@ -63,7 +64,7 @@ export default function SupporterPreferencesPage() {
           return;
         }
         const [groups, teams] = await Promise.all([
-          getTeamCatalog(),
+          loadFanRegisterCatalog(),
           getSupportedTeams(supporter),
         ]);
         setCatalog(groups);
@@ -164,7 +165,7 @@ export default function SupporterPreferencesPage() {
             </h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
-                ? `Pick from the current ${CURRENT_SEASON} demo: Hearts of Midlothian FC, Hibernian FC, and Arsenal FC.`
+                ? FAN_REGISTER_TEAMS_COPY
                 : `Showing only the clubs you selected from the current ${CURRENT_SEASON} season. Click a league to see your teams, next matches, and cup ties.`}
             </p>
           </div>
@@ -195,6 +196,8 @@ export default function SupporterPreferencesPage() {
                 catalog={catalog}
                 selected={selected}
                 onChange={setSelected}
+                showScorePrice={false}
+                openCompetitions={new Set()}
               />
             ) : (
               <>
