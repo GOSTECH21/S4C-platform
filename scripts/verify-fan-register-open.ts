@@ -51,6 +51,8 @@ const registerPage = readFileSync("app/register/page.tsx", "utf8");
 assert(
   registerPage.includes("FAN_REGISTER_INTRO") &&
     registerPage.includes("showScorePrice={false}") &&
+    registerPage.includes("uuidOrNull(teams[0]?.id)") &&
+    !registerPage.includes("readInvitedClubs") &&
     !registerPage.includes("exampleS2PS") &&
     !registerPage.includes("You've been invited"),
   "Fan registration page hides Goal scored · £10,000/Goal and the Hibernian invite"

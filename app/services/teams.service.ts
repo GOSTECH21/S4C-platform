@@ -289,65 +289,93 @@ export async function findClubByPreferenceName(
   };
 }
 
+export function flattenCatalog(catalog: TeamGroup[]): TeamOption[] {
+  return catalog.flatMap((group) =>
+    group.competitions.flatMap((competition) => competition.teams)
+  );
+}
+
+function teamMatchingName(
+  catalogTeams: TeamOption[],
+  name: string
+): TeamOption | undefined {
+  return catalogTeams.find(
+    (option) =>
+      seasonNamesMatch(option.name, name) ||
+      seasonNamesMatch(option.displayName, name) ||
+      namesMatch(option.name, name) ||
+      namesMatch(option.displayName, name)
+  );
+}
+
+/** Saved club names win over a leftover favourite_club_id (often a demo UUID). */
+export function selectedTeamsFromSources(
+  catalog: TeamGroup[],
+  options: {
+    favouriteClubId?: string | null;
+    preferenceClubNames?: string[];
+  }
+): TeamOption[] {
+  const catalogTeams = flattenCatalog(catalog);
+  const catalogById = new Map(catalogTeams.map((team) => [team.id, team]));
+  const fromPrefs: TeamOption[] = [];
+  const seen = new Set<string>();
+
+  for (const name of options.preferenceClubNames ?? []) {
+    const team = teamMatchingName(catalogTeams, name);
+    if (!team || seen.has(team.id)) continue;
+    seen.add(team.id);
+    fromPrefs.push(team);
+  }
+  if (fromPrefs.length > 0) return fromPrefs;
+
+  const favouriteId = options.favouriteClubId;
+  if (!favouriteId) return [];
+  const favourite = catalogById.get(favouriteId);
+  if (favourite) return [favourite];
+  if (favouriteId.startsWith("season:")) {
+    const favouriteName = favouriteId.split(":").slice(2).join(":");
+    const fromName = teamMatchingName(catalogTeams, favouriteName);
+    if (fromName) return [fromName];
+  }
+  return [];
+}
+
 export async function getSupportedTeams(
   supporter: SupporterRef
 ): Promise<TeamOption[]> {
-  const byId = new Map<string, TeamOption>();
   const catalog = await loadFanRegisterCatalog();
-  const catalogById = new Map(
-    catalog.flatMap((group) =>
-      group.competitions.flatMap((competition) =>
-        competition.teams.map((team) => [team.id, team] as const)
-      )
-    )
-  );
-
-  if (supporter.favourite_club_id) {
-    const favourite = catalogById.get(supporter.favourite_club_id);
-    if (favourite) {
-      byId.set(favourite.id, favourite);
-    } else if (supporter.favourite_club_id.startsWith("season:")) {
-      const favouriteName = supporter.favourite_club_id.split(":").slice(2).join(":");
-      const fromName = catalog
-        .flatMap((group) =>
-          group.competitions.flatMap((competition) => competition.teams)
-        )
-        .find(
-          (option) =>
-            seasonNamesMatch(option.name, favouriteName) ||
-            seasonNamesMatch(option.displayName, favouriteName)
-        );
-      if (fromName) byId.set(fromName.id, fromName);
-    }
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const preferenceClubNames: string[] = [];
   if (user) {
     const { data: prefs } = await supabase
       .from("supporter_preferences")
       .select("sport, club")
       .eq("user_id", user.id);
-
     for (const pref of prefs ?? []) {
-      const team =
-        catalog.flatMap((group) =>
-          group.competitions.flatMap((competition) => competition.teams)
-        ).find(
-          (option) =>
-            seasonNamesMatch(option.name, pref.club) ||
-            seasonNamesMatch(option.displayName, pref.club) ||
-            namesMatch(option.name, pref.club) ||
-            namesMatch(option.displayName, pref.club)
-        ) ??
-        (await findClubByPreferenceName(pref.club));
-      if (team) byId.set(team.id, team);
+      if (pref.club) preferenceClubNames.push(pref.club);
     }
   }
 
-  return [...byId.values()];
+  if (preferenceClubNames.length > 0) {
+    const fromCatalog = selectedTeamsFromSources(catalog, {
+      preferenceClubNames,
+    });
+    if (fromCatalog.length > 0) return fromCatalog;
+    const extra: TeamOption[] = [];
+    for (const name of preferenceClubNames) {
+      const team = await findClubByPreferenceName(name);
+      if (team) extra.push(team);
+    }
+    return uniqueTeamsById(extra);
+  }
+
+  return selectedTeamsFromSources(catalog, {
+    favouriteClubId: supporter.favourite_club_id,
+  });
 }
 
 export async function saveSupportedTeams(
@@ -360,13 +388,11 @@ export async function saveSupportedTeams(
   }
 
   const favouriteId = uuidOrNull(teams[0].id);
-  if (favouriteId) {
-    const { error: favError } = await supabase
-      .from("supporters")
-      .update({ favourite_club_id: favouriteId })
-      .eq("id", supporterId);
-    if (favError) throw favError;
-  }
+  const { error: favError } = await supabase
+    .from("supporters")
+    .update({ favourite_club_id: favouriteId })
+    .eq("id", supporterId);
+  if (favError) throw favError;
 
   await supabase.from("supporter_preferences").delete().eq("user_id", userId);
 

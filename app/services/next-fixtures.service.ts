@@ -10,6 +10,7 @@ import {
 } from "../lib/upcoming-matches";
 import { isCurrentSeasonLeagueFixture } from "../lib/current-season";
 import { withDemoUpcomingFixtures } from "../lib/demo-club-fixtures";
+import { calendarMatchesAsUpcoming } from "../lib/sporting-calendar";
 
 const MONTHS: Record<string, number> = {
   january: 0,
@@ -583,6 +584,32 @@ function keepCurrentSeasonFixture(match: UpcomingMatch): boolean {
   );
 }
 
+export function upcomingFromCalendar(team: TeamRef): UpcomingMatch[] {
+  const names = [...new Set([team.displayName, team.name].filter(Boolean))];
+  const seen = new Set<string>();
+  const matches: UpcomingMatch[] = [];
+  for (const name of names) {
+    const sourceUrl = fixturePageFor(name)?.url ?? null;
+    for (const match of calendarMatchesAsUpcoming(name)) {
+      if (seen.has(match.id)) continue;
+      seen.add(match.id);
+      matches.push(sourceUrl ? { ...match, sourceUrl } : match);
+    }
+  }
+  return matches.sort((a, b) =>
+    matchSortKey(a).localeCompare(matchSortKey(b))
+  );
+}
+
+function involvesTeam(match: UpcomingMatch, team: TeamRef): boolean {
+  return (
+    namesMatch(match.homeName, team.name) ||
+    namesMatch(match.awayName, team.name) ||
+    namesMatch(match.homeName, team.displayName) ||
+    namesMatch(match.awayName, team.displayName)
+  );
+}
+
 export async function getUpcomingFixturesForTeams(
   teams: TeamRef[]
 ): Promise<Record<string, UpcomingMatch[]>> {
@@ -597,23 +624,29 @@ export async function getUpcomingFixturesForTeams(
 
   await Promise.all(
     unique.map(async (team) => {
+      const fromCalendar = upcomingFromCalendar(team);
       const [fromSite, fromBbc, fromFeed, fromDb] = await Promise.all([
         fetchClubWebsiteFixtures(team),
         fetchBbcFixtures(team),
         fetchFeedFixtures(team),
         fetchS4pFixtures(team, clubRows),
       ]);
-      const extras = [...fromBbc, ...fromFeed, ...fromDb].filter(
-        keepCurrentSeasonFixture
-      );
+      const extras = [
+        ...fromBbc,
+        ...fromFeed,
+        ...fromDb,
+        ...fromCalendar,
+      ].filter((match) => involvesTeam(match, team));
       const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed]).filter(
-        keepCurrentSeasonFixture
+        (match) => involvesTeam(match, team)
       );
       if (live.length > 0) {
         result[team.id] = selectDisplayedFixtures(enrichVenues(live, extras));
       } else {
         result[team.id] = selectDisplayedFixtures(
-          fromDb.filter(keepCurrentSeasonFixture)
+          mergeByPreferredSource([fromCalendar, fromDb]).filter((match) =>
+            involvesTeam(match, team)
+          )
         );
       }
     })

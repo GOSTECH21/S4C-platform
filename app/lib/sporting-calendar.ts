@@ -6,7 +6,10 @@ import {
   type ClubFixture,
 } from "./club-fixtures";
 import publishedFixtures from "../data/published-fixtures.json";
-import { namesExactlyMatch } from "./upcoming-matches";
+import {
+  namesExactlyMatch,
+  type UpcomingMatch,
+} from "./upcoming-matches";
 import { leagueForSportingCalendarClub } from "./calendar-clubs";
 import {
   CUP_COMPETITION_NAMES,
@@ -254,6 +257,24 @@ export function matchesForClub(
         ? left.kickoff.localeCompare(right.kickoff)
         : left.date.localeCompare(right.date)
     );
+}
+
+/** Fan My Teams and lock-in lists: this club's Sporting Calendar matches. */
+export function calendarMatchesAsUpcoming(
+  clubName: string,
+  options?: { fromDate?: string | Date }
+): UpcomingMatch[] {
+  return matchesForClub(clubName, options).map((row) => ({
+    id: row.id,
+    date: row.date,
+    kickoff: row.kickoff || null,
+    homeName: row.homeName,
+    awayName: row.awayName,
+    venue: row.venue || null,
+    competition: row.league,
+    source: "s4p",
+    sourceUrl: null,
+  }));
 }
 
 /** Next League and Cup Matches a sponsor can lock for the typed Club. */

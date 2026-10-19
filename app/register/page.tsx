@@ -16,10 +16,7 @@ import {
   FAN_REGISTER_INTRO,
   FAN_REGISTER_TEAMS_COPY,
 } from "@/app/lib/fan-register-copy";
-import {
-  captureClimateInviteFromSearch,
-  readInvitedClubs,
-} from "@/app/lib/climate-funding";
+import { captureClimateInviteFromSearch } from "@/app/lib/climate-funding";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -36,8 +33,7 @@ export default function RegisterPage() {
   >(null);
 
   useEffect(() => {
-    const invited =
-      captureClimateInviteFromSearch() ?? readInvitedClubs()[0] ?? null;
+    const invited = captureClimateInviteFromSearch();
     setInvitedClub(invited);
     loadFanRegisterCatalog()
       .then((next) => {
@@ -122,7 +118,8 @@ export default function RegisterPage() {
         full_name: fullName,
         email: user.email,
         auth_user_id: user.id,
-        favourite_club_id: teams[0]?.id ?? uuidOrNull(invitedClub?.clubId),
+        favourite_club_id:
+          uuidOrNull(teams[0]?.id) ?? uuidOrNull(invitedClub?.clubId),
         notification_enabled: true,
       })
       .select("id")

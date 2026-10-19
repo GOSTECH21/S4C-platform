@@ -22,6 +22,7 @@ import {
 } from "@/app/lib/upcoming-matches";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
 import { FAN_REGISTER_TEAMS_COPY } from "@/app/lib/fan-register-copy";
+import { calendarMatchesAsUpcoming } from "@/app/lib/sporting-calendar";
 
 async function loadFixtures(teams: TeamOption[]) {
   const response = await fetch("/api/fan/next-fixtures", {
@@ -42,7 +43,20 @@ async function loadFixtures(teams: TeamOption[]) {
   const payload = (await response.json()) as {
     fixtures?: Record<string, UpcomingMatch[]>;
   };
-  return payload.fixtures ?? {};
+  return fixturesWithCalendar(teams, payload.fixtures ?? {});
+}
+
+function fixturesWithCalendar(
+  teams: TeamOption[],
+  loaded: Record<string, UpcomingMatch[]>
+): Record<string, UpcomingMatch[]> {
+  const next = { ...loaded };
+  for (const team of teams) {
+    if ((next[team.id] ?? []).length > 0) continue;
+    const fromCalendar = calendarMatchesAsUpcoming(team.name);
+    if (fromCalendar.length > 0) next[team.id] = fromCalendar;
+  }
+  return next;
 }
 
 export default function SupporterPreferencesPage() {
