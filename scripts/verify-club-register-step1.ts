@@ -7,6 +7,11 @@ import {
   clubRegisterLeaguesFor,
   leagueStillValidFor,
 } from "../app/lib/club-register-options";
+import {
+  bounceEmailOutOfPhone,
+  clubRegisterStateKey,
+} from "../app/lib/club-register-contact";
+import { roleRegisterAccount } from "../app/lib/role-login";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -114,10 +119,17 @@ assert(
     page.includes("formReady") &&
     page.includes('autoComplete="off"') &&
     page.includes("<form") &&
-    page.includes('name="password"') &&
-    page.indexOf('name="phone"') < page.indexOf('name="password"') &&
-    page.indexOf('name="password"') < page.indexOf('name="confirmPassword"'),
-  "Club Registration waits until the browser is ready so Chrome cannot inject fdprocessedid during hydrate"
+    page.includes('roleRegisterAccount("club")') &&
+    page.includes("bounceEmailOutOfPhone") &&
+    page.includes('type="tel"') &&
+    page.includes("account.phoneName") &&
+    page.includes("account.emailName") &&
+    page.includes("account.passwordName") &&
+    !page.includes('name="phone"') &&
+    !page.includes('name="password"') &&
+    page.indexOf("account.phoneName") < page.indexOf("account.emailName") &&
+    page.indexOf("account.emailName") < page.indexOf("account.passwordName"),
+  "Club Registration keeps Phone as tel and puts Club Email beside Password so Chrome does not fill an email into Phone"
 );
 
 assert(
@@ -133,6 +145,30 @@ assert(
 assert(
   currentSeasonTeamCount() === 3,
   "Homepage Sports Teams stays the three-club demo"
+);
+
+const clubAccount = roleRegisterAccount("club");
+assert(
+  bounceEmailOutOfPhone({
+    email: "",
+    phone: "jamesstewartbud@gmail.com",
+  }).email === "jamesstewartbud@gmail.com" &&
+    bounceEmailOutOfPhone({
+      email: "",
+      phone: "jamesstewartbud@gmail.com",
+    }).phone === "" &&
+    bounceEmailOutOfPhone({
+      email: "club@example.com",
+      phone: "jamesstewartbud@gmail.com",
+    }).email === "club@example.com" &&
+    bounceEmailOutOfPhone({
+      email: "club@example.com",
+      phone: "0131 123 4567",
+    }).phone === "0131 123 4567" &&
+    clubRegisterStateKey(clubAccount.phoneName, clubAccount) === "phone" &&
+    clubAccount.phoneAutoComplete.includes("tel") &&
+    clubAccount.phoneName === "s4p-club-register-phone",
+  "An email pasted or autofilled into Phone moves to Club Email"
 );
 
 const clubService = readFileSync("app/services/club-match-day.service.ts", "utf8");

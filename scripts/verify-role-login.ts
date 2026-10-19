@@ -111,6 +111,25 @@ assert(
   "Climate Partner registration uses its own blank fields, not the Partner login names"
 );
 
+const clubRegisterAccount = roleRegisterAccount("club");
+assert(
+  clubRegisterAccount.phoneName === "s4p-club-register-phone" &&
+    clubRegisterAccount.phoneAutoComplete.endsWith("tel") &&
+    clubRegisterAccount.emailName === "s4p-club-register-email" &&
+    clubRegisterAccount.phoneName !== clubRegisterAccount.emailName,
+  "Club registration Phone is a private tel field, not the Club Email / username box"
+);
+
+const clubRegister = readFileSync("app/club/register/page.tsx", "utf8");
+assert(
+  clubRegister.includes('roleRegisterAccount("club")') &&
+    clubRegister.includes('type="tel"') &&
+    clubRegister.includes("account.phoneName") &&
+    !clubRegister.includes('name="phone"') &&
+    !clubRegister.includes('name="email"'),
+  "Club Registration Step 2 does not use a generic phone name beside Password"
+);
+
 const partnerRegister = readFileSync("app/partner/register/page.tsx", "utf8");
 assert(
   partnerRegister.includes('useState("")') &&
