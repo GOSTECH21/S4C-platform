@@ -10,8 +10,14 @@ import {
   clubRegisterLeaguesFor,
   leagueStillValidFor,
 } from "@/app/lib/club-register-options";
+import { roleRegisterAccount } from "@/app/lib/role-login";
+import {
+  bounceEmailOutOfPhone,
+  clubRegisterStateKey,
+} from "@/app/lib/club-register-contact";
 
 export default function ClubRegistrationPage() {
+  const account = roleRegisterAccount("club");
   const [formReady, setFormReady] = useState(false);
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -20,7 +26,6 @@ export default function ClubRegistrationPage() {
   useEffect(() => {
     setFormReady(true);
   }, []);
-
 
   const [formData, setFormData] = useState({
 
@@ -54,6 +59,10 @@ confirmPassword: "",
 
   });
 
+  useEffect(() => {
+    setFormData((prev) => bounceEmailOutOfPhone(prev));
+  }, [formData.phone]);
+
   const nextStep = () => {
     if (step < 5) {
       setStep(step + 1);
@@ -70,9 +79,17 @@ confirmPassword: "",
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
 
-    const { name, value } = e.target;
+    const name = clubRegisterStateKey(e.target.name, account);
+    const { value } = e.target;
 
     setFormData((prev) => {
+      if (name === "phone" || name === "email") {
+        const next = bounceEmailOutOfPhone({
+          ...prev,
+          [name]: value,
+        });
+        return next;
+      }
       const next = { ...prev, [name]: value };
       if (name === "sport" || name === "country") {
         const leagues = clubRegisterLeaguesFor(
@@ -207,6 +224,7 @@ confirmPassword: "",
         <div className="mt-16 min-h-[28rem] rounded-2xl border border-slate-800 bg-slate-900 p-10" />
         ) : (
         <form
+          id={account.formId}
           className="mt-16 rounded-2xl border border-slate-800 bg-slate-900 p-10"
           autoComplete="off"
           onSubmit={(event) => {
@@ -465,15 +483,24 @@ confirmPassword: "",
 
         <label className="mb-2 block text-sm text-slate-400">
 
-          Club Email
+          Phone Number
 
         </label>
 
         <input
           suppressHydrationWarning
-          type="email"
-          name="email"
-          value={formData.email}
+          type="tel"
+          inputMode="tel"
+          id={account.phoneName}
+          name={account.phoneName}
+          autoComplete={account.phoneAutoComplete}
+          autoCorrect="off"
+          spellCheck={false}
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-form-type="other"
+          aria-label="Phone Number"
+          value={formData.phone}
           onChange={handleChange}
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
         />
@@ -484,15 +511,18 @@ confirmPassword: "",
 
         <label className="mb-2 block text-sm text-slate-400">
 
-          Phone Number
+          Club Email
 
         </label>
 
         <input
           suppressHydrationWarning
-          type="text"
-          name="phone"
-          value={formData.phone}
+          type="email"
+          id={account.emailName}
+          name={account.emailName}
+          autoComplete="email"
+          aria-label="Club Email"
+          value={formData.email}
           onChange={handleChange}
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
         />
@@ -508,7 +538,10 @@ confirmPassword: "",
         <input
           suppressHydrationWarning
           type="password"
-          name="password"
+          id={account.passwordName}
+          name={account.passwordName}
+          autoComplete={account.passwordAutoComplete}
+          aria-label="Password"
           value={formData.password}
           onChange={handleChange}
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
@@ -526,7 +559,10 @@ confirmPassword: "",
         <input
           suppressHydrationWarning
           type="password"
-          name="confirmPassword"
+          id={account.confirmName}
+          name={account.confirmName}
+          autoComplete={account.passwordAutoComplete}
+          aria-label="Confirm Password"
           value={formData.confirmPassword}
           onChange={handleChange}
           className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
