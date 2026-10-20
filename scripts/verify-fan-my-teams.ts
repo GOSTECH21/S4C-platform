@@ -29,6 +29,33 @@ assert(
   "An unknown leftover favourite UUID does not invent Hibernian or Hearts"
 );
 
+const hibernian = catalog
+  .flatMap((group) =>
+    group.competitions.flatMap((competition) => competition.teams)
+  )
+  .find((team) => /hibernian/i.test(team.name));
+assert(Boolean(hibernian), "Hibernian remains in the Fan catalog");
+assert(
+  selectedTeamsFromSources(catalog, {
+    favouriteClubId: hibernian?.id,
+    preferenceClubNames: [],
+  }).length === 0,
+  "A leftover Hibernian favourite is not treated as My Teams"
+);
+assert(
+  selectedTeamsFromSources(catalog, {
+    favouriteClubId: hibernian?.id,
+    storedClubNames: ["Leeds United"],
+  }).length === 1 &&
+    /leeds united/i.test(
+      selectedTeamsFromSources(catalog, {
+        favouriteClubId: hibernian?.id,
+        storedClubNames: ["Leeds United"],
+      })[0].name
+    ),
+  "A stored Leeds United club wins over leftover Hibernian"
+);
+
 const seasonLeeds = selectedTeamsFromSources(catalog, {
   favouriteClubId: "season:Premier League:Leeds United",
   preferenceClubNames: [],
@@ -101,8 +128,17 @@ const preferences = readFileSync(
 );
 assert(
   preferences.includes("fixturesWithCalendar") &&
-    preferences.includes("calendarMatchesAsUpcoming"),
+    preferences.includes("calendarMatchesAsUpcoming") &&
+    preferences.includes("writeLocalSupportedClubs"),
   "My Teams fills empty fixture lists from the Sporting Calendar"
+);
+
+const roster = readFileSync("app/services/season-roster.service.ts", "utf8");
+assert(
+  !roster.includes("pruneNonDemoClubParticipants") &&
+    !roster.includes("supporter_preferences") &&
+    roster.includes("Fan registration is worldwide"),
+  "Loading the team catalog does not delete Leeds United preferences"
 );
 
 if (failures.length > 0) {

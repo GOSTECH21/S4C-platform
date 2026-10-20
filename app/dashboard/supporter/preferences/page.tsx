@@ -10,6 +10,7 @@ import {
   getSupportedTeams,
   loadFanRegisterCatalog,
   saveSupportedTeams,
+  writeLocalSupportedClubs,
   type TeamGroup,
   type TeamOption,
 } from "@/app/services/teams.service";
@@ -209,7 +210,17 @@ export default function SupporterPreferencesPage() {
               <TeamPicker
                 catalog={catalog}
                 selected={selected}
-                onChange={setSelected}
+                onChange={(teams) => {
+                  setSelected(teams);
+                  void supabase.auth.getUser().then(({ data: { user } }) => {
+                    if (user) {
+                      writeLocalSupportedClubs(
+                        user.id,
+                        teams.map((team) => team.name)
+                      );
+                    }
+                  });
+                }}
                 showScorePrice={false}
                 openCompetitions={new Set()}
               />

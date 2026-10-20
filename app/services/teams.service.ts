@@ -4,6 +4,7 @@ import {
   CURRENT_SEASON_LEAGUES,
   LEAGUE_SPORT,
   findClubOnRoster,
+  isDemoClubName,
   seasonNamesMatch,
 } from "../lib/current-season";
 import { sportingCalendarClubGroups } from "../lib/calendar-clubs";
@@ -308,37 +309,77 @@ function teamMatchingName(
   );
 }
 
-/** Saved club names win over a leftover favourite_club_id (often a demo UUID). */
+const LOCAL_SUPPORTED_CLUBS_KEY = "s4p.fan.supportedClubs";
+
+export function readLocalSupportedClubs(userId?: string | null): string[] {
+  if (typeof window === "undefined" || !userId) return [];
+  try {
+    const raw = window.localStorage.getItem(LOCAL_SUPPORTED_CLUBS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as { userId?: string; clubs?: unknown };
+    if (parsed.userId !== userId || !Array.isArray(parsed.clubs)) return [];
+    return parsed.clubs.filter(
+      (name): name is string => typeof name === "string" && Boolean(name.trim())
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function writeLocalSupportedClubs(userId: string, clubs: string[]) {
+  if (typeof window === "undefined" || !userId) return;
+  window.localStorage.setItem(
+    LOCAL_SUPPORTED_CLUBS_KEY,
+    JSON.stringify({ userId, clubs })
+  );
+}
+
+function teamsMatchingNames(
+  catalogTeams: TeamOption[],
+  names: string[] | undefined
+): TeamOption[] {
+  const matched: TeamOption[] = [];
+  const seen = new Set<string>();
+  for (const name of names ?? []) {
+    const team = teamMatchingName(catalogTeams, name);
+    if (!team || seen.has(team.id)) continue;
+    seen.add(team.id);
+    matched.push(team);
+  }
+  return matched;
+}
+
+/** Saved club names win over a leftover Hibernian favourite_club_id. */
 export function selectedTeamsFromSources(
   catalog: TeamGroup[],
   options: {
     favouriteClubId?: string | null;
     preferenceClubNames?: string[];
+    storedClubNames?: string[];
   }
 ): TeamOption[] {
   const catalogTeams = flattenCatalog(catalog);
   const catalogById = new Map(catalogTeams.map((team) => [team.id, team]));
-  const fromPrefs: TeamOption[] = [];
-  const seen = new Set<string>();
-
-  for (const name of options.preferenceClubNames ?? []) {
-    const team = teamMatchingName(catalogTeams, name);
-    if (!team || seen.has(team.id)) continue;
-    seen.add(team.id);
-    fromPrefs.push(team);
-  }
+  const fromPrefs = teamsMatchingNames(catalogTeams, options.preferenceClubNames);
   if (fromPrefs.length > 0) return fromPrefs;
+
+  const fromStored = teamsMatchingNames(catalogTeams, options.storedClubNames);
+  if (fromStored.length > 0) return fromStored;
 
   const favouriteId = options.favouriteClubId;
   if (!favouriteId) return [];
   const favourite = catalogById.get(favouriteId);
-  if (favourite) return [favourite];
-  if (favouriteId.startsWith("season:")) {
-    const favouriteName = favouriteId.split(":").slice(2).join(":");
-    const fromName = teamMatchingName(catalogTeams, favouriteName);
-    if (fromName) return [fromName];
-  }
-  return [];
+  const fromFavourite = favourite
+    ? [favourite]
+    : favouriteId.startsWith("season:")
+      ? teamsMatchingNames(
+          catalogTeams,
+          [favouriteId.split(":").slice(2).join(":")].filter(Boolean)
+        )
+      : [];
+  if (fromFavourite.length === 0) return [];
+  if (fromFavourite.every((team) => isDemoClubName(team.name))) return [];
+  return fromFavourite;
 }
 
 export async function getSupportedTeams(
@@ -360,6 +401,8 @@ export async function getSupportedTeams(
     }
   }
 
+  const storedClubNames = readLocalSupportedClubs(user?.id);
+
   if (preferenceClubNames.length > 0) {
     const fromCatalog = selectedTeamsFromSources(catalog, {
       preferenceClubNames,
@@ -375,6 +418,7 @@ export async function getSupportedTeams(
 
   return selectedTeamsFromSources(catalog, {
     favouriteClubId: supporter.favourite_club_id,
+    storedClubNames,
   });
 }
 
@@ -386,6 +430,11 @@ export async function saveSupportedTeams(
   if (teams.length === 0) {
     throw new Error("Select at least one team to support.");
   }
+
+  writeLocalSupportedClubs(
+    userId,
+    teams.map((team) => team.name)
+  );
 
   const favouriteId = uuidOrNull(teams[0].id);
   const { error: favError } = await supabase
