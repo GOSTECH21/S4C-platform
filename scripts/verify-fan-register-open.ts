@@ -57,10 +57,26 @@ assert(
     !registerPage.includes("You've been invited"),
   "Fan registration page hides Goal scored · £10,000/Goal and the Hibernian invite"
 );
+assert(
+  registerPage.includes("formReady") &&
+    registerPage.includes("suppressHydrationWarning") &&
+    registerPage.includes('roleRegisterAccount("fan")') &&
+    registerPage.includes("account.firstNameName") &&
+    registerPage.includes("account.emailName") &&
+    registerPage.includes("account.passwordName") &&
+    registerPage.includes('autoComplete="off"') &&
+    registerPage.includes("FanRegisterField") &&
+    !registerPage.includes('name="firstName"') &&
+    !registerPage.includes('name="email"') &&
+    !registerPage.includes('name="password"'),
+  "Fan registration waits until the client is ready and uses unique field names so Chrome/LastPass cannot mismatch SSR HTML"
+);
 
 const picker = readFileSync("app/components/fan/TeamPicker.tsx", "utf8");
 assert(
-  picker.includes("showScorePrice") && picker.includes("openCompetitions"),
+  picker.includes("showScorePrice") &&
+    picker.includes("openCompetitions") &&
+    picker.includes("suppressHydrationWarning"),
   "Team picker can hide the Goal scored price on Fan registration"
 );
 

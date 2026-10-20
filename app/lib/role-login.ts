@@ -34,6 +34,8 @@ export type RoleRegisterAccount = {
   formId: string;
   organisationName: string;
   contactName: string;
+  firstNameName: string;
+  lastNameName: string;
   emailName: string;
   phoneName: string;
   websiteName: string;
@@ -55,6 +57,8 @@ export function roleRegisterAccount(role: LoginRole): RoleRegisterAccount {
     formId: `s4p-${role}-register`,
     organisationName: `s4p-${role}-register-organisation`,
     contactName: `s4p-${role}-register-contact`,
+    firstNameName: `s4p-${role}-register-first-name`,
+    lastNameName: `s4p-${role}-register-last-name`,
     emailName: `s4p-${role}-register-email`,
     phoneName: `s4p-${role}-register-phone`,
     websiteName: `s4p-${role}-register-website`,
