@@ -57,7 +57,10 @@ export default function TeamPicker({
   return (
     <div>
       <input
+        suppressHydrationWarning
         type="search"
+        name="s4p-fan-team-search"
+        autoComplete="off"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search teams, leagues, or sports"

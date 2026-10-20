@@ -143,6 +143,30 @@ assert(
   "Climate Partner registration starts as a blank sheet with no defaulted email"
 );
 
+const fanRegisterAccount = roleRegisterAccount("fan");
+assert(
+  fanRegisterAccount.formId === "s4p-fan-register" &&
+    fanRegisterAccount.firstNameName === "s4p-fan-register-first-name" &&
+    fanRegisterAccount.lastNameName === "s4p-fan-register-last-name" &&
+    fanRegisterAccount.emailName === "s4p-fan-register-email" &&
+    fanRegisterAccount.passwordName === "s4p-fan-register-password" &&
+    fanRegisterAccount.emailName !== accounts.fan.emailName,
+  "Fan registration uses its own blank fields, not the Fan login names"
+);
+
+const fanRegister = readFileSync("app/register/page.tsx", "utf8");
+assert(
+  fanRegister.includes('roleRegisterAccount("fan")') &&
+    fanRegister.includes("formReady") &&
+    fanRegister.includes("account.firstNameName") &&
+    fanRegister.includes("account.emailName") &&
+    fanRegister.includes("account.passwordName") &&
+    !fanRegister.includes('name="firstName"') &&
+    !fanRegister.includes('name="email"') &&
+    !fanRegister.includes('name="password"'),
+  "Fan registration does not SSR generic firstName/email/password inputs"
+);
+
 const genericLogin = readFileSync("app/login/page.tsx", "utf8");
 assert(
   genericLogin.includes('roleLoginAccount("fan")') &&

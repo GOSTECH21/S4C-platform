@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type InputHTMLAttributes } from "react";
 import Link from "next/link";
 import { supabase } from "../lib/supabase";
 import TeamPicker from "@/app/components/fan/TeamPicker";
@@ -17,8 +17,25 @@ import {
   FAN_REGISTER_TEAMS_COPY,
 } from "@/app/lib/fan-register-copy";
 import { captureClimateInviteFromSearch } from "@/app/lib/climate-funding";
+import { roleRegisterAccount } from "@/app/lib/role-login";
+
+function FanRegisterField(props: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      suppressHydrationWarning
+      autoCorrect="off"
+      spellCheck={false}
+      data-1p-ignore="true"
+      data-lpignore="true"
+      data-form-type="other"
+    />
+  );
+}
 
 export default function RegisterPage() {
+  const account = roleRegisterAccount("fan");
+  const [formReady, setFormReady] = useState(false);
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -33,6 +50,11 @@ export default function RegisterPage() {
   >(null);
 
   useEffect(() => {
+    setFormReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!formReady) return;
     const invited = captureClimateInviteFromSearch();
     setInvitedClub(invited);
     loadFanRegisterCatalog()
@@ -53,7 +75,7 @@ export default function RegisterPage() {
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Failed to load teams.")
       );
-  }, []);
+  }, [formReady]);
 
   async function handleRegister(event: React.FormEvent) {
     event.preventDefault();
@@ -180,83 +202,100 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="mt-8">
-          <div className="grid gap-4 md:grid-cols-2">
-            <input
-              type="text"
-              name="firstName"
-              autoComplete="given-name"
-              placeholder="First name"
-              className="rounded-md bg-slate-800 p-3"
-              value={firstName}
-              onChange={(event) => setFirstName(event.target.value)}
-              required
-            />
-            <input
-              type="text"
-              name="lastName"
-              autoComplete="family-name"
-              placeholder="Last name"
-              className="rounded-md bg-slate-800 p-3"
-              value={lastName}
-              onChange={(event) => setLastName(event.target.value)}
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              autoComplete="email"
-              placeholder="Email"
-              className="rounded-md bg-slate-800 p-3 md:col-span-2"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-            <input
-              type="password"
-              name="password"
-              autoComplete="new-password"
-              placeholder="Password"
-              className="rounded-md bg-slate-800 p-3"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              autoComplete="new-password"
-              placeholder="Confirm password"
-              className="rounded-md bg-slate-800 p-3"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              required
-            />
-          </div>
-
-          <h2 className="mt-10 text-2xl font-bold">Teams you support</h2>
-          <p className="mt-2 text-slate-300">
-            {FAN_REGISTER_TEAMS_COPY}
-          </p>
-
-          <div className="mt-6">
-            <TeamPicker
-              catalog={catalog}
-              selected={teams}
-              onChange={setTeams}
-              showScorePrice={false}
-              openCompetitions={new Set()}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="mt-8 w-full rounded-md bg-green-500 py-3 font-bold text-black disabled:opacity-70"
+        {!formReady ? (
+          <div
+            className="mt-8 min-h-[32rem] rounded-xl border border-slate-800 bg-slate-800/40"
+            aria-hidden
+          />
+        ) : (
+          <form
+            id={account.formId}
+            autoComplete="off"
+            onSubmit={handleRegister}
+            className="mt-8"
           >
-            {busy ? "Creating account..." : "Create account"}
-          </button>
-        </form>
+            <div className="grid gap-4 md:grid-cols-2">
+              <FanRegisterField
+                type="text"
+                id={account.firstNameName}
+                name={account.firstNameName}
+                autoComplete="off"
+                placeholder="First name"
+                className="rounded-md bg-slate-800 p-3"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                required
+              />
+              <FanRegisterField
+                type="text"
+                id={account.lastNameName}
+                name={account.lastNameName}
+                autoComplete="off"
+                placeholder="Last name"
+                className="rounded-md bg-slate-800 p-3"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                required
+              />
+              <FanRegisterField
+                type="email"
+                id={account.emailName}
+                name={account.emailName}
+                autoComplete={account.emailAutoComplete}
+                placeholder="Email"
+                className="rounded-md bg-slate-800 p-3 md:col-span-2"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+              <FanRegisterField
+                type="password"
+                id={account.passwordName}
+                name={account.passwordName}
+                autoComplete={account.passwordAutoComplete}
+                placeholder="Password"
+                className="rounded-md bg-slate-800 p-3"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+              <FanRegisterField
+                type="password"
+                id={account.confirmName}
+                name={account.confirmName}
+                autoComplete={account.passwordAutoComplete}
+                placeholder="Confirm password"
+                className="rounded-md bg-slate-800 p-3"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+              />
+            </div>
+
+            <h2 className="mt-10 text-2xl font-bold">Teams you support</h2>
+            <p className="mt-2 text-slate-300">
+              {FAN_REGISTER_TEAMS_COPY}
+            </p>
+
+            <div className="mt-6">
+              <TeamPicker
+                catalog={catalog}
+                selected={teams}
+                onChange={setTeams}
+                showScorePrice={false}
+                openCompetitions={new Set()}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-8 w-full rounded-md bg-green-500 py-3 font-bold text-black disabled:opacity-70"
+            >
+              {busy ? "Creating account..." : "Create account"}
+            </button>
+          </form>
+        )}
 
         <p className="mt-4 text-center text-sm text-slate-400">
           Already have an account?{" "}
