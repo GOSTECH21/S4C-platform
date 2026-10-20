@@ -8,8 +8,9 @@ import MyTeamsList from "@/app/components/fan/MyTeamsList";
 import UpcomingMatches from "@/app/components/fan/UpcomingMatches";
 import {
   getSupportedTeams,
-  getTeamCatalog,
+  loadFanRegisterCatalog,
   saveSupportedTeams,
+  writeLocalSupportedClubs,
   type TeamGroup,
   type TeamOption,
 } from "@/app/services/teams.service";
@@ -21,6 +22,8 @@ import {
   type UpcomingMatch,
 } from "@/app/lib/upcoming-matches";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
+import { FAN_REGISTER_TEAMS_COPY } from "@/app/lib/fan-register-copy";
+import { calendarMatchesAsUpcoming } from "@/app/lib/sporting-calendar";
 
 async function loadFixtures(teams: TeamOption[]) {
   const response = await fetch("/api/fan/next-fixtures", {
@@ -41,7 +44,20 @@ async function loadFixtures(teams: TeamOption[]) {
   const payload = (await response.json()) as {
     fixtures?: Record<string, UpcomingMatch[]>;
   };
-  return payload.fixtures ?? {};
+  return fixturesWithCalendar(teams, payload.fixtures ?? {});
+}
+
+function fixturesWithCalendar(
+  teams: TeamOption[],
+  loaded: Record<string, UpcomingMatch[]>
+): Record<string, UpcomingMatch[]> {
+  const next = { ...loaded };
+  for (const team of teams) {
+    if ((next[team.id] ?? []).length > 0) continue;
+    const fromCalendar = calendarMatchesAsUpcoming(team.name);
+    if (fromCalendar.length > 0) next[team.id] = fromCalendar;
+  }
+  return next;
 }
 
 export default function SupporterPreferencesPage() {
@@ -63,7 +79,7 @@ export default function SupporterPreferencesPage() {
           return;
         }
         const [groups, teams] = await Promise.all([
-          getTeamCatalog(),
+          loadFanRegisterCatalog(),
           getSupportedTeams(supporter),
         ]);
         setCatalog(groups);
@@ -164,7 +180,7 @@ export default function SupporterPreferencesPage() {
             </h1>
             <p className="mt-3 max-w-2xl text-slate-300">
               {editing
-                ? `Pick from the current ${CURRENT_SEASON} demo: Hearts of Midlothian FC, Hibernian FC, and Arsenal FC.`
+                ? FAN_REGISTER_TEAMS_COPY
                 : `Showing only the clubs you selected from the current ${CURRENT_SEASON} season. Click a league to see your teams, next matches, and cup ties.`}
             </p>
           </div>
@@ -194,7 +210,19 @@ export default function SupporterPreferencesPage() {
               <TeamPicker
                 catalog={catalog}
                 selected={selected}
-                onChange={setSelected}
+                onChange={(teams) => {
+                  setSelected(teams);
+                  void supabase.auth.getUser().then(({ data: { user } }) => {
+                    if (user) {
+                      writeLocalSupportedClubs(
+                        user.id,
+                        teams.map((team) => team.name)
+                      );
+                    }
+                  });
+                }}
+                showScorePrice={false}
+                openCompetitions={new Set()}
               />
             ) : (
               <>

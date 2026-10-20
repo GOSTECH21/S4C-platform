@@ -129,16 +129,14 @@ assert(
 
 const registerCopy = readFileSync("app/register/page.tsx", "utf8");
 assert(
-  registerCopy.includes("Hearts of Midlothian FC") &&
-    registerCopy.includes("Hibernian FC") &&
-    registerCopy.includes("Arsenal FC"),
-  "Fan registration names the three demo clubs"
-);
-assert(
-  !registerCopy.includes("Boston Celtics") &&
-    !registerCopy.includes("West Ham United") &&
-    !registerCopy.includes("New England Patriots"),
-  "Fan registration no longer lists clubs outside the three-club demo"
+  registerCopy.includes("FAN_REGISTER_INTRO") &&
+    registerCopy.includes("FAN_REGISTER_TEAMS_COPY") &&
+    registerCopy.includes("loadFanRegisterCatalog") &&
+    registerCopy.includes("showScorePrice={false}") &&
+    !registerCopy.includes("You've been invited to help put remaining Carbon Wallet") &&
+    !registerCopy.includes("This demo includes") &&
+    !registerCopy.includes("£10,000/Goal"),
+  "Fan registration is a worldwide form, not the three-club demo invite"
 );
 
 function main() {
