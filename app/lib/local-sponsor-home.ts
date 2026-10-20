@@ -5,6 +5,7 @@ import { sameNamedFixture, type ClubFixture } from "./club-fixtures";
 import {
   allLocalSponsors,
   totalLocalPledge,
+  uniqueLocalClubBrandRecords,
   type LocalSponsorRecord,
 } from "./local-sponsor";
 import {
@@ -17,7 +18,9 @@ export function localRecordsForBrand(
   brandName: string,
   records: LocalSponsorRecord[] = allLocalSponsors()
 ): LocalSponsorRecord[] {
-  return records.filter((row) => brandsMatch(row.brandName, brandName));
+  return uniqueLocalClubBrandRecords(
+    records.filter((row) => brandsMatch(row.brandName, brandName))
+  );
 }
 
 export function localSponsoredMatches({
@@ -87,7 +90,7 @@ export function localSponsoredMatches({
 
 export function localCommittedGbp(records: LocalSponsorRecord[]): number {
   const byClub = new Map<string, number>();
-  for (const record of records) {
+  for (const record of uniqueLocalClubBrandRecords(records)) {
     const key = record.clubName.trim().toLowerCase();
     byClub.set(key, (byClub.get(key) ?? 0) + totalLocalPledge(record));
   }

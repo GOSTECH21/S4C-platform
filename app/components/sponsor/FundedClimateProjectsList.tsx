@@ -19,10 +19,10 @@ export function FundedClimateProjectsList({
       <h2 className="mt-2 text-3xl font-black">Where your money went</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "local"
-          ? "Fans take £0.20 from your Climate Sponsorship Wallet onto numbered Climate Projects. Open a project to see how much of your money it has received."
+          ? "Fans take £0.20 from your Carbon Wallet, and Donate it to a Climate Project of their choice. Your business name and logo will be visible to these Fans."
           : "Fans take your Commitment Fee and Goals-scored Sponsorship and put that cash onto numbered Climate Projects. Open a project to see how much of your money it has received."}
       </p>
-      {fanFunded.length === 0 ? (
+      {fanFunded.length === 0 && kind !== "local" ? (
         <p className="mt-6 text-slate-400">
           Fans have not yet taken cash from your Climate Sponsorship Wallet onto
           a Climate Project. These are the signed five waiting for FUND-IT.

@@ -4,6 +4,7 @@ import { brandsMatch } from "./climate-sponsors";
 import { sameNamedFixture } from "./club-fixtures";
 import {
   totalLocalPledge,
+  uniqueLocalClubBrandRecords,
   type LocalSponsorRecord,
 } from "./local-sponsor";
 import { formatFundingGbp } from "./platform-stats";
@@ -15,7 +16,9 @@ export const LOBI_SHORT_NAME = "LOBI";
 export const LOBI_TITLE = "Local Businesses Impact (LOBI)";
 export const LOBI_ENTITY_COLUMN = "Local Business";
 export const LOBI_DESCRIPTION =
-  "LOBI benchmarks Local Business Climate Sponsors in your postcode area by climate funding this month. A business that put £1,200 onto Hearts and Hibernian Matches ranks above one that spent £1,000.";
+  "LOBI benchmarks Local Business Climate Sponsors in your postcode area by their monthly climate funding. A business that puts the most money into Climate Projects that results in more climate impacts is ranked the highest.";
+export const LOBI_AREA_COPY =
+  "This table is for your Local Area Postcode";
 
 export type LobiFixtureDate = {
   fixtureName: string;
@@ -48,6 +51,7 @@ export function inferredPostcodeArea(
   const club = String(record.clubName ?? "").toLowerCase();
   if (club.includes("hearts") || club.includes("hibernian")) return "EH";
   if (club.includes("arsenal")) return "N";
+  if (club.includes("fulham")) return "SW";
   return "";
 }
 
@@ -109,7 +113,7 @@ export function brandLocalFundingInMonth({
   monthKey: string;
   fixtures?: LobiFixtureDate[];
 }): number {
-  return records
+  return uniqueLocalClubBrandRecords(records)
     .filter((row) => brandsMatch(row.brandName, brandName))
     .reduce(
       (sum, row) => sum + localFundingInMonth(row, monthKey, fixtures),
@@ -134,7 +138,7 @@ export function lobiRowsForArea({
 }): LobiRow[] {
   const zone = area.trim().toUpperCase();
   const totals = new Map<string, { name: string; amount: number; area: string }>();
-  for (const record of records) {
+  for (const record of uniqueLocalClubBrandRecords(records)) {
     const recordArea = inferredPostcodeArea(record);
     if (zone && recordArea !== zone) continue;
     const amount = localFundingInMonth(record, monthKey, fixtures);
@@ -153,10 +157,17 @@ export function lobiRowsForArea({
 
   const ownName = brandName.trim();
   const ownKey = ownName.toLowerCase();
-  const ownAmount = Math.max(
-    Number(ownFundingGbp) || 0,
-    totals.get(ownKey)?.amount ?? 0
-  );
+  const uniquePledged = uniqueLocalClubBrandRecords(records)
+    .filter((row) => brandsMatch(row.brandName, brandName))
+    .reduce((sum, row) => sum + totalLocalPledge(row), 0);
+  const fromRows = totals.get(ownKey)?.amount ?? 0;
+  const requested = Number(ownFundingGbp) || 0;
+  const ownAmount =
+    fromRows > 0
+      ? fromRows
+      : uniquePledged > 0
+        ? uniquePledged
+        : requested;
   if (ownName) {
     totals.set(ownKey, {
       name: ownName,

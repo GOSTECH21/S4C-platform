@@ -1,4 +1,5 @@
 import {
+  LOBI_AREA_COPY,
   LOBI_DESCRIPTION,
   LOBI_ENTITY_COLUMN,
   LOBI_SHORT_NAME,
@@ -13,7 +14,7 @@ export function SponsorLobiTable({
   rows: LobiRow[];
   area: string;
 }) {
-  const zone = area.trim().toUpperCase() || "your";
+  void area;
   return (
     <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
@@ -21,8 +22,7 @@ export function SponsorLobiTable({
       </p>
       <h2 className="mt-2 text-3xl font-black">{LOBI_TITLE}</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        Your position is highlighted. {LOBI_DESCRIPTION} This table is the{" "}
-        {zone} postcode area.
+        Your position is highlighted. {LOBI_DESCRIPTION} {LOBI_AREA_COPY}.
       </p>
       <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-700">
         <table className="w-full min-w-[32rem] text-left">
