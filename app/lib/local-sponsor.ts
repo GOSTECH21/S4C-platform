@@ -328,6 +328,48 @@ export function totalLocalPledge(record: LocalSponsorRecord): number {
   return Number(record.pledgeGbp) || 0;
 }
 
+function localClubBrandKey(record: LocalSponsorRecord): string {
+  return `${clubKey(record.clubName)}:${brandKey(record.brandName)}`;
+}
+
+function localRecordFidelity(record: LocalSponsorRecord): number {
+  const matches = record.matchSponsorships?.length ?? 0;
+  const signed = record.signedAt ? 1 : 0;
+  const postcode = record.postcode?.trim() ? 1 : 0;
+  const registered = record.source === "registered" ? 1 : 0;
+  return matches * 100 + signed * 10 + postcode * 2 + registered;
+}
+
+/** One row per club + business, keeping the Match amounts they actually entered. */
+export function uniqueLocalClubBrandRecords(
+  records: LocalSponsorRecord[]
+): LocalSponsorRecord[] {
+  const byKey = new Map<string, LocalSponsorRecord>();
+  for (const row of records) {
+    if (!row?.brandName?.trim() || !row?.clubName?.trim()) continue;
+    const key = localClubBrandKey(row);
+    const current = byKey.get(key);
+    if (!current) {
+      byKey.set(key, withAgreedPledge(row));
+      continue;
+    }
+    const nextScore = localRecordFidelity(row);
+    const currentScore = localRecordFidelity(current);
+    if (nextScore > currentScore) {
+      byKey.set(key, withAgreedPledge(row));
+      continue;
+    }
+    if (
+      nextScore === currentScore &&
+      totalLocalPledge(row) > 0 &&
+      totalLocalPledge(current) === 0
+    ) {
+      byKey.set(key, withAgreedPledge(row));
+    }
+  }
+  return [...byKey.values()];
+}
+
 /** Keep pledgeGbp in lock-step with submitted Match amounts, not wallet cash. */
 export function withAgreedPledge(record: LocalSponsorRecord): LocalSponsorRecord {
   return { ...record, pledgeGbp: totalLocalPledge(record) };

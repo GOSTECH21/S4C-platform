@@ -41,6 +41,30 @@ const kokobean: LocalSponsorRecord = {
   ],
 };
 
+const fulhamPier: LocalSponsorRecord = {
+  brandName: "Fulham Pier",
+  email: "pier@local.test",
+  clubName: "Fulham",
+  pledgeGbp: 800,
+  createdAt: "2026-10-01T12:00:00.000Z",
+  submittedAt: "2026-10-01T12:00:00.000Z",
+  signedAt: "2026-10-01T12:00:00.000Z",
+  postcode: "SW6 1AA",
+  source: "registered",
+  matchSponsorships: [
+    { fixtureName: "Coventry City v Fulham", amountGbp: 800 },
+  ],
+};
+
+const fulhamDuplicate: LocalSponsorRecord = {
+  brandName: "Fulham Pier",
+  email: "pier@local.test",
+  clubName: "Fulham",
+  pledgeGbp: 500,
+  createdAt: "2026-10-01T12:00:00.000Z",
+  source: "uploaded",
+};
+
 const records = [mashTun, mashHearts, kokobean];
 const fixtures = [
   { fixtureName: "Hibernian v Motherwell", date: "2026-10-18" },
@@ -91,6 +115,39 @@ export default function LocalSponsorHomePreview() {
         postcodeArea="EH"
         onNewSponsorship={() => undefined}
       />
+      <div className="mt-16">
+        <LocalSignedSponsorHome
+          brand="Fulham Pier"
+          logoUrl={null}
+          matches={localSponsoredMatches({
+            records: [fulhamPier],
+            fixtures: [
+              {
+                id: "coventry-fulham",
+                homeName: "Coventry City",
+                awayName: "Fulham",
+                fixtureName: "Coventry City v Fulham",
+                competition: "Premier League Match",
+                date: "2026-10-24",
+                kickoff: null,
+                venue: null,
+                sourceUrl: null,
+              },
+            ],
+          })}
+          projects={[]}
+          lobiRows={lobiRowsForArea({
+            records: [fulhamPier, fulhamDuplicate],
+            area: "SW",
+            monthKey: "2026-10",
+            brandName: "Fulham Pier",
+            ownFundingGbp: 1300,
+            fixtures: [{ fixtureName: "Coventry City v Fulham", date: "2026-10-24" }],
+          })}
+          postcodeArea="SW"
+          onNewSponsorship={() => undefined}
+        />
+      </div>
     </div>
   );
 }

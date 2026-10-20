@@ -4,10 +4,13 @@ import {
   inferredPostcodeArea,
   lobiRowsForArea,
   localFundingInMonth,
+  LOBI_AREA_COPY,
+  LOBI_DESCRIPTION,
   postcodeArea,
 } from "../app/lib/lobi";
 import {
   localCommittedGbp,
+  localRecordsForBrand,
   localSponsoredMatches,
 } from "../app/lib/local-sponsor-home";
 import { sponsorHomePath } from "../app/lib/sponsor-home";
@@ -102,6 +105,59 @@ assert(
   "Mash Tun's Easter Road postcode is the EH area"
 );
 
+const fulhamPier: LocalSponsorRecord = {
+  brandName: "Fulham Pier",
+  email: "pier@local.test",
+  clubName: "Fulham",
+  pledgeGbp: 800,
+  createdAt: "2026-10-01T12:00:00.000Z",
+  submittedAt: "2026-10-01T12:00:00.000Z",
+  signedAt: "2026-10-01T12:00:00.000Z",
+  postcode: "SW6 1AA",
+  source: "registered",
+  matchSponsorships: [
+    { fixtureName: "Coventry City v Fulham", amountGbp: 800 },
+  ],
+};
+const fulhamDuplicate: LocalSponsorRecord = {
+  brandName: "Fulham Pier",
+  email: "pier@local.test",
+  clubName: "Fulham",
+  pledgeGbp: 500,
+  createdAt: "2026-10-01T12:00:00.000Z",
+  source: "uploaded",
+};
+const fulhamFixtures = [
+  { fixtureName: "Coventry City v Fulham", date: "2026-10-24" },
+];
+assert(
+  localCommittedGbp([fulhamPier, fulhamDuplicate, fulhamPier]) === 800,
+  "Fulham Pier's pledged Match amount is counted once"
+);
+assert(
+  localRecordsForBrand("Fulham Pier", [fulhamPier, fulhamDuplicate, fulhamPier])
+    .length === 1,
+  "The same Fulham Pier Fulham record is not listed twice"
+);
+const fulhamRows = lobiRowsForArea({
+  records: [fulhamPier, fulhamDuplicate],
+  area: "SW",
+  monthKey: "2026-10",
+  brandName: "Fulham Pier",
+  ownFundingGbp: 1300,
+  fixtures: fulhamFixtures,
+});
+assert(
+  fulhamRows[0]?.name === "Fulham Pier" &&
+    fulhamRows[0]?.funding === "£800" &&
+    fulhamRows[0]?.postcodeArea === "SW",
+  "LOBI shows the exact Fulham Pier Match pledge, not £1,300"
+);
+assert(
+  inferredPostcodeArea(fulhamPier) === "SW",
+  "Fulham Pier's SW6 postcode sits in the SW local area"
+);
+
 const matches = localSponsoredMatches({
   records: [mashHibs, mashHearts],
   fixtures: fixtures.map((row) => ({
@@ -160,6 +216,36 @@ assert(
       "FundedClimateProjectsList"
     ),
   "The Local home shows calendar, where money went, and LOBI"
+);
+
+const moneyWent = readFileSync(
+  "app/components/sponsor/FundedClimateProjectsList.tsx",
+  "utf8"
+);
+assert(
+  moneyWent.includes(
+    "Fans take £0.20 from your Carbon Wallet, and Donate it to a Climate Project of their choice. Your business name and logo will be visible to these Fans."
+  ) &&
+    moneyWent.includes('kind !== "local"') &&
+    !moneyWent.includes(
+      "Fans take £0.20 from your Climate Sponsorship Wallet onto numbered Climate Projects"
+    ),
+  "Local Where your money went uses Carbon Wallet copy for every Local Business"
+);
+assert(
+  LOBI_DESCRIPTION.includes(
+    "by their monthly climate funding. A business that puts the most money into Climate Projects that results in more climate impacts is ranked the highest."
+  ) &&
+    !LOBI_DESCRIPTION.includes("Hearts and Hibernian") &&
+    !LOBI_DESCRIPTION.includes("£1,200") &&
+    LOBI_AREA_COPY === "This table is for your Local Area Postcode" &&
+    readFileSync("app/components/sponsor/SponsorLobiTable.tsx", "utf8").includes(
+      "LOBI_AREA_COPY"
+    ) &&
+    !readFileSync("app/components/sponsor/SponsorLobiTable.tsx", "utf8").includes(
+      "This table is the"
+    ),
+  "LOBI copy ranks by climate funding and names the local area postcode, not Hearts and Hibernian"
 );
 
 if (failures.length > 0) {
