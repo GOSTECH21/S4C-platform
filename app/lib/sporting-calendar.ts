@@ -309,6 +309,14 @@ export function clubFixtureFromCalendarMatch(match: CalendarMatch): ClubFixture 
   };
 }
 
+/** Next Matches a Local or Lead sponsor can tick for this Club. */
+export function calendarFixturesForClub(
+  clubName: string,
+  options?: { fromDate?: string | Date; limit?: number }
+): ClubFixture[] {
+  return nextClubMatches(clubName, options).map(clubFixtureFromCalendarMatch);
+}
+
 export function monthsCoveringMatches(
   matches: CalendarMatch[]
 ): Array<{ year: number; month: number }> {

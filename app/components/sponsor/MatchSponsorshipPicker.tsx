@@ -8,6 +8,7 @@ import {
 import type { ClubFixture } from "@/app/lib/club-fixtures";
 import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
 import { demoFixturesForClub } from "@/app/lib/demo-club-fixtures";
+import { calendarFixturesForClub } from "@/app/lib/sporting-calendar";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
 import {
@@ -24,6 +25,7 @@ function FixtureRows({
   onToggle,
   onAmount,
   heading,
+  startExpanded = false,
 }: {
   fixtures: ClubFixture[];
   selectable: boolean;
@@ -32,8 +34,9 @@ function FixtureRows({
   onToggle: (fixtureName: string) => void;
   onAmount: (fixtureName: string, amount: string) => void;
   heading: string;
+  startExpanded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(startExpanded);
   const visible = visibleAccordionItems(fixtures, expanded, (row) =>
     selected.includes(row.fixtureName)
   );
@@ -152,21 +155,33 @@ export function MatchSponsorshipPicker({
     );
   }
 
-  const fixtures = demoFixturesForClub(clubName);
+  const fixtures = calendarFixturesForClub(clubName);
   return (
     <section
       id="fixture-lists"
       className="space-y-3 rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
     >
-      <FixtureRows
-        heading={`${clubName} fixture list`}
-        fixtures={fixtures}
-        selectable
-        selected={selected}
-        amounts={amounts}
-        onToggle={onToggle}
-        onAmount={onAmount}
-      />
+      {fixtures.length > 0 ? (
+        <FixtureRows
+          heading={`${clubName} fixture list`}
+          fixtures={fixtures}
+          selectable
+          selected={selected}
+          amounts={amounts}
+          onToggle={onToggle}
+          onAmount={onAmount}
+          startExpanded
+        />
+      ) : (
+        <>
+          <h3 className="text-lg font-black text-green-300">
+            {clubName} fixture list
+          </h3>
+          <p className="text-sm text-green-100">
+            No upcoming Matches are on the Sporting Calendar for {clubName} yet.
+          </p>
+        </>
+      )}
       <p className="text-xs text-green-100">
         From {formatMoney(LOCAL_SPONSOR_MIN_GBP)} per selected Match. SUBMIT
         sends these amounts to the {clubName} Sustainability Director.

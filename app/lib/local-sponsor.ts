@@ -1,6 +1,6 @@
 import { clubsMatch } from "./sponsor-dashboard";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
-import { isDemoClubName } from "./current-season";
+import { isSportingCalendarClub } from "./calendar-clubs";
 import { isRemovedSponsorBrand } from "./climate-sponsors";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
@@ -150,7 +150,7 @@ export function readLocalSponsorRecord(): LocalSponsorRecord | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as LocalSponsorRecord;
     if (!parsed?.brandName || !parsed?.clubName) return null;
-    if (!isDemoClubName(parsed.clubName) || isRemovedSponsorBrand(parsed.brandName)) {
+    if (!isSportingCalendarClub(parsed.clubName) || isRemovedSponsorBrand(parsed.brandName)) {
       window.localStorage.removeItem(LOCAL_SPONSOR_STORAGE);
       return null;
     }
@@ -187,7 +187,8 @@ function pruneNonDemoLocalSponsors() {
   let changed = false;
   for (const [key, value] of Object.entries(store)) {
     const rows = parseClubLocals(value).filter(
-      (row) => isDemoClubName(row.clubName) && !isRemovedSponsorBrand(row.brandName)
+      (row) =>
+        isSportingCalendarClub(row.clubName) && !isRemovedSponsorBrand(row.brandName)
     );
     if (rows.length === 0) {
       changed = true;
@@ -200,7 +201,7 @@ function pruneNonDemoLocalSponsors() {
 }
 
 export function localSponsorsForClub(clubName: string): LocalSponsorRecord[] {
-  if (!clubName.trim() || !isDemoClubName(clubName)) return [];
+  if (!clubName.trim() || !isSportingCalendarClub(clubName)) return [];
   pruneNonDemoLocalSponsors();
   const store = readLocalsStore();
   const rows: LocalSponsorRecord[] = [];
@@ -230,7 +231,7 @@ export function allLocalSponsors(): LocalSponsorRecord[] {
     const key = `${clubKey(row.clubName)}:${brandKey(row.brandName)}`;
     if (
       !row.brandName.trim() ||
-      !isDemoClubName(row.clubName) ||
+      !isSportingCalendarClub(row.clubName) ||
       isRemovedSponsorBrand(row.brandName) ||
       seen.has(key)
     ) {
@@ -245,7 +246,11 @@ export function replaceLocalSponsorsForClub(
   clubName: string,
   records: LocalSponsorRecord[]
 ) {
-  if (typeof window === "undefined" || !clubName.trim() || !isDemoClubName(clubName)) {
+  if (
+    typeof window === "undefined" ||
+    !clubName.trim() ||
+    !isSportingCalendarClub(clubName)
+  ) {
     return;
   }
   try {
@@ -292,7 +297,7 @@ export function removeLocalSponsorForClub(clubName: string, brandName: string) {
 export function writeLocalSponsorRecord(record: LocalSponsorRecord) {
   if (
     typeof window === "undefined" ||
-    !isDemoClubName(record.clubName) ||
+    !isSportingCalendarClub(record.clubName) ||
     isRemovedSponsorBrand(record.brandName)
   ) {
     return;

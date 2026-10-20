@@ -889,6 +889,9 @@ assert(
       "demoFixturesForClub"
     ) &&
     readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "calendarFixturesForClub"
+    ) &&
+    readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
       'id="fixture-lists"'
     ) &&
     !readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(

@@ -689,8 +689,15 @@ export async function getPublishedFixturesForClub(
     fetchFeedFixtures(team),
     fetchS4pFixtures(team, clubRows),
   ]);
-  const extras = [...fromBbc, ...fromFeed, ...fromDb];
-  const live = mergeByPreferredSource([fromSite, fromBbc, fromFeed, fromDb]);
+  const fromCalendar = upcomingFromCalendar(team);
+  const extras = [...fromBbc, ...fromFeed, ...fromDb, ...fromCalendar];
+  const live = mergeByPreferredSource([
+    fromSite,
+    fromBbc,
+    fromFeed,
+    fromDb,
+    fromCalendar,
+  ]);
   const published = fillHomeVenues(enrichVenues(live, extras))
     .filter((match) => Boolean(match.date) && match.date >= todayStamp())
     .sort((left, right) => matchSortKey(left).localeCompare(matchSortKey(right)))
