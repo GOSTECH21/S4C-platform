@@ -10,6 +10,7 @@ import {
   isLeadMatchDaySponsorBrand,
   isNamedFixture,
   isRemovedSponsorBrand,
+  isRemovedSponsorIdentity,
   networkHasClub,
   offerMatchesLockedMatch,
   offersForLockedSponsor,
@@ -888,7 +889,9 @@ export async function listOfferSignatures(): Promise<SponsorOfferSignature[]> {
     signedAt: String(row.signed_at ?? ""),
   }));
   return mergeById(local, remote).filter(
-    (row) => !isRemovedSponsorBrand(row.brandName)
+    (row) =>
+      !isRemovedSponsorBrand(row.brandName) &&
+      !isRemovedSponsorIdentity(row.signerName)
   );
 }
 
@@ -903,6 +906,9 @@ export async function signSponsorOffer({
 }): Promise<SponsorOfferSignature> {
   if (isRemovedSponsorBrand(brandName)) {
     throw new Error("This brand is not available as a Climate Sponsor.");
+  }
+  if (isRemovedSponsorIdentity(signerName)) {
+    throw new Error("This sponsor account has been removed from the platform.");
   }
   const offer = await getSponsorMatchOffer(offerId);
   if (isLeadMatchDaySponsorBrand(brandName)) {

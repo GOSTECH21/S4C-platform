@@ -1,5 +1,8 @@
 import { supabase } from "../lib/supabase";
-import { isRemovedSponsorBrand } from "../lib/climate-sponsors";
+import {
+  isRemovedSponsorBrand,
+  isRemovedSponsorIdentity,
+} from "../lib/climate-sponsors";
 
 export async function getSponsors() {
   const { data, error } = await supabase
@@ -9,9 +12,13 @@ export async function getSponsors() {
 
   if (error) throw error;
 
-  return (data ?? []).filter(
-    (row) => !isRemovedSponsorBrand(String((row as { name?: string }).name ?? ""))
-  );
+  return (data ?? []).filter((row) => {
+    const record = row as { name?: string; website?: string };
+    return (
+      !isRemovedSponsorBrand(String(record.name ?? "")) &&
+      !isRemovedSponsorIdentity(record.website)
+    );
+  });
 }
 
 export async function createSponsor({
@@ -25,6 +32,9 @@ export async function createSponsor({
 }) {
   if (isRemovedSponsorBrand(name)) {
     throw new Error("This brand is not available as a Climate Sponsor.");
+  }
+  if (isRemovedSponsorIdentity(website)) {
+    throw new Error("This sponsor account has been removed from the platform.");
   }
 
   const { data, error } = await supabase
