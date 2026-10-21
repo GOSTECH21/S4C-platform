@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { isRemovedSponsorIdentity } from "../lib/climate-sponsors";
 
 export async function getCurrentSponsor() {
   // Get authenticated user
@@ -29,7 +30,14 @@ if (authError) {
   if (!sponsor) {
     throw new Error("Sponsor profile not found.");
   }
-console.log("Authenticated User:", user.id);
-console.log("Sponsor Record:", sponsor);
-    return sponsor;
+  if (
+    isRemovedSponsorIdentity(
+      String((sponsor as { website?: string }).website ?? ""),
+      user.email,
+      String(user.user_metadata?.full_name ?? "")
+    )
+  ) {
+    throw new Error("This sponsor account has been removed from the platform.");
+  }
+  return sponsor;
 }

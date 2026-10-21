@@ -1,5 +1,8 @@
 import { supabase } from "../lib/supabase";
-import { isRemovedSponsorBrand } from "../lib/climate-sponsors";
+import {
+  isRemovedSponsorBrand,
+  isRemovedSponsorIdentity,
+} from "../lib/climate-sponsors";
 
 export async function registerSponsor({
   companyName,
@@ -24,6 +27,9 @@ export async function registerSponsor({
 }) {
   if (isRemovedSponsorBrand(companyName)) {
     throw new Error("This brand is not available as a Climate Sponsor.");
+  }
+  if (isRemovedSponsorIdentity(contactName, email)) {
+    throw new Error("This sponsor account has been removed from the platform.");
   }
 
   const { data: authData, error: authError } = await supabase.auth.signUp({

@@ -15,6 +15,7 @@ import {
   isLeadMatchDaySponsorBrand,
   isNamedFixture,
   isRemovedSponsorBrand,
+  isRemovedSponsorIdentity,
   isSponsorBlockedFromClub,
   leadSponsorBrandForFixture,
   leadSponsorsForClubFromStores,
@@ -87,7 +88,8 @@ function rosterWithoutRemovedSponsors(roster: ClubSponsorRoster): ClubSponsorRos
   const sponsors = (roster.sponsors ?? []).filter(
     (row) =>
       !isRemovedSponsorBrand(row.brandName) &&
-      !isSponsorBlockedFromClub(row.brandName, roster.clubName)
+      !isSponsorBlockedFromClub(row.brandName, roster.clubName) &&
+      !isRemovedSponsorIdentity(row.contactName, row.email)
   );
   const keptIds = new Set(sponsors.map((row) => row.id));
   return {
@@ -142,7 +144,11 @@ function pruneNonDemoLocalSponsorStores() {
   const nextNetworks: NetworkStore = {};
   let networkChanged = false;
   for (const [key, row] of Object.entries(networks)) {
-    if (!row?.brandName || isRemovedSponsorBrand(row.brandName)) {
+    if (
+      !row?.brandName ||
+      isRemovedSponsorBrand(row.brandName) ||
+      isRemovedSponsorIdentity(row.email)
+    ) {
       networkChanged = true;
       continue;
     }
@@ -206,6 +212,28 @@ function pruneNonDemoLocalSponsorStores() {
     nextLogos[key] = value;
   }
   if (logoChanged) writeJson(LOGO_KEY, nextLogos);
+
+  try {
+    const raw = window.localStorage.getItem("s4p.sponsor.profile");
+    if (raw) {
+      const parsed = JSON.parse(raw) as {
+        contactName?: string;
+        email?: string;
+        companyName?: string;
+      };
+      if (
+        isRemovedSponsorIdentity(
+          parsed.contactName,
+          parsed.email,
+          String(parsed.email ?? "").split("@")[0]
+        )
+      ) {
+        window.localStorage.removeItem("s4p.sponsor.profile");
+      }
+    }
+  } catch {
+    // Profile storage can be blocked.
+  }
 }
 
 export function listClubSponsorRosters(): ClubSponsorRoster[] {
@@ -385,7 +413,8 @@ export function localBusinessClimateSponsorsForClub(
     if (
       isLeadMatchDaySponsorBrand(row.brandName) ||
       isExampleLocalBrand(row.brandName) ||
-      isRemovedSponsorBrand(row.brandName)
+      isRemovedSponsorBrand(row.brandName) ||
+      isRemovedSponsorIdentity(row.signerName, row.email)
     ) {
       continue;
     }
@@ -402,7 +431,8 @@ export function localBusinessClimateSponsorsForClub(
     if (
       isLeadMatchDaySponsorBrand(row.brandName) ||
       isExampleLocalBrand(row.brandName) ||
-      isRemovedSponsorBrand(row.brandName)
+      isRemovedSponsorBrand(row.brandName) ||
+      isRemovedSponsorIdentity(row.email)
     ) {
       continue;
     }

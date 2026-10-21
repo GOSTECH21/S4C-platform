@@ -1,7 +1,10 @@
 import { clubsMatch } from "./sponsor-dashboard";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
 import { isSportingCalendarClub } from "./calendar-clubs";
-import { isRemovedSponsorBrand } from "./climate-sponsors";
+import {
+  isRemovedSponsorBrand,
+  isRemovedSponsorIdentity,
+} from "./climate-sponsors";
 
 export const LOCAL_SPONSOR_MIN_GBP = 500;
 /** Fans may FUND-IT onto the Match Day list; leftover-only branding is retired. */
@@ -150,7 +153,11 @@ export function readLocalSponsorRecord(): LocalSponsorRecord | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as LocalSponsorRecord;
     if (!parsed?.brandName || !parsed?.clubName) return null;
-    if (!isSportingCalendarClub(parsed.clubName) || isRemovedSponsorBrand(parsed.brandName)) {
+    if (
+      !isSportingCalendarClub(parsed.clubName) ||
+      isRemovedSponsorBrand(parsed.brandName) ||
+      isRemovedSponsorIdentity(parsed.signerName, parsed.email)
+    ) {
       window.localStorage.removeItem(LOCAL_SPONSOR_STORAGE);
       return null;
     }
@@ -188,7 +195,9 @@ function pruneNonDemoLocalSponsors() {
   for (const [key, value] of Object.entries(store)) {
     const rows = parseClubLocals(value).filter(
       (row) =>
-        isSportingCalendarClub(row.clubName) && !isRemovedSponsorBrand(row.brandName)
+        isSportingCalendarClub(row.clubName) &&
+      !isRemovedSponsorBrand(row.brandName) &&
+      !isRemovedSponsorIdentity(row.signerName, row.email)
     );
     if (rows.length === 0) {
       changed = true;
@@ -233,6 +242,7 @@ export function allLocalSponsors(): LocalSponsorRecord[] {
       !row.brandName.trim() ||
       !isSportingCalendarClub(row.clubName) ||
       isRemovedSponsorBrand(row.brandName) ||
+      isRemovedSponsorIdentity(row.signerName, row.email) ||
       seen.has(key)
     ) {
       return false;
@@ -298,7 +308,8 @@ export function writeLocalSponsorRecord(record: LocalSponsorRecord) {
   if (
     typeof window === "undefined" ||
     !isSportingCalendarClub(record.clubName) ||
-    isRemovedSponsorBrand(record.brandName)
+    isRemovedSponsorBrand(record.brandName) ||
+    isRemovedSponsorIdentity(record.signerName, record.email)
   ) {
     return;
   }

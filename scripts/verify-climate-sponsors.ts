@@ -9,6 +9,7 @@ import {
   brandsMatch,
   emptySponsor,
   isRemovedSponsorBrand,
+  isRemovedSponsorPerson,
   localLockCopy,
   lockCopy,
   registeredClubForLockIn,
@@ -46,6 +47,16 @@ assert(
     !isRemovedSponsorBrand("Omar Karyem Restaurant") &&
     !isRemovedSponsorBrand("Puma"),
   "Carbon Warriors Limited is removed as a Climate Sponsor"
+);
+assert(
+  isRemovedSponsorPerson("Clive Owen") &&
+    isRemovedSponsorPerson("Andrew Stephens") &&
+    isRemovedSponsorPerson("clive.owen@gillette.test") &&
+    isRemovedSponsorPerson("andrewstephensgillette") &&
+    !isRemovedSponsorPerson("Puma") &&
+    !isRemovedSponsorPerson("Gillette") &&
+    !isRemovedSponsorPerson("Andrew"),
+  "Clive Owen and Andrew Stephens are removed as Hearts Gillette sponsor people"
 );
 
 const ranked = rankSponsorsBySpend([
@@ -438,6 +449,28 @@ const amexLocked = offersForLockedSponsor(
 assert(
   amexLocked.length === 1 && amexLocked[0].clubName === "Liverpool Football Club",
   "American Express locked to Liverpool only loads that club's posted five"
+);
+
+const sql = readFileSync(
+  "supabase/migrations/0019_remove_clive_owen_andrew_stephens.sql",
+  "utf8"
+);
+assert(
+  sql.includes("cliveowen") &&
+    sql.includes("andrewstephens") &&
+    sql.includes("heartsofmidlothian") &&
+    sql.includes("gillette") &&
+    sql.includes("delete from public.sponsors") &&
+    sql.includes("delete from public.profiles"),
+  "SQL deletes Clive Owen and Andrew Stephens sponsor accounts from Hearts Gillette"
+);
+const auth = readFileSync("app/services/sponsor-auth.service.ts", "utf8");
+assert(
+  auth.includes("isRemovedSponsorIdentity(contactName, email)") &&
+    readFileSync("app/services/s4p-admin.service.ts", "utf8").includes(
+      "isRemovedSponsorIdentity(row.contactName, row.email)"
+    ),
+  "Registration and Admin no longer keep Clive Owen or Andrew Stephens as sponsors"
 );
 
 if (failures.length > 0) {

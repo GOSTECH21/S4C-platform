@@ -58,6 +58,26 @@ export function isRemovedSponsorBrand(name: string | null | undefined): boolean 
   return key.startsWith("carbonwarriors");
 }
 
+/** People deleted from the platform. They registered as Gillette for Hearts. */
+export const REMOVED_SPONSOR_PEOPLE = ["Clive Owen", "Andrew Stephens"];
+
+export function isRemovedSponsorPerson(
+  value: string | null | undefined
+): boolean {
+  const key = compactSponsorKey(String(value ?? "").split("@")[0] ?? "");
+  if (!key) return false;
+  return REMOVED_SPONSOR_PEOPLE.some((name) => {
+    const person = compactSponsorKey(name);
+    return key === person || key.startsWith(person);
+  });
+}
+
+export function isRemovedSponsorIdentity(
+  ...values: Array<string | null | undefined>
+): boolean {
+  return values.some((value) => isRemovedSponsorPerson(value));
+}
+
 export function isBudweiserBrand(name: string | null | undefined): boolean {
   return compactSponsorKey(String(name ?? "")).startsWith("budweiser");
 }
@@ -522,7 +542,8 @@ function sponsorsForClubFromStores({
       !key ||
       excluded.has(key) ||
       isRemovedSponsorBrand(row.brandName) ||
-      isSponsorBlockedFromClub(row.brandName, clubName)
+      isSponsorBlockedFromClub(row.brandName, clubName) ||
+      isRemovedSponsorIdentity(row.email)
     ) {
       return;
     }
