@@ -6,6 +6,48 @@ import Image from "next/image";
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
 
+const ACCESS_JOIN_HOTSPOTS: Array<{
+  label: string;
+  intent: "register" | "login";
+  className: string;
+}> = [
+  {
+    label: "Scan QR to join",
+    intent: "register",
+    className: "left-[20%] top-[36%] h-[32%] w-[60%] rounded-lg",
+  },
+  {
+    label: "Join via website",
+    intent: "register",
+    className: "left-[11%] top-[73.5%] h-[10%] w-[19%] rounded-xl",
+  },
+  {
+    label: "Join via App Store",
+    intent: "register",
+    className: "left-[30.5%] top-[73.5%] h-[10%] w-[19%] rounded-xl",
+  },
+  {
+    label: "Join via Google Play",
+    intent: "register",
+    className: "left-[50%] top-[73.5%] h-[10%] w-[19%] rounded-xl",
+  },
+  {
+    label: "Join via TV or broadcast",
+    intent: "register",
+    className: "left-[69.5%] top-[73.5%] h-[10%] w-[19%] rounded-xl",
+  },
+  {
+    label: "Create Account",
+    intent: "register",
+    className: "left-[12%] top-[84.2%] h-[5.8%] w-[76%] rounded-full",
+  },
+  {
+    label: "Log in",
+    intent: "login",
+    className: "left-[28%] top-[90.6%] h-[4%] w-[44%] rounded-md",
+  },
+];
+
 const PROJECTS: Array<{ title: string; icon: "bus" | "solar" | "recycle" | "tree" | "people" }> =
   [
     { title: "Sustainable Fan Travel Initiatives", icon: "bus" },
@@ -261,22 +303,19 @@ export default function HowItWorks({
                   unoptimized
                   priority={index === 0}
                 />
-                {index === 0 ? (
-                  <>
-                    <button
-                      type="button"
-                      aria-label="Create Account"
-                      onClick={onCreateAccount}
-                      className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Log in"
-                      onClick={onLogin}
-                      className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
-                    />
-                  </>
-                ) : null}
+                {index === 0
+                  ? ACCESS_JOIN_HOTSPOTS.map((spot) => (
+                      <button
+                        key={spot.label}
+                        type="button"
+                        aria-label={spot.label}
+                        onClick={
+                          spot.intent === "login" ? onLogin : onCreateAccount
+                        }
+                        className={`absolute z-10 cursor-pointer hover:ring-2 hover:ring-[#5bc662] ${spot.className}`}
+                      />
+                    ))
+                  : null}
               </div>
               <div className="min-w-0 flex-1">
                 <p
@@ -307,6 +346,15 @@ export default function HowItWorks({
                     </li>
                   ))}
                 </ul>
+                {index === 0 ? (
+                  <button
+                    type="button"
+                    onClick={onCreateAccount}
+                    className="mt-6 inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
+                  >
+                    Create your free account <span aria-hidden> →</span>
+                  </button>
+                ) : null}
                 {isLast ? (
                   <>
                     <p

@@ -467,8 +467,10 @@ assert(
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("matches, predictions and climate impact features") &&
     howItWorks.includes('id={ACCESS_JOIN_ID}') &&
-    howItWorks.includes('aria-label="Create Account"') &&
-    howItWorks.includes('aria-label="Log in"') &&
+    howItWorks.includes('"Create Account"') &&
+    howItWorks.includes('"Log in"') &&
+    howItWorks.includes('"Join via website"') &&
+    howItWorks.includes('"Scan QR to join"') &&
     howItWorks.includes("unoptimized") &&
     !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
   "Step 01 is Access & Join plus the Join in seconds line"
