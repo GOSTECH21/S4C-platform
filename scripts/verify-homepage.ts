@@ -415,10 +415,19 @@ assert(
 );
 assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
-  "How It Works step numbers 01-05 use the S4P mark green from the numeral 4"
+  "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes('src="/images/home/access-join-phone.png"') &&
+  howItWorks.includes('aria-roledescription="carousel"') &&
+    howItWorks.includes("flex-row") &&
+    howItWorks.includes("DWELL_MS = 14000") &&
+    howItWorks.includes("s4p-carousel-dwell") &&
+    howItWorks.includes("translateX") &&
+    !howItWorks.includes("xl:grid-cols-6"),
+  "How S4P Works is a slow image-left text-right carousel, not a six-up grid"
+);
+assert(
+  howItWorks.includes("/images/home/access-join-phone.png") &&
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("matches, predictions and climate impact features") &&
     howItWorks.includes('id={ACCESS_JOIN_ID}') &&
@@ -429,7 +438,7 @@ assert(
   "Step 01 is Access & Join plus the Join in seconds line"
 );
 assert(
-  howItWorks.includes('src="/images/home/select-match-phone.png"') &&
+  howItWorks.includes("/images/home/select-match-phone.png") &&
     howItWorks.includes("Pick the upcoming match") &&
     howItWorks.includes("kick-off time") &&
     howItWorks.includes("climate mission") &&
@@ -437,28 +446,28 @@ assert(
   "Step 02 is Select Match plus the pick-the-match line"
 );
 assert(
-  howItWorks.includes('src="/images/home/how-youre-supporting-phone.png"') &&
+  howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
     howItWorks.includes("Both stadium and remote fans") &&
     howItWorks.includes("same match-day climate mission") &&
     !howItWorks.includes("FANS DIRECT THE FUNDING"),
   "Step 03 is How You're Supporting plus the stadium and remote fans line"
 );
 assert(
-  howItWorks.includes('src="/images/home/plan-your-travel-phone.png"') &&
+  howItWorks.includes("/images/home/plan-your-travel-phone.png") &&
     howItWorks.includes("Estimate your return distance") &&
     howItWorks.includes("No tracking. No postcode.") &&
     !howItWorks.includes("PROJECTS DELIVER THE IMPACT"),
   "Step 04 is Plan Your Travel plus the return-distance line"
 );
 assert(
-  howItWorks.includes('src="/images/home/match-day-climate-mission-phone.png"') &&
+  howItWorks.includes("/images/home/match-day-climate-mission-phone.png") &&
     howItWorks.includes("live carbon target") &&
     howItWorks.includes("sponsor channel") &&
     !howItWorks.includes("EVERYONE CREATES IMPACT"),
   "Step 05 is Match Day Climate Mission plus the live target line"
 );
 assert(
-  howItWorks.includes('src="/images/home/choose-direct-impact-phone.png"') &&
+  howItWorks.includes("/images/home/choose-direct-impact-phone.png") &&
     howItWorks.includes("five club-approved climate projects") &&
     howItWorks.includes("sponsor-funded money"),
   "Step 06 is Choose & Direct Your Impact plus the club-approved projects line"

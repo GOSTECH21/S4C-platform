@@ -63,6 +63,10 @@ assert(
   "Hero headlines no longer sit in a grey drop-shadow"
 );
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
+assert(
+  css.includes(".s4p-carousel-dwell") && css.includes("14s linear"),
+  "How S4P Works carousel dwells 14 seconds so the caption can be read"
+);
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(
   css.includes('[class*="bg-black/"]') &&
@@ -102,22 +106,22 @@ assert(
 );
 assert(
   readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-    'src="/images/home/access-join-phone.png"'
+    "/images/home/access-join-phone.png"
   ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      'src="/images/home/select-match-phone.png"'
+      "/images/home/select-match-phone.png"
     ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      'src="/images/home/how-youre-supporting-phone.png"'
+      "/images/home/how-youre-supporting-phone.png"
     ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      'src="/images/home/plan-your-travel-phone.png"'
+      "/images/home/plan-your-travel-phone.png"
     ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      'src="/images/home/match-day-climate-mission-phone.png"'
+      "/images/home/match-day-climate-mission-phone.png"
     ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      'src="/images/home/choose-direct-impact-phone.png"'
+      "/images/home/choose-direct-impact-phone.png"
     ) &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes("Every score counts") &&
@@ -125,7 +129,7 @@ assert(
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones"
+  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones in a carousel"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(

@@ -298,6 +298,32 @@ html[data-theme="forest-dusk"] .text-s4p-mark {
   color: #5bc662;
 }
 
+@keyframes s4p-carousel-dwell {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.s4p-carousel-dwell {
+  width: 100%;
+  transform-origin: left center;
+  animation: s4p-carousel-dwell 14s linear forwards;
+}
+
+.s4p-carousel-dwell-paused {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s4p-carousel-dwell {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
 html[data-theme="quiet-wave"] {
   --s4p-canvas: #082a46;
   --s4p-canvas-mid: #0b4a4a;
