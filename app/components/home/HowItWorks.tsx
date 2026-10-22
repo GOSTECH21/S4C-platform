@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Image from "next/image";
+import SelectMatchFixtures from "@/app/components/home/SelectMatchFixtures";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
@@ -237,6 +238,10 @@ export default function HowItWorks({
   onLogin: () => void;
 }) {
   const [index, setIndex] = useState(0);
+  const [selectMatchTrigger, setSelectMatchTrigger] = useState<{
+    club: string;
+    n: number;
+  } | null>(null);
   const step = steps[index];
   const isLast = index === steps.length - 1;
 
@@ -316,6 +321,19 @@ export default function HowItWorks({
                       />
                     ))
                   : null}
+                {index === 1 ? (
+                  <button
+                    type="button"
+                    aria-label="See upcoming matches"
+                    onClick={() =>
+                      setSelectMatchTrigger({
+                        club: "Arsenal",
+                        n: Date.now(),
+                      })
+                    }
+                    className="absolute left-[10%] right-[10%] top-[28%] z-10 h-[58%] cursor-pointer rounded-2xl hover:ring-2 hover:ring-[#5bc662]"
+                  />
+                ) : null}
               </div>
               <div className="min-w-0 flex-1">
                 <p
@@ -354,6 +372,9 @@ export default function HowItWorks({
                   >
                     Create your free account <span aria-hidden> →</span>
                   </button>
+                ) : null}
+                {index === 1 ? (
+                  <SelectMatchFixtures trigger={selectMatchTrigger} />
                 ) : null}
                 {isLast ? (
                   <>

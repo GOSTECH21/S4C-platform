@@ -480,8 +480,27 @@ assert(
     howItWorks.includes("Pick the upcoming match") &&
     howItWorks.includes("kick-off time") &&
     howItWorks.includes("climate mission") &&
+    howItWorks.includes("SelectMatchFixtures") &&
+    howItWorks.includes('aria-label="See upcoming matches"') &&
     !howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS"),
   "Step 02 is Select Match plus the pick-the-match line"
+);
+const upcomingMatchesApi = readFileSync(
+  "app/api/home/upcoming-matches/route.ts",
+  "utf8"
+);
+const selectMatchFixtures = readFileSync(
+  "app/components/home/SelectMatchFixtures.tsx",
+  "utf8"
+);
+assert(
+  upcomingMatchesApi.includes("nextClubMatches") &&
+    upcomingMatchesApi.includes("CLUB_MATCH_CALENDAR_COUNT") &&
+    selectMatchFixtures.includes("See upcoming matches") &&
+    selectMatchFixtures.includes("Choose your club") &&
+    selectMatchFixtures.includes("league and cup matches") &&
+    selectMatchFixtures.includes("/api/home/upcoming-matches"),
+  "Select Match loads a club's next 10 league and cup matches"
 );
 assert(
   howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
