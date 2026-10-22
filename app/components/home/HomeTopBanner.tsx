@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 
 const BANNER_ICONS: Array<{
@@ -70,7 +71,11 @@ function BannerIcon({
   );
 }
 
-export default function HomeTopBanner() {
+export default function HomeTopBanner({
+  children,
+}: {
+  children?: ReactNode;
+}) {
   return (
     <header className="relative isolate border-b border-emerald-400/20">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-6 xl:py-3">
@@ -96,19 +101,22 @@ export default function HomeTopBanner() {
             </p>
           </div>
         </div>
-        <ul className="grid grid-cols-4 gap-3 sm:grid-cols-7 xl:flex xl:shrink-0 xl:gap-3">
-          {BANNER_ICONS.map((item) => (
-            <li
-              key={item.label}
-              className="flex w-[4.25rem] flex-col items-center text-center"
-            >
-              <BannerIcon name={item.icon} />
-              <span className="mt-1.5 text-[0.7rem] font-bold leading-tight xl:text-xs">
-                {item.label}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-3 xl:shrink-0 xl:justify-end">
+          <ul className="grid grid-cols-4 gap-3 sm:grid-cols-7 xl:flex xl:gap-3">
+            {BANNER_ICONS.map((item) => (
+              <li
+                key={item.label}
+                className="flex w-[4.25rem] flex-col items-center text-center"
+              >
+                <BannerIcon name={item.icon} />
+                <span className="mt-1.5 text-[0.7rem] font-bold leading-tight xl:text-xs">
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {children}
+        </div>
       </div>
     </header>
   );

@@ -45,43 +45,41 @@ export default function HomeFrontPage() {
 
   return (
     <div className="relative text-white">
-      <HomeTopBanner />
-      <div className="relative flex flex-col">
-        <div className="sticky top-0 z-50 flex justify-end px-5 py-3 md:px-10">
-          <div
-            role="tablist"
-            aria-label="Login or Register"
-            className="inline-flex rounded-xl border border-emerald-400/30 bg-slate-950/85 p-1 shadow-lg backdrop-blur"
+      <HomeTopBanner>
+        <div
+          role="tablist"
+          aria-label="Login or Register"
+          className="inline-flex shrink-0 rounded-xl border border-emerald-400/30 bg-s4p-paper p-1 shadow-sm"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={joinIntent === "login"}
+            onClick={() => showJoin("login")}
+            className={`rounded-lg px-5 py-2 text-sm font-bold ${
+              joinIntent === "login"
+                ? "bg-s4p-mark text-slate-950"
+                : "hover:bg-s4p-mark/30"
+            }`}
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={joinIntent === "login"}
-              onClick={() => showJoin("login")}
-              className={`rounded-lg px-5 py-2 text-sm font-bold ${
-                joinIntent === "login"
-                  ? "bg-s4p-mark text-slate-950"
-                  : "text-white hover:bg-slate-800"
-              }`}
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={joinIntent === "register"}
-              onClick={() => showJoin("register")}
-              className={`rounded-lg px-5 py-2 text-sm font-bold ${
-                joinIntent === "register"
-                  ? "bg-s4p-mark text-slate-950"
-                  : "text-white hover:bg-slate-800"
-              }`}
-            >
-              Register
-            </button>
-          </div>
+            Login
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={joinIntent === "register"}
+            onClick={() => showJoin("register")}
+            className={`rounded-lg px-5 py-2 text-sm font-bold ${
+              joinIntent === "register"
+                ? "bg-s4p-mark text-slate-950"
+                : "hover:bg-s4p-mark/30"
+            }`}
+          >
+            Register
+          </button>
         </div>
-
+      </HomeTopBanner>
+      <div className="relative flex flex-col">
         <HomeJoinMission />
 
         <HowItWorks
