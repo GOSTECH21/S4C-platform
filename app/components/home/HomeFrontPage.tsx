@@ -7,7 +7,6 @@ import HomeTopBanner from "@/app/components/home/HomeTopBanner";
 import HowItWorks from "@/app/components/home/HowItWorks";
 
 const JOIN_SECTION_ID = "are-you";
-const ACCESS_JOIN_ID = "access-join";
 
 type JoinIntent = "login" | "register";
 
@@ -82,40 +81,10 @@ export default function HomeFrontPage() {
           </div>
         </div>
 
-        <section
-          id={ACCESS_JOIN_ID}
-          className="scroll-mt-24 px-5 pb-10 pt-2 md:px-10"
-        >
-          <div className="relative mx-auto w-full max-w-[22rem]">
-            <Image
-              src="/images/home/access-join-phone.png"
-              alt="Access and join Score-For-Planet. Same passion. Cleaner planet. Scan the QR code to join, create an account, or log in."
-              width={248}
-              height={662}
-              className="h-auto w-full"
-              unoptimized
-              priority
-            />
-            <button
-              type="button"
-              aria-label="Create Account"
-              onClick={() => showJoin("register")}
-              className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
-            />
-            <button
-              type="button"
-              aria-label="Log in"
-              onClick={() => showJoin("login")}
-              className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
-            />
-          </div>
-          <p className="mx-auto mt-5 max-w-[22rem] text-center text-base font-semibold leading-7 sm:text-lg">
-            Join in seconds. A free account gives you access to your club&apos;s
-            matches, predictions and climate impact features.
-          </p>
-        </section>
-
-        <HowItWorks />
+        <HowItWorks
+          onCreateAccount={() => showJoin("register")}
+          onLogin={() => showJoin("login")}
+        />
 
         <section
           id={JOIN_SECTION_ID}

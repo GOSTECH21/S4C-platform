@@ -81,17 +81,22 @@ assert(
   "SCORE-FOR-PLANET lockup replaces the old Sport creates the moment stack"
 );
 assert(
-  home.includes('src="/images/home/access-join-phone.png"') &&
+  readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+    'src="/images/home/access-join-phone.png"'
+  ) &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes("Every score counts") &&
     banner.includes("#5bc662") &&
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup on an ivory strip and the Access & Join phone"
+  "Home uses the S4P lockup on an ivory strip and Access & Join as How S4P Works step 01"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
-assert(home.includes("unoptimized"), "The join phone is served as the PNG, not a flattened optimized copy");
+assert(
+  readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes("unoptimized"),
+  "The join phone is served as the PNG, not a flattened optimized copy"
+);
 
 const tables = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
 assert(tables.includes("s4p-navy-panel"), "CILT sits on a panel");

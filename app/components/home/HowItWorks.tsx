@@ -1,18 +1,15 @@
+"use client";
+
 import Image from "next/image";
 
 const MARK_GREEN = "#5bc662";
+const ACCESS_JOIN_ID = "access-join";
 
 const steps: Array<{
   number: string;
   title: string;
   description: string;
 }> = [
-  {
-    number: "01",
-    title: "CLUBS CHOOSE PROJECTS",
-    description:
-      "Clubs select five eligible Climate Projects for supporters to fund. The selected Projects help to mitigate the Club's Match-Day Carbon emissions",
-  },
   {
     number: "02",
     title: "SPONSORS FUND THE IMPACT MOMENTS",
@@ -39,7 +36,13 @@ const steps: Array<{
   },
 ];
 
-export default function HowItWorks() {
+export default function HowItWorks({
+  onCreateAccount,
+  onLogin,
+}: {
+  onCreateAccount: () => void;
+  onLogin: () => void;
+}) {
   return (
     <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
@@ -66,9 +69,7 @@ export default function HowItWorks() {
               </p>
             </div>
           </div>
-          <p
-            className="shrink-0 -rotate-3 self-start rounded-md bg-s4p-mark px-4 py-3 text-center text-sm font-black uppercase leading-tight text-black shadow-sm xl:self-center xl:px-5 xl:text-base"
-          >
+          <p className="shrink-0 -rotate-3 self-start rounded-md bg-s4p-mark px-4 py-3 text-center text-sm font-black uppercase leading-tight text-black shadow-sm xl:self-center xl:px-5 xl:text-base">
             A quick guide to
             <br />
             making a real difference
@@ -77,7 +78,40 @@ export default function HowItWorks() {
       </div>
 
       <div className="mx-auto max-w-[1800px] px-6 pb-4 pt-10 md:px-12 xl:px-16">
-        <div className="grid grid-cols-1 items-stretch gap-12 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-16 xl:gap-y-12">
+        <div className="grid grid-cols-1 items-start gap-12 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-10 xl:gap-y-12">
+          <div
+            id={ACCESS_JOIN_ID}
+            className="flex scroll-mt-24 flex-col items-center sm:col-span-2 xl:col-span-1"
+          >
+            <div className="relative w-full max-w-[22rem]">
+              <Image
+                src="/images/home/access-join-phone.png"
+                alt="Access and join Score-For-Planet. Same passion. Cleaner planet. Scan the QR code to join, create an account, or log in."
+                width={248}
+                height={662}
+                className="h-auto w-full"
+                unoptimized
+                priority
+              />
+              <button
+                type="button"
+                aria-label="Create Account"
+                onClick={onCreateAccount}
+                className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
+              />
+              <button
+                type="button"
+                aria-label="Log in"
+                onClick={onLogin}
+                className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
+              />
+            </div>
+            <p className="mt-5 max-w-[22rem] text-center text-base font-semibold leading-7 sm:text-lg">
+              Join in seconds. A free account gives you access to your
+              club&apos;s matches, predictions and climate impact features.
+            </p>
+          </div>
+
           {steps.map((step, index) => (
             <div
               key={step.number}

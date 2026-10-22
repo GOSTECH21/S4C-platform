@@ -278,27 +278,16 @@ assert(
   "The Every Score Counts banner sits at the top, above Are You"
 );
 assert(
-  front.includes("Join in seconds") &&
-    front.includes("matches, predictions and climate impact features") &&
-    front.indexOf("access-join-phone.png") < front.indexOf("Join in seconds"),
-  "Access & Join is followed by the Join in seconds line"
-);
-assert(
   front.includes("<HowItWorks") &&
-    front.indexOf("Join in seconds") < front.indexOf("<HowItWorks") &&
     front.indexOf("<HowItWorks") < front.indexOf("Are You...?"),
-  "How S4P Works sits under Access & Join and above Are You"
+  "How S4P Works sits above Are You"
 );
 assert(
-  front.includes('src="/images/home/access-join-phone.png"') &&
-    front.includes('id={ACCESS_JOIN_ID}') &&
-    front.indexOf("access-join-phone.png") < front.indexOf("Are You...?"),
-  "The Access & Join phone is the registration starting point above Are You"
-);
-assert(
-  front.includes('aria-label="Create Account"') &&
-    front.includes('aria-label="Log in"'),
-  "Create Account and Log in on the phone take visitors to the role cards"
+  front.includes("onCreateAccount") &&
+    front.includes("onLogin") &&
+    front.includes('showJoin("register")') &&
+    front.includes('showJoin("login")'),
+  "Create Account and Log in on the How S4P Works phone take visitors to the role cards"
 );
 assert(
   !front.includes("Turn Goals") &&
@@ -342,10 +331,9 @@ assert(
   "Old Score-4-our-Planet taglines under the mark are gone"
 );
 assert(
-  front.includes("unoptimized") &&
-    !front.includes("drop-shadow-2xl") &&
+  !front.includes("drop-shadow-2xl") &&
     !front.includes('src="/images/home/s4p-mark.png"'),
-  "The old centred S4P mark is gone; the join phone is served as the transparent PNG"
+  "The old centred S4P mark is gone from the front page"
 );
 
 const globalCss = readFileSync("app/globals.css", "utf8");
@@ -430,12 +418,16 @@ assert(
   "How It Works step numbers 01-05 use the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes("CLUBS CHOOSE PROJECTS") &&
-    howItWorks.includes("five eligible Climate Projects") &&
-    howItWorks.includes(
-      "The selected Projects help to mitigate the Club's Match-Day Carbon emissions"
-    ),
-  "Step 01 is CLUBS CHOOSE PROJECTS"
+  howItWorks.includes('src="/images/home/access-join-phone.png"') &&
+    howItWorks.includes("Join in seconds") &&
+    howItWorks.includes("matches, predictions and climate impact features") &&
+    howItWorks.includes('id={ACCESS_JOIN_ID}') &&
+    howItWorks.includes('aria-label="Create Account"') &&
+    howItWorks.includes('aria-label="Log in"') &&
+    howItWorks.includes("unoptimized") &&
+    howItWorks.includes('number: "02"') &&
+    !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
+  "Step 01 is Access & Join plus the Join in seconds line"
 );
 assert(
   howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS") &&
