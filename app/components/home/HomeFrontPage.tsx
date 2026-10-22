@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import HomeTopBanner from "@/app/components/home/HomeTopBanner";
+import HomeJoinMission from "@/app/components/home/HomeJoinMission";
 import HowItWorks from "@/app/components/home/HowItWorks";
 
 const JOIN_SECTION_ID = "are-you";
@@ -80,6 +81,11 @@ export default function HomeFrontPage() {
             </button>
           </div>
         </div>
+
+        <HomeJoinMission
+          onRegister={() => showJoin("register")}
+          onLogin={() => showJoin("login")}
+        />
 
         <HowItWorks
           onCreateAccount={() => showJoin("register")}

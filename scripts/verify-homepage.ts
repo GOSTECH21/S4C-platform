@@ -283,6 +283,12 @@ assert(
   "How S4P Works sits above Are You"
 );
 assert(
+  front.includes("HomeJoinMission") &&
+    front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
+    front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission"),
+  "Join your team's climate mission sits above How S4P Works"
+);
+assert(
   front.includes("onCreateAccount") &&
     front.includes("onLogin") &&
     front.includes('showJoin("register")') &&
@@ -322,6 +328,25 @@ assert(
     !banner.includes("Score-4-our-Planet") &&
     !banner.includes("Turning Match-Day Sporting Moments into"),
   "The homepage uses the S4P lockup with a highlighted 4 and Every score counts on ivory paper"
+);
+
+const joinMission = readFileSync(
+  "app/components/home/HomeJoinMission.tsx",
+  "utf8"
+);
+assert(
+  joinMission.includes("Join your team") &&
+    joinMission.includes("climate mission today") &&
+    joinMission.includes("Register free") &&
+    joinMission.includes("Log in to your S4P account") &&
+    joinMission.includes("Free to join") &&
+    joinMission.includes("Follow your team") &&
+    joinMission.includes("Direct climate funding") &&
+    joinMission.includes("Every fan counts") &&
+    joinMission.includes("bg-s4p-mark") &&
+    joinMission.includes("#5bc662") &&
+    !joinMission.includes("bg-emerald-500"),
+  "The join card is an S4P version of Join your team's climate mission"
 );
 
 assert(

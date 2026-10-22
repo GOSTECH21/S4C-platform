@@ -111,6 +111,11 @@ assert(
   "SCORE-FOR-PLANET lockup replaces the old Sport creates the moment stack"
 );
 assert(
+  home.includes("HomeJoinMission") &&
+    home.indexOf("HomeJoinMission") < home.indexOf("HowItWorks"),
+  "Join your team's climate mission sits above How S4P Works"
+);
+assert(
   readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
     "/images/home/access-join-phone.png"
   ) &&
