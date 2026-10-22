@@ -421,6 +421,7 @@ assert(
   howItWorks.includes('aria-roledescription="marquee"') &&
     howItWorks.includes("flex-row") &&
     howItWorks.includes("s4p-ticker") &&
+    howItWorks.includes("how-s4p-works-ticker.css") &&
     howItWorks.includes("Pause ticker") &&
     howItWorks.includes("[...slides, ...slides]") &&
     !howItWorks.includes("xl:grid-cols-6") &&

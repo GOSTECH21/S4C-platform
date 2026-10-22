@@ -1,0 +1,39 @@
+@keyframes s4p-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.s4p-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: s4p-ticker 96s linear infinite;
+}
+
+.s4p-ticker:hover .s4p-ticker-track,
+.s4p-ticker-paused .s4p-ticker-track {
+  animation-play-state: paused;
+}
+
+.s4p-ticker-mask {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 3%,
+    #000 97%,
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s4p-ticker-track {
+    animation: none;
+  }
+
+  .s4p-ticker-mask {
+    mask-image: none;
+  }
+}

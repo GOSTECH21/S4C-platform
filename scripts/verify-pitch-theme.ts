@@ -64,9 +64,15 @@ assert(
 );
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
 assert(
-  css.includes(".s4p-ticker-track") &&
+  (css.includes(".s4p-ticker-track") &&
     css.includes("s4p-ticker 96s linear infinite") &&
-    css.includes("translateX(-50%)"),
+    css.includes("translateX(-50%)")) ||
+    (readFileSync("app/components/home/how-s4p-works-ticker.css", "utf8").includes(
+      "s4p-ticker 96s linear infinite"
+    ) &&
+      readFileSync("app/components/home/how-s4p-works-ticker.css", "utf8").includes(
+        "translateX(-50%)"
+      )),
   "How S4P Works ticker tape loops slowly enough to read each caption"
 );
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");

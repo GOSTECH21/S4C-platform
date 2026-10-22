@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import "./how-s4p-works-ticker.css";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
@@ -217,7 +218,7 @@ export default function HowItWorks({
             reducedMotion ? "overflow-x-auto" : "overflow-hidden"
           }`}
         >
-          <div className="s4p-ticker-track">
+          <div className="s4p-ticker-track flex w-max">
             {tape.map((slide, tapeIndex) => (
               <SlideCard
                 key={`${tapeIndex}-${slide.number}`}
