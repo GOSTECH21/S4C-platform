@@ -310,7 +310,9 @@ assert(
     banner.includes("Every fan counts") &&
     banner.includes("Fans at the stadium") &&
     banner.includes("A cleaner planet") &&
-    banner.includes("text-s4p-mint") &&
+    banner.includes('src="/images/home/s4p-lockup.png"') &&
+    banner.includes("#5bc662") &&
+    banner.includes("unoptimized") &&
     banner.includes("border-b border-emerald-400/20") &&
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("bg-black") &&
@@ -318,7 +320,7 @@ assert(
     !banner.includes("rgba(4, 16, 24") &&
     !banner.includes("Score-4-our-Planet") &&
     !banner.includes("Turning Match-Day Sporting Moments into"),
-  "The homepage mark is SCORE-FOR-PLANET with Every score counts, Every fan counts on ivory paper"
+  "The homepage uses the S4P lockup with a highlighted 4 and Every score counts on ivory paper"
 );
 
 assert(
