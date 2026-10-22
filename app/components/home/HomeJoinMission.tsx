@@ -70,7 +70,7 @@ export default function HomeJoinMission({
     <section
       id="join-s4p-community"
       aria-labelledby="join-s4p-community-heading"
-      className="px-5 pb-2 pt-2 md:px-10"
+      className="scroll-mt-24 px-5 pb-2 pt-4 md:px-10"
     >
       <div className="s4p-navy-panel mx-auto max-w-[1100px] rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9">
         <p className="text-xs font-black uppercase tracking-[0.22em] text-s4p-mint">
