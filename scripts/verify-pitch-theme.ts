@@ -131,7 +131,7 @@ assert(
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones in a carousel"
+  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones in a ticker tape"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(
