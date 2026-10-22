@@ -445,15 +445,15 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes("lg:grid-cols-3") &&
-    howItWorks.includes("flex-row") &&
+  howItWorks.includes('label="Next step"') &&
+    howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("Choose from five club-approved climate projects") &&
+    howItWorks.includes("Direct Your Impact") &&
     !howItWorks.includes("s4p-ticker") &&
-    !howItWorks.includes("Pause ticker") &&
-    !howItWorks.includes("marquee") &&
+    !howItWorks.includes("lg:grid-cols-3") &&
     !howItWorks.includes("xl:grid-cols-6"),
-  "How S4P Works shows steps 01-03 over 04-06, each phone with its caption on the right"
+  "How S4P Works shows one step at a time with a next-step arrow"
 );
 assert(
   howItWorks.includes("/images/home/access-join-phone.png") &&

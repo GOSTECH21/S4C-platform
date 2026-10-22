@@ -66,12 +66,12 @@ assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for butt
 assert(
   !css.includes("s4p-ticker 96s") &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      "lg:grid-cols-3"
+      'label="Next step"'
     ) &&
     !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "s4p-ticker"
     ),
-  "How S4P Works is a static two-row grid, not a ticker tape"
+  "How S4P Works is a one-step viewer with a next-step arrow, not a ticker tape"
 );
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(
