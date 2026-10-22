@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { FAN_LOGIN_PATH, FAN_REGISTER_PATH } from "@/app/lib/routes";
+
 const MARK_GREEN = "#5bc662";
 
 const POINTS: Array<{
@@ -59,13 +62,7 @@ function PointIcon({ name }: { name: (typeof POINTS)[number]["icon"] }) {
   );
 }
 
-export default function HomeJoinMission({
-  onRegister,
-  onLogin,
-}: {
-  onRegister: () => void;
-  onLogin: () => void;
-}) {
+export default function HomeJoinMission() {
   return (
     <section
       id="join-s4p-community"
@@ -100,22 +97,20 @@ export default function HomeJoinMission({
             </li>
           ))}
         </ul>
-        <button
-          type="button"
-          onClick={onRegister}
-          className="mt-8 flex w-full items-center justify-center rounded-full bg-s4p-mark px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black hover:brightness-110 sm:text-base"
+        <Link
+          href={FAN_REGISTER_PATH}
+          className="mt-8 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black hover:brightness-110 sm:text-base"
         >
           Register free <span aria-hidden> →</span>
-        </button>
+        </Link>
         <p className="mt-4 text-center text-sm font-semibold">
           Already a member?{" "}
-          <button
-            type="button"
-            onClick={onLogin}
-            className="font-black underline decoration-s4p-mint underline-offset-4 hover:text-s4p-mint"
+          <Link
+            href={FAN_LOGIN_PATH}
+            className="cursor-pointer font-black underline decoration-s4p-mint underline-offset-4 hover:text-s4p-mint"
           >
             Log in to your S4P account
-          </button>
+          </Link>
           .
         </p>
       </div>

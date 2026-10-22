@@ -82,10 +82,7 @@ export default function HomeFrontPage() {
           </div>
         </div>
 
-        <HomeJoinMission
-          onRegister={() => showJoin("register")}
-          onLogin={() => showJoin("login")}
-        />
+        <HomeJoinMission />
 
         <HowItWorks
           onCreateAccount={() => showJoin("register")}

@@ -338,6 +338,8 @@ assert(
   joinMission.includes("Join your team") &&
     joinMission.includes("climate mission today") &&
     joinMission.includes("Register free") &&
+    joinMission.includes("FAN_REGISTER_PATH") &&
+    joinMission.includes("FAN_LOGIN_PATH") &&
     joinMission.includes("Log in to your S4P account") &&
     joinMission.includes("Free to join") &&
     joinMission.includes("Follow your team") &&
