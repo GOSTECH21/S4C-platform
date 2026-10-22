@@ -84,7 +84,7 @@ export default function HomeFrontPage() {
 
         <section
           id={ACCESS_JOIN_ID}
-          className="scroll-mt-24 px-5 pb-6 pt-2 md:px-10"
+          className="scroll-mt-24 px-5 pb-10 pt-2 md:px-10"
         >
           <div className="relative mx-auto w-full max-w-[22rem]">
             <Image

@@ -43,7 +43,7 @@ export default function HowItWorks() {
   return (
     <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
+        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4 xl:pr-44">
           <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
             <Image
               src="/images/home/s4p-lockup.png"
