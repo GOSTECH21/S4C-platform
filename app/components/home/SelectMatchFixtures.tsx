@@ -120,7 +120,7 @@ export default function SelectMatchFixtures({
               No upcoming matches found for this club yet.
             </p>
           ) : (
-            <ol className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1">
+            <ol className="mt-3 space-y-3">
               {matches.map((match, index) => (
                 <li
                   key={match.id}

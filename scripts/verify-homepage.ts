@@ -481,7 +481,7 @@ assert(
     howItWorks.includes("kick-off time") &&
     howItWorks.includes("climate mission") &&
     howItWorks.includes("SelectMatchFixtures") &&
-    howItWorks.includes('aria-label="See upcoming matches"') &&
+    howItWorks.includes('aria-label="See Arsenal upcoming matches"') &&
     !howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS"),
   "Step 02 is Select Match plus the pick-the-match line"
 );

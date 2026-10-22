@@ -296,7 +296,7 @@ export default function HowItWorks({
           <p className="mb-5 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
             {index + 1} of 6
           </p>
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-5 md:gap-x-6">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-5 md:gap-x-6">
             <div className="col-span-3 flex min-w-0 flex-col items-center gap-8 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:flex-row lg:items-center lg:gap-12">
               <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
                 <Image
@@ -324,7 +324,7 @@ export default function HowItWorks({
                 {index === 1 ? (
                   <button
                     type="button"
-                    aria-label="See upcoming matches"
+                    aria-label="See Arsenal upcoming matches"
                     onClick={() =>
                       setSelectMatchTrigger({
                         club: "Arsenal",
@@ -401,12 +401,12 @@ export default function HowItWorks({
                 ) : null}
               </div>
             </div>
-            <div className="col-start-1 row-start-2 lg:row-start-1">
+            <div className="col-start-1 row-start-2 lg:row-start-1 lg:mt-40">
               <StepNavButton label="Previous step" onClick={() => go(index - 1)}>
                 Previous
               </StepNavButton>
             </div>
-            <div className="col-start-3 row-start-2 lg:col-start-3 lg:row-start-1">
+            <div className="col-start-3 row-start-2 lg:col-start-3 lg:row-start-1 lg:mt-40">
               <StepNavButton label="Next step" onClick={() => go(index + 1)}>
                 Next
               </StepNavButton>
