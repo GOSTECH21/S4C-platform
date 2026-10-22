@@ -69,7 +69,7 @@ function BannerIcon({
 export default function HomeTopBanner() {
   return (
     <header className="relative isolate border-b border-emerald-400/20">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-4">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:py-4">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <div className="shrink-0 text-center leading-none">
             <p className="text-4xl font-black tracking-tight sm:text-5xl">
@@ -81,7 +81,7 @@ export default function HomeTopBanner() {
           </div>
           <div className="hidden h-14 w-px border-l border-emerald-400/40 sm:block" />
           <div className="min-w-0">
-            <h1 className="text-2xl font-black uppercase leading-tight tracking-tight lg:text-[1.7rem]">
+            <h1 className="text-2xl font-black uppercase leading-tight tracking-tight lg:whitespace-nowrap lg:text-[1.45rem] xl:text-[1.7rem]">
               Every score counts.{" "}
               <span className="text-s4p-mint">Every fan counts.</span>
             </h1>
@@ -95,7 +95,7 @@ export default function HomeTopBanner() {
           {BANNER_ICONS.map((item) => (
             <li
               key={item.label}
-              className="flex min-w-[4.5rem] flex-col items-center text-center"
+              className="flex w-16 flex-col items-center text-center xl:w-[4.5rem]"
             >
               <BannerIcon name={item.icon} />
               <span className="mt-1 max-w-[5.5rem] text-[0.65rem] font-semibold leading-tight">
