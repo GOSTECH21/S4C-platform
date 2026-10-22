@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
-import "./how-s4p-works-ticker.css";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
 
-const slides: Array<{
+const steps: Array<{
   src: string;
   alt: string;
   width: number;
@@ -78,46 +76,33 @@ const slides: Array<{
   },
 ];
 
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setReduced(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
-  return reduced;
-}
-
-function SlideCard({
-  slide,
+function StepCard({
+  step,
   onCreateAccount,
   onLogin,
   priority = false,
 }: {
-  slide: (typeof slides)[number];
+  step: (typeof steps)[number];
   onCreateAccount: () => void;
   onLogin: () => void;
   priority?: boolean;
 }) {
   return (
     <article
-      role="group"
-      aria-label={`Step ${slide.number} of 06, ${slide.title}`}
-      className="flex w-[min(58rem,90vw)] shrink-0 flex-row items-center gap-5 px-6 sm:gap-8 md:gap-12 md:px-12"
+      aria-label={`Step ${step.number} of 06, ${step.title}`}
+      className="flex flex-row items-center gap-3 xl:gap-4"
     >
-      <div className="relative shrink-0">
+      <div className="relative w-[38%] max-w-[11rem] shrink-0">
         <Image
-          src={slide.src}
-          alt={slide.alt}
-          width={slide.width}
-          height={slide.height}
-          className="h-[min(32rem,56vh)] w-auto max-w-[46vw]"
+          src={step.src}
+          alt={step.alt}
+          width={step.width}
+          height={step.height}
+          className="h-auto w-full"
           unoptimized
           priority={priority}
         />
-        {slide.number === "01" ? (
+        {step.number === "01" ? (
           <>
             <button
               type="button"
@@ -135,15 +120,15 @@ function SlideCard({
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-black uppercase tracking-[0.2em]">
-          <span style={{ color: MARK_GREEN }}>{slide.number}</span>
+        <p className="text-xs font-black uppercase tracking-[0.18em]">
+          <span style={{ color: MARK_GREEN }}>{step.number}</span>
           <span className="text-black/40"> / 06</span>
         </p>
-        <h3 className="mt-3 text-xl font-black uppercase leading-tight sm:text-2xl md:text-3xl">
-          {slide.title}
+        <h3 className="mt-1 text-sm font-black uppercase leading-tight xl:text-base">
+          {step.title}
         </h3>
-        <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 md:text-2xl md:leading-10">
-          {slide.caption}
+        <p className="mt-2 text-sm font-semibold leading-6 xl:text-[0.95rem] xl:leading-7">
+          {step.caption}
         </p>
       </div>
     </article>
@@ -157,19 +142,6 @@ export default function HowItWorks({
   onCreateAccount: () => void;
   onLogin: () => void;
 }) {
-  const [paused, setPaused] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  const reducedMotion = usePrefersReducedMotion();
-  const tape = reducedMotion ? slides : [...slides, ...slides];
-  const tickerPaused = paused || hidden || reducedMotion;
-
-  useEffect(() => {
-    const sync = () => setHidden(document.hidden);
-    sync();
-    document.addEventListener("visibilitychange", sync);
-    return () => document.removeEventListener("visibilitychange", sync);
-  }, []);
-
   return (
     <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
@@ -206,42 +178,18 @@ export default function HowItWorks({
 
       <div
         id={ACCESS_JOIN_ID}
-        role="region"
-        aria-roledescription="marquee"
-        aria-label="How S4P Works ticker. Each phone sits on the left with its caption on the right."
-        className={`s4p-ticker scroll-mt-24 pt-8 ${
-          tickerPaused ? "s4p-ticker-paused" : ""
-        }`}
+        className="mx-auto max-w-[1800px] scroll-mt-24 px-5 pb-4 pt-8 md:px-10 xl:px-12"
       >
-        <div
-          className={`s4p-ticker-mask ${
-            reducedMotion ? "overflow-x-auto" : "overflow-hidden"
-          }`}
-        >
-          <div className="s4p-ticker-track flex w-max">
-            {tape.map((slide, tapeIndex) => (
-              <SlideCard
-                key={`${tapeIndex}-${slide.number}`}
-                slide={slide}
-                onCreateAccount={onCreateAccount}
-                onLogin={onLogin}
-                priority={tapeIndex === 0}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="mt-5 flex flex-col items-center gap-2 px-5 pb-2">
-          <button
-            type="button"
-            aria-pressed={paused}
-            onClick={() => setPaused((value) => !value)}
-            className="rounded-full border border-emerald-400/30 bg-s4p-paper px-5 py-2 text-sm font-black uppercase tracking-wide hover:bg-s4p-mark"
-          >
-            {paused ? "Play ticker" : "Pause ticker"}
-          </button>
-          <p className="text-center text-xs font-semibold uppercase tracking-wide text-black/50">
-            Hover to pause. Each step is on screen long enough to read.
-          </p>
+        <div className="grid grid-cols-1 items-start gap-x-8 gap-y-10 lg:grid-cols-3">
+          {steps.map((step, index) => (
+            <StepCard
+              key={step.number}
+              step={step}
+              onCreateAccount={onCreateAccount}
+              onLogin={onLogin}
+              priority={index === 0}
+            />
+          ))}
         </div>
       </div>
     </section>

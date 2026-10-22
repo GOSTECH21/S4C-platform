@@ -418,15 +418,15 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes('aria-roledescription="marquee"') &&
+  howItWorks.includes("lg:grid-cols-3") &&
     howItWorks.includes("flex-row") &&
-    howItWorks.includes("s4p-ticker") &&
-    howItWorks.includes("how-s4p-works-ticker.css") &&
-    howItWorks.includes("Pause ticker") &&
-    howItWorks.includes("[...slides, ...slides]") &&
-    !howItWorks.includes("xl:grid-cols-6") &&
-    !howItWorks.includes("s4p-carousel-dwell"),
-  "How S4P Works is a slow image-left text-right ticker tape, not a six-up grid"
+    howItWorks.includes("Join in seconds") &&
+    howItWorks.includes("Choose from five club-approved climate projects") &&
+    !howItWorks.includes("s4p-ticker") &&
+    !howItWorks.includes("Pause ticker") &&
+    !howItWorks.includes("marquee") &&
+    !howItWorks.includes("xl:grid-cols-6"),
+  "How S4P Works shows steps 01-03 over 04-06, each phone with its caption on the right"
 );
 assert(
   howItWorks.includes("/images/home/access-join-phone.png") &&

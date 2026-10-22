@@ -64,16 +64,14 @@ assert(
 );
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
 assert(
-  (css.includes(".s4p-ticker-track") &&
-    css.includes("s4p-ticker 96s linear infinite") &&
-    css.includes("translateX(-50%)")) ||
-    (readFileSync("app/components/home/how-s4p-works-ticker.css", "utf8").includes(
-      "s4p-ticker 96s linear infinite"
+  !css.includes("s4p-ticker 96s") &&
+    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+      "lg:grid-cols-3"
     ) &&
-      readFileSync("app/components/home/how-s4p-works-ticker.css", "utf8").includes(
-        "translateX(-50%)"
-      )),
-  "How S4P Works ticker tape loops slowly enough to read each caption"
+    !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+      "s4p-ticker"
+    ),
+  "How S4P Works is a static two-row grid, not a ticker tape"
 );
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(
@@ -137,7 +135,7 @@ assert(
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones in a ticker tape"
+  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(
