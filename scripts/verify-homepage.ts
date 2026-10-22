@@ -310,13 +310,15 @@ assert(
     banner.includes("Every fan counts") &&
     banner.includes("Fans at the stadium") &&
     banner.includes("A cleaner planet") &&
-    banner.includes('src="/images/home/every-score-counts-banner.png"') &&
-    banner.includes('rgba(4, 16, 24, 0.55)') &&
-    banner.includes("blur-md") &&
-    !banner.includes("bg-black/") &&
+    banner.includes("text-s4p-mint") &&
+    banner.includes("border-b border-emerald-400/20") &&
+    !banner.includes("every-score-counts-banner.png") &&
+    !banner.includes("bg-black") &&
+    !banner.includes("#041018") &&
+    !banner.includes("rgba(4, 16, 24") &&
     !banner.includes("Score-4-our-Planet") &&
     !banner.includes("Turning Match-Day Sporting Moments into"),
-  "The homepage mark is SCORE-FOR-PLANET with Every score counts, Every fan counts branding"
+  "The homepage mark is SCORE-FOR-PLANET with Every score counts, Every fan counts on ivory paper"
 );
 
 assert(

@@ -77,8 +77,11 @@ assert(
 );
 assert(
   home.includes('src="/images/home/access-join-phone.png"') &&
-    banner.includes('src="/images/home/every-score-counts-banner.png"'),
-  "Home uses the Every Score Counts banner and the Access & Join phone"
+    banner.includes("Every score counts") &&
+    !banner.includes("every-score-counts-banner.png") &&
+    !banner.includes("#041018") &&
+    !banner.includes("bg-black"),
+  "Home uses an ivory Every Score Counts strip and the Access & Join phone"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(home.includes("unoptimized"), "The join phone is served as the PNG, not a flattened optimized copy");

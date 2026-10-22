@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 const BANNER_ICONS: Array<{
   label: string;
   icon: "stadium" | "remote" | "leaf" | "hands" | "direct" | "clubs" | "globe";
@@ -18,7 +16,7 @@ function BannerIcon({
 }: {
   name: (typeof BANNER_ICONS)[number]["icon"];
 }) {
-  const common = "h-7 w-7 text-[#f4f7fb]";
+  const common = "h-7 w-7 text-s4p-mint";
   if (name === "stadium") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
@@ -68,80 +66,44 @@ function BannerIcon({
   );
 }
 
-function BannerCopy() {
-  return (
-    <>
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        <div className="shrink-0 text-center leading-none">
-          <p className="text-4xl font-black tracking-tight text-[#f4f7fb] sm:text-5xl">
-            S<span style={{ color: "#5bc662" }}>4</span>P
-          </p>
-          <p className="mt-1 text-[0.62rem] font-bold tracking-[0.18em] text-[#f4f7fb]">
-            SCORE-FOR-PLANET
-          </p>
-        </div>
-        <div className="hidden h-14 w-px bg-[#f4f7fb]/40 sm:block" />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-black uppercase leading-tight tracking-tight text-[#f4f7fb] sm:text-2xl lg:text-[1.7rem]">
-            Every score counts.{" "}
-            <span style={{ color: "#5bc662" }}>Every fan counts.</span>
-          </h1>
-          <p className="mt-1 text-xs font-medium text-[#d5dde6] sm:text-sm">
-            One Club. One Match. Two Climate Missions. Four Sponsor Channels.
-            Five Climate Projects. A Cleaner, Greener Future.
-          </p>
-        </div>
-      </div>
-      <ul className="grid grid-cols-4 gap-3 sm:grid-cols-7 lg:flex lg:shrink-0 lg:gap-4">
-        {BANNER_ICONS.map((item) => (
-          <li
-            key={item.label}
-            className="flex min-w-[4.5rem] flex-col items-center text-center"
-          >
-            <BannerIcon name={item.icon} />
-            <span className="mt-1 max-w-[5.5rem] text-[0.65rem] font-semibold leading-tight text-[#f4f7fb]">
-              {item.label}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
-
 export default function HomeTopBanner() {
   return (
-    <header className="relative isolate overflow-hidden bg-black">
-      <Image
-        src="/images/home/every-score-counts-banner.png"
-        alt="S4P SCORE-FOR-PLANET. Every score counts. Every fan counts. One Club. One Match. Two Climate Missions. Four Sponsor Channels. Five Climate Projects. A Cleaner, Greener Future."
-        width={1536}
-        height={102}
-        className="hidden h-auto w-full min-[1200px]:block"
-        unoptimized
-        priority
-      />
-      <div
-        className="relative isolate overflow-hidden min-[1200px]:hidden"
-        style={{ backgroundColor: "#041018" }}
-      >
-        <Image
-          src="/images/home/every-score-counts-banner.png"
-          alt=""
-          fill
-          className="scale-110 object-cover blur-md brightness-50"
-          unoptimized
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: "rgba(4, 16, 24, 0.55)" }}
-        />
-        <div
-          className="relative z-10 mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6"
-          style={{ color: "#f4f7fb" }}
-        >
-          <BannerCopy />
+    <header className="relative isolate border-b border-emerald-400/20">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-4">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <div className="shrink-0 text-center leading-none">
+            <p className="text-4xl font-black tracking-tight sm:text-5xl">
+              S<span className="text-s4p-mint">4</span>P
+            </p>
+            <p className="mt-1 text-[0.62rem] font-bold tracking-[0.18em]">
+              SCORE-FOR-PLANET
+            </p>
+          </div>
+          <div className="hidden h-14 w-px border-l border-emerald-400/40 sm:block" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-black uppercase leading-tight tracking-tight lg:text-[1.7rem]">
+              Every score counts.{" "}
+              <span className="text-s4p-mint">Every fan counts.</span>
+            </h1>
+            <p className="mt-1 text-xs font-medium sm:text-sm">
+              One Club. One Match. Two Climate Missions. Four Sponsor Channels.
+              Five Climate Projects. A Cleaner, Greener Future.
+            </p>
+          </div>
         </div>
+        <ul className="grid grid-cols-4 gap-3 sm:grid-cols-7 lg:flex lg:shrink-0 lg:gap-4">
+          {BANNER_ICONS.map((item) => (
+            <li
+              key={item.label}
+              className="flex min-w-[4.5rem] flex-col items-center text-center"
+            >
+              <BannerIcon name={item.icon} />
+              <span className="mt-1 max-w-[5.5rem] text-[0.65rem] font-semibold leading-tight">
+                {item.label}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </header>
   );
