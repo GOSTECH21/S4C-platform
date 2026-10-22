@@ -205,17 +205,18 @@ export default function HowItWorks({
                   aria-roledescription="slide"
                   aria-label={`Step ${slide.number} of 06, ${slide.title}`}
                   aria-hidden={slideIndex !== index}
-                  className={`flex w-full shrink-0 flex-row items-center gap-5 px-1 sm:gap-8 md:gap-12 md:px-6 ${
+                  className={`flex w-full shrink-0 justify-center px-1 md:px-6 ${
                     slideIndex === index ? "" : "pointer-events-none"
                   }`}
                 >
-                  <div className="relative w-[44%] max-w-[22rem] shrink-0">
+                  <div className="flex w-full max-w-5xl flex-row items-center gap-5 sm:gap-8 md:gap-12">
+                  <div className="relative shrink-0">
                     <Image
                       src={slide.src}
                       alt={slide.alt}
                       width={slide.width}
                       height={slide.height}
-                      className="h-auto w-full"
+                      className="h-[min(34rem,60vh)] w-auto max-w-[46vw]"
                       unoptimized
                       priority={slideIndex === 0}
                     />
@@ -257,6 +258,7 @@ export default function HowItWorks({
                         }`}
                       />
                     </div>
+                  </div>
                   </div>
                 </article>
               ))}
