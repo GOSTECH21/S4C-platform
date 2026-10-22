@@ -249,11 +249,8 @@ export default function HowItWorks({
           <p className="mb-5 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
             {index + 1} of 6
           </p>
-          <div className="flex items-center gap-3 md:gap-6">
-            <StepNavButton label="Previous step" onClick={() => go(index - 1)}>
-              Previous
-            </StepNavButton>
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-5 md:gap-x-6">
+            <div className="col-span-3 flex min-w-0 flex-col items-center gap-8 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:flex-row lg:items-center lg:gap-12">
               <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
                 <Image
                   src={step.src}
@@ -335,9 +332,16 @@ export default function HowItWorks({
                 ) : null}
               </div>
             </div>
-            <StepNavButton label="Next step" onClick={() => go(index + 1)}>
-              Next
-            </StepNavButton>
+            <div className="col-start-1 row-start-2 lg:row-start-1">
+              <StepNavButton label="Previous step" onClick={() => go(index - 1)}>
+                Previous
+              </StepNavButton>
+            </div>
+            <div className="col-start-3 row-start-2 lg:col-start-3 lg:row-start-1">
+              <StepNavButton label="Next step" onClick={() => go(index + 1)}>
+                Next
+              </StepNavButton>
+            </div>
           </div>
           <div className="mt-6 flex items-center justify-center gap-2">
             {steps.map((item, stepIndex) => (
