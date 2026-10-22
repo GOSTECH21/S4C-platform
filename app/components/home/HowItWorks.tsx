@@ -2,7 +2,10 @@
 
 import { useCallback, useState } from "react";
 import Image from "next/image";
-import SelectMatchFixtures from "@/app/components/home/SelectMatchFixtures";
+import SelectMatchFixtures, {
+  SelectMatchPhone,
+  SelectMatchProvider,
+} from "@/app/components/home/SelectMatchFixtures";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
@@ -87,7 +90,7 @@ const steps: Array<{
   },
   {
     src: "/images/home/select-match-phone.png",
-    alt: "Select match. Choose your club and match from the calendar. Arsenal fixtures including Arsenal vs Chelsea at Emirates Stadium.",
+    alt: "Select match. Choose your club and see their next 10 upcoming league and cup matches.",
     width: 247,
     height: 589,
     number: "02",
@@ -238,10 +241,6 @@ export default function HowItWorks({
   onLogin: () => void;
 }) {
   const [index, setIndex] = useState(0);
-  const [selectMatchTrigger, setSelectMatchTrigger] = useState<{
-    club: string;
-    n: number;
-  } | null>(null);
   const step = steps[index];
   const isLast = index === steps.length - 1;
 
@@ -250,7 +249,8 @@ export default function HowItWorks({
   }, []);
 
   return (
-    <section id="how-s4p-works" className="pb-8 md:pb-12">
+    <SelectMatchProvider active={index === 1}>
+      <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
           <div className="min-w-0">
@@ -299,15 +299,19 @@ export default function HowItWorks({
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-5 md:gap-x-6">
             <div className="col-span-3 flex min-w-0 flex-col items-center gap-8 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:flex-row lg:items-center lg:gap-12">
               <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
-                <Image
-                  src={step.src}
-                  alt={step.alt}
-                  width={step.width}
-                  height={step.height}
-                  className="h-auto w-full"
-                  unoptimized
-                  priority={index === 0}
-                />
+                {index === 1 ? (
+                  <SelectMatchPhone src={step.src} alt={step.alt} />
+                ) : (
+                  <Image
+                    src={step.src}
+                    alt={step.alt}
+                    width={step.width}
+                    height={step.height}
+                    className="h-auto w-full"
+                    unoptimized
+                    priority={index === 0}
+                  />
+                )}
                 {index === 0
                   ? ACCESS_JOIN_HOTSPOTS.map((spot) => (
                       <button
@@ -321,19 +325,6 @@ export default function HowItWorks({
                       />
                     ))
                   : null}
-                {index === 1 ? (
-                  <button
-                    type="button"
-                    aria-label="See Arsenal upcoming matches"
-                    onClick={() =>
-                      setSelectMatchTrigger({
-                        club: "Arsenal",
-                        n: Date.now(),
-                      })
-                    }
-                    className="absolute left-[10%] right-[10%] top-[28%] z-10 h-[58%] cursor-pointer rounded-2xl hover:ring-2 hover:ring-[#5bc662]"
-                  />
-                ) : null}
               </div>
               <div className="min-w-0 flex-1">
                 <p
@@ -373,9 +364,7 @@ export default function HowItWorks({
                     Create your free account <span aria-hidden> →</span>
                   </button>
                 ) : null}
-                {index === 1 ? (
-                  <SelectMatchFixtures trigger={selectMatchTrigger} />
-                ) : null}
+                {index === 1 ? <SelectMatchFixtures /> : null}
                 {isLast ? (
                   <>
                     <p
@@ -430,6 +419,7 @@ export default function HowItWorks({
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </SelectMatchProvider>
   );
 }

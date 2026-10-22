@@ -481,9 +481,11 @@ assert(
     howItWorks.includes("kick-off time") &&
     howItWorks.includes("climate mission") &&
     howItWorks.includes("SelectMatchFixtures") &&
-    howItWorks.includes('aria-label="See Arsenal upcoming matches"') &&
+    howItWorks.includes("SelectMatchPhone") &&
+    howItWorks.includes("SelectMatchProvider") &&
+    howItWorks.includes("next 10 upcoming league and cup matches") &&
     !howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS"),
-  "Step 02 is Select Match plus the pick-the-match line"
+  "Step 02 is Select Match plus the live upcoming-match phone"
 );
 const upcomingMatchesApi = readFileSync(
   "app/api/home/upcoming-matches/route.ts",
@@ -499,8 +501,11 @@ assert(
     selectMatchFixtures.includes("See upcoming matches") &&
     selectMatchFixtures.includes("Choose your club") &&
     selectMatchFixtures.includes("league and cup matches") &&
-    selectMatchFixtures.includes("/api/home/upcoming-matches"),
-  "Select Match loads a club's next 10 league and cup matches"
+    selectMatchFixtures.includes("/api/home/upcoming-matches") &&
+    selectMatchFixtures.includes('useState("Arsenal")') &&
+    selectMatchFixtures.includes("if (!active) return") &&
+    selectMatchFixtures.includes("SelectMatchPhone"),
+  "Select Match auto-loads Arsenal's next 10 league and cup matches on the Step 2 phone"
 );
 assert(
   howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
