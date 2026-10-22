@@ -71,7 +71,7 @@ assert(
     !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "s4p-ticker"
     ),
-  "How S4P Works is a one-step viewer with a next-step arrow, not a ticker tape"
+  "How S4P Works is a one-step viewer with Previous and Next, not a ticker tape"
 );
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(

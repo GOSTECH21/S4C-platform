@@ -254,8 +254,11 @@ assert(
   front.includes('showJoin("login")') &&
     front.includes('showJoin("register")') &&
     front.includes("scrollIntoView") &&
-    front.includes("role=\"tablist\""),
-  "Top-right Login and Register tabs take visitors to the role cards"
+    front.includes("role=\"tablist\"") &&
+    !front.includes("sticky top-0") &&
+    banner.includes("{children}") &&
+    banner.indexOf("A cleaner planet") < banner.indexOf("{children}"),
+  "Login and Register sit to the right of A cleaner planet in the top banner"
 );
 assert(
   front.includes('bg-s4p-mark text-slate-950') &&
@@ -436,9 +439,9 @@ assert(
     howItWorks.includes("making a real difference") &&
     howItWorks.includes("Same passion. Cleaner planet.") &&
     howItWorks.includes("Every score counts. Every fan counts.") &&
-    howItWorks.includes('src="/images/home/s4p-lockup.png"') &&
+    !howItWorks.includes('src="/images/home/s4p-lockup.png"') &&
     !howItWorks.includes("How Score-For-Our-Planet Works"),
-  "How It Works starts with the HOW S4P WORKS lockup strip"
+  "How It Works starts with How S4P Works, without a second lockup"
 );
 assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
@@ -446,14 +449,18 @@ assert(
 );
 assert(
   howItWorks.includes('label="Next step"') &&
+    howItWorks.includes("Previous") &&
+    howItWorks.includes("Next") &&
     howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("Choose from five club-approved climate projects") &&
     howItWorks.includes("Direct Your Impact") &&
     !howItWorks.includes("s4p-ticker") &&
     !howItWorks.includes("lg:grid-cols-3") &&
-    !howItWorks.includes("xl:grid-cols-6"),
-  "How S4P Works shows one step at a time with a next-step arrow"
+    !howItWorks.includes("xl:grid-cols-6") &&
+    !howItWorks.includes("»") &&
+    !howItWorks.includes("‹"),
+  "How S4P Works shows one step at a time with Previous and Next"
 );
 assert(
   howItWorks.includes("/images/home/access-join-phone.png") &&

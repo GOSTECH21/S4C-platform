@@ -166,7 +166,7 @@ function ProjectIcon({
   );
 }
 
-function ArrowButton({
+function StepNavButton({
   label,
   onClick,
   children,
@@ -180,7 +180,7 @@ function ArrowButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-s4p-paper text-2xl font-black leading-none shadow-sm hover:bg-s4p-mark sm:h-14 sm:w-14 sm:text-3xl"
+      className="shrink-0 rounded-full border border-emerald-400/40 bg-s4p-paper px-3 py-3 text-center text-xs font-black uppercase leading-none tracking-wide shadow-sm hover:bg-s4p-mark sm:px-4 sm:text-sm"
     >
       {children}
     </button>
@@ -205,28 +205,17 @@ export default function HowItWorks({
   return (
     <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4 xl:pr-44">
-          <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
-            <Image
-              src="/images/home/s4p-lockup.png"
-              alt="S4P SCORE-FOR-PLANET"
-              width={1087}
-              height={458}
-              className="h-[4.75rem] w-auto shrink-0 sm:h-20"
-              unoptimized
-            />
-            <div className="hidden h-16 w-px shrink-0 border-l border-emerald-400/40 sm:block" />
-            <div className="min-w-0">
-              <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl xl:text-[2.4rem]">
-                How S<span style={{ color: MARK_GREEN }}>4</span>P Works
-              </h2>
-              <p className="mt-2 text-sm font-bold uppercase leading-6 sm:text-base">
-                Same passion. Cleaner planet.{" "}
-                <span style={{ color: MARK_GREEN }}>
-                  Every score counts. Every fan counts.
-                </span>
-              </p>
-            </div>
+        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
+          <div className="min-w-0">
+            <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl xl:text-[2.4rem]">
+              How S<span style={{ color: MARK_GREEN }}>4</span>P Works
+            </h2>
+            <p className="mt-2 text-sm font-bold uppercase leading-6 sm:text-base">
+              Same passion. Cleaner planet.{" "}
+              <span style={{ color: MARK_GREEN }}>
+                Every score counts. Every fan counts.
+              </span>
+            </p>
           </div>
           <p className="shrink-0 -rotate-3 self-start rounded-md bg-s4p-mark px-4 py-3 text-center text-sm font-black uppercase leading-tight text-black shadow-sm xl:self-center xl:px-5 xl:text-base">
             A quick guide to
@@ -261,9 +250,9 @@ export default function HowItWorks({
             {index + 1} of 6
           </p>
           <div className="flex items-center gap-3 md:gap-6">
-            <ArrowButton label="Previous step" onClick={() => go(index - 1)}>
-              ‹
-            </ArrowButton>
+            <StepNavButton label="Previous step" onClick={() => go(index - 1)}>
+              Previous
+            </StepNavButton>
             <div className="flex min-w-0 flex-1 flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
               <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
                 <Image
@@ -346,9 +335,9 @@ export default function HowItWorks({
                 ) : null}
               </div>
             </div>
-            <ArrowButton label="Next step" onClick={() => go(index + 1)}>
-              »
-            </ArrowButton>
+            <StepNavButton label="Next step" onClick={() => go(index + 1)}>
+              Next
+            </StepNavButton>
           </div>
           <div className="mt-6 flex items-center justify-center gap-2">
             {steps.map((item, stepIndex) => (
