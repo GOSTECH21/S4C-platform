@@ -14,6 +14,14 @@ assert(
     readFileSync("public/images/home/s4p-mark.png")[25] === 6,
   "The S4P mark is a transparent PNG so the paper shows through"
 );
+assert(
+  existsSync("public/images/home/every-score-counts-banner.png"),
+  "The Every Score Counts banner artwork is in public/images/home"
+);
+assert(
+  existsSync("public/images/home/access-join-phone.png"),
+  "The Access & Join phone artwork is in public/images/home"
+);
 
 const css = readFileSync("app/globals.css", "utf8");
 assert(css.includes("--s4p-canvas: #f7f4e8"), "The live canvas is ivory paper");
@@ -53,22 +61,27 @@ assert(css.includes("html[data-theme=\"quiet-wave\"]"), "Quiet wave can still be
 assert(!css.includes("#0c3229"), "The old pitch-dusk canvas token is gone");
 
 const home = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
+const banner = readFileSync("app/components/home/HomeTopBanner.tsx", "utf8");
 assert(!home.includes("#04140f") && !home.includes("#07150f"), "Home no longer uses near-black overlays");
 assert(!home.includes("hero.png"), "Home no longer covers the canvas with the stadium hero photo");
 assert(
-  home.includes("Turn Goals") && home.includes('text-s4p-mint">into Action'),
-  "Turn Goals into Action uses mint on the second line"
+  !home.includes("Turn Goals") && !home.includes('text-s4p-mint">into Action'),
+  "The Turn Goals into Action hero is off the new front page"
 );
 assert(
-  home.includes("SCORE-FOR-PLANET") &&
-    home.includes("Every score counts") &&
+  banner.includes("SCORE-FOR-PLANET") &&
+    banner.includes("Every score counts") &&
+    banner.includes("Every fan counts") &&
     !home.includes("Sport creates the moment."),
   "SCORE-FOR-PLANET lockup replaces the old Sport creates the moment stack"
 );
-assert(home.includes("s4p-navy-panel"), "The stats strip uses a panel");
-assert(home.includes('src="/images/home/s4p-mark.png"'), "Home still uses the S4P mark");
+assert(
+  home.includes('src="/images/home/access-join-phone.png"') &&
+    banner.includes('src="/images/home/every-score-counts-banner.png"'),
+  "Home uses the Every Score Counts banner and the Access & Join phone"
+);
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
-assert(home.includes("unoptimized"), "The mark is served as the transparent PNG, not a flattened optimized copy");
+assert(home.includes("unoptimized"), "The join phone is served as the PNG, not a flattened optimized copy");
 
 const tables = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
 assert(tables.includes("s4p-navy-panel"), "CILT sits on a panel");
