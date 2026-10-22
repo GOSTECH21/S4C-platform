@@ -73,20 +73,20 @@ function BannerIcon({
 export default function HomeTopBanner() {
   return (
     <header className="relative isolate border-b border-emerald-400/20">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:py-3">
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-6 xl:py-3">
+        <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
           <Image
             src="/images/home/s4p-lockup.png"
             alt="S4P SCORE-FOR-PLANET"
             width={1087}
             height={458}
-            className="h-20 w-auto sm:h-[5.5rem] lg:h-20 xl:h-[5.75rem]"
+            className="h-[4.75rem] w-auto shrink-0 sm:h-20"
             unoptimized
             priority
           />
-          <div className="hidden h-16 w-px border-l border-emerald-400/40 sm:block" />
+          <div className="hidden h-16 w-px shrink-0 border-l border-emerald-400/40 sm:block" />
           <div className="min-w-0">
-            <h1 className="text-2xl font-black uppercase leading-tight tracking-tight sm:text-3xl lg:whitespace-nowrap lg:text-[1.65rem] xl:text-[1.85rem]">
+            <h1 className="text-2xl font-black uppercase leading-tight tracking-tight sm:text-3xl xl:text-[1.7rem]">
               Every score counts.{" "}
               <span style={{ color: MARK_GREEN }}>Every fan counts.</span>
             </h1>
@@ -96,11 +96,11 @@ export default function HomeTopBanner() {
             </p>
           </div>
         </div>
-        <ul className="grid grid-cols-4 gap-3 sm:grid-cols-7 lg:flex lg:shrink-0 lg:gap-3 xl:gap-4">
+        <ul className="grid grid-cols-4 gap-3 sm:grid-cols-7 xl:flex xl:shrink-0 xl:gap-3">
           {BANNER_ICONS.map((item) => (
             <li
               key={item.label}
-              className="flex w-[4.25rem] flex-col items-center text-center xl:w-[4.75rem]"
+              className="flex w-[4.25rem] flex-col items-center text-center"
             >
               <BannerIcon name={item.icon} />
               <span className="mt-1.5 text-[0.7rem] font-bold leading-tight xl:text-xs">
