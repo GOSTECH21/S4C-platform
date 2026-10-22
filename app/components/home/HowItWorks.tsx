@@ -6,25 +6,6 @@ import Image from "next/image";
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
 
-const steps: Array<{
-  number: string;
-  title: string;
-  description: string;
-}> = [
-  {
-    number: "04",
-    title: "PROJECTS DELIVER THE IMPACT",
-    description:
-      "Climate Project Providers receive funding and deliver measurable climate action",
-  },
-  {
-    number: "05",
-    title: "EVERYONE CREATES IMPACT",
-    description:
-      "Clubs address Match-Day carbon footprints, Sponsors engage supporters, Fans direct funding & Climate Projects turn it into action",
-  },
-];
-
 function PhoneStep({
   id,
   src,
@@ -110,7 +91,7 @@ export default function HowItWorks({
       </div>
 
       <div className="mx-auto max-w-[1800px] px-6 pb-4 pt-10 md:px-12 xl:px-16">
-        <div className="grid grid-cols-1 items-start gap-12 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-10 xl:gap-y-12">
+        <div className="grid grid-cols-1 items-start gap-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 xl:gap-x-6 xl:gap-y-12">
           <PhoneStep
             id={ACCESS_JOIN_ID}
             src="/images/home/access-join-phone.png"
@@ -150,27 +131,29 @@ export default function HowItWorks({
             caption="Both stadium and remote fans are part of the same match-day climate mission."
           />
 
-          {steps.map((step, index) => (
-            <div
-              key={step.number}
-              className="s4p-navy-panel flex flex-col items-center rounded-3xl px-4 py-6 text-center xl:px-5"
-            >
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-s4p-mark text-3xl font-black text-black shadow-xl">
-                {step.number}
-              </div>
-              <h3 className="mt-8 text-xl font-bold uppercase md:text-2xl">
-                {step.title}
-              </h3>
-              <p className="mt-5 text-sm leading-7 md:text-[0.95rem] md:leading-8">
-                {step.description}
-              </p>
-              {index < steps.length - 1 && (
-                <div className="mt-auto hidden w-3/4 pt-10 xl:block">
-                  <div className="h-1 w-full rounded-full bg-s4p-mark" />
-                </div>
-              )}
-            </div>
-          ))}
+          <PhoneStep
+            src="/images/home/plan-your-travel-phone.png"
+            alt="Plan your travel. Simple input. No postcode. Just your estimated miles and travel type. Arsenal vs Chelsea travel footprint."
+            width={244}
+            height={659}
+            caption="Estimate your return distance, choose your transport type and see your estimated travel emissions. No tracking. No postcode."
+          />
+
+          <PhoneStep
+            src="/images/home/match-day-climate-mission-phone.png"
+            alt="Match day climate mission. See the live carbon target, funding progress and all four sponsor channels. Arsenal vs Chelsea."
+            width={256}
+            height={656}
+            caption="See the live carbon target, progress and how each sponsor channel is contributing to the match-day climate mission."
+          />
+
+          <PhoneStep
+            src="/images/home/choose-direct-impact-phone.png"
+            alt="Choose and direct your impact. Use your Fan Carbon Wallet to allocate sponsor-funded money to climate projects."
+            width={255}
+            height={656}
+            caption="Choose from five club-approved climate projects and direct your sponsor-funded money to the areas that matter most to you."
+          />
         </div>
       </div>
     </section>

@@ -425,7 +425,6 @@ assert(
     howItWorks.includes('aria-label="Create Account"') &&
     howItWorks.includes('aria-label="Log in"') &&
     howItWorks.includes("unoptimized") &&
-    howItWorks.includes('number: "04"') &&
     !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
   "Step 01 is Access & Join plus the Join in seconds line"
 );
@@ -445,14 +444,24 @@ assert(
   "Step 03 is How You're Supporting plus the stadium and remote fans line"
 );
 assert(
-  howItWorks.includes("PROJECTS DELIVER THE IMPACT") &&
-    howItWorks.includes("Climate Project Providers receive funding"),
-  "Step 04 is PROJECTS DELIVER THE IMPACT"
+  howItWorks.includes('src="/images/home/plan-your-travel-phone.png"') &&
+    howItWorks.includes("Estimate your return distance") &&
+    howItWorks.includes("No tracking. No postcode.") &&
+    !howItWorks.includes("PROJECTS DELIVER THE IMPACT"),
+  "Step 04 is Plan Your Travel plus the return-distance line"
 );
 assert(
-  howItWorks.includes("EVERYONE CREATES IMPACT") &&
-    howItWorks.includes("Clubs address Match-Day carbon footprints"),
-  "Step 05 is EVERYONE CREATES IMPACT"
+  howItWorks.includes('src="/images/home/match-day-climate-mission-phone.png"') &&
+    howItWorks.includes("live carbon target") &&
+    howItWorks.includes("sponsor channel") &&
+    !howItWorks.includes("EVERYONE CREATES IMPACT"),
+  "Step 05 is Match Day Climate Mission plus the live target line"
+);
+assert(
+  howItWorks.includes('src="/images/home/choose-direct-impact-phone.png"') &&
+    howItWorks.includes("five club-approved climate projects") &&
+    howItWorks.includes("sponsor-funded money"),
+  "Step 06 is Choose & Direct Your Impact plus the club-approved projects line"
 );
 
 const footer = readFileSync("app/components/home/Footer.tsx", "utf8");
