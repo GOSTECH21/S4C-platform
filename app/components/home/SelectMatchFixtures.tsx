@@ -113,7 +113,10 @@ export default function SelectMatchFixtures({
       {matches && !loading ? (
         <div className="mt-4">
           <p className="text-xs font-black uppercase tracking-[0.18em]">
-            {resolvedClub}&apos;s next {matches.length} league and cup matches
+            {resolvedClub?.endsWith("s")
+              ? `${resolvedClub}'`
+              : `${resolvedClub}'s`}{" "}
+            next {matches.length} league and cup matches
           </p>
           {matches.length === 0 ? (
             <p className="mt-3 text-sm font-semibold">
