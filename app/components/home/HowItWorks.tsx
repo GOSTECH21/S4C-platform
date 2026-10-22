@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 
 const MARK_GREEN = "#5bc662";
@@ -10,18 +11,6 @@ const steps: Array<{
   title: string;
   description: string;
 }> = [
-  {
-    number: "02",
-    title: "SPONSORS FUND THE IMPACT MOMENTS",
-    description:
-      "Local Businesses fund fan participation. Lead Sponsors fund the Goals-Scored & unlock additional funding through Impact Moments",
-  },
-  {
-    number: "03",
-    title: "FANS DIRECT THE FUNDING",
-    description:
-      "Fans press FUND-IT up to 5 times, taking £0.20 once from each Carbon Wallet onto any Climate Project they want to support (creating a DIRECT FAN ENGAGEMENT FOR LOCAL BUSINESSES)",
-  },
   {
     number: "04",
     title: "PROJECTS DELIVER THE IMPACT",
@@ -35,6 +24,49 @@ const steps: Array<{
       "Clubs address Match-Day carbon footprints, Sponsors engage supporters, Fans direct funding & Climate Projects turn it into action",
   },
 ];
+
+function PhoneStep({
+  id,
+  src,
+  alt,
+  width,
+  height,
+  caption,
+  priority = false,
+  children,
+}: {
+  id?: string;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  caption: string;
+  priority?: boolean;
+  children?: ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      className={`flex flex-col items-center${id ? " scroll-mt-24" : ""}`}
+    >
+      <div className="relative w-full max-w-[22rem]">
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          className="h-auto w-full"
+          unoptimized
+          priority={priority}
+        />
+        {children}
+      </div>
+      <p className="mt-5 max-w-[22rem] text-center text-base font-semibold leading-7 sm:text-lg">
+        {caption}
+      </p>
+    </div>
+  );
+}
 
 export default function HowItWorks({
   onCreateAccount,
@@ -79,38 +111,44 @@ export default function HowItWorks({
 
       <div className="mx-auto max-w-[1800px] px-6 pb-4 pt-10 md:px-12 xl:px-16">
         <div className="grid grid-cols-1 items-start gap-12 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-10 xl:gap-y-12">
-          <div
+          <PhoneStep
             id={ACCESS_JOIN_ID}
-            className="flex scroll-mt-24 flex-col items-center sm:col-span-2 xl:col-span-1"
+            src="/images/home/access-join-phone.png"
+            alt="Access and join Score-For-Planet. Same passion. Cleaner planet. Scan the QR code to join, create an account, or log in."
+            width={248}
+            height={662}
+            caption="Join in seconds. A free account gives you access to your club's matches, predictions and climate impact features."
+            priority
           >
-            <div className="relative w-full max-w-[22rem]">
-              <Image
-                src="/images/home/access-join-phone.png"
-                alt="Access and join Score-For-Planet. Same passion. Cleaner planet. Scan the QR code to join, create an account, or log in."
-                width={248}
-                height={662}
-                className="h-auto w-full"
-                unoptimized
-                priority
-              />
-              <button
-                type="button"
-                aria-label="Create Account"
-                onClick={onCreateAccount}
-                className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
-              />
-              <button
-                type="button"
-                aria-label="Log in"
-                onClick={onLogin}
-                className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
-              />
-            </div>
-            <p className="mt-5 max-w-[22rem] text-center text-base font-semibold leading-7 sm:text-lg">
-              Join in seconds. A free account gives you access to your
-              club&apos;s matches, predictions and climate impact features.
-            </p>
-          </div>
+            <button
+              type="button"
+              aria-label="Create Account"
+              onClick={onCreateAccount}
+              className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
+            />
+            <button
+              type="button"
+              aria-label="Log in"
+              onClick={onLogin}
+              className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
+            />
+          </PhoneStep>
+
+          <PhoneStep
+            src="/images/home/select-match-phone.png"
+            alt="Select match. Choose your club and match from the calendar. Arsenal fixtures including Arsenal vs Chelsea at Emirates Stadium."
+            width={247}
+            height={671}
+            caption="Pick the upcoming match you want to take part in. See key details, kick-off time and the climate mission."
+          />
+
+          <PhoneStep
+            src="/images/home/how-youre-supporting-phone.png"
+            alt="How you're supporting. Tell us if you're attending the match or watching remotely. Arsenal vs Chelsea at Emirates Stadium."
+            width={252}
+            height={662}
+            caption="Both stadium and remote fans are part of the same match-day climate mission."
+          />
 
           {steps.map((step, index) => (
             <div

@@ -23,6 +23,14 @@ assert(
   "The Access & Join phone artwork is in public/images/home"
 );
 assert(
+  existsSync("public/images/home/select-match-phone.png"),
+  "The Select Match phone artwork is in public/images/home"
+);
+assert(
+  existsSync("public/images/home/how-youre-supporting-phone.png"),
+  "The How You're Supporting phone artwork is in public/images/home"
+);
+assert(
   existsSync("public/images/home/s4p-lockup.png") &&
     readFileSync("public/images/home/s4p-lockup.png")[25] === 6,
   "The default S4P lockup is a transparent PNG so the paper shows through"
@@ -84,13 +92,19 @@ assert(
   readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
     'src="/images/home/access-join-phone.png"'
   ) &&
+    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+      'src="/images/home/select-match-phone.png"'
+    ) &&
+    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+      'src="/images/home/how-youre-supporting-phone.png"'
+    ) &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes("Every score counts") &&
     banner.includes("#5bc662") &&
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup on an ivory strip and Access & Join as How S4P Works step 01"
+  "Home uses the S4P lockup on an ivory strip and Access & Join, Select Match and How You're Supporting as How S4P Works 01-03"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(

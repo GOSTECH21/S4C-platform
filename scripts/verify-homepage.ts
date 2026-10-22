@@ -425,23 +425,24 @@ assert(
     howItWorks.includes('aria-label="Create Account"') &&
     howItWorks.includes('aria-label="Log in"') &&
     howItWorks.includes("unoptimized") &&
-    howItWorks.includes('number: "02"') &&
+    howItWorks.includes('number: "04"') &&
     !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
   "Step 01 is Access & Join plus the Join in seconds line"
 );
 assert(
-  howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS") &&
-    howItWorks.includes("Local Businesses fund fan participation") &&
-    howItWorks.includes("Goals-Scored"),
-  "Step 02 is SPONSORS FUND THE IMPACT MOMENTS"
+  howItWorks.includes('src="/images/home/select-match-phone.png"') &&
+    howItWorks.includes("Pick the upcoming match") &&
+    howItWorks.includes("kick-off time") &&
+    howItWorks.includes("climate mission") &&
+    !howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS"),
+  "Step 02 is Select Match plus the pick-the-match line"
 );
 assert(
-  howItWorks.includes("FANS DIRECT THE FUNDING") &&
-    howItWorks.includes("FUND-IT up to 5 times") &&
-    howItWorks.includes(
-      "(creating a DIRECT FAN ENGAGEMENT FOR LOCAL BUSINESSES)"
-    ),
-  "Step 03 is FANS DIRECT THE FUNDING with FUND-IT up to 5 times"
+  howItWorks.includes('src="/images/home/how-youre-supporting-phone.png"') &&
+    howItWorks.includes("Both stadium and remote fans") &&
+    howItWorks.includes("same match-day climate mission") &&
+    !howItWorks.includes("FANS DIRECT THE FUNDING"),
+  "Step 03 is How You're Supporting plus the stadium and remote fans line"
 );
 assert(
   howItWorks.includes("PROJECTS DELIVER THE IMPACT") &&
