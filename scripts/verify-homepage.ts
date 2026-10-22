@@ -223,20 +223,28 @@ assert(
 const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
 assert(
-  homePage.indexOf("<HowItWorks") < homePage.indexOf("<Footer"),
-  "How Score-For-Planet Works is composed on the front page"
+  !homePage.includes("<HowItWorks"),
+  "How S4P Works is composed inside the front page, not as a page.tsx child"
 );
 assert(
-  homePage.includes("<HowItWorks") &&
-    homePage.indexOf("<HomeFrontPage") < homePage.indexOf("<HowItWorks"),
-  "How Score-For-Planet Works sits inside the front page, above Are You"
+  homePage.includes("<HomeFrontPage") &&
+    homePage.indexOf("<HomeFrontPage") < homePage.indexOf("<Footer"),
+  "The new banner, Access & Join phone and Are You cards sit above the footer"
 );
 assert(
   !homePage.includes("WHO ARE YOU?"),
   "Old WHO ARE YOU heading is replaced"
 );
+assert(
+  !homePage.includes("impactTables") &&
+    !homePage.includes("initialStats") &&
+    !homePage.includes("loadPlatformStats") &&
+    !homePage.includes("loadS4pImpactTables"),
+  "The new front page no longer loads Impact Tables or the live stats bar"
+);
 
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
+const banner = readFileSync("app/components/home/HomeTopBanner.tsx", "utf8");
 assert(
   front.includes('id={JOIN_SECTION_ID}') || front.includes('id="are-you"'),
   "Are You has an anchor the Login and Register tabs can scroll to"
@@ -246,8 +254,11 @@ assert(
   front.includes('showJoin("login")') &&
     front.includes('showJoin("register")') &&
     front.includes("scrollIntoView") &&
-    front.includes("role=\"tablist\""),
-  "Top-right Login and Register tabs take visitors to the role cards"
+    front.includes("role=\"tablist\"") &&
+    !front.includes("sticky top-0") &&
+    banner.includes("{children}") &&
+    banner.indexOf("A cleaner planet") < banner.indexOf("{children}"),
+  "Login and Register sit to the right of A cleaner planet in the top banner"
 );
 assert(
   front.includes('bg-s4p-mark text-slate-950') &&
@@ -265,27 +276,35 @@ assert(
   "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
 );
 assert(
-  front.includes("{children}") &&
-    front.indexOf("{children}") < front.indexOf("Are You...?"),
-  "How Score-For-Planet Works is rendered above Are You"
-);
-assert(front.includes("Fans Engaged"), "Fans engaged window is on the front page");
-assert(
-  front.includes("loadPlatformStats") &&
-    front.includes("initialStats") &&
-    front.includes("/api/platform-stats"),
-  "Stat windows render server stats then refresh from the live roster"
+  front.includes("HomeTopBanner") &&
+    front.indexOf("HomeTopBanner") < front.indexOf("Are You...?"),
+  "The Every Score Counts banner sits at the top, above Are You"
 );
 assert(
-  readFileSync("app/page.tsx", "utf8").includes("initialStats") &&
-    readFileSync("app/page.tsx", "utf8").includes("loadPlatformStats"),
-  "The homepage HTML includes the live Fans Engaged and funding counts"
+  front.includes("<HowItWorks") &&
+    front.indexOf("<HowItWorks") < front.indexOf("Are You...?"),
+  "How S4P Works sits above Are You"
 );
 assert(
-  front.includes("withWalletTakes") &&
-    front.includes("WALLET_TAKE_EVENT") &&
-    front.includes("SPONSORED_GOAL_EVENT"),
-  "The funding bar shows Carbon Wallet takes as soon as a fan allocates them, and Impact Moments refresh when a sponsored goal is posted"
+  front.includes("HomeJoinMission") &&
+    front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
+    front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission"),
+  "Join your team's climate mission sits above How S4P Works"
+);
+assert(
+  front.includes("onCreateAccount") &&
+    front.includes("onLogin") &&
+    front.includes('showJoin("register")') &&
+    front.includes('showJoin("login")'),
+  "Create Account and Log in on the How S4P Works phone take visitors to the role cards"
+);
+assert(
+  !front.includes("Turn Goals") &&
+    !front.includes("S4pImpactTables") &&
+    !front.includes("loadPlatformStats") &&
+    !front.includes("Fans Engaged") &&
+    !front.includes("{children}"),
+  "Turn Goals, Impact Tables and the stats bar are removed from the front page"
 );
 assert(
   !front.includes("Sport today"),
@@ -296,20 +315,43 @@ assert(
   "Top-left S4P wordmark is removed from the hero"
 );
 assert(
-  front.includes("SCORE-FOR-PLANET") &&
-    front.includes("Every score counts") &&
-    front.includes("Sponsors fund it. Fans direct it.") &&
-    !front.includes("Score-4-our-Planet") &&
-    !front.includes("Turning Match-Day Sporting Moments into"),
-  "The homepage mark is SCORE-FOR-PLANET with Every score counts branding"
+  banner.includes("SCORE-FOR-PLANET") &&
+    banner.includes("Every score counts") &&
+    banner.includes("Every fan counts") &&
+    banner.includes("Fans at the stadium") &&
+    banner.includes("A cleaner planet") &&
+    banner.includes('src="/images/home/s4p-lockup.png"') &&
+    banner.includes("#5bc662") &&
+    banner.includes("unoptimized") &&
+    banner.includes("border-b border-emerald-400/20") &&
+    !banner.includes("every-score-counts-banner.png") &&
+    !banner.includes("bg-black") &&
+    !banner.includes("#041018") &&
+    !banner.includes("rgba(4, 16, 24") &&
+    !banner.includes("Score-4-our-Planet") &&
+    !banner.includes("Turning Match-Day Sporting Moments into"),
+  "The homepage uses the S4P lockup with a highlighted 4 and Every score counts on ivory paper"
+);
+
+const joinMission = readFileSync(
+  "app/components/home/HomeJoinMission.tsx",
+  "utf8"
 );
 assert(
-  front.includes("order-2 lg:order-4") &&
-    front.includes("hidden lg:block") &&
-    front.includes("lg:hidden") &&
-    front.includes("flex flex-col") &&
-    front.lastIndexOf("S4pImpactTables") > front.indexOf("Are You...?"),
-  "On mobile, How Score-For-Planet Works sits under the S4P mark and Impact Tables appear only after Are You; desktop keeps Impact Tables in the hero"
+  joinMission.includes("Join your team") &&
+    joinMission.includes("climate mission today") &&
+    joinMission.includes("Register free") &&
+    joinMission.includes("FAN_REGISTER_PATH") &&
+    joinMission.includes("FAN_LOGIN_PATH") &&
+    joinMission.includes("Log in to your S4P account") &&
+    joinMission.includes("Free to join") &&
+    joinMission.includes("Follow your team") &&
+    joinMission.includes("Direct climate funding") &&
+    joinMission.includes("Every fan counts") &&
+    joinMission.includes("bg-s4p-mark") &&
+    joinMission.includes("#5bc662") &&
+    !joinMission.includes("bg-emerald-500"),
+  "The join card is an S4P version of Join your team's climate mission"
 );
 
 assert(
@@ -319,17 +361,9 @@ assert(
   "Old Score-4-our-Planet taglines under the mark are gone"
 );
 assert(
-  front.includes("Turn Goals") &&
-    front.includes('text-s4p-mint">into Action') &&
-    !front.includes("a brighter planet") &&
-    !front.includes("Every score protects our planet"),
-  "Hero headline is Turn Goals into Action, with into Action in mint"
-);
-assert(
-  front.includes('src="/images/home/s4p-mark.png"') &&
-    !front.includes("drop-shadow-2xl") &&
-    front.includes("unoptimized"),
-  "The S4P mark sits on the paper without a drop-shadow box"
+  !front.includes("drop-shadow-2xl") &&
+    !front.includes('src="/images/home/s4p-mark.png"'),
+  "The old centred S4P mark is gone from the front page"
 );
 
 const globalCss = readFileSync("app/globals.css", "utf8");
@@ -339,28 +373,24 @@ assert(
   "S4P mark green is the leaf colour sampled from the numeral 4"
 );
 assert(
-  front.includes("s4p-navy-panel") &&
-    globalCss.includes(".s4p-navy-panel") &&
+  globalCss.includes(".s4p-navy-panel") &&
     globalCss.includes("--s4p-ink: #000000") &&
     globalCss.includes("--s4p-mint: #0c5c2c") &&
     globalCss.includes("#f7f4e8"),
-  "Stats sit on paper panels; copy is black and green on ivory"
+  "Copy is black and green on ivory"
 );
 assert(
-  front.includes("WICKET") &&
-    front.includes("&amp; every") &&
-    front.includes("can unlock a") &&
-    front.includes("Sponsor-funded") &&
-    front.includes("Match-Day Carbon Footprints"),
-  "Top-left hero line covers GOAL, TRY, TOUCHDOWN & WICKET unlocking an IMPACT MOMENT"
+  !front.includes("WICKET") &&
+    !front.includes("Sponsor-funded") &&
+    !front.includes("Match-Day Carbon Footprints"),
+  "The Turn Goals GOAL / TRY / TOUCHDOWN / WICKET hero line is gone"
 );
 assert(
-  front.includes("£ Climate Funding Mobilised") &&
-    front.includes("Impact Moments Created") &&
-    front.includes("Fans Engaged") &&
-    front.includes("Sports Teams") &&
-    front.includes("Climate Projects Funded"),
-  "Stats bar shows funding, impact moments, fans, sports teams and funded projects"
+  !front.includes("£ Climate Funding Mobilised") &&
+    !front.includes("Impact Moments Created") &&
+    !front.includes("Sports Teams") &&
+    !front.includes("Climate Projects Funded"),
+  "Stats bar is off the new front page"
 );
 assert(
   !front.includes("Trees Planted") &&
@@ -369,9 +399,8 @@ assert(
   "Catalog Trees Planted / tCO2e / Brighter Tomorrow windows are removed"
 );
 assert(
-  front.includes("S4pImpactTables") &&
-    !front.includes("hero-athletes-v2"),
-  "Right-hand hero image is replaced by S4P Impact Tables"
+  !front.includes("hero-athletes-v2"),
+  "Old athlete hero image stays off the front page"
 );
 
 const impactWidget = readFileSync("app/components/home/S4pImpactTables.tsx", "utf8");
@@ -403,45 +432,107 @@ assert(
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
-  howItWorks.includes("How Score-For-Planet Works") &&
+  howItWorks.includes("How S") &&
+    howItWorks.includes("P Works") &&
+    howItWorks.includes("How Score-For-Planet Works") === false &&
+    howItWorks.includes("A quick guide to") &&
+    howItWorks.includes("making a real difference") &&
+    howItWorks.includes("Same passion. Cleaner planet.") &&
+    howItWorks.includes("Every score counts. Every fan counts.") &&
+    !howItWorks.includes('src="/images/home/s4p-lockup.png"') &&
     !howItWorks.includes("How Score-For-Our-Planet Works"),
-  "How It Works heading matches the SCORE-FOR-PLANET lockup"
+  "How It Works starts with How S4P Works, without a second lockup"
 );
 assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
-  "How It Works step numbers 01-05 use the S4P mark green from the numeral 4"
+  "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes("CLUBS CHOOSE PROJECTS") &&
-    howItWorks.includes("five eligible Climate Projects") &&
-    howItWorks.includes(
-      "The selected Projects help to mitigate the Club's Match-Day Carbon emissions"
-    ),
-  "Step 01 is CLUBS CHOOSE PROJECTS"
+  howItWorks.includes('label="Next step"') &&
+    howItWorks.includes("Previous") &&
+    howItWorks.includes("Next") &&
+    howItWorks.includes('aria-roledescription="carousel"') &&
+    howItWorks.includes("Join in seconds") &&
+    howItWorks.includes("Choose from five club-approved climate projects") &&
+    howItWorks.includes("Direct Your Impact") &&
+    !howItWorks.includes("s4p-ticker") &&
+    !howItWorks.includes("lg:grid-cols-3") &&
+    !howItWorks.includes("xl:grid-cols-6") &&
+    !howItWorks.includes("»") &&
+    !howItWorks.includes("‹"),
+  "How S4P Works shows one step at a time with Previous and Next"
 );
 assert(
-  howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS") &&
-    howItWorks.includes("Local Businesses fund fan participation") &&
-    howItWorks.includes("Goals-Scored"),
-  "Step 02 is SPONSORS FUND THE IMPACT MOMENTS"
+  howItWorks.includes("/images/home/access-join-phone.png") &&
+    howItWorks.includes("Join in seconds") &&
+    howItWorks.includes("matches, predictions and climate impact features") &&
+    howItWorks.includes('id={ACCESS_JOIN_ID}') &&
+    howItWorks.includes('"Create Account"') &&
+    howItWorks.includes('"Log in"') &&
+    howItWorks.includes('"Join via website"') &&
+    howItWorks.includes('"Scan QR to join"') &&
+    howItWorks.includes("unoptimized") &&
+    !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
+  "Step 01 is Access & Join plus the Join in seconds line"
 );
 assert(
-  howItWorks.includes("FANS DIRECT THE FUNDING") &&
-    howItWorks.includes("FUND-IT up to 5 times") &&
-    howItWorks.includes(
-      "(creating a DIRECT FAN ENGAGEMENT FOR LOCAL BUSINESSES)"
-    ),
-  "Step 03 is FANS DIRECT THE FUNDING with FUND-IT up to 5 times"
+  howItWorks.includes("/images/home/select-match-phone.png") &&
+    howItWorks.includes("Pick the upcoming match") &&
+    howItWorks.includes("kick-off time") &&
+    howItWorks.includes("climate mission") &&
+    howItWorks.includes("SelectMatchFixtures") &&
+    howItWorks.includes("SelectMatchPhone") &&
+    howItWorks.includes("SelectMatchProvider") &&
+    howItWorks.includes("next 10 upcoming league and cup matches") &&
+    !howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS"),
+  "Step 02 is Select Match plus the live upcoming-match phone"
+);
+const upcomingMatchesApi = readFileSync(
+  "app/api/home/upcoming-matches/route.ts",
+  "utf8"
+);
+const selectMatchFixtures = readFileSync(
+  "app/components/home/SelectMatchFixtures.tsx",
+  "utf8"
 );
 assert(
-  howItWorks.includes("PROJECTS DELIVER THE IMPACT") &&
-    howItWorks.includes("Climate Project Providers receive funding"),
-  "Step 04 is PROJECTS DELIVER THE IMPACT"
+  upcomingMatchesApi.includes("nextClubMatches") &&
+    upcomingMatchesApi.includes("CLUB_MATCH_CALENDAR_COUNT") &&
+    selectMatchFixtures.includes("See upcoming matches") &&
+    selectMatchFixtures.includes("Choose your club") &&
+    selectMatchFixtures.includes("league and cup matches") &&
+    selectMatchFixtures.includes("/api/home/upcoming-matches") &&
+    selectMatchFixtures.includes('useState("Arsenal")') &&
+    selectMatchFixtures.includes("if (!active) return") &&
+    selectMatchFixtures.includes("SelectMatchPhone"),
+  "Select Match auto-loads Arsenal's next 10 league and cup matches on the Step 2 phone"
 );
 assert(
-  howItWorks.includes("EVERYONE CREATES IMPACT") &&
-    howItWorks.includes("Clubs address Match-Day carbon footprints"),
-  "Step 05 is EVERYONE CREATES IMPACT"
+  howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
+    howItWorks.includes("Both stadium and remote fans") &&
+    howItWorks.includes("same match-day climate mission") &&
+    !howItWorks.includes("FANS DIRECT THE FUNDING"),
+  "Step 03 is How You're Supporting plus the stadium and remote fans line"
+);
+assert(
+  howItWorks.includes("/images/home/plan-your-travel-phone.png") &&
+    howItWorks.includes("Estimate your return distance") &&
+    howItWorks.includes("No tracking. No postcode.") &&
+    !howItWorks.includes("PROJECTS DELIVER THE IMPACT"),
+  "Step 04 is Plan Your Travel plus the return-distance line"
+);
+assert(
+  howItWorks.includes("/images/home/match-day-climate-mission-phone.png") &&
+    howItWorks.includes("live carbon target") &&
+    howItWorks.includes("sponsor channel") &&
+    !howItWorks.includes("EVERYONE CREATES IMPACT"),
+  "Step 05 is Match Day Climate Mission plus the live target line"
+);
+assert(
+  howItWorks.includes("/images/home/choose-direct-impact-phone.png") &&
+    howItWorks.includes("five club-approved climate projects") &&
+    howItWorks.includes("sponsor-funded money"),
+  "Step 06 is Choose & Direct Your Impact plus the club-approved projects line"
 );
 
 const footer = readFileSync("app/components/home/Footer.tsx", "utf8");
@@ -515,7 +606,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Homepage: five stakeholders including Local Business Climate Sponsor; live stats; leftover projects."
+  "Homepage: Every Score Counts banner, Access & Join phone, then five Are You stakeholders."
 );
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
