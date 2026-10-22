@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import HomeTopBanner from "@/app/components/home/HomeTopBanner";
+import HowItWorks from "@/app/components/home/HowItWorks";
 
 const JOIN_SECTION_ID = "are-you";
 const ACCESS_JOIN_ID = "access-join";
@@ -108,7 +109,13 @@ export default function HomeFrontPage() {
               className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
             />
           </div>
+          <p className="mx-auto mt-5 max-w-[22rem] text-center text-base font-semibold leading-7 sm:text-lg">
+            Join in seconds. A free account gives you access to your club&apos;s
+            matches, predictions and climate impact features.
+          </p>
         </section>
+
+        <HowItWorks />
 
         <section
           id={JOIN_SECTION_ID}

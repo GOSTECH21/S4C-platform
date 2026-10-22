@@ -224,7 +224,7 @@ const homePage = readFileSync("app/page.tsx", "utf8");
 assert(homePage.includes("HomeFrontPage"), "Front page uses the new hero and stakeholder layout");
 assert(
   !homePage.includes("<HowItWorks"),
-  "How Score-For-Planet Works is off the new front page"
+  "How S4P Works is composed inside the front page, not as a page.tsx child"
 );
 assert(
   homePage.includes("<HomeFrontPage") &&
@@ -278,6 +278,18 @@ assert(
   "The Every Score Counts banner sits at the top, above Are You"
 );
 assert(
+  front.includes("Join in seconds") &&
+    front.includes("matches, predictions and climate impact features") &&
+    front.indexOf("access-join-phone.png") < front.indexOf("Join in seconds"),
+  "Access & Join is followed by the Join in seconds line"
+);
+assert(
+  front.includes("<HowItWorks") &&
+    front.indexOf("Join in seconds") < front.indexOf("<HowItWorks") &&
+    front.indexOf("<HowItWorks") < front.indexOf("Are You...?"),
+  "How S4P Works sits under Access & Join and above Are You"
+);
+assert(
   front.includes('src="/images/home/access-join-phone.png"') &&
     front.includes('id={ACCESS_JOIN_ID}') &&
     front.indexOf("access-join-phone.png") < front.indexOf("Are You...?"),
@@ -294,7 +306,7 @@ assert(
     !front.includes("loadPlatformStats") &&
     !front.includes("Fans Engaged") &&
     !front.includes("{children}"),
-  "Turn Goals, How It Works, Impact Tables and the stats bar are removed from the front page"
+  "Turn Goals, Impact Tables and the stats bar are removed from the front page"
 );
 assert(
   !front.includes("Sport today"),
@@ -402,9 +414,16 @@ assert(
 
 const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 assert(
-  howItWorks.includes("How Score-For-Planet Works") &&
+  howItWorks.includes("How S") &&
+    howItWorks.includes("P Works") &&
+    howItWorks.includes("How Score-For-Planet Works") === false &&
+    howItWorks.includes("A quick guide to") &&
+    howItWorks.includes("making a real difference") &&
+    howItWorks.includes("Same passion. Cleaner planet.") &&
+    howItWorks.includes("Every score counts. Every fan counts.") &&
+    howItWorks.includes('src="/images/home/s4p-lockup.png"') &&
     !howItWorks.includes("How Score-For-Our-Planet Works"),
-  "How It Works heading matches the SCORE-FOR-PLANET lockup"
+  "How It Works starts with the HOW S4P WORKS lockup strip"
 );
 assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
