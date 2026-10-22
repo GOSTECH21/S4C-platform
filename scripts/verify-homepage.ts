@@ -311,6 +311,9 @@ assert(
     banner.includes("Fans at the stadium") &&
     banner.includes("A cleaner planet") &&
     banner.includes('src="/images/home/every-score-counts-banner.png"') &&
+    banner.includes('rgba(4, 16, 24, 0.55)') &&
+    banner.includes("blur-md") &&
+    !banner.includes("bg-black/") &&
     !banner.includes("Score-4-our-Planet") &&
     !banner.includes("Turning Match-Day Sporting Moments into"),
   "The homepage mark is SCORE-FOR-PLANET with Every score counts, Every fan counts branding"

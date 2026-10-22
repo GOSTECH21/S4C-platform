@@ -99,13 +99,13 @@ export default function HomeFrontPage() {
               type="button"
               aria-label="Create Account"
               onClick={() => showJoin("register")}
-              className="absolute left-[11%] right-[11%] top-[86%] h-[5.8%] rounded-full"
+              className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
             />
             <button
               type="button"
               aria-label="Log in"
               onClick={() => showJoin("login")}
-              className="absolute left-[27%] right-[27%] top-[92.4%] h-[3.4%]"
+              className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
             />
           </div>
         </section>

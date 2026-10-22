@@ -71,10 +71,10 @@ function BannerIcon({
 function BannerCopy() {
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <div className="shrink-0 text-center leading-none">
           <p className="text-4xl font-black tracking-tight text-[#f4f7fb] sm:text-5xl">
-            S<span className="text-s4p-mark">4</span>P
+            S<span style={{ color: "#5bc662" }}>4</span>P
           </p>
           <p className="mt-1 text-[0.62rem] font-bold tracking-[0.18em] text-[#f4f7fb]">
             SCORE-FOR-PLANET
@@ -82,9 +82,9 @@ function BannerCopy() {
         </div>
         <div className="hidden h-14 w-px bg-[#f4f7fb]/40 sm:block" />
         <div className="min-w-0">
-          <h1 className="text-xl font-black uppercase leading-tight tracking-tight text-[#f4f7fb] sm:text-2xl lg:text-[1.7rem]">
+          <h1 className="text-2xl font-black uppercase leading-tight tracking-tight text-[#f4f7fb] sm:text-2xl lg:text-[1.7rem]">
             Every score counts.{" "}
-            <span className="text-s4p-mark">Every fan counts.</span>
+            <span style={{ color: "#5bc662" }}>Every fan counts.</span>
           </h1>
           <p className="mt-1 text-xs font-medium text-[#d5dde6] sm:text-sm">
             One Club. One Match. Two Climate Missions. Four Sponsor Channels.
@@ -122,15 +122,24 @@ export default function HomeTopBanner() {
         priority
       />
       <div
-        className="relative min-[1200px]:hidden"
-        style={{
-          backgroundImage: "url(/images/home/every-score-counts-banner.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        className="relative isolate overflow-hidden min-[1200px]:hidden"
+        style={{ backgroundColor: "#041018" }}
       >
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6">
+        <Image
+          src="/images/home/every-score-counts-banner.png"
+          alt=""
+          fill
+          className="scale-110 object-cover blur-md brightness-50"
+          unoptimized
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "rgba(4, 16, 24, 0.55)" }}
+        />
+        <div
+          className="relative z-10 mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6"
+          style={{ color: "#f4f7fb" }}
+        >
           <BannerCopy />
         </div>
       </div>
