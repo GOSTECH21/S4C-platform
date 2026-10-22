@@ -64,8 +64,10 @@ assert(
 );
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
 assert(
-  css.includes(".s4p-carousel-dwell") && css.includes("14s linear"),
-  "How S4P Works carousel dwells 14 seconds so the caption can be read"
+  css.includes(".s4p-ticker-track") &&
+    css.includes("s4p-ticker 96s linear infinite") &&
+    css.includes("translateX(-50%)"),
+  "How S4P Works ticker tape loops slowly enough to read each caption"
 );
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(

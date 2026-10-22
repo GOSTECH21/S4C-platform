@@ -418,13 +418,14 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes('aria-roledescription="carousel"') &&
+  howItWorks.includes('aria-roledescription="marquee"') &&
     howItWorks.includes("flex-row") &&
-    howItWorks.includes("DWELL_MS = 14000") &&
-    howItWorks.includes("s4p-carousel-dwell") &&
-    howItWorks.includes("translateX") &&
-    !howItWorks.includes("xl:grid-cols-6"),
-  "How S4P Works is a slow image-left text-right carousel, not a six-up grid"
+    howItWorks.includes("s4p-ticker") &&
+    howItWorks.includes("Pause ticker") &&
+    howItWorks.includes("[...slides, ...slides]") &&
+    !howItWorks.includes("xl:grid-cols-6") &&
+    !howItWorks.includes("s4p-carousel-dwell"),
+  "How S4P Works is a slow image-left text-right ticker tape, not a six-up grid"
 );
 assert(
   howItWorks.includes("/images/home/access-join-phone.png") &&

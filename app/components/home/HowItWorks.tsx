@@ -1,12 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
-const DWELL_MS = 14000;
-const SLIDE_COUNT = 6;
 
 const slides: Array<{
   src: string;
@@ -91,6 +89,66 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+function SlideCard({
+  slide,
+  onCreateAccount,
+  onLogin,
+  priority = false,
+}: {
+  slide: (typeof slides)[number];
+  onCreateAccount: () => void;
+  onLogin: () => void;
+  priority?: boolean;
+}) {
+  return (
+    <article
+      role="group"
+      aria-label={`Step ${slide.number} of 06, ${slide.title}`}
+      className="flex w-[min(58rem,90vw)] shrink-0 flex-row items-center gap-5 px-6 sm:gap-8 md:gap-12 md:px-12"
+    >
+      <div className="relative shrink-0">
+        <Image
+          src={slide.src}
+          alt={slide.alt}
+          width={slide.width}
+          height={slide.height}
+          className="h-[min(32rem,56vh)] w-auto max-w-[46vw]"
+          unoptimized
+          priority={priority}
+        />
+        {slide.number === "01" ? (
+          <>
+            <button
+              type="button"
+              aria-label="Create Account"
+              onClick={onCreateAccount}
+              className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
+            />
+            <button
+              type="button"
+              aria-label="Log in"
+              onClick={onLogin}
+              className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
+            />
+          </>
+        ) : null}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-black uppercase tracking-[0.2em]">
+          <span style={{ color: MARK_GREEN }}>{slide.number}</span>
+          <span className="text-black/40"> / 06</span>
+        </p>
+        <h3 className="mt-3 text-xl font-black uppercase leading-tight sm:text-2xl md:text-3xl">
+          {slide.title}
+        </h3>
+        <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 md:text-2xl md:leading-10">
+          {slide.caption}
+        </p>
+      </div>
+    </article>
+  );
+}
+
 export default function HowItWorks({
   onCreateAccount,
   onLogin,
@@ -98,18 +156,11 @@ export default function HowItWorks({
   onCreateAccount: () => void;
   onLogin: () => void;
 }) {
-  const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hidden, setHidden] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
-  const autoplay = !paused && !hidden && !reducedMotion;
-  const startedAt = useRef(Date.now());
-  const pausedAt = useRef<number | null>(null);
-
-  const goTo = useCallback((next: number) => {
-    startedAt.current = Date.now();
-    setIndex((next + SLIDE_COUNT) % SLIDE_COUNT);
-  }, []);
+  const tape = reducedMotion ? slides : [...slides, ...slides];
+  const tickerPaused = paused || hidden || reducedMotion;
 
   useEffect(() => {
     const sync = () => setHidden(document.hidden);
@@ -117,24 +168,6 @@ export default function HowItWorks({
     document.addEventListener("visibilitychange", sync);
     return () => document.removeEventListener("visibilitychange", sync);
   }, []);
-
-  useEffect(() => {
-    if (paused || hidden) {
-      pausedAt.current = Date.now();
-      return;
-    }
-    if (pausedAt.current != null) {
-      startedAt.current += Date.now() - pausedAt.current;
-      pausedAt.current = null;
-    }
-  }, [hidden, paused]);
-
-  useEffect(() => {
-    if (!autoplay) return;
-    const remaining = Math.max(800, DWELL_MS - (Date.now() - startedAt.current));
-    const timer = window.setTimeout(() => goTo(index + 1), remaining);
-    return () => window.clearTimeout(timer);
-  }, [autoplay, goTo, index]);
 
   return (
     <section id="how-s4p-works" className="pb-8 md:pb-12">
@@ -170,135 +203,44 @@ export default function HowItWorks({
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1400px] px-5 pb-4 pt-8 md:px-12 xl:px-16">
+      <div
+        id={ACCESS_JOIN_ID}
+        role="region"
+        aria-roledescription="marquee"
+        aria-label="How S4P Works ticker. Each phone sits on the left with its caption on the right."
+        className={`s4p-ticker scroll-mt-24 pt-8 ${
+          tickerPaused ? "s4p-ticker-paused" : ""
+        }`}
+      >
         <div
-          id={ACCESS_JOIN_ID}
-          role="region"
-          aria-roledescription="carousel"
-          aria-label="How S4P Works, one step at a time"
-          tabIndex={0}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocus={() => setPaused(true)}
-          onBlur={() => setPaused(false)}
-          onKeyDown={(event) => {
-            if (event.key === "ArrowRight") {
-              event.preventDefault();
-              goTo(index + 1);
-            }
-            if (event.key === "ArrowLeft") {
-              event.preventDefault();
-              goTo(index - 1);
-            }
-          }}
-          className="scroll-mt-24 outline-none"
+          className={`s4p-ticker-mask ${
+            reducedMotion ? "overflow-x-auto" : "overflow-hidden"
+          }`}
         >
-          <div className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-1000 ease-in-out motion-reduce:transition-none"
-              style={{ transform: `translateX(-${index * 100}%)` }}
-            >
-              {slides.map((slide, slideIndex) => (
-                <article
-                  key={slide.number}
-                  role="group"
-                  aria-roledescription="slide"
-                  aria-label={`Step ${slide.number} of 06, ${slide.title}`}
-                  aria-hidden={slideIndex !== index}
-                  className={`flex w-full shrink-0 justify-center px-1 md:px-6 ${
-                    slideIndex === index ? "" : "pointer-events-none"
-                  }`}
-                >
-                  <div className="flex w-full max-w-5xl flex-row items-center gap-5 sm:gap-8 md:gap-12">
-                  <div className="relative shrink-0">
-                    <Image
-                      src={slide.src}
-                      alt={slide.alt}
-                      width={slide.width}
-                      height={slide.height}
-                      className="h-[min(34rem,60vh)] w-auto max-w-[46vw]"
-                      unoptimized
-                      priority={slideIndex === 0}
-                    />
-                    {slideIndex === 0 ? (
-                      <>
-                        <button
-                          type="button"
-                          aria-label="Create Account"
-                          onClick={onCreateAccount}
-                          className="absolute left-[10%] right-[10%] top-[85%] h-[7%] rounded-full"
-                        />
-                        <button
-                          type="button"
-                          aria-label="Log in"
-                          onClick={onLogin}
-                          className="absolute left-[18%] right-[18%] top-[92%] h-[6%]"
-                        />
-                      </>
-                    ) : null}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-black uppercase tracking-[0.2em]">
-                      <span style={{ color: MARK_GREEN }}>{slide.number}</span>
-                      <span className="text-black/40"> / 06</span>
-                    </p>
-                    <h3 className="mt-3 text-xl font-black uppercase leading-tight sm:text-2xl md:text-3xl">
-                      {slide.title}
-                    </h3>
-                    <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 md:text-2xl md:leading-10">
-                      {slide.caption}
-                    </p>
-                    <div className="mt-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-emerald-400/25">
-                      <div
-                        key={index}
-                        className={`h-full origin-left rounded-full bg-s4p-mark ${
-                          slideIndex === index
-                            ? `s4p-carousel-dwell${autoplay ? "" : " s4p-carousel-dwell-paused"}`
-                            : "w-0"
-                        }`}
-                      />
-                    </div>
-                  </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+          <div className="s4p-ticker-track">
+            {tape.map((slide, tapeIndex) => (
+              <SlideCard
+                key={`${tapeIndex}-${slide.number}`}
+                slide={slide}
+                onCreateAccount={onCreateAccount}
+                onLogin={onLogin}
+                priority={tapeIndex === 0}
+              />
+            ))}
           </div>
-
-          <div className="mt-6 flex items-center justify-center gap-4 md:mt-8">
-            <button
-              type="button"
-              aria-label="Previous step"
-              onClick={() => goTo(index - 1)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-400/30 bg-s4p-paper text-xl font-black hover:bg-s4p-mark"
-            >
-              ‹
-            </button>
-            <div className="flex items-center gap-2">
-              {slides.map((slide, slideIndex) => (
-                <button
-                  key={slide.number}
-                  type="button"
-                  aria-label={`Go to step ${slide.number}, ${slide.title}`}
-                  aria-current={slideIndex === index ? "true" : undefined}
-                  onClick={() => goTo(slideIndex)}
-                  className={`h-2.5 rounded-full transition-all ${
-                    slideIndex === index
-                      ? "w-8 bg-s4p-mark"
-                      : "w-2.5 bg-emerald-400/40 hover:bg-emerald-400/70"
-                  }`}
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              aria-label="Next step"
-              onClick={() => goTo(index + 1)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-400/30 bg-s4p-paper text-xl font-black hover:bg-s4p-mark"
-            >
-              ›
-            </button>
-          </div>
+        </div>
+        <div className="mt-5 flex flex-col items-center gap-2 px-5 pb-2">
+          <button
+            type="button"
+            aria-pressed={paused}
+            onClick={() => setPaused((value) => !value)}
+            className="rounded-full border border-emerald-400/30 bg-s4p-paper px-5 py-2 text-sm font-black uppercase tracking-wide hover:bg-s4p-mark"
+          >
+            {paused ? "Play ticker" : "Pause ticker"}
+          </button>
+          <p className="text-center text-xs font-semibold uppercase tracking-wide text-black/50">
+            Hover to pause. Each step is on screen long enough to read.
+          </p>
         </div>
       </div>
     </section>
