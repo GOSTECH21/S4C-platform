@@ -69,7 +69,7 @@ function clubInitials(name: string) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
-function useSelectMatch() {
+export function useSelectMatch() {
   const ctx = useContext(SelectMatchContext);
   if (!ctx) {
     throw new Error("SelectMatchProvider is required");

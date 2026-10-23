@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import RoleLoginForm from "@/app/components/auth/RoleLoginForm";
 import {
   FAN_REGISTER_PATH,
   SUPPORTER_CAMPAIGN_PATH,
+  safeFanReturnPath,
 } from "@/app/lib/routes";
 import { captureClimateInviteFromSearch } from "@/app/lib/climate-funding";
 import {
@@ -15,15 +16,20 @@ import {
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 
 export default function FanLoginPage() {
+  const [destination, setDestination] = useState(SUPPORTER_CAMPAIGN_PATH);
   useEffect(() => {
     captureClimateInviteFromSearch();
+    const next = safeFanReturnPath(
+      new URLSearchParams(window.location.search).get("next")
+    );
+    if (next) setDestination(next);
   }, []);
   return (
     <RoleLoginForm
       role="fan"
       title="Fan Login"
       subtitle="Sign in to My S4P to FUND up to 5 Projects shown to you."
-      destination={SUPPORTER_CAMPAIGN_PATH}
+      destination={destination}
       registerHref={FAN_REGISTER_PATH}
       afterSignIn={async () => {
         captureClimateInviteFromSearch();

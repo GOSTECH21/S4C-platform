@@ -6,6 +6,11 @@ import SelectMatchFixtures, {
   SelectMatchPhone,
   SelectMatchProvider,
 } from "@/app/components/home/SelectMatchFixtures";
+import {
+  HowYoureSupportingPanel,
+  HowYoureSupportingPhone,
+  HowYoureSupportingProvider,
+} from "@/app/components/home/HowYoureSupporting";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
@@ -250,6 +255,7 @@ export default function HowItWorks({
 
   return (
     <SelectMatchProvider active>
+      <HowYoureSupportingProvider>
       <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
@@ -318,6 +324,8 @@ export default function HowItWorks({
                   <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
                     {stepIndex === 1 ? (
                       <SelectMatchPhone src={step.src} alt={step.alt} />
+                    ) : stepIndex === 2 ? (
+                      <HowYoureSupportingPhone src={step.src} alt={step.alt} />
                     ) : (
                       <Image
                         src={step.src}
@@ -345,6 +353,15 @@ export default function HowItWorks({
                         ))
                       : null}
                   </div>
+                  {stepIndex === 2 ? (
+                    <HowYoureSupportingPanel
+                      badge={step.badge}
+                      title={step.title}
+                      number={step.number}
+                      caption={step.caption}
+                      points={step.points}
+                    />
+                  ) : (
                   <div className="min-w-0 flex-1">
                     <p
                       className="text-xs font-black uppercase tracking-[0.22em]"
@@ -408,6 +425,7 @@ export default function HowItWorks({
                       </>
                     ) : null}
                   </div>
+                  )}
                 </div>
               </article>
             ))}
@@ -432,6 +450,7 @@ export default function HowItWorks({
         </div>
       </div>
       </section>
+      </HowYoureSupportingProvider>
     </SelectMatchProvider>
   );
 }

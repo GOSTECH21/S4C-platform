@@ -525,8 +525,48 @@ assert(
   howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
     howItWorks.includes("Both stadium and remote fans") &&
     howItWorks.includes("same match-day climate mission") &&
+    howItWorks.includes("HowYoureSupportingPhone") &&
+    howItWorks.includes("HowYoureSupportingPanel") &&
+    howItWorks.includes("HowYoureSupportingProvider") &&
     !howItWorks.includes("FANS DIRECT THE FUNDING"),
-  "Step 03 is How You're Supporting plus the stadium and remote fans line"
+  "Step 03 is How You're Supporting plus live Continue buttons"
+);
+const howYoureSupporting = readFileSync(
+  "app/components/home/HowYoureSupporting.tsx",
+  "utf8"
+);
+assert(
+  howYoureSupporting.includes('aria-label="Continue — I\'m attending the match"') &&
+    howYoureSupporting.includes(
+      'aria-label="Continue — I\'m watching remotely"'
+    ) &&
+    howYoureSupporting.includes("Plan Your Match-Day Travel") &&
+    howYoureSupporting.includes("No postcode. No GPS tracking.") &&
+    howYoureSupporting.includes("YOUR ESTIMATED TRAVEL FOOTPRINT") === false &&
+    howYoureSupporting.includes("Your estimated travel footprint") &&
+    howYoureSupporting.includes("kg CO2e") &&
+    howYoureSupporting.includes("estimateTravelKgCo2e") &&
+    howYoureSupporting.includes("saveStadiumTravelRecord") &&
+    howYoureSupporting.includes("loadClubChosenClimateProjects") &&
+    howYoureSupporting.includes("FUND_IT_LABEL") &&
+    howYoureSupporting.includes("fanLoginPath") &&
+    howYoureSupporting.includes("SUPPORTER_CAMPAIGN_PATH"),
+  "Attending Continue opens a live travel sheet; remote Continue opens club Climate Projects"
+);
+const travelLib = readFileSync("app/lib/match-day-travel.ts", "utf8");
+assert(
+  travelLib.includes("STADIUM_TRAVEL_STORAGE") &&
+    travelLib.includes("s4p.stadium-travel-records") &&
+    travelLib.includes("estimateTravelKgCo2e") &&
+    travelLib.includes("saveStadiumTravelRecord") &&
+    travelLib.includes("stadiumTravelRecordsForClub"),
+  "Stadium-fan travel records keep club, miles, occupants and kgCO2e"
+);
+const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");
+assert(
+  fanLogin.includes("safeFanReturnPath") &&
+    readFileSync("app/lib/routes.ts", "utf8").includes("fanLoginPath"),
+  "Fan login can return to My S4P after a homepage FUND-IT"
 );
 assert(
   howItWorks.includes("/images/home/plan-your-travel-phone.png") &&
