@@ -448,8 +448,10 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes("snap-x") &&
+    howItWorks.includes("snap-x") &&
     howItWorks.includes("snap-mandatory") &&
+    howItWorks.includes("overflow-y-hidden") &&
+    howItWorks.includes("data-how-s4p-scroller") &&
     howItWorks.includes("Swipe left or right") &&
     howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
@@ -508,8 +510,11 @@ assert(
     selectMatchFixtures.includes("SelectMatchPhone") &&
     selectMatchFixtures.includes("sponsorFromMatchPath") &&
     selectMatchFixtures.includes("Sponsor") &&
+    selectMatchFixtures.includes("setSelectedMatch") &&
+    selectMatchFixtures.includes("Choose ${label} for Match Day") &&
+    selectMatchFixtures.includes("Tap a match to choose it for Match Day") &&
     selectMatchFixtures.includes('aria-label={`Sponsor ${label}`}'),
-  "Select Match auto-loads Arsenal's next 10 matches and lets a Sponsor tap one to lock it in"
+  "Select Match auto-loads Arsenal's next 10 matches, lets a fan choose one, and lets a Sponsor lock it in"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
@@ -553,8 +558,12 @@ assert(
     howYoureSupporting.includes("loadClubChosenClimateProjects") &&
     howYoureSupporting.includes("FUND_IT_LABEL") &&
     howYoureSupporting.includes("fanLoginPath") &&
-    howYoureSupporting.includes("SUPPORTER_CAMPAIGN_PATH"),
-  "Attending Continue opens a live travel sheet; remote Continue opens club Climate Projects"
+    howYoureSupporting.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    howYoureSupporting.includes('id="match-day-banner"') &&
+    howYoureSupporting.includes("selectedMatch") &&
+    howYoureSupporting.includes("role=\"radio\"") &&
+    howYoureSupporting.includes("pinHowS4pSlide"),
+  "Attending Continue opens a live travel sheet; the phone banner shows the chosen Match Day"
 );
 const travelLib = readFileSync("app/lib/match-day-travel.ts", "utf8");
 assert(

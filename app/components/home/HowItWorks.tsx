@@ -249,14 +249,35 @@ export default function HowItWorks({
       const next = Math.round(el.scrollLeft / el.clientWidth);
       setIndex(Math.max(0, Math.min(steps.length - 1, next)));
     }
+    function pinToNearestSlide() {
+      const el = scrollerRef.current;
+      if (!el || el.clientWidth === 0) return;
+      const slide = Math.max(
+        0,
+        Math.min(
+          steps.length - 1,
+          Math.round(el.scrollLeft / el.clientWidth)
+        )
+      );
+      const left = slide * el.clientWidth;
+      if (Math.abs(el.scrollLeft - left) > 2) {
+        el.scrollLeft = left;
+      }
+    }
     scroller.addEventListener("scroll", onScroll, { passive: true });
-    return () => scroller.removeEventListener("scroll", onScroll);
+    scroller.addEventListener("focusin", pinToNearestSlide);
+    scroller.addEventListener("pointerup", pinToNearestSlide);
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("focusin", pinToNearestSlide);
+      scroller.removeEventListener("pointerup", pinToNearestSlide);
+    };
   }, []);
 
   return (
     <SelectMatchProvider active>
       <HowYoureSupportingProvider>
-      <section id="how-s4p-works" className="pb-8 md:pb-12">
+      <section id="how-s4p-works" className="overflow-x-hidden pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
           <div className="min-w-0">
@@ -310,7 +331,8 @@ export default function HowItWorks({
           </p>
           <div
             ref={scrollerRef}
-            className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            data-how-s4p-scroller
+            className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <div className="flex">
             {steps.map((step, stepIndex) => (

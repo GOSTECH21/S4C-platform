@@ -14,6 +14,10 @@ import {
   useSelectMatch,
   type HomeUpcomingMatch,
 } from "@/app/components/home/SelectMatchFixtures";
+import {
+  formatKickoff,
+  formatMatchDate,
+} from "@/app/lib/upcoming-matches";
 import { loadClubChosenClimateProjects } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
@@ -32,7 +36,6 @@ import {
   formatTravelKgCo2e,
   parseReturnMiles,
   saveStadiumTravelRecord,
-  travelModeLabel,
   type TravelMode,
 } from "@/app/lib/match-day-travel";
 
@@ -82,9 +85,9 @@ export function HowYoureSupportingProvider({
 }: {
   children: ReactNode;
 }) {
-  const { club, resolvedClub, matches } = useSelectMatch();
+  const { club, resolvedClub, selectedMatch } = useSelectMatch();
   const shown = resolvedClub || club;
-  const match = matches?.[0] ?? null;
+  const match = selectedMatch;
   const [view, setView] = useState<SupportView>("intro");
   const [support, setSupport] = useState<SupportKind | null>(null);
 
@@ -146,6 +149,43 @@ function stopCarouselSwipe(event: { stopPropagation: () => void }) {
   event.stopPropagation();
 }
 
+function pinHowS4pSlide() {
+  const scroller = document.querySelector(
+    "[data-how-s4p-scroller]"
+  ) as HTMLElement | null;
+  if (!scroller || scroller.clientWidth === 0) return;
+  const slide = Math.round(scroller.scrollLeft / scroller.clientWidth);
+  const left = Math.max(0, slide) * scroller.clientWidth;
+  requestAnimationFrame(() => {
+    scroller.scrollLeft = left;
+  });
+}
+
+function keepHowS4pSlide(
+  event: { stopPropagation: () => void }
+) {
+  event.stopPropagation();
+  pinHowS4pSlide();
+}
+
+function formatMatchDateYear(date: string) {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return formatMatchDate(date);
+  return parsed.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function clubInitials(name: string) {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "FC";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
 export function HowYoureSupportingPhone({
   src,
   alt,
@@ -153,7 +193,11 @@ export function HowYoureSupportingPhone({
   src: string;
   alt: string;
 }) {
-  const { chooseAttending, chooseRemote } = useHowYoureSupporting();
+  const { chooseAttending, chooseRemote, match } = useHowYoureSupporting();
+  const fixture = match
+    ? match.fixtureName.replace(" v ", " vs ")
+    : "Choose a match";
+  const homeName = match?.homeName || "";
 
   return (
     <>
@@ -165,6 +209,54 @@ export function HowYoureSupportingPhone({
         className="h-auto w-full"
         unoptimized
       />
+      <div
+        id="match-day-banner"
+        className="absolute z-20 overflow-hidden text-white"
+        style={{
+          top: "14.2%",
+          left: "7.2%",
+          right: "6.8%",
+          height: "19.4%",
+          borderRadius: "0.9rem",
+          background:
+            "linear-gradient(100deg, #0b2416 0%, #123b24 48%, #1c5a34 100%)",
+        }}
+        aria-label={
+          match
+            ? `${fixture}. ${formatMatchDateYear(match.date)} ${formatKickoff(match.kickoff)}. ${match.venue}`
+            : "No match selected yet"
+        }
+      >
+        <div className="flex h-full items-center gap-2 px-2.5">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-black"
+            style={{ backgroundColor: MARK_GREEN }}
+            aria-hidden
+          >
+            {clubInitials(homeName || "FC")}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[11px] font-black leading-tight">
+              {fixture}
+            </p>
+            {match ? (
+              <>
+                <p className="mt-0.5 truncate text-[8px] font-semibold leading-tight opacity-90">
+                  {formatMatchDateYear(match.date)} ·{" "}
+                  {formatKickoff(match.kickoff)}
+                </p>
+                <p className="truncate text-[8px] font-semibold leading-tight opacity-90">
+                  {match.venue}
+                </p>
+              </>
+            ) : (
+              <p className="mt-0.5 text-[8px] font-semibold opacity-90">
+                Pick a Match Day in Select Match
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
       <button
         type="button"
         aria-label="Continue — I'm attending the match"
@@ -250,7 +342,9 @@ function PlanMatchDayTravelSheet() {
   return (
     <div
       id="plan-match-day-travel"
-      className="w-full max-w-xl rounded-[1.6rem] border border-emerald-400/30 bg-s4p-paper px-5 py-6 sm:px-6"
+      onPointerDown={keepHowS4pSlide}
+      onFocusCapture={pinHowS4pSlide}
+      className="w-full max-w-xl rounded-[1.6rem] border border-emerald-400/30 bg-s4p-paper px-5 py-6 sm:px-6 [touch-action:manipulation] [overflow-anchor:none]"
     >
       <div className="flex items-center gap-2">
         <LeafMark />
@@ -264,8 +358,7 @@ function PlanMatchDayTravelSheet() {
       </p>
       {match ? (
         <p className="mt-2 text-sm font-semibold">
-          {clubPossessive(club)} next match:{" "}
-          {match.fixtureName.replace(" v ", " vs ")}
+          Match Day: {match.fixtureName.replace(" v ", " vs ")}
           {match.venue ? ` · ${match.venue}` : ""}
         </p>
       ) : (
@@ -274,25 +367,25 @@ function PlanMatchDayTravelSheet() {
 
       <fieldset className="mt-5">
         <legend className="text-sm font-bold">How will you travel?</legend>
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-2" role="radiogroup" aria-label="How will you travel?">
           {TRAVEL_MODES.map((row) => {
             const checked = mode === row.id;
             return (
-              <label
+              <button
                 key={row.id}
-                className="flex cursor-pointer items-center gap-3 text-sm font-semibold"
+                type="button"
+                role="radio"
+                aria-checked={checked}
+                onPointerDown={keepHowS4pSlide}
+                onClick={() => {
+                  setMode(row.id);
+                  pinHowS4pSlide();
+                }}
+                className="flex w-full cursor-pointer items-center gap-3 text-left text-sm font-semibold [touch-action:manipulation]"
               >
-                <input
-                  type="radio"
-                  name="match-day-travel-mode"
-                  value={row.id}
-                  checked={checked}
-                  onChange={() => setMode(row.id)}
-                  className="sr-only"
-                />
                 <RadioDot checked={checked} />
                 {row.label}
-              </label>
+              </button>
             );
           })}
         </div>
@@ -306,7 +399,11 @@ function PlanMatchDayTravelSheet() {
           min={0}
           step="0.1"
           value={miles}
-          onChange={(event) => setMiles(event.target.value)}
+          onFocus={pinHowS4pSlide}
+          onChange={(event) => {
+            setMiles(event.target.value);
+            pinHowS4pSlide();
+          }}
           className="mt-2 w-full rounded-full border border-emerald-400/40 bg-s4p-paper px-4 py-3 text-base font-semibold"
         />
       </label>
@@ -316,25 +413,29 @@ function PlanMatchDayTravelSheet() {
           <legend className="text-sm font-bold">
             People sharing the car, including you
           </legend>
-          <div className="mt-3 flex flex-wrap items-center gap-4">
+          <div
+            className="mt-3 flex flex-wrap items-center gap-4"
+            role="radiogroup"
+            aria-label="People sharing the car, including you"
+          >
             {CAR_OCCUPANT_CHOICES.map((count) => {
               const checked = occupants === count;
               return (
-                <label
+                <button
                   key={count}
-                  className="flex cursor-pointer items-center gap-2 text-sm font-semibold"
+                  type="button"
+                  role="radio"
+                  aria-checked={checked}
+                  onPointerDown={keepHowS4pSlide}
+                  onClick={() => {
+                    setOccupants(count);
+                    pinHowS4pSlide();
+                  }}
+                  className="flex cursor-pointer items-center gap-2 text-sm font-semibold [touch-action:manipulation]"
                 >
-                  <input
-                    type="radio"
-                    name="match-day-car-occupants"
-                    value={count}
-                    checked={checked}
-                    onChange={() => setOccupants(count)}
-                    className="sr-only"
-                  />
                   <RadioDot checked={checked} />
                   {count}
-                </label>
+                </button>
               );
             })}
           </div>
@@ -443,7 +544,8 @@ function ClubClimateProjectsSheet() {
   return (
     <div
       id="club-climate-projects"
-      className="w-full max-w-xl rounded-[1.6rem] border border-emerald-400/30 bg-s4p-paper px-5 py-6 sm:px-6"
+      onPointerDown={keepHowS4pSlide}
+      className="w-full max-w-xl rounded-[1.6rem] border border-emerald-400/30 bg-s4p-paper px-5 py-6 sm:px-6 [touch-action:manipulation] [overflow-anchor:none]"
     >
       <p
         className="text-xs font-black uppercase tracking-[0.22em]"
