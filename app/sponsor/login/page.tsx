@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_REGISTER_PATH,
+  localSponsorRegisterPath,
+  sponsorRegisterPath,
 } from "@/app/lib/routes";
+import { continueAfterSponsorAuth } from "@/app/lib/pending-sponsor-match";
 import {
   rememberLocalSponsorSession,
   sponsorHomePath,
@@ -20,6 +23,18 @@ export default function SponsorLoginPage() {
   const [password, setPassword] = useState(account.password);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registerNationalHref, setRegisterNationalHref] = useState(
+    SPONSOR_REGISTER_PATH
+  );
+  const [registerLocalHref, setRegisterLocalHref] = useState(
+    LOCAL_SPONSOR_REGISTER_PATH
+  );
+
+  useEffect(() => {
+    const next = continueAfterSponsorAuth();
+    setRegisterNationalHref(sponsorRegisterPath(next));
+    setRegisterLocalHref(localSponsorRegisterPath(next));
+  }, []);
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
@@ -30,9 +45,11 @@ export default function SponsorLoginPage() {
       await loginSponsor({ email, password });
       const sponsor = await getCurrentSponsor();
       rememberLocalSponsorSession(sponsor);
-      window.location.href = sponsorHomePath(String(sponsor.name ?? ""), {
-        jobTitle: String(sponsor.industry ?? ""),
-      });
+      window.location.href =
+        continueAfterSponsorAuth() ||
+        sponsorHomePath(String(sponsor.name ?? ""), {
+          jobTitle: String(sponsor.industry ?? ""),
+        });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
       setLoading(false);
@@ -96,11 +113,11 @@ export default function SponsorLoginPage() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">
         New brand?{" "}
-        <Link href={SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
+        <Link href={registerNationalHref} className="font-semibold text-green-400">
           Register as a National/Global Sponsor
         </Link>
         {" or "}
-        <Link href={LOCAL_SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
+        <Link href={registerLocalHref} className="font-semibold text-green-400">
           a Local Business Climate Sponsor
         </Link>
       </p>

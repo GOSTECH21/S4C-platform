@@ -50,6 +50,7 @@ export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const LOCAL_SPONSOR_HOME_PATH = "/sponsor/local";
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
+export const SPONSOR_FROM_MATCH_PATH = "/sponsor/from-match";
 export const SPONSOR_CALENDAR_PATH = "/sponsor/calendar";
 export const SPONSOR_NEW_SPONSORSHIP_QUERY = "new";
 export const SPONSOR_NEW_SPONSORSHIP_LABEL =
@@ -61,6 +62,34 @@ export function sponsorWalletPath(clubName?: string | null): string {
   const club = String(clubName ?? "").trim();
   if (!club) return SPONSOR_WALLET_PATH;
   return `${SPONSOR_WALLET_PATH}?club=${encodeURIComponent(club)}`;
+}
+
+/** Same-origin /sponsor… return paths only — used after homepage match clicks. */
+export function safeSponsorReturnPath(
+  value: string | null | undefined
+): string | null {
+  const raw = String(value ?? "").trim();
+  if (!raw.startsWith("/sponsor")) return null;
+  if (raw.startsWith("//") || raw.includes("://")) return null;
+  return raw;
+}
+
+export function sponsorLoginPath(next?: string | null): string {
+  const returnTo = safeSponsorReturnPath(next);
+  if (!returnTo) return SPONSOR_LOGIN_PATH;
+  return `${SPONSOR_LOGIN_PATH}?next=${encodeURIComponent(returnTo)}`;
+}
+
+export function sponsorRegisterPath(next?: string | null): string {
+  const returnTo = safeSponsorReturnPath(next);
+  if (!returnTo) return SPONSOR_REGISTER_PATH;
+  return `${SPONSOR_REGISTER_PATH}?next=${encodeURIComponent(returnTo)}`;
+}
+
+export function localSponsorRegisterPath(next?: string | null): string {
+  const returnTo = safeSponsorReturnPath(next);
+  if (!returnTo) return LOCAL_SPONSOR_REGISTER_PATH;
+  return `${LOCAL_SPONSOR_REGISTER_PATH}?next=${encodeURIComponent(returnTo)}`;
 }
 
 export const SPONSOR_ANOTHER_TEAM_PROMPT =

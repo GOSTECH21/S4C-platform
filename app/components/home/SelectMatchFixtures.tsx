@@ -12,6 +12,7 @@ import {
 } from "react";
 import Image from "next/image";
 import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
+import { sponsorFromMatchPath } from "@/app/lib/pending-sponsor-match";
 import {
   formatKickoff,
   formatMatchDate,
@@ -223,7 +224,7 @@ export function SelectMatchPhone({
             </span>
             <span className="pb-1.5 opacity-40">Results</span>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto pb-2 pt-2">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 pt-2 [touch-action:pan-y]">
             {loading ? (
               <p className="text-xs font-semibold">Loading upcoming matches...</p>
             ) : null}
@@ -237,40 +238,55 @@ export function SelectMatchPhone({
                 </p>
               ) : (
                 <ol className="space-y-2">
-                  {matches.map((match) => (
-                    <li
-                      key={match.id}
-                      className="rounded-2xl px-2.5 py-2"
-                      style={{ backgroundColor: "#f3f5f8" }}
-                    >
-                      <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
-                        <span>
-                          {formatMatchDateYear(match.date)} ·{" "}
-                          {formatKickoff(match.kickoff)}
-                        </span>
-                        {match.cup ? (
-                          <span
-                            className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
-                            style={{ backgroundColor: MARK_GREEN }}
-                          >
-                            Cup
-                          </span>
-                        ) : (
-                          <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
-                            League
-                          </span>
-                        )}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-black leading-snug">
-                        {match.fixtureName.replace(" v ", " vs ")}
-                      </p>
-                      <p className="mt-0.5 text-[9px] font-semibold leading-4">
-                        {[match.venue, match.league]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    </li>
-                  ))}
+                  {matches.map((match) => {
+                    const href = sponsorFromMatchPath({
+                      club: shown,
+                      fixtureName: match.fixtureName,
+                      league: match.league,
+                      date: match.date,
+                      kickoff: match.kickoff,
+                      venue: match.venue,
+                      matchId: match.id,
+                    });
+                    const label = match.fixtureName.replace(" v ", " vs ");
+                    return (
+                      <li key={match.id}>
+                        <a
+                          href={href}
+                          aria-label={`Sponsor ${label}`}
+                          className="block rounded-2xl px-2.5 py-2 hover:ring-2 hover:ring-[#5bc662]"
+                          style={{ backgroundColor: "#f3f5f8" }}
+                        >
+                          <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
+                            <span>
+                              {formatMatchDateYear(match.date)} ·{" "}
+                              {formatKickoff(match.kickoff)}
+                            </span>
+                            {match.cup ? (
+                              <span
+                                className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
+                                style={{ backgroundColor: MARK_GREEN }}
+                              >
+                                Cup
+                              </span>
+                            ) : (
+                              <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
+                                League
+                              </span>
+                            )}
+                          </p>
+                          <p className="mt-0.5 text-[11px] font-black leading-snug">
+                            {label}
+                          </p>
+                          <p className="mt-0.5 text-[9px] font-semibold leading-4">
+                            {[match.venue, match.league]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        </a>
+                      </li>
+                    );
+                  })}
                 </ol>
               )
             ) : null}
@@ -335,7 +351,8 @@ export default function SelectMatchFixtures() {
       {matches && !loading ? (
         <p className="mt-4 text-sm font-semibold leading-6">
           {clubPossessive(shown)} next {matches.length} league and cup matches
-          are on the phone.
+          are on the phone. Sponsors: tap a match to lock it in and complete
+          your sponsorship.
         </p>
       ) : null}
     </div>

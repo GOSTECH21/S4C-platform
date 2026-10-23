@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { registerSponsor } from "@/app/services/sponsor-auth.service";
 import {
@@ -14,6 +14,10 @@ import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
+import {
+  continueAfterSponsorAuth,
+  readPendingSponsorMatch,
+} from "@/app/lib/pending-sponsor-match";
 
 export default function SponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -26,6 +30,13 @@ export default function SponsorRegisterPage() {
   const [logoError, setLogoError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const pending = readPendingSponsorMatch();
+    if (pending?.club) setClubNames((current) =>
+      current.length ? current : [pending.club]
+    );
+  }, []);
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -52,7 +63,8 @@ export default function SponsorRegisterPage() {
         email,
         clubNames,
       });
-      window.location.href = SPONSOR_DASHBOARD_PATH;
+      window.location.href =
+        continueAfterSponsorAuth() || SPONSOR_DASHBOARD_PATH;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
       setLoading(false);

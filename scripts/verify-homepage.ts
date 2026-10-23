@@ -448,19 +448,20 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes('label="Next step"') &&
-    howItWorks.includes("Previous") &&
-    howItWorks.includes("Next") &&
+  howItWorks.includes("snap-x") &&
+    howItWorks.includes("snap-mandatory") &&
+    howItWorks.includes("Swipe left or right") &&
     howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("Choose from five club-approved climate projects") &&
     howItWorks.includes("Direct Your Impact") &&
+    !howItWorks.includes('label="Next step"') &&
     !howItWorks.includes("s4p-ticker") &&
     !howItWorks.includes("lg:grid-cols-3") &&
     !howItWorks.includes("xl:grid-cols-6") &&
     !howItWorks.includes("»") &&
     !howItWorks.includes("‹"),
-  "How S4P Works shows one step at a time with Previous and Next"
+  "How S4P Works is a swipeable strip of steps, not Previous and Next"
 );
 assert(
   howItWorks.includes("/images/home/access-join-phone.png") &&
@@ -504,8 +505,21 @@ assert(
     selectMatchFixtures.includes("/api/home/upcoming-matches") &&
     selectMatchFixtures.includes('useState("Arsenal")') &&
     selectMatchFixtures.includes("if (!active) return") &&
-    selectMatchFixtures.includes("SelectMatchPhone"),
-  "Select Match auto-loads Arsenal's next 10 league and cup matches on the Step 2 phone"
+    selectMatchFixtures.includes("SelectMatchPhone") &&
+    selectMatchFixtures.includes("sponsorFromMatchPath") &&
+    selectMatchFixtures.includes("Sponsor") &&
+    selectMatchFixtures.includes('aria-label={`Sponsor ${label}`}'),
+  "Select Match auto-loads Arsenal's next 10 matches and lets a Sponsor tap one to lock it in"
+);
+const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
+const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
+assert(
+  fromMatchPage.includes("lockMatchDayClub") &&
+    fromMatchPage.includes("sponsorWalletPath") &&
+    fromMatchPage.includes("sponsorLoginPath") &&
+    pendingMatch.includes("sponsorFromMatchPath") &&
+    pendingMatch.includes("PENDING_SPONSOR_MATCH_KEY"),
+  "Tapping a homepage match takes a Sponsor through login if needed, then lock-in and the wallet"
 );
 assert(
   howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
