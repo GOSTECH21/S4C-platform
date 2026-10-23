@@ -213,10 +213,10 @@ export function HowYoureSupportingPhone({
         id="match-day-banner"
         className="absolute z-20 overflow-hidden text-white"
         style={{
-          top: "14.6%",
+          top: "13.2%",
           left: "8.2%",
           right: "8%",
-          height: "16.6%",
+          height: "18.4%",
           borderRadius: "0.75rem",
           background:
             "linear-gradient(100deg, #0b2416 0%, #123b24 48%, #1c5a34 100%)",
@@ -236,7 +236,7 @@ export function HowYoureSupportingPhone({
             {clubInitials(homeName || "FC")}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[11px] font-black leading-tight">
+            <p className="text-[11px] font-black leading-tight">
               {fixture}
             </p>
             {match ? (
@@ -662,7 +662,7 @@ export function HowYoureSupportingPanel({
       >
         {badge}
       </p>
-      <h3 className="mt-2 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
+      <h3 className="mt-2 max-w-full text-3xl font-black uppercase leading-tight tracking-tight break-words sm:text-4xl md:text-5xl">
         {number.replace(/^0/, "")}. {title}
       </h3>
       <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
