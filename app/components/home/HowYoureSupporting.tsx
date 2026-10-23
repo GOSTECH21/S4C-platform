@@ -395,15 +395,23 @@ function ClubClimateProjectsSheet() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      setProjects([]);
+      setFromClub(false);
+      setLoading(false);
+    }, 8000);
     void loadClubChosenClimateProjects(club)
       .then((uploaded) => {
         if (cancelled) return;
+        window.clearTimeout(timer);
         const list = uploaded?.projects ?? [];
         setProjects(list);
         setFromClub(list.length > 0);
       })
       .catch(() => {
         if (cancelled) return;
+        window.clearTimeout(timer);
         setProjects([]);
         setFromClub(false);
       })
@@ -412,6 +420,7 @@ function ClubClimateProjectsSheet() {
       });
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [club]);
 
