@@ -49,7 +49,7 @@ function NavIcon({ name }: { name: (typeof NAV)[number]["icon"] }) {
   if (name === "leaf") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill="currentColor" aria-hidden>
-        <path d="M17.2 4.2C12.4 4.5 7 8.2 7 14.2c0 2 .6 3.7 1.7 5L5 21.8l.9 1.3 4.6-3.1c.8.4 1.7.6 2.7.6 6 0 9.4-5.8 9.2-11.4-.1-2.4-1.6-4.7-5.2-5ZM12.8 18.4c-2.6 0-4.3-2-4.3-4.6 0-4.4 3.8-7.4 7.8-7.6 2.4.4 3.3 1.8 3.4 3.4.2 4.2-2.4 8.8-6.9 8.8Z" />
+        <path d="M19 4c-7.2.4-13 5.2-13 12 0 1.8.5 3.3 1.4 4.5L4 22l.8 1.1 4.2-2.8c.7.3 1.5.5 2.4.5 5.6 0 8.8-5.3 8.6-10.6C19.9 6.8 18.4 4.4 19 4Zm-6.4 14.2c-2.4 0-4-1.8-4-4.2 0-4 3.4-6.7 7.1-6.9 2.2.4 3 1.6 3.1 3.1.2 3.8-2.2 8-6.2 8Z" />
       </svg>
     );
   }
@@ -79,7 +79,7 @@ function FeatureIcon({ name }: { name: (typeof FEATURES)[number]["icon"] }) {
   if (name === "coins") {
     return (
       <svg viewBox="0 0 24 24" className={common} fill={MARK_GREEN} aria-hidden>
-        <path d="M8.2 6.2c3.4 0 6.2 1.1 6.2 2.5S11.6 11.2 8.2 11.2 2 10.1 2 8.7s2.8-2.5 6.2-2.5Zm0 6.6c.4 0 .8 0 1.2-.1v2.4c-3.2.1-6.2-1-6.2-2.4 0-.4.2-.8.5-1.1 1.2.8 2.8 1.2 4.5 1.2Zm8.4-3.1c3.2 0 5.8 1 5.8 2.3s-2.6 2.3-5.8 2.3-5.8-1-5.8-2.3 2.6-2.3 5.8-2.3Zm0 4.8c.4 0 .7 0 1.1-.1v2.2c-3 .1-5.8-.9-5.8-2.2 0-.4.2-.7.5-1 1.1.7 2.6 1.1 4.2 1.1ZM8.2 13.6c3.4 0 6.2 1.1 6.2 2.5S11.6 18.6 8.2 18.6 2 17.5 2 16.1s2.8-2.5 6.2-2.5Z" />
+        <path d="M7 8.2c3.3 0 6 .9 6 2.1s-2.7 2.1-6 2.1-6-.9-6-2.1 2.7-2.1 6-2.1Zm0 5.4c3.3 0 6 .9 6 2.1s-2.7 2.1-6 2.1-6-.9-6-2.1 2.7-2.1 6-2.1Zm10.2-2.6c3 0 5.4.8 5.4 1.9s-2.4 1.9-5.4 1.9-5.4-.8-5.4-1.9 2.4-1.9 5.4-1.9Zm0 4.6c3 0 5.4.8 5.4 1.9s-2.4 1.9-5.4 1.9-5.4-.8-5.4-1.9 2.4-1.9 5.4-1.9Z" />
       </svg>
     );
   }
@@ -122,9 +122,11 @@ export default function HomeTopBanner({
           />
           <div className="hidden h-14 w-px shrink-0 border-l border-emerald-400/40 sm:block" />
           <div className="min-w-0">
-            <p className="text-lg font-black uppercase leading-tight tracking-tight sm:text-xl xl:text-[1.35rem]">
+            <p className="text-base font-black uppercase leading-tight tracking-tight sm:text-lg xl:text-xl">
               Sport unites people.{" "}
-              <span style={{ color: MARK_GREEN }}>Together we drive change.</span>
+              <span className="whitespace-nowrap" style={{ color: MARK_GREEN }}>
+                Together we drive change.
+              </span>
             </p>
             <p className="mt-1.5 text-sm font-semibold leading-6 sm:text-base">
               One Platform. Five Major Sports. Real Climate Action. A Cleaner,
@@ -164,7 +166,7 @@ export default function HomeTopBanner({
             We help elite sports clubs, their fans, sponsors and partners
             tackle match-day emissions and fund real climate projects.
           </p>
-          <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-6">
+          <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 xl:grid-cols-4">
             {FEATURES.map((item) => (
               <li key={item.label} className="flex items-center gap-2.5">
                 <FeatureIcon name={item.icon} />
