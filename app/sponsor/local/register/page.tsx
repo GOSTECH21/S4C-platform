@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { registerSponsor } from "@/app/services/sponsor-auth.service";
 import {
@@ -22,6 +22,7 @@ import {
   type LocalMatchSponsorship,
 } from "@/app/lib/local-sponsor";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
+import { continueAfterSponsorAuth, readPendingSponsorMatch } from "@/app/lib/pending-sponsor-match";
 
 export default function LocalSponsorRegisterPage() {
   const [companyName, setCompanyName] = useState("");
@@ -38,6 +39,24 @@ export default function LocalSponsorRegisterPage() {
   const [signerName, setSignerName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const pending = readPendingSponsorMatch();
+    if (!pending) return;
+    if (pending.club) setClubName((current) => current || pending.club);
+    if (pending.fixtureName) {
+      setSelectedMatches((current) =>
+        current.includes(pending.fixtureName)
+          ? current
+          : [...current, pending.fixtureName]
+      );
+      setAmounts((current) => ({
+        ...current,
+        [pending.fixtureName]:
+          current[pending.fixtureName] ?? String(LOCAL_SPONSOR_MIN_GBP),
+      }));
+    }
+  }, []);
 
   function toggleMatch(fixtureName: string) {
     setSelectedMatches((current) =>
@@ -125,7 +144,8 @@ export default function LocalSponsorRegisterPage() {
         brandName: companyName,
         sponsorshipGbp: pledge,
       });
-      window.location.href = LOCAL_SPONSOR_HOME_PATH;
+      window.location.href =
+        continueAfterSponsorAuth() || LOCAL_SPONSOR_HOME_PATH;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
       setLoading(false);

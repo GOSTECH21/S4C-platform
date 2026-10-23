@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import SelectMatchFixtures, {
   SelectMatchPhone,
@@ -212,27 +212,6 @@ function ProjectIcon({
   );
 }
 
-function StepNavButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="shrink-0 rounded-full border border-emerald-400/40 bg-s4p-paper px-3 py-3 text-center text-xs font-black uppercase leading-none tracking-wide shadow-sm hover:bg-s4p-mark sm:px-4 sm:text-sm"
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function HowItWorks({
   onCreateAccount,
   onLogin,
@@ -241,15 +220,36 @@ export default function HowItWorks({
   onLogin: () => void;
 }) {
   const [index, setIndex] = useState(0);
-  const step = steps[index];
-  const isLast = index === steps.length - 1;
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
   const go = useCallback((next: number) => {
-    setIndex((next + steps.length) % steps.length);
+    const clamped = Math.max(0, Math.min(steps.length - 1, next));
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      setIndex(clamped);
+      return;
+    }
+    scroller.scrollTo({
+      left: clamped * scroller.clientWidth,
+      behavior: "smooth",
+    });
+  }, []);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    function onScroll() {
+      const el = scrollerRef.current;
+      if (!el || el.clientWidth === 0) return;
+      const next = Math.round(el.scrollLeft / el.clientWidth);
+      setIndex(Math.max(0, Math.min(steps.length - 1, next)));
+    }
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <SelectMatchProvider active={index === 1}>
+    <SelectMatchProvider active>
       <section id="how-s4p-works" className="pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
@@ -279,7 +279,7 @@ export default function HowItWorks({
         <div
           role="region"
           aria-roledescription="carousel"
-          aria-label="How S4P Works, one step at a time"
+          aria-label="How S4P Works, swipe left and right"
           tabIndex={0}
           onKeyDown={(event) => {
             if (event.key === "ArrowRight") {
@@ -293,113 +293,119 @@ export default function HowItWorks({
           }}
           className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
         >
-          <p className="mb-5 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
+          <p className="mb-2 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
             {index + 1} of 6
           </p>
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-5 md:gap-x-6">
-            <div className="col-span-3 flex min-w-0 flex-col items-center gap-8 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:flex-row lg:items-center lg:gap-12">
-              <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
-                {index === 1 ? (
-                  <SelectMatchPhone src={step.src} alt={step.alt} />
-                ) : (
-                  <Image
-                    src={step.src}
-                    alt={step.alt}
-                    width={step.width}
-                    height={step.height}
-                    className="h-auto w-full"
-                    unoptimized
-                    priority={index === 0}
-                  />
-                )}
-                {index === 0
-                  ? ACCESS_JOIN_HOTSPOTS.map((spot) => (
-                      <button
-                        key={spot.label}
-                        type="button"
-                        aria-label={spot.label}
-                        onClick={
-                          spot.intent === "login" ? onLogin : onCreateAccount
-                        }
-                        className={`absolute z-10 cursor-pointer hover:ring-2 hover:ring-[#5bc662] ${spot.className}`}
+          <p className="mb-5 text-sm font-semibold">
+            Swipe left or right to see each step.
+          </p>
+          <div
+            ref={scrollerRef}
+            className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {steps.map((step, stepIndex) => (
+              <article
+                key={step.number}
+                className="w-full min-w-full shrink-0 snap-start snap-always px-1"
+                aria-label={`${step.badge}. ${step.title}`}
+              >
+                <div className="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
+                  <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
+                    {stepIndex === 1 ? (
+                      <SelectMatchPhone src={step.src} alt={step.alt} />
+                    ) : (
+                      <Image
+                        src={step.src}
+                        alt={step.alt}
+                        width={step.width}
+                        height={step.height}
+                        className="h-auto w-full"
+                        unoptimized
+                        priority={stepIndex === 0}
                       />
-                    ))
-                  : null}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p
-                  className="text-xs font-black uppercase tracking-[0.22em]"
-                  style={{ color: MARK_GREEN }}
-                >
-                  {step.badge}
-                </p>
-                <h3 className="mt-2 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
-                  {step.number.replace(/^0/, "")}. {step.title}
-                </h3>
-                <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-                  {step.caption}
-                </p>
-                <ul className="mt-5 space-y-3">
-                  {step.points.map((point) => (
-                    <li key={point} className="flex items-start gap-3">
-                      <span
-                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-sm font-black text-black"
-                        style={{ backgroundColor: MARK_GREEN }}
-                        aria-hidden
-                      >
-                        ✓
-                      </span>
-                      <span className="text-sm font-semibold leading-6 sm:text-base">
-                        {point}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {index === 0 ? (
-                  <button
-                    type="button"
-                    onClick={onCreateAccount}
-                    className="mt-6 inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
-                  >
-                    Create your free account <span aria-hidden> →</span>
-                  </button>
-                ) : null}
-                {index === 1 ? <SelectMatchFixtures /> : null}
-                {isLast ? (
-                  <>
+                    )}
+                    {stepIndex === 0
+                      ? ACCESS_JOIN_HOTSPOTS.map((spot) => (
+                          <button
+                            key={spot.label}
+                            type="button"
+                            aria-label={spot.label}
+                            onClick={
+                              spot.intent === "login"
+                                ? onLogin
+                                : onCreateAccount
+                            }
+                            className={`absolute z-10 cursor-pointer hover:ring-2 hover:ring-[#5bc662] ${spot.className}`}
+                          />
+                        ))
+                      : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <p
-                      className="mt-5 max-w-xs text-sm font-black uppercase leading-6"
+                      className="text-xs font-black uppercase tracking-[0.22em]"
                       style={{ color: MARK_GREEN }}
                     >
-                      Fans fund it. Fans direct it. Real change happens.
+                      {step.badge}
                     </p>
-                    <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
-                      {PROJECTS.map((project) => (
-                        <div
-                          key={project.title}
-                          className="flex flex-col items-center rounded-2xl border border-emerald-400/30 bg-s4p-paper px-2 py-3 text-center"
-                        >
-                          <ProjectIcon name={project.icon} />
-                          <p className="mt-2 text-[0.7rem] font-black leading-tight">
-                            {project.title}
-                          </p>
-                        </div>
+                    <h3 className="mt-2 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
+                      {step.number.replace(/^0/, "")}. {step.title}
+                    </h3>
+                    <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
+                      {step.caption}
+                    </p>
+                    <ul className="mt-5 space-y-3">
+                      {step.points.map((point) => (
+                        <li key={point} className="flex items-start gap-3">
+                          <span
+                            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-sm font-black text-black"
+                            style={{ backgroundColor: MARK_GREEN }}
+                            aria-hidden
+                          >
+                            ✓
+                          </span>
+                          <span className="text-sm font-semibold leading-6 sm:text-base">
+                            {point}
+                          </span>
+                        </li>
                       ))}
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            </div>
-            <div className="col-start-1 row-start-2 lg:row-start-1 lg:mt-40">
-              <StepNavButton label="Previous step" onClick={() => go(index - 1)}>
-                Previous
-              </StepNavButton>
-            </div>
-            <div className="col-start-3 row-start-2 lg:col-start-3 lg:row-start-1 lg:mt-40">
-              <StepNavButton label="Next step" onClick={() => go(index + 1)}>
-                Next
-              </StepNavButton>
-            </div>
+                    </ul>
+                    {stepIndex === 0 ? (
+                      <button
+                        type="button"
+                        onClick={onCreateAccount}
+                        className="mt-6 inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
+                      >
+                        Create your free account <span aria-hidden> →</span>
+                      </button>
+                    ) : null}
+                    {stepIndex === 1 ? <SelectMatchFixtures /> : null}
+                    {stepIndex === steps.length - 1 ? (
+                      <>
+                        <p
+                          className="mt-5 max-w-xs text-sm font-black uppercase leading-6"
+                          style={{ color: MARK_GREEN }}
+                        >
+                          Fans fund it. Fans direct it. Real change happens.
+                        </p>
+                        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                          {PROJECTS.map((project) => (
+                            <div
+                              key={project.title}
+                              className="flex flex-col items-center rounded-2xl border border-emerald-400/30 bg-s4p-paper px-2 py-3 text-center"
+                            >
+                              <ProjectIcon name={project.icon} />
+                              <p className="mt-2 text-[0.7rem] font-black leading-tight">
+                                {project.title}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
           <div className="mt-6 flex items-center justify-center gap-2">
             {steps.map((item, stepIndex) => (
