@@ -170,7 +170,7 @@ export function HowYoureSupportingPhone({
         aria-label="Continue — I'm attending the match"
         onPointerDown={stopCarouselSwipe}
         onClick={chooseAttending}
-        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[10px] font-black uppercase tracking-[0.08em] text-black hover:brightness-110 [touch-action:manipulation]"
+        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[11px] font-black text-black hover:brightness-110 [touch-action:manipulation]"
         style={{
           left: "9%",
           top: "62.4%",
@@ -178,14 +178,14 @@ export function HowYoureSupportingPhone({
           height: "5.4%",
         }}
       >
-        Continue <span aria-hidden>→</span>
+        Continue
       </button>
       <button
         type="button"
         aria-label="Continue — I'm watching remotely"
         onPointerDown={stopCarouselSwipe}
         onClick={chooseRemote}
-        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[10px] font-black uppercase tracking-[0.08em] text-black hover:brightness-110 [touch-action:manipulation]"
+        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[11px] font-black text-black hover:brightness-110 [touch-action:manipulation]"
         style={{
           left: "54.5%",
           top: "62.4%",
@@ -193,7 +193,7 @@ export function HowYoureSupportingPhone({
           height: "5.4%",
         }}
       >
-        Continue <span aria-hidden>→</span>
+        Continue
       </button>
     </>
   );
