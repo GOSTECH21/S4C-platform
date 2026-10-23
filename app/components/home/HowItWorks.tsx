@@ -293,7 +293,10 @@ export default function HowItWorks({
           }}
           className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
         >
-          <p className="mb-2 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
+          <p
+            id="how-s4p-step-index"
+            className="mb-2 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black"
+          >
             {index + 1} of 6
           </p>
           <p className="mb-5 text-sm font-semibold">
