@@ -291,7 +291,7 @@ export default function HowItWorks({
               go(index - 1);
             }
           }}
-          className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
+          className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
         >
           <p className="mb-2 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
             {index + 1} of 6
@@ -301,12 +301,14 @@ export default function HowItWorks({
           </p>
           <div
             ref={scrollerRef}
-            className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
+            <div className="flex">
             {steps.map((step, stepIndex) => (
               <article
                 key={step.number}
-                className="w-full min-w-full shrink-0 snap-start snap-always px-1"
+                className="w-full shrink-0 snap-start snap-always px-1"
+                style={{ flex: "0 0 100%" }}
                 aria-label={`${step.badge}. ${step.title}`}
               >
                 <div className="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
@@ -406,6 +408,7 @@ export default function HowItWorks({
                 </div>
               </article>
             ))}
+            </div>
           </div>
           <div className="mt-6 flex items-center justify-center gap-2">
             {steps.map((item, stepIndex) => (
