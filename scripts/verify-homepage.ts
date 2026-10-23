@@ -448,8 +448,12 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-  howItWorks.includes("snap-x") &&
+    howItWorks.includes("snap-x") &&
     howItWorks.includes("snap-mandatory") &&
+    howItWorks.includes("overflow-y-hidden") &&
+    howItWorks.includes("data-how-s4p-scroller") &&
+    howItWorks.includes('style={{ flex: "0 0 100%" }}') &&
+    howItWorks.includes("max-w-full") &&
     howItWorks.includes("Swipe left or right") &&
     howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
@@ -508,8 +512,11 @@ assert(
     selectMatchFixtures.includes("SelectMatchPhone") &&
     selectMatchFixtures.includes("sponsorFromMatchPath") &&
     selectMatchFixtures.includes("Sponsor") &&
+    selectMatchFixtures.includes("setSelectedMatch") &&
+    selectMatchFixtures.includes("Choose ${label} for Match Day") &&
+    selectMatchFixtures.includes("Tap a match to choose it for Match Day") &&
     selectMatchFixtures.includes('aria-label={`Sponsor ${label}`}'),
-  "Select Match auto-loads Arsenal's next 10 matches and lets a Sponsor tap one to lock it in"
+  "Select Match auto-loads Arsenal's next 10 matches, lets a fan choose one, and lets a Sponsor lock it in"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
@@ -525,8 +532,55 @@ assert(
   howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
     howItWorks.includes("Both stadium and remote fans") &&
     howItWorks.includes("same match-day climate mission") &&
+    howItWorks.includes("HowYoureSupportingPhone") &&
+    howItWorks.includes("HowYoureSupportingPanel") &&
+    howItWorks.includes("HowYoureSupportingProvider") &&
     !howItWorks.includes("FANS DIRECT THE FUNDING"),
-  "Step 03 is How You're Supporting plus the stadium and remote fans line"
+  "Step 03 is How You're Supporting plus live Continue buttons"
+);
+const howYoureSupporting = readFileSync(
+  "app/components/home/HowYoureSupporting.tsx",
+  "utf8"
+);
+assert(
+  howYoureSupporting.includes('aria-label="Continue — I\'m attending the match"') &&
+    howYoureSupporting.includes(
+      'aria-label="Continue — I\'m watching remotely"'
+    ) &&
+    howYoureSupporting.includes('id="continue-attending-match"') &&
+    howYoureSupporting.includes('id="continue-watching-remotely"') &&
+    howYoureSupporting.includes("bg-s4p-mark") &&
+    howYoureSupporting.includes("Plan Your Match-Day Travel") &&
+    howYoureSupporting.includes("No postcode. No GPS tracking.") &&
+    howYoureSupporting.includes("YOUR ESTIMATED TRAVEL FOOTPRINT") === false &&
+    howYoureSupporting.includes("Your estimated travel footprint") &&
+    howYoureSupporting.includes("kg CO2e") &&
+    howYoureSupporting.includes("estimateTravelKgCo2e") &&
+    howYoureSupporting.includes("saveStadiumTravelRecord") &&
+    howYoureSupporting.includes("loadClubChosenClimateProjects") &&
+    howYoureSupporting.includes("FUND_IT_LABEL") &&
+    howYoureSupporting.includes("fanLoginPath") &&
+    howYoureSupporting.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    howYoureSupporting.includes('id="match-day-banner"') &&
+    howYoureSupporting.includes("selectedMatch") &&
+    howYoureSupporting.includes("role=\"radio\"") &&
+    howYoureSupporting.includes("pinHowS4pSlide"),
+  "Attending Continue opens a live travel sheet; the phone banner shows the chosen Match Day"
+);
+const travelLib = readFileSync("app/lib/match-day-travel.ts", "utf8");
+assert(
+  travelLib.includes("STADIUM_TRAVEL_STORAGE") &&
+    travelLib.includes("s4p.stadium-travel-records") &&
+    travelLib.includes("estimateTravelKgCo2e") &&
+    travelLib.includes("saveStadiumTravelRecord") &&
+    travelLib.includes("stadiumTravelRecordsForClub"),
+  "Stadium-fan travel records keep club, miles, occupants and kgCO2e"
+);
+const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");
+assert(
+  fanLogin.includes("safeFanReturnPath") &&
+    readFileSync("app/lib/routes.ts", "utf8").includes("fanLoginPath"),
+  "Fan login can return to My S4P after a homepage FUND-IT"
 );
 assert(
   howItWorks.includes("/images/home/plan-your-travel-phone.png") &&

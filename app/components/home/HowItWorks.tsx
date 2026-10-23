@@ -6,6 +6,11 @@ import SelectMatchFixtures, {
   SelectMatchPhone,
   SelectMatchProvider,
 } from "@/app/components/home/SelectMatchFixtures";
+import {
+  HowYoureSupportingPanel,
+  HowYoureSupportingPhone,
+  HowYoureSupportingProvider,
+} from "@/app/components/home/HowYoureSupporting";
 
 const MARK_GREEN = "#5bc662";
 const ACCESS_JOIN_ID = "access-join";
@@ -244,13 +249,38 @@ export default function HowItWorks({
       const next = Math.round(el.scrollLeft / el.clientWidth);
       setIndex(Math.max(0, Math.min(steps.length - 1, next)));
     }
+    function pinToNearestSlide() {
+      const el = scrollerRef.current;
+      if (!el || el.clientWidth === 0) return;
+      const slide = Math.max(
+        0,
+        Math.min(
+          steps.length - 1,
+          Math.round(el.scrollLeft / el.clientWidth)
+        )
+      );
+      const left = slide * el.clientWidth;
+      if (Math.abs(el.scrollLeft - left) > 2) {
+        el.scrollLeft = left;
+      }
+    }
     scroller.addEventListener("scroll", onScroll, { passive: true });
-    return () => scroller.removeEventListener("scroll", onScroll);
+    scroller.addEventListener("focusin", pinToNearestSlide);
+    scroller.addEventListener("pointerup", pinToNearestSlide);
+    const resize = new ResizeObserver(() => pinToNearestSlide());
+    resize.observe(scroller);
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("focusin", pinToNearestSlide);
+      scroller.removeEventListener("pointerup", pinToNearestSlide);
+      resize.disconnect();
+    };
   }, []);
 
   return (
     <SelectMatchProvider active>
-      <section id="how-s4p-works" className="pb-8 md:pb-12">
+      <HowYoureSupportingProvider>
+      <section id="how-s4p-works" className="overflow-x-hidden pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
           <div className="min-w-0">
@@ -304,20 +334,23 @@ export default function HowItWorks({
           </p>
           <div
             ref={scrollerRef}
+            data-how-s4p-scroller
             className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <div className="flex">
             {steps.map((step, stepIndex) => (
               <article
                 key={step.number}
-                className="w-full shrink-0 snap-start snap-always px-1"
+                className="w-full max-w-full shrink-0 snap-start snap-always"
                 style={{ flex: "0 0 100%" }}
                 aria-label={`${step.badge}. ${step.title}`}
               >
-                <div className="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
-                  <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
+                <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-start lg:gap-12">
+                  <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
                     {stepIndex === 1 ? (
                       <SelectMatchPhone src={step.src} alt={step.alt} />
+                    ) : stepIndex === 2 ? (
+                      <HowYoureSupportingPhone src={step.src} alt={step.alt} />
                     ) : (
                       <Image
                         src={step.src}
@@ -345,6 +378,15 @@ export default function HowItWorks({
                         ))
                       : null}
                   </div>
+                  {stepIndex === 2 ? (
+                    <HowYoureSupportingPanel
+                      badge={step.badge}
+                      title={step.title}
+                      number={step.number}
+                      caption={step.caption}
+                      points={step.points}
+                    />
+                  ) : (
                   <div className="min-w-0 flex-1">
                     <p
                       className="text-xs font-black uppercase tracking-[0.22em]"
@@ -408,6 +450,7 @@ export default function HowItWorks({
                       </>
                     ) : null}
                   </div>
+                  )}
                 </div>
               </article>
             ))}
@@ -432,6 +475,7 @@ export default function HowItWorks({
         </div>
       </div>
       </section>
+      </HowYoureSupportingProvider>
     </SelectMatchProvider>
   );
 }

@@ -18,6 +18,30 @@ export const FAN_LOGIN_PATH = "/fan/login";
 export const FAN_REGISTER_PATH = "/fan/register";
 export const SUPPORTER_LOGIN_PATH = "/supporter/login";
 
+/** Same-origin fan return paths only — used after homepage match-day Continue. */
+export function safeFanReturnPath(
+  value: string | null | undefined
+): string | null {
+  const raw = String(value ?? "").trim();
+  if (!raw.startsWith("/")) return null;
+  if (raw.startsWith("//") || raw.includes("://")) return null;
+  const allowed =
+    raw.startsWith("/supporter") ||
+    raw.startsWith("/dashboard/supporter") ||
+    raw.startsWith("/fan/");
+  if (!allowed) return null;
+  if (raw.startsWith("/fan/login") || raw.startsWith("/supporter/login")) {
+    return null;
+  }
+  return raw;
+}
+
+export function fanLoginPath(next?: string | null): string {
+  const returnTo = safeFanReturnPath(next);
+  if (!returnTo) return FAN_LOGIN_PATH;
+  return `${FAN_LOGIN_PATH}?next=${encodeURIComponent(returnTo)}`;
+}
+
 /** The URL fans actually land on after login (matches localhost bookmarks). */
 export const SUPPORTER_CAMPAIGN_PATH = "/supporter/dashboard";
 export const SUPPORTER_PROJECTS_PATH = "/dashboard/supporter/vote";

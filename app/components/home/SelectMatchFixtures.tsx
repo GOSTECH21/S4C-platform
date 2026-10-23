@@ -38,6 +38,8 @@ type SelectMatchState = {
   club: string;
   setClub: (club: string) => void;
   matches: HomeUpcomingMatch[] | null;
+  selectedMatch: HomeUpcomingMatch | null;
+  setSelectedMatch: (match: HomeUpcomingMatch) => void;
   resolvedClub: string | null;
   loading: boolean;
   error: string | null;
@@ -69,7 +71,7 @@ function clubInitials(name: string) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
-function useSelectMatch() {
+export function useSelectMatch() {
   const ctx = useContext(SelectMatchContext);
   if (!ctx) {
     throw new Error("SelectMatchProvider is required");
@@ -91,6 +93,9 @@ export function SelectMatchProvider({
   );
   const [club, setClub] = useState("Arsenal");
   const [matches, setMatches] = useState<HomeUpcomingMatch[] | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<HomeUpcomingMatch | null>(
+    null
+  );
   const [resolvedClub, setResolvedClub] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +107,7 @@ export function SelectMatchProvider({
     if (!name) {
       setError("Choose a club from the list to see their upcoming matches.");
       setMatches([]);
+      setSelectedMatch(null);
       return;
     }
     setLoading(true);
@@ -117,12 +123,20 @@ export function SelectMatchProvider({
       };
       if (id !== requestId.current) return;
       setResolvedClub(payload.club || name);
-      setMatches(payload.matches ?? []);
+      const nextMatches = payload.matches ?? [];
+      setMatches(nextMatches);
+      setSelectedMatch((current) => {
+        if (current && nextMatches.some((row) => row.id === current.id)) {
+          return current;
+        }
+        return nextMatches[0] ?? null;
+      });
       setError(payload.error ?? null);
     } catch {
       if (id !== requestId.current) return;
       setError("Could not load upcoming matches. Try again.");
       setMatches([]);
+      setSelectedMatch(null);
     } finally {
       if (id === requestId.current) setLoading(false);
     }
@@ -140,12 +154,23 @@ export function SelectMatchProvider({
       club,
       setClub,
       matches,
+      selectedMatch,
+      setSelectedMatch,
       resolvedClub,
       loading,
       error,
       load,
     }),
-    [groups, club, matches, resolvedClub, loading, error, load]
+    [
+      groups,
+      club,
+      matches,
+      selectedMatch,
+      resolvedClub,
+      loading,
+      error,
+      load,
+    ]
   );
 
   return (
@@ -162,7 +187,15 @@ export function SelectMatchPhone({
   src: string;
   alt: string;
 }) {
-  const { club, resolvedClub, matches, loading, error } = useSelectMatch();
+  const {
+    club,
+    resolvedClub,
+    matches,
+    selectedMatch,
+    setSelectedMatch,
+    loading,
+    error,
+  } = useSelectMatch();
   const shown = resolvedClub || club;
 
   return (
@@ -249,41 +282,58 @@ export function SelectMatchPhone({
                       matchId: match.id,
                     });
                     const label = match.fixtureName.replace(" v ", " vs ");
+                    const selected = selectedMatch?.id === match.id;
                     return (
                       <li key={match.id}>
-                        <a
-                          href={href}
-                          aria-label={`Sponsor ${label}`}
-                          className="block rounded-2xl px-2.5 py-2 hover:ring-2 hover:ring-[#5bc662]"
+                        <div
+                          className={`rounded-2xl px-2.5 py-2 ${
+                            selected ? "ring-2 ring-[#5bc662]" : ""
+                          }`}
                           style={{ backgroundColor: "#f3f5f8" }}
                         >
-                          <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
-                            <span>
-                              {formatMatchDateYear(match.date)} ·{" "}
-                              {formatKickoff(match.kickoff)}
-                            </span>
-                            {match.cup ? (
-                              <span
-                                className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
-                                style={{ backgroundColor: MARK_GREEN }}
-                              >
-                                Cup
+                          <button
+                            type="button"
+                            aria-pressed={selected}
+                            aria-label={`Choose ${label} for Match Day`}
+                            onClick={() => setSelectedMatch(match)}
+                            className="block w-full text-left"
+                          >
+                            <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
+                              <span>
+                                {formatMatchDateYear(match.date)} ·{" "}
+                                {formatKickoff(match.kickoff)}
                               </span>
-                            ) : (
-                              <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
-                                League
-                              </span>
-                            )}
-                          </p>
-                          <p className="mt-0.5 text-[11px] font-black leading-snug">
-                            {label}
-                          </p>
-                          <p className="mt-0.5 text-[9px] font-semibold leading-4">
-                            {[match.venue, match.league]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </p>
-                        </a>
+                              {match.cup ? (
+                                <span
+                                  className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
+                                  style={{ backgroundColor: MARK_GREEN }}
+                                >
+                                  Cup
+                                </span>
+                              ) : (
+                                <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
+                                  League
+                                </span>
+                              )}
+                            </p>
+                            <p className="mt-0.5 text-[11px] font-black leading-snug">
+                              {label}
+                            </p>
+                            <p className="mt-0.5 text-[9px] font-semibold leading-4">
+                              {[match.venue, match.league]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </p>
+                          </button>
+                          <a
+                            href={href}
+                            aria-label={`Sponsor ${label}`}
+                            className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black hover:brightness-110"
+                            style={{ backgroundColor: MARK_GREEN }}
+                          >
+                            Sponsor
+                          </a>
+                        </div>
                       </li>
                     );
                   })}
@@ -351,8 +401,8 @@ export default function SelectMatchFixtures() {
       {matches && !loading ? (
         <p className="mt-4 text-sm font-semibold leading-6">
           {clubPossessive(shown)} next {matches.length} league and cup matches
-          are on the phone. Sponsors: tap a match to lock it in and complete
-          your sponsorship.
+          are on the phone. Tap a match to choose it for Match Day. Sponsors:
+          tap Sponsor to lock it in and complete your sponsorship.
         </p>
       ) : null}
     </div>
