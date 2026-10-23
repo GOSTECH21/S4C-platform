@@ -343,7 +343,7 @@ export default function HowItWorks({
                 aria-label={`${step.badge}. ${step.title}`}
               >
                 <div className="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
-                  <div className="relative w-full max-w-[18rem] shrink-0 sm:max-w-[20rem]">
+                  <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
                     {stepIndex === 1 ? (
                       <SelectMatchPhone src={step.src} alt={step.alt} />
                     ) : stepIndex === 2 ? (
