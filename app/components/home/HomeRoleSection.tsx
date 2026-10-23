@@ -77,6 +77,7 @@ export default function HomeRoleSection({
           height={40}
           className="h-10 w-full object-cover"
           unoptimized
+          loading="eager"
         />
         <div className="px-5 py-6 text-center sm:px-10 sm:py-7">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-s4p-mint">
@@ -124,6 +125,7 @@ export default function HomeRoleSection({
                 height={232}
                 className="h-auto w-full"
                 unoptimized
+                loading="eager"
               />
               <div className="flex flex-1 flex-col px-3.5 pb-4 pt-3">
                 <h3
