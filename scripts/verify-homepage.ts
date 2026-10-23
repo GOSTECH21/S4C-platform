@@ -32,62 +32,62 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(HOME_STAKEHOLDERS.length === 5, "Homepage has five stakeholder cards");
+assert(HOME_STAKEHOLDERS.length === 6, "Homepage has six role cards");
 assert(
-  HOME_STAKEHOLDERS.some((card) => card.title === "A Local Business Climate Sponsor"),
-  "Local Business Climate Sponsor is a homepage option"
+  HOME_STAKEHOLDERS.some((card) => card.title === "Local Businesses"),
+  "Local businesses are a homepage option"
 );
 assert(
-  HOME_STAKEHOLDERS.some((card) => card.title === "A National/Global Climate Sponsor"),
-  "National/Global Climate Sponsor stays on the homepage"
+  HOME_STAKEHOLDERS.some((card) => card.title === "Global Brands"),
+  "Global brands stay on the homepage"
 );
 assert(
-  HOME_STAKEHOLDERS.some((card) => card.title === "A Climate Projects Provider"),
-  "Climate Partner card is now Climate Projects Provider"
+  HOME_STAKEHOLDERS.some((card) => card.title === "Climate Project Providers"),
+  "Climate Partner card is now Climate Project Providers"
 );
 assert(
-  HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
-    ?.description.includes("Climate Impact Fans Table (CIFT)") &&
-    HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
-      ?.description.includes(
-        "Fund up to 5 Climate Projects with monies from Sponsors on every Match Day"
-      ) &&
-    !HOME_STAKEHOLDERS.find((card) => card.title === "A Fan")
+  HOME_STAKEHOLDERS.some((card) => card.title === "Philanthropists") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
+      ?.description.includes("£10,000 per match"),
+  "Philanthropists can donate a match-day gift that fans direct"
+);
+assert(
+  HOME_STAKEHOLDERS.find((card) => card.title === "Fans")
+    ?.description.includes("direct sponsor-funded money to climate projects") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Fans")
+      ?.kicker.includes("Support your team") &&
+    !HOME_STAKEHOLDERS.find((card) => card.title === "Fans")
       ?.description.includes("FUND-IT up to 5 times"),
-  "Fan narrative says fund up to 5 Climate Projects from Sponsors on every Match Day"
+  "Fan narrative follows the team, travel and sponsor-funded projects"
 );
 assert(
-  HOME_STAKEHOLDERS.find((card) => card.title === "A Local Business Climate Sponsor")
+  HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses")
     ?.register === LOCAL_SPONSOR_REGISTER_PATH,
   "Local sponsor card registers at /sponsor/local/register"
 );
 assert(
-  !HOME_STAKEHOLDERS.find((card) => card.title === "A Local Business Climate Sponsor")
+  !HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses")
     ?.description.includes("From £"),
   "Local sponsor homepage card does not mention the £500 leftover line"
 );
 assert(
-  HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
-    ?.description.includes("Climate Impact Sponsor Table (CIST)") &&
-    HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
-      ?.description.includes("e.g a Goal-scored") &&
-    HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
-      ?.description.includes(
-        "direct engagement with Fans & Supporters who care about your environmental credentials"
-      ) &&
-    !HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
-      ?.description.includes("measure your environmental impact"),
-  "National sponsor narrative covers Goal-scored, Fan engagement and CIST"
+  HOME_STAKEHOLDERS.find((card) => card.title === "Global Brands")
+    ?.description.includes("fund measurable climate action") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Global Brands")
+      ?.kicker.includes("brand purpose") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Global Brands")
+      ?.register === SPONSOR_REGISTER_PATH,
+  "Global brands keep /sponsor/register and purpose-to-impact copy"
 );
 assert(
-  HOME_STAKEHOLDERS.find((card) => card.title === "A National/Global Climate Sponsor")
-    ?.register === SPONSOR_REGISTER_PATH,
-  "National sponsor keeps /sponsor/register"
+  HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
+    ?.description.includes("Measure match-day emissions"),
+  "Club narrative leads with match-day emissions"
 );
 assert(
-  HOME_STAKEHOLDERS.find((card) => card.title === "A Sports Club")
-    ?.description.includes("Climate-Sponsored-Projects"),
-  "Club narrative uses Climate-Sponsored-Projects"
+  HOME_STAKEHOLDERS.every((card) => card.image.startsWith("/images/home/role-")) &&
+    HOME_STAKEHOLDERS.some((card) => card.image.includes("philanthropist")),
+  "Role cards use the Image 1 crops, including philanthropists"
 );
 
 assert(LOCAL_SPONSOR_MIN_GBP === 500, "Local businesses can sponsor from £500");
@@ -245,11 +245,28 @@ assert(
 
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 const banner = readFileSync("app/components/home/HomeTopBanner.tsx", "utf8");
+const roles = readFileSync("app/components/home/HomeRoleSection.tsx", "utf8");
 assert(
-  front.includes('id={JOIN_SECTION_ID}') || front.includes('id="are-you"'),
-  "Are You has an anchor the Login and Register tabs can scroll to"
+  front.includes("JOIN_SECTION_ID") &&
+    roles.includes('id="are-you"') &&
+    front.includes("<HomeRoleSection"),
+  "Role cards keep an are-you anchor the Login and Register tabs can scroll to"
 );
-assert(front.includes("Are You...?"), "New Are You heading is on the front page");
+assert(
+  roles.includes("Different roles. One mission. A cleaner, greener sport.") &&
+    roles.includes("Join the S4P community") &&
+    roles.includes("Whether you are a Fan/supporter") &&
+    roles.includes("S4P helps you") &&
+    roles.includes("reach your goals") &&
+    roles.includes("Major Sports") &&
+    roles.includes("/images/home/roles-heading-strip.png") &&
+    roles.includes("/images/home/roles-forest.png") &&
+    roles.includes("xl:grid-cols-6") &&
+    !roles.includes("Are You...?") &&
+    !roles.includes("bg-black") &&
+    !roles.includes("hero.png"),
+  "Image 2 heading and the sandwich paragraph sit above the six role cards"
+);
 assert(
   front.includes('showJoin("login")') &&
     front.includes('showJoin("register")') &&
@@ -268,9 +285,11 @@ assert(
   "Login is an outline pill and Register uses the S4P mark green from the numeral 4"
 );
 assert(
-  front.includes("rounded-xl bg-s4p-mark px-2 py-3") &&
+  roles.includes("backgroundColor: MINT") &&
+    roles.includes("bg-s4p-mark") &&
+    roles.includes("Join the S4P community →") &&
     !front.includes("rounded-xl bg-emerald-500 px-2 py-3"),
-  "Are You Register and Login buttons use the S4P mark green from the numeral 4"
+  "Role-card CTAs use mint pills and the forest bar uses the S4P mark green"
 );
 assert(
   !front.includes("history.replaceState") &&
@@ -278,14 +297,14 @@ assert(
   "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
 );
 assert(
-  front.includes("HomeTopBanner") &&
-    front.indexOf("HomeTopBanner") < front.indexOf("Are You...?"),
-  "The global sports banner sits at the top, above Are You"
+  front.includes("<HomeTopBanner") &&
+    front.indexOf("<HomeTopBanner") < front.indexOf("<HomeRoleSection"),
+  "The global sports banner sits at the top, above the role cards"
 );
 assert(
   front.includes("<HowItWorks") &&
-    front.indexOf("<HowItWorks") < front.indexOf("Are You...?"),
-  "How S4P Works sits above Are You"
+    front.indexOf("<HowItWorks") < front.indexOf("<HomeRoleSection"),
+  "How S4P Works sits above the role cards"
 );
 assert(
   front.includes("HomeJoinMission") &&
@@ -687,7 +706,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Homepage: Every Score Counts banner, Access & Join phone, then five Are You stakeholders."
+  "Homepage: global sports banner, Access & Join phone, then six role cards."
 );
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

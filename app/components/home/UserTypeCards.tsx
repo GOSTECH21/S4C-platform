@@ -3,7 +3,7 @@ import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 
 export default function UserTypeCards() {
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-6">
       {HOME_STAKEHOLDERS.map((type) => (
         <div
           key={type.title}
