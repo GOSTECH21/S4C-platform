@@ -257,13 +257,15 @@ assert(
     front.includes("role=\"tablist\"") &&
     !front.includes("sticky top-0") &&
     banner.includes("{children}") &&
-    banner.indexOf("A cleaner planet") < banner.indexOf("{children}"),
-  "Login and Register sit to the right of A cleaner planet in the top banner"
+    banner.indexOf("News") < banner.indexOf("{children}"),
+  "Login and Register sit to the right of the homepage nav in the top banner"
 );
 assert(
-  front.includes('bg-s4p-mark text-slate-950') &&
+  front.includes("bg-s4p-mark") &&
+    front.includes("text-slate-950") &&
+    front.includes("rounded-full") &&
     !front.includes("bg-emerald-500 text-slate-950"),
-  "Login and Register tabs use the S4P mark green from the numeral 4"
+  "Login is an outline pill and Register uses the S4P mark green from the numeral 4"
 );
 assert(
   front.includes("rounded-xl bg-s4p-mark px-2 py-3") &&
@@ -278,7 +280,7 @@ assert(
 assert(
   front.includes("HomeTopBanner") &&
     front.indexOf("HomeTopBanner") < front.indexOf("Are You...?"),
-  "The Every Score Counts banner sits at the top, above Are You"
+  "The global sports banner sits at the top, above Are You"
 );
 assert(
   front.includes("<HowItWorks") &&
@@ -316,21 +318,30 @@ assert(
 );
 assert(
   banner.includes("SCORE-FOR-PLANET") &&
-    banner.includes("Every score counts") &&
-    banner.includes("Every fan counts") &&
-    banner.includes("Fans at the stadium") &&
-    banner.includes("A cleaner planet") &&
+    banner.includes("Sport unites people") &&
+    banner.includes("Together we drive change") &&
+    banner.includes("passion into progress") &&
+    banner.includes("Five Major Sports") &&
+    banner.includes("Measure emissions") &&
+    banner.includes("A cleaner, greener planet") &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
+    banner.includes('src="/images/home/global-sports-cluster.png"') &&
     banner.includes("#5bc662") &&
     banner.includes("unoptimized") &&
-    banner.includes("border-b border-emerald-400/20") &&
+    banner.includes("border-b-2 border-emerald-400/20") &&
+    !banner.includes("Every score counts") &&
+    !banner.includes("Fans at the stadium") &&
     !banner.includes("every-score-counts-banner.png") &&
+    !banner.includes("hero.png") &&
+    !banner.includes("hero-athletes") &&
     !banner.includes("bg-black") &&
     !banner.includes("#041018") &&
     !banner.includes("rgba(4, 16, 24") &&
     !banner.includes("Score-4-our-Planet") &&
-    !banner.includes("Turning Match-Day Sporting Moments into"),
-  "The homepage uses the S4P lockup with a highlighted 4 and Every score counts on ivory paper"
+    !banner.includes("Turning Match-Day Sporting Moments into") &&
+    !banner.includes("sporting-calendar") &&
+    !banner.includes("published-fixtures"),
+  "The homepage uses the S4P lockup and Image 1 global-sports copy on ivory paper"
 );
 
 const joinMission = readFileSync(
@@ -399,7 +410,9 @@ assert(
   "Catalog Trees Planted / tCO2e / Brighter Tomorrow windows are removed"
 );
 assert(
-  !front.includes("hero-athletes-v2"),
+  !front.includes("hero-athletes-v2") &&
+    !front.includes("hero.png") &&
+    !front.includes("hero-athletes"),
   "Old athlete hero image stays off the front page"
 );
 

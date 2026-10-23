@@ -47,6 +47,11 @@ assert(
     readFileSync("public/images/home/s4p-lockup.png")[25] === 6,
   "The default S4P lockup is a transparent PNG so the paper shows through"
 );
+assert(
+  existsSync("public/images/home/global-sports-cluster.png") &&
+    readFileSync("public/images/home/global-sports-cluster.png")[25] === 6,
+  "The global sports cluster is a transparent PNG so ivory paper shows through"
+);
 
 const css = readFileSync("app/globals.css", "utf8");
 assert(css.includes("--s4p-canvas: #f7f4e8"), "The live canvas is ivory paper");
@@ -108,8 +113,8 @@ assert(
 );
 assert(
   banner.includes("SCORE-FOR-PLANET") &&
-    banner.includes("Every score counts") &&
-    banner.includes("Every fan counts") &&
+    banner.includes("Sport unites people") &&
+    banner.includes("Together we drive change") &&
     !home.includes("Sport creates the moment."),
   "SCORE-FOR-PLANET lockup replaces the old Sport creates the moment stack"
 );
@@ -138,12 +143,15 @@ assert(
       "/images/home/choose-direct-impact-phone.png"
     ) &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
-    banner.includes("Every score counts") &&
+    banner.includes('src="/images/home/global-sports-cluster.png"') &&
+    banner.includes("passion into progress") &&
     banner.includes("#5bc662") &&
+    !banner.includes("Every score counts") &&
     !banner.includes("every-score-counts-banner.png") &&
+    !banner.includes("hero.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup on an ivory strip and the six How S4P Works phones"
+  "Home uses the S4P lockup and ivory global-sports banner plus the six How S4P Works phones"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(
