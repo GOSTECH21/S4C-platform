@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 import HomeTopBanner from "@/app/components/home/HomeTopBanner";
 import HomeJoinMission from "@/app/components/home/HomeJoinMission";
 import HowItWorks from "@/app/components/home/HowItWorks";
+import HomeRoleSection from "@/app/components/home/HomeRoleSection";
 
 const JOIN_SECTION_ID = "are-you";
 
@@ -83,95 +82,7 @@ export default function HomeFrontPage() {
           onLogin={() => showJoin("login")}
         />
 
-        <section
-          id={JOIN_SECTION_ID}
-          className="scroll-mt-24 px-5 pb-16 md:px-10"
-        >
-          <h2 className="text-center text-4xl font-black tracking-tight md:text-5xl">
-            Are You...?
-          </h2>
-          <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-slate-300 md:text-base">
-            {joinIntent === "login"
-              ? "Choose your role to Login as a Fan, Club, Sponsor or Climate Projects Provider."
-              : "Choose your role to Register as a Fan, Club, Sponsor or Climate Projects Provider."}
-          </p>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
-            {HOME_STAKEHOLDERS.map((card) => {
-              const primaryHref =
-                joinIntent === "login" ? card.login : card.register;
-              const primaryText =
-                joinIntent === "login"
-                  ? card.loginButtonText
-                  : card.registerText;
-              const secondaryHref =
-                joinIntent === "login" ? card.register : card.login;
-              const secondaryText =
-                joinIntent === "login"
-                  ? card.registerText.replace(" →", "")
-                  : card.loginText;
-              return (
-                <article
-                  key={card.title}
-                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-emerald-400/25 bg-slate-900 shadow-xl"
-                >
-                  <div className="relative h-40">
-                    <Image
-                      src={card.image}
-                      alt={card.imageAlt}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-lg font-black text-white">{card.title}</h3>
-                    <p className="mt-3 flex-1 text-sm leading-6 text-slate-300">
-                      {card.description}
-                    </p>
-                    <a
-                      href={primaryHref}
-                      className="mt-5 block rounded-xl bg-s4p-mark px-2 py-3 text-center text-[0.8rem] font-bold leading-snug text-slate-950 hover:brightness-110"
-                    >
-                      {primaryText}
-                    </a>
-                    <a
-                      href={secondaryHref}
-                      className="mt-2 block text-center text-xs font-semibold text-slate-400 hover:text-white"
-                    >
-                      {secondaryText}
-                    </a>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          <div className="mt-12 grid gap-5 text-center text-sm text-slate-300 sm:grid-cols-2 lg:grid-cols-5">
-            <p>
-              <span className="font-black text-s4p-mint">Real Impact</span>
-              <br />
-              Funding verified climate projects
-            </p>
-            <p>
-              <span className="font-black text-s4p-mint">Stronger Communities</span>
-              <br />
-              Local and global benefits
-            </p>
-            <p>
-              <span className="font-black text-s4p-mint">Transparent &amp; Credible</span>
-              <br />
-              Track progress and outcomes
-            </p>
-            <p>
-              <span className="font-black text-s4p-mint">A Healthier Planet</span>
-              <br />
-              For future generations
-            </p>
-            <p className="font-[Georgia,Times,serif] text-lg italic text-s4p-mint lg:text-xl">
-              Every Score Counts.
-            </p>
-          </div>
-        </section>
+        <HomeRoleSection joinIntent={joinIntent} onJoin={showJoin} />
       </div>
     </div>
   );

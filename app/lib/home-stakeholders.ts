@@ -12,6 +12,7 @@ import {
 
 export type HomeStakeholder = {
   title: string;
+  kicker: string;
   description: string;
   register: string;
   login: string;
@@ -24,63 +25,81 @@ export type HomeStakeholder = {
 
 export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
   {
-    title: "A Fan",
+    title: "Sports Clubs",
+    kicker: "Lead your club to a cleaner future.",
     description:
-      "Help your team address their Match Day Carbon Footprints. Fund up to 5 Climate Projects with monies from Sponsors on every Match Day and climb up our Climate Impact Fans Table (CIFT).",
-    register: FAN_REGISTER_PATH,
-    login: FAN_LOGIN_PATH,
-    registerText: "Register as a Fan →",
-    loginText: "Already registered? Login",
-    loginButtonText: "Login as a Fan →",
-    image: "/images/home/card-fan.png",
-    imageAlt: "Fans celebrating in a packed stadium",
-  },
-  {
-    title: "A Sports Club",
-    description:
-      "Provide Fans your Climate-Sponsored-Projects; let them help address your Match Day Carbon Footprints & push you up the Climate Impact League Table (CILT).",
+      "Measure match-day emissions, engage your fans, unlock sponsor funding and deliver verified climate projects.",
     register: CLUB_REGISTER_PATH,
     login: CLUB_LOGIN_PATH,
-    registerText: "Register Your Club →",
+    registerText: "Discover Club Benefits →",
     loginText: "Already registered? Login",
     loginButtonText: "Login as a Club →",
-    image: "/images/home/card-club.png",
-    imageAlt: "A floodlit football pitch",
+    image: "/images/home/role-club.png",
+    imageAlt: "A packed stadium under floodlights",
   },
   {
-    title: "A Local Business Climate Sponsor",
+    title: "Fans",
+    kicker: "Support your team. Make a difference.",
     description:
-      "Put your business in front of Fans & Supporters of your local sports club; help them address their Match Day Carbon footprints and attract new climate-conscious sports Fans.",
+      "Follow your team, plan your travel (or support remotely), take part in predictions and direct sponsor-funded money to climate projects.",
+    register: FAN_REGISTER_PATH,
+    login: FAN_LOGIN_PATH,
+    registerText: "Join as a Fan →",
+    loginText: "Already registered? Login",
+    loginButtonText: "Login as a Fan →",
+    image: "/images/home/role-fan.png",
+    imageAlt: "A fan holding a scarf above a packed stand",
+  },
+  {
+    title: "Local Businesses",
+    kicker: "Support your club. Support your community.",
+    description:
+      "Gain local visibility, align your brand with climate action and fund projects through match-day sponsorship.",
     register: LOCAL_SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
-    registerText: "Register as Local Sponsor →",
+    registerText: "Become a Local Sponsor →",
     loginText: "Already registered? Login",
     loginButtonText: "Login as Local Sponsor →",
-    image: "/images/home/card-local.png",
-    imageAlt: "A local business near a stadium",
+    image: "/images/home/role-local.png",
+    imageAlt: "A high-street of local businesses",
   },
   {
-    title: "A National/Global Climate Sponsor",
+    title: "Global Brands",
+    kicker: "Turn your brand purpose into real impact.",
     description:
-      "Sponsor sporting moments at scale (e.g a Goal-scored); have a direct engagement with Fans & Supporters who care about your environmental credentials; and feature on our Climate Impact Sponsor Table (CIST).",
+      "Reach passionate audiences, fund measurable climate action and gain recognition on S4P and project provider websites.",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
-    registerText: "Register as a Sponsor →",
+    registerText: "Explore Brand Sponsorship →",
     loginText: "Already registered? Login",
     loginButtonText: "Login as a Sponsor →",
-    image: "/images/home/card-national.png",
-    imageAlt: "A national climate sponsor headquarters",
+    image: "/images/home/role-global.png",
+    imageAlt: "A city billboard showing a leaf for climate purpose",
   },
   {
-    title: "A Climate Projects Provider",
+    title: "Philanthropists",
+    kicker: "Empower fans. Amplify impact.",
     description:
-      "Register your climate project, attract new funding, and join a global community turning sport into climate action.",
+      "Make a transformational contribution (e.g. £10,000 per match) and let fans direct your gift to the climate projects that matter most.",
+    register: SPONSOR_REGISTER_PATH,
+    login: SPONSOR_LOGIN_PATH,
+    registerText: "Be a Philanthropic Sponsor →",
+    loginText: "Already registered? Login",
+    loginButtonText: "Login as a Sponsor →",
+    image: "/images/home/role-philanthropist.png",
+    imageAlt: "Hands holding a seedling in soil",
+  },
+  {
+    title: "Climate Project Providers",
+    kicker: "Deliver solutions. Create lasting impact.",
+    description:
+      "Receive funding, implement high-quality climate projects and showcase sponsor support on your website.",
     register: PARTNER_REGISTER_PATH,
     login: PARTNER_LOGIN_PATH,
-    registerText: "Register Your Project →",
+    registerText: "Partner with S4P →",
     loginText: "Already registered? Login",
     loginButtonText: "Login as a Provider →",
-    image: "/images/home/card-provider.png",
-    imageAlt: "Climate projects in the field",
+    image: "/images/home/role-provider.png",
+    imageAlt: "Wind turbines above a forested ridge",
   },
 ];
