@@ -142,6 +142,10 @@ export function HowYoureSupportingProvider({
   );
 }
 
+function stopCarouselSwipe(event: { stopPropagation: () => void }) {
+  event.stopPropagation();
+}
+
 export function HowYoureSupportingPhone({
   src,
   alt,
@@ -164,29 +168,33 @@ export function HowYoureSupportingPhone({
       <button
         type="button"
         aria-label="Continue — I'm attending the match"
+        onPointerDown={stopCarouselSwipe}
         onClick={chooseAttending}
-        className="absolute z-10 cursor-pointer hover:ring-2 hover:ring-[#5bc662]"
+        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[10px] font-black uppercase tracking-[0.08em] text-black hover:brightness-110 [touch-action:manipulation]"
         style={{
-          left: "8%",
-          top: "35%",
-          width: "41%",
-          height: "36%",
-          borderRadius: "1rem",
+          left: "9%",
+          top: "62.4%",
+          width: "35%",
+          height: "5.4%",
         }}
-      />
+      >
+        Continue <span aria-hidden>→</span>
+      </button>
       <button
         type="button"
         aria-label="Continue — I'm watching remotely"
+        onPointerDown={stopCarouselSwipe}
         onClick={chooseRemote}
-        className="absolute z-10 cursor-pointer hover:ring-2 hover:ring-[#5bc662]"
+        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[10px] font-black uppercase tracking-[0.08em] text-black hover:brightness-110 [touch-action:manipulation]"
         style={{
-          left: "51%",
-          top: "35%",
-          width: "41%",
-          height: "36%",
-          borderRadius: "1rem",
+          left: "54.5%",
+          top: "62.4%",
+          width: "35%",
+          height: "5.4%",
         }}
-      />
+      >
+        Continue <span aria-hidden>→</span>
+      </button>
     </>
   );
 }
@@ -528,7 +536,7 @@ export function HowYoureSupportingPanel({
   caption: string;
   points: string[];
 }) {
-  const { view } = useHowYoureSupporting();
+  const { view, chooseAttending, chooseRemote } = useHowYoureSupporting();
   if (view === "travel") {
     return (
       <div className="min-w-0 flex-1">
@@ -574,6 +582,26 @@ export function HowYoureSupportingPanel({
           </li>
         ))}
       </ul>
+      <div className="mt-6 flex max-w-xl flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          id="continue-attending-match"
+          onPointerDown={stopCarouselSwipe}
+          onClick={chooseAttending}
+          className="inline-flex items-center justify-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-black hover:brightness-110 [touch-action:manipulation]"
+        >
+          I&apos;m attending the match <span aria-hidden> →</span>
+        </button>
+        <button
+          type="button"
+          id="continue-watching-remotely"
+          onPointerDown={stopCarouselSwipe}
+          onClick={chooseRemote}
+          className="inline-flex items-center justify-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-black hover:brightness-110 [touch-action:manipulation]"
+        >
+          I&apos;m watching remotely <span aria-hidden> →</span>
+        </button>
+      </div>
     </div>
   );
 }

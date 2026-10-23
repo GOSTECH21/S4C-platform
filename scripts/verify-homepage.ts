@@ -540,6 +540,9 @@ assert(
     howYoureSupporting.includes(
       'aria-label="Continue — I\'m watching remotely"'
     ) &&
+    howYoureSupporting.includes('id="continue-attending-match"') &&
+    howYoureSupporting.includes('id="continue-watching-remotely"') &&
+    howYoureSupporting.includes("bg-s4p-mark") &&
     howYoureSupporting.includes("Plan Your Match-Day Travel") &&
     howYoureSupporting.includes("No postcode. No GPS tracking.") &&
     howYoureSupporting.includes("YOUR ESTIMATED TRAVEL FOOTPRINT") === false &&

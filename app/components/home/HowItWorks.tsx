@@ -310,7 +310,7 @@ export default function HowItWorks({
           </p>
           <div
             ref={scrollerRef}
-            className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <div className="flex">
             {steps.map((step, stepIndex) => (
