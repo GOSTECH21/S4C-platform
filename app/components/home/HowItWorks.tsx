@@ -267,10 +267,13 @@ export default function HowItWorks({
     scroller.addEventListener("scroll", onScroll, { passive: true });
     scroller.addEventListener("focusin", pinToNearestSlide);
     scroller.addEventListener("pointerup", pinToNearestSlide);
+    const resize = new ResizeObserver(() => pinToNearestSlide());
+    resize.observe(scroller);
     return () => {
       scroller.removeEventListener("scroll", onScroll);
       scroller.removeEventListener("focusin", pinToNearestSlide);
       scroller.removeEventListener("pointerup", pinToNearestSlide);
+      resize.disconnect();
     };
   }, []);
 
@@ -338,11 +341,11 @@ export default function HowItWorks({
             {steps.map((step, stepIndex) => (
               <article
                 key={step.number}
-                className="w-full shrink-0 snap-start snap-always px-1"
+                className="w-full max-w-full shrink-0 snap-start snap-always"
                 style={{ flex: "0 0 100%" }}
                 aria-label={`${step.badge}. ${step.title}`}
               >
-                <div className="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
+                <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-start lg:gap-12">
                   <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
                     {stepIndex === 1 ? (
                       <SelectMatchPhone src={step.src} alt={step.alt} />

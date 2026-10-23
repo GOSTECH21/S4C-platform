@@ -452,6 +452,8 @@ assert(
     howItWorks.includes("snap-mandatory") &&
     howItWorks.includes("overflow-y-hidden") &&
     howItWorks.includes("data-how-s4p-scroller") &&
+    howItWorks.includes('style={{ flex: "0 0 100%" }}') &&
+    howItWorks.includes("max-w-full") &&
     howItWorks.includes("Swipe left or right") &&
     howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
