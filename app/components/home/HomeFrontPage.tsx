@@ -49,17 +49,17 @@ export default function HomeFrontPage() {
         <div
           role="tablist"
           aria-label="Login or Register"
-          className="inline-flex shrink-0 rounded-xl border border-emerald-400/30 bg-s4p-paper p-1 shadow-sm"
+          className="flex shrink-0 items-center gap-2"
         >
           <button
             type="button"
             role="tab"
             aria-selected={joinIntent === "login"}
             onClick={() => showJoin("login")}
-            className={`rounded-lg px-5 py-2 text-sm font-bold ${
+            className={`rounded-full border px-5 py-2 text-sm font-bold ${
               joinIntent === "login"
-                ? "bg-s4p-mark text-slate-950"
-                : "hover:bg-s4p-mark/30"
+                ? "border-s4p-mark bg-s4p-paper text-slate-950"
+                : "border-emerald-400/50 bg-s4p-paper hover:bg-s4p-mark/20"
             }`}
           >
             Login
@@ -69,11 +69,7 @@ export default function HomeFrontPage() {
             role="tab"
             aria-selected={joinIntent === "register"}
             onClick={() => showJoin("register")}
-            className={`rounded-lg px-5 py-2 text-sm font-bold ${
-              joinIntent === "register"
-                ? "bg-s4p-mark text-slate-950"
-                : "hover:bg-s4p-mark/30"
-            }`}
+            className="rounded-full bg-s4p-mark px-5 py-2 text-sm font-bold text-slate-950 hover:brightness-110"
           >
             Register
           </button>
