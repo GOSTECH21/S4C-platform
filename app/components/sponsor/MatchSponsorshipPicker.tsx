@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SafeInput } from "@/app/components/forms/SafeFormField";
 import {
   formatKickoff,
   formatMatchDate,
@@ -76,7 +77,7 @@ function FixtureRows({
           >
             <span className="flex items-start gap-3">
               {selectable ? (
-                <input
+                <SafeInput
                   type="checkbox"
                   checked={on}
                   onChange={() => onToggle(fixture.fixtureName)}
@@ -96,7 +97,7 @@ function FixtureRows({
             {selectable && on ? (
               <label className="text-sm text-green-100">
                 Sponsorship amount
-                <input
+                <SafeInput
                   type="number"
                   min={LOCAL_SPONSOR_MIN_GBP}
                   step={50}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
+import { SafeInput } from "@/app/components/forms/SafeFormField";
 import { readLogoFile } from "@/app/services/climate-sponsors.service";
 
 export function BrandLogoField({
@@ -25,7 +26,7 @@ export function BrandLogoField({
       {label}
       <div className="mt-2 flex items-center gap-4">
         <BrandMark name={brandName || "Brand"} logoUrl={logoUrl} large />
-        <input
+        <SafeInput
           type="file"
           accept="image/*"
           onChange={(event) => {

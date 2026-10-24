@@ -1,6 +1,7 @@
 /** Per-title login fields so Fan, Club, Sponsor, Partner and Staff stay separate. */
 
 export type LoginRole = "fan" | "club" | "sponsor" | "partner" | "admin";
+export type RegisterRole = LoginRole | "local";
 
 export type RoleLoginAccount = {
   email: string;
@@ -51,7 +52,7 @@ export type RoleRegisterAccount = {
  * password (including another person's browser profile) is not painted in.
  * Phone is a tel field so Chrome does not treat it as the username.
  */
-export function roleRegisterAccount(role: LoginRole): RoleRegisterAccount {
+export function roleRegisterAccount(role: RegisterRole): RoleRegisterAccount {
   const section = `section-s4p-${role}-register`;
   return {
     formId: `s4p-${role}-register`,

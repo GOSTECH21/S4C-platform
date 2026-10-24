@@ -150,6 +150,21 @@ assert(
   "Local sponsor registration exists"
 );
 assert(
+  localPage.includes("formReady") &&
+    localPage.includes("SafeInput") &&
+    localPage.includes('roleRegisterAccount("local")') &&
+    localPage.includes("account.organisationName") &&
+    localPage.includes("account.emailName") &&
+    localPage.includes('autoComplete="off"') &&
+    !localPage.includes("<input") &&
+    !localPage.includes('name="email"') &&
+    !localPage.includes('name="password"') &&
+    readFileSync("app/components/forms/SafeFormField.tsx", "utf8").includes(
+      "suppressHydrationWarning"
+    ),
+  "Local sponsor registration waits for the client and uses unique field names so Chrome/LastPass cannot mismatch SSR HTML"
+);
+assert(
   localPage.includes(String(LOCAL_SPONSOR_MIN_GBP)),
   "Local registration states the £500 minimum"
 );

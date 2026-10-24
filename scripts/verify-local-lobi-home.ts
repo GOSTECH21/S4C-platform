@@ -196,7 +196,10 @@ assert(
   homePage.includes("LocalSignedSponsorHome") &&
     homePage.includes("lobiRowsForArea") &&
     walletPage.includes("LOCAL_SPONSOR_HOME_PATH") &&
-    registerPage.includes("LOCAL_SPONSOR_HOME_PATH"),
+    registerPage.includes("LOCAL_SPONSOR_HOME_PATH") &&
+    registerPage.includes("formReady") &&
+    registerPage.includes("SafeInput") &&
+    registerPage.includes('roleRegisterAccount("local")'),
   "Local login, wallet bounce, and register all use the LOBI home"
 );
 assert(

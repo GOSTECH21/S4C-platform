@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { SafeInput } from "@/app/components/forms/SafeFormField";
 import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
 import { clubNetworkLeagueId } from "@/app/lib/climate-sponsors";
 
@@ -60,7 +61,7 @@ export function ClubNetworkPicker({
 
   return (
     <div>
-      <input
+      <SafeInput
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
