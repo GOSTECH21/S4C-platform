@@ -192,7 +192,9 @@ function StepArrow({
       }
       disabled={disabled}
       onClick={onClick}
-      className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-s4p-paper hover:bg-s4p-mark disabled:pointer-events-none disabled:opacity-30 lg:inline-flex"
+      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-400/40 bg-s4p-paper shadow-sm hover:bg-s4p-mark disabled:pointer-events-none disabled:opacity-30 lg:inline-flex ${
+        direction === "left" ? "left-0" : "right-0"
+      }`}
     >
       <svg
         viewBox="0 0 24 24"
@@ -368,7 +370,7 @@ export default function HowItWorks({
           <p className="mb-5 text-center text-sm font-semibold">
             Explore the six steps below.
           </p>
-          <div className="flex items-center gap-3 lg:gap-5">
+          <div className="relative lg:px-16">
           <StepArrow
             direction="left"
             disabled={index === 0}
@@ -377,14 +379,17 @@ export default function HowItWorks({
           <div
             ref={scrollerRef}
             data-how-s4p-scroller
-            className="min-w-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div className="flex">
+            <div
+              className="flex"
+              style={{ width: `${steps.length * 100}%` }}
+            >
             {steps.map((step, stepIndex) => (
               <article
                 key={step.number}
-                className="w-full max-w-full shrink-0 snap-start snap-always"
-                style={{ flex: "0 0 100%" }}
+                className="max-w-none shrink-0 snap-start snap-always"
+                style={{ flex: `0 0 ${100 / steps.length}%` }}
                 aria-label={`Step ${stepIndex + 1} of ${steps.length}. ${step.title}`}
               >
                 <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
