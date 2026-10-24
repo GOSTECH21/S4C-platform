@@ -23,6 +23,7 @@ function BlankRegisterField(props: InputHTMLAttributes<HTMLInputElement>) {
       data-lpignore="true"
       data-bwignore="true"
       data-form-type="other"
+      suppressHydrationWarning
     />
   );
 }

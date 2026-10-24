@@ -167,6 +167,30 @@ assert(
   "Fan registration does not SSR generic firstName/email/password inputs"
 );
 
+const localRegisterAccount = roleRegisterAccount("local");
+assert(
+  localRegisterAccount.formId === "s4p-local-register" &&
+    localRegisterAccount.organisationName === "s4p-local-register-organisation" &&
+    localRegisterAccount.emailName === "s4p-local-register-email" &&
+    localRegisterAccount.passwordName === "s4p-local-register-password" &&
+    localRegisterAccount.emailName !== accounts.sponsor.emailName,
+  "Local sponsor registration uses its own blank fields, not the Sponsor login names"
+);
+
+const localRegister = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
+assert(
+  localRegister.includes('roleRegisterAccount("local")') &&
+    localRegister.includes("formReady") &&
+    localRegister.includes("SafeInput") &&
+    localRegister.includes("account.organisationName") &&
+    localRegister.includes("account.emailName") &&
+    localRegister.includes("account.passwordName") &&
+    !localRegister.includes("<input") &&
+    !localRegister.includes('name="email"') &&
+    !localRegister.includes('name="password"'),
+  "Local sponsor registration does not SSR generic email/password inputs"
+);
+
 const genericLogin = readFileSync("app/login/page.tsx", "utf8");
 assert(
   genericLogin.includes('roleLoginAccount("fan")') &&

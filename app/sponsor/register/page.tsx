@@ -18,8 +18,12 @@ import {
   continueAfterSponsorAuth,
   readPendingSponsorMatch,
 } from "@/app/lib/pending-sponsor-match";
+import { roleRegisterAccount } from "@/app/lib/role-login";
+import { SafeInput } from "@/app/components/forms/SafeFormField";
 
 export default function SponsorRegisterPage() {
+  const account = roleRegisterAccount("sponsor");
+  const [formReady, setFormReady] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [jobTitle, setJobTitle] = useState("Sponsorship Manager");
@@ -32,11 +36,16 @@ export default function SponsorRegisterPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setFormReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!formReady) return;
     const pending = readPendingSponsorMatch();
     if (pending?.club) setClubNames((current) =>
       current.length ? current : [pending.club]
     );
-  }, []);
+  }, [formReady]);
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -92,11 +101,25 @@ export default function SponsorRegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleRegister} className="mt-10 space-y-5">
+      {!formReady ? (
+        <div
+          className="mt-10 min-h-[28rem] rounded-xl border border-slate-800 bg-slate-800/40"
+          aria-hidden
+        />
+      ) : (
+      <form
+        id={account.formId}
+        autoComplete="off"
+        onSubmit={handleRegister}
+        className="mt-10 space-y-5"
+      >
         <label className="block text-sm text-slate-400">
           Company / brand name
-          <input
+          <SafeInput
             type="text"
+            id={account.organisationName}
+            name={account.organisationName}
+            autoComplete="off"
             value={companyName}
             onChange={(event) => setCompanyName(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -106,8 +129,11 @@ export default function SponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Contact name
-          <input
+          <SafeInput
             type="text"
+            id={account.contactName}
+            name={account.contactName}
+            autoComplete="off"
             value={contactName}
             onChange={(event) => setContactName(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -116,8 +142,11 @@ export default function SponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Role
-          <input
+          <SafeInput
             type="text"
+            id={`${account.formId}-role`}
+            name={`${account.formId}-role`}
+            autoComplete="off"
             value={jobTitle}
             onChange={(event) => setJobTitle(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -126,8 +155,11 @@ export default function SponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Email
-          <input
+          <SafeInput
             type="email"
+            id={account.emailName}
+            name={account.emailName}
+            autoComplete={account.emailAutoComplete}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -136,8 +168,11 @@ export default function SponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Password
-          <input
+          <SafeInput
             type="password"
+            id={account.passwordName}
+            name={account.passwordName}
+            autoComplete={account.passwordAutoComplete}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -173,6 +208,7 @@ export default function SponsorRegisterPage() {
           {loading ? "Creating account..." : "Register as Sponsor"}
         </button>
       </form>
+      )}
       <p className="mt-6 text-center text-sm text-slate-400">
         Already registered?{" "}
         <Link href={SPONSOR_LOGIN_PATH} className="font-semibold text-green-400">

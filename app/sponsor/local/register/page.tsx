@@ -23,8 +23,12 @@ import {
 } from "@/app/lib/local-sponsor";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import { continueAfterSponsorAuth, readPendingSponsorMatch } from "@/app/lib/pending-sponsor-match";
+import { roleRegisterAccount } from "@/app/lib/role-login";
+import { SafeInput } from "@/app/components/forms/SafeFormField";
 
 export default function LocalSponsorRegisterPage() {
+  const account = roleRegisterAccount("local");
+  const [formReady, setFormReady] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,6 +45,11 @@ export default function LocalSponsorRegisterPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setFormReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!formReady) return;
     const pending = readPendingSponsorMatch();
     if (!pending) return;
     if (pending.club) setClubName((current) => current || pending.club);
@@ -56,7 +65,7 @@ export default function LocalSponsorRegisterPage() {
           current[pending.fixtureName] ?? String(LOCAL_SPONSOR_MIN_GBP),
       }));
     }
-  }, []);
+  }, [formReady]);
 
   function toggleMatch(fixtureName: string) {
     setSelectedMatches((current) =>
@@ -174,11 +183,25 @@ export default function LocalSponsorRegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleRegister} className="mt-10 space-y-5">
+      {!formReady ? (
+        <div
+          className="mt-10 min-h-[32rem] rounded-xl border border-slate-800 bg-slate-800/40"
+          aria-hidden
+        />
+      ) : (
+      <form
+        id={account.formId}
+        autoComplete="off"
+        onSubmit={handleRegister}
+        className="mt-10 space-y-5"
+      >
         <label className="block text-sm text-slate-400">
           Business name
-          <input
+          <SafeInput
             type="text"
+            id={account.organisationName}
+            name={account.organisationName}
+            autoComplete="off"
             value={companyName}
             onChange={(event) => setCompanyName(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -188,8 +211,11 @@ export default function LocalSponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Contact name
-          <input
+          <SafeInput
             type="text"
+            id={account.contactName}
+            name={account.contactName}
+            autoComplete="off"
             value={contactName}
             onChange={(event) => setContactName(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -198,8 +224,11 @@ export default function LocalSponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Email
-          <input
+          <SafeInput
             type="email"
+            id={account.emailName}
+            name={account.emailName}
+            autoComplete={account.emailAutoComplete}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -208,8 +237,11 @@ export default function LocalSponsorRegisterPage() {
         </label>
         <label className="block text-sm text-slate-400">
           Password
-          <input
+          <SafeInput
             type="password"
+            id={account.passwordName}
+            name={account.passwordName}
+            autoComplete={account.passwordAutoComplete}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
@@ -230,13 +262,15 @@ export default function LocalSponsorRegisterPage() {
         <div>
         <label className="block text-sm text-slate-400">
           Business postcode
-          <input
+          <SafeInput
             type="text"
+            id={`${account.formId}-postcode`}
+            name={`${account.formId}-postcode`}
             value={postcode}
             onChange={(event) => setPostcode(event.target.value)}
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             placeholder="e.g. EH7 5AA"
-            autoComplete="postal-code"
+            autoComplete="off"
             required
           />
         </label>
@@ -284,7 +318,7 @@ export default function LocalSponsorRegisterPage() {
             {LOCAL_SPONSOR_TERMS}
           </div>
           <label className="flex items-start gap-3 text-sm text-slate-300">
-            <input
+            <SafeInput
               type="checkbox"
               checked={acceptedTerms}
               onChange={(event) => setAcceptedTerms(event.target.checked)}
@@ -295,8 +329,11 @@ export default function LocalSponsorRegisterPage() {
           </label>
           <label className="block text-sm text-slate-400">
             Signature (type your full name)
-            <input
+            <SafeInput
               type="text"
+              id={`${account.formId}-signature`}
+              name={`${account.formId}-signature`}
+              autoComplete="off"
               value={signerName}
               onChange={(event) => setSignerName(event.target.value)}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 font-serif text-2xl text-white"
@@ -314,6 +351,7 @@ export default function LocalSponsorRegisterPage() {
           {loading ? "Submitting..." : "Sign & SUBMIT"}
         </button>
       </form>
+      )}
       <p className="mt-6 text-center text-sm text-slate-400">
         Already registered?{" "}
         <Link href={SPONSOR_LOGIN_PATH} className="font-semibold text-green-400">
