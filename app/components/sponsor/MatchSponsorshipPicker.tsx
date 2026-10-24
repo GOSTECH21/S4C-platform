@@ -7,8 +7,6 @@ import {
   formatMatchDate,
 } from "@/app/lib/upcoming-matches";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
-import { DEMO_CLUB_NAMES } from "@/app/lib/current-season";
-import { demoFixturesForClub } from "@/app/lib/demo-club-fixtures";
 import { calendarFixturesForClub } from "@/app/lib/sporting-calendar";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import { formatMoney } from "@/app/lib/sponsorship-auction";
@@ -131,26 +129,13 @@ export function MatchSponsorshipPicker({
 }) {
   if (!clubName.trim()) {
     return (
-      <div id="fixture-lists" className="space-y-6">
-        {DEMO_CLUB_NAMES.map((club) => (
-          <section
-            key={club}
-            className="rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
-          >
-            <FixtureRows
-              heading={`${club} fixture list`}
-              fixtures={demoFixturesForClub(club)}
-              selectable={false}
-              selected={[]}
-              amounts={{}}
-              onToggle={onToggle}
-              onAmount={onAmount}
-            />
-          </section>
-        ))}
+      <div
+        id="fixture-lists"
+        className="rounded-2xl border border-emerald-400/40 bg-slate-900 p-4"
+      >
         <p className="text-sm text-green-100">
-          Choose the club first, then tick the Matches you wish to sponsor on
-          that club&apos;s list.
+          Choose any club on the Sporting Calendar first, then tick the Matches
+          you wish to sponsor on that club&apos;s list.
         </p>
       </div>
     );
