@@ -13,7 +13,10 @@ import {
 } from "@/app/components/home/HowYoureSupporting";
 
 const MARK_GREEN = "#5bc662";
+const MINT = "#0c5c2c";
 const ACCESS_JOIN_ID = "access-join";
+const STEP_TAB_CLASS =
+  "inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black";
 
 const ACCESS_JOIN_HOTSPOTS: Array<{
   label: string;
@@ -72,7 +75,6 @@ const steps: Array<{
   width: number;
   height: number;
   number: string;
-  badge: string;
   title: string;
   caption: string;
   points: string[];
@@ -83,7 +85,6 @@ const steps: Array<{
     width: 248,
     height: 584,
     number: "01",
-    badge: "Step 1",
     title: "Access & Join",
     caption:
       "Join in seconds. A free account gives you access to your club's matches, predictions and climate impact features.",
@@ -99,7 +100,6 @@ const steps: Array<{
     width: 247,
     height: 589,
     number: "02",
-    badge: "Step 2",
     title: "Select Match",
     caption:
       "Pick the upcoming match you want to take part in. See key details, kick-off time and the climate mission.",
@@ -115,7 +115,6 @@ const steps: Array<{
     width: 252,
     height: 585,
     number: "03",
-    badge: "Step 3",
     title: "How You're Supporting",
     caption:
       "Both stadium and remote fans are part of the same match-day climate mission.",
@@ -131,7 +130,6 @@ const steps: Array<{
     width: 244,
     height: 581,
     number: "04",
-    badge: "Step 4",
     title: "Plan Your Travel",
     caption:
       "Estimate your return distance, choose your transport type and see your estimated travel emissions. No tracking. No postcode.",
@@ -147,7 +145,6 @@ const steps: Array<{
     width: 254,
     height: 582,
     number: "05",
-    badge: "Step 5",
     title: "Match Day Climate Mission",
     caption:
       "See the live carbon target, progress and how each sponsor channel is contributing to the match-day climate mission.",
@@ -163,7 +160,6 @@ const steps: Array<{
     width: 251,
     height: 581,
     number: "06",
-    badge: "Final step",
     title: "Direct Your Impact",
     caption:
       "Use your Fan Carbon Wallet to allocate sponsor-funded money to the club's approved climate projects. Choose from five club-approved climate projects and direct your sponsor-funded money to the areas that matter most to you.",
@@ -282,19 +278,22 @@ export default function HowItWorks({
       <HowYoureSupportingProvider>
       <section id="how-s4p-works" className="overflow-x-hidden pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-5 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-4">
-          <div className="min-w-0">
+        <div className="relative mx-auto max-w-[1600px] px-5 py-5 md:px-10 xl:py-5">
+          <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl xl:text-[2.4rem]">
               How S<span style={{ color: MARK_GREEN }}>4</span>P Works
             </h2>
-            <p className="mt-2 text-sm font-bold uppercase leading-6 sm:text-base">
-              Same passion. Cleaner planet.{" "}
-              <span style={{ color: MARK_GREEN }}>
-                Every score counts. Every fan counts.
-              </span>
+            <p className="mt-2 text-sm font-bold uppercase leading-6 tracking-tight sm:text-base">
+              Same passion. Cleaner planet.
+            </p>
+            <p
+              className="mt-1 text-base font-black uppercase leading-6 tracking-tight sm:text-lg"
+              style={{ color: MINT }}
+            >
+              Every score counts. Every fan counts.
             </p>
           </div>
-          <p className="shrink-0 -rotate-3 self-start rounded-md bg-s4p-mark px-4 py-3 text-center text-sm font-black uppercase leading-tight text-black shadow-sm xl:self-center xl:px-5 xl:text-base">
+          <p className="mx-auto mt-4 w-fit shrink-0 -rotate-3 rounded-md bg-s4p-mark px-4 py-3 text-center text-sm font-black uppercase leading-tight text-black shadow-sm xl:absolute xl:right-10 xl:top-1/2 xl:mx-0 xl:mt-0 xl:-translate-y-1/2 xl:px-5 xl:text-base">
             A quick guide to
             <br />
             making a real difference
@@ -323,13 +322,7 @@ export default function HowItWorks({
           }}
           className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
         >
-          <p
-            id="how-s4p-step-index"
-            className="mb-2 inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black"
-          >
-            {index + 1} of 6
-          </p>
-          <p className="mb-5 text-sm font-semibold">
+          <p className="mb-5 text-center text-sm font-semibold">
             Swipe left or right to see each step.
           </p>
           <div
@@ -343,9 +336,9 @@ export default function HowItWorks({
                 key={step.number}
                 className="w-full max-w-full shrink-0 snap-start snap-always"
                 style={{ flex: "0 0 100%" }}
-                aria-label={`${step.badge}. ${step.title}`}
+                aria-label={`Step ${stepIndex + 1} of ${steps.length}. ${step.title}`}
               >
-                <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-start lg:gap-12">
+                <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
                   <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
                     {stepIndex === 1 ? (
                       <SelectMatchPhone src={step.src} alt={step.alt} />
@@ -380,7 +373,7 @@ export default function HowItWorks({
                   </div>
                   {stepIndex === 2 ? (
                     <HowYoureSupportingPanel
-                      badge={step.badge}
+                      badge={`Step ${stepIndex + 1} of ${steps.length}`}
                       title={step.title}
                       number={step.number}
                       caption={step.caption}
@@ -388,11 +381,8 @@ export default function HowItWorks({
                     />
                   ) : (
                   <div className="min-w-0 flex-1">
-                    <p
-                      className="text-xs font-black uppercase tracking-[0.22em]"
-                      style={{ color: MARK_GREEN }}
-                    >
-                      {step.badge}
+                    <p className={STEP_TAB_CLASS}>
+                      Step {stepIndex + 1} of {steps.length}
                     </p>
                     <h3 className="mt-2 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
                       {step.number.replace(/^0/, "")}. {step.title}
