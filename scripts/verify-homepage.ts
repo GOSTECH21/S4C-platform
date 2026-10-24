@@ -472,9 +472,11 @@ assert(
     howItWorks.includes("making a real difference") &&
     howItWorks.includes("Same passion. Cleaner planet.") &&
     howItWorks.includes("Every score counts. Every fan counts.") &&
+    howItWorks.includes("mx-auto max-w-3xl text-center") &&
+    howItWorks.includes('#0c5c2c') &&
     !howItWorks.includes('src="/images/home/s4p-lockup.png"') &&
     !howItWorks.includes("How Score-For-Our-Planet Works"),
-  "How It Works starts with How S4P Works, without a second lockup"
+  "How S4P Works is centred with a darker Every score counts line"
 );
 assert(
   howItWorks.includes("bg-s4p-mark") && !howItWorks.includes("bg-green-500"),
@@ -488,6 +490,11 @@ assert(
     howItWorks.includes('style={{ flex: "0 0 100%" }}') &&
     howItWorks.includes("max-w-full") &&
     howItWorks.includes("Swipe left or right") &&
+    howItWorks.includes("lg:items-center") &&
+    howItWorks.includes("Step ${stepIndex + 1} of ${steps.length}") &&
+    !howItWorks.includes("{index + 1} of 6") &&
+    !howItWorks.includes("Final step") &&
+    !howItWorks.includes("how-s4p-step-index") &&
     howItWorks.includes('aria-roledescription="carousel"') &&
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("Choose from five club-approved climate projects") &&
@@ -582,6 +589,9 @@ assert(
     ) &&
     howYoureSupporting.includes('id="continue-attending-match"') &&
     howYoureSupporting.includes('id="continue-watching-remotely"') &&
+    howYoureSupporting.includes(
+      "inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black"
+    ) &&
     howYoureSupporting.includes("bg-s4p-mark") &&
     howYoureSupporting.includes("Plan Your Match-Day Travel") &&
     howYoureSupporting.includes("No postcode. No GPS tracking.") &&

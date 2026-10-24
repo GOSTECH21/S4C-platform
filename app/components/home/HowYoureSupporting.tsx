@@ -656,10 +656,7 @@ export function HowYoureSupportingPanel({
 
   return (
     <div className="min-w-0 flex-1">
-      <p
-        className="text-xs font-black uppercase tracking-[0.22em]"
-        style={{ color: MARK_GREEN }}
-      >
+      <p className="inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
         {badge}
       </p>
       <h3 className="mt-2 max-w-full text-3xl font-black uppercase leading-tight tracking-tight break-words sm:text-4xl md:text-5xl">
