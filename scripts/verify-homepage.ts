@@ -468,8 +468,9 @@ assert(
   howItWorks.includes("How S") &&
     howItWorks.includes("P Works") &&
     howItWorks.includes("How Score-For-Planet Works") === false &&
-    howItWorks.includes("A quick guide to") &&
-    howItWorks.includes("making a real difference") &&
+    !howItWorks.includes("A quick guide to") &&
+    !howItWorks.includes("making a real difference") &&
+    !howItWorks.includes("-rotate-3") &&
     howItWorks.includes("Same passion. Cleaner planet.") &&
     howItWorks.includes("Every score counts. Every fan counts.") &&
     howItWorks.includes("mx-auto max-w-3xl text-center") &&

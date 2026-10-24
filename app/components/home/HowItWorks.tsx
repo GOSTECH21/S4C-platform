@@ -278,7 +278,7 @@ export default function HowItWorks({
       <HowYoureSupportingProvider>
       <section id="how-s4p-works" className="overflow-x-hidden pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
-        <div className="relative mx-auto max-w-[1600px] px-5 py-5 md:px-10 xl:py-5">
+        <div className="mx-auto max-w-[1600px] px-5 py-5 md:px-10 xl:py-5">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl xl:text-[2.4rem]">
               How S<span style={{ color: MARK_GREEN }}>4</span>P Works
@@ -293,11 +293,6 @@ export default function HowItWorks({
               Every score counts. Every fan counts.
             </p>
           </div>
-          <p className="mx-auto mt-4 w-fit shrink-0 -rotate-3 rounded-md bg-s4p-mark px-4 py-3 text-center text-sm font-black uppercase leading-tight text-black shadow-sm xl:absolute xl:right-10 xl:top-1/2 xl:mx-0 xl:mt-0 xl:-translate-y-1/2 xl:px-5 xl:text-base">
-            A quick guide to
-            <br />
-            making a real difference
-          </p>
         </div>
       </div>
 
