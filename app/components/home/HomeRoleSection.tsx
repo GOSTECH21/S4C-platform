@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 
@@ -68,57 +67,6 @@ export default function HomeRoleSection({
   joinIntent: "login" | "register";
   onJoin: (intent: "login" | "register") => void;
 }) {
-  const [index, setIndex] = useState(0);
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const total = HOME_STAKEHOLDERS.length;
-
-  const go = useCallback((next: number) => {
-    const clamped = Math.max(0, Math.min(total - 1, next));
-    const scroller = scrollerRef.current;
-    if (!scroller) {
-      setIndex(clamped);
-      return;
-    }
-    scroller.scrollTo({
-      left: clamped * scroller.clientWidth,
-      behavior: "smooth",
-    });
-  }, [total]);
-
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    function onScroll() {
-      const el = scrollerRef.current;
-      if (!el || el.clientWidth === 0) return;
-      const next = Math.round(el.scrollLeft / el.clientWidth);
-      setIndex(Math.max(0, Math.min(total - 1, next)));
-    }
-    function pinToNearestSlide() {
-      const el = scrollerRef.current;
-      if (!el || el.clientWidth === 0) return;
-      const slide = Math.max(
-        0,
-        Math.min(total - 1, Math.round(el.scrollLeft / el.clientWidth))
-      );
-      const left = slide * el.clientWidth;
-      if (Math.abs(el.scrollLeft - left) > 2) {
-        el.scrollLeft = left;
-      }
-    }
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-    scroller.addEventListener("focusin", pinToNearestSlide);
-    scroller.addEventListener("pointerup", pinToNearestSlide);
-    const resize = new ResizeObserver(() => pinToNearestSlide());
-    resize.observe(scroller);
-    return () => {
-      scroller.removeEventListener("scroll", onScroll);
-      scroller.removeEventListener("focusin", pinToNearestSlide);
-      scroller.removeEventListener("pointerup", pinToNearestSlide);
-      resize.disconnect();
-    };
-  }, [total]);
-
   return (
     <section id="are-you" className="scroll-mt-24 overflow-x-hidden pb-16">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
@@ -144,115 +92,67 @@ export default function HomeRoleSection({
       </p>
 
       <div
-        role="region"
-        aria-roledescription="carousel"
-        aria-label="S4P roles, swipe left and right"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowRight") {
-            event.preventDefault();
-            go(index + 1);
-          }
-          if (event.key === "ArrowLeft") {
-            event.preventDefault();
-            go(index - 1);
-          }
-        }}
-        className="s4p-navy-panel mt-8 overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
+        data-role-cards-grid
+        className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5"
       >
-        <p className="mb-5 text-center text-sm font-semibold">
-          Swipe left or right to see each role.
-        </p>
-        <div
-          ref={scrollerRef}
-          data-role-cards-scroller
-          className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <div className="flex">
-            {HOME_STAKEHOLDERS.map((card, cardIndex) => {
-              const primaryHref =
-                joinIntent === "login" ? card.login : card.register;
-              const primaryText =
-                joinIntent === "login"
-                  ? card.loginButtonText
-                  : card.registerText;
-              const secondaryHref =
-                joinIntent === "login" ? card.register : card.login;
-              const secondaryText =
-                joinIntent === "login"
-                  ? card.registerText.replace(" →", "")
-                  : card.loginText;
-              return (
-                <article
-                  key={card.title}
-                  className="w-full max-w-full shrink-0 snap-start snap-always"
-                  style={{ flex: "0 0 100%" }}
-                  aria-label={`Role ${cardIndex + 1} of ${total}. ${card.title}`}
-                >
-                  <div className="mx-auto flex w-fit max-w-3xl flex-col items-center gap-6 px-2 lg:flex-row lg:items-center lg:gap-8">
-                    <div className="relative w-full max-w-[16rem] shrink-0 overflow-hidden rounded-[1.25rem] sm:max-w-[18rem]">
-                      <Image
-                        src={card.image}
-                        alt={card.imageAlt}
-                        width={444}
-                        height={232}
-                        className="h-auto w-full"
-                        unoptimized
-                        loading="eager"
-                      />
-                    </div>
-                    <div className="min-w-0 max-w-md text-center lg:text-left">
-                      <p className="inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
-                        Role {cardIndex + 1} of {total}
-                      </p>
-                      <h3
-                        className="mt-3 text-2xl font-black uppercase leading-none tracking-tight sm:text-3xl"
-                        style={{ color: MINT }}
-                      >
-                        {card.title}
-                      </h3>
-                      <p className="mt-3 text-sm font-black uppercase leading-6 sm:text-base">
-                        {card.kicker}
-                      </p>
-                      <p className="mt-3 text-sm font-semibold leading-6 sm:text-base sm:leading-7">
-                        {card.description}
-                      </p>
-                      <a
-                        href={primaryHref}
-                        className="mt-5 inline-flex items-center rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-[0.12em] hover:brightness-110 sm:text-sm"
-                        style={{ backgroundColor: MINT, color: PAPER }}
-                      >
-                        {primaryText}
-                      </a>
-                      <a
-                        href={secondaryHref}
-                        className="mt-3 block text-sm font-semibold hover:text-s4p-mint"
-                      >
-                        {secondaryText}
-                      </a>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          {HOME_STAKEHOLDERS.map((card, cardIndex) => (
-            <button
+        {HOME_STAKEHOLDERS.map((card) => {
+          const primaryHref =
+            joinIntent === "login" ? card.login : card.register;
+          const primaryText =
+            joinIntent === "login" ? card.loginButtonText : card.registerText;
+          const secondaryHref =
+            joinIntent === "login" ? card.register : card.login;
+          const secondaryText =
+            joinIntent === "login"
+              ? card.registerText.replace(" →", "")
+              : card.loginText;
+          return (
+            <article
               key={card.title}
-              type="button"
-              aria-label={`Go to role ${cardIndex + 1}, ${card.title}`}
-              aria-current={cardIndex === index ? "true" : undefined}
-              onClick={() => go(cardIndex)}
-              className={`h-2.5 rounded-full ${
-                cardIndex === index
-                  ? "w-8 bg-s4p-mark"
-                  : "w-2.5 bg-emerald-400/40 hover:bg-emerald-400/70"
-              }`}
-            />
-          ))}
-        </div>
+              className="flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-emerald-400/25 bg-s4p-paper shadow-sm"
+            >
+              <h3
+                className="px-3.5 pt-4 text-sm font-black uppercase tracking-wide sm:px-4 sm:text-base"
+                style={{ color: MINT }}
+              >
+                {card.title}
+              </h3>
+              <Image
+                src={card.image}
+                alt={card.imageAlt}
+                width={444}
+                height={232}
+                className="mt-3 h-auto w-full"
+                unoptimized
+                loading="eager"
+              />
+              <div className="flex flex-1 flex-col px-3.5 pb-4 pt-3 sm:px-4">
+                <p className="text-[0.72rem] font-black uppercase leading-tight sm:text-sm">
+                  {card.kicker}
+                </p>
+                <p className="mt-2 flex-1 text-[0.72rem] leading-5 lg:hidden">
+                  {card.shortDescription}
+                </p>
+                <p className="mt-2 hidden flex-1 text-sm leading-6 lg:block">
+                  {card.description}
+                </p>
+                <a
+                  href={primaryHref}
+                  className="mt-3 block rounded-full px-2 py-2.5 text-center text-[0.68rem] font-bold leading-snug hover:brightness-110 sm:text-xs"
+                  style={{ backgroundColor: MINT, color: PAPER }}
+                >
+                  {primaryText}
+                </a>
+                <a
+                  href={secondaryHref}
+                  className="mt-2 block text-center text-[0.65rem] font-semibold hover:text-s4p-mint sm:text-xs"
+                >
+                  {secondaryText}
+                </a>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <div className="relative mt-6 overflow-hidden rounded-[1.5rem]">

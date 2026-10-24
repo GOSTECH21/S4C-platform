@@ -89,6 +89,14 @@ assert(
     HOME_STAKEHOLDERS.some((card) => card.image.includes("philanthropist")),
   "Role cards use the Image 1 crops, including philanthropists"
 );
+assert(
+  HOME_STAKEHOLDERS.every(
+    (card) =>
+      Boolean(card.shortDescription) &&
+      card.shortDescription.length < card.description.length
+  ),
+  "Each role card has a shorter mobile description"
+);
 
 assert(LOCAL_SPONSOR_MIN_GBP === 500, "Local businesses can sponsor from £500");
 assert(
@@ -262,16 +270,20 @@ assert(
     !roles.includes("/images/home/roles-heading-strip.png") &&
     roles.includes("/images/home/roles-forest.png") &&
     roles.includes("mx-auto max-w-[1400px]") &&
-    roles.includes("mx-auto flex w-fit max-w-3xl") &&
-    roles.includes("snap-x") &&
-    roles.includes("data-role-cards-scroller") &&
-    roles.includes("Swipe left or right to see each role.") &&
-    roles.includes("Role ${cardIndex + 1} of ${total}") &&
+    roles.includes("data-role-cards-grid") &&
+    roles.includes("lg:grid-cols-3") &&
+    roles.includes("sm:grid-cols-2") &&
+    roles.includes("grid-cols-1") &&
+    roles.includes("shortDescription") &&
+    roles.indexOf("{card.title}") < roles.indexOf("card.image") &&
+    !roles.includes("data-role-cards-scroller") &&
+    !roles.includes('aria-roledescription="carousel"') &&
+    !roles.includes("Swipe left or right to see each role.") &&
     !roles.includes("xl:grid-cols-6") &&
     !roles.includes("Are You...?") &&
     !roles.includes("bg-black") &&
     !roles.includes("hero.png"),
-  "Image 2 heading and the sandwich paragraph sit above swipeable role cards"
+  "Image 2 heading sits above a 3x2 role grid, not a second carousel"
 );
 assert(
   front.includes('showJoin("login")') &&

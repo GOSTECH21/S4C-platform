@@ -14,6 +14,7 @@ export type HomeStakeholder = {
   title: string;
   kicker: string;
   description: string;
+  shortDescription: string;
   register: string;
   login: string;
   registerText: string;
@@ -29,6 +30,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     kicker: "Lead your club to a cleaner future.",
     description:
       "Measure match-day emissions, engage your fans, unlock sponsor funding and deliver verified climate projects.",
+    shortDescription:
+      "Measure match-day emissions and deliver verified climate projects.",
     register: CLUB_REGISTER_PATH,
     login: CLUB_LOGIN_PATH,
     registerText: "Discover Club Benefits →",
@@ -42,6 +45,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     kicker: "Support your team. Make a difference.",
     description:
       "Follow your team, plan your travel (or support remotely), take part in predictions and direct sponsor-funded money to climate projects.",
+    shortDescription:
+      "Follow your team and direct sponsor-funded money to climate projects.",
     register: FAN_REGISTER_PATH,
     login: FAN_LOGIN_PATH,
     registerText: "Join as a Fan →",
@@ -55,6 +60,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     kicker: "Support your club. Support your community.",
     description:
       "Gain local visibility, align your brand with climate action and fund projects through match-day sponsorship.",
+    shortDescription:
+      "Fund climate projects through match-day sponsorship.",
     register: LOCAL_SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Become a Local Sponsor →",
@@ -68,6 +75,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     kicker: "Turn your brand purpose into real impact.",
     description:
       "Reach passionate audiences, fund measurable climate action and gain recognition on S4P and project provider websites.",
+    shortDescription:
+      "Fund measurable climate action and reach passionate audiences.",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Explore Brand Sponsorship →",
@@ -81,6 +90,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     kicker: "Empower fans. Amplify impact.",
     description:
       "Make a transformational contribution (e.g. £10,000 per match) and let fans direct your gift to the climate projects that matter most.",
+    shortDescription:
+      "Give a match-day gift and let fans direct it to climate projects.",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Be a Philanthropic Sponsor →",
@@ -94,6 +105,8 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     kicker: "Deliver solutions. Create lasting impact.",
     description:
       "Receive funding, implement high-quality climate projects and showcase sponsor support on your website.",
+    shortDescription:
+      "Receive funding and deliver high-quality climate projects.",
     register: PARTNER_REGISTER_PATH,
     login: PARTNER_LOGIN_PATH,
     registerText: "Partner with S4P →",
