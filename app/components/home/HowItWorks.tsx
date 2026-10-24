@@ -368,7 +368,7 @@ export default function HowItWorks({
           <p className="mb-5 text-center text-sm font-semibold">
             Explore the six steps below.
           </p>
-          <div className="flex items-center gap-3 lg:gap-4">
+          <div className="flex items-center gap-3 lg:gap-5">
           <StepArrow
             direction="left"
             disabled={index === 0}
@@ -377,7 +377,7 @@ export default function HowItWorks({
           <div
             ref={scrollerRef}
             data-how-s4p-scroller
-            className="w-full min-w-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="min-w-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <div className="flex">
             {steps.map((step, stepIndex) => (
