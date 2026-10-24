@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
 
@@ -67,8 +68,59 @@ export default function HomeRoleSection({
   joinIntent: "login" | "register";
   onJoin: (intent: "login" | "register") => void;
 }) {
+  const [index, setIndex] = useState(0);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const total = HOME_STAKEHOLDERS.length;
+
+  const go = useCallback((next: number) => {
+    const clamped = Math.max(0, Math.min(total - 1, next));
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      setIndex(clamped);
+      return;
+    }
+    scroller.scrollTo({
+      left: clamped * scroller.clientWidth,
+      behavior: "smooth",
+    });
+  }, [total]);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    function onScroll() {
+      const el = scrollerRef.current;
+      if (!el || el.clientWidth === 0) return;
+      const next = Math.round(el.scrollLeft / el.clientWidth);
+      setIndex(Math.max(0, Math.min(total - 1, next)));
+    }
+    function pinToNearestSlide() {
+      const el = scrollerRef.current;
+      if (!el || el.clientWidth === 0) return;
+      const slide = Math.max(
+        0,
+        Math.min(total - 1, Math.round(el.scrollLeft / el.clientWidth))
+      );
+      const left = slide * el.clientWidth;
+      if (Math.abs(el.scrollLeft - left) > 2) {
+        el.scrollLeft = left;
+      }
+    }
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    scroller.addEventListener("focusin", pinToNearestSlide);
+    scroller.addEventListener("pointerup", pinToNearestSlide);
+    const resize = new ResizeObserver(() => pinToNearestSlide());
+    resize.observe(scroller);
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("focusin", pinToNearestSlide);
+      scroller.removeEventListener("pointerup", pinToNearestSlide);
+      resize.disconnect();
+    };
+  }, [total]);
+
   return (
-    <section id="are-you" className="scroll-mt-24 px-5 pb-16 md:px-10">
+    <section id="are-you" className="scroll-mt-24 overflow-x-hidden px-5 pb-16 md:px-10">
       <div className="overflow-hidden rounded-[1.75rem] border border-emerald-400/25 bg-s4p-paper shadow-sm">
         <Image
           src="/images/home/roles-heading-strip.png"
@@ -101,62 +153,116 @@ export default function HomeRoleSection({
         reach your goals
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {HOME_STAKEHOLDERS.map((card) => {
-          const primaryHref =
-            joinIntent === "login" ? card.login : card.register;
-          const primaryText =
-            joinIntent === "login" ? card.loginButtonText : card.registerText;
-          const secondaryHref =
-            joinIntent === "login" ? card.register : card.login;
-          const secondaryText =
-            joinIntent === "login"
-              ? card.registerText.replace(" →", "")
-              : card.loginText;
-          return (
-            <article
+      <div
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="S4P roles, swipe left and right"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            go(index + 1);
+          }
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            go(index - 1);
+          }
+        }}
+        className="s4p-navy-panel mt-8 overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
+      >
+        <p className="mb-5 text-center text-sm font-semibold">
+          Swipe left or right to see each role.
+        </p>
+        <div
+          ref={scrollerRef}
+          data-role-cards-scroller
+          className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div className="flex">
+            {HOME_STAKEHOLDERS.map((card, cardIndex) => {
+              const primaryHref =
+                joinIntent === "login" ? card.login : card.register;
+              const primaryText =
+                joinIntent === "login"
+                  ? card.loginButtonText
+                  : card.registerText;
+              const secondaryHref =
+                joinIntent === "login" ? card.register : card.login;
+              const secondaryText =
+                joinIntent === "login"
+                  ? card.registerText.replace(" →", "")
+                  : card.loginText;
+              return (
+                <article
+                  key={card.title}
+                  className="w-full max-w-full shrink-0 snap-start snap-always"
+                  style={{ flex: "0 0 100%" }}
+                  aria-label={`Role ${cardIndex + 1} of ${total}. ${card.title}`}
+                >
+                  <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
+                    <div className="relative w-full max-w-[28rem] shrink-0 overflow-hidden rounded-[1.25rem]">
+                      <Image
+                        src={card.image}
+                        alt={card.imageAlt}
+                        width={444}
+                        height={232}
+                        className="h-auto w-full"
+                        unoptimized
+                        loading="eager"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
+                        Role {cardIndex + 1} of {total}
+                      </p>
+                      <h3
+                        className="mt-3 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl"
+                        style={{ color: MINT }}
+                      >
+                        {card.title}
+                      </h3>
+                      <p className="mt-3 text-base font-black uppercase leading-6">
+                        {card.kicker}
+                      </p>
+                      <p className="mt-3 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
+                        {card.description}
+                      </p>
+                      <a
+                        href={primaryHref}
+                        className="mt-6 inline-flex items-center rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.12em] hover:brightness-110"
+                        style={{ backgroundColor: MINT, color: PAPER }}
+                      >
+                        {primaryText}
+                      </a>
+                      <a
+                        href={secondaryHref}
+                        className="mt-3 block text-sm font-semibold hover:text-s4p-mint"
+                      >
+                        {secondaryText}
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+        <div className="mt-6 flex items-center justify-center gap-2">
+          {HOME_STAKEHOLDERS.map((card, cardIndex) => (
+            <button
               key={card.title}
-              className="flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-emerald-400/25 bg-s4p-paper shadow-sm"
-            >
-              <Image
-                src={card.image}
-                alt={card.imageAlt}
-                width={444}
-                height={232}
-                className="h-auto w-full"
-                unoptimized
-                loading="eager"
-              />
-              <div className="flex flex-1 flex-col px-3.5 pb-4 pt-3">
-                <h3
-                  className="text-[0.7rem] font-black uppercase tracking-wide"
-                  style={{ color: MINT }}
-                >
-                  {card.title}
-                </h3>
-                <p className="mt-1 text-[0.72rem] font-black uppercase leading-tight">
-                  {card.kicker}
-                </p>
-                <p className="mt-2 flex-1 text-[0.72rem] leading-5">
-                  {card.description}
-                </p>
-                <a
-                  href={primaryHref}
-                  className="mt-4 block rounded-full px-2 py-2.5 text-center text-[0.68rem] font-bold leading-snug hover:brightness-110"
-                  style={{ backgroundColor: MINT, color: PAPER }}
-                >
-                  {primaryText}
-                </a>
-                <a
-                  href={secondaryHref}
-                  className="mt-2 block text-center text-[0.65rem] font-semibold hover:text-s4p-mint"
-                >
-                  {secondaryText}
-                </a>
-              </div>
-            </article>
-          );
-        })}
+              type="button"
+              aria-label={`Go to role ${cardIndex + 1}, ${card.title}`}
+              aria-current={cardIndex === index ? "true" : undefined}
+              onClick={() => go(cardIndex)}
+              className={`h-2.5 rounded-full ${
+                cardIndex === index
+                  ? "w-8 bg-s4p-mark"
+                  : "w-2.5 bg-emerald-400/40 hover:bg-emerald-400/70"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="relative mt-6 overflow-hidden rounded-[1.5rem]">
