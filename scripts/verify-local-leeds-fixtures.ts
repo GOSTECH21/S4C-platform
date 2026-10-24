@@ -38,8 +38,11 @@ const picker = readFileSync(
 assert(
   picker.includes("calendarFixturesForClub") &&
     picker.includes("startExpanded") &&
+    picker.includes("Choose any club on the Sporting Calendar first") &&
+    !picker.includes("DEMO_CLUB_NAMES") &&
+    !picker.includes("demoFixturesForClub") &&
     !/const fixtures = demoFixturesForClub\(clubName\)/.test(picker),
-  "The selected club's fixture list comes from the Sporting Calendar"
+  "The selected club's fixture list comes from the Sporting Calendar, not the three demo clubs"
 );
 
 const local = readFileSync("app/lib/local-sponsor.ts", "utf8");

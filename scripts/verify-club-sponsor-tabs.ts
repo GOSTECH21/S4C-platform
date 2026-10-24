@@ -885,7 +885,10 @@ assert(
   readFileSync("app/services/next-fixtures.service.ts", "utf8").includes(
     "withDemoUpcomingFixtures"
   ) &&
-    readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+    !readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "DEMO_CLUB_NAMES"
+    ) &&
+    !readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
       "demoFixturesForClub"
     ) &&
     readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
@@ -894,13 +897,16 @@ assert(
     readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
       'id="fixture-lists"'
     ) &&
+    readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
+      "Choose any club on the Sporting Calendar first"
+    ) &&
     !readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(
       "Fixture lists"
     ) &&
     readFileSync("app/services/club-fixtures.service.ts", "utf8").includes(
       "withDemoClubFixtures"
     ),
-  "Demo club fixture lists are painted on local register without waiting for a live feed"
+  "Local register waits for a Sporting Calendar club instead of painting the three demo fixture lists"
 );
 assert(
   !readFileSync("app/components/sponsor/MatchSponsorshipPicker.tsx", "utf8").includes(
