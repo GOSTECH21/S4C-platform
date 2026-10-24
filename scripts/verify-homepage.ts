@@ -333,7 +333,7 @@ assert(
   front.includes("HomeJoinMission") &&
     front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
     front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission"),
-  "Join your team's climate mission sits above How S4P Works"
+  "Club and fan join panels sit above How S4P Works"
 );
 assert(
   front.includes("onCreateAccount") &&
@@ -392,20 +392,28 @@ const joinMission = readFileSync(
   "utf8"
 );
 assert(
-  joinMission.includes("Join your team") &&
-    joinMission.includes("climate mission today") &&
-    joinMission.includes("Register free") &&
-    joinMission.includes("FAN_REGISTER_PATH") &&
-    joinMission.includes("FAN_LOGIN_PATH") &&
-    joinMission.includes("Log in to your S4P account") &&
-    joinMission.includes("Free to join") &&
-    joinMission.includes("Follow your team") &&
-    joinMission.includes("Direct climate funding") &&
+  joinMission.includes("For club sustainability") &&
+    joinMission.includes("Your next match could become your next climate action campaign") &&
+    joinMission.includes("Emissions measurement") &&
+    joinMission.includes("Global fan engagement") &&
+    joinMission.includes("Four funding channels") &&
+    joinMission.includes("Transparent project reporting") &&
+    joinMission.includes("Explore club partnership") &&
+    joinMission.includes("CLUB_REGISTER_PATH") &&
     joinMission.includes("Every fan counts") &&
+    joinMission.includes("Support your team. Help fund climate action") &&
+    joinMission.includes("Join free") &&
+    joinMission.includes("FAN_REGISTER_PATH") &&
+    joinMission.includes("s4p-navy-panel") &&
     joinMission.includes("bg-s4p-mark") &&
     joinMission.includes("#5bc662") &&
+    !joinMission.includes("See how it works") &&
+    !joinMission.includes("climate mission today") &&
+    !joinMission.includes("Register free") &&
+    !joinMission.includes("bg-black") &&
+    !joinMission.includes("#041018") &&
     !joinMission.includes("bg-emerald-500"),
-  "The join card is an S4P version of Join your team's climate mission"
+  "Home join is a paper club-director panel plus a fan panel without See How It Works"
 );
 
 assert(
