@@ -95,7 +95,7 @@ export default function HomeJoinMission() {
             id="club-director-heading"
             className="mt-3 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
           >
-            Your next match could become your next climate action campaign.
+            Turn every match into a climate action opportunity
           </h2>
           <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
             Turn match-day emissions into a measurable climate funding mission.
