@@ -263,14 +263,16 @@ assert(
 assert(
   roles.includes("Different roles. One mission. A cleaner, greener sport.") &&
     roles.includes("Join the S4P community") &&
-    roles.includes("Whether you are a Fan/supporter") &&
-    roles.includes("S4P helps you") &&
-    roles.includes("reach your goals") &&
+    !roles.includes("Whether you are a Fan/supporter") &&
+    !roles.includes("S4P helps you") &&
+    !roles.includes("reach your goals") &&
     roles.includes("Major Sports") &&
     !roles.includes("/images/home/roles-heading-strip.png") &&
     roles.includes("/images/home/roles-forest.png") &&
     roles.includes("mx-auto max-w-[1400px]") &&
+    roles.includes("data-role-cards-panel") &&
     roles.includes("data-role-cards-grid") &&
+    roles.indexOf("data-role-cards-panel") < roles.indexOf("data-role-cards-grid") &&
     roles.includes("lg:grid-cols-3") &&
     roles.includes("sm:grid-cols-2") &&
     roles.includes("grid-cols-1") &&
@@ -283,7 +285,7 @@ assert(
     !roles.includes("Are You...?") &&
     !roles.includes("bg-black") &&
     !roles.includes("hero.png"),
-  "Image 2 heading sits above a 3x2 role grid, not a second carousel"
+  "The Different Roles heading and six photographs sit in one paper box"
 );
 assert(
   front.includes('showJoin("login")') &&

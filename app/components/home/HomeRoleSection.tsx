@@ -70,7 +70,11 @@ export default function HomeRoleSection({
   return (
     <section id="are-you" className="scroll-mt-24 overflow-x-hidden pb-16">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
-      <div className="overflow-hidden rounded-[1.75rem] border border-emerald-400/25 bg-s4p-paper px-5 py-6 text-center shadow-sm sm:px-10 sm:py-7">
+      <div
+        data-role-cards-panel
+        className="overflow-hidden rounded-[1.75rem] border border-emerald-400/25 bg-s4p-paper px-4 py-6 shadow-sm sm:px-6 sm:py-8 md:px-8"
+      >
+      <div className="text-center">
         <p className="text-xs font-black uppercase tracking-[0.22em] text-s4p-mint">
           Join the S4P community
         </p>
@@ -81,15 +85,6 @@ export default function HomeRoleSection({
           Different roles. One mission. A cleaner, greener sport.
         </h2>
       </div>
-
-      <p className="mx-auto mt-8 max-w-5xl text-center text-sm font-semibold leading-7 sm:text-base">
-        Whether you are a Fan/supporter; or run sustainability for a Club; or
-        own a local business that wants to support a local club&apos;s
-        sustainability efforts &amp; directly engage with its fans; or represent
-        a global brand; or you are a philanthropist that wants to donate towards
-        mitigating your Team&apos;s Match Day carbon emissions, S4P helps you
-        reach your goals
-      </p>
 
       <div
         data-role-cards-grid
@@ -153,6 +148,7 @@ export default function HomeRoleSection({
             </article>
           );
         })}
+      </div>
       </div>
 
       <div className="relative mt-6 overflow-hidden rounded-[1.5rem]">
