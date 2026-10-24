@@ -181,11 +181,19 @@ export default function HomeTopBanner({
           <Image
             src="/images/home/global-sports-cluster.png"
             alt="Football, rugby, NFL, basketball and cricket athletes looking toward Earth. Five major sports. A cleaner, greener planet."
-            width={881}
+            width={912}
             height={364}
             className="h-auto w-full select-none"
             unoptimized
             priority
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0 h-[52%] w-[4.25rem]"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, #f7f4e8 0%, #f7f4e8 35%, transparent 100%)",
+            }}
           />
         </div>
       </div>
