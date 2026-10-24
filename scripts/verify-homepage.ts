@@ -345,6 +345,7 @@ assert(
     banner.includes("A cleaner, greener planet") &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes('src="/images/home/global-sports-cluster.png"') &&
+    banner.includes("width={912}") &&
     banner.includes("#5bc662") &&
     banner.includes("unoptimized") &&
     banner.includes("border-b-2 border-emerald-400/20") &&
