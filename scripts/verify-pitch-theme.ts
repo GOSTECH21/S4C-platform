@@ -74,7 +74,10 @@ assert(
       "snap-x"
     ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      "Swipe left or right"
+      "Explore the six steps below."
+    ) &&
+    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+      "data-how-s4p-arrow"
     ) &&
     !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "s4p-ticker"
