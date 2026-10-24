@@ -261,11 +261,15 @@ assert(
     roles.includes("Major Sports") &&
     roles.includes("/images/home/roles-heading-strip.png") &&
     roles.includes("/images/home/roles-forest.png") &&
-    roles.includes("xl:grid-cols-6") &&
+    roles.includes("snap-x") &&
+    roles.includes("data-role-cards-scroller") &&
+    roles.includes("Swipe left or right to see each role.") &&
+    roles.includes("Role ${cardIndex + 1} of ${total}") &&
+    !roles.includes("xl:grid-cols-6") &&
     !roles.includes("Are You...?") &&
     !roles.includes("bg-black") &&
     !roles.includes("hero.png"),
-  "Image 2 heading and the sandwich paragraph sit above the six role cards"
+  "Image 2 heading and the sandwich paragraph sit above swipeable role cards"
 );
 assert(
   front.includes('showJoin("login")') &&
