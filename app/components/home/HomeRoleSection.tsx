@@ -98,12 +98,6 @@ export default function HomeRoleSection({
             joinIntent === "login" ? card.login : card.register;
           const primaryText =
             joinIntent === "login" ? card.loginButtonText : card.registerText;
-          const secondaryHref =
-            joinIntent === "login" ? card.register : card.login;
-          const secondaryText =
-            joinIntent === "login"
-              ? card.registerText.replace(" →", "")
-              : card.loginText;
           return (
             <article
               key={card.title}
@@ -140,12 +134,6 @@ export default function HomeRoleSection({
                   style={{ backgroundColor: MINT, color: PAPER }}
                 >
                   {primaryText}
-                </a>
-                <a
-                  href={secondaryHref}
-                  className="mt-2 block text-center text-[0.65rem] font-semibold hover:text-s4p-mint sm:text-xs"
-                >
-                  {secondaryText}
                 </a>
               </div>
             </article>

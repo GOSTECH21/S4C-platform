@@ -172,6 +172,56 @@ const steps: Array<{
   },
 ];
 
+function StepArrow({
+  direction,
+  disabled,
+  onClick,
+}: {
+  direction: "left" | "right";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-how-s4p-arrow={direction}
+      aria-label={
+        direction === "left"
+          ? "Show the previous How S4P Works step"
+          : "Show the following How S4P Works step"
+      }
+      disabled={disabled}
+      onClick={onClick}
+      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-400/40 bg-s4p-paper shadow-sm hover:bg-s4p-mark disabled:pointer-events-none disabled:opacity-30 lg:inline-flex ${
+        direction === "left" ? "left-0" : "right-0"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-6 w-6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        aria-hidden
+      >
+        {direction === "left" ? (
+          <path
+            d="M15 6 9 12l6 6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : (
+          <path
+            d="M9 6l6 6-6 6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+      </svg>
+    </button>
+  );
+}
+
 function ProjectIcon({
   name,
 }: {
@@ -303,7 +353,7 @@ export default function HowItWorks({
         <div
           role="region"
           aria-roledescription="carousel"
-          aria-label="How S4P Works, swipe left and right"
+          aria-label="How S4P Works steps"
           tabIndex={0}
           onKeyDown={(event) => {
             if (event.key === "ArrowRight") {
@@ -318,19 +368,28 @@ export default function HowItWorks({
           className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 outline-none sm:px-6 sm:py-8 md:px-8"
         >
           <p className="mb-5 text-center text-sm font-semibold">
-            Swipe left or right to see each step.
+            Explore the six steps below.
           </p>
+          <div className="relative lg:px-16">
+          <StepArrow
+            direction="left"
+            disabled={index === 0}
+            onClick={() => go(index - 1)}
+          />
           <div
             ref={scrollerRef}
             data-how-s4p-scroller
             className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div className="flex">
+            <div
+              className="flex"
+              style={{ width: `${steps.length * 100}%` }}
+            >
             {steps.map((step, stepIndex) => (
               <article
                 key={step.number}
-                className="w-full max-w-full shrink-0 snap-start snap-always"
-                style={{ flex: "0 0 100%" }}
+                className="max-w-none shrink-0 snap-start snap-always"
+                style={{ flex: `0 0 ${100 / steps.length}%` }}
                 aria-label={`Step ${stepIndex + 1} of ${steps.length}. ${step.title}`}
               >
                 <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
@@ -440,6 +499,12 @@ export default function HowItWorks({
               </article>
             ))}
             </div>
+          </div>
+          <StepArrow
+            direction="right"
+            disabled={index === steps.length - 1}
+            onClick={() => go(index + 1)}
+          />
           </div>
           <div className="mt-6 flex items-center justify-center gap-2">
             {steps.map((item, stepIndex) => (

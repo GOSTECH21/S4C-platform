@@ -286,6 +286,8 @@ assert(
     !roles.includes("Swipe left or right to see each role.") &&
     !roles.includes("xl:grid-cols-6") &&
     !roles.includes("Are You...?") &&
+    !roles.includes("Already registered? Login") &&
+    !roles.includes("card.loginText") &&
     !roles.includes("bg-black") &&
     !roles.includes("hero.png"),
   "The Different Roles heading and six photographs sit in one paper box"
@@ -393,7 +395,7 @@ const joinMission = readFileSync(
 );
 assert(
   joinMission.includes("For club sustainability") &&
-    joinMission.includes("Your next match could become your next climate action campaign") &&
+    joinMission.includes("Turn every match into a climate action opportunity") &&
     joinMission.includes("Emissions measurement") &&
     joinMission.includes("Global fan engagement") &&
     joinMission.includes("Four funding channels") &&
@@ -519,9 +521,10 @@ assert(
     howItWorks.includes("snap-mandatory") &&
     howItWorks.includes("overflow-y-hidden") &&
     howItWorks.includes("data-how-s4p-scroller") &&
-    howItWorks.includes('style={{ flex: "0 0 100%" }}') &&
-    howItWorks.includes("max-w-full") &&
-    howItWorks.includes("Swipe left or right") &&
+    howItWorks.includes("style={{ width: `${steps.length * 100}%` }}") &&
+    howItWorks.includes("flex: `0 0 ${100 / steps.length}%`") &&
+    howItWorks.includes("Explore the six steps below.") &&
+    !howItWorks.includes("Swipe left or right") &&
     howItWorks.includes("lg:items-center") &&
     howItWorks.includes("Step ${stepIndex + 1} of ${steps.length}") &&
     !howItWorks.includes("{index + 1} of 6") &&
@@ -531,13 +534,17 @@ assert(
     howItWorks.includes("Join in seconds") &&
     howItWorks.includes("Choose from five club-approved climate projects") &&
     howItWorks.includes("Direct Your Impact") &&
-    !howItWorks.includes('label="Next step"') &&
+    howItWorks.includes('data-how-s4p-arrow={direction}') &&
+    howItWorks.includes("hidden") &&
+    howItWorks.includes("lg:inline-flex") &&
+    howItWorks.includes("Show the previous How S4P Works step") &&
+    howItWorks.includes("Show the following How S4P Works step") &&
     !howItWorks.includes("s4p-ticker") &&
     !howItWorks.includes("lg:grid-cols-3") &&
     !howItWorks.includes("xl:grid-cols-6") &&
     !howItWorks.includes("»") &&
     !howItWorks.includes("‹"),
-  "How S4P Works is a swipeable strip of steps, not Previous and Next"
+  "How S4P Works keeps swipe, adds desktop arrows, and says Explore the six steps below"
 );
 assert(
   howItWorks.includes("/images/home/access-join-phone.png") &&
