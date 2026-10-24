@@ -120,28 +120,18 @@ export default function HomeRoleSection({
   }, [total]);
 
   return (
-    <section id="are-you" className="scroll-mt-24 overflow-x-hidden px-5 pb-16 md:px-10">
-      <div className="overflow-hidden rounded-[1.75rem] border border-emerald-400/25 bg-s4p-paper shadow-sm">
-        <Image
-          src="/images/home/roles-heading-strip.png"
-          alt=""
-          width={3072}
-          height={40}
-          className="h-10 w-full object-cover"
-          unoptimized
-          loading="eager"
-        />
-        <div className="px-5 py-6 text-center sm:px-10 sm:py-7">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-s4p-mint">
-            Join the S4P community
-          </p>
-          <h2
-            className="mt-2 text-2xl font-black uppercase leading-tight tracking-tight sm:text-3xl md:text-4xl"
-            style={{ color: MINT }}
-          >
-            Different roles. One mission. A cleaner, greener sport.
-          </h2>
-        </div>
+    <section id="are-you" className="scroll-mt-24 overflow-x-hidden pb-16">
+      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
+      <div className="overflow-hidden rounded-[1.75rem] border border-emerald-400/25 bg-s4p-paper px-5 py-6 text-center shadow-sm sm:px-10 sm:py-7">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-s4p-mint">
+          Join the S4P community
+        </p>
+        <h2
+          className="mt-2 text-2xl font-black uppercase leading-tight tracking-tight sm:text-3xl md:text-4xl"
+          style={{ color: MINT }}
+        >
+          Different roles. One mission. A cleaner, greener sport.
+        </h2>
       </div>
 
       <p className="mx-auto mt-8 max-w-5xl text-center text-sm font-semibold leading-7 sm:text-base">
@@ -199,8 +189,8 @@ export default function HomeRoleSection({
                   style={{ flex: "0 0 100%" }}
                   aria-label={`Role ${cardIndex + 1} of ${total}. ${card.title}`}
                 >
-                  <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
-                    <div className="relative w-full max-w-[28rem] shrink-0 overflow-hidden rounded-[1.25rem]">
+                  <div className="mx-auto flex w-fit max-w-3xl flex-col items-center gap-6 px-2 lg:flex-row lg:items-center lg:gap-8">
+                    <div className="relative w-full max-w-[16rem] shrink-0 overflow-hidden rounded-[1.25rem] sm:max-w-[18rem]">
                       <Image
                         src={card.image}
                         alt={card.imageAlt}
@@ -211,25 +201,25 @@ export default function HomeRoleSection({
                         loading="eager"
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 max-w-md text-center lg:text-left">
                       <p className="inline-flex items-center rounded-full bg-s4p-mark px-3 py-1 text-sm font-black text-black">
                         Role {cardIndex + 1} of {total}
                       </p>
                       <h3
-                        className="mt-3 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl"
+                        className="mt-3 text-2xl font-black uppercase leading-none tracking-tight sm:text-3xl"
                         style={{ color: MINT }}
                       >
                         {card.title}
                       </h3>
-                      <p className="mt-3 text-base font-black uppercase leading-6">
+                      <p className="mt-3 text-sm font-black uppercase leading-6 sm:text-base">
                         {card.kicker}
                       </p>
-                      <p className="mt-3 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
+                      <p className="mt-3 text-sm font-semibold leading-6 sm:text-base sm:leading-7">
                         {card.description}
                       </p>
                       <a
                         href={primaryHref}
-                        className="mt-6 inline-flex items-center rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.12em] hover:brightness-110"
+                        className="mt-5 inline-flex items-center rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-[0.12em] hover:brightness-110 sm:text-sm"
                         style={{ backgroundColor: MINT, color: PAPER }}
                       >
                         {primaryText}
@@ -314,6 +304,7 @@ export default function HomeRoleSection({
             </p>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

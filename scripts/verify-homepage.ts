@@ -259,8 +259,10 @@ assert(
     roles.includes("S4P helps you") &&
     roles.includes("reach your goals") &&
     roles.includes("Major Sports") &&
-    roles.includes("/images/home/roles-heading-strip.png") &&
+    !roles.includes("/images/home/roles-heading-strip.png") &&
     roles.includes("/images/home/roles-forest.png") &&
+    roles.includes("mx-auto max-w-[1400px]") &&
+    roles.includes("mx-auto flex w-fit max-w-3xl") &&
     roles.includes("snap-x") &&
     roles.includes("data-role-cards-scroller") &&
     roles.includes("Swipe left or right to see each role.") &&
