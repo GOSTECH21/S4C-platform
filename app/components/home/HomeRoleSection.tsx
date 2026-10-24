@@ -84,6 +84,9 @@ export default function HomeRoleSection({
         >
           Different roles. One mission. A cleaner, greener sport.
         </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-6 sm:text-base">
+          Find your role below and discover how you can make a difference.
+        </p>
       </div>
 
       <div

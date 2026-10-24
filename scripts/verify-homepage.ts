@@ -263,6 +263,9 @@ assert(
 assert(
   roles.includes("Different roles. One mission. A cleaner, greener sport.") &&
     roles.includes("Join the S4P community") &&
+    roles.includes(
+      "Find your role below and discover how you can make a difference."
+    ) &&
     !roles.includes("Whether you are a Fan/supporter") &&
     !roles.includes("S4P helps you") &&
     !roles.includes("reach your goals") &&
