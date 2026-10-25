@@ -410,7 +410,7 @@ const joinMission = readFileSync(
 );
 assert(
   joinMission.includes("For club sustainability") &&
-    joinMission.includes("Turn every match into a climate action opportunity") &&
+    joinMission.includes("Turn every score in a match into a sponsored climate action") &&
     joinMission.includes("Emissions measurement") &&
     joinMission.includes("Global fan engagement") &&
     joinMission.includes("Four funding channels") &&
