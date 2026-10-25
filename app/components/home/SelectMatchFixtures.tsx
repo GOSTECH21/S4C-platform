@@ -12,7 +12,11 @@ import {
 } from "react";
 import Image from "next/image";
 import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
-import { sponsorFromMatchPath } from "@/app/lib/pending-sponsor-match";
+import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
+import {
+  savePendingSponsorMatch,
+  sponsorFromMatchPath,
+} from "@/app/lib/pending-sponsor-match";
 import {
   formatKickoff,
   formatMatchDate,
@@ -209,7 +213,9 @@ export function SelectMatchPhone({
         unoptimized
       />
       <div
-        className="absolute z-10 overflow-hidden"
+        className="absolute z-20 overflow-hidden [pointer-events:auto]"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
         style={{
           top: "14.9%",
           left: "6.2%",
@@ -272,7 +278,7 @@ export function SelectMatchPhone({
               ) : (
                 <ol className="space-y-2">
                   {matches.map((match) => {
-                    const href = sponsorFromMatchPath({
+                    const pending = {
                       club: shown,
                       fixtureName: match.fixtureName,
                       league: match.league,
@@ -280,60 +286,62 @@ export function SelectMatchPhone({
                       kickoff: match.kickoff,
                       venue: match.venue,
                       matchId: match.id,
-                    });
+                    };
+                    const href = sponsorFromMatchPath(pending);
                     const label = match.fixtureName.replace(" v ", " vs ");
                     const selected = selectedMatch?.id === match.id;
                     return (
                       <li key={match.id}>
-                        <div
-                          className={`rounded-2xl px-2.5 py-2 ${
+                        <a
+                          href={href}
+                          data-phone-match-sponsor="true"
+                          aria-current={selected ? "true" : undefined}
+                          aria-label={`Sponsor ${label} — complete this sponsorship and sign it off`}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedMatch(match);
+                            savePendingSponsorMatch(pending);
+                            hardNavigateOnClick(href, event);
+                          }}
+                          className={`block cursor-pointer rounded-2xl px-2.5 py-2 hover:brightness-[0.98] ${
                             selected ? "ring-2 ring-[#5bc662]" : ""
                           }`}
                           style={{ backgroundColor: "#f3f5f8" }}
                         >
-                          <button
-                            type="button"
-                            aria-pressed={selected}
-                            aria-label={`Choose ${label} for Match Day`}
-                            onClick={() => setSelectedMatch(match)}
-                            className="block w-full text-left"
-                          >
-                            <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
-                              <span>
-                                {formatMatchDateYear(match.date)} ·{" "}
-                                {formatKickoff(match.kickoff)}
+                          <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
+                            <span>
+                              {formatMatchDateYear(match.date)} ·{" "}
+                              {formatKickoff(match.kickoff)}
+                            </span>
+                            {match.cup ? (
+                              <span
+                                className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
+                                style={{ backgroundColor: MARK_GREEN }}
+                              >
+                                Cup
                               </span>
-                              {match.cup ? (
-                                <span
-                                  className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
-                                  style={{ backgroundColor: MARK_GREEN }}
-                                >
-                                  Cup
-                                </span>
-                              ) : (
-                                <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
-                                  League
-                                </span>
-                              )}
-                            </p>
-                            <p className="mt-0.5 text-[11px] font-black leading-snug">
-                              {label}
-                            </p>
-                            <p className="mt-0.5 text-[9px] font-semibold leading-4">
-                              {[match.venue, match.league]
-                                .filter(Boolean)
-                                .join(" · ")}
-                            </p>
-                          </button>
-                          <a
-                            href={href}
-                            aria-label={`Sponsor ${label}`}
-                            className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black hover:brightness-110"
+                            ) : (
+                              <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
+                                League
+                              </span>
+                            )}
+                          </p>
+                          <p className="mt-0.5 text-[11px] font-black leading-snug">
+                            {label}
+                          </p>
+                          <p className="mt-0.5 text-[9px] font-semibold leading-4">
+                            {[match.venue, match.league]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                          <span
+                            className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black"
                             style={{ backgroundColor: MARK_GREEN }}
                           >
-                            Sponsor
-                          </a>
-                        </div>
+                            Sponsor · Sign off
+                          </span>
+                        </a>
                       </li>
                     );
                   })}
@@ -401,8 +409,8 @@ export default function SelectMatchFixtures() {
       {matches && !loading ? (
         <p className="mt-4 text-sm font-semibold leading-6">
           {clubPossessive(shown)} next {matches.length} league and cup matches
-          are on the phone. Tap a match to choose it for Match Day. Sponsors:
-          tap Sponsor to lock it in and complete your sponsorship.
+          are on the phone. Tap a match to lock it in, complete your
+          sponsorship and sign it off.
         </p>
       ) : null}
     </div>

@@ -632,12 +632,15 @@ assert(
     selectMatchFixtures.includes("if (!active) return") &&
     selectMatchFixtures.includes("SelectMatchPhone") &&
     selectMatchFixtures.includes("sponsorFromMatchPath") &&
-    selectMatchFixtures.includes("Sponsor") &&
+    selectMatchFixtures.includes("savePendingSponsorMatch") &&
+    selectMatchFixtures.includes("hardNavigateOnClick") &&
+    selectMatchFixtures.includes("data-phone-match-sponsor") &&
     selectMatchFixtures.includes("setSelectedMatch") &&
-    selectMatchFixtures.includes("Choose ${label} for Match Day") &&
-    selectMatchFixtures.includes("Tap a match to choose it for Match Day") &&
-    selectMatchFixtures.includes('aria-label={`Sponsor ${label}`}'),
-  "Select Match auto-loads Arsenal's next 10 matches, lets a fan choose one, and lets a Sponsor lock it in"
+    selectMatchFixtures.includes("complete this sponsorship and sign it off") &&
+    selectMatchFixtures.includes("Tap a match to lock it in") &&
+    selectMatchFixtures.includes("Sponsor · Sign off") &&
+    !selectMatchFixtures.includes("Tap a match to choose it for Match Day"),
+  "Select Match auto-loads the next 10 matches and each phone fixture opens sponsorship lock-in and sign-off"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
