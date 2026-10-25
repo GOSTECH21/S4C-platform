@@ -702,6 +702,8 @@ assert(
     howYoureSupporting.includes("homeName") &&
     howYoureSupporting.includes("awayName") &&
     howYoureSupporting.includes('color: "#f7f4e8"') &&
+    howYoureSupporting.includes('height: "16%"') &&
+    howYoureSupporting.includes('top: "13.4%"') &&
     howYoureSupporting.includes("role=\"radio\"") &&
     howYoureSupporting.includes("pinHowS4pSlide"),
   "Attending Continue opens a live travel sheet; the phone banner shows the chosen Match Day with both club logos"

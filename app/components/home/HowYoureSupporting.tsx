@@ -255,11 +255,11 @@ export function HowYoureSupportingPhone({
         data-match-day-fixture={match ? fixture : ""}
         className="absolute z-20 overflow-hidden"
         style={{
-          top: "13.2%",
-          left: "8.2%",
-          right: "8%",
-          height: "18.4%",
-          borderRadius: "0.75rem",
+          top: "13.4%",
+          left: "8.4%",
+          right: "8.2%",
+          height: "16%",
+          borderRadius: "0.7rem",
           color: "#f7f4e8",
           background:
             "linear-gradient(100deg, #0b2416 0%, #123b24 48%, #1c5a34 100%)",
