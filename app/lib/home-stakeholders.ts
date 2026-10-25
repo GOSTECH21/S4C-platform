@@ -29,9 +29,9 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Sports Clubs",
     kicker: "Lead your club to a cleaner future.",
     description:
-      "Measure match-day emissions, engage your fans, unlock sponsor funding and deliver verified climate projects.",
+      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects & offset your Match Day carbon footprint.",
     shortDescription:
-      "Measure match-day emissions and deliver verified climate projects.",
+      "Mobilize fans to unlock sponsored funding and offset your Match Day carbon footprint.",
     register: CLUB_REGISTER_PATH,
     login: CLUB_LOGIN_PATH,
     registerText: "Discover Club Benefits →",
@@ -89,9 +89,9 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Philanthropists",
     kicker: "Empower fans. Amplify impact.",
     description:
-      "Make a transformational contribution (e.g. £10,000 per match) and let fans direct your gift to the climate projects that matter most.",
+      "Make a climate donation (any amount per match) and let fans direct your gift to the climate projects that helps your Team climb our Climate Impact League Table (CILT).",
     shortDescription:
-      "Give a match-day gift and let fans direct it to climate projects.",
+      "Make a climate donation and let fans help your team climb the Climate Impact League Table.",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Be a Philanthropic Sponsor →",
