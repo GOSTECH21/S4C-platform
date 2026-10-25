@@ -15,6 +15,11 @@ import {
   type HomeUpcomingMatch,
 } from "@/app/components/home/SelectMatchFixtures";
 import {
+  clubInitials,
+  clubLogoSrc,
+  clubShortName,
+} from "@/app/lib/club-logos";
+import {
   formatKickoff,
   formatMatchDate,
 } from "@/app/lib/upcoming-matches";
@@ -180,11 +185,45 @@ function formatMatchDateYear(date: string) {
   });
 }
 
-function clubInitials(name: string) {
-  const parts = name.split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "FC";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+function ClubMark({
+  name,
+  side,
+}: {
+  name: string;
+  side: "home" | "away";
+}) {
+  const [failed, setFailed] = useState(false);
+  const src = clubLogoSrc(name);
+  const initials = clubInitials(name || "FC");
+
+  return (
+    <span
+      id={side === "home" ? "match-day-home-logo" : "match-day-away-logo"}
+      data-match-day-home-logo={side === "home" ? name || undefined : undefined}
+      data-match-day-away-logo={side === "away" ? name || undefined : undefined}
+      className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm"
+      aria-hidden
+    >
+      <span
+        className="flex h-full w-full items-center justify-center text-[9px] font-black text-black"
+        style={{ backgroundColor: MARK_GREEN }}
+      >
+        {initials}
+      </span>
+      {src && name && !failed ? (
+        // Native img: crest URL is a same-origin API lookup, not a static asset.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          width={40}
+          height={40}
+          className="absolute inset-0 h-full w-full bg-white object-contain p-[3px]"
+          onError={() => setFailed(true)}
+        />
+      ) : null}
+    </span>
+  );
 }
 
 export function HowYoureSupportingPhone({
@@ -195,10 +234,11 @@ export function HowYoureSupportingPhone({
   alt: string;
 }) {
   const { chooseAttending, chooseRemote, match } = useHowYoureSupporting();
-  const fixture = match
-    ? match.fixtureName.replace(" v ", " vs ")
-    : "Choose a match";
   const homeName = match?.homeName || "";
+  const awayName = match?.awayName || "";
+  const fixture = match
+    ? `${clubShortName(homeName)} vs ${clubShortName(awayName)}`
+    : "Choose a match";
 
   return (
     <>
@@ -212,13 +252,15 @@ export function HowYoureSupportingPhone({
       />
       <div
         id="match-day-banner"
-        className="absolute z-20 overflow-hidden text-white"
+        data-match-day-fixture={match ? fixture : ""}
+        className="absolute z-20 overflow-hidden"
         style={{
-          top: "13.2%",
-          left: "8.2%",
-          right: "8%",
-          height: "18.4%",
-          borderRadius: "0.75rem",
+          top: "13.4%",
+          left: "8.4%",
+          right: "8.2%",
+          height: "16%",
+          borderRadius: "0.7rem",
+          color: "#f7f4e8",
           background:
             "linear-gradient(100deg, #0b2416 0%, #123b24 48%, #1c5a34 100%)",
         }}
@@ -228,16 +270,13 @@ export function HowYoureSupportingPhone({
             : "No match selected yet"
         }
       >
-        <div className="flex h-full items-center gap-2 px-2.5">
-          <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-black"
-            style={{ backgroundColor: MARK_GREEN }}
-            aria-hidden
-          >
-            {clubInitials(homeName || "FC")}
-          </span>
-          <div className="min-w-0">
-            <p className="text-[11px] font-black leading-tight">
+        <div className="flex h-full items-center gap-1.5 px-2">
+          <ClubMark name={homeName} side="home" />
+          <div className="min-w-0 flex-1 text-center">
+            <p
+              className="text-[11px] font-black leading-tight"
+              data-match-day-chosen="true"
+            >
               {fixture}
             </p>
             {match ? (
@@ -256,6 +295,7 @@ export function HowYoureSupportingPhone({
               </p>
             )}
           </div>
+          <ClubMark name={awayName} side="away" />
         </div>
       </div>
       <button
