@@ -18,10 +18,7 @@ import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { findClubOnRoster } from "../lib/current-season";
 import { isSportingCalendarClub } from "../lib/calendar-clubs";
 import type { ClimateCountryContext } from "../lib/featured-climate-country";
-import {
-  localCatalogCountryForClub,
-  selectableCatalogForClub,
-} from "../lib/featured-climate-country";
+import { localCatalogCountryForClub } from "../lib/featured-climate-country";
 import {
   MATCH_DAY_PORTFOLIO_POSTED,
   MATCH_DAY_PORTFOLIO_SELECTED,
@@ -41,7 +38,15 @@ import {
   preferFullerLookbackSelected,
   votedProjectsOnSignedOffer,
 } from "../lib/sponsor-dashboard";
-import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
+import {
+  publishSccanCatalog,
+  loadUploadedPartnerProjects,
+  upsertCatalogProjects,
+} from "./partner.service";
+import {
+  climateProjectListsForClub,
+  PARTNER_MATCH_DAY_CATALOG,
+} from "../lib/sccan-catalog";
 import { listClubSignedSponsorships } from "./sponsor-offers.service";
 import { sponsorLogoSrc } from "./teams.service";
 import {
@@ -124,24 +129,45 @@ export async function loadPartnerClimateProjects(
   context: ClimateCountryContext = {}
 ): Promise<ClimateProject[]> {
   const lists = await loadPartnerClimateProjectLists(context);
-  return [...lists.local, ...lists.international];
+  return [...lists.local, ...lists.international, ...lists.nearby];
 }
 
 export async function loadPartnerClimateProjectLists(
   context: ClimateCountryContext = {}
-): Promise<{ local: ClimateProject[]; international: ClimateProject[] }> {
+): Promise<{
+  local: ClimateProject[];
+  international: ClimateProject[];
+  nearby: ClimateProject[];
+}> {
   const published = await publishSccanCatalog();
   const uploaded = await loadUploadedPartnerProjects();
-  const byName = new Map(
-    published.map((project) => [project.name.toLowerCase(), project])
+  const localCountry = localCatalogCountryForClub(context);
+  const catalogLists = climateProjectListsForClub(context.clubName, localCountry);
+  const catalogNames = new Set(
+    PARTNER_MATCH_DAY_CATALOG.map((project) => project.name.toLowerCase())
   );
-  const generic = selectableCatalogForClub(context)
-    .map((item) => byName.get(item.name.toLowerCase()))
-    .filter((project): project is ClimateProject => Boolean(project));
+  const nearbyToPublish = catalogLists.nearby.filter(
+    (project) => !catalogNames.has(project.name.toLowerCase())
+  );
+  const nearbyPublished = await upsertCatalogProjects(nearbyToPublish);
+  const byName = new Map(
+    [...published, ...nearbyPublished].map((project) => [
+      project.name.toLowerCase(),
+      project,
+    ])
+  );
+  const mapList = (items: { name: string }[]) =>
+    items
+      .map((item) => byName.get(item.name.toLowerCase()))
+      .filter((project): project is ClimateProject => Boolean(project));
   return listsWithUploadsFirst(
-    generic,
+    {
+      local: mapList(catalogLists.local),
+      international: mapList(catalogLists.international),
+      nearby: mapList(catalogLists.nearby),
+    },
     uploaded,
-    localCatalogCountryForClub(context)
+    localCountry
   );
 }
 

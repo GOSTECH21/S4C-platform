@@ -130,14 +130,20 @@ assert(
   "Arsenal local catalog is England"
 );
 assert(
+  localCatalogCountryForClub({ clubName: "Swansea City", country: "Wales" }) ===
+    "England",
+  "Swansea List 1 uses the England catalog"
+);
+assert(
   localCatalogCountryForClub({ country: "Italy" }) === "Italy",
   "Italy remains a Climate Partner catalog country"
 );
 assert(
   selectableCatalogForClub({ clubName: "Arsenal" })
-    .slice(0, 10)
-    .every((project) => project.country === "England"),
-  "Arsenal chooses from 10 England projects on page 1"
+    .slice(0, 20)
+    .every((project) => project.country === "England") &&
+    selectableCatalogForClub({ clubName: "Arsenal" }).slice(0, 20).length === 20,
+  "Arsenal chooses from 20 England projects on List 1"
 );
 assert(
   selectableCatalogForCountry("Italy")
@@ -517,19 +523,22 @@ assert(
 );
 
 const merged = listsWithUploadsFirst(
-  [
-    { id: "g1", name: "Generic Local", country: "England" },
-    { id: "g2", name: "Generic Two", country: "England" },
-    { id: "g3", name: "Generic Three", country: "England" },
-    { id: "g4", name: "Generic Four", country: "England" },
-    { id: "g5", name: "Generic Five", country: "England" },
-    { id: "g6", name: "Generic Six", country: "England" },
-    { id: "g7", name: "Generic Seven", country: "England" },
-    { id: "g8", name: "Generic Eight", country: "England" },
-    { id: "g9", name: "Generic Nine", country: "England" },
-    { id: "g10", name: "Generic Ten", country: "England" },
-    { id: "i1", name: "Ugandan Cookstove", country: "Uganda" },
-  ],
+  {
+    local: [
+      { id: "g1", name: "Generic Local", country: "England" },
+      { id: "g2", name: "Generic Two", country: "England" },
+      { id: "g3", name: "Generic Three", country: "England" },
+      { id: "g4", name: "Generic Four", country: "England" },
+      { id: "g5", name: "Generic Five", country: "England" },
+      { id: "g6", name: "Generic Six", country: "England" },
+      { id: "g7", name: "Generic Seven", country: "England" },
+      { id: "g8", name: "Generic Eight", country: "England" },
+      { id: "g9", name: "Generic Nine", country: "England" },
+      { id: "g10", name: "Generic Ten", country: "England" },
+    ],
+    international: [{ id: "i1", name: "Ugandan Cookstove", country: "Uganda" }],
+    nearby: [],
+  },
   [
     { id: "u1", name: "Partner Upload England", country: "England" },
     { id: "u2", name: "Partner Upload Ghana", country: "Ghana" },
@@ -545,7 +554,11 @@ assert(
   "Uploaded international climate projects sit above generic List 2 projects"
 );
 const withoutRetiredDemo = listsWithUploadsFirst(
-  merged.local.slice(1, 11).concat(merged.international.slice(1)),
+  {
+    local: merged.local.slice(1, 11),
+    international: merged.international.slice(1),
+    nearby: [],
+  },
   [
     { id: "r1", name: "Ghana Community Solar Upload", country: "Ghana" },
     { id: "r2", name: "Tynecastle High School Solar Installation", country: "Scotland" },
@@ -600,8 +613,14 @@ assert(
     ) &&
     clubClimateProjectsIntroCopy().includes(
       "MUST be uploaded at least 3 Days before Match Kick-Off"
+    ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "Climate Projects near my Stadium"
+    ) &&
+    clubClimateProjectsIntroCopy().includes(
+      "ONLY submitted Projects from signed-up Climate Project Partners will be listed"
     ),
-  "S4P Climate Projects intro uses the Match Day List and Your Country / World lists"
+  "S4P Climate Projects intro uses three lists and future partner-only copy"
 );
 assert(
   clubDashboardClimateProjectsIntroCopy() ===
@@ -711,8 +730,11 @@ assert(
   clubSelect.includes("s4pTabClass") &&
     !clubSelect.includes("border border-slate-700 text-slate-300") &&
     clubNav.includes("s4pTabClass") &&
-    !clubNav.includes("bg-slate-800 text-slate-200"),
-  "Club Climate Projects List tabs and Club nav tabs use the lime mark green"
+    !clubNav.includes("bg-slate-800 text-slate-200") &&
+    clubSelect.includes("climateProjectListLabel(3") &&
+    clubSelect.includes("setNearbyProjects") &&
+    !clubSelect.includes("List 1 shows those local projects"),
+  "Club Climate Projects List tabs include Climate Projects near my Stadium"
 );
 assert(
   tabHelper.includes("s4pActionBarClass") &&

@@ -70,8 +70,8 @@ export default function GlobalSchoolsSolarPage() {
         <p className="mt-6 max-w-3xl text-lg text-slate-300">
           Hearts supporters have already shown how Match Day votes send Climate
           Credits to rooftop solar at a local school. The same GSS card appears
-          for every other club, alongside List 1 (local) and List 2
-          ({INTERNATIONAL_CLIMATE_REGION}) Climate Partner projects.
+          for every other club, alongside List 1 (local), List 2
+          ({INTERNATIONAL_CLIMATE_REGION}) and Climate Projects near my Stadium.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-4">
           {[

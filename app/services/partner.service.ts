@@ -19,6 +19,7 @@ import {
   isRetiredPartnerListing,
   selectOwnListedProjects,
 } from "../lib/partner-projects";
+import { isNearStadiumListing } from "../lib/stadium-nearby-projects";
 import type { ClimateProject } from "./votes.service";
 
 const PROJECT_FIELDS =
@@ -193,6 +194,7 @@ function uniqueUploaded(rows: ClimateProject[]): ClimateProject[] {
       catalogNames.has(key) ||
       isFeaturedName(project.name) ||
       isRetiredPartnerListing(project.name) ||
+      isNearStadiumListing(project) ||
       (project.status ?? "active") === "archived" ||
       seen.has(key)
     ) {
@@ -322,6 +324,54 @@ export async function uploadPartnerProject(
   const listed = data as ClimateProject;
   rememberOwnListedProject(session.userId, listed.id);
   return listed;
+}
+
+export async function upsertCatalogProjects(
+  projects: PartnerCatalogProject[]
+): Promise<ClimateProject[]> {
+  if (projects.length === 0) return [];
+  const names = projects.map((project) => project.name);
+  const { data: existing } = await supabase
+    .from("climate_projects")
+    .select("id, name")
+    .in("name", names);
+
+  const idByName = new Map(
+    (existing ?? []).map((row) => [String(row.name).toLowerCase(), row.id as string])
+  );
+
+  for (const project of projects) {
+    const payload = catalogPayload(project);
+    const existingId = idByName.get(project.name.toLowerCase());
+    if (existingId) {
+      await supabase.from("climate_projects").update(payload).eq("id", existingId);
+    } else {
+      await supabase.from("climate_projects").insert(payload);
+    }
+  }
+
+  return loadCatalogProjectsByNames(names);
+}
+
+export async function loadCatalogProjectsByNames(
+  names: string[]
+): Promise<ClimateProject[]> {
+  if (names.length === 0) return [];
+  const { data, error } = await supabase
+    .from("climate_projects")
+    .select(PROJECT_FIELDS)
+    .in("name", names)
+    .is("club_id", null);
+  if (error) throw error;
+  const byName = new Map(
+    ((data ?? []) as ClimateProject[]).map((project) => [
+      project.name.toLowerCase(),
+      project,
+    ])
+  );
+  return names
+    .map((name) => byName.get(name.toLowerCase()))
+    .filter((project): project is ClimateProject => Boolean(project));
 }
 
 function catalogPayload(project: PartnerCatalogProject) {

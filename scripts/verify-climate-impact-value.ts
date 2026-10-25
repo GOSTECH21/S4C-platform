@@ -316,9 +316,9 @@ assert(
   "Country is a dropdown of all countries"
 );
 assert(
-  partnerForm.includes("put FUNDS onto Climate Projects within 5 miles") &&
+  partnerForm.includes("put FUNDS onto Climate Projects within 20 miles") &&
     partnerForm.includes(
-      "might target Climate Projects within 5 miles of the stadium for"
+      "might target Climate Projects within 20 miles of the stadium for"
     ) &&
     !partnerForm.includes("put FUND-IT onto Climate Projects within 5 miles"),
   "Form nearby copy uses FUNDS and local-sponsor targeting"

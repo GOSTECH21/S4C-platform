@@ -1,9 +1,11 @@
 import {
+  COUNTRY_PROJECT_LIST_SIZE,
   listedSiteForProjectName,
-  nearbyProjectsForClub,
 } from "./project-site";
+import { nearbyClimateProjectsForClub } from "./stadium-nearby-projects";
 
-/** Local Climate Partner catalogs (10 per country) plus 10 international projects. */
+/** Local Climate Partner catalogs (20 across England; 10 elsewhere) plus 10 international projects.
+ * Until signed-up Climate Project Partners submit listings, these placeholders are shown. */
 
 export const SCCAN_SOURCE_URL = "https://sccan.scot/";
 export const SCCAN_PARTNER_NAME = "Scottish Communities Climate Action Network";
@@ -427,6 +429,96 @@ export const ENGLAND_CLIMATE_PROJECTS: PartnerCatalogProject[] = [
     country: "England",
     estimated_co2: 5400,
     funding_goal: 175000,
+  }),
+  localPartnerProject({
+    name: "Leeds Community Retrofit",
+    description:
+      "Street-by-street home insulation in Leeds so terraces cut bills and leave gas heating behind.",
+    category: "Renewable Energy",
+    country: "England",
+    estimated_co2: 8100,
+    funding_goal: 220000,
+  }),
+  localPartnerProject({
+    name: "Sheffield Street Trees",
+    description:
+      "Street trees and pocket woods that cool Sheffield neighbourhoods and lock up carbon.",
+    category: "Biodiversity",
+    country: "England",
+    estimated_co2: 3300,
+    funding_goal: 115000,
+  }),
+  localPartnerProject({
+    name: "Nottingham Heat Network",
+    description:
+      "Expand clean district heat in Nottingham so homes leave oil and gas boilers behind.",
+    category: "Renewable Energy",
+    country: "England",
+    estimated_co2: 10200,
+    funding_goal: 255000,
+  }),
+  localPartnerProject({
+    name: "Leicester Active Travel",
+    description:
+      "Protected cycle and walking routes across Leicester so everyday trips leave the car behind.",
+    category: "Active Travel",
+    country: "England",
+    estimated_co2: 3900,
+    funding_goal: 145000,
+  }),
+  localPartnerProject({
+    name: "Southampton Coastal Resilience",
+    description:
+      "Restore shoreline and salt marsh around Southampton Water to store blue carbon and cut flood risk.",
+    category: "Resilience",
+    country: "England",
+    estimated_co2: 5600,
+    funding_goal: 185000,
+  }),
+  localPartnerProject({
+    name: "Brighton Community Solar",
+    description:
+      "Rooftop solar on community buildings in Brighton and Hove, with power sold back to fund local climate work.",
+    category: "Solar Energy",
+    country: "England",
+    estimated_co2: 6100,
+    funding_goal: 170000,
+  }),
+  localPartnerProject({
+    name: "Norwich Fen Restoration",
+    description:
+      "Rewet fen and Broads peat around Norwich so the wetland can store carbon again.",
+    category: "Biodiversity",
+    country: "England",
+    estimated_co2: 11800,
+    funding_goal: 275000,
+  }),
+  localPartnerProject({
+    name: "Exeter Community Energy",
+    description:
+      "A neighbourhood energy co-op in Exeter that owns solar and spends the surplus on local climate work.",
+    category: "Renewable Energy",
+    country: "England",
+    estimated_co2: 4700,
+    funding_goal: 150000,
+  }),
+  localPartnerProject({
+    name: "Sunderland Riverside Restoration",
+    description:
+      "Restore the River Wear banks in Sunderland for wildlife, cooling and carbon stored in the soil.",
+    category: "Biodiversity",
+    country: "England",
+    estimated_co2: 3500,
+    funding_goal: 130000,
+  }),
+  localPartnerProject({
+    name: "Stoke Canal Rewilding",
+    description:
+      "Rewild canal banks through Stoke-on-Trent so wildlife can move and carbon stays in the soil.",
+    category: "Biodiversity",
+    country: "England",
+    estimated_co2: 2800,
+    funding_goal: 105000,
   }),
 ];
 
@@ -1043,11 +1135,17 @@ const CATALOG_COUNTRY_FALLBACK: Record<string, string> = {
   Ireland: "England",
 };
 
+export function resolvedLocalCatalogCountry(
+  country: string | null | undefined
+): string {
+  const label = (country ?? "").trim();
+  return CATALOG_COUNTRY_FALLBACK[label] ?? (label || "England");
+}
+
 export function localClimateProjectsForCountry(
   country: string | null | undefined
 ): PartnerCatalogProject[] {
-  const label = (country ?? "").trim();
-  const mapped = CATALOG_COUNTRY_FALLBACK[label] ?? label;
+  const mapped = resolvedLocalCatalogCountry(country);
   return (
     LOCAL_CLIMATE_PROJECTS_BY_COUNTRY[mapped] ?? ENGLAND_CLIMATE_PROJECTS
   );
@@ -1067,32 +1165,32 @@ function uniqueCatalogProjects(
   return rows;
 }
 
-/** Local List 1 for a club: projects within 5 miles of the stadium first. */
+/** List 1 for a club: nationwide Climate Partner projects for that country (20 across England). */
 export function localClimateProjectsForClub(
-  clubName: string | null | undefined,
+  _clubName: string | null | undefined,
   country: string | null | undefined
 ): PartnerCatalogProject[] {
   const nation = (country ?? "").trim();
-  const countryList = localClimateProjectsForCountry(nation);
-  const extras =
-    nation === "Scotland"
-      ? SCCAN_CLIMATE_PROJECTS.map((project) =>
-          withListedSite({
-            ...project,
-            country: "Scotland",
-            location: project.location || "Scotland",
-          })
-        )
-      : [];
-  const pool = uniqueCatalogProjects([...countryList, ...extras]);
-  const nearby = nearbyProjectsForClub(pool, clubName).map((row) => row.project);
-  const nearbyNames = new Set(
-    nearby.map((project) => project.name.trim().toLowerCase())
+  return uniqueCatalogProjects(localClimateProjectsForCountry(nation)).slice(
+    0,
+    COUNTRY_PROJECT_LIST_SIZE
   );
-  const rest = pool.filter(
-    (project) => !nearbyNames.has(project.name.trim().toLowerCase())
-  );
-  return [...nearby, ...rest].slice(0, 10);
+}
+
+/** Three lists the Sustainability Director chooses from. Nearby is stadium-radius, not List 1. */
+export function climateProjectListsForClub(
+  clubName: string | null | undefined,
+  country: string | null | undefined
+): {
+  local: PartnerCatalogProject[];
+  international: PartnerCatalogProject[];
+  nearby: PartnerCatalogProject[];
+} {
+  return {
+    local: localClimateProjectsForClub(clubName, country),
+    international: INTERNATIONAL_CLIMATE_PROJECTS,
+    nearby: nearbyClimateProjectsForClub(clubName, sitedCatalogProjects()),
+  };
 }
 
 /** Every catalog project that has a public implementation postcode. */
@@ -1104,12 +1202,12 @@ export function sitedCatalogProjects(): PartnerCatalogProject[] {
   ]).filter((project) => Boolean(project.postcode));
 }
 
-/** 20 projects one Sustainability Director chooses from: 10 local, then 10 international. */
+/** Country list plus 10 international projects. England is 20 nationwide + 10 international. */
 export function selectableCatalogForCountry(
   country: string | null | undefined
 ): PartnerCatalogProject[] {
   return [
-    ...localClimateProjectsForCountry(country),
+    ...localClimateProjectsForCountry(country).slice(0, COUNTRY_PROJECT_LIST_SIZE),
     ...INTERNATIONAL_CLIMATE_PROJECTS,
   ];
 }

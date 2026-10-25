@@ -2,13 +2,16 @@
 
 export const S4P_CLIMATE_PROJECTS_LABEL = "S4P Climate Projects";
 
+export const CLIMATE_PROJECTS_NEAR_STADIUM_LABEL =
+  "Climate Projects near my Stadium";
+
 export function climateProjectListLabel(
-  list: 1 | 2,
+  list: 1 | 2 | 3,
   localCountry: string
 ): string {
-  return list === 1
-    ? `List 1 · ${localCountry}`
-    : "List 2 · International";
+  if (list === 1) return `List 1 · ${localCountry}`;
+  if (list === 2) return "List 2 · International";
+  return CLIMATE_PROJECTS_NEAR_STADIUM_LABEL;
 }
 
 export function ordinalDay(day: number): string {

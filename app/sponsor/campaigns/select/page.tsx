@@ -29,6 +29,7 @@ import {
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
 import { s4pActionBarClass, s4pTabClass } from "@/app/lib/s4p-tabs";
+import { climateProjectListLabel } from "@/app/lib/s4p-climate-projects";
 
 export default function SponsorCreateCampaignPage() {
   const router = useRouter();
@@ -40,9 +41,10 @@ export default function SponsorCreateCampaignPage() {
   const [internationalProjects, setInternationalProjects] = useState<
     ClimateProject[]
   >([]);
+  const [nearbyProjects, setNearbyProjects] = useState<ClimateProject[]>([]);
   const [featured, setFeatured] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [list, setList] = useState<1 | 2>(1);
+  const [list, setList] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,12 @@ export default function SponsorCreateCampaignPage() {
 
   const clubs = Object.values(CURRENT_SEASON_LEAGUES).flat();
   const localCountry = localCatalogCountryForClub({ clubName });
-  const visible = list === 1 ? localProjects : internationalProjects;
+  const visible =
+    list === 1
+      ? localProjects
+      : list === 2
+        ? internationalProjects
+        : nearbyProjects;
 
   useEffect(() => {
     async function load() {
@@ -78,6 +85,7 @@ export default function SponsorCreateCampaignPage() {
       const lists = await loadPartnerClimateProjectLists({ clubName });
       setLocalProjects(lists.local);
       setInternationalProjects(lists.international);
+      setNearbyProjects(lists.nearby);
       setFeatured(await loadFeaturedMatchDayProjects());
       const club = await resolveClubForSponsor(clubName);
       setClubEmail(club.email);
@@ -104,7 +112,11 @@ export default function SponsorCreateCampaignPage() {
     try {
       const club = await resolveClubForSponsor(clubName);
       setClubEmail(club.email);
-      const catalog = [...localProjects, ...internationalProjects];
+      const catalog = [
+        ...localProjects,
+        ...internationalProjects,
+        ...nearbyProjects,
+      ];
       const chosen = catalog.filter((project) => selected.has(project.id));
       const portfolio = featured.length > 0 ? [...featured, ...chosen] : chosen;
       const proposal = await sendSponsorProposalToClub({
@@ -138,9 +150,10 @@ export default function SponsorCreateCampaignPage() {
       <h1 className="mt-6 text-4xl font-black">Create Your Sponsorship Campaign</h1>
       <p className="mt-3 max-w-3xl text-slate-300">
         Do the same thing the Sustainability Director does: choose one Featured
-        Global Schools Solar project, then choose 4 from List 1 ({localCountry})
-        and List 2 (International). Send the {MATCH_DAY_PROJECT_COUNT} to the
-        Sustainability Director so they can push them to fans.
+        Global Schools Solar project, then choose 4 from List 1 ({localCountry}),
+        List 2 (International) and Climate Projects near my Stadium. Send the{" "}
+        {MATCH_DAY_PROJECT_COUNT} to the Sustainability Director so they can
+        push them to fans.
       </p>
 
       <label className="mt-8 block max-w-xl text-sm text-slate-400">
@@ -184,20 +197,27 @@ export default function SponsorCreateCampaignPage() {
         <p className="font-bold">
           {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setList(1)}
             className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(list === 1)}`}
           >
-            List 1 · {localCountry}
+            {climateProjectListLabel(1, localCountry)}
           </button>
           <button
             type="button"
             onClick={() => setList(2)}
             className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(list === 2)}`}
           >
-            List 2 · International
+            {climateProjectListLabel(2, localCountry)}
+          </button>
+          <button
+            type="button"
+            onClick={() => setList(3)}
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(list === 3)}`}
+          >
+            {climateProjectListLabel(3, localCountry)}
           </button>
         </div>
       </div>

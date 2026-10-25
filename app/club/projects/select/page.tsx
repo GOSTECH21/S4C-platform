@@ -42,6 +42,7 @@ import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectC
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
 import { s4pActionBarClass, s4pTabClass } from "@/app/lib/s4p-tabs";
+import { climateProjectListLabel } from "@/app/lib/s4p-climate-projects";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function SelectMatchDayProjectsPage() {
   const [internationalProjects, setInternationalProjects] = useState<
     ClimateProject[]
   >([]);
+  const [nearbyProjects, setNearbyProjects] = useState<ClimateProject[]>([]);
   const [featured, setFeatured] = useState<ClimateProject[]>([]);
   const [featuredId, setFeaturedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -86,7 +88,12 @@ export default function SelectMatchDayProjectsPage() {
         });
         setLocalProjects(lists.local);
         setInternationalProjects(lists.international);
-        const catalog = [...lists.local, ...lists.international];
+        setNearbyProjects(lists.nearby);
+        const catalog = [
+          ...lists.local,
+          ...lists.international,
+          ...lists.nearby,
+        ];
         const featuredProjects = await loadFeaturedMatchDayProjects();
         setFeatured(featuredProjects);
         const validIds = new Set(catalog.map((project) => project.id));
@@ -129,7 +136,12 @@ export default function SelectMatchDayProjectsPage() {
     clubName,
     country: clubCountry,
   });
-  const visible = page === 0 ? localProjects : internationalProjects;
+  const visible =
+    page === 0
+      ? localProjects
+      : page === 1
+        ? internationalProjects
+        : nearbyProjects;
 
   function toggle(projectId: string) {
     setError(null);
@@ -203,12 +215,12 @@ export default function SelectMatchDayProjectsPage() {
         <p className="mt-3 max-w-3xl text-slate-300">
           {clubClimateProjectsIntroCopy()}
         </p>
-        {stadiumSiteForClub(clubName) ? (
-          <p className="mt-3 max-w-3xl text-sm text-emerald-300">
-            {nearbyProjectsCopy(clubName)} List 1 shows those local projects
-            first.
-          </p>
-        ) : null}
+        <p className="mt-3 max-w-3xl text-sm text-emerald-300">
+          {nearbyProjectsCopy(clubName)}{" "}
+          {localCountry === "England"
+            ? "List 1 shows 20 Climate Projects from across England."
+            : `List 1 shows Climate Partner Projects from across ${localCountry}.`}
+        </p>
 
         {featured.length > 0 && (
           <div className="mt-8">
@@ -226,20 +238,27 @@ export default function SelectMatchDayProjectsPage() {
           <p className="font-bold">
             {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setPage(0)}
               className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 0)}`}
             >
-              List 1 · {localCountry}
+              {climateProjectListLabel(1, localCountry)}
             </button>
             <button
               type="button"
               onClick={() => setPage(1)}
               className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 1)}`}
             >
-              List 2 · International
+              {climateProjectListLabel(2, localCountry)}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage(2)}
+              className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 2)}`}
+            >
+              {climateProjectListLabel(3, localCountry)}
             </button>
           </div>
         </div>
@@ -250,15 +269,26 @@ export default function SelectMatchDayProjectsPage() {
           </div>
         )}
 
+        {page === 2 && nearbyProjects.length === 0 ? (
+          <p className="mt-8 max-w-3xl text-slate-300">
+            {stadiumSiteForClub(clubName)
+              ? "No Climate Projects are listed within 20 miles of this stadium yet."
+              : "We do not have a stadium location for this club yet, so Climate Projects near my Stadium is empty."}
+          </p>
+        ) : null}
+
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {visible.map((project) => {
             const isOn = selected.has(project.id);
             const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
-            const region = isLocalCatalogName(project.name, localCountry)
-              ? `${localCountry} Climate Partner`
-              : isInternationalCatalogName(project.name)
-                ? "International Climate Partner"
-                : "Climate Project Partner";
+            const region =
+              page === 2
+                ? "Near the stadium"
+                : isLocalCatalogName(project.name, localCountry)
+                  ? `${localCountry} Climate Partner`
+                  : isInternationalCatalogName(project.name)
+                    ? "International Climate Partner"
+                    : "Climate Project Partner";
             return (
               <div
                 key={project.id}
@@ -296,20 +326,27 @@ export default function SelectMatchDayProjectsPage() {
           })}
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => setPage(0)}
             disabled={page === 0}
             className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 0)}`}
           >
-            List 1 · {localCountry}
+            {climateProjectListLabel(1, localCountry)}
           </button>
           <button
             onClick={() => setPage(1)}
             disabled={page === 1}
             className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 1)}`}
           >
-            List 2 · International
+            {climateProjectListLabel(2, localCountry)}
+          </button>
+          <button
+            onClick={() => setPage(2)}
+            disabled={page === 2}
+            className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 2)}`}
+          >
+            {climateProjectListLabel(3, localCountry)}
           </button>
         </div>
 

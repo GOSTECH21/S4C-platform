@@ -104,7 +104,7 @@ export default function VotePage() {
               {climateProjectsReceivedCopy()}
             </p>
             <p className="mt-2 max-w-2xl text-sm text-emerald-300">
-              Put FUND-IT onto Climate Projects within 5 miles of your club
+              Put FUND-IT onto Climate Projects within 20 miles of your club
               stadium postcode when those local projects are on the Match Day
               list.
             </p>

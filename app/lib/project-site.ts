@@ -1,4 +1,4 @@
-/** Implementation postcode / address for Climate Projects and 5-mile stadium matching. */
+/** Implementation postcode / address for Climate Projects and stadium-radius matching. */
 
 function clubKey(name: string): string {
   return name
@@ -16,7 +16,12 @@ function clubsMatch(left: string, right: string): boolean {
   return a === b || a.includes(b) || b.includes(a);
 }
 
+/** Local-business copy still uses this 5-mile figure where it is mentioned. */
 export const NEARBY_STADIUM_MILES = 5;
+/** Climate Projects listed as “near my Stadium” for the Sustainability Director. */
+export const STADIUM_NEARBY_PROJECT_MILES = 20;
+export const STADIUM_NEARBY_PROJECT_COUNT = 20;
+export const COUNTRY_PROJECT_LIST_SIZE = 20;
 export const SITE_LOCATION_MARK = "|SITE:";
 
 export type GeoPoint = { lat: number; lng: number };
@@ -35,30 +40,182 @@ export type NearbyProject<T> = {
   stadiumPostcode: string;
 };
 
-type NamedSite = ProjectSite & {
+export type StadiumSite = ProjectSite & {
   name: string;
   point: GeoPoint;
+  place?: string;
+  country?: string;
 };
 
-/** Demo club home grounds — public stadium listings. */
-export const CLUB_STADIUM_SITES: NamedSite[] = [
+/** Club home grounds — public stadium listings. */
+export const CLUB_STADIUM_SITES: StadiumSite[] = [
   {
     name: "Hibernian",
     address: "Easter Road Stadium, 12 Albion Place, Edinburgh",
     postcode: "EH7 5QG",
     point: { lat: 55.96173, lng: -3.16589 },
+    place: "Leith",
+    country: "Scotland",
   },
   {
     name: "Hearts of Midlothian",
     address: "Tynecastle Park, McLeod Street, Edinburgh",
     postcode: "EH11 2NL",
     point: { lat: 55.93925, lng: -3.23245 },
+    place: "Gorgie",
+    country: "Scotland",
   },
   {
     name: "Arsenal",
     address: "Emirates Stadium, Hornsey Road, London",
     postcode: "N7 7AJ",
     point: { lat: 51.55488, lng: -0.10844 },
+    place: "Islington",
+    country: "England",
+  },
+  {
+    name: "Swansea City",
+    address: "Swansea.com Stadium, Landore, Swansea",
+    postcode: "SA1 2FA",
+    point: { lat: 51.6426, lng: -3.9351 },
+    place: "Swansea",
+    country: "Wales",
+  },
+  {
+    name: "Chelsea",
+    address: "Stamford Bridge, Fulham Road, London",
+    postcode: "SW6 1HS",
+    point: { lat: 51.4816, lng: -0.191 },
+    place: "Fulham",
+    country: "England",
+  },
+  {
+    name: "Tottenham Hotspur",
+    address: "Tottenham Hotspur Stadium, High Road, London",
+    postcode: "N17 0BX",
+    point: { lat: 51.6042, lng: -0.0662 },
+    place: "Tottenham",
+    country: "England",
+  },
+  {
+    name: "West Ham United",
+    address: "London Stadium, Queen Elizabeth Olympic Park",
+    postcode: "E20 2ST",
+    point: { lat: 51.5386, lng: -0.0166 },
+    place: "Stratford",
+    country: "England",
+  },
+  {
+    name: "Crystal Palace",
+    address: "Selhurst Park, Whitehorse Lane, London",
+    postcode: "SE25 6PU",
+    point: { lat: 51.3983, lng: -0.0855 },
+    place: "Selhurst",
+    country: "England",
+  },
+  {
+    name: "Fulham",
+    address: "Craven Cottage, Stevenage Road, London",
+    postcode: "SW6 6HH",
+    point: { lat: 51.4749, lng: -0.2216 },
+    place: "Fulham",
+    country: "England",
+  },
+  {
+    name: "Liverpool",
+    address: "Anfield, Anfield Road, Liverpool",
+    postcode: "L4 0TH",
+    point: { lat: 53.4308, lng: -2.9609 },
+    place: "Anfield",
+    country: "England",
+  },
+  {
+    name: "Manchester City",
+    address: "Etihad Stadium, Ashton New Road, Manchester",
+    postcode: "M11 3FF",
+    point: { lat: 53.4831, lng: -2.2004 },
+    place: "East Manchester",
+    country: "England",
+  },
+  {
+    name: "Manchester United",
+    address: "Old Trafford, Sir Matt Busby Way, Manchester",
+    postcode: "M16 0RA",
+    point: { lat: 53.4631, lng: -2.2913 },
+    place: "Trafford",
+    country: "England",
+  },
+  {
+    name: "Newcastle United",
+    address: "St James' Park, Strawberry Place, Newcastle",
+    postcode: "NE1 4ST",
+    point: { lat: 54.9756, lng: -1.6217 },
+    place: "Newcastle",
+    country: "England",
+  },
+  {
+    name: "Brighton and Hove Albion",
+    address: "American Express Stadium, Village Way, Brighton",
+    postcode: "BN1 9BL",
+    point: { lat: 50.8616, lng: -0.0837 },
+    place: "Falmer",
+    country: "England",
+  },
+  {
+    name: "Aston Villa",
+    address: "Villa Park, Trinity Road, Birmingham",
+    postcode: "B6 6HE",
+    point: { lat: 52.5092, lng: -1.885 },
+    place: "Aston",
+    country: "England",
+  },
+  {
+    name: "Leeds United",
+    address: "Elland Road, Leeds",
+    postcode: "LS11 0ES",
+    point: { lat: 53.7778, lng: -1.5721 },
+    place: "Beeston",
+    country: "England",
+  },
+  {
+    name: "Sunderland",
+    address: "Stadium of Light, Sunderland",
+    postcode: "SR5 1SU",
+    point: { lat: 54.9144, lng: -1.3884 },
+    place: "Sunderland",
+    country: "England",
+  },
+  {
+    name: "Nottingham Forest",
+    address: "City Ground, Nottingham",
+    postcode: "NG2 5FJ",
+    point: { lat: 52.9399, lng: -1.1328 },
+    place: "West Bridgford",
+    country: "England",
+  },
+  {
+    name: "Celtic",
+    address: "Celtic Park, Glasgow",
+    postcode: "G40 3RE",
+    point: { lat: 55.8497, lng: -4.2056 },
+    place: "Parkhead",
+    country: "Scotland",
+  },
+  {
+    name: "Rangers",
+    address: "Ibrox Stadium, Glasgow",
+    postcode: "G51 2XD",
+    point: { lat: 55.8532, lng: -4.3093 },
+    place: "Ibrox",
+    country: "Scotland",
+  },
+  {
+    name: "Cardiff City",
+    address: "Cardiff City Stadium, Leckwith Road, Cardiff",
+    postcode: "CF11 8AZ",
+    point: { lat: 51.4728, lng: -3.2031 },
+    place: "Leckwith",
+    country: "Wales",
   },
 ];
 
@@ -66,7 +223,7 @@ export const CLUB_STADIUM_SITES: NamedSite[] = [
  * Public listing postcodes for Climate Partner projects already on S4P.
  * Addresses come from the organisation's own site or Companies House / OSCR.
  */
-export const LISTED_PROJECT_SITES: NamedSite[] = [
+export const LISTED_PROJECT_SITES: StadiumSite[] = [
   {
     name: "Bridgend Farmhouse",
     address: "41 Old Dalkeith Road, Edinburgh",
@@ -151,6 +308,90 @@ export const LISTED_PROJECT_SITES: NamedSite[] = [
     postcode: "AB11 5DE",
     point: { lat: 57.1431, lng: -2.0718 },
   },
+  {
+    name: "Swansea Community Energy",
+    address: "Landore, Swansea",
+    postcode: "SA1 2AA",
+    point: { lat: 51.6412, lng: -3.932 },
+  },
+  {
+    name: "Gower Saltmarsh Restoration",
+    address: "Loughor Estuary, Swansea",
+    postcode: "SA4 3TN",
+    point: { lat: 51.647, lng: -4.065 },
+  },
+  {
+    name: "Port Talbot Clean Air Streets",
+    address: "Port Talbot town centre",
+    postcode: "SA13 1PJ",
+    point: { lat: 51.5905, lng: -3.7812 },
+  },
+  {
+    name: "Neath Canal Wildlife",
+    address: "Neath Canal, Neath",
+    postcode: "SA11 1RB",
+    point: { lat: 51.663, lng: -3.804 },
+  },
+  {
+    name: "Leeds Community Retrofit",
+    address: "Beeston, Leeds",
+    postcode: "LS11 6AD",
+    point: { lat: 53.7785, lng: -1.557 },
+  },
+  {
+    name: "Sheffield Street Trees",
+    address: "Sheffield city parks",
+    postcode: "S1 2HH",
+    point: { lat: 53.381, lng: -1.47 },
+  },
+  {
+    name: "Nottingham Heat Network",
+    address: "Nottingham city centre",
+    postcode: "NG1 5DT",
+    point: { lat: 52.954, lng: -1.155 },
+  },
+  {
+    name: "Leicester Active Travel",
+    address: "Leicester city centre",
+    postcode: "LE1 5WW",
+    point: { lat: 52.636, lng: -1.133 },
+  },
+  {
+    name: "Southampton Coastal Resilience",
+    address: "Southampton Waterfront",
+    postcode: "SO14 3QN",
+    point: { lat: 50.897, lng: -1.404 },
+  },
+  {
+    name: "Brighton Community Solar",
+    address: "Brighton and Hove rooftops",
+    postcode: "BN1 1GE",
+    point: { lat: 50.822, lng: -0.137 },
+  },
+  {
+    name: "Norwich Fen Restoration",
+    address: "The Broads, Norwich",
+    postcode: "NR1 1WR",
+    point: { lat: 52.628, lng: 1.303 },
+  },
+  {
+    name: "Exeter Community Energy",
+    address: "Exeter community buildings",
+    postcode: "EX1 1GP",
+    point: { lat: 50.725, lng: -3.526 },
+  },
+  {
+    name: "Sunderland Riverside Restoration",
+    address: "River Wear, Sunderland",
+    postcode: "SR1 1UN",
+    point: { lat: 54.907, lng: -1.382 },
+  },
+  {
+    name: "Stoke Canal Rewilding",
+    address: "Trent and Mersey Canal, Stoke-on-Trent",
+    postcode: "ST1 1JJ",
+    point: { lat: 53.026, lng: -2.175 },
+  },
 ];
 
 const POINT_BY_POSTCODE = new Map<string, GeoPoint>();
@@ -228,7 +469,7 @@ export function parseProjectSite(
 
 export function listedSiteForProjectName(
   name: string | null | undefined
-): NamedSite | null {
+): StadiumSite | null {
   const key = (name ?? "").trim().toLowerCase();
   if (!key) return null;
   return (
@@ -298,7 +539,7 @@ export function milesBetweenPostcodes(
 
 export function stadiumSiteForClub(
   clubName: string | null | undefined
-): NamedSite | null {
+): StadiumSite | null {
   const name = String(clubName ?? "").trim();
   if (!name) return null;
   return (
@@ -457,5 +698,9 @@ export function nearbyProjectsCopy(clubName: string): string {
   const ground = stadium
     ? `${stadium.address.split(",")[0]} (${stadium.postcode})`
     : "your club stadium";
-  return `Climate Projects within ${NEARBY_STADIUM_MILES} miles of ${ground}. Fans can put FUND-IT allocations onto these local projects.`;
+  return `Climate Projects near my Stadium lists ${STADIUM_NEARBY_PROJECT_COUNT} projects within ${STADIUM_NEARBY_PROJECT_MILES} miles of ${ground}.`;
+}
+
+export function registerPointForPostcode(postcode: string, point: GeoPoint) {
+  rememberPoint(postcode, point);
 }
