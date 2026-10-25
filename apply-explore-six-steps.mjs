@@ -32,11 +32,20 @@ function read(rel) {
   return existsSync(rel) ? readFileSync(rel, "utf8") : "";
 }
 
+const joinPath = "app/components/home/HomeJoinMission.tsx";
+if (existsSync(joinPath)) {
+  const patched = readFileSync(joinPath, "utf8").replaceAll(
+    "Turn every match into a climate action opportunity",
+    "Turn every score in a match into a sponsored climate action"
+  );
+  writeFileSync(joinPath, patched);
+}
+
 const join = read("app/components/home/HomeJoinMission.tsx");
 const roles = read("app/components/home/HomeRoleSection.tsx");
 const how = read("app/components/home/HowItWorks.tsx");
 if (
-  !join.includes("Turn every match into a climate action opportunity") ||
+  !join.includes("Turn every score in a match into a sponsored climate action") ||
   roles.includes("Already registered? Login") ||
   roles.includes("card.loginText") ||
   !how.includes("Explore the six steps below.") ||
