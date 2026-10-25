@@ -192,7 +192,7 @@ function StepArrow({
       }
       disabled={disabled}
       onClick={onClick}
-      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-400/40 bg-s4p-paper shadow-sm hover:bg-s4p-mark disabled:pointer-events-none disabled:opacity-30 lg:inline-flex ${
+      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-s4p-mark text-black shadow-sm hover:brightness-110 disabled:pointer-events-none disabled:opacity-50 lg:inline-flex ${
         direction === "left" ? "left-0" : "right-0"
       }`}
     >

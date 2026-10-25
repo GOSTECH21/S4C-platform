@@ -579,6 +579,9 @@ assert(
     howItWorks.includes('data-how-s4p-arrow={direction}') &&
     howItWorks.includes("hidden") &&
     howItWorks.includes("lg:inline-flex") &&
+    howItWorks.includes("bg-s4p-mark") &&
+    howItWorks.includes("text-black") &&
+    !howItWorks.includes("hover:bg-s4p-mark") &&
     howItWorks.includes("Show the previous How S4P Works step") &&
     howItWorks.includes("Show the following How S4P Works step") &&
     !howItWorks.includes("s4p-ticker") &&
