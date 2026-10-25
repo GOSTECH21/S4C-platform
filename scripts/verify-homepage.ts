@@ -694,9 +694,32 @@ assert(
     howYoureSupporting.includes("SUPPORTER_CAMPAIGN_PATH") &&
     howYoureSupporting.includes('id="match-day-banner"') &&
     howYoureSupporting.includes("selectedMatch") &&
+    howYoureSupporting.includes("clubLogoSrc") &&
+    howYoureSupporting.includes("data-match-day-home-logo") &&
+    howYoureSupporting.includes("data-match-day-away-logo") &&
+    howYoureSupporting.includes("match-day-home-logo") &&
+    howYoureSupporting.includes("match-day-away-logo") &&
+    howYoureSupporting.includes("homeName") &&
+    howYoureSupporting.includes("awayName") &&
     howYoureSupporting.includes("role=\"radio\"") &&
     howYoureSupporting.includes("pinHowS4pSlide"),
-  "Attending Continue opens a live travel sheet; the phone banner shows the chosen Match Day"
+  "Attending Continue opens a live travel sheet; the phone banner shows the chosen Match Day with both club logos"
+);
+const clubLogos = readFileSync("app/lib/club-logos.ts", "utf8");
+assert(
+  clubLogos.includes("export function clubLogoSrc") &&
+    clubLogos.includes("/api/home/club-logo") &&
+    !clubLogos.includes("sporting-calendar"),
+  "Club logos resolve through a dedicated helper, not the Sporting Calendar"
+);
+const clubLogoApi = readFileSync("app/api/home/club-logo/route.ts", "utf8");
+assert(
+  clubLogoApi.includes("thesportsdb.com") &&
+    clubLogoApi.includes("json/123") &&
+    clubLogoApi.includes("wikipedia.org") &&
+    clubLogoApi.includes("clubLogoSearchQuery") &&
+    !clubLogoApi.includes("sporting-calendar"),
+  "Club logo API looks up crests without importing the Sporting Calendar"
 );
 const travelLib = readFileSync("app/lib/match-day-travel.ts", "utf8");
 assert(
