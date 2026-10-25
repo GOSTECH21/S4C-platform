@@ -20,6 +20,7 @@ import {
 } from "@/app/lib/upcoming-matches";
 import { loadClubChosenClimateProjects } from "@/app/services/sponsor-offers.service";
 import type { ClimateProject } from "@/app/services/votes.service";
+import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 import {
   FAN_REGISTER_PATH,
   SUPPORTER_CAMPAIGN_PATH,
@@ -609,6 +610,7 @@ function ClubClimateProjectsSheet() {
         </button>
         <a
           href={FAN_REGISTER_PATH}
+          onClick={(event) => hardNavigateOnClick(FAN_REGISTER_PATH, event)}
           className="inline-flex items-center rounded-full border border-emerald-400/40 px-5 py-3 text-sm font-black uppercase tracking-[0.12em]"
         >
           Register as a fan
