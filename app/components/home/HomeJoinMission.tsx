@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 import {
   CLUB_REGISTER_PATH,
   FAN_REGISTER_PATH,
@@ -110,12 +110,13 @@ export default function HomeJoinMission() {
               </li>
             ))}
           </ul>
-          <Link
+          <a
             href={CLUB_REGISTER_PATH}
+            onClick={(event) => hardNavigateOnClick(CLUB_REGISTER_PATH, event)}
             className="mt-8 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black hover:brightness-110 sm:text-base"
           >
             Explore club partnership <span aria-hidden> →</span>
-          </Link>
+          </a>
         </article>
 
         <article
@@ -139,12 +140,13 @@ export default function HomeJoinMission() {
             part in match-day activities and direct eligible sponsor-funded
             contributions to climate projects.
           </p>
-          <Link
+          <a
             href={FAN_REGISTER_PATH}
+            onClick={(event) => hardNavigateOnClick(FAN_REGISTER_PATH, event)}
             className="mt-8 inline-flex w-full max-w-md cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black hover:brightness-110 sm:text-base"
           >
             Join free <span aria-hidden> →</span>
-          </Link>
+          </a>
         </article>
       </div>
     </section>

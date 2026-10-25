@@ -337,6 +337,23 @@ assert(
   "Login and Register tabs must not write #login/#register into history (that 404s the role pages)"
 );
 assert(
+  roles.includes("hardNavigateOnClick") &&
+    roles.includes("primaryHref") &&
+    !roles.includes('from "next/link"'),
+  "Different Roles join buttons do a normal page load so they do not 404 after Create your free account"
+);
+const fanRegisterRoute = readFileSync("app/fan/register/page.tsx", "utf8");
+assert(
+  fanRegisterRoute.includes('"use client"') &&
+    fanRegisterRoute.includes("@/app/register/page"),
+  "Join as a Fan opens a real /fan/register page, not a 404"
+);
+const joinRoute = readFileSync("app/join/page.tsx", "utf8");
+assert(
+  joinRoute.includes('redirect("/?join=register")'),
+  "/join sends visitors to the Different Roles cards instead of a 404"
+);
+assert(
   front.includes("<HomeTopBanner") &&
     front.indexOf("<HomeTopBanner") < front.indexOf("<HomeRoleSection"),
   "The global sports banner sits at the top, above the role cards"
@@ -429,7 +446,9 @@ assert(
     !joinMission.includes("Register free") &&
     !joinMission.includes("bg-black") &&
     !joinMission.includes("#041018") &&
-    !joinMission.includes("bg-emerald-500"),
+    !joinMission.includes("bg-emerald-500") &&
+    joinMission.includes("hardNavigateOnClick") &&
+    !joinMission.includes('from "next/link"'),
   "Home join is a paper club-director panel plus a fan panel without See How It Works"
 );
 
@@ -657,6 +676,7 @@ assert(
     howYoureSupporting.includes("loadClubChosenClimateProjects") &&
     howYoureSupporting.includes("FUND_IT_LABEL") &&
     howYoureSupporting.includes("fanLoginPath") &&
+    howYoureSupporting.includes("hardNavigateOnClick") &&
     howYoureSupporting.includes("SUPPORTER_CAMPAIGN_PATH") &&
     howYoureSupporting.includes('id="match-day-banner"') &&
     howYoureSupporting.includes("selectedMatch") &&

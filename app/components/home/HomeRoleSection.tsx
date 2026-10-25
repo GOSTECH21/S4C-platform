@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { HOME_STAKEHOLDERS } from "@/app/lib/home-stakeholders";
+import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 
 const MARK_GREEN = "#5bc662";
 const MINT = "#0c5c2c";
@@ -130,6 +131,7 @@ export default function HomeRoleSection({
                 </p>
                 <a
                   href={primaryHref}
+                  onClick={(event) => hardNavigateOnClick(primaryHref, event)}
                   className="mt-3 block rounded-full px-2 py-2.5 text-center text-[0.68rem] font-bold leading-snug hover:brightness-110 sm:text-xs"
                   style={{ backgroundColor: MINT, color: PAPER }}
                 >
