@@ -39,6 +39,7 @@ if (
   !phone.includes("data-match-day-away-logo") ||
   !phone.includes("clubLogoSrc") ||
   !phone.includes('id="match-day-banner"') ||
+  !phone.includes('height: "16%"') ||
   !logos.includes("export function clubLogoSrc") ||
   !api.includes("thesportsdb.com")
 ) {
