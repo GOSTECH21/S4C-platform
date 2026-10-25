@@ -11,6 +11,7 @@ const FILES = [
   "app/lib/partner-projects.ts",
   "app/lib/s4p-climate-projects.ts",
   "app/lib/featured-climate-country.ts",
+  "app/lib/fan-votes.ts",
   "app/services/club-match-day.service.ts",
   "app/services/partner.service.ts",
   "app/components/climate/ProjectSiteLine.tsx",
@@ -46,6 +47,7 @@ const select = read("app/club/projects/select/page.tsx");
 const catalog = read("app/lib/sccan-catalog.ts");
 const nearby = read("app/lib/stadium-nearby-projects.ts");
 const labels = read("app/lib/s4p-climate-projects.ts");
+const matchDay = read("app/services/club-match-day.service.ts");
 if (
   !select.includes("climateProjectListLabel(3") ||
   !select.includes("setNearbyProjects") ||
@@ -53,7 +55,9 @@ if (
   !catalog.includes("Stoke Canal Rewilding") ||
   !catalog.includes("COUNTRY_PROJECT_LIST_SIZE") ||
   !nearby.includes("nearbyClimateProjectsForClub") ||
-  !labels.includes('CLIMATE_PROJECTS_NEAR_STADIUM_LABEL')
+  !labels.includes('CLIMATE_PROJECTS_NEAR_STADIUM_LABEL') ||
+  !matchDay.includes("isMissingColumnError") ||
+  !matchDay.includes("hostedClimateProjectId")
 ) {
   failed += 1;
   console.error(

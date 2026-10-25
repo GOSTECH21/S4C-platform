@@ -61,7 +61,9 @@ import {
 } from "../app/lib/sccan-catalog";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
+  hostedClimateProjectId,
   isCampaignIdNotNullError,
+  isMissingColumnError,
   ownedCampaignId,
   retainVoteCampaignId,
   voteRowsForInsert,
@@ -510,6 +512,31 @@ assert(
   }),
   "Detects the hosted campaign_id NOT NULL vote failure"
 );
+assert(
+  isMissingColumnError(
+    {
+      message:
+        "Could not find the 'climate_project_id' column of 'club_match_portfolio' in the schema cache",
+    },
+    "climate_project_id",
+    "club_match_portfolio"
+  ) &&
+    !isMissingColumnError(
+      {
+        message:
+          "Could not find the 'climate_project_id' column of 'club_match_portfolio' in the schema cache",
+      },
+      "project_id",
+      "club_match_portfolio"
+    ),
+  "Detects the hosted club_match_portfolio climate_project_id schema-cache miss"
+);
+assert(
+  hostedClimateProjectId("b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051::gss-world") ===
+    "b7e1a2c3-d4e5-4f60-8a9b-0c1d2e3f4051" &&
+    hostedClimateProjectId("not-a-uuid") === null,
+  "Hosted portfolio rows keep a real climate_projects UUID"
+);
 
 assert(kindFromProfileRole("supporter") === "fan", "Supporter profile is a fan");
 assert(kindFromProfileRole("admin") === "admin", "Admin profile is S4P staff");
@@ -711,6 +738,11 @@ assert(
     matchDayService.includes("findStoredClubSelectionByName") &&
     matchDayService.includes(
       "writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED)"
+    ) &&
+    matchDayService.includes("isMissingColumnError") &&
+    matchDayService.includes("hostedClimateProjectId") &&
+    matchDayService.includes(
+      'isMissingColumnError(climateIdInsert.error, "climate_project_id", "club_match_portfolio")'
     ) &&
     matchDayService.includes("export async function publishSignedSponsorshipToFans"),
   "SD selection attaches the five for sponsors as soon as chosen; fans only receive them after Approved sign-off"

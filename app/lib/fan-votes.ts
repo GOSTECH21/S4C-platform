@@ -59,3 +59,34 @@ export function isCampaignIdNotNullError(error: {
   if (error.code !== "23502") return false;
   return /campaign_id/i.test(String(error.message ?? ""));
 }
+
+export function errorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message?: unknown }).message ?? "");
+  }
+  return String(error ?? "");
+}
+
+/** PostgREST PGRST204: column is not in the hosted table / schema cache. */
+export function isMissingColumnError(
+  error: unknown,
+  column?: string,
+  table?: string
+): boolean {
+  const message = errorMessage(error);
+  if (!/could not find the '/i.test(message) && !/schema cache/i.test(message)) {
+    return false;
+  }
+  if (column && !message.includes(`'${column}'`)) return false;
+  if (table && !message.toLowerCase().includes(table.toLowerCase())) return false;
+  return true;
+}
+
+/** Featured GSS picker may suffix a published id with ::gss-local / ::gss-world. */
+export function hostedClimateProjectId(
+  projectId: string | null | undefined
+): string | null {
+  const base = String(projectId ?? "").replace(/::gss-(local|world)$/i, "");
+  return isVoteUuid(base) ? base : null;
+}
