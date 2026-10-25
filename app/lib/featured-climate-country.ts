@@ -2,6 +2,7 @@ import {
   FEATURED_PROJECT_NAME,
   INTERNATIONAL_CLIMATE_PROJECTS,
   localClimateProjectsForClub,
+  resolvedLocalCatalogCountry,
   selectableCatalogForCountry,
 } from "./sccan-catalog";
 import {
@@ -114,7 +115,7 @@ export function localClimateRegionForClub(
 }
 
 /**
- * Nation used for the SD's 10 local Climate Partner projects.
+ * Nation used for the SD's local Climate Partner projects (20 across England).
  * England and Scotland stay separate, so Arsenal and Hearts do not share a list.
  */
 export function localCatalogCountryForClub(
@@ -123,7 +124,7 @@ export function localCatalogCountryForClub(
   const countryKey = normalizeSeasonName(context.country ?? "");
   if (countryKey && !UK_AMBIGUOUS.has(countryKey) && !SKIP_REGIONS.has(countryKey)) {
     const nation = CATALOG_NATIONS[countryKey];
-    if (nation) return nation;
+    if (nation) return resolvedLocalCatalogCountry(nation);
   }
 
   const league =
@@ -132,15 +133,15 @@ export function localCatalogCountryForClub(
 
   if (league === "Six Nations") {
     const fromNation = CATALOG_NATIONS[normalizeSeasonName(context.clubName ?? "")];
-    if (fromNation) return fromNation;
+    if (fromNation) return resolvedLocalCatalogCountry(fromNation);
   }
 
   if (league) {
     const fromLeague = CATALOG_NATIONS[normalizeSeasonName(LEAGUE_COUNTRY[league] ?? "")];
-    if (fromLeague) return fromLeague;
+    if (fromLeague) return resolvedLocalCatalogCountry(fromLeague);
   }
 
-  return "England";
+  return resolvedLocalCatalogCountry("England");
 }
 
 export function selectableCatalogForClub(context: ClimateCountryContext) {

@@ -51,7 +51,7 @@ export function matchDayProjectApprovalLabel(isApproved: boolean): string {
 }
 
 export function clubClimateProjectsIntroCopy(): string {
-  return `Choose one Featured Climate Project: Global Schools Solar for a local school near the stadium, or Global Schools Solar for a school anywhere in the world. There can never be two Featured projects. Then choose ${MATCH_DAY_CHOICE_COUNT} more from two lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
+  return `Choose one Featured Climate Project: Global Schools Solar for a local school near the stadium, or Global Schools Solar for a school anywhere in the world. There can never be two Featured projects. Then choose ${MATCH_DAY_CHOICE_COUNT} more from three lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World; Climate Projects near my Stadium shows 20 projects within 20 miles of the club stadium. In the future, ONLY submitted Projects from signed-up Climate Project Partners will be listed. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
 }
 
 export function partnerProjectPage<T>(projects: T[], page: number): T[] {
@@ -130,14 +130,39 @@ export function selectOwnListedProjects<
   });
 }
 
+export type PartnerClimateProjectLists<T> = {
+  local: T[];
+  international: T[];
+  nearby: T[];
+};
+
 export function listsWithUploadsFirst<
   T extends { id: string; name: string; country?: string | null },
 >(
-  generic: T[],
+  generic: PartnerClimateProjectLists<T> | T[],
   uploaded: T[],
   localCountry: string
-): { local: T[]; international: T[] } {
-  const genericNames = new Set(generic.map((project) => project.name.toLowerCase()));
+): PartnerClimateProjectLists<T> {
+  const lists: PartnerClimateProjectLists<T> = Array.isArray(generic)
+    ? {
+        local: generic.filter((project) =>
+          isLocalUploadedCountry(project.country, localCountry)
+        ),
+        international: generic.filter(
+          (project) => !isLocalUploadedCountry(project.country, localCountry)
+        ),
+        nearby: [],
+      }
+    : {
+        local: generic.local,
+        international: generic.international,
+        nearby: generic.nearby ?? [],
+      };
+  const genericNames = new Set(
+    [...lists.local, ...lists.international, ...lists.nearby].map((project) =>
+      project.name.toLowerCase()
+    )
+  );
   const extra: T[] = [];
   const seenUploads = new Set<string>();
   for (const project of uploaded) {
@@ -152,8 +177,6 @@ export function listsWithUploadsFirst<
     seenUploads.add(key);
     extra.push(project);
   }
-  const genericLocal = generic.slice(0, PARTNER_PAGE_SIZE);
-  const genericInternational = generic.slice(PARTNER_PAGE_SIZE);
   const uploadedLocal = extra.filter((project) =>
     isLocalUploadedCountry(project.country, localCountry)
   );
@@ -161,7 +184,8 @@ export function listsWithUploadsFirst<
     (project) => !uploadedLocal.some((row) => row.id === project.id)
   );
   return {
-    local: [...uploadedLocal, ...genericLocal],
-    international: [...uploadedInternational, ...genericInternational],
+    local: [...uploadedLocal, ...lists.local],
+    international: [...uploadedInternational, ...lists.international],
+    nearby: lists.nearby,
   };
 }

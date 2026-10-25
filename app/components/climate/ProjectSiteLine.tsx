@@ -3,7 +3,7 @@ import {
   siteForProject,
   stadiumSiteForClub,
   milesBetweenPostcodes,
-  NEARBY_STADIUM_MILES,
+  STADIUM_NEARBY_PROJECT_MILES,
 } from "@/app/lib/project-site";
 
 export function ProjectSiteLine({
@@ -25,7 +25,7 @@ export function ProjectSiteLine({
     ? milesBetweenPostcodes(site.postcode, stadium.postcode)
     : null;
   const nearby =
-    miles != null && miles <= NEARBY_STADIUM_MILES
+    miles != null && miles <= STADIUM_NEARBY_PROJECT_MILES
       ? formatMilesFromStadium(Math.round(miles * 10) / 10)
       : null;
   return (

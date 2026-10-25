@@ -246,9 +246,9 @@ export function ClimateProjectListingForm({
           </label>
         </div>
         <p className="text-xs text-slate-500">
-          Fans of a club can put FUNDS onto Climate Projects within 5 miles of
+          Fans of a club can put FUNDS onto Climate Projects within 20 miles of
           that club&apos;s stadium postcode. Local Business Climate Sponsors
-          might target Climate Projects within 5 miles of the stadium for
+          might target Climate Projects within 20 miles of the stadium for
           sponsorship.
         </p>
         <div className="grid gap-4 md:grid-cols-2">

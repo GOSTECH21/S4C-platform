@@ -18,10 +18,7 @@ import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { findClubOnRoster } from "../lib/current-season";
 import { isSportingCalendarClub } from "../lib/calendar-clubs";
 import type { ClimateCountryContext } from "../lib/featured-climate-country";
-import {
-  localCatalogCountryForClub,
-  selectableCatalogForClub,
-} from "../lib/featured-climate-country";
+import { localCatalogCountryForClub } from "../lib/featured-climate-country";
 import {
   MATCH_DAY_PORTFOLIO_POSTED,
   MATCH_DAY_PORTFOLIO_SELECTED,
@@ -41,7 +38,15 @@ import {
   preferFullerLookbackSelected,
   votedProjectsOnSignedOffer,
 } from "../lib/sponsor-dashboard";
-import { publishSccanCatalog, loadUploadedPartnerProjects } from "./partner.service";
+import {
+  publishSccanCatalog,
+  loadUploadedPartnerProjects,
+  upsertCatalogProjects,
+} from "./partner.service";
+import {
+  climateProjectListsForClub,
+  PARTNER_MATCH_DAY_CATALOG,
+} from "../lib/sccan-catalog";
 import { listClubSignedSponsorships } from "./sponsor-offers.service";
 import { sponsorLogoSrc } from "./teams.service";
 import {
@@ -56,6 +61,10 @@ import {
   clubShouldStartBlank,
   markClubSelectionLive,
 } from "../lib/clear-club-data";
+import {
+  hostedClimateProjectId,
+  isMissingColumnError,
+} from "../lib/fan-votes";
 
 const PROJECT_FIELDS =
   "id, name, description, category, country, estimated_co2, funding_goal, image_url, status, featured, location";
@@ -124,24 +133,45 @@ export async function loadPartnerClimateProjects(
   context: ClimateCountryContext = {}
 ): Promise<ClimateProject[]> {
   const lists = await loadPartnerClimateProjectLists(context);
-  return [...lists.local, ...lists.international];
+  return [...lists.local, ...lists.international, ...lists.nearby];
 }
 
 export async function loadPartnerClimateProjectLists(
   context: ClimateCountryContext = {}
-): Promise<{ local: ClimateProject[]; international: ClimateProject[] }> {
+): Promise<{
+  local: ClimateProject[];
+  international: ClimateProject[];
+  nearby: ClimateProject[];
+}> {
   const published = await publishSccanCatalog();
   const uploaded = await loadUploadedPartnerProjects();
-  const byName = new Map(
-    published.map((project) => [project.name.toLowerCase(), project])
+  const localCountry = localCatalogCountryForClub(context);
+  const catalogLists = climateProjectListsForClub(context.clubName, localCountry);
+  const catalogNames = new Set(
+    PARTNER_MATCH_DAY_CATALOG.map((project) => project.name.toLowerCase())
   );
-  const generic = selectableCatalogForClub(context)
-    .map((item) => byName.get(item.name.toLowerCase()))
-    .filter((project): project is ClimateProject => Boolean(project));
+  const nearbyToPublish = catalogLists.nearby.filter(
+    (project) => !catalogNames.has(project.name.toLowerCase())
+  );
+  const nearbyPublished = await upsertCatalogProjects(nearbyToPublish);
+  const byName = new Map(
+    [...published, ...nearbyPublished].map((project) => [
+      project.name.toLowerCase(),
+      project,
+    ])
+  );
+  const mapList = (items: { name: string }[]) =>
+    items
+      .map((item) => byName.get(item.name.toLowerCase()))
+      .filter((project): project is ClimateProject => Boolean(project));
   return listsWithUploadsFirst(
-    generic,
+    {
+      local: mapList(catalogLists.local),
+      international: mapList(catalogLists.international),
+      nearby: mapList(catalogLists.nearby),
+    },
     uploaded,
-    localCatalogCountryForClub(context)
+    localCountry
   );
 }
 
@@ -1257,7 +1287,13 @@ export async function saveMatchDaySelection({
     await writeCampaignProjects(campaign.id, portfolioIds);
   }
 
-  await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED);
+  try {
+    await writeClubPortfolio(clubId, portfolioIds, MATCH_DAY_PORTFOLIO_SELECTED);
+  } catch (err) {
+    if (!isMissingColumnError(err, undefined, "club_match_portfolio")) {
+      throw err;
+    }
+  }
 
   writeStoredMatchDay(clubId, auction);
   writeCampaignAuction(auction.campaignId, auction);
@@ -1341,6 +1377,15 @@ async function writeClubPortfolio(
   projectIds: string[],
   status: string
 ) {
+  const hostedIds = [
+    ...new Set(
+      projectIds
+        .map((projectId) => hostedClimateProjectId(projectId))
+        .filter((projectId): projectId is string => Boolean(projectId))
+    ),
+  ];
+  if (hostedIds.length === 0) return;
+
   const existing = await supabase
     .from("club_match_portfolio")
     .select("*")
@@ -1357,25 +1402,38 @@ async function writeClubPortfolio(
     status === MATCH_DAY_PORTFOLIO_POSTED && previouslyVoted.has(projectId)
       ? MATCH_DAY_PORTFOLIO_VOTED
       : status;
-  const portfolioAttempts = [
-    projectIds.map((projectId) => ({
-      club_id: clubId,
-      project_id: projectId,
-      status: rowStatus(projectId),
-    })),
-    projectIds.map((projectId) => ({
-      club_id: clubId,
-      climate_project_id: projectId,
-      status: rowStatus(projectId),
-    })),
-  ];
-  let lastError = "Could not save the Match Day projects.";
-  for (const rows of portfolioAttempts) {
-    const { error } = await supabase.from("club_match_portfolio").insert(rows);
-    if (!error) return;
-    lastError = error.message;
+
+  const withProjectId = hostedIds.map((projectId) => ({
+    club_id: clubId,
+    project_id: projectId,
+    status: rowStatus(projectId),
+  }));
+  const projectIdInsert = await supabase
+    .from("club_match_portfolio")
+    .insert(withProjectId);
+  if (!projectIdInsert.error) return;
+  if (!isMissingColumnError(projectIdInsert.error, "project_id", "club_match_portfolio")) {
+    throw new Error(
+      projectIdInsert.error.message || "Could not save the Match Day projects."
+    );
   }
-  throw new Error(lastError);
+
+  const withClimateProjectId = hostedIds.map((projectId) => ({
+    club_id: clubId,
+    climate_project_id: projectId,
+    status: rowStatus(projectId),
+  }));
+  const climateIdInsert = await supabase
+    .from("club_match_portfolio")
+    .insert(withClimateProjectId);
+  if (!climateIdInsert.error) return;
+  if (isMissingColumnError(climateIdInsert.error, "climate_project_id", "club_match_portfolio")) {
+    // Hosted club_match_portfolio uses project_id only. Local Match Day storage still saves.
+    return;
+  }
+  throw new Error(
+    climateIdInsert.error.message || "Could not save the Match Day projects."
+  );
 }
 
 export async function postMatchDayProjectsToFans({

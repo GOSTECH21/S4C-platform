@@ -1,6 +1,11 @@
 import { readFileSync } from "fs";
 import { selectableCatalogForClub } from "../app/lib/featured-climate-country";
 import {
+  climateProjectListsForClub,
+  sitedCatalogProjects,
+} from "../app/lib/sccan-catalog";
+import { nearbyClimateProjectsForClub } from "../app/lib/stadium-nearby-projects";
+import {
   CIV_LISTING_BLOCKED,
   climateProjectListingErrors,
   encodePartnerLocation,
@@ -8,6 +13,7 @@ import {
 import {
   LISTED_PROJECT_SITES,
   NEARBY_STADIUM_MILES,
+  STADIUM_NEARBY_PROJECT_COUNT,
   assertLocalBusinessNearStadium,
   encodeLocationSite,
   listedSiteForProjectName,
@@ -17,7 +23,6 @@ import {
   parseProjectSite,
   stadiumSiteForClub,
 } from "../app/lib/project-site";
-import { sitedCatalogProjects } from "../app/lib/sccan-catalog";
 
 const failures: string[] = [];
 
@@ -191,7 +196,7 @@ const hibsList1 = selectableCatalogForClub({ clubName: "Hibernian" }).slice(0, 1
 const heartsList1 = selectableCatalogForClub({
   clubName: "Hearts of Midlothian FC",
 }).slice(0, 10);
-const arsenalList1 = selectableCatalogForClub({ clubName: "Arsenal" }).slice(0, 10);
+const arsenalList1 = selectableCatalogForClub({ clubName: "Arsenal" }).slice(0, 20);
 
 assert(
   hibsList1.every((project) => project.country === "Scotland"),
@@ -202,21 +207,37 @@ assert(
   "Hearts List 1 stays 10 Scotland projects"
 );
 assert(
-  arsenalList1.every((project) => project.country === "England"),
-  "Arsenal List 1 stays 10 England projects"
+  arsenalList1.length === 20 &&
+    arsenalList1.every((project) => project.country === "England"),
+  "Arsenal List 1 is 20 England projects"
+);
+const hibsNearbyList = nearbyClimateProjectsForClub("Hibernian");
+const arsenalNearbyList = nearbyClimateProjectsForClub("Arsenal");
+assert(
+  hibsNearbyList.length === STADIUM_NEARBY_PROJECT_COUNT,
+  "Hibernian nearby list has 20 Climate Projects"
 );
 assert(
-  hibsList1[0] && hibsNames.includes(hibsList1[0].name),
-  "Hibernian List 1 starts with a project within 5 miles of Easter Road"
+  arsenalNearbyList.length === STADIUM_NEARBY_PROJECT_COUNT,
+  "Arsenal nearby list has 20 Climate Projects"
 );
 assert(
-  arsenalList1[0] && arsenalNames.includes(arsenalList1[0].name),
-  "Arsenal List 1 starts with a project within 5 miles of Emirates Stadium"
+  hibsNearbyList.some((project) => hibsNames.includes(project.name)),
+  "Hibernian nearby list includes projects within 5 miles of Easter Road"
+);
+assert(
+  arsenalNearbyList.some((project) => arsenalNames.includes(project.name)),
+  "Arsenal nearby list includes projects within 5 miles of Emirates Stadium"
+);
+assert(
+  climateProjectListsForClub("Hibernian", "Scotland").international[0]?.name ===
+    "Ugandan Cookstove",
+  "International page still starts at Ugandan Cookstove"
 );
 assert(
   selectableCatalogForClub({ clubName: "Hibernian" })[10]?.name ===
     "Ugandan Cookstove",
-  "International page still starts at Ugandan Cookstove"
+  "International catalog still starts at Ugandan Cookstove after the local list"
 );
 
 const leithMiles = assertLocalBusinessNearStadium({
@@ -275,7 +296,7 @@ assert(
     form.includes("postcode: form.postcode") &&
     form.includes("address: form.address") &&
     form.includes("CLIMATE_PROJECT_COUNTRIES") &&
-    form.includes("put FUNDS onto Climate Projects within 5 miles"),
+    form.includes("put FUNDS onto Climate Projects within 20 miles"),
   "Climate Project Form collects and submits implementation postcode and address"
 );
 
@@ -298,8 +319,11 @@ assert(
 
 const selectPage = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
-  selectPage.includes("ProjectSiteLine") && selectPage.includes("nearbyProjectsCopy"),
-  "Club Climate Projects list shows implementation sites and the 5-mile copy"
+  selectPage.includes("ProjectSiteLine") &&
+    selectPage.includes("nearbyProjectsCopy") &&
+    selectPage.includes("climateProjectListLabel(3") &&
+    selectPage.includes("Climate Projects near my Stadium"),
+  "Club Climate Projects list shows implementation sites and the 20-mile nearby list"
 );
 
 if (failures.length > 0) {

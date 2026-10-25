@@ -2,19 +2,20 @@
 
 import { ClimateProjectListingForm } from "@/app/components/climate/ClimateProjectListingForm";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
-import { selectableCatalogForClub } from "@/app/lib/featured-climate-country";
 import {
   LISTED_PROJECT_SITES,
-  NEARBY_STADIUM_MILES,
+  STADIUM_NEARBY_PROJECT_MILES,
   nearbyProjectsCopy,
   nearbyProjectsForClub,
   stadiumSiteForClub,
 } from "@/app/lib/project-site";
+import { nearbyClimateProjectsForClub } from "@/app/lib/stadium-nearby-projects";
 
 const CLUBS = [
   "Hibernian",
   "Hearts of Midlothian",
   "Arsenal",
+  "Swansea City",
 ] as const;
 
 const FAR_NAMES = [
@@ -37,7 +38,7 @@ export default function NearbyProjectsPreviewPage() {
           Preview
         </p>
         <h1 className="mt-2 text-4xl font-black">
-          Climate Projects within {NEARBY_STADIUM_MILES} miles
+          Climate Projects within {STADIUM_NEARBY_PROJECT_MILES} miles
         </h1>
         <p className="mt-3 max-w-3xl text-slate-300">
           Climate Project Providers now enter the postcode and address where
@@ -50,11 +51,12 @@ export default function NearbyProjectsPreviewPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {CLUBS.map((clubName) => {
             const stadium = stadiumSiteForClub(clubName);
-            const nearby = nearbyProjectsForClub(listed, clubName);
-            const localList = selectableCatalogForClub({ clubName }).slice(
-              0,
-              10
+            const nearby = nearbyProjectsForClub(
+              listed,
+              clubName,
+              STADIUM_NEARBY_PROJECT_MILES
             );
+            const nearbyList = nearbyClimateProjectsForClub(clubName);
             return (
               <section
                 key={clubName}
@@ -84,10 +86,10 @@ export default function NearbyProjectsPreviewPage() {
                   ))}
                 </ul>
                 <p className="mt-4 text-xs uppercase tracking-[0.16em] text-slate-500">
-                  List 1 starts with nearby projects
+                  Climate Projects near my Stadium ({nearbyList.length})
                 </p>
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-300">
-                  {localList.map((project) => (
+                  {nearbyList.map((project) => (
                     <li key={project.name}>{project.name}</li>
                   ))}
                 </ol>
