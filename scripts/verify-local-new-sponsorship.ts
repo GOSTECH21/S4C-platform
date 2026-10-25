@@ -67,10 +67,11 @@ assert(
   readFileSync("app/components/sponsor/ClubChosenProjectsPanel.tsx", "utf8").includes(
     "MATCH_DAY_GOALS_SCORED_COPY"
   ) &&
-    dashboard.includes("MatchDayLockIn") &&
+    dashboard.includes("LeadSponsorHome") &&
     !dashboard.includes("localLockCopy()") &&
-    !dashboard.includes("LOCAL_FIVE_RECORD_COPY"),
-  "Lead New Sponsorship keeps Goal-Sponsorship copy and Goals-scored on the five"
+    !dashboard.includes("LOCAL_FIVE_RECORD_COPY") &&
+    !dashboard.includes("MatchDayLockIn"),
+  "Lead dashboard is the four-section home; Goal-Sponsorship copy stays on Calendar lock-in"
 );
 
 assert(

@@ -543,6 +543,14 @@ const sponsorDashboardPage = readFileSync(
   "app/sponsor/dashboard/page.tsx",
   "utf8"
 );
+const sponsorCalendarPage = readFileSync(
+  "app/sponsor/calendar/page.tsx",
+  "utf8"
+);
+const leadSponsorHome = readFileSync(
+  "app/components/sponsor/LeadSponsorHome.tsx",
+  "utf8"
+);
 assert(
   !sponsorDashboardPage.includes("LocalLeftoverPanel") &&
     !sponsorDashboardPage.includes("Match Day card") &&
@@ -574,9 +582,11 @@ assert(
   "Local Business Climate Sponsors are told to insert a Sponsorship amount, not Goals-scored"
 );
 assert(
-  sponsorDashboardPage.includes("MatchDayLockIn") &&
-    !sponsorDashboardPage.includes("localLockCopy()"),
-  "The S4P Sponsorship Dashboard keeps Goal-Sponsorship lock-in copy for Lead Climate Sponsors"
+  sponsorDashboardPage.includes("LeadSponsorHome") &&
+    !sponsorDashboardPage.includes("localLockCopy()") &&
+    sponsorCalendarPage.includes("MatchDayLockIn") &&
+    !sponsorCalendarPage.includes("localLockCopy()"),
+  "The S4P Sponsorship Dashboard is the four-section Lead home; Goal-Sponsorship lock-in stays on Calendar"
 );
 assert(
   readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes("localLockCopy()") &&
@@ -595,7 +605,7 @@ const clubMatchCalendar = readFileSync(
   "utf8"
 );
 assert(
-  sponsorDashboardPage.includes("MatchDayLockIn") &&
+  sponsorCalendarPage.includes("MatchDayLockIn") &&
     !sponsorDashboardPage.includes("Select a Club") &&
     !sponsorDashboardPage.includes(
       "Select a club from Premier League or Scottish Premiership"
@@ -604,14 +614,14 @@ assert(
     !sponsorDashboardPage.includes("MatchFixtureMenu") &&
     !sponsorDashboardPage.includes("loadClubFixtures") &&
     !sponsorDashboardPage.includes("Open 2026/27 Sporting Calendar") &&
-    sponsorDashboardPage.includes('id="match-day-lock-in"') &&
+    sponsorCalendarPage.includes('id="match-day-lock-in"') &&
     lockInPage.includes("Type-in the Name of the Club") &&
     lockInPage.includes("ClubTypeInMenu") &&
     lockInPage.includes("ClubMatchCalendar") &&
     lockInPage.includes("SeeMatchDetails") &&
     lockInPage.includes("nextClubMatches") &&
     lockInPage.includes("lockCopy()"),
-  "Match Day Lock-In is first: type-in a Club, then Select the Match from that Club's next 10 dates"
+  "Match Day Lock-In is on Calendar: type-in a Club, then Select the Match from that Club's next 10 dates"
 );
 assert(
   readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8").includes(
@@ -649,12 +659,10 @@ assert(
 );
 assert(
   lockInPage.includes("ClubChosenProjectsPanel") &&
-    sponsorDashboardPage.includes("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
-    sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
-      sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
-    sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") <
-      sponsorDashboardPage.indexOf("Top up the cash fans will put into Climate Projects"),
-  "Match Day Lock-In and the five Climate Projects record sit above the Climate Sponsorship Wallet"
+    sponsorDashboardPage.includes("LeadSponsorHome") &&
+    leadSponsorHome.includes("LEAD_AWAITING_TITLE") &&
+    !sponsorDashboardPage.includes("Top up the cash fans will put into Climate Projects"),
+  "Match Day Lock-In stays on Calendar; uploaded Climate Projects land in awaiting acceptance on the dashboard"
 );
 assert(
   lockInPage.includes("ensureGoalNetwork") &&
@@ -679,19 +687,22 @@ assert(
   sponsorDashboardPage.includes("SPONSOR_RECEIVE_SECTION_ID") &&
     sponsorDashboardPage.includes("SPONSOR_SIGNED_SECTION_ID") &&
     sponsorDashboardPage.includes("scrollIntoView") &&
-    sponsorDashboardPage.includes("Match Day carbon footprint offset") &&
+    sponsorDashboardPage.includes("loadClubChosenClimateProjects") &&
+    readFileSync("app/lib/lead-sponsor-home.ts", "utf8").includes(
+      "Match Day carbon footprint offset"
+    ) &&
     chosenProjectsPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     chosenProjectsPanel.includes("loadClubChosenClimateProjects") &&
-    chosenProjectsPanel.includes("MATCH_DAY_PROJECTS_RECORD_COPY") &&
-    sponsorDashboardPage.indexOf('id="match-day-lock-in"') <
-      sponsorDashboardPage.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}"),
-  "The five Climate Projects record sits under Match Day Lock-In and fills when the Sustainability Director uploads them"
+    chosenProjectsPanel.includes("MATCH_DAY_PROJECTS_RECORD_COPY"),
+  "When the Sustainability Director uploads Climate Projects they appear in awaiting acceptance"
 );
 assert(
-  sponsorDashboardPage.includes("FUND-IT up to 5 times") &&
+  readFileSync("app/lib/lead-sponsor-home.ts", "utf8").includes(
+    "FUND-IT onto numbered Climate Projects"
+  ) &&
     !sponsorDashboardPage.includes("The 3 Climate Projects they choose") &&
     !sponsorDashboardPage.includes("Fans who voted and saw your brand"),
-  "Sponsors are told fans FUND-IT up to 5 times, not vote for 3 Projects"
+  "Sponsors are told fans FUND-IT onto numbered Climate Projects, not vote for 3 Projects"
 );
 assert(
   !sponsorDashboardPage.includes("Create Your Sponsorship Campaign"),
@@ -706,14 +717,15 @@ assert(
   "Sponsorship dashboard no longer lists Option 2 campaigns you sent"
 );
 assert(
-  /import \{[^}]*\bformatMoney\b[^}]*\} from ["']@\/app\/lib\/sponsorship-auction["']/.test(
-    sponsorDashboardPage.replace(/\n/g, " ")
+  /import \{[^}]*\bformatMatchFundingLine\b[^}]*\} from ["']@\/app\/lib\/sponsorship-auction["']/.test(
+    leadSponsorHome.replace(/\n/g, " ")
   ),
-  "Sponsorship dashboard imports formatMoney for the committed-spend tile"
+  "Lead home imports formatMatchFundingLine for Match Day groups"
 );
 assert(
-  sponsorDashboardPage.includes("formatMoney(stats.expenditureGbp)"),
-  "Committed-spend tile still formats expenditure with formatMoney"
+  leadSponsorHome.includes("formatMatchFundingLine") &&
+    !sponsorDashboardPage.includes("formatMoney(stats.expenditureGbp)"),
+  "The four-section dashboard no longer shows the committed-spend tile"
 );
 
 assert(
@@ -800,12 +812,12 @@ assert(
   "Depositing into the Climate Sponsorship Wallet locks funding to the selected club; sign-off waits until the Club's Climate Projects are visible"
 );
 assert(
-  readFileSync("app/sponsor/dashboard/page.tsx", "utf8").includes(
-    "sponsorWalletPath(lockClub)"
+  readFileSync("app/lib/lead-sponsor-home.ts", "utf8").includes(
+    "sponsorWalletPath"
   ) &&
     sponsorWalletPath("Hearts of Midlothian FC").includes("club=") &&
     sponsorWalletPath("") === SPONSOR_WALLET_PATH,
-  "Open Climate Sponsorship Wallet carries the locked club onto the wallet"
+  "Paying for approved Climate Projects carries the club onto the wallet"
 );
 assert(
   lockInPage.includes("setChosenFixture(fixture)") &&
@@ -940,16 +952,14 @@ assert(
   "Logout is not a second tab in the dashboard body"
 );
 assert(
-  sponsorDashboardPage.includes("Open Climate Sponsorship Wallet") &&
-    sponsorDashboardPage.includes(
-      "inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
-    ) &&
-    !sponsorDashboardPage.includes("bg-emerald-400"),
-  "Open Climate Sponsorship Wallet uses the same lime tab as Register, with black copy"
+  leadSponsorHome.includes("inline-flex rounded-xl bg-s4p-mark px-5 py-3") &&
+    !sponsorDashboardPage.includes("bg-emerald-400") &&
+    !leadSponsorHome.includes("bg-emerald-400"),
+  "Accept & approve and Pay use the same lime tab as Register, with black copy"
 );
 assert(
-  sponsorDashboardPage.includes("onMatchLocked") &&
-    sponsorDashboardPage.includes("sponsorWalletPath(club)") &&
+  sponsorCalendarPage.includes("onMatchLocked") &&
+    sponsorCalendarPage.includes("sponsorWalletPath(club)") &&
     readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
       "SPONSOR_ANOTHER_TEAM_PROMPT"
     ) &&
@@ -959,7 +969,7 @@ assert(
     readFileSync("app/lib/routes.ts", "utf8").includes(
       "Want to see or sponsor another team?"
     ),
-  "Locking a Match opens the Carbon Wallet; Click here returns to Club type-in"
+  "Locking a Match on Calendar opens the Carbon Wallet; Click here returns to Club type-in"
 );
 
 const clubPicker = readFileSync(
@@ -1089,7 +1099,7 @@ assert(
     !showsSignedSponsorHome(0, false) &&
     showsSignedSponsorHome(0, false, true) &&
     !showsSignedSponsorHome(0, true, true),
-  "Login shows calendar home after a signed or funded Match, and lock-in only for New Sponsorship"
+  "showsSignedSponsorHome still distinguishes a completed Match from New Sponsorship"
 );
 const pepsiLock = {
   brandKey: "pepsi cola",
@@ -1156,12 +1166,11 @@ assert(
   "Where your money went lists Climate Projects even before signatures pair"
 );
 assert(
-  sponsorDashboardPage.includes("showsSignedSponsorHome") &&
-    sponsorDashboardPage.includes("hasCompletedMatchSponsorship") &&
-    sponsorDashboardPage.includes("completedMatch") &&
+  sponsorDashboardPage.includes("LeadSponsorHome") &&
+    sponsorDashboardPage.includes("committedGbpForSignedHome") &&
     sponsorDashboardPage.indexOf("loadSponsorFolder") <
       sponsorDashboardPage.indexOf("setLoading(false)"),
-  "The dashboard waits for signed or funded Matches before leaving the loading state"
+  "The dashboard waits for the sponsor folder before leaving the loading state"
 );
 assert(
   offerService.includes("pairSignedSponsorships(allOffers, signatures") &&
@@ -1187,26 +1196,25 @@ const cistSource = readFileSync(
   "utf8"
 );
 assert(
-  sponsorDashboardPage.includes("SignedSponsorHome") &&
+  sponsorDashboardPage.includes("LeadSponsorHome") &&
     sponsorDashboardPage.includes("lock={lock}") &&
+    leadSponsorHome.includes("LEAD_AWAITING_TITLE") &&
+    leadSponsorHome.includes("LEAD_APPROVED_TITLE") &&
+    leadSponsorHome.includes("LEAD_PAID_TITLE") &&
+    leadSponsorHome.includes("SponsorCistTable") &&
+    !leadSponsorHome.includes("SportingCalendarBoard") &&
     signedHomeSource.includes("picksForSignedSponsorHome") &&
     signedHomeSource.includes("SportingCalendarBoard") &&
     !signedHomeSource.includes("SponsoredMatchCalendar") &&
-    signedHomeSource.includes("SPONSOR_NEW_SPONSORSHIP_LABEL") &&
-    signedHomeSource.includes('role="tab"') &&
-    signedHomeSource.includes("sponsorLogoSrc") &&
-    signedHomeSource.indexOf("<SponsorCistTable") <
-      signedHomeSource.indexOf('role="tab"') &&
     sportingBoard.includes("calendarDatesInMonth") &&
     sportingBoard.includes("BrandMark") &&
-    sportingBoard.includes("Signed in as {brandName}") &&
     cistSource.includes("Impact Moments") &&
     cistSource.includes("Climate Impact") &&
     readFileSync(
       "app/sponsor/offers/OfferSignOff.tsx",
       "utf8"
     ).includes("router.replace(sponsorHomePath(signed.brandName)"),
-  "After sign-off the dashboard is the all-inclusive Sporting Calendar, funded projects, CIST and New Sponsorship"
+  "The Lead dashboard is awaiting, approved, paid, and CIST; Calendar stays on its own tab"
 );
 
 if (failures.length > 0) {

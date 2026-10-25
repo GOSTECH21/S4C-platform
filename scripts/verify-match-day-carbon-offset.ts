@@ -125,7 +125,8 @@ assert(
   wallet.includes("ensureCarbonOffsetSponsorshipOffer") &&
     wallet.includes("chosenProjectsReadyForMatchDay") &&
     wallet.includes("ClubChosenProjectsPanel") &&
-    dashboard.includes("Match Day carbon footprint offset") &&
+    dashboard.includes("LeadSponsorHome") &&
+    dashboard.includes("loadClubChosenClimateProjects") &&
     chosenPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     MATCH_DAY_GOALS_SCORED_COPY.includes(
       "selected Match Day Goals-scored Climate Projects"
@@ -134,8 +135,12 @@ assert(
       "saved in a Folder for your Record"
     ) &&
     chosenPanel.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
-    dashboard.indexOf('id="match-day-lock-in"') <
-      dashboard.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
+    readFileSync("app/lib/lead-sponsor-home.ts", "utf8").includes(
+      "Match Day carbon footprint offset"
+    ) &&
+    readFileSync("app/sponsor/calendar/page.tsx", "utf8").includes(
+      'id="match-day-lock-in"'
+    ) &&
     offers.includes("hydrateClubSponsorsFromSigned") &&
     clubDash.includes("hydrateClubSponsorsFromSigned") &&
     matchDay.includes("publishChosenProjectsToSponsorsAndFans") &&
