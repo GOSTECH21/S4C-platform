@@ -48,8 +48,12 @@ assert(
 assert(
   HOME_STAKEHOLDERS.some((card) => card.title === "Philanthropists") &&
     HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
+      ?.description.includes("any amount per match") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
+      ?.description.includes("Climate Impact League Table (CILT)") &&
+    !HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
       ?.description.includes("£10,000 per match"),
-  "Philanthropists can donate a match-day gift that fans direct"
+  "Philanthropists can make any-amount climate donations that fans direct toward CILT"
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "Fans")
@@ -81,8 +85,12 @@ assert(
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
-    ?.description.includes("Measure match-day emissions"),
-  "Club narrative leads with match-day emissions"
+    ?.description.includes(
+      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects & offset your Match Day carbon footprint"
+    ) &&
+    !HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
+      ?.description.includes("Measure match-day emissions"),
+  "Club narrative mobilizes fans to unlock sponsored funding and offset Match Day carbon"
 );
 assert(
   HOME_STAKEHOLDERS.every((card) => card.image.startsWith("/images/home/role-")) &&
