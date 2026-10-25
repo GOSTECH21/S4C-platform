@@ -701,6 +701,7 @@ assert(
     howYoureSupporting.includes("match-day-away-logo") &&
     howYoureSupporting.includes("homeName") &&
     howYoureSupporting.includes("awayName") &&
+    howYoureSupporting.includes('color: "#f7f4e8"') &&
     howYoureSupporting.includes("role=\"radio\"") &&
     howYoureSupporting.includes("pinHowS4pSlide"),
   "Attending Continue opens a live travel sheet; the phone banner shows the chosen Match Day with both club logos"

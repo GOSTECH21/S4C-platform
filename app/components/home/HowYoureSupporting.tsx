@@ -253,13 +253,14 @@ export function HowYoureSupportingPhone({
       <div
         id="match-day-banner"
         data-match-day-fixture={match ? fixture : ""}
-        className="absolute z-20 overflow-hidden text-white"
+        className="absolute z-20 overflow-hidden"
         style={{
           top: "13.2%",
           left: "8.2%",
           right: "8%",
           height: "18.4%",
           borderRadius: "0.75rem",
+          color: "#f7f4e8",
           background:
             "linear-gradient(100deg, #0b2416 0%, #123b24 48%, #1c5a34 100%)",
         }}
@@ -273,7 +274,7 @@ export function HowYoureSupportingPhone({
           <ClubMark name={homeName} side="home" />
           <div className="min-w-0 flex-1 text-center">
             <p
-              className="text-[10px] font-black leading-tight"
+              className="text-[11px] font-black leading-tight"
               data-match-day-chosen="true"
             >
               {fixture}
