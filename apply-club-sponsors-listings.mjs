@@ -56,6 +56,9 @@ if (
   !read("app/sponsor/sponsor-nav.tsx").includes("sponsorInvitationsNavLabel") ||
   !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
     "INVITE_GBP_PER_GOAL_LABEL"
+  ) ||
+  !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
+    "lockedInviteSummary"
   )
 ) {
   failed += 1;

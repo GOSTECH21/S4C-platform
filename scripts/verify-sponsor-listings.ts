@@ -25,6 +25,7 @@ import {
   commitGlobalSponsorship,
   createInviteRound,
   invitationCountForBrand,
+  lockedInviteSummary,
   sponsorInvitationsNavLabel,
   globalInvitationEmailBody,
   listingsOfKind,
@@ -161,6 +162,18 @@ assert(
     sponsorInvitationsNavLabel(2) === "Invitations (2)" &&
     invitationCountForBrand([funded.round], globals[0].brandName, listings) === 1,
   "Invitations tab shows the number of club invites waiting"
+);
+assert(
+  lockedInviteSummary({ amountGbp: 13000 }).includes("13,000") &&
+    !lockedInviteSummary({ amountGbp: 13000 }).includes("undefined") &&
+    lockedInviteSummary({
+      amountGbp: 18000,
+      commitmentFeeGbp: 4000,
+      gbpPerGoal: 6000,
+      maximumSponsorshipGbp: 18000,
+    }).includes("4,000") &&
+    lockedInviteSummary(undefined, 13000).includes("13,000"),
+  "Lock-in copy formats old single amounts and the three new funding fields"
 );
 
 const late = commitGlobalSponsorship(

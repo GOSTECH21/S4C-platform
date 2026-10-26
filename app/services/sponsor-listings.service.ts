@@ -10,6 +10,7 @@ import {
   createInviteRound,
   invitationCountForBrand,
   currentRoundForClub,
+  hydrateInviteRound,
   inviteRoundApprovesProjects,
   listingsOfKind,
   mergeInviteRound,
@@ -63,7 +64,7 @@ export function registerSponsorListing(listing: SponsorListing): SponsorListing[
 
 export function loadInviteRounds(): SponsorInviteRound[] {
   const stored = readJson<SponsorInviteRound[]>(SPONSOR_INVITE_ROUNDS_STORAGE, []);
-  return Array.isArray(stored) ? stored : [];
+  return (Array.isArray(stored) ? stored : []).map(hydrateInviteRound);
 }
 
 export function saveInviteRounds(rounds: SponsorInviteRound[]) {

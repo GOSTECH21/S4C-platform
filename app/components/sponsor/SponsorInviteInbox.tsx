@@ -12,8 +12,10 @@ import {
   INVITE_MAXIMUM_HINT,
   INVITE_MAXIMUM_LABEL,
   formatRangeLabel,
+  formatInviteGbp,
   inviteDeadlineLabel,
   inviteWindowOpen,
+  lockedInviteSummary,
   rangeById,
   type SponsorInviteRound,
   type SponsorListing,
@@ -144,19 +146,15 @@ function InviteCard({
       {isWinner && (
         <p className="mt-4 font-semibold text-green-300">
           Locked in
-          {ownCommitment
-            ? ` — ${INVITE_COMMITMENT_FEE_LABEL} £${ownCommitment.commitmentFeeGbp.toLocaleString("en-GB")}, ${INVITE_GBP_PER_GOAL_LABEL} £${ownCommitment.gbpPerGoal.toLocaleString("en-GB")}, ${INVITE_MAXIMUM_LABEL} £${ownCommitment.maximumSponsorshipGbp.toLocaleString("en-GB")}`
-            : round.lockedAmountGbp
-              ? ` at £${round.lockedAmountGbp.toLocaleString("en-GB")}`
-              : ""}
-          . Projects are {MATCH_DAY_APPROVED_LABEL}.
+          {lockedInviteSummary(ownCommitment, round.lockedAmountGbp)}. Projects
+          are {MATCH_DAY_APPROVED_LABEL}.
         </p>
       )}
       {round.lockedBrandName && !isWinner && (
         <p className="mt-4 text-sm text-amber-200">
-          {round.lockedBrandName} currently holds this Match Day at £
-          {(round.lockedAmountGbp ?? 0).toLocaleString("en-GB")}. A higher
-          Maximum Sponsorship within the window can still take the slot.
+          {round.lockedBrandName} currently holds this Match Day at{" "}
+          {formatInviteGbp(round.lockedAmountGbp)}. A higher Maximum
+          Sponsorship within the window can still take the slot.
         </p>
       )}
       {notice && <p className="mt-4 text-sm text-green-300">{notice}</p>}

@@ -116,6 +116,70 @@ export function rankingAmountGbp(
   return Number(row.commitmentFeeGbp) || 0;
 }
 
+export function formatInviteGbp(value: unknown): string {
+  return `£${Math.max(0, Math.round(Number(value) || 0)).toLocaleString("en-GB")}`;
+}
+
+export function hydrateInviteCommitment(
+  row: Partial<SponsorInviteCommitment> | null | undefined
+): SponsorInviteCommitment | null {
+  if (!row) return null;
+  const amount = Math.max(
+    0,
+    Math.round(Number(row.amountGbp) || Number(row.maximumSponsorshipGbp) || Number(row.commitmentFeeGbp) || 0)
+  );
+  const funding = normalizeInviteFunding({
+    commitmentFeeGbp: Number(row.commitmentFeeGbp) || amount,
+    gbpPerGoal: Number(row.gbpPerGoal) || 0,
+    maximumSponsorshipGbp: Number(row.maximumSponsorshipGbp) || amount,
+  });
+  return {
+    listingId: String(row.listingId ?? ""),
+    brandName: String(row.brandName ?? ""),
+    receivedAt: String(row.receivedAt ?? ""),
+    amountGbp: rankingAmountGbp({ ...funding, amountGbp: amount }),
+    ...funding,
+  };
+}
+
+export function lockedInviteSummary(
+  row?: Partial<SponsorInviteCommitment> | null,
+  fallbackAmount?: number | null
+): string {
+  const hydrated = hydrateInviteCommitment(
+    row ??
+      (fallbackAmount
+        ? {
+            listingId: "locked",
+            brandName: "",
+            amountGbp: fallbackAmount,
+            receivedAt: "",
+          }
+        : null)
+  );
+  const amount = hydrated
+    ? rankingAmountGbp(hydrated)
+    : Math.max(0, Math.round(Number(fallbackAmount) || 0));
+  if (amount <= 0) return "";
+  const hasDetail =
+    Number(row?.commitmentFeeGbp) > 0 ||
+    Number(row?.gbpPerGoal) > 0 ||
+    Number(row?.maximumSponsorshipGbp) > 0;
+  if (hasDetail && hydrated) {
+    return ` — ${INVITE_COMMITMENT_FEE_LABEL} ${formatInviteGbp(hydrated.commitmentFeeGbp)}, ${INVITE_GBP_PER_GOAL_LABEL} ${formatInviteGbp(hydrated.gbpPerGoal)}, ${INVITE_MAXIMUM_LABEL} ${formatInviteGbp(hydrated.maximumSponsorshipGbp)}`;
+  }
+  return ` at ${formatInviteGbp(amount)}`;
+}
+
+export function hydrateInviteRound(round: SponsorInviteRound): SponsorInviteRound {
+  return {
+    ...round,
+    commitments: (round.commitments ?? [])
+      .map((row) => hydrateInviteCommitment(row))
+      .filter((row): row is SponsorInviteCommitment => Boolean(row?.listingId)),
+  };
+}
+
 export function sponsorInvitationsNavLabel(count: number): string {
   const n = Math.max(0, Math.round(Number(count) || 0));
   return n > 0 ? `Invitations (${n})` : "Invitations";
