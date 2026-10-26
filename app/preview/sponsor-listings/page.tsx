@@ -56,7 +56,7 @@ export default function SponsorListingsPreviewPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const demo = params.get("demo");
-    if (demo !== "lock" && demo !== "winner") return;
+    if (demo !== "lock" && demo !== "winner" && demo !== "sent") return;
     const drafted = createInviteRound({
       clubId: "hearts-demo",
       clubName: "Hearts",
@@ -68,6 +68,13 @@ export default function SponsorListingsPreviewPage() {
       localInviteeIds: selectedLocalIds,
       sentAt,
     });
+    if (demo === "sent") {
+      setRound(drafted);
+      setNotice(
+        "Invitation to Sponsor sent to 5 Global Brands. Only one will be accepted — highest amount within 8 hours."
+      );
+      return;
+    }
     const first = commitGlobalSponsorship(
       drafted,
       bidder,

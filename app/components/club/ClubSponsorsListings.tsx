@@ -44,6 +44,7 @@ export type ClubSponsorsListingsProps = {
   round: SponsorInviteRound | null;
   notice?: string | null;
   error?: string | null;
+  noticeKind?: SponsorListingKind | null;
   sending?: boolean;
   selectedGlobalIds: string[];
   selectedLocalIds: string[];
@@ -63,6 +64,7 @@ export function ClubSponsorsListings({
   round,
   notice,
   error,
+  noticeKind,
   sending,
   selectedGlobalIds,
   selectedLocalIds,
@@ -128,17 +130,6 @@ export function ClubSponsorsListings({
         </p>
       )}
 
-      {notice && (
-        <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-300">
-          {notice}
-        </div>
-      )}
-      {error && (
-        <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
-          {error}
-        </div>
-      )}
-
       <div className="mt-8 flex flex-wrap gap-2" role="tablist">
         <button
           type="button"
@@ -171,6 +162,8 @@ export function ClubSponsorsListings({
           ready={ready}
           sending={sending}
           inviteLabel={`Send ${GLOBAL_INVITE_SUBJECT}`}
+          notice={noticeKind === "local" ? null : notice}
+          error={noticeKind === "local" ? null : error}
           onToggle={onToggle}
           onInvite={() => onInvite("global")}
           extra={`Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Sponsor is accepted within ${GLOBAL_INVITE_WINDOW_HOURS} hours, at the highest committed amount.`}
@@ -186,6 +179,8 @@ export function ClubSponsorsListings({
           ready={ready}
           sending={sending}
           inviteLabel={`Send ${LOCAL_INVITE_SUBJECT}`}
+          notice={noticeKind === "global" ? null : notice}
+          error={noticeKind === "global" ? null : error}
           onToggle={onToggle}
           onInvite={() => onInvite("local")}
         />
@@ -209,6 +204,8 @@ function DirectoryPanel({
   ready,
   sending,
   inviteLabel,
+  notice,
+  error,
   onToggle,
   onInvite,
 }: {
@@ -222,6 +219,8 @@ function DirectoryPanel({
   ready: boolean;
   sending?: boolean;
   inviteLabel: string;
+  notice?: string | null;
+  error?: string | null;
   onToggle: (listing: SponsorListing) => void;
   onInvite: () => void;
 }) {
@@ -292,6 +291,22 @@ function DirectoryPanel({
       >
         {sending ? "Sending..." : inviteLabel}
       </button>
+      {notice && (
+        <div
+          role="status"
+          className="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-300"
+        >
+          {notice}
+        </div>
+      )}
+      {error && (
+        <div
+          role="alert"
+          className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300"
+        >
+          {error}
+        </div>
+      )}
       {!ready && (
         <p className="mt-3 text-center text-sm text-amber-200">
           Choose {MATCH_DAY_PROJECT_COUNT} Climate Projects, then send invitations.
@@ -314,7 +329,8 @@ function InviteMailFallback({
   return (
     <div className="mt-8 text-sm text-slate-400">
       <p>
-        If a mail window was blocked, use these Invitation to Sponsor links:
+        Stay on this page. Send each Invitation to Sponsor from these links if
+        you still need to email the brands:
       </p>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         {globalLinks.map((row) => (
@@ -336,9 +352,7 @@ function InviteMailFallback({
   );
 }
 
-export function openInvitationMailtos(hrefs: string[]) {
-  if (typeof window === "undefined") return;
-  for (const href of hrefs) {
-    window.open(href, "_blank", "noopener");
-  }
+export function openInvitationMailtos(_hrefs: string[]) {
+  // Opening mailto in a new browsing context blanks this page on Windows.
+  // Keep the Sustainability Director on Sponsors and show the sent notice instead.
 }

@@ -292,6 +292,20 @@ assert(
   "After lock-in the green tab proceeds to Approval & Payment (Terms, then Payment)"
 );
 
+const listingsUi = readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8");
+const clubSponsorsPage = readFileSync("app/club/sponsors/page.tsx", "utf8");
+const sendButtonIndex = listingsUi.indexOf("{sending ? \"Sending...\" : inviteLabel}");
+const noticeAfterButton = listingsUi.indexOf("{notice &&", sendButtonIndex);
+assert(
+  sendButtonIndex >= 0 &&
+    noticeAfterButton > sendButtonIndex &&
+    !listingsUi.includes("window.open(") &&
+    !clubSponsorsPage.includes("openInvitationMailtos") &&
+    clubSponsorsPage.includes("noticeKind") &&
+    listingsUi.includes("Stay on this page"),
+  "Send Invitation stays on Sponsors and shows the sent notice under the green button"
+);
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);

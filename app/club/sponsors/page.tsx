@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ClubNav from "@/app/components/club/ClubNav";
-import {
-  ClubSponsorsListings,
-  openInvitationMailtos,
-} from "@/app/components/club/ClubSponsorsListings";
+import { ClubSponsorsListings } from "@/app/components/club/ClubSponsorsListings";
 import { CLUB_LOGIN_PATH } from "@/app/lib/routes";
 import {
   MATCH_DAY_PROJECT_COUNT,
@@ -14,9 +11,6 @@ import {
 import {
   GLOBAL_INVITE_SUBJECT,
   LOCAL_INVITE_SUBJECT,
-  globalInviteMailtos,
-  listingsOfKind,
-  localInviteMailtos,
   type SponsorInviteRound,
   type SponsorListing,
   type SponsorListingKind,
@@ -46,6 +40,7 @@ export default function ClubSponsorsPage() {
   const [selectedGlobalIds, setSelectedGlobalIds] = useState<string[]>([]);
   const [selectedLocalIds, setSelectedLocalIds] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [noticeKind, setNoticeKind] = useState<SponsorListingKind | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -106,6 +101,7 @@ export default function ClubSponsorsPage() {
     setSending(true);
     setNotice(null);
     setError(null);
+    setNoticeKind(kind);
     const result = recordSponsorInvites({
       clubId,
       clubName,
@@ -123,16 +119,15 @@ export default function ClubSponsorsPage() {
       setSending(false);
       return;
     }
-    const mailtos =
+    const count =
       kind === "global"
-        ? globalInviteMailtos(result.round, listingsOfKind(listings, "global"))
-        : localInviteMailtos(result.round, listingsOfKind(listings, "local"));
-    openInvitationMailtos(mailtos.map((row) => row.href));
+        ? result.round.globalInviteeIds.length
+        : result.round.localInviteeIds.length;
     const subject = kind === "global" ? GLOBAL_INVITE_SUBJECT : LOCAL_INVITE_SUBJECT;
     setNotice(
       kind === "global"
-        ? `${subject} sent to ${mailtos.length} Global Brands. Only one will be accepted — highest amount within 8 hours.`
-        : `${subject} sent to ${mailtos.length} Local Business Climate Sponsors.`
+        ? `${subject} sent to ${count} Global Brands. Only one will be accepted — highest amount within 8 hours.`
+        : `${subject} sent to ${count} Local Business Climate Sponsors.`
     );
     setSending(false);
   }
@@ -158,6 +153,7 @@ export default function ClubSponsorsPage() {
           round={round}
           notice={notice}
           error={error}
+          noticeKind={noticeKind}
           sending={sending}
           selectedGlobalIds={selectedGlobalIds}
           selectedLocalIds={selectedLocalIds}

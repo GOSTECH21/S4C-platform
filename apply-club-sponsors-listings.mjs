@@ -64,6 +64,10 @@ if (
   ) ||
   !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
     "INVITE_PROCEED_APPROVAL_LABEL"
+  ) ||
+  read("app/components/club/ClubSponsorsListings.tsx").includes("window.open(") ||
+  !read("app/components/club/ClubSponsorsListings.tsx").includes(
+    "Stay on this page"
   )
 ) {
   failed += 1;
