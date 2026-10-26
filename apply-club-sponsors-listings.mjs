@@ -19,6 +19,7 @@ const FILES = [
   "app/sponsor/register/page.tsx",
   "app/sponsor/local/register/page.tsx",
   "app/sponsor/invitations/page.tsx",
+  "app/sponsor/login/page.tsx",
   "app/sponsor/sponsor-nav.tsx",
   "app/preview/sponsor-listings/page.tsx",
   "scripts/verify-sponsor-listings.ts",
@@ -69,7 +70,11 @@ if (
   !read("app/components/club/ClubSponsorsListings.tsx").includes(
     "Stay on this page"
   ) ||
-  !read("app/lib/sponsor-listings.ts").includes("localInvitesDeliveredCopy")
+  !read("app/lib/sponsor-listings.ts").includes("localInvitesDeliveredCopy") ||
+  !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
+    "LOCAL_INVITE_SIGN_LABEL"
+  ) ||
+  !read("app/sponsor/login/page.tsx").includes("localSponsorLoginPath")
 ) {
   failed += 1;
   console.error(

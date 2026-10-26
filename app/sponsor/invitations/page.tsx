@@ -64,9 +64,9 @@ export default function SponsorInvitationsPage() {
       </p>
       <h1 className="mt-2 text-4xl font-black">Match Day invitations</h1>
       <p className="mt-3 text-slate-300">
-        Club Sustainability Directors send these from the Sponsors listings.
-        Global Brands compete on amount within 8 hours; Local Businesses
-        receive a simple invite.
+        {listing?.kind === "local"
+          ? "Open each Invitation to Sponsor, see this Club's Climate Projects, enter your sponsorship amount, agree to the Terms & Conditions, sign, then proceed to Payment."
+          : "Club Sustainability Directors send these from the Sponsors listings. Global Brands compete on amount within 8 hours; Local Businesses receive a simple invite."}
       </p>
       <div className="mt-8">
         {listing ? (

@@ -154,6 +154,10 @@ export function sponsorInviteApprovalPath(offerId?: string | null): string {
   if (id) return `${sponsorOfferSignOffPath(id)}&from=invite`;
   return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_APPROVAL_SECTION_ID}`;
 }
+
+export function localSponsorLoginPath(inviteCount: number): string {
+  return inviteCount > 0 ? SPONSOR_INVITATIONS_PATH : LOCAL_SPONSOR_HOME_PATH;
+}
 export const ADMIN_LOGIN_PATH = "/admin/login";
 export const ADMIN_REGISTER_PATH = "/admin/register";
 export const ADMIN_PATH = "/admin";

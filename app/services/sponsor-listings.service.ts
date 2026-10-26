@@ -28,7 +28,11 @@ import {
   type SponsorListingKind,
 } from "../lib/sponsor-listings";
 import { brandsMatch } from "../lib/climate-sponsors";
-import { sponsorInviteApprovalPath } from "../lib/routes";
+import { sponsorInviteApprovalPath, sponsorWalletPath } from "../lib/routes";
+import {
+  LOCAL_SPONSOR_MIN_GBP,
+  writeLocalSponsorRecord,
+} from "../lib/local-sponsor";
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -354,6 +358,89 @@ export async function prepareInviteApprovalPath({
   } catch {
     return sponsorInviteApprovalPath();
   }
+}
+
+export async function acceptLocalInviteSponsorship({
+  listing,
+  round,
+  amountGbp,
+  signerName,
+  acceptedTerms,
+}: {
+  listing: SponsorListing;
+  round: SponsorInviteRound;
+  amountGbp: number;
+  signerName: string;
+  acceptedTerms: boolean;
+}): Promise<{ error: string | null; paymentPath: string | null }> {
+  if (listing.kind !== "local") {
+    return { error: "Only Local Business Climate Sponsors use this form.", paymentPath: null };
+  }
+  if (!round.localInviteeIds.includes(listing.id)) {
+    return {
+      error: `${listing.brandName} was not invited for this Match Day.`,
+      paymentPath: null,
+    };
+  }
+  if (!acceptedTerms) {
+    return { error: "Tick the Terms & Conditions to sign.", paymentPath: null };
+  }
+  const signer = signerName.trim();
+  if (!signer) {
+    return { error: "Type your full name to sign.", paymentPath: null };
+  }
+  const amount = Math.round(Number(amountGbp) || 0);
+  if (amount < LOCAL_SPONSOR_MIN_GBP) {
+    return {
+      error: `Enter a sponsorship amount of at least £${LOCAL_SPONSOR_MIN_GBP.toLocaleString("en-GB")}.`,
+      paymentPath: null,
+    };
+  }
+  const now = new Date().toISOString();
+  writeLocalSponsorRecord({
+    brandName: listing.brandName,
+    email: listing.email,
+    clubName: round.clubName,
+    pledgeGbp: amount,
+    createdAt: now,
+    source: "registered",
+    matchSponsorships: [{ fixtureName: round.matchLabel, amountGbp: amount }],
+    submittedAt: now,
+    acceptedTerms: true,
+    signerName: signer,
+    signedAt: now,
+  });
+  try {
+    const { publishSponsorMatchOffer, signSponsorOffer } = await import(
+      "./sponsor-offers.service"
+    );
+    const offer = await publishSponsorMatchOffer({
+      clubId: round.clubId,
+      clubName: round.clubName,
+      projects: round.projectIds.map((id, index) => ({
+        id,
+        name: round.projectNames[index] || id,
+        description: null,
+        category: null,
+        country: null,
+        estimated_co2: null,
+        funding_goal: null,
+        image_url: null,
+        status: "active",
+      })),
+      sponsorshipAmountGbp: amount,
+      targetBrandNames: [listing.brandName],
+      matchTitle: round.matchLabel,
+    });
+    await signSponsorOffer({
+      offerId: offer.id,
+      signerName: signer,
+      brandName: listing.brandName,
+    });
+  } catch {
+    // The signed local record still stands; Payment can open from the wallet.
+  }
+  return { error: null, paymentPath: sponsorWalletPath(round.clubName) };
 }
 
 async function publishLockedInviteToFans(round: SponsorInviteRound) {

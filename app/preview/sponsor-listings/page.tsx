@@ -53,6 +53,9 @@ export default function SponsorListingsPreviewPage() {
   const sentAt = "2026-10-26T09:00:00.000Z";
   const approved = Boolean(round?.lockedListingId);
   const bidder = globals.find((row) => selectedGlobalIds.includes(row.id)) ?? globals[0];
+  const demoLocalInvite =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("demo") === "local-invite";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -62,7 +65,8 @@ export default function SponsorListingsPreviewPage() {
       demo !== "lock" &&
       demo !== "winner" &&
       demo !== "sent" &&
-      demo !== "local-sent"
+      demo !== "local-sent" &&
+      demo !== "local-invite"
     ) {
       return;
     }
@@ -77,7 +81,7 @@ export default function SponsorListingsPreviewPage() {
       localInviteeIds: selectedLocalIds,
       sentAt,
     });
-    if (demo === "sent" || demo === "local-sent") {
+    if (demo === "sent" || demo === "local-sent" || demo === "local-invite") {
       setRound(drafted);
       setNotice(
         demo === "local-sent"
@@ -222,11 +226,14 @@ export default function SponsorListingsPreviewPage() {
             {MATCH_DAY_APPROVED_LABEL} and appear to Hearts fans.
           </p>
         </section>
-        {round && bidder && (
+        {round && (demoLocalInvite ? locals[0] : bidder) && (
           <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
             <h2 className="text-2xl font-black">Sponsor invitation inbox</h2>
             <div className="mt-6">
-              <SponsorInviteInbox listing={bidder} rounds={[round]} />
+              <SponsorInviteInbox
+                listing={demoLocalInvite ? locals[0] : bidder}
+                rounds={[round]}
+              />
             </div>
           </section>
         )}

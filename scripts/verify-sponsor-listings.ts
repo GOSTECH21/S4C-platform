@@ -6,6 +6,11 @@ import {
   clubDashboardChosenProjectsCopy,
 } from "../app/lib/partner-projects";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
+  SPONSOR_INVITATIONS_PATH,
+  localSponsorLoginPath,
+} from "../app/lib/routes";
+import {
   GLOBAL_BRANDS_TAB_LABEL,
   GLOBAL_BRAND_INVITE_COUNT,
   GLOBAL_COMMITMENT_FEE_RANGES,
@@ -18,6 +23,9 @@ import {
   INVITE_LOCKED_NEXT_COPY,
   INVITE_MAXIMUM_LABEL,
   INVITE_PROCEED_APPROVAL_LABEL,
+  LOCAL_INVITE_AMOUNT_LABEL,
+  LOCAL_INVITE_NEXT_COPY,
+  LOCAL_INVITE_SIGN_LABEL,
   LOCAL_BUSINESS_INVITE_COUNT,
   LOCAL_BUSINESS_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
@@ -329,6 +337,21 @@ assert(
     listingsUi.includes("inviteReceiptsForKind") &&
     listingsUi.includes("receipts.map"),
   "Local Business send lists each of the 10 invitees as delivered to their Invitations inbox"
+);
+assert(
+  localSponsorLoginPath(2) === SPONSOR_INVITATIONS_PATH &&
+    localSponsorLoginPath(0) === LOCAL_SPONSOR_HOME_PATH &&
+    LOCAL_INVITE_AMOUNT_LABEL.includes("Sponsorship amount") &&
+    LOCAL_INVITE_SIGN_LABEL === "Sign and proceed to Payment" &&
+    LOCAL_INVITE_NEXT_COPY.includes("Terms & Conditions") &&
+    inbox.includes("LOCAL_INVITE_SIGN_LABEL") &&
+    inbox.includes("LOCAL_SIGNOFF_TERMS") &&
+    inbox.includes("acceptLocalInviteSponsorship") &&
+    !inbox.includes("when you are ready to pay") &&
+    readFileSync("app/sponsor/login/page.tsx", "utf8").includes(
+      "localSponsorLoginPath"
+    ),
+  "Local Business login opens invitations first; each invite has amount, Terms, sign, then Payment"
 );
 
 if (failures.length > 0) {

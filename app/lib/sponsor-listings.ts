@@ -86,6 +86,10 @@ export const INVITE_MAXIMUM_HINT =
 export const INVITE_LOCKED_NEXT_COPY =
   "Proceed to Approval and Payment section";
 export const INVITE_PROCEED_APPROVAL_LABEL = "Proceed to Approval & Payment";
+export const LOCAL_INVITE_AMOUNT_LABEL = "Sponsorship amount for this Match Day (£)";
+export const LOCAL_INVITE_SIGN_LABEL = "Sign and proceed to Payment";
+export const LOCAL_INVITE_NEXT_COPY =
+  "Enter how much you are putting up for this Match Day, tick the Terms & Conditions, sign the sponsorship, then proceed to Payment.";
 
 export function normalizeInviteFunding(
   value: number | GlobalInviteFunding

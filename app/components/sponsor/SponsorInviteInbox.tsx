@@ -14,6 +14,10 @@ import {
   INVITE_MAXIMUM_HINT,
   INVITE_MAXIMUM_LABEL,
   INVITE_PROCEED_APPROVAL_LABEL,
+  LOCAL_INVITE_AMOUNT_LABEL,
+  LOCAL_INVITE_NEXT_COPY,
+  LOCAL_INVITE_SIGN_LABEL,
+  LOCAL_SPONSORSHIP_AMOUNT_RANGES,
   formatRangeLabel,
   formatInviteGbp,
   inviteDeadlineLabel,
@@ -24,10 +28,19 @@ import {
   type SponsorListing,
 } from "@/app/lib/sponsor-listings";
 import {
+  acceptLocalInviteSponsorship,
   prepareInviteApprovalPath,
   submitGlobalSponsorshipCommitment,
 } from "@/app/services/sponsor-listings.service";
 import { SafeInput } from "@/app/components/forms/SafeFormField";
+import { sponsorWalletPath } from "@/app/lib/routes";
+import {
+  LOCAL_SIGNOFF_TERMS,
+  LOCAL_SPONSOR_MIN_GBP,
+  isSignedOffLocalSponsor,
+  localSponsorsForClub,
+} from "@/app/lib/local-sponsor";
+import { brandsMatch } from "@/app/lib/climate-sponsors";
 
 export function SponsorInviteInbox({
   listing,
@@ -78,9 +91,20 @@ function InviteCard({
     GLOBAL_SPONSORSHIP_GOAL_RANGES,
     listing.sponsorshipGoalRangeId
   );
+  const localRange = rangeById(
+    LOCAL_SPONSORSHIP_AMOUNT_RANGES,
+    listing.amountRangeId
+  );
   const [commitmentFee, setCommitmentFee] = useState(
     listing.kind === "global" ? String(feeRange?.minGbp ?? "") : ""
   );
+  const [localAmount, setLocalAmount] = useState(
+    listing.kind === "local"
+      ? String(localRange?.minGbp || LOCAL_SPONSOR_MIN_GBP)
+      : ""
+  );
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [signerName, setSignerName] = useState("");
   const [gbpPerGoal, setGbpPerGoal] = useState(
     listing.kind === "global" ? String(goalRange?.minGbp ?? "") : ""
   );
@@ -124,6 +148,37 @@ function InviteCard({
       setNotice(
         "Your amounts are recorded. The highest Maximum Sponsorship within 8 hours is accepted."
       );
+    }
+    setSaving(false);
+  }
+
+  const signedLocal = localSponsorsForClub(round.clubName).find((row) =>
+    brandsMatch(row.brandName, listing.brandName)
+  );
+  const localSigned = Boolean(
+    signedLocal && isSignedOffLocalSponsor(signedLocal)
+  );
+
+  async function acceptLocal() {
+    if (listing.kind !== "local") return;
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    const result = await acceptLocalInviteSponsorship({
+      listing,
+      round,
+      amountGbp: Number(localAmount),
+      signerName,
+      acceptedTerms,
+    });
+    if (result.error) {
+      setError(result.error);
+      setSaving(false);
+      return;
+    }
+    if (result.paymentPath) {
+      router.push(result.paymentPath);
+      return;
     }
     setSaving(false);
   }
@@ -255,10 +310,77 @@ function InviteCard({
         </div>
       )}
       {listing.kind === "local" && (
-        <p className="mt-4 text-sm text-green-200">
-          Invitation received. Log this Local Business Climate Sponsorship from
-          your dashboard when you are ready to pay.
-        </p>
+        <div className="mt-5 space-y-4">
+          <p className="text-sm text-green-200">{LOCAL_INVITE_NEXT_COPY}</p>
+          {localSigned ? (
+            <>
+              <p className="font-semibold text-green-300">
+                Signed at £
+                {(signedLocal?.pledgeGbp ?? 0).toLocaleString("en-GB")}. Proceed
+                to Payment for {round.clubName}.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(sponsorWalletPath(round.clubName))
+                }
+                className="w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400"
+              >
+                Proceed to Payment
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-slate-400">
+                Your registered Sponsorship amount range:{" "}
+                {formatRangeLabel(
+                  LOCAL_SPONSORSHIP_AMOUNT_RANGES,
+                  listing.amountRangeId
+                )}
+                .
+              </p>
+              <label className="block text-sm text-slate-400">
+                {LOCAL_INVITE_AMOUNT_LABEL}
+                <SafeInput
+                  type="number"
+                  min={LOCAL_SPONSOR_MIN_GBP}
+                  step={50}
+                  value={localAmount}
+                  onChange={(event) => setLocalAmount(event.target.value)}
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+                />
+              </label>
+              <div className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-400">
+                {LOCAL_SIGNOFF_TERMS}
+              </div>
+              <label className="flex items-start gap-3 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(event) => setAcceptedTerms(event.target.checked)}
+                  className="mt-1"
+                />
+                I have read and agree to the Terms & Conditions.
+              </label>
+              <label className="block text-sm text-slate-400">
+                Signature (type your full name)
+                <SafeInput
+                  value={signerName}
+                  onChange={(event) => setSignerName(event.target.value)}
+                  className="mt-2 w-full rounded-lg bg-slate-800 p-3 font-serif text-2xl text-white"
+                />
+              </label>
+              <button
+                type="button"
+                disabled={saving || !acceptedTerms}
+                onClick={() => void acceptLocal()}
+                className="w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-60"
+              >
+                {saving ? "Saving..." : LOCAL_INVITE_SIGN_LABEL}
+              </button>
+            </>
+          )}
+        </div>
       )}
     </article>
   );
