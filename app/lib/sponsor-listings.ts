@@ -210,6 +210,7 @@ export type SponsorInviteRound = {
   expiresAt: string;
   globalInviteeIds: string[];
   localInviteeIds: string[];
+  localInvitedAt?: string | null;
   commitments: SponsorInviteCommitment[];
   lockedListingId?: string | null;
   lockedBrandName?: string | null;
@@ -239,6 +240,43 @@ export function globalInviteCountCopy(): string {
 
 export function localInviteCountCopy(): string {
   return `Tick exactly ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors, then send a simple ${LOCAL_INVITE_SUBJECT}.`;
+}
+
+export const LOCAL_INVITE_RECEIVED_STATUS =
+  "Delivered to their Invitations inbox";
+
+export function localInvitesSentCopy(count: number): string {
+  const n = Math.max(0, Math.round(Number(count) || 0));
+  return `${LOCAL_INVITE_SUBJECT} sent to ${n} Local Business Climate Sponsors.`;
+}
+
+export function localInvitesDeliveredCopy(count: number): string {
+  const n = Math.max(0, Math.round(Number(count) || 0));
+  return `All ${n} invitations were delivered. Each Local Business now has this Match Day invite in their Invitations inbox when they log in.`;
+}
+
+export type InviteReceiptRow = {
+  listingId: string;
+  brandName: string;
+  email: string;
+  status: string;
+};
+
+export function inviteReceiptsForKind(
+  round: SponsorInviteRound | null | undefined,
+  listings: SponsorListing[],
+  kind: SponsorListingKind
+): InviteReceiptRow[] {
+  if (!round) return [];
+  const ids = kind === "global" ? round.globalInviteeIds : round.localInviteeIds;
+  return listings
+    .filter((row) => ids.includes(row.id))
+    .map((row) => ({
+      listingId: row.id,
+      brandName: row.brandName,
+      email: row.email,
+      status: LOCAL_INVITE_RECEIVED_STATUS,
+    }));
 }
 
 export function rangeById(
@@ -526,6 +564,8 @@ export function createInviteRound({
     expiresAt: expires.toISOString(),
     globalInviteeIds: [...new Set(globalInviteeIds ?? [])],
     localInviteeIds: [...new Set(localInviteeIds ?? [])],
+    localInvitedAt:
+      (localInviteeIds ?? []).length > 0 ? sent.toISOString() : null,
     commitments: [],
   };
 }
@@ -549,6 +589,7 @@ export function mergeInviteRound(
     lockedAmountGbp: existing.lockedAmountGbp ?? patch.lockedAmountGbp,
     lockedAt: existing.lockedAt ?? patch.lockedAt,
     approvedProjectIds: existing.approvedProjectIds ?? patch.approvedProjectIds,
+    localInvitedAt: patch.localInvitedAt || existing.localInvitedAt || null,
   };
 }
 

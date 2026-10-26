@@ -207,6 +207,7 @@ export function recordSponsorInvites({
       round = {
         ...existing,
         localInviteeIds: drafted.localInviteeIds,
+        localInvitedAt: drafted.localInvitedAt ?? drafted.sentAt,
         matchLabel: drafted.matchLabel || existing.matchLabel,
         projectIds: existing.projectIds.length
           ? existing.projectIds

@@ -28,6 +28,9 @@ import {
   inviteWindowOpen,
   localInviteCountCopy,
   localInviteMailtos,
+  localInvitesDeliveredCopy,
+  localInvitesSentCopy,
+  inviteReceiptsForKind,
   sponsorsSectionIntroCopy,
   type SponsorInviteRound,
   type SponsorListing,
@@ -181,6 +184,19 @@ export function ClubSponsorsListings({
           inviteLabel={`Send ${LOCAL_INVITE_SUBJECT}`}
           notice={noticeKind === "global" ? null : notice}
           error={noticeKind === "global" ? null : error}
+          receipts={inviteReceiptsForKind(round, listings, "local")}
+          receiptIntro={
+            round && round.localInviteeIds.length > 0
+              ? localInvitesDeliveredCopy(round.localInviteeIds.length)
+              : null
+          }
+          receiptHeadline={
+            noticeKind === "global" || notice
+              ? null
+              : round && round.localInviteeIds.length > 0
+                ? localInvitesSentCopy(round.localInviteeIds.length)
+                : null
+          }
           onToggle={onToggle}
           onInvite={() => onInvite("local")}
         />
@@ -206,6 +222,9 @@ function DirectoryPanel({
   inviteLabel,
   notice,
   error,
+  receipts,
+  receiptIntro,
+  receiptHeadline,
   onToggle,
   onInvite,
 }: {
@@ -221,6 +240,9 @@ function DirectoryPanel({
   inviteLabel: string;
   notice?: string | null;
   error?: string | null;
+  receipts?: { brandName: string; status: string }[];
+  receiptIntro?: string | null;
+  receiptHeadline?: string | null;
   onToggle: (listing: SponsorListing) => void;
   onInvite: () => void;
 }) {
@@ -291,12 +313,36 @@ function DirectoryPanel({
       >
         {sending ? "Sending..." : inviteLabel}
       </button>
-      {notice && (
+      {notice && !(receipts && receipts.length > 0) && (
         <div
           role="status"
           className="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-300"
         >
           {notice}
+        </div>
+      )}
+      {(receiptHeadline || notice || (receipts && receipts.length > 0)) &&
+        receipts &&
+        receipts.length > 0 && (
+        <div
+          role="status"
+          className="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-200"
+        >
+          <p className="font-semibold text-green-300">
+            {notice || receiptHeadline}
+          </p>
+          {receiptIntro && <p className="mt-2 text-sm">{receiptIntro}</p>}
+          <ul className="mt-3 space-y-1 text-sm">
+            {receipts.map((row) => (
+              <li key={row.brandName}>
+                <span className="font-semibold text-green-300">
+                  {row.brandName}
+                </span>
+                {" — "}
+                {row.status}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
       {error && (

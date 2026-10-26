@@ -27,6 +27,9 @@ import {
   commitGlobalSponsorship,
   createInviteRound,
   invitationCountForBrand,
+  inviteReceiptsForKind,
+  localInvitesDeliveredCopy,
+  localInvitesSentCopy,
   lockedInviteSummary,
   sponsorInvitationsNavLabel,
   globalInvitationEmailBody,
@@ -304,6 +307,28 @@ assert(
     clubSponsorsPage.includes("noticeKind") &&
     listingsUi.includes("Stay on this page"),
   "Send Invitation stays on Sponsors and shows the sent notice under the green button"
+);
+
+const localRound = createInviteRound({
+  clubId: "hearts",
+  clubName: "Hearts",
+  directorName: "Alex Director",
+  matchLabel: "Hearts v Rangers",
+  projectIds,
+  projectNames: projectIds,
+  localInviteeIds: locals.slice(0, LOCAL_BUSINESS_INVITE_COUNT).map((row) => row.id),
+  sentAt: "2026-10-26T09:00:00.000Z",
+});
+const localReceipts = inviteReceiptsForKind(localRound, listings, "local");
+assert(
+  localInvitesSentCopy(10).includes("10 Local Business Climate Sponsors") &&
+    localInvitesDeliveredCopy(10).includes("Invitations inbox") &&
+    localReceipts.length === LOCAL_BUSINESS_INVITE_COUNT &&
+    localReceipts.every((row) => row.status.includes("Invitations inbox")) &&
+    Boolean(localRound.localInvitedAt) &&
+    listingsUi.includes("inviteReceiptsForKind") &&
+    listingsUi.includes("receipts.map"),
+  "Local Business send lists each of the 10 invitees as delivered to their Invitations inbox"
 );
 
 if (failures.length > 0) {

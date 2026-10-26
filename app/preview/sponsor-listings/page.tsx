@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/partner-projects";
 import {
   INVITE_LOCKED_NEXT_COPY,
+  localInvitesSentCopy,
   commitGlobalSponsorship,
   createInviteRound,
   listingsOfKind,
@@ -42,12 +43,13 @@ export default function SponsorListingsPreviewPage() {
   const [round, setRound] = useState<SponsorInviteRound | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [initialTab] = useState<SponsorListingKind>(() =>
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("tab") === "local"
+  const [initialTab] = useState<SponsorListingKind>(() => {
+    if (typeof window === "undefined") return "global";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("tab") === "local" || params.get("demo") === "local-sent"
       ? "local"
-      : "global"
-  );
+      : "global";
+  });
   const sentAt = "2026-10-26T09:00:00.000Z";
   const approved = Boolean(round?.lockedListingId);
   const bidder = globals.find((row) => selectedGlobalIds.includes(row.id)) ?? globals[0];
@@ -56,7 +58,14 @@ export default function SponsorListingsPreviewPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const demo = params.get("demo");
-    if (demo !== "lock" && demo !== "winner" && demo !== "sent") return;
+    if (
+      demo !== "lock" &&
+      demo !== "winner" &&
+      demo !== "sent" &&
+      demo !== "local-sent"
+    ) {
+      return;
+    }
     const drafted = createInviteRound({
       clubId: "hearts-demo",
       clubName: "Hearts",
@@ -68,10 +77,12 @@ export default function SponsorListingsPreviewPage() {
       localInviteeIds: selectedLocalIds,
       sentAt,
     });
-    if (demo === "sent") {
+    if (demo === "sent" || demo === "local-sent") {
       setRound(drafted);
       setNotice(
-        "Invitation to Sponsor sent to 5 Global Brands. Only one will be accepted — highest amount within 8 hours."
+        demo === "local-sent"
+          ? localInvitesSentCopy(selectedLocalIds.length)
+          : "Invitation to Sponsor sent to 5 Global Brands. Only one will be accepted — highest amount within 8 hours."
       );
       return;
     }
@@ -142,7 +153,7 @@ export default function SponsorListingsPreviewPage() {
     setNotice(
       kind === "global"
         ? "Invitation to Sponsor recorded for 5 Global Brands. Highest amount within 8 hours wins."
-        : "Simple Invitation to Sponsor recorded for 10 Local Business Climate Sponsors."
+        : localInvitesSentCopy(selected.length)
     );
   }
 

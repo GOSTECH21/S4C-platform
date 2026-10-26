@@ -68,7 +68,8 @@ if (
   read("app/components/club/ClubSponsorsListings.tsx").includes("window.open(") ||
   !read("app/components/club/ClubSponsorsListings.tsx").includes(
     "Stay on this page"
-  )
+  ) ||
+  !read("app/lib/sponsor-listings.ts").includes("localInvitesDeliveredCopy")
 ) {
   failed += 1;
   console.error(

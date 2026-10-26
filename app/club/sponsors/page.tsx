@@ -10,7 +10,7 @@ import {
 } from "@/app/lib/partner-projects";
 import {
   GLOBAL_INVITE_SUBJECT,
-  LOCAL_INVITE_SUBJECT,
+  localInvitesSentCopy,
   type SponsorInviteRound,
   type SponsorListing,
   type SponsorListingKind,
@@ -123,11 +123,10 @@ export default function ClubSponsorsPage() {
       kind === "global"
         ? result.round.globalInviteeIds.length
         : result.round.localInviteeIds.length;
-    const subject = kind === "global" ? GLOBAL_INVITE_SUBJECT : LOCAL_INVITE_SUBJECT;
     setNotice(
       kind === "global"
-        ? `${subject} sent to ${count} Global Brands. Only one will be accepted — highest amount within 8 hours.`
-        : `${subject} sent to ${count} Local Business Climate Sponsors.`
+        ? `${GLOBAL_INVITE_SUBJECT} sent to ${count} Global Brands. Only one will be accepted — highest amount within 8 hours.`
+        : localInvitesSentCopy(count)
     );
     setSending(false);
   }
