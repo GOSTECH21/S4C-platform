@@ -7,6 +7,8 @@ const FILES = [
   "app/lib/partner-projects.ts",
   "app/lib/routes.ts",
   "app/services/sponsor-listings.service.ts",
+  "app/services/climate-sponsors.service.ts",
+  "app/sponsor/offers/OfferSignOff.tsx",
   "app/components/club/ClubSponsorsListings.tsx",
   "app/components/club/ClubNav.tsx",
   "app/components/club/ClubClimateSponsorTabs.tsx",
@@ -59,6 +61,9 @@ if (
   ) ||
   !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
     "lockedInviteSummary"
+  ) ||
+  !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
+    "INVITE_PROCEED_APPROVAL_LABEL"
   )
 ) {
   failed += 1;

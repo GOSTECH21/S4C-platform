@@ -146,6 +146,14 @@ export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";
 export function sponsorOfferSignOffPath(offerId: string): string {
   return `${SPONSOR_OFFER_SIGN_OFF_PATH}?id=${encodeURIComponent(offerId)}`;
 }
+
+export const SPONSOR_APPROVAL_SECTION_ID = "awaiting-acceptance";
+
+export function sponsorInviteApprovalPath(offerId?: string | null): string {
+  const id = String(offerId ?? "").trim();
+  if (id) return `${sponsorOfferSignOffPath(id)}&from=invite`;
+  return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_APPROVAL_SECTION_ID}`;
+}
 export const ADMIN_LOGIN_PATH = "/admin/login";
 export const ADMIN_REGISTER_PATH = "/admin/register";
 export const ADMIN_PATH = "/admin";

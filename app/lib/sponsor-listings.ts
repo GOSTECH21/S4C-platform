@@ -83,6 +83,9 @@ export const INVITE_GBP_PER_GOAL_HINT =
   "Paid for every goal the sponsored team scores.";
 export const INVITE_MAXIMUM_HINT =
   "The cap for this Match Day. Highest Maximum Sponsorship wins.";
+export const INVITE_LOCKED_NEXT_COPY =
+  "Proceed to Approval and Payment section";
+export const INVITE_PROCEED_APPROVAL_LABEL = "Proceed to Approval & Payment";
 
 export function normalizeInviteFunding(
   value: number | GlobalInviteFunding

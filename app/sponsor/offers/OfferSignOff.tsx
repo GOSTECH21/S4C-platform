@@ -15,6 +15,7 @@ import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
+  sponsorWalletPath,
 } from "@/app/lib/routes";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
@@ -172,7 +173,14 @@ export function OfferSignOffForm({
         brandName: brandName || brandDefault,
       });
       setSignedBrand(signed.brandName);
-      router.replace(sponsorHomePath(signed.brandName) || LOCAL_SPONSOR_HOME_PATH);
+      const fromInvite =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("from") === "invite";
+      router.replace(
+        fromInvite
+          ? sponsorWalletPath(offer.clubName)
+          : sponsorHomePath(signed.brandName) || LOCAL_SPONSOR_HOME_PATH
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your signature."

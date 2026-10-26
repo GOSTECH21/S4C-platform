@@ -9,6 +9,7 @@ import {
   matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
 import {
+  INVITE_LOCKED_NEXT_COPY,
   commitGlobalSponsorship,
   createInviteRound,
   listingsOfKind,
@@ -54,7 +55,8 @@ export default function SponsorListingsPreviewPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("demo") !== "lock") return;
+    const demo = params.get("demo");
+    if (demo !== "lock" && demo !== "winner") return;
     const drafted = createInviteRound({
       clubId: "hearts-demo",
       clubName: "Hearts",
@@ -69,9 +71,20 @@ export default function SponsorListingsPreviewPage() {
     const first = commitGlobalSponsorship(
       drafted,
       bidder,
-      8000,
+      demo === "winner"
+        ? {
+            commitmentFeeGbp: 3500,
+            gbpPerGoal: 3000,
+            maximumSponsorshipGbp: 12500,
+          }
+        : 8000,
       "2026-10-26T10:00:00.000Z"
     );
+    if (demo === "winner") {
+      setRound(first.round);
+      setNotice(`${INVITE_LOCKED_NEXT_COPY}.`);
+      return;
+    }
     const rival =
       globals.find((row) => row.id !== bidder.id && selectedGlobalIds.includes(row.id)) ??
       bidder;
@@ -85,7 +98,7 @@ export default function SponsorListingsPreviewPage() {
     setNotice(
       `${second.round.lockedBrandName} locked in at £${second.round.lockedAmountGbp?.toLocaleString("en-GB")}. Projects are ${MATCH_DAY_APPROVED_LABEL}.`
     );
-    // Preview-only ?demo=lock bootstrap.
+    // Preview-only ?demo=lock / ?demo=winner bootstrap.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

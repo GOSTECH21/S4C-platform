@@ -10,6 +10,7 @@ import {
   createInviteRound,
   invitationCountForBrand,
   currentRoundForClub,
+  hydrateInviteCommitment,
   hydrateInviteRound,
   inviteRoundApprovesProjects,
   listingsOfKind,
@@ -27,6 +28,7 @@ import {
   type SponsorListingKind,
 } from "../lib/sponsor-listings";
 import { brandsMatch } from "../lib/climate-sponsors";
+import { sponsorInviteApprovalPath } from "../lib/routes";
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -286,6 +288,71 @@ export function inviteCountWaitingForBrand(brandName: string): number {
 
 export function approvedIdsForClubMatch(clubId: string): string[] {
   return approvedProjectIdsFromInvite(loadClubInviteRound(clubId));
+}
+
+export async function prepareInviteApprovalPath({
+  listing,
+  round,
+}: {
+  listing: SponsorListing;
+  round: SponsorInviteRound;
+}): Promise<string> {
+  const brandName = listing.brandName.trim();
+  const winner =
+    round.commitments.find((row) => row.listingId === listing.id) ??
+    round.commitments.find((row) => row.listingId === round.lockedListingId);
+  const funding = hydrateInviteCommitment(winner);
+  try {
+    const { ensureGoalNetwork, lockMatchDayClub, stampMatchDayFunding } =
+      await import("./climate-sponsors.service");
+    ensureGoalNetwork({
+      brandName,
+      clubNames: [round.clubName],
+    });
+    try {
+      lockMatchDayClub({
+        brandName,
+        clubName: round.clubName,
+        matchLabel: round.matchLabel,
+        fixtureName: round.matchLabel,
+      });
+      if (funding) {
+        stampMatchDayFunding({
+          brandName,
+          clubName: round.clubName,
+          commitmentFeeGbp: funding.commitmentFeeGbp,
+          gbpPerGoal: funding.gbpPerGoal,
+          maximumSponsorshipGbp: funding.maximumSponsorshipGbp,
+        });
+      }
+    } catch {
+      // Offer sign-off can still open if this Match Day lock is already taken.
+    }
+    const { publishSponsorMatchOffer } = await import("./sponsor-offers.service");
+    const offer = await publishSponsorMatchOffer({
+      clubId: round.clubId,
+      clubName: round.clubName,
+      projects: round.projectIds.map((id, index) => ({
+        id,
+        name: round.projectNames[index] || id,
+        description: null,
+        category: null,
+        country: null,
+        estimated_co2: null,
+        funding_goal: null,
+        image_url: null,
+        status: "active",
+      })),
+      sponsorshipAmountGbp: funding?.commitmentFeeGbp,
+      gbpPerGoal: funding?.gbpPerGoal,
+      maxAmount: funding?.maximumSponsorshipGbp,
+      targetBrandNames: [brandName],
+      matchTitle: round.matchLabel,
+    });
+    return sponsorInviteApprovalPath(offer.id);
+  } catch {
+    return sponsorInviteApprovalPath();
+  }
 }
 
 async function publishLockedInviteToFans(round: SponsorInviteRound) {

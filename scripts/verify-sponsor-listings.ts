@@ -15,7 +15,9 @@ import {
   GLOBAL_SPONSORS_ACCEPTED_PER_MATCH,
   INVITE_COMMITMENT_FEE_LABEL,
   INVITE_GBP_PER_GOAL_LABEL,
+  INVITE_LOCKED_NEXT_COPY,
   INVITE_MAXIMUM_LABEL,
+  INVITE_PROCEED_APPROVAL_LABEL,
   LOCAL_BUSINESS_INVITE_COUNT,
   LOCAL_BUSINESS_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
@@ -273,8 +275,21 @@ assert(
     inbox.includes("INVITE_MAXIMUM_LABEL") &&
     INVITE_COMMITMENT_FEE_LABEL === "Commitment Fee (Day 1)" &&
     INVITE_GBP_PER_GOAL_LABEL === "Sponsorship/Goal-Scored" &&
-    INVITE_MAXIMUM_LABEL === "Maximum Sponsorship Amount",
-  "The viewing tab is green; Invitations shows a count; the invite form has Commitment Fee, Goal-scored and Maximum"
+    INVITE_MAXIMUM_LABEL === "Maximum Sponsorship Amount" &&
+    INVITE_LOCKED_NEXT_COPY === "Proceed to Approval and Payment section" &&
+    INVITE_PROCEED_APPROVAL_LABEL === "Proceed to Approval & Payment" &&
+    inbox.includes("INVITE_LOCKED_NEXT_COPY") &&
+    inbox.includes("INVITE_PROCEED_APPROVAL_LABEL") &&
+    inbox.includes("prepareInviteApprovalPath") &&
+    !inbox.includes("Projects are Approved") &&
+    readFileSync("app/lib/routes.ts", "utf8").includes("sponsorInviteApprovalPath") &&
+    readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+      'get("from") === "invite"'
+    ) &&
+    readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+      "sponsorWalletPath"
+    ),
+  "After lock-in the green tab proceeds to Approval & Payment (Terms, then Payment)"
 );
 
 if (failures.length > 0) {

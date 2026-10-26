@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   GLOBAL_COMMITMENT_FEE_RANGES,
   GLOBAL_INVITE_WINDOW_HOURS,
@@ -9,8 +10,10 @@ import {
   INVITE_COMMITMENT_FEE_LABEL,
   INVITE_GBP_PER_GOAL_HINT,
   INVITE_GBP_PER_GOAL_LABEL,
+  INVITE_LOCKED_NEXT_COPY,
   INVITE_MAXIMUM_HINT,
   INVITE_MAXIMUM_LABEL,
+  INVITE_PROCEED_APPROVAL_LABEL,
   formatRangeLabel,
   formatInviteGbp,
   inviteDeadlineLabel,
@@ -20,8 +23,10 @@ import {
   type SponsorInviteRound,
   type SponsorListing,
 } from "@/app/lib/sponsor-listings";
-import { MATCH_DAY_APPROVED_LABEL } from "@/app/lib/partner-projects";
-import { submitGlobalSponsorshipCommitment } from "@/app/services/sponsor-listings.service";
+import {
+  prepareInviteApprovalPath,
+  submitGlobalSponsorshipCommitment,
+} from "@/app/services/sponsor-listings.service";
 import { SafeInput } from "@/app/components/forms/SafeFormField";
 
 export function SponsorInviteInbox({
@@ -86,9 +91,11 @@ function InviteCard({
         )
       : ""
   );
+  const router = useRouter();
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [openingApproval, setOpeningApproval] = useState(false);
   const open = inviteWindowOpen(round, new Date());
   const isWinner = round.lockedListingId === listing.id;
   const ownCommitment = round.commitments.find(
@@ -112,15 +119,25 @@ function InviteCard({
     if (result.round) onRoundChange?.(result.round);
     if (result.error) setError(result.error);
     else if (result.round?.lockedListingId === listing.id) {
-      setNotice(
-        `You are locked in for ${round.clubName}. Climate Projects are now ${MATCH_DAY_APPROVED_LABEL} and visible to that club's fans.`
-      );
+      setNotice(`${INVITE_LOCKED_NEXT_COPY}.`);
     } else {
       setNotice(
         "Your amounts are recorded. The highest Maximum Sponsorship within 8 hours is accepted."
       );
     }
     setSaving(false);
+  }
+
+  async function proceedToApproval() {
+    setOpeningApproval(true);
+    setError(null);
+    try {
+      const href = await prepareInviteApprovalPath({ listing, round });
+      router.push(href);
+    } catch {
+      setError("Could not open Approval and Payment. Try again from your Dashboard.");
+      setOpeningApproval(false);
+    }
   }
 
   return (
@@ -146,8 +163,8 @@ function InviteCard({
       {isWinner && (
         <p className="mt-4 font-semibold text-green-300">
           Locked in
-          {lockedInviteSummary(ownCommitment, round.lockedAmountGbp)}. Projects
-          are {MATCH_DAY_APPROVED_LABEL}.
+          {lockedInviteSummary(ownCommitment, round.lockedAmountGbp)}.{" "}
+          {INVITE_LOCKED_NEXT_COPY}.
         </p>
       )}
       {round.lockedBrandName && !isWinner && (
@@ -159,7 +176,17 @@ function InviteCard({
       )}
       {notice && <p className="mt-4 text-sm text-green-300">{notice}</p>}
       {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
-      {listing.kind === "global" && open && (
+      {listing.kind === "global" && isWinner && (
+        <button
+          type="button"
+          disabled={openingApproval}
+          onClick={() => void proceedToApproval()}
+          className="mt-5 w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-60"
+        >
+          {openingApproval ? "Opening..." : INVITE_PROCEED_APPROVAL_LABEL}
+        </button>
+      )}
+      {listing.kind === "global" && open && !isWinner && (
         <div className="mt-5 space-y-4">
           <p className="text-sm text-slate-400">
             Registered ranges: Commitment Fee{" "}

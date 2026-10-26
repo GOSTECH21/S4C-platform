@@ -940,6 +940,32 @@ export function hydrateLeadOccupancyFromLocks(clubName: string): LeadClubSponsor
   return leadClimateSponsorsForClub(club);
 }
 
+export function stampMatchDayFunding({
+  brandName,
+  clubName,
+  commitmentFeeGbp,
+  gbpPerGoal,
+  maximumSponsorshipGbp,
+}: {
+  brandName: string;
+  clubName: string;
+  commitmentFeeGbp: number;
+  gbpPerGoal?: number;
+  maximumSponsorshipGbp?: number;
+}): MatchDayClubLock | null {
+  const store = readJson<LockStore>(LOCK_KEY, {});
+  const current = store[brandKey(brandName)] ?? null;
+  if (!current || !offerBelongsToClub(current.clubName, clubName)) return null;
+  const lock = applyWalletFundingLock(current, {
+    commitmentFeeGbp,
+    gbpPerGoal,
+    maximumSponsorshipGbp,
+  });
+  store[brandKey(brandName)] = lock;
+  writeJson(LOCK_KEY, store);
+  return lock;
+}
+
 export function lockWalletFundingToClub({
   brandName,
   clubName,
