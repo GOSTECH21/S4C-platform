@@ -10,9 +10,15 @@ import { loadSponsorLeaderboard } from "@/app/services/sponsor-leaderboard.servi
 export function SponsorCistTable({
   brandName,
   ownFundingGbp,
+  title,
+  sectionId,
+  eyebrow,
 }: {
   brandName: string;
   ownFundingGbp: number;
+  title?: string;
+  sectionId?: string;
+  eyebrow?: string;
 }) {
   const meta = impactTableMeta("cist");
   const [rows, setRows] = useState(() =>
@@ -46,11 +52,14 @@ export function SponsorCistTable({
   }, [brandName, ownFundingGbp]);
 
   return (
-    <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
+    <section
+      id={sectionId}
+      className="scroll-mt-6 rounded-3xl border border-slate-700 bg-slate-900 p-8"
+    >
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
-        {meta.shortName}
+        {eyebrow ?? meta.shortName}
       </p>
-      <h2 className="mt-2 text-3xl font-black">{meta.title}</h2>
+      <h2 className="mt-2 text-3xl font-black">{title ?? meta.title}</h2>
       <p className="mt-3 max-w-3xl text-slate-300">
         Your position is highlighted. {meta.description}.
       </p>

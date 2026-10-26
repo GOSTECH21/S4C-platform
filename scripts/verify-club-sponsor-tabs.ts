@@ -1032,14 +1032,17 @@ assert(
 
 const sponsorDash = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
 assert(
-  sponsorDash.includes("MatchDayLockIn") &&
+  sponsorDash.includes("LeadSponsorHome") &&
+    readFileSync("app/sponsor/calendar/page.tsx", "utf8").includes(
+      "MatchDayLockIn"
+    ) &&
     readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(
       "SeeMatchDetails"
     ) &&
     readFileSync("app/components/sponsor/ClubMatchCalendar.tsx", "utf8").includes(
       "Select the Match"
     ),
-  "Lead Climate Sponsors pick a published fixture and can See Match details"
+  "Lead Climate Sponsors pick a published fixture on Calendar and can See Match details"
 );
 
 const localPage = readFileSync("app/sponsor/local/register/page.tsx", "utf8");

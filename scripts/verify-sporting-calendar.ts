@@ -285,15 +285,14 @@ const clubCalendar = readFileSync(
   "utf8"
 );
 assert(
-  dashboard.includes("MatchDayLockIn") &&
-    dashboard.includes('id="match-day-lock-in"') &&
+  dashboard.includes("LeadSponsorHome") &&
     !dashboard.includes("Open 2026/27 Sporting Calendar") &&
     !dashboard.includes("ClubLeagueMenu") &&
-    lockIn.includes("ClubChosenProjectsPanel") &&
-    dashboard.includes("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}") &&
-    dashboard.indexOf("MatchDayLockIn") <
-      dashboard.indexOf("projectsSectionId={SPONSOR_RECEIVE_SECTION_ID}"),
-  "Match Day Lock-In sits above the Climate Projects record; the Sporting Calendar is not a standalone card"
+    !dashboard.includes("MatchDayLockIn") &&
+    calendarPage.includes("MatchDayLockIn") &&
+    calendarPage.includes('id="match-day-lock-in"') &&
+    lockIn.includes("ClubChosenProjectsPanel"),
+  "The Lead dashboard is the four-section home; Match Day Lock-In lives on Calendar"
 );
 assert(
   calendarPage.includes("MatchDayLockIn") &&
@@ -319,8 +318,10 @@ assert(
     signedHome.includes("picksForSignedSponsorHome") &&
     signedHome.includes("sponsorLogoSrc") &&
     !signedHome.includes("SponsoredMatchCalendar") &&
-    signedHome.includes("Your 2026/27 Sporting Calendar"),
-  "A logged-in Lead sees the all-inclusive Sporting Calendar on home, not a separate preview file"
+    signedHome.includes("Your 2026/27 Sporting Calendar") &&
+    dashboard.includes("LeadSponsorHome") &&
+    !dashboard.includes("SportingCalendarBoard"),
+  "The Sporting Calendar board stays available; the Lead dashboard is the four-section home"
 );
 
 const board = readFileSync(

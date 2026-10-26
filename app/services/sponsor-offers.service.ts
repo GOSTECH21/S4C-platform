@@ -44,6 +44,7 @@ import {
 } from "../lib/sponsor-dashboard";
 import type { ClimateProject } from "./votes.service";
 import { getCurrentSponsor } from "./current-sponsor.service";
+import { recordLeadMatchApproved } from "../lib/lead-project-folder";
 import {
   ensureGoalNetwork,
   listGoalNetworks,
@@ -274,13 +275,18 @@ export async function publishSponsorMatchOffer({
   };
 
   const local = readJson<SponsorMatchOffer[]>(OFFER_STORAGE, []);
+  const signedIds = new Set(
+    readJson<SponsorOfferSignature[]>(SIGN_STORAGE, []).map((row) => row.offerId)
+  );
   writeJson(
     OFFER_STORAGE,
     [
       offer,
-      ...local.filter(
-        (row) => row.id !== offer.id && !sameClubMatchOffer(row, offer)
-      ),
+      ...local.filter((row) => {
+        if (row.id === offer.id) return false;
+        if (signedIds.has(row.id)) return true;
+        return !sameClubMatchOffer(row, offer);
+      }),
     ].slice(0, 50)
   );
 
@@ -764,6 +770,13 @@ export async function ensureOfferFromLockedClubUploads(options: {
   const matchOffers = allOffers.filter((offer) =>
     offerMatchesLockedMatch(offer, lock)
   );
+  const signedForMatch = pairSignedSponsorships(allOffers, signatures, {
+    brandName,
+    clubName: lock.clubName,
+  }).find((row) => offerMatchesLockedMatch(row.offer, lock));
+  if (signedForMatch) {
+    return signedForMatch.offer;
+  }
   const visiblePending = unsignedMatchOffers(
     offersForLockedSponsor(matchOffers, { brandName, network, lock }),
     signatures
@@ -995,6 +1008,31 @@ export async function signSponsorOffer({
     }
   } catch {
     // Signature is stored even if the live fan/club publish cannot complete.
+  }
+
+  if (offer) {
+    recordLeadMatchApproved({
+      brandName: signature.brandName,
+      offerId: offer.id,
+      clubId: offer.clubId,
+      clubName: offer.clubName,
+      matchTitle: offer.matchTitle,
+      matchDate: offer.matchDate,
+      headline: offer.headline,
+      signedAt: signature.signedAt,
+      signerName: signature.signerName,
+      projects: offer.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        description: project.description ?? null,
+        country: project.country ?? null,
+        estimated_co2: project.estimated_co2 ?? null,
+        fundedGbp: 0,
+      })),
+      sponsorshipAmountGbp: offer.sponsorshipAmountGbp ?? null,
+      gbpPerGoal: offer.gbpPerGoal ?? null,
+      maxAmount: offer.maxAmount ?? null,
+    });
   }
 
   return signature;
