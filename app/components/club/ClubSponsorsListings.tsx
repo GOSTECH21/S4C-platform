@@ -49,6 +49,7 @@ export type ClubSponsorsListingsProps = {
   selectedLocalIds: string[];
   onToggle: (listing: SponsorListing) => void;
   onInvite: (kind: SponsorListingKind) => void;
+  initialTab?: SponsorListingKind;
 };
 
 type DirectoryTab = SponsorListingKind;
@@ -67,8 +68,9 @@ export function ClubSponsorsListings({
   selectedLocalIds,
   onToggle,
   onInvite,
+  initialTab = "global",
 }: ClubSponsorsListingsProps) {
-  const [tab, setTab] = useState<DirectoryTab>("global");
+  const [tab, setTab] = useState<DirectoryTab>(initialTab);
   const globals = useMemo(
     () => listings.filter((row) => row.kind === "global"),
     [listings]

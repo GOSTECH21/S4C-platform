@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ClubSponsorsListings } from "@/app/components/club/ClubSponsorsListings";
 import { SponsorInviteInbox } from "@/app/components/sponsor/SponsorInviteInbox";
 import {
@@ -41,9 +41,53 @@ export default function SponsorListingsPreviewPage() {
   const [round, setRound] = useState<SponsorInviteRound | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [initialTab] = useState<SponsorListingKind>(() =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("tab") === "local"
+      ? "local"
+      : "global"
+  );
   const sentAt = "2026-10-26T09:00:00.000Z";
   const approved = Boolean(round?.lockedListingId);
   const bidder = globals.find((row) => selectedGlobalIds.includes(row.id)) ?? globals[0];
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("demo") !== "lock") return;
+    const drafted = createInviteRound({
+      clubId: "hearts-demo",
+      clubName: "Hearts",
+      directorName: "Alex Director",
+      matchLabel: "Hearts v Rangers",
+      projectIds: PROJECTS.map((row) => row.id),
+      projectNames: PROJECTS.map((row) => row.name),
+      globalInviteeIds: selectedGlobalIds,
+      localInviteeIds: selectedLocalIds,
+      sentAt,
+    });
+    const first = commitGlobalSponsorship(
+      drafted,
+      bidder,
+      8000,
+      "2026-10-26T10:00:00.000Z"
+    );
+    const rival =
+      globals.find((row) => row.id !== bidder.id && selectedGlobalIds.includes(row.id)) ??
+      bidder;
+    const second = commitGlobalSponsorship(
+      first.round,
+      rival,
+      12000,
+      "2026-10-26T12:00:00.000Z"
+    );
+    setRound(second.round);
+    setNotice(
+      `${second.round.lockedBrandName} locked in at £${second.round.lockedAmountGbp?.toLocaleString("en-GB")}. Projects are ${MATCH_DAY_APPROVED_LABEL}.`
+    );
+    // Preview-only ?demo=lock bootstrap.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toggle(listing: SponsorListing) {
     if (listing.kind === "global") {
@@ -82,12 +126,12 @@ export default function SponsorListingsPreviewPage() {
     );
   }
 
-  function simulateHighestBid() {
-    if (!round || !bidder) {
+  function simulateHighestBid(current = round) {
+    if (!current || !bidder) {
       setError("Send the Global Brand invitations first.");
       return;
     }
-    const first = commitGlobalSponsorship(round, bidder, 8000, "2026-10-26T10:00:00.000Z");
+    const first = commitGlobalSponsorship(current, bidder, 8000, "2026-10-26T10:00:00.000Z");
     const rival =
       globals.find((row) => row.id !== bidder.id && selectedGlobalIds.includes(row.id)) ??
       bidder;
@@ -120,6 +164,7 @@ export default function SponsorListingsPreviewPage() {
           selectedLocalIds={selectedLocalIds}
           onToggle={toggle}
           onInvite={invite}
+          initialTab={initialTab}
         />
         <button
           type="button"
