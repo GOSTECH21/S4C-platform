@@ -4,9 +4,17 @@ import { useState } from "react";
 import {
   GLOBAL_COMMITMENT_FEE_RANGES,
   GLOBAL_INVITE_WINDOW_HOURS,
+  GLOBAL_SPONSORSHIP_GOAL_RANGES,
+  INVITE_COMMITMENT_FEE_HINT,
+  INVITE_COMMITMENT_FEE_LABEL,
+  INVITE_GBP_PER_GOAL_HINT,
+  INVITE_GBP_PER_GOAL_LABEL,
+  INVITE_MAXIMUM_HINT,
+  INVITE_MAXIMUM_LABEL,
   formatRangeLabel,
   inviteDeadlineLabel,
   inviteWindowOpen,
+  rangeById,
   type SponsorInviteRound,
   type SponsorListing,
 } from "@/app/lib/sponsor-listings";
@@ -55,12 +63,24 @@ function InviteCard({
   round: SponsorInviteRound;
   onRoundChange?: (round: SponsorInviteRound) => void;
 }) {
-  const [amount, setAmount] = useState(
+  const feeRange = rangeById(
+    GLOBAL_COMMITMENT_FEE_RANGES,
+    listing.commitmentFeeRangeId
+  );
+  const goalRange = rangeById(
+    GLOBAL_SPONSORSHIP_GOAL_RANGES,
+    listing.sponsorshipGoalRangeId
+  );
+  const [commitmentFee, setCommitmentFee] = useState(
+    listing.kind === "global" ? String(feeRange?.minGbp ?? "") : ""
+  );
+  const [gbpPerGoal, setGbpPerGoal] = useState(
+    listing.kind === "global" ? String(goalRange?.minGbp ?? "") : ""
+  );
+  const [maximumSponsorship, setMaximumSponsorship] = useState(
     listing.kind === "global"
       ? String(
-          GLOBAL_COMMITMENT_FEE_RANGES.find(
-            (row) => row.id === listing.commitmentFeeRangeId
-          )?.minGbp ?? ""
+          (feeRange?.minGbp ?? 0) + 2 * (goalRange?.minGbp ?? 0) || ""
         )
       : ""
   );
@@ -69,6 +89,9 @@ function InviteCard({
   const [saving, setSaving] = useState(false);
   const open = inviteWindowOpen(round, new Date());
   const isWinner = round.lockedListingId === listing.id;
+  const ownCommitment = round.commitments.find(
+    (row) => row.listingId === listing.id
+  );
 
   async function commit() {
     if (listing.kind !== "global") return;
@@ -78,7 +101,11 @@ function InviteCard({
     const result = await submitGlobalSponsorshipCommitment({
       clubId: round.clubId,
       listing,
-      amountGbp: Number(amount),
+      funding: {
+        commitmentFeeGbp: Number(commitmentFee),
+        gbpPerGoal: Number(gbpPerGoal),
+        maximumSponsorshipGbp: Number(maximumSponsorship),
+      },
     });
     if (result.round) onRoundChange?.(result.round);
     if (result.error) setError(result.error);
@@ -87,7 +114,9 @@ function InviteCard({
         `You are locked in for ${round.clubName}. Climate Projects are now ${MATCH_DAY_APPROVED_LABEL} and visible to that club's fans.`
       );
     } else {
-      setNotice("Your amount is recorded. The highest commitment within 8 hours is accepted.");
+      setNotice(
+        "Your amounts are recorded. The highest Maximum Sponsorship within 8 hours is accepted."
+      );
     }
     setSaving(false);
   }
@@ -115,45 +144,88 @@ function InviteCard({
       {isWinner && (
         <p className="mt-4 font-semibold text-green-300">
           Locked in
-          {round.lockedAmountGbp
-            ? ` at £${round.lockedAmountGbp.toLocaleString("en-GB")}`
-            : ""}
+          {ownCommitment
+            ? ` — ${INVITE_COMMITMENT_FEE_LABEL} £${ownCommitment.commitmentFeeGbp.toLocaleString("en-GB")}, ${INVITE_GBP_PER_GOAL_LABEL} £${ownCommitment.gbpPerGoal.toLocaleString("en-GB")}, ${INVITE_MAXIMUM_LABEL} £${ownCommitment.maximumSponsorshipGbp.toLocaleString("en-GB")}`
+            : round.lockedAmountGbp
+              ? ` at £${round.lockedAmountGbp.toLocaleString("en-GB")}`
+              : ""}
           . Projects are {MATCH_DAY_APPROVED_LABEL}.
         </p>
       )}
       {round.lockedBrandName && !isWinner && (
         <p className="mt-4 text-sm text-amber-200">
           {round.lockedBrandName} currently holds this Match Day at £
-          {(round.lockedAmountGbp ?? 0).toLocaleString("en-GB")}. A higher amount
-          within the window can still take the slot.
+          {(round.lockedAmountGbp ?? 0).toLocaleString("en-GB")}. A higher
+          Maximum Sponsorship within the window can still take the slot.
         </p>
       )}
       {notice && <p className="mt-4 text-sm text-green-300">{notice}</p>}
       {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
       {listing.kind === "global" && open && (
-        <div className="mt-5">
+        <div className="mt-5 space-y-4">
           <p className="text-sm text-slate-400">
-            Your Commitment Fee Range:{" "}
-            {formatRangeLabel(GLOBAL_COMMITMENT_FEE_RANGES, listing.commitmentFeeRangeId)}
+            Registered ranges: Commitment Fee{" "}
+            {formatRangeLabel(
+              GLOBAL_COMMITMENT_FEE_RANGES,
+              listing.commitmentFeeRangeId
+            )}
+            {" · "}
+            Sponsorship/Goal{" "}
+            {formatRangeLabel(
+              GLOBAL_SPONSORSHIP_GOAL_RANGES,
+              listing.sponsorshipGoalRangeId
+            )}
+            . Enter the three amounts for this Match Day.
           </p>
-          <label className="mt-3 block text-sm text-slate-400">
-            Amount you commit for this Match Day (£)
+          <label className="block text-sm text-slate-400">
+            {INVITE_COMMITMENT_FEE_LABEL}
             <SafeInput
               type="number"
               min={1}
               step={100}
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              value={commitmentFee}
+              onChange={(event) => setCommitmentFee(event.target.value)}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             />
+            <span className="mt-1 block text-xs text-slate-500">
+              {INVITE_COMMITMENT_FEE_HINT}
+            </span>
+          </label>
+          <label className="block text-sm text-slate-400">
+            {INVITE_GBP_PER_GOAL_LABEL}
+            <SafeInput
+              type="number"
+              min={1}
+              step={100}
+              value={gbpPerGoal}
+              onChange={(event) => setGbpPerGoal(event.target.value)}
+              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              {INVITE_GBP_PER_GOAL_HINT}
+            </span>
+          </label>
+          <label className="block text-sm text-slate-400">
+            {INVITE_MAXIMUM_LABEL}
+            <SafeInput
+              type="number"
+              min={1}
+              step={100}
+              value={maximumSponsorship}
+              onChange={(event) => setMaximumSponsorship(event.target.value)}
+              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              {INVITE_MAXIMUM_HINT}
+            </span>
           </label>
           <button
             type="button"
             disabled={saving}
             onClick={() => void commit()}
-            className="mt-4 w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-60"
+            className="w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-60"
           >
-            {saving ? "Submitting..." : "Commit sponsorship amount"}
+            {saving ? "Submitting..." : "Commit sponsorship amounts"}
           </button>
         </div>
       )}

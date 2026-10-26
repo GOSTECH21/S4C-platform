@@ -61,12 +61,75 @@ export type SponsorListing = {
   source?: "seeded" | "registered";
 };
 
-export type SponsorInviteCommitment = {
+export type GlobalInviteFunding = {
+  commitmentFeeGbp: number;
+  gbpPerGoal: number;
+  maximumSponsorshipGbp: number;
+};
+
+export type SponsorInviteCommitment = GlobalInviteFunding & {
   listingId: string;
   brandName: string;
   amountGbp: number;
   receivedAt: string;
 };
+
+export const INVITE_COMMITMENT_FEE_LABEL = "Commitment Fee (Day 1)";
+export const INVITE_GBP_PER_GOAL_LABEL = "Sponsorship/Goal-Scored";
+export const INVITE_MAXIMUM_LABEL = "Maximum Sponsorship Amount";
+export const INVITE_COMMITMENT_FEE_HINT =
+  "This covers the Match ending 0-0. It is not the full sponsorship.";
+export const INVITE_GBP_PER_GOAL_HINT =
+  "Paid for every goal the sponsored team scores.";
+export const INVITE_MAXIMUM_HINT =
+  "The cap for this Match Day. Highest Maximum Sponsorship wins.";
+
+export function normalizeInviteFunding(
+  value: number | GlobalInviteFunding
+): GlobalInviteFunding {
+  if (typeof value === "number") {
+    const amount = Math.max(0, Math.round(Number(value) || 0));
+    return {
+      commitmentFeeGbp: amount,
+      gbpPerGoal: 0,
+      maximumSponsorshipGbp: amount,
+    };
+  }
+  return {
+    commitmentFeeGbp: Math.max(0, Math.round(Number(value.commitmentFeeGbp) || 0)),
+    gbpPerGoal: Math.max(0, Math.round(Number(value.gbpPerGoal) || 0)),
+    maximumSponsorshipGbp: Math.max(
+      0,
+      Math.round(Number(value.maximumSponsorshipGbp) || 0)
+    ),
+  };
+}
+
+export function rankingAmountGbp(
+  row: Pick<
+    SponsorInviteCommitment,
+    "amountGbp" | "maximumSponsorshipGbp" | "commitmentFeeGbp"
+  >
+): number {
+  if (Number(row.maximumSponsorshipGbp) > 0) return Number(row.maximumSponsorshipGbp);
+  if (Number(row.amountGbp) > 0) return Number(row.amountGbp);
+  return Number(row.commitmentFeeGbp) || 0;
+}
+
+export function sponsorInvitationsNavLabel(count: number): string {
+  const n = Math.max(0, Math.round(Number(count) || 0));
+  return n > 0 ? `Invitations (${n})` : "Invitations";
+}
+
+export function invitationCountForBrand(
+  rounds: SponsorInviteRound[],
+  brandName: string,
+  listings: SponsorListing[],
+  now: Date | string = new Date()
+): number {
+  const pending = pendingInvitesForBrand(rounds, brandName, listings, now);
+  return new Set(pending.map((row) => row.clubId)).size;
+}
 
 export type SponsorInviteRound = {
   id: string;
@@ -341,7 +404,15 @@ export function highestCommitment(
 ): SponsorInviteCommitment | null {
   if (commitments.length === 0) return null;
   return [...commitments].sort((left, right) => {
-    if (right.amountGbp !== left.amountGbp) return right.amountGbp - left.amountGbp;
+    const rightMax = rankingAmountGbp(right);
+    const leftMax = rankingAmountGbp(left);
+    if (rightMax !== leftMax) return rightMax - leftMax;
+    const rightGoal = Number(right.gbpPerGoal) || 0;
+    const leftGoal = Number(left.gbpPerGoal) || 0;
+    if (rightGoal !== leftGoal) return rightGoal - leftGoal;
+    const rightFee = Number(right.commitmentFeeGbp) || 0;
+    const leftFee = Number(left.commitmentFeeGbp) || 0;
+    if (rightFee !== leftFee) return rightFee - leftFee;
     return toTime(left.receivedAt) - toTime(right.receivedAt);
   })[0];
 }
@@ -444,7 +515,7 @@ export type CommitGlobalResult = {
 export function commitGlobalSponsorship(
   round: SponsorInviteRound,
   listing: Pick<SponsorListing, "id" | "brandName" | "kind">,
-  amountGbp: number,
+  funding: number | GlobalInviteFunding,
   now: Date | string
 ): CommitGlobalResult {
   if (listing.kind !== "global") {
@@ -467,7 +538,33 @@ export function commitGlobalSponsorship(
       error: `The ${GLOBAL_INVITE_WINDOW_HOURS}-hour invitation window has closed.`,
     };
   }
-  const amount = Math.round(Number(amountGbp) || 0);
+  const amounts = normalizeInviteFunding(funding);
+  const detailed = typeof funding !== "number";
+  if (amounts.commitmentFeeGbp <= 0) {
+    return {
+      round,
+      locked: Boolean(round.lockedListingId),
+      winnerChanged: false,
+      error: "Enter the Commitment Fee for a 0-0 Match.",
+    };
+  }
+  if (detailed && amounts.gbpPerGoal <= 0) {
+    return {
+      round,
+      locked: Boolean(round.lockedListingId),
+      winnerChanged: false,
+      error: "Enter the Sponsorship/Goal-Scored amount.",
+    };
+  }
+  if (detailed && amounts.maximumSponsorshipGbp < amounts.commitmentFeeGbp) {
+    return {
+      round,
+      locked: Boolean(round.lockedListingId),
+      winnerChanged: false,
+      error: "Maximum Sponsorship must be at least the Commitment Fee.",
+    };
+  }
+  const amount = rankingAmountGbp(amounts);
   if (amount <= 0) {
     return {
       round,
@@ -480,6 +577,9 @@ export function commitGlobalSponsorship(
     listingId: listing.id,
     brandName: listing.brandName,
     amountGbp: amount,
+    commitmentFeeGbp: amounts.commitmentFeeGbp,
+    gbpPerGoal: amounts.gbpPerGoal,
+    maximumSponsorshipGbp: amounts.maximumSponsorshipGbp || amount,
     receivedAt: at.toISOString(),
   };
   const commitments = [

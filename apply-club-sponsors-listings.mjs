@@ -51,7 +51,12 @@ if (
   !read("app/lib/sponsor-listings.ts").includes("GLOBAL_INVITE_WINDOW_HOURS") ||
   !read("app/sponsor/register/page.tsx").includes("Commitment Fee Range") ||
   !read("app/sponsor/local/register/page.tsx").includes("Sponsorship amount range") ||
-  !read("app/club/dashboard/page.tsx").includes("Open Sponsors listings")
+  !read("app/club/dashboard/page.tsx").includes("Open Sponsors listings") ||
+  read("app/sponsor/invitations/page.tsx").includes("SponsorNav") ||
+  !read("app/sponsor/sponsor-nav.tsx").includes("sponsorInvitationsNavLabel") ||
+  !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
+    "INVITE_GBP_PER_GOAL_LABEL"
+  )
 ) {
   failed += 1;
   console.error(

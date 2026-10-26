@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SponsorNav } from "@/app/sponsor/sponsor-nav";
 import { SponsorInviteInbox } from "@/app/components/sponsor/SponsorInviteInbox";
 import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
 import type { SponsorInviteRound, SponsorListing } from "@/app/lib/sponsor-listings";
@@ -52,46 +51,41 @@ export default function SponsorInvitationsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-white">
+      <div className="flex min-h-[40vh] items-center justify-center text-white">
         Loading invitations...
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen p-8 text-white">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-8 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
-            Invitation to Sponsor
+    <div className="mx-auto max-w-3xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+        Invitation to Sponsor
+      </p>
+      <h1 className="mt-2 text-4xl font-black">Match Day invitations</h1>
+      <p className="mt-3 text-slate-300">
+        Club Sustainability Directors send these from the Sponsors listings.
+        Global Brands compete on amount within 8 hours; Local Businesses
+        receive a simple invite.
+      </p>
+      <div className="mt-8">
+        {listing ? (
+          <SponsorInviteInbox
+            listing={listing}
+            rounds={rounds}
+            onRoundChange={(round) =>
+              setRounds((current) =>
+                current.map((row) => (row.id === round.id ? round : row))
+              )
+            }
+          />
+        ) : (
+          <p className="text-slate-400">
+            Register as a Global Brand or Local Business Sponsor to appear on
+            the Sponsors listings and receive invitations here.
           </p>
-          <SponsorNav />
-        </div>
-        <h1 className="text-4xl font-black">Match Day invitations</h1>
-        <p className="mt-3 text-slate-300">
-          Club Sustainability Directors send these from the Sponsors listings.
-          Global Brands compete on amount within 8 hours; Local Businesses
-          receive a simple invite.
-        </p>
-        <div className="mt-8">
-          {listing ? (
-            <SponsorInviteInbox
-              listing={listing}
-              rounds={rounds}
-              onRoundChange={(round) =>
-                setRounds((current) =>
-                  current.map((row) => (row.id === round.id ? round : row))
-                )
-              }
-            />
-          ) : (
-            <p className="text-slate-400">
-              Register as a Global Brand or Local Business Sponsor to appear on
-              the Sponsors listings and receive invitations here.
-            </p>
-          )}
-        </div>
+        )}
       </div>
-    </main>
+    </div>
   );
 }

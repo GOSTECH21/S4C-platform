@@ -13,6 +13,9 @@ import {
   GLOBAL_INVITE_WINDOW_HOURS,
   GLOBAL_SPONSORSHIP_GOAL_RANGES,
   GLOBAL_SPONSORS_ACCEPTED_PER_MATCH,
+  INVITE_COMMITMENT_FEE_LABEL,
+  INVITE_GBP_PER_GOAL_LABEL,
+  INVITE_MAXIMUM_LABEL,
   LOCAL_BUSINESS_INVITE_COUNT,
   LOCAL_BUSINESS_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
@@ -21,6 +24,8 @@ import {
   approvedProjectIdsFromInvite,
   commitGlobalSponsorship,
   createInviteRound,
+  invitationCountForBrand,
+  sponsorInvitationsNavLabel,
   globalInvitationEmailBody,
   listingsOfKind,
   localInvitationEmailBody,
@@ -133,6 +138,30 @@ assert(
     GLOBAL_SPONSORS_ACCEPTED_PER_MATCH === 1,
   "A higher amount inside the window replaces the locked Global Brand; still only one accepted"
 );
+const funded = commitGlobalSponsorship(
+  high.round,
+  globals[0],
+  {
+    commitmentFeeGbp: 4000,
+    gbpPerGoal: 6000,
+    maximumSponsorshipGbp: 18000,
+  },
+  "2026-10-26T13:00:00.000Z"
+);
+assert(
+  funded.round.lockedBrandName === globals[0].brandName &&
+    funded.round.lockedAmountGbp === 18000 &&
+    funded.round.commitments.find((row) => row.listingId === globals[0].id)
+      ?.gbpPerGoal === 6000,
+  "Highest Maximum Sponsorship wins; Commitment Fee and Sponsorship/Goal-Scored are stored"
+);
+assert(
+  sponsorInvitationsNavLabel(0) === "Invitations" &&
+    sponsorInvitationsNavLabel(1) === "Invitations (1)" &&
+    sponsorInvitationsNavLabel(2) === "Invitations (2)" &&
+    invitationCountForBrand([funded.round], globals[0].brandName, listings) === 1,
+  "Invitations tab shows the number of club invites waiting"
+);
 
 const late = commitGlobalSponsorship(
   high.round,
@@ -209,12 +238,30 @@ assert(
     localRegister.includes('kind: "local"'),
   "Global and Local sign-up write range fields onto the Sponsors directory"
 );
+const invitePage = readFileSync("app/sponsor/invitations/page.tsx", "utf8");
+const sponsorNav = readFileSync("app/sponsor/sponsor-nav.tsx", "utf8");
+const inbox = readFileSync("app/components/sponsor/SponsorInviteInbox.tsx", "utf8");
 assert(
-  readFileSync("app/sponsor/invitations/page.tsx", "utf8").includes("SponsorInviteInbox") &&
+  invitePage.includes("SponsorInviteInbox") &&
+    !invitePage.includes("SponsorNav") &&
+    readFileSync("app/sponsor/layout.tsx", "utf8").includes("SponsorNav") &&
     readFileSync("app/services/sponsor-listings.service.ts", "utf8").includes(
       "publishSignedSponsorshipToFans"
     ),
-  "Locked-in Global Brand publishes Approved projects to club fans"
+  "Invitations uses the header nav only, and lock-in publishes Approved projects to club fans"
+);
+assert(
+  sponsorNav.includes("s4pTabClass(onInvitations)") &&
+    sponsorNav.includes("s4pTabClass(onDashboard)") &&
+    sponsorNav.includes("s4pTabClass(onCalendar)") &&
+    sponsorNav.includes("sponsorInvitationsNavLabel") &&
+    inbox.includes("INVITE_COMMITMENT_FEE_LABEL") &&
+    inbox.includes("INVITE_GBP_PER_GOAL_LABEL") &&
+    inbox.includes("INVITE_MAXIMUM_LABEL") &&
+    INVITE_COMMITMENT_FEE_LABEL === "Commitment Fee (Day 1)" &&
+    INVITE_GBP_PER_GOAL_LABEL === "Sponsorship/Goal-Scored" &&
+    INVITE_MAXIMUM_LABEL === "Maximum Sponsorship Amount",
+  "The viewing tab is green; Invitations shows a count; the invite form has Commitment Fee, Goal-scored and Maximum"
 );
 
 if (failures.length > 0) {

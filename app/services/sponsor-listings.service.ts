@@ -8,6 +8,7 @@ import {
   approvedProjectIdsFromInvite,
   commitGlobalSponsorship,
   createInviteRound,
+  invitationCountForBrand,
   currentRoundForClub,
   inviteRoundApprovesProjects,
   listingsOfKind,
@@ -19,6 +20,7 @@ import {
   seededSponsorListings,
   upsertInviteRound,
   upsertSponsorListing,
+  type GlobalInviteFunding,
   type SponsorInviteRound,
   type SponsorListing,
   type SponsorListingKind,
@@ -219,19 +221,26 @@ export function recordSponsorInvites({
 export async function submitGlobalSponsorshipCommitment({
   clubId,
   listing,
+  funding,
   amountGbp,
   now = new Date(),
 }: {
   clubId: string;
   listing: SponsorListing;
-  amountGbp: number;
+  funding?: GlobalInviteFunding;
+  amountGbp?: number;
   now?: Date | string;
 }): Promise<{ round: SponsorInviteRound | null; error: string | null }> {
   const current = loadClubInviteRound(clubId);
   if (!current) {
     return { round: null, error: "No Invitation to Sponsor is open for this club." };
   }
-  const result = commitGlobalSponsorship(current, listing, amountGbp, now);
+  const result = commitGlobalSponsorship(
+    current,
+    listing,
+    funding ?? amountGbp ?? 0,
+    now
+  );
   saveClubInviteRound(result.round);
   if (result.error) return { round: result.round, error: result.error };
   if (result.locked && result.winnerChanged) {
@@ -266,6 +275,14 @@ export function invitesWaitingForBrand(brandName: string): SponsorInviteRound[] 
   );
 }
 
+export function inviteCountWaitingForBrand(brandName: string): number {
+  return invitationCountForBrand(
+    loadInviteRounds(),
+    brandName,
+    loadSponsorDirectory()
+  );
+}
+
 export function approvedIdsForClubMatch(clubId: string): string[] {
   return approvedProjectIdsFromInvite(loadClubInviteRound(clubId));
 }
@@ -277,6 +294,9 @@ async function publishLockedInviteToFans(round: SponsorInviteRound) {
     const { publishSignedSponsorshipToFans } = await import(
       "./club-match-day.service"
     );
+    const winner = round.commitments.find(
+      (row) => row.listingId === round.lockedListingId
+    );
     await publishSignedSponsorshipToFans({
       clubId: round.clubId,
       clubName: round.clubName,
@@ -285,6 +305,9 @@ async function publishLockedInviteToFans(round: SponsorInviteRound) {
         id,
         name: round.projectNames[index] || id,
       })),
+      minAmount: winner?.commitmentFeeGbp,
+      gbpPerGoal: winner?.gbpPerGoal,
+      maxAmount: winner?.maximumSponsorshipGbp,
     });
   } catch {
     // Invitation lock-in still stands if the fan post cannot be written yet.
