@@ -215,12 +215,12 @@ export function ClubClimateSponsorTabs({
       )}
 
       <p className="mt-8 text-sm text-slate-500">
-        Need decision-maker contacts for sign-off?{" "}
+        Invite registered Global Brands and Local Businesses from{" "}
         <Link
           href={CLUB_SPONSORS_PATH}
           className="font-semibold text-amber-300 hover:underline"
         >
-          Add brand contacts
+          Sponsors listings
         </Link>
       </p>
     </section>

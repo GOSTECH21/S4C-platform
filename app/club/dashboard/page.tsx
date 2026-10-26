@@ -71,6 +71,7 @@ import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
+  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
@@ -78,6 +79,7 @@ import ClubNav from "@/app/components/club/ClubNav";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
+import { approvedIdsForClubMatch } from "@/app/services/sponsor-listings.service";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -243,8 +245,11 @@ export default function ClubDashboardPage() {
     for (const copy of signedCopies) {
       for (const project of copy.offer.projects) ids.add(project.id);
     }
+    if (club) {
+      for (const id of approvedIdsForClubMatch(club.id)) ids.add(id);
+    }
     return ids;
-  }, [signedCopies]);
+  }, [signedCopies, club]);
   const hasApproved = approvedIds.size > 0;
   const approvedBrandNames = useMemo(() => {
     const names = new Set<string>();
@@ -424,6 +429,14 @@ export default function ClubDashboardPage() {
           >
             S4P Climate Projects
           </Link>
+          {matchDayReady && (
+            <Link
+              href={CLUB_SPONSORS_PATH}
+              className="mt-4 block w-full rounded-xl border border-green-400 bg-green-500/15 py-4 text-center text-lg font-bold text-green-200 hover:bg-green-500/25"
+            >
+              Open Sponsors listings
+            </Link>
+          )}
           {hasApproved && postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
               Approved Projects published to your fans on My S4P
@@ -439,7 +452,7 @@ export default function ClubDashboardPage() {
             </p>
             <ProjectGrid
               projects={matchDayReady ? orderedSelected : []}
-              empty={`No Climate Projects chosen yet. Upload your Climate Projects with the blue button. They appear here tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} until a Sponsor signs them off.`}
+              empty={`No Climate Projects chosen yet. Upload your Climate Projects with the blue button. They appear here tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} until a Global Brand Sponsor is locked in.`}
               statusFor={(project) =>
                 matchDayProjectApprovalLabel(approvedIds.has(project.id))
               }

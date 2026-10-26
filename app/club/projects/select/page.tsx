@@ -28,8 +28,8 @@ import {
 } from "@/app/lib/sponsor-wallet";
 import { leadWalletMatchFunding } from "@/app/services/sponsor-wallet.service";
 import {
-  CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
+  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import ClubNav from "@/app/components/club/ClubNav";
 import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
@@ -188,7 +188,7 @@ export default function SelectMatchDayProjectsPage() {
         gbpPerVote: rate,
         expectedSponsorship: rate,
       });
-      router.push(CLUB_DASHBOARD_PATH);
+      router.push(CLUB_SPONSORS_PATH);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your match-day selection."

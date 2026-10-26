@@ -10,6 +10,7 @@ import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
+  SPONSOR_INVITATIONS_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
@@ -97,6 +98,12 @@ export function SponsorNav() {
             Calendar
           </Link>
         ) : null}
+        <Link
+          href={SPONSOR_INVITATIONS_PATH}
+          className={`${tabClass} border border-s4p-mark text-s4p-mint hover:bg-s4p-mark/15`}
+        >
+          Invitations
+        </Link>
         <button
           type="button"
           onClick={() => void logout()}

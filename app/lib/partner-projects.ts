@@ -41,7 +41,7 @@ export function clubDashboardClimateProjectsIntroCopy(): string {
 }
 
 export function clubDashboardChosenProjectsCopy(): string {
-  return `These ${MATCH_DAY_PROJECT_COUNT} chosen Projects are visible to interested Sponsors and tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL}. Once a Sponsor signs them off, they change to ${MATCH_DAY_APPROVED_LABEL} and are published to your fans.`;
+  return `These ${MATCH_DAY_PROJECT_COUNT} chosen Projects are tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL}. Open Sponsors, tick 5 Global Brands, and send an Invitation to Sponsor. Only one Global Brand is accepted — the highest sponsorship received within 8 hours. Once that Sponsorship is locked in, the Projects change to ${MATCH_DAY_APPROVED_LABEL} and are published to your fans. Also tick 10 Local Business Climate Sponsors for a simple Invitation to Sponsor.`;
 }
 
 export function matchDayProjectApprovalLabel(isApproved: boolean): string {

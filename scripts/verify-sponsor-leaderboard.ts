@@ -371,12 +371,12 @@ assert(
     "CLUB_SPONSOR_LEADERBOARD_PATH"
   ) &&
     readFileSync("app/components/club/ClubNav.tsx", "utf8").includes(
-      'label: "Sponsor"'
+      'label: "Sponsors"'
     ) &&
     readFileSync("app/components/club/ClubNav.tsx", "utf8").includes(
-      "CLUB_SPONSOR_LEADERBOARD_PATH"
+      "CLUB_SPONSORS_PATH"
     ),
-  "Club navigation has the Sponsor tab"
+  "Club navigation has the Sponsors listings tab"
 );
 assert(
   readFileSync("app/club/sponsor/page.tsx", "utf8").includes(
