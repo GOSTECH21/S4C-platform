@@ -698,11 +698,11 @@ assert(
 );
 assert(
   readFileSync("app/lib/lead-sponsor-home.ts", "utf8").includes(
-    "FUND-IT onto numbered Climate Projects"
+    "Master folder"
   ) &&
     !sponsorDashboardPage.includes("The 3 Climate Projects they choose") &&
     !sponsorDashboardPage.includes("Fans who voted and saw your brand"),
-  "Sponsors are told fans FUND-IT onto numbered Climate Projects, not vote for 3 Projects"
+  "Paid Climate Projects are a master folder, not a vote-for-3 list"
 );
 assert(
   !sponsorDashboardPage.includes("Create Your Sponsorship Campaign"),

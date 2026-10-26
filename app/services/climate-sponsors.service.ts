@@ -35,6 +35,7 @@ import {
   type NetworkInvite,
 } from "../lib/climate-sponsors";
 import { uniqueClubNames } from "../lib/s4p-admin";
+import { recordLeadMatchPaid } from "../lib/lead-project-folder";
 import { CURRENT_SEASON_LEAGUES } from "../lib/current-season";
 import {
   calendarClubNamesOnly,
@@ -962,6 +963,11 @@ export function lockWalletFundingToClub({
   });
   store[brandKey(brandName)] = lock;
   writeJson(LOCK_KEY, store);
+  recordLeadMatchPaid({
+    brandName,
+    clubName,
+    matchTitle: displayLockFixture(lock),
+  });
   return lock;
 }
 

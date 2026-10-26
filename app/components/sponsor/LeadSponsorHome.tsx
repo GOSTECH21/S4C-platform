@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { SponsorCistTable } from "@/app/components/sponsor/SponsorCistTable";
 import { formatLongMatchDate } from "@/app/lib/s4p-climate-projects";
@@ -15,6 +17,7 @@ import {
   LEAD_AWAITING_TITLE,
   LEAD_CIST_SECTION_ID,
   LEAD_CIST_TITLE,
+  LEAD_PAY_LABEL,
   LEAD_PAID_EMPTY,
   LEAD_PAID_INTRO,
   LEAD_PAID_SECTION_ID,
@@ -23,11 +26,20 @@ import {
   type ChosenProjectInput,
   type LeadSponsorMatchGroup,
 } from "@/app/lib/lead-sponsor-home";
+import {
+  readLeadProjectFolder,
+  recordLeadMatchApproved,
+  recordLeadMatchPaid,
+  type LeadFolderEntry,
+} from "@/app/lib/lead-project-folder";
 import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
+import { clubsMatch } from "@/app/lib/sponsor-dashboard";
 import type {
   FolderOffer,
   SignedSponsorship,
 } from "@/app/lib/sponsor-dashboard";
+import { isWalletFundingLocked } from "@/app/lib/sponsor-completion-flow";
+import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
 import {
   formatMatchFundingLine,
@@ -45,6 +57,7 @@ export function LeadSponsorHome({
   votedByClub,
   committedGbp,
   lock,
+  folder: folderOverride,
   onLogoChange,
 }: {
   brand: string;
@@ -55,16 +68,73 @@ export function LeadSponsorHome({
   votedByClub?: Record<string, Array<{ id: string; fundedGbp?: number | null }>>;
   committedGbp: number;
   lock?: MatchDayClubLock | null;
+  folder?: LeadFolderEntry[];
   onLogoChange?: (next: string) => void;
 }) {
+  const router = useRouter();
   const mark = sponsorLogoSrc(brand, logoUrl);
+  const [folder, setFolder] = useState<LeadFolderEntry[]>(
+    () => folderOverride ?? readLeadProjectFolder(brand)
+  );
+
+  useEffect(() => {
+    setFolder(folderOverride ?? readLeadProjectFolder(brand));
+  }, [brand, signed.length, pending.length, folderOverride]);
+
+  useEffect(() => {
+    const refresh = () => setFolder(readLeadProjectFolder(brand));
+    window.addEventListener(SIGNED_SPONSORSHIP_EVENT, refresh);
+    return () => window.removeEventListener(SIGNED_SPONSORSHIP_EVENT, refresh);
+  }, [brand]);
+
   const sections = leadSponsorHomeSections({
     pending,
     signed,
     chosenByClub,
     votedByClub,
     lock,
+    folder,
   });
+
+  function payForGroup(group: LeadSponsorMatchGroup) {
+    recordLeadMatchApproved({
+      brandName: brand,
+      offerId: group.offerId || "",
+      clubId: group.clubId,
+      clubName: group.clubName,
+      matchTitle: group.matchTitle,
+      matchDate: group.matchDate,
+      headline: group.headline,
+      signedAt: group.signedAt || new Date().toISOString(),
+      signerName: group.signerName || brand,
+      projects: group.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        country: project.country,
+        estimated_co2: project.estimated_co2,
+        fundedGbp: project.fundedGbp,
+      })),
+      sponsorshipAmountGbp: group.sponsorshipAmountGbp,
+      gbpPerGoal: group.gbpPerGoal,
+      maxAmount: group.maxAmount,
+    });
+    const alreadyPaid =
+      isWalletFundingLocked(lock) &&
+      Boolean(lock?.clubName) &&
+      clubsMatch(lock?.clubName ?? "", group.clubName);
+    if (alreadyPaid) {
+      recordLeadMatchPaid({
+        brandName: brand,
+        clubName: group.clubName,
+        matchTitle: group.matchTitle,
+        offerId: group.offerId,
+      });
+      setFolder(readLeadProjectFolder(brand));
+      return;
+    }
+    router.push(group.actionHref);
+  }
 
   return (
     <div className="space-y-10">
@@ -113,6 +183,7 @@ export function LeadSponsorHome({
         intro={LEAD_APPROVED_INTRO}
         empty={LEAD_APPROVED_EMPTY}
         groups={sections.approved}
+        onPay={payForGroup}
       />
       <ProjectSection
         id={LEAD_PAID_SECTION_ID}
@@ -140,6 +211,7 @@ function ProjectSection({
   intro,
   empty,
   groups,
+  onPay,
 }: {
   id: string;
   letter: "a" | "b" | "c";
@@ -147,6 +219,7 @@ function ProjectSection({
   intro: string;
   empty: string;
   groups: LeadSponsorMatchGroup[];
+  onPay?: (group: LeadSponsorMatchGroup) => void;
 }) {
   return (
     <section
@@ -163,7 +236,11 @@ function ProjectSection({
       ) : (
         <div className="mt-8 space-y-4">
           {groups.map((group) => (
-            <MatchProjectCard key={group.key} group={group} />
+            <MatchProjectCard
+              key={group.key}
+              group={group}
+              onPay={onPay}
+            />
           ))}
         </div>
       )}
@@ -171,7 +248,13 @@ function ProjectSection({
   );
 }
 
-function MatchProjectCard({ group }: { group: LeadSponsorMatchGroup }) {
+function MatchProjectCard({
+  group,
+  onPay,
+}: {
+  group: LeadSponsorMatchGroup;
+  onPay?: (group: LeadSponsorMatchGroup) => void;
+}) {
   const when = formatLongMatchDate(group.matchDate);
   const funding = formatMatchFundingLine({
     baseAmount: Number(group.sponsorshipAmountGbp) || 0,
@@ -221,12 +304,22 @@ function MatchProjectCard({ group }: { group: LeadSponsorMatchGroup }) {
           </li>
         ))}
       </ul>
-      <Link
-        href={group.actionHref}
-        className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 text-sm font-bold text-slate-950 hover:brightness-110"
-      >
-        {group.actionLabel}
-      </Link>
+      {onPay && group.actionLabel === LEAD_PAY_LABEL ? (
+        <button
+          type="button"
+          onClick={() => onPay(group)}
+          className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 text-sm font-bold text-slate-950 hover:brightness-110"
+        >
+          {group.actionLabel}
+        </button>
+      ) : (
+        <Link
+          href={group.actionHref}
+          className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 text-sm font-bold text-slate-950 hover:brightness-110"
+        >
+          {group.actionLabel}
+        </Link>
+      )}
     </article>
   );
 }

@@ -7,6 +7,8 @@ import {
   LEAD_AWAITING_TITLE,
   LEAD_CIST_SECTION_ID,
   LEAD_CIST_TITLE,
+  LEAD_PAID_EMPTY,
+  LEAD_PAID_INTRO,
   LEAD_PAID_SECTION_ID,
   LEAD_PAID_TITLE,
   clubsNeedingChosenProjects,
@@ -99,6 +101,26 @@ const sections = leadSponsorHomeSections({
       { id: "islington", fundedGbp: 0.2 },
     ],
   },
+  folder: [
+    {
+      key: "amex|arsenal|manchester city v arsenal",
+      brandName: "American Express",
+      offerId: "arsenal-offer",
+      clubId: "arsenal-demo",
+      clubName: "Arsenal",
+      matchTitle: "Manchester City v Arsenal",
+      matchDate: "2026-11-21",
+      headline: "Manchester City v Arsenal",
+      status: "paid",
+      signedAt: "2026-10-12T18:10:00.000Z",
+      paidAt: "2026-10-12T18:40:00.000Z",
+      signerName: "American Express",
+      projects: [],
+      sponsorshipAmountGbp: 2300,
+      gbpPerGoal: 4000,
+      maxAmount: 7500,
+    },
+  ],
 });
 
 assert(
@@ -155,9 +177,17 @@ assert(
   "A Club Sustainability Director upload appears in (a) before the Lead signs"
 );
 
-const walletPaid = leadSponsorHomeSections({
-  pending: [],
+const stillApproved = leadSponsorHomeSections({
+  pending: [
+    {
+      ...heartsSigned.offer,
+      id: "hearts-offer-republished",
+    },
+  ],
   signed: [heartsSigned],
+  chosenByClub: {
+    Hearts: heartsSigned.offer.projects,
+  },
   lock: {
     brandKey: "american express",
     clubName: "Hearts",
@@ -170,10 +200,50 @@ const walletPaid = leadSponsorHomeSections({
 });
 
 assert(
-  walletPaid.approved.length === 0 &&
+  stillApproved.awaiting.length === 0 &&
+    stillApproved.approved[0]?.clubName === "Hearts" &&
+    stillApproved.paid.length === 0,
+  "Accept & approve empties awaiting and moves the list to approved, even if the wallet was already locked"
+);
+
+const walletPaid = leadSponsorHomeSections({
+  pending: [],
+  signed: [heartsSigned],
+  folder: [
+    {
+      key: "amex|hearts|hearts v aberdeen",
+      brandName: "American Express",
+      offerId: "hearts-offer",
+      clubId: "hearts-demo",
+      clubName: "Hearts",
+      matchTitle: "Hearts v Aberdeen",
+      matchDate: "2026-10-31",
+      headline: "Hearts v Aberdeen",
+      status: "paid",
+      signedAt: "2026-10-12T17:36:00.000Z",
+      paidAt: "2026-10-12T18:00:00.000Z",
+      signerName: "American Express",
+      projects: heartsSigned.offer.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        description: null,
+        country: null,
+        estimated_co2: null,
+        fundedGbp: 0,
+      })),
+      sponsorshipAmountGbp: 2300,
+      gbpPerGoal: null,
+      maxAmount: null,
+    },
+  ],
+});
+
+assert(
+  walletPaid.awaiting.length === 0 &&
+    walletPaid.approved.length === 0 &&
     walletPaid.paid[0]?.clubName === "Hearts" &&
     walletPaid.paid[0]?.projects.length === 2,
-  "After the Lead pays the Climate Sponsorship Wallet, approved Projects move to paid"
+  "After the Lead pays, approved Projects move into the paid master folder and stay there"
 );
 
 assert(
@@ -206,6 +276,26 @@ assert(
     dashboard.includes("isLeadSponsorHome(sponsorName, { jobTitle })") &&
     dashboard.indexOf("loadSponsorFolder") < dashboard.indexOf("setLoading(false)"),
   "The Lead dashboard always renders the four-section home, not calendar/lock-in/wallet"
+);
+
+assert(
+  LEAD_PAID_INTRO.includes("Master folder") &&
+    LEAD_PAID_EMPTY.includes("master folder") &&
+    home.includes("LEAD_PAID_INTRO"),
+  "Paid Climate Projects are a master folder of every list the Lead has backed"
+);
+
+assert(
+  readFileSync("app/services/sponsor-offers.service.ts", "utf8").includes(
+    "signedForMatch"
+  ) &&
+    readFileSync("app/services/sponsor-offers.service.ts", "utf8").includes(
+      "recordLeadMatchApproved"
+    ) &&
+    readFileSync("app/services/climate-sponsors.service.ts", "utf8").includes(
+      "recordLeadMatchPaid"
+    ),
+  "Sign-off records approved lists and does not republish them as awaiting uploads"
 );
 
 assert(

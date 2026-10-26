@@ -2,6 +2,7 @@
 
 import { LeadSponsorHome } from "@/app/components/sponsor/LeadSponsorHome";
 import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
+import type { LeadFolderEntry } from "@/app/lib/lead-project-folder";
 import type { FolderOffer, SignedSponsorship } from "@/app/lib/sponsor-dashboard";
 
 const awaitingOffer: FolderOffer = {
@@ -152,6 +153,36 @@ const arsenalLock: MatchDayClubLock = {
   maximumSponsorshipGbp: 7500,
 };
 
+const paidFolder: LeadFolderEntry[] = [
+  {
+    key: "american express|arsenal|manchester city v arsenal",
+    brandName: "American Express",
+    offerId: "amex-arsenal-city",
+    clubId: "arsenal-demo",
+    clubName: "Arsenal",
+    matchTitle: "Manchester City v Arsenal",
+    matchDate: "2026-11-21",
+    headline: "Manchester City v Arsenal",
+    status: "paid",
+    signedAt: "2026-10-12T18:10:00.000Z",
+    paidAt: "2026-10-12T18:40:00.000Z",
+    signerName: "American Express",
+    projects: [
+      {
+        id: "gss",
+        name: "Global Schools Solar",
+        description: null,
+        country: "International",
+        estimated_co2: null,
+        fundedGbp: 2300,
+      },
+    ],
+    sponsorshipAmountGbp: 2300,
+    gbpPerGoal: 4000,
+    maxAmount: 7500,
+  },
+];
+
 export default function LeadSponsorDashboardPreview() {
   return (
     <div className="min-h-screen p-8">
@@ -169,6 +200,7 @@ export default function LeadSponsorDashboardPreview() {
         }}
         committedGbp={2300}
         lock={arsenalLock}
+        folder={paidFolder}
       />
     </div>
   );

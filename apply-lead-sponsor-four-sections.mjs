@@ -4,10 +4,13 @@ import { dirname, join } from "path";
 const BRANCH = "cursor/lead-sponsor-four-sections-18f9";
 const FILES = [
   "app/lib/lead-sponsor-home.ts",
+  "app/lib/lead-project-folder.ts",
   "app/components/sponsor/LeadSponsorHome.tsx",
   "app/components/sponsor/SponsorCistTable.tsx",
   "app/sponsor/dashboard/page.tsx",
   "app/preview/lead-sponsor-dashboard/page.tsx",
+  "app/services/sponsor-offers.service.ts",
+  "app/services/climate-sponsors.service.ts",
   "scripts/verify-lead-sponsor-home.ts",
   "scripts/verify-sponsor-dashboard.ts",
   "scripts/verify-sporting-calendar.ts",
@@ -48,7 +51,10 @@ if (
   !home.includes("LEAD_APPROVED_TITLE") ||
   !home.includes("LEAD_PAID_TITLE") ||
   !home.includes("Section (d)") ||
-  !lib.includes("Projects that are awaiting for my acceptance")
+  !lib.includes("Projects that are awaiting for my acceptance") ||
+  !lib.includes("Master folder") ||
+  !read("app/lib/lead-project-folder.ts").includes("recordLeadMatchApproved") ||
+  !read("app/services/sponsor-offers.service.ts").includes("signedForMatch")
 ) {
   failed += 1;
   console.error(
@@ -58,5 +64,5 @@ if (
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Lead Climate Sponsor Dashboard now shows only (a) awaiting acceptance, (b) approved, (c) paid, and (d) CIST. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: Accept & approve now empties (a) into (b); paying moves the list into (c) paid history. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
 );

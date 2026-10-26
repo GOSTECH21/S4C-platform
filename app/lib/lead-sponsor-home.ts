@@ -11,7 +11,6 @@ import {
   isNamedFixture,
   type MatchDayClubLock,
 } from "./climate-sponsors";
-import { isWalletFundingLocked } from "./sponsor-completion-flow";
 import { fixtureLabelFromOffer } from "./sponsor-signed-home";
 import {
   SPONSOR_CALENDAR_PATH,
@@ -19,6 +18,11 @@ import {
   sponsorWalletPath,
 } from "./routes";
 import { DEFAULT_WALLET_VOTE_GBP } from "./sponsor-wallet";
+import {
+  leadFolderHasApprovedMatch,
+  sameLeadMatch,
+  type LeadFolderEntry,
+} from "./lead-project-folder";
 
 export const LEAD_AWAITING_SECTION_ID = "awaiting-acceptance";
 export const LEAD_APPROVED_SECTION_ID = "approved-projects";
@@ -34,15 +38,15 @@ export const LEAD_CIST_TITLE = "Climate Impact Sponsors Table (CIST)";
 export const LEAD_AWAITING_INTRO =
   "When a Club Sustainability Director compiles Climate Projects for a Match Day and uploads them, they appear here. Accept and approve the list to sponsor that Club's Match Day carbon footprint offset.";
 export const LEAD_APPROVED_INTRO =
-  "Climate Projects you have accepted and approved. Pay from your Climate Sponsorship Wallet to fund them.";
+  "Climate Projects you have accepted and approved. They leave the waiting list above. Pay from your Climate Sponsorship Wallet to move them into your paid history.";
 export const LEAD_PAID_INTRO =
-  "Climate Projects you have paid for. Fans take this cash from your Climate Sponsorship Wallet and FUND-IT onto numbered Climate Projects — up to 5 times on a Match Day five.";
+  "Master folder: a history of every Climate Project you have backed and paid for. Paid lists stay here and do not return to awaiting or approved.";
 export const LEAD_AWAITING_EMPTY =
   "No Climate Projects are waiting. When a Club Sustainability Director uploads Match Day Climate Projects, they appear here for your acceptance and approval.";
 export const LEAD_APPROVED_EMPTY =
   "You have not approved any Climate Projects yet. Accept and approve a Match Day list in the section above.";
 export const LEAD_PAID_EMPTY =
-  "You have not paid for any Climate Projects yet. After you approve a list, pay from your Climate Sponsorship Wallet and the funded Projects appear here.";
+  "Your paid Climate Projects will collect here as a master folder — a history of every Match Day you have backed and paid for.";
 
 export const LEAD_ACCEPT_LABEL = "Accept & approve";
 export const LEAD_PAY_LABEL = "Pay for these Climate Projects";
@@ -168,27 +172,37 @@ function withVoteFunding(
   return { ...project, fundedGbp, fanFunded: true };
 }
 
-function isProjectPaid(project: LeadSponsorProject, clubPaid: boolean) {
-  if (clubPaid) return true;
-  return project.fanFunded || project.fundedGbp > 0;
+function folderProjects(entry: LeadFolderEntry): LeadSponsorProject[] {
+  return entry.projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    country: project.country,
+    estimated_co2: project.estimated_co2,
+    fundedGbp: Number(project.fundedGbp) || 0,
+    fanFunded: Number(project.fundedGbp) > 0,
+  }));
 }
 
-function clubFundingLocked(
-  lock: MatchDayClubLock | null | undefined,
-  clubName: string
+function isTakenMatch(
+  match: { clubName: string; matchTitle?: string | null; id?: string | null },
+  signed: SignedSponsorship[],
+  folder: LeadFolderEntry[]
 ) {
-  if (!lock?.clubName?.trim()) return false;
-  if (!clubsMatch(lock.clubName, clubName)) return false;
-  return isWalletFundingLocked(lock);
-}
-
-function signedProjectIds(signed: SignedSponsorship[]) {
-  const ids = new Set<string>();
-  for (const row of signed) {
-    for (const project of row.offer.projects) ids.add(project.id);
-    for (const id of row.offer.projectIds ?? []) ids.add(id);
+  if (
+    signed.some(
+      (row) =>
+        row.offer.id === match.id ||
+        sameLeadMatch(row.offer, match)
+    )
+  ) {
+    return true;
   }
-  return ids;
+  return leadFolderHasApprovedMatch(folder, {
+    clubName: match.clubName,
+    matchTitle: match.matchTitle,
+    offerId: match.id,
+  });
 }
 
 function matchTitleFor(
@@ -263,40 +277,77 @@ function awaitingActionHref(
   return SPONSOR_CALENDAR_PATH;
 }
 
+function groupFromFolder(
+  entry: LeadFolderEntry,
+  actionHref: string,
+  actionLabel: string,
+  keyPrefix: string
+): LeadSponsorMatchGroup {
+  return {
+    key: `${keyPrefix}:${entry.key}`,
+    clubId: entry.clubId,
+    clubName: entry.clubName,
+    matchTitle: entry.matchTitle,
+    matchDate: entry.matchDate,
+    headline: entry.headline,
+    offerId: entry.offerId || null,
+    signedAt: entry.signedAt,
+    signerName: entry.signerName,
+    sponsorshipAmountGbp: entry.sponsorshipAmountGbp,
+    gbpPerGoal: entry.gbpPerGoal,
+    maxAmount: entry.maxAmount,
+    projects: folderProjects(entry),
+    actionHref,
+    actionLabel,
+  };
+}
+
+function isPaidEntry(
+  match: { clubName: string; matchTitle?: string | null; id?: string | null },
+  folder: LeadFolderEntry[]
+) {
+  return folder.some(
+    (row) =>
+      row.status === "paid" &&
+      (row.offerId === match.id || sameLeadMatch(row, match))
+  );
+}
+
 export function leadSponsorHomeSections({
   pending,
   signed,
   chosenByClub = {},
   votedByClub = {},
   lock,
+  folder = [],
 }: {
   pending: FolderOffer[];
   signed: SignedSponsorship[];
   chosenByClub?: Record<string, ChosenProjectInput[]>;
   votedByClub?: Record<string, VotedProjectInput[]>;
   lock?: MatchDayClubLock | null;
+  folder?: LeadFolderEntry[];
 }): LeadSponsorHomeSections {
-  const takenIds = signedProjectIds(signed);
   const awaiting: LeadSponsorMatchGroup[] = [];
   const coveredClubs: string[] = [];
 
   for (const offer of pending) {
+    const titled = {
+      ...offer,
+      matchTitle: matchTitleFor(offer, lock),
+    };
+    if (isTakenMatch(titled, signed, folder)) continue;
     const uploaded = chosenProjectsForClub(
       chosenByClub,
       offer.clubName,
       offer.clubId
     );
-    const merged = mergeProjectLists(offer.projects, uploaded).filter(
-      (project) => !takenIds.has(project.id)
-    );
+    const merged = mergeProjectLists(offer.projects, uploaded);
     if (merged.length === 0) continue;
     coveredClubs.push(offer.clubName);
     awaiting.push(
       groupFromOffer({
-        offer: {
-          ...offer,
-          matchTitle: matchTitleFor(offer, lock),
-        },
+        offer: titled,
         projects: merged.map(asProject),
         actionHref: awaitingActionHref(offer.id, offer.clubName, lock),
         actionLabel: LEAD_ACCEPT_LABEL,
@@ -308,15 +359,22 @@ export function leadSponsorHomeSections({
   const extraClubs = clubsNeedingChosenProjects({ pending, signed, lock });
   for (const clubName of extraClubs) {
     if (coveredClubs.some((row) => clubsMatch(row, clubName))) continue;
-    if (signed.some((row) => clubsMatch(row.offer.clubName, clubName))) continue;
-    const uploaded = chosenProjectsForClub(chosenByClub, clubName).filter(
-      (project) => !takenIds.has(project.id)
-    );
-    if (uploaded.length === 0) continue;
     const fixture =
       lock && clubsMatch(lock.clubName, clubName)
         ? displayLockFixture(lock)
         : `${clubName} Match Day`;
+    const matchTitle = isNamedFixture(fixture) ? fixture : `${clubName} Match Day`;
+    if (
+      isTakenMatch(
+        { clubName, matchTitle, id: "" },
+        signed,
+        folder
+      )
+    ) {
+      continue;
+    }
+    const uploaded = chosenProjectsForClub(chosenByClub, clubName);
+    if (uploaded.length === 0) continue;
     awaiting.push(
       groupFromOffer({
         offer: {
@@ -324,7 +382,7 @@ export function leadSponsorHomeSections({
           clubId: `name:${clubName}`,
           clubName,
           headline: `${clubName} · uploaded Climate Projects`,
-          matchTitle: isNamedFixture(fixture) ? fixture : `${clubName} Match Day`,
+          matchTitle,
           matchDate: lock?.fixtureDate ?? null,
           sponsorshipAmountGbp: lock?.commitmentFeeGbp ?? null,
           gbpPerGoal: lock?.gbpPerGoal ?? null,
@@ -348,37 +406,20 @@ export function leadSponsorHomeSections({
         clubsMatch(key, row.offer.clubName)
       )?.[1] ??
       [];
-    const clubPaid = clubFundingLocked(lock, row.offer.clubName);
     const projects = row.offer.projects.map((project) =>
       withVoteFunding(asProject(project as FolderProject), voted)
     );
-    const paidProjects = projects.filter((project) =>
-      isProjectPaid(project, clubPaid)
-    );
-    const approvedProjects = clubPaid
-      ? []
-      : projects.filter((project) => !isProjectPaid(project, false));
     const matchTitle = matchTitleFor(row.offer, lock);
     const headlineOffer = { ...row.offer, matchTitle };
-
-    if (approvedProjects.length > 0) {
-      approved.push(
-        groupFromOffer({
-          offer: headlineOffer,
-          projects: approvedProjects,
-          signedAt: row.signature.signedAt,
-          signerName: row.signature.signerName,
-          actionHref: sponsorWalletPath(row.offer.clubName),
-          actionLabel: LEAD_PAY_LABEL,
-          key: `approved:${row.signature.id}`,
-        })
-      );
-    }
-    if (paidProjects.length > 0) {
+    const paidMatch = isPaidEntry(
+      { clubName: row.offer.clubName, matchTitle, id: row.offer.id },
+      folder
+    );
+    if (paidMatch) {
       paid.push(
         groupFromOffer({
           offer: headlineOffer,
-          projects: paidProjects,
+          projects,
           signedAt: row.signature.signedAt,
           signerName: row.signature.signerName,
           actionHref: row.offer.id
@@ -387,6 +428,47 @@ export function leadSponsorHomeSections({
           actionLabel: "Open signed copy",
           key: `paid:${row.signature.id}`,
         })
+      );
+    } else {
+      approved.push(
+        groupFromOffer({
+          offer: headlineOffer,
+          projects,
+          signedAt: row.signature.signedAt,
+          signerName: row.signature.signerName,
+          actionHref: sponsorWalletPath(row.offer.clubName),
+          actionLabel: LEAD_PAY_LABEL,
+          key: `approved:${row.signature.id}`,
+        })
+      );
+    }
+  }
+
+  for (const entry of folder) {
+    const already = signed.some(
+      (row) =>
+        row.offer.id === entry.offerId || sameLeadMatch(row.offer, entry)
+    );
+    if (already) continue;
+    if (entry.status === "paid") {
+      paid.push(
+        groupFromFolder(
+          entry,
+          entry.offerId
+            ? sponsorOfferSignOffPath(entry.offerId)
+            : sponsorWalletPath(entry.clubName),
+          "Open signed copy",
+          "paid-folder"
+        )
+      );
+    } else {
+      approved.push(
+        groupFromFolder(
+          entry,
+          sponsorWalletPath(entry.clubName),
+          LEAD_PAY_LABEL,
+          "approved-folder"
+        )
       );
     }
   }
