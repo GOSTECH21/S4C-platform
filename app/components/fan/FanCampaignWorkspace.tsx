@@ -521,10 +521,10 @@ function CampaignPanel({
               Solar version your club chose — a local school near the stadium,
               or a school anywhere in the world. There is never a second Featured
               project. Open a project to read the details. To put £0.20 into a
-              school, open Climate Project Sponsors, select the project by name
-              from the Lead Climate Sponsor box, then press FUND-IT. Local
-              Business wallets fund the other Climate Projects. You can FUND-IT up to 5 times
-              — £0.20 once from each Carbon Wallet.
+              listed Climate Project, open Climate Project Sponsors, select that
+              project from the drop-down next to a Carbon Wallet, then press
+              FUND-IT. Local Business wallets fund local Climate Projects only.
+              You can FUND-IT up to 5 times — £0.20 once from each Carbon Wallet.
             </p>
             <div className="mt-6 space-y-2">
               {voteable.map((project, index) => {
