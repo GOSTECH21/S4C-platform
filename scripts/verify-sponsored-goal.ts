@@ -51,7 +51,7 @@ const wallet = createLeadWallet({
   commitmentFeeGbp: 3000,
   gbpPerGoal: DEFAULT_LEAD_GBP_PER_GOAL,
 });
-assert(remainingGbp(wallet) === 3000, "Lead wallet starts at the Commitment Fee");
+assert(remainingGbp(wallet) === 3000, "Lead wallet starts at the Match-Sponsorship");
 assert(
   leadWalletIncreaseGbp(wallet) === DEFAULT_LEAD_GBP_PER_GOAL,
   "A sponsored goal releases the agreed £/Goal into the Lead wallet"
@@ -139,7 +139,7 @@ assert(
 
 assert(
   brandNameFromGoalMessage(
-    "Arsenal FC scored against Leeds United. Puma has released £3,000 Goals-scored sponsorship into the Carbon Wallet."
+    "Arsenal FC scored against Leeds United. Puma has released £3,000 Match-Sponsorship into the Carbon Wallet."
   ) === "Puma",
   "Goal notifications keep the Lead Climate Sponsor who signed that match"
 );

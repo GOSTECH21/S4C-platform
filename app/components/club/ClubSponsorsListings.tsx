@@ -11,11 +11,11 @@ import {
 import {
   GLOBAL_BRANDS_TAB_LABEL,
   GLOBAL_BRAND_INVITE_COUNT,
-  GLOBAL_COMMITMENT_FEE_RANGES,
   GLOBAL_INVITE_SUBJECT,
   GLOBAL_INVITE_WINDOW_HOURS,
-  GLOBAL_SPONSORSHIP_GOAL_RANGES,
+  GLOBAL_MATCH_SPONSORSHIP_RANGES,
   GLOBAL_SPONSORS_ACCEPTED_PER_MATCH,
+  MATCH_SPONSORSHIP_RANGE_LABEL,
   LOCAL_BUSINESS_INVITE_COUNT,
   LOCAL_BUSINESS_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
@@ -279,16 +279,10 @@ function DirectoryPanel({
                 <p className="text-sm text-slate-400">{listing.contactName}</p>
                 {kind === "global" ? (
                   <p className="mt-2 text-sm text-slate-300">
-                    Commitment Fee Range:{" "}
+                    {MATCH_SPONSORSHIP_RANGE_LABEL}:{" "}
                     {formatRangeLabel(
-                      GLOBAL_COMMITMENT_FEE_RANGES,
+                      GLOBAL_MATCH_SPONSORSHIP_RANGES,
                       listing.commitmentFeeRangeId
-                    )}
-                    <span className="mx-2 text-slate-600">·</span>
-                    Sponsorship/Goal range:{" "}
-                    {formatRangeLabel(
-                      GLOBAL_SPONSORSHIP_GOAL_RANGES,
-                      listing.sponsorshipGoalRangeId
                     )}
                   </p>
                 ) : (

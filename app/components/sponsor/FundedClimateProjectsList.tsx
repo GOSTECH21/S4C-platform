@@ -20,7 +20,7 @@ export function FundedClimateProjectsList({
       <p className="mt-3 max-w-3xl text-slate-300">
         {kind === "local"
           ? "Fans take £0.20 from your Carbon Wallet, and Donate it to a Climate Project of their choice. Your business name and logo will be visible to these Fans."
-          : "Fans take your Commitment Fee and Goals-scored Sponsorship and put that cash onto numbered Climate Projects. Open a project to see how much of your money it has received."}
+          : "Fans take your Match-Sponsorship and put that cash onto numbered Climate Projects. Open a project to see how much of your money it has received."}
       </p>
       {fanFunded.length === 0 && kind !== "local" ? (
         <p className="mt-6 text-slate-400">
@@ -60,7 +60,7 @@ export function FundedClimateProjectsList({
               {project.fanFunded
                 ? kind === "local"
                   ? `Fans have put ${formatFundingGbp(project.fundedGbp)} from your Climate Sponsorship Wallet onto this Climate Project.`
-                  : `Fans have put ${formatFundingGbp(project.fundedGbp)} of your Commitment Fee and Goals-scored Sponsorship onto this Climate Project.`
+                  : `Fans have put ${formatFundingGbp(project.fundedGbp)} of your Match-Sponsorship onto this Climate Project.`
                 : "Waiting for fans to FUND-IT from your Climate Sponsorship Wallet onto this Climate Project."}
             </p>
           </details>

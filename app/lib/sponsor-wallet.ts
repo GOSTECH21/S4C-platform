@@ -14,6 +14,10 @@ export const FUND_IT_LABEL = "FUND-IT";
 /** Once per Carbon Wallet; typically five wallets on a Match Day. */
 export const FUND_IT_MAX_TIMES = 5;
 export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
+/** Lead Match-Sponsorship pays this Platform Fee on top via Stripe. */
+export const PLATFORM_FEE_RATE = 0.05;
+export const PLATFORM_FEE_PERCENT_LABEL = "5%";
+export const PLATFORM_FEE_LABEL = "Platform Fee (5%)";
 
 export type SponsorWalletKind = "lead" | "local";
 
@@ -22,12 +26,12 @@ export type ClimateWallet = {
   clubName: string;
   brandName: string;
   kind: SponsorWalletKind;
-  /** Lead: deposited on Day 1, well before kick-off. */
+  /** Lead: the Match-Sponsorship amount (stored here for existing wallets). */
   commitmentFeeGbp: number;
-  /** Lead: agreed amount payable for each goal the sponsored team scores. */
+  /** Historic lead wallets only; new Match-Sponsorships keep this at 0. */
   gbpPerGoal: number;
   goalsScored: number;
-  /** Lead: agreed cap on Goals-scored Sponsorship Cash. */
+  /** Lead: same as the Match-Sponsorship amount for new deposits. */
   maximumSponsorshipGbp: number;
   /** Local: spendable top-up (e.g. £750). */
   sponsorshipGbp: number;
@@ -106,6 +110,22 @@ export function localWalletTopUp(sponsorshipGbp: number): {
     sponsorshipGbp: sponsorship,
     managementFeeGbp,
     paidGbp: roundGbp(sponsorship + managementFeeGbp),
+  };
+}
+
+export function matchSponsorshipTopUp(matchSponsorshipGbp: number): {
+  matchSponsorshipGbp: number;
+  platformFeeGbp: number;
+  paidGbp: number;
+} {
+  const matchSponsorship = roundGbp(
+    Math.max(0, Number(matchSponsorshipGbp) || 0)
+  );
+  const platformFeeGbp = roundGbp(matchSponsorship * PLATFORM_FEE_RATE);
+  return {
+    matchSponsorshipGbp: matchSponsorship,
+    platformFeeGbp,
+    paidGbp: roundGbp(matchSponsorship + platformFeeGbp),
   };
 }
 

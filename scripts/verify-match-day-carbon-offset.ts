@@ -128,8 +128,9 @@ assert(
     dashboard.includes("loadClubChosenClimateProjects") &&
     chosenPanel.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     MATCH_DAY_GOALS_SCORED_COPY.includes(
-      "selected Match Day Goals-scored Climate Projects"
+      "selected Match Day Climate Projects"
     ) &&
+    MATCH_DAY_GOALS_SCORED_COPY.includes("Match-Sponsorship") &&
     MATCH_DAY_PROJECTS_RECORD_COPY.includes(
       "saved in a Folder for your Record"
     ) &&

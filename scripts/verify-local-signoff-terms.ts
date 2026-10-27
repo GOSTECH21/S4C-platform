@@ -33,16 +33,17 @@ assert(
 assert(
   formatSponsorPayableCopy({
     baseAmount: 2000,
-    gbpPerGoal: 3000,
-    maxAmount: 9000,
     clubName: "Hibernian",
-  }).includes("£2,000 Base Match Sponsorship") &&
+  }).includes("£2,000 Match-Sponsorship") &&
     formatSponsorPayableCopy({
       baseAmount: 2000,
-      gbpPerGoal: 3000,
       clubName: "Hibernian",
-    }).includes("even if Hibernian players score no Goals"),
-  "Lead sign-off still states Base Match Sponsorship and Goals"
+    }).includes("5%") &&
+    formatSponsorPayableCopy({
+      baseAmount: 2000,
+      clubName: "Hibernian",
+    }).includes("via Stripe"),
+  "Lead sign-off states Match-Sponsorship plus the 5% Platform Fee"
 );
 
 assert(
@@ -99,8 +100,8 @@ assert(
     form.includes("isLocalClimateSponsor") &&
     form.includes("GOAL_SPONSOR_TERMS") &&
     form.includes("Signed as Local Business Climate Sponsor") &&
-    form.includes("Signed as Goal Sponsor"),
-  "The sign-off Form switches Local T&Cs and Lead Goal-Sponsor T&Cs"
+    form.includes("Signed as Lead Climate Sponsor"),
+  "The sign-off Form switches Local T&Cs and Lead Match-Sponsorship T&Cs"
 );
 
 assert(

@@ -85,8 +85,8 @@ const wallet = depositLeadClimateWallet({
   clubName: "Hibernian",
   brandName: "Puma",
   commitmentFeeGbp: 2500,
-  gbpPerGoal: 3500,
-  maximumSponsorshipGbp: 7500,
+  gbpPerGoal: 0,
+  maximumSponsorshipGbp: 2500,
 });
 const funded = lockWalletFundingToClub({
   brandName: "Puma",
@@ -101,7 +101,7 @@ bindFundedSponsorToClub({
   spentGbp: wallet.commitmentFeeGbp,
 });
 
-assert(wallet.commitmentFeeGbp === 2500, "Step 2 deposits the Commitment Fee");
+assert(wallet.commitmentFeeGbp === 2500, "Step 2 deposits the Match-Sponsorship");
 assert(
   Boolean(funded && isWalletFundingLocked(funded)),
   "Step 2 locks that wallet funding to Hibernian"
@@ -228,9 +228,9 @@ assert(
 );
 assert(
   pulled?.sponsorshipAmountGbp === 2500 &&
-    pulled?.gbpPerGoal === 3500 &&
-    pulled?.maxAmount === 7500,
-  "Sign-off stores the wallet Commitment Fee, £/Goal and Maximum, not the leftover £1,000"
+    pulled?.gbpPerGoal === 0 &&
+    pulled?.maxAmount === 2500,
+  "Sign-off stores the wallet Match-Sponsorship, not the leftover £1,000"
 );
 assert(
   formatSponsorPayableCopy({
@@ -248,7 +248,15 @@ assert(
         offer: { sponsorshipAmountGbp: 1000 },
       }),
       clubName: "Hibernian",
-    }).includes("£3,500") &&
+    }).includes("5%") &&
+    formatSponsorPayableCopy({
+      ...resolveCommittedMatchFunding({
+        lock: loadMatchDayLock("Puma"),
+        wallet: readClimateWallet("Hibernian", "Puma"),
+        offer: { sponsorshipAmountGbp: 1000 },
+      }),
+      clubName: "Hibernian",
+    }).includes("£2,625") &&
     !formatSponsorPayableCopy({
       ...resolveCommittedMatchFunding({
         lock: loadMatchDayLock("Puma"),
@@ -257,7 +265,7 @@ assert(
       }),
       clubName: "Hibernian",
     }).includes("£1,000"),
-  "Agree to be Goal Sponsor states the deposited amounts, not a leftover £1,000"
+  "Agree to sponsor states the Match-Sponsorship plus 5% Platform Fee, not a leftover £1,000"
 );
 
 const liveFolder = publishMatchDayFolderFromSignedOffer({

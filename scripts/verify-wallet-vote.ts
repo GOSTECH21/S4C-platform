@@ -8,7 +8,9 @@ import {
   FUND_IT_MAX_TIMES,
   LEAD_WALLET_VOTE_GBP,
   LOCAL_MANAGEMENT_FEE_RATE,
+  PLATFORM_FEE_RATE,
   leadSponsorshipFromGoalsGbp,
+  matchSponsorshipTopUp,
   leadCarbonWalletGbp,
   formatLeadSponsorshipGbp,
   normalizeClimateWallet,
@@ -119,6 +121,12 @@ assert(
   "Top Cellar's wallet indicates £750 before any vote"
 );
 assert(walletVoteAmount(topCellar) === 0.2, "A local FUND-IT takes £0.20");
+assert(
+  PLATFORM_FEE_RATE === 0.05 &&
+    matchSponsorshipTopUp(2500).platformFeeGbp === 125 &&
+    matchSponsorshipTopUp(2500).paidGbp === 2625,
+  "Lead Match-Sponsorship pays a 5% Platform Fee on top via Stripe"
+);
 
 const amex = createLeadWallet({
   clubName: "Hibernian",
@@ -128,7 +136,7 @@ const amex = createLeadWallet({
 });
 assert(
   remainingGbp(amex) === 3000,
-  "American Express deposits the Commitment Fee into the Carbon Wallet"
+  "American Express deposits the Match-Sponsorship into the Carbon Wallet"
 );
 assert(
   remainingGbp({ ...amex, goalsScored: 1 }) === 6000,
@@ -152,7 +160,7 @@ assert(
 );
 assert(
   leadCarbonWalletGbp(amex) === 3000,
-  "Amount in CARBON WALLET starts as the Commitment Fee"
+  "Amount in CARBON WALLET starts as the Match-Sponsorship"
 );
 assert(
   leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 6000,
@@ -673,8 +681,10 @@ assert(
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
   !clubSelect.includes("Goal-scored funding for this Match") &&
+    !clubSelect.includes("Goal-scored funding is already") &&
     clubSelect.includes("DEFAULT_WALLET_VOTE_GBP") &&
-    clubSelect.includes("leadWalletMatchFunding"),
+    clubSelect.includes("leadWalletMatchFunding") &&
+    clubSelect.includes("Match-Sponsorship is already"),
   "Club Climate Projects does not set Goal-scored funding; FUND-IT stays £0.20"
 );
 
@@ -827,47 +837,34 @@ const walletForm = readFileSync(
   "utf8"
 );
 assert(
-  walletForm.includes("Maximum Sponsorship Amount"),
-  "Lead wallet labels the Maximum Sponsorship Amount field"
-);
-assert(
-  walletForm.includes("Sponsorship/Goal-Scored"),
-  "Lead wallet shows a Sponsorship/Goal-Scored block"
-);
-assert(
-  walletForm.includes("Goals-Scored"),
-  "Lead wallet shows a Goals-Scored block"
-);
-assert(
   walletForm.includes("Amount in CARBON WALLET"),
   "Lead wallet shows Amount in CARBON WALLET"
 );
 assert(
-  walletForm.includes("formatLeadSponsorshipGbp"),
-  "Sponsorship/Goal-Scored reads £0.0 before a live goal"
-);
-assert(
-  walletForm.includes("readOnly") &&
-    walletForm.includes("Stays at 0 until a live broadcast goal is received."),
-  "Goals-Scored is not typed in; it waits for a live goal"
+  walletForm.includes("MATCH_SPONSORSHIP_LABEL") &&
+    walletForm.includes("matchSponsorshipTopUp") &&
+    walletForm.includes("PLATFORM_FEE_LABEL") &&
+    !walletForm.includes("Sponsorship/Goal-Scored") &&
+    !walletForm.includes("Maximum Sponsorship Amount") &&
+    !walletForm.includes("Stays at 0 until a live broadcast goal is received."),
+  "Lead wallet is one Match-Sponsorship amount plus the 5% Platform Fee"
 );
 assert(
   walletPage.includes("SPONSORED_GOAL_EVENT"),
   "The wallet refreshes when a live sponsored goal is posted"
 );
 assert(
-  walletForm.includes("maximumSponsorshipGbp"),
-  "Maximum Sponsorship Amount is stored separately from goals scored"
+  walletForm.includes("maximumSponsorshipGbp: amount"),
+  "Match-Sponsorship is stored as the single lead amount"
 );
 assert(
   !walletForm.includes("goalsScored: Number(goalsScored)"),
   "Depositing the lead wallet does not overwrite Goals-Scored from the form"
 );
 assert(
-  walletForm.includes(
-    "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
-  ),
-  "Lead wallet explains the Day 1 Commitment Fee and Goals-scored cash"
+  walletForm.includes("MATCH_SPONSORSHIP_LABEL") &&
+    walletForm.includes("Platform Fee"),
+  "Lead wallet explains Match-Sponsorship plus the 5% Platform Fee"
 );
 assert(
   !walletForm.includes("Goals scored so far"),
@@ -895,13 +892,10 @@ assert(
   "The wallet page classifies Local Business Climate Sponsors before showing the Lead form"
 );
 assert(
-  walletPage.includes(
-    "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for"
-  ) ||
-    walletPage.includes(
-      "Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is in the wallet."
-    ),
-  "Lead deposit notice does not show Remaining"
+  walletPage.includes("sponsorPayPath") &&
+    walletPage.includes("openCardPayment") &&
+    !walletPage.includes("Remaining)"),
+  "Lead deposit opens card payment for Match-Sponsorship plus the Platform Fee"
 );
 assert(
   !walletPage.includes(

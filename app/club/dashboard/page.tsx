@@ -535,7 +535,7 @@ export default function ClubDashboardPage() {
                   </div>
                   {record.minAmount != null && (
                     <p className="mt-2 text-sm text-green-300">
-                      Base Match Sponsorship: {formatMoney(record.minAmount)}
+                      Match-Sponsorship: {formatMoney(record.minAmount)}
                     </p>
                   )}
                   <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">

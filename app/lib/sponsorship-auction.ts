@@ -1,4 +1,9 @@
-/** Match Day sponsorship: Base Match Sponsorship + £/Goal, up to a cap. */
+/** Match Day sponsorship: one Match-Sponsorship amount plus a 5% Platform Fee. */
+
+import {
+  PLATFORM_FEE_PERCENT_LABEL,
+  matchSponsorshipTopUp,
+} from "./sponsor-wallet";
 
 export const DEFAULT_MINIMUM_SPONSORSHIP = 1000;
 /** Fallback when a Sustainability Director has not yet inserted a match minimum. */
@@ -85,8 +90,7 @@ export function currentSponsorshipAmount({
 }
 
 /**
- * Final amount the sponsor pays: Base Match Sponsorship plus £/Goal × Goals,
- * never above the SD cap, and never below the base (0–0 still pays the base).
+ * Match-Sponsorship is one amount. Historic gbpPerGoal is ignored for display and ranking.
  */
 export function totalMatchSponsorshipPayable({
   baseAmount,
@@ -225,29 +229,24 @@ export function formatBrandExposureLabel(posts?: number | null): string {
 
 export function formatMatchFundingLine({
   baseAmount,
-  gbpPerGoal,
   maxAmount,
 }: {
   baseAmount?: number | null;
   gbpPerGoal?: number | null;
   maxAmount?: number | null;
 }): string {
-  const parts: string[] = [];
-  if (Number(baseAmount) > 0) {
-    parts.push(`${formatMoney(Number(baseAmount))} Base Match Sponsorship`);
-  }
-  if (Number(gbpPerGoal) > 0) {
-    parts.push(`${formatMoney(Number(gbpPerGoal))}/Goal`);
-  }
-  if (Number(maxAmount) > 0) {
-    parts.push(`up to a maximum of ${formatMoney(Number(maxAmount))}`);
-  }
-  return parts.join(" · ");
+  const matchAmount =
+    Number(baseAmount) > 0
+      ? Number(baseAmount)
+      : Number(maxAmount) > 0
+        ? Number(maxAmount)
+        : 0;
+  if (!(matchAmount > 0)) return "";
+  return `${formatMoney(matchAmount)} Match-Sponsorship`;
 }
 
 export function formatSponsorPayableCopy({
   baseAmount,
-  gbpPerGoal,
   maxAmount,
   clubName,
 }: {
@@ -256,15 +255,15 @@ export function formatSponsorPayableCopy({
   maxAmount?: number | null;
   clubName?: string;
 }): string {
-  const perGoal = Number(gbpPerGoal) > 0 ? Number(gbpPerGoal) : 0;
-  const cap = Number(maxAmount) > 0 ? Number(maxAmount) : 0;
-  const who = clubName ? `${clubName} players` : "the club";
-  const capBit =
-    cap > 0 ? `, up to a maximum of ${formatMoney(cap)}` : "";
-  if (perGoal > 0) {
-    return `You pay the ${formatMoney(baseAmount)} Base Match Sponsorship even if ${who} score no Goals, plus ${formatMoney(perGoal)} for each Goal scored${capBit}.`;
-  }
-  return `You pay the ${formatMoney(baseAmount)} Base Match Sponsorship even if ${who} score no Goals${capBit}.`;
+  const matchAmount =
+    Number(baseAmount) > 0
+      ? Number(baseAmount)
+      : Number(maxAmount) > 0
+        ? Number(maxAmount)
+        : 0;
+  const who = clubName ? `${clubName}` : "this Match";
+  const topUp = matchSponsorshipTopUp(matchAmount);
+  return `You pay the ${formatMoney(topUp.matchSponsorshipGbp)} Match-Sponsorship for ${who}, plus a ${PLATFORM_FEE_PERCENT_LABEL} Platform Fee of ${formatMoney(topUp.platformFeeGbp)} (total ${formatMoney(topUp.paidGbp)}) via Stripe.`;
 }
 
 /** Local Business Climate Sponsors pay a Match amount — they do not sponsor Goals. */

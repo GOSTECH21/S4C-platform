@@ -347,7 +347,7 @@ export const GLOBAL_MATCH_DAY_STEPS = [
   "Click Select the Match",
   "Choose one of this Club's next 10 League or Cup Matches",
   "Lock-in that Match and go straight to your Carbon Wallet",
-  "See this Club's chosen Climate Projects, then enter your sponsorship amounts",
+  "See this Club's chosen Climate Projects, then enter your Match-Sponsorship amount",
 ] as const;
 
 export const GLOBAL_MATCH_DAY_INTRO = GLOBAL_MATCH_DAY_STEPS.map(

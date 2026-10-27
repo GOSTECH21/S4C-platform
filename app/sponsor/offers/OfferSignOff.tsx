@@ -37,7 +37,7 @@ import {
   chosenProjectsReadyForMatchDay,
 } from "@/app/lib/match-day-carbon-offset";
 
-export const GOAL_SPONSOR_TERMS = `S4P Goal Sponsor Terms and Conditions: by signing you agree to sponsor the Club's Match Day carbon footprint offset — a Base Match Sponsorship (the Minimum Payment, payable even if the club scores no Goals) plus Sponsorship per Goal scored, up to the posted Maximum. Example: a £3,000 base and £3,000 per Goal means 0–0 pays £3,000, 1–0 pays £6,000, and 2–0 pays £9,000, never more than the cap. You must see the Club's five chosen Climate Projects before you sign; those Projects are your record and the list Fans FUND-IT onto. If the Club has not uploaded them yet, sign-off stays pending approval until they do. Each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures. You may display your brand as SPONSORED BY on those Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
+export const GOAL_SPONSOR_TERMS = `S4P Match-Sponsorship Terms and Conditions: by signing you agree to sponsor the Club's Match Day carbon footprint offset with one Match-Sponsorship amount. Stripe then takes that Match-Sponsorship plus a 5% Platform Fee. Example: a £4,000 Match-Sponsorship is paid as £4,000 plus £200 Platform Fee, total £4,200. You must see the Club's five chosen Climate Projects before you sign; those Projects are your record and the list Fans FUND-IT onto. If the Club has not uploaded them yet, sign-off stays pending approval until they do. Each post to a fan is 1 eyeball and ${EXPOSURES_PER_POST} exposures. You may display your brand as SPONSORED BY on those Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.`;
 
 export function OfferProjectList({ offer }: { offer: SponsorMatchOffer }) {
   return (
@@ -203,7 +203,7 @@ export function OfferSignOffForm({
           <h2 className="text-2xl font-black">
             {isLocalClimateSponsor(signedBrand)
               ? "Signed as Local Business Climate Sponsor"
-              : "Signed as Goal Sponsor"}
+              : "Signed as Lead Climate Sponsor"}
           </h2>
           <p className="mt-3 text-lg font-semibold text-amber-300">
             SPONSORED BY {signedBrand}

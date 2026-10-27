@@ -22,8 +22,8 @@ export default function MatchDayCarbonOffsetPreview() {
           <li>Choose the Club</li>
           <li>Choose the Match they wish to sponsor</li>
           <li>
-            Open the Climate Sponsorship Wallet and add Commitment Fees and
-            Sponsorship/Goal-scored
+            Open the Climate Sponsorship Wallet and enter the Match-Sponsorship
+            amount
           </li>
           <li>
             See the Club&apos;s chosen Climate Projects, then sign off their
