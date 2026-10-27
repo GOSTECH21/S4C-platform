@@ -6,9 +6,17 @@ const FILES = [
   "app/lib/sponsor-listings.ts",
   "app/lib/partner-projects.ts",
   "app/lib/routes.ts",
+  "app/lib/sponsor-card-payment.ts",
   "app/services/sponsor-listings.service.ts",
+  "app/services/sponsor-card-payment.service.ts",
   "app/services/climate-sponsors.service.ts",
   "app/sponsor/offers/OfferSignOff.tsx",
+  "app/sponsor/wallet/page.tsx",
+  "app/sponsor/pay/page.tsx",
+  "app/components/sponsor/ClimateSponsorshipWallet.tsx",
+  "app/components/sponsor/ClubChosenProjectsPanel.tsx",
+  "app/components/sponsor/StripeCardPayment.tsx",
+  "app/components/sponsor/LeadSponsorHome.tsx",
   "app/components/club/ClubSponsorsListings.tsx",
   "app/components/club/ClubNav.tsx",
   "app/components/club/ClubClimateSponsorTabs.tsx",
@@ -22,8 +30,10 @@ const FILES = [
   "app/sponsor/login/page.tsx",
   "app/sponsor/sponsor-nav.tsx",
   "app/preview/sponsor-listings/page.tsx",
+  "app/preview/sponsor-card-payment/page.tsx",
   "scripts/verify-sponsor-listings.ts",
   "scripts/verify-sponsor-leaderboard.ts",
+  "scripts/verify-sponsor-card-payment.ts",
 ];
 
 let failed = 0;
@@ -74,7 +84,16 @@ if (
   !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
     "LOCAL_INVITE_SIGN_LABEL"
   ) ||
-  !read("app/sponsor/login/page.tsx").includes("localSponsorLoginPath")
+  !read("app/sponsor/login/page.tsx").includes("localSponsorLoginPath") ||
+  !read("app/lib/routes.ts").includes("sponsorPayPath") ||
+  !read("app/sponsor/wallet/page.tsx").includes("sponsorPayPath") ||
+  read("app/sponsor/wallet/page.tsx").includes(
+    "Sign off this Match Day sponsorship"
+  ) ||
+  !read("app/sponsor/pay/page.tsx").includes("StripeCardPayment") ||
+  !read("app/components/sponsor/StripeCardPayment.tsx").includes(
+    "PAY_WITH_CARD_LABEL"
+  )
 ) {
   failed += 1;
   console.error(

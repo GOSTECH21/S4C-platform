@@ -15,8 +15,8 @@ import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
-  sponsorWalletPath,
 } from "@/app/lib/routes";
+import { LEAD_APPROVED_SECTION_ID } from "@/app/lib/lead-sponsor-home";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
@@ -173,13 +173,10 @@ export function OfferSignOffForm({
         brandName: brandName || brandDefault,
       });
       setSignedBrand(signed.brandName);
-      const fromInvite =
-        typeof window !== "undefined" &&
-        new URLSearchParams(window.location.search).get("from") === "invite";
       router.replace(
-        fromInvite
-          ? sponsorWalletPath(offer.clubName)
-          : sponsorHomePath(signed.brandName) || LOCAL_SPONSOR_HOME_PATH
+        isLocalClimateSponsor(signed.brandName)
+          ? LOCAL_SPONSOR_HOME_PATH
+          : `${SPONSOR_DASHBOARD_PATH}#${LEAD_APPROVED_SECTION_ID}`
       );
     } catch (err) {
       setError(

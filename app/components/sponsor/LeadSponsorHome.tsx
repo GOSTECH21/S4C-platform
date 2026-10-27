@@ -33,13 +33,12 @@ import {
   type LeadFolderEntry,
 } from "@/app/lib/lead-project-folder";
 import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
-import { clubsMatch } from "@/app/lib/sponsor-dashboard";
 import type {
   FolderOffer,
   SignedSponsorship,
 } from "@/app/lib/sponsor-dashboard";
-import { isWalletFundingLocked } from "@/app/lib/sponsor-completion-flow";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
+import { isMatchDayCardPaymentConfirmed } from "@/app/lib/sponsor-card-payment";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
 import {
   formatMatchFundingLine,
@@ -119,10 +118,10 @@ export function LeadSponsorHome({
       gbpPerGoal: group.gbpPerGoal,
       maxAmount: group.maxAmount,
     });
-    const alreadyPaid =
-      isWalletFundingLocked(lock) &&
-      Boolean(lock?.clubName) &&
-      clubsMatch(lock?.clubName ?? "", group.clubName);
+    const alreadyPaid = isMatchDayCardPaymentConfirmed({
+      clubName: group.clubName,
+      brandName: brand,
+    });
     if (alreadyPaid) {
       recordLeadMatchPaid({
         brandName: brand,

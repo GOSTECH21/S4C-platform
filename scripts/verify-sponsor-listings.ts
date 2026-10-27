@@ -295,12 +295,17 @@ assert(
     !inbox.includes("Projects are Approved") &&
     readFileSync("app/lib/routes.ts", "utf8").includes("sponsorInviteApprovalPath") &&
     readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
-      'get("from") === "invite"'
+      "LEAD_APPROVED_SECTION_ID"
     ) &&
-    readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
+    !readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
       "sponsorWalletPath"
+    ) &&
+    readFileSync("app/lib/routes.ts", "utf8").includes("sponsorPayPath") &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes("sponsorPayPath") &&
+    !readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "Sign off this Match Day sponsorship"
     ),
-  "After lock-in the green tab proceeds to Approval & Payment (Terms, then Payment)"
+  "After lock-in the green tab proceeds to Approval, then Pay, then the wallet confirmation and card payment"
 );
 
 const listingsUi = readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8");

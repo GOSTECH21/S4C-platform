@@ -18,6 +18,10 @@ import {
   TOP_UP_CASH_HEADING,
   climateWalletHeading,
 } from "@/app/lib/match-day-carbon-offset";
+import {
+  CLIMATE_WALLET_CONFIRMATION_COPY,
+  LOCAL_WALLET_CONFIRMATION_COPY,
+} from "@/app/lib/sponsor-card-payment";
 
 export function ClimateSponsorshipWallet({
   kind,
@@ -67,6 +71,11 @@ export function ClimateSponsorshipWallet({
         {kind === "local" ? TOP_UP_CASH_HEADING : heading || climateWalletHeading({ clubName })}
       </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
+        {kind === "lead"
+          ? CLIMATE_WALLET_CONFIRMATION_COPY
+          : LOCAL_WALLET_CONFIRMATION_COPY}
+      </p>
+      <p className="mt-3 max-w-3xl text-slate-400">
         {kind === "lead"
           ? "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
           : `As a Local Business Climate Sponsor, put the amount you are sponsoring into this Carbon Wallet. Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from it onto local Climate Projects. Goal-scored sponsorship is only for Lead Climate Sponsors.`}
@@ -150,7 +159,7 @@ export function ClimateSponsorshipWallet({
             disabled={busy}
             className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
           >
-            {busy ? "Saving..." : "Put into Carbon Wallet"}
+            {busy ? "Opening payment..." : "Put into Carbon Wallet"}
           </button>
         </form>
       ) : (
@@ -218,7 +227,7 @@ export function ClimateSponsorshipWallet({
             disabled={busy}
             className="xl:col-span-4 md:col-span-2 rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
           >
-            {busy ? "Saving..." : "Deposit into Climate Sponsorship Wallet"}
+            {busy ? "Opening payment..." : "Deposit into Climate Sponsorship Wallet"}
           </button>
         </form>
       )}

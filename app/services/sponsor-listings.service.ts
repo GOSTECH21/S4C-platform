@@ -28,6 +28,7 @@ import {
   type SponsorListingKind,
 } from "../lib/sponsor-listings";
 import { brandsMatch } from "../lib/climate-sponsors";
+import { paidProjectIdsForClub } from "../lib/sponsor-card-payment";
 import { sponsorInviteApprovalPath, sponsorWalletPath } from "../lib/routes";
 import {
   LOCAL_SPONSOR_MIN_GBP,
@@ -292,7 +293,16 @@ export function inviteCountWaitingForBrand(brandName: string): number {
 }
 
 export function approvedIdsForClubMatch(clubId: string): string[] {
-  return approvedProjectIdsFromInvite(loadClubInviteRound(clubId));
+  const round = loadClubInviteRound(clubId);
+  return [
+    ...new Set([
+      ...approvedProjectIdsFromInvite(round),
+      ...paidProjectIdsForClub({
+        clubId,
+        clubName: round?.clubName,
+      }),
+    ]),
+  ];
 }
 
 export async function prepareInviteApprovalPath({

@@ -122,8 +122,7 @@ const chosenPanel = readFileSync(
   "utf8"
 );
 assert(
-  wallet.includes("ensureCarbonOffsetSponsorshipOffer") &&
-    wallet.includes("chosenProjectsReadyForMatchDay") &&
+  wallet.includes("sponsorPayPath") &&
     wallet.includes("ClubChosenProjectsPanel") &&
     dashboard.includes("LeadSponsorHome") &&
     dashboard.includes("loadClubChosenClimateProjects") &&

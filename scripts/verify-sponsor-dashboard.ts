@@ -798,18 +798,16 @@ assert(
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 assert(
-  walletPage.includes("lockWalletFundingToClub") &&
-    walletPage.includes("ensureCarbonOffsetSponsorshipOffer") &&
-    walletPage.includes("sponsorOfferSignOffPath") &&
+  walletPage.includes("stampMatchDayFunding") &&
+    walletPage.includes("sponsorPayPath") &&
     walletPage.includes("ensureMatchDayClubLock") &&
-    walletPage.includes("bindFundedSponsorToClub") &&
     walletPage.includes("ClubChosenProjectsPanel") &&
-    walletPage.includes("chosenProjectsReadyForMatchDay") &&
-    walletPage.includes("MATCH_DAY_SIGNOFF_PENDING_COPY") &&
+    !walletPage.includes("Sign off this Match Day sponsorship") &&
+    !walletPage.includes("openLeadSignOffAfterProjects") &&
     !walletPage.includes("sponsorDashboardReceivePath") &&
     !walletPage.includes("clubNameForLocalBrand") &&
     !walletPage.includes("isLeadSponsorHome(brand) && !lock?.clubName"),
-  "Depositing into the Climate Sponsorship Wallet locks funding to the selected club; sign-off waits until the Club's Climate Projects are visible"
+  "Depositing into the Climate Sponsorship Wallet confirms amounts and opens card payment"
 );
 assert(
   readFileSync("app/lib/lead-sponsor-home.ts", "utf8").includes(
@@ -941,7 +939,7 @@ assert(
   sponsorNav.includes("flex items-center gap-2") &&
     sponsorNav.includes("Dashboard") &&
     sponsorNav.includes("Logout") &&
-    sponsorNav.includes("bg-s4p-mark text-slate-950") &&
+    sponsorNav.includes("s4pTabClass(onDashboard)") &&
     sponsorNav.includes("sponsorHomePath") &&
     !sponsorNav.includes("bg-emerald-400"),
   "Dashboard and Logout sit on one header line; Dashboard opens the Local wallet or Lead home"
@@ -1213,7 +1211,7 @@ assert(
     readFileSync(
       "app/sponsor/offers/OfferSignOff.tsx",
       "utf8"
-    ).includes("router.replace(sponsorHomePath(signed.brandName)"),
+    ).includes("LEAD_APPROVED_SECTION_ID"),
   "The Lead dashboard is awaiting, approved, paid, and CIST; Calendar stays on its own tab"
 );
 
