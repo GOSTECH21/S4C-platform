@@ -26,6 +26,7 @@ const FILES = [
   "app/climate-sponsorship/page.tsx",
   "app/climate-credits/page.tsx",
   "app/preview/sponsor-listings/page.tsx",
+  "app/preview/sponsor-card-payment/page.tsx",
   "app/preview/match-day-carbon-offset/page.tsx",
 ];
 
