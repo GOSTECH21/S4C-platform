@@ -597,9 +597,9 @@ export function signedCopyPayload(copy: SignedSponsorship) {
         gbpPerGoal: copy.offer.gbpPerGoal,
         maxAmount: copy.offer.maxAmount,
       }) ||
-      "The sponsor pays the Base Match Sponsorship even if the club scores no Goals, plus the posted amount for each Goal scored, up to the Maximum.",
+      "The sponsor pays one Match-Sponsorship amount for this Match, plus a 5% Platform Fee via Stripe.",
     payablePerGoal:
-      "The sponsor pays the Base Match Sponsorship even if the club scores no Goals, plus the posted amount for each Goal scored, up to the Maximum.",
+      "The sponsor pays one Match-Sponsorship amount for this Match, plus a 5% Platform Fee via Stripe.",
     climateProjects: copy.offer.projects.map((project) => ({
       name: project.name,
       country: project.country,

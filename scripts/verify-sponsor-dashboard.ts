@@ -158,9 +158,9 @@ assert(payload.brand === "Puma", "Signed copy names the brand");
 assert(payload.signedBy === "Alex Manager", "Signed copy names the signer");
 assert(payload.climateProjects.length === 5, "Signed copy lists the five projects");
 assert(
-  String(payload.payable).includes("Base Match Sponsorship") ||
-    String(payload.payablePerGoal).includes("Base Match Sponsorship"),
-  "Signed copy states the Base Match Sponsorship"
+  String(payload.payable).includes("Match-Sponsorship") ||
+    String(payload.payablePerGoal).includes("Match-Sponsorship"),
+  "Signed copy states the Match-Sponsorship"
 );
 assert(
   signedCopyDownloadName("Manchester United", "Puma").includes(
@@ -566,9 +566,9 @@ assert(
 );
 assert(
   lockCopy().includes("choose the Match you wish to lock-in") &&
-    lockCopy().includes("Goal-Sponsorship") &&
+    lockCopy().includes("Match-Sponsorship") &&
     lockCopy().includes("this Club's Match Day chosen Climate Projects") &&
-    lockCopy().includes("sign-off your Match Day sponsorship") &&
+    lockCopy().includes("5% Platform Fee") &&
     !lockCopy().includes("choose a Club you wish to sponsor"),
   "Match Day lock-in tells Lead Climate Sponsors to lock the Match for the club already chosen at register"
 );
@@ -1089,7 +1089,7 @@ assert(
     cistRaised.find((row) => row.name === "American Express")?.funding.includes(
       "7,500"
     ),
-  "CIST uses the signed Commitment Fee and Goals-scored Sponsorship for the highlighted position"
+  "CIST uses the signed Match-Sponsorship for the highlighted position"
 );
 assert(
   showsSignedSponsorHome(1, false) &&
@@ -1126,7 +1126,7 @@ assert(
       },
       { commitmentFeeGbp: 2300 }
     ),
-  "Sponsoring a club and its Goals scored counts as a completed Match for login"
+  "Sponsoring a club Match counts as a completed Match for login"
 );
 const pepsiMatches = sponsoredMatchesFromLock(pepsiLock);
 assert(
@@ -1144,7 +1144,7 @@ assert(
     signedExpenditureGbp: 0,
     lock: pepsiLock,
   }) === 2300,
-  "CIST uses the deposited Commitment Fee when the signed folder is empty"
+  "CIST uses the deposited Match-Sponsorship when the signed folder is empty"
 );
 assert(
   fundedClimateProjectsForHome(

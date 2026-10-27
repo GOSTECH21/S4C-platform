@@ -380,9 +380,9 @@ assert(
 assert(
   lockCopy().includes("72 hours") &&
     lockCopy().includes("choose the Match you wish to lock-in") &&
-    lockCopy().includes("Goal-Sponsorship") &&
-    lockCopy().includes("Commitment Fee & Goals-scored Sponsorship") &&
-    lockCopy().includes("sign-off your Match Day sponsorship") &&
+    lockCopy().includes("Match-Sponsorship") &&
+    lockCopy().includes("5% Platform Fee") &&
+    lockCopy().includes("via Stripe") &&
     !lockCopy().includes("choose a Club you wish to sponsor"),
   "Lead Climate Sponsors are told to lock the Match 72 hours before kick-off using the club already chosen at register"
 );

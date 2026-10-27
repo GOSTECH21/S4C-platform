@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import {
   DEFAULT_WALLET_VOTE_GBP,
-  formatLeadSponsorshipGbp,
+  PLATFORM_FEE_LABEL,
   formatWalletGbp,
   leadCarbonWalletGbp,
-  leadSponsorshipFromGoalsGbp,
-  liveGoalsScored,
   localWalletTopUp,
+  matchSponsorshipTopUp,
   remainingGbp,
   type ClimateWallet,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
+import { MATCH_SPONSORSHIP_LABEL } from "@/app/lib/sponsor-listings";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import {
   TOP_UP_CASH_HEADING,
@@ -49,17 +49,13 @@ export function ClimateSponsorshipWallet({
   error?: string | null;
 }) {
   const [commitmentFee, setCommitmentFee] = useState("1000");
-  const [gbpPerGoal, setGbpPerGoal] = useState("3000");
-  const [maximumSponsorship, setMaximumSponsorship] = useState("0");
   const [localAmount, setLocalAmount] = useState(String(LOCAL_SPONSOR_MIN_GBP));
-  const liveGoals = wallet ? liveGoalsScored(wallet) : 0;
   const localTopUp = localWalletTopUp(Number(localAmount) || 0);
+  const leadTopUp = matchSponsorshipTopUp(Number(commitmentFee) || 0);
 
   useEffect(() => {
     if (!wallet || kind !== "lead") return;
     setCommitmentFee(String(wallet.commitmentFeeGbp));
-    setGbpPerGoal(String(wallet.gbpPerGoal));
-    setMaximumSponsorship(String(wallet.maximumSponsorshipGbp ?? 0));
   }, [wallet, kind]);
 
   return (
@@ -77,24 +73,21 @@ export function ClimateSponsorshipWallet({
       </p>
       <p className="mt-3 max-w-3xl text-slate-400">
         {kind === "lead"
-          ? "As a Lead Climate Project Sponsor, you deposit a Commitment Fee on Day 1 (in case Match ends as 0 - 0), well before kick-off, and agrees to pay Goals-scored Sponsorship Cash for every goal the sponsored Team players score"
-          : `As a Local Business Climate Sponsor, put the amount you are sponsoring into this Carbon Wallet. Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from it onto local Climate Projects. Goal-scored sponsorship is only for Lead Climate Sponsors.`}
+          ? `As a Lead Climate Sponsor you pay one ${MATCH_SPONSORSHIP_LABEL} for this Match, plus a 5% Platform Fee, via Stripe.`
+          : `As a Local Business Climate Sponsor, put the amount you are sponsoring into this Carbon Wallet. Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from it onto local Climate Projects.`}
       </p>
 
       {wallet && kind === "lead" ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <WalletStat
-            label="Commitment Fee"
+            label={MATCH_SPONSORSHIP_LABEL}
             value={formatWalletGbp(wallet.commitmentFeeGbp)}
           />
           <WalletStat
-            label="Sponsorship/Goal-Scored"
-            value={formatLeadSponsorshipGbp(leadSponsorshipFromGoalsGbp(wallet))}
-          />
-          <WalletStat label="Goals-Scored" value={String(liveGoals)} />
-          <WalletStat
-            label="Maximum Sponsorship Amount"
-            value={formatWalletGbp(wallet.maximumSponsorshipGbp ?? 0)}
+            label={PLATFORM_FEE_LABEL}
+            value={formatWalletGbp(
+              matchSponsorshipTopUp(wallet.commitmentFeeGbp).platformFeeGbp
+            )}
           />
           <WalletStat
             label="Amount in CARBON WALLET"
@@ -164,18 +157,19 @@ export function ClimateSponsorshipWallet({
         </form>
       ) : (
         <form
-          className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+          className="mt-8 space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
+            const amount = Number(commitmentFee) || 0;
             onLeadDeposit({
-              commitmentFeeGbp: Number(commitmentFee) || 0,
-              gbpPerGoal: Number(gbpPerGoal) || 0,
-              maximumSponsorshipGbp: Number(maximumSponsorship) || 0,
+              commitmentFeeGbp: amount,
+              gbpPerGoal: 0,
+              maximumSponsorshipGbp: amount,
             });
           }}
         >
-          <label className="block text-sm text-slate-400">
-            Commitment Fee (Day 1)
+          <label className="block max-w-md text-sm text-slate-400">
+            {MATCH_SPONSORSHIP_LABEL} (£)
             <input
               type="number"
               min={0}
@@ -185,47 +179,15 @@ export function ClimateSponsorshipWallet({
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             />
           </label>
-          <label className="block text-sm text-slate-400">
-            Sponsorship/Goal-Scored
-            <input
-              type="number"
-              min={0}
-              step={50}
-              value={gbpPerGoal}
-              onChange={(event) => setGbpPerGoal(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            />
-          </label>
-          <label className="block text-sm text-slate-400">
-            Goals-Scored
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={liveGoals}
-              readOnly
-              aria-readonly="true"
-              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white opacity-90"
-            />
-            <span className="mt-1 block text-xs text-slate-500">
-              Stays at 0 until a live broadcast goal is received.
-            </span>
-          </label>
-          <label className="block text-sm text-slate-400">
-            Maximum Sponsorship Amount
-            <input
-              type="number"
-              min={0}
-              step={50}
-              value={maximumSponsorship}
-              onChange={(event) => setMaximumSponsorship(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            />
-          </label>
+          <p className="max-w-2xl text-sm text-slate-400">
+            A 5% Platform Fee is added on top. You pay{" "}
+            {formatWalletGbp(leadTopUp.paidGbp)} ({formatWalletGbp(leadTopUp.matchSponsorshipGbp)}{" "}
+            {MATCH_SPONSORSHIP_LABEL} + {formatWalletGbp(leadTopUp.platformFeeGbp)} fee).
+          </p>
           <button
             type="submit"
             disabled={busy}
-            className="xl:col-span-4 md:col-span-2 rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
+            className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
           >
             {busy ? "Opening payment..." : "Deposit into Climate Sponsorship Wallet"}
           </button>

@@ -28,8 +28,9 @@ assert(
   PAY_WITH_CARD_LABEL === "Pay with your Credit/Debit Card" &&
     CARD_PAYMENT_CONFIRMED_COPY.includes(MATCH_DAY_APPROVED_LABEL) &&
     CLIMATE_WALLET_CONFIRMATION_COPY.includes(
-      "Deposit into Climate Sponsorship Wallet"
-    ),
+      "Match-Sponsorship"
+    ) &&
+    CLIMATE_WALLET_CONFIRMATION_COPY.includes("5% Platform Fee"),
   "Wallet deposit is the last action before card payment; payment confirms Approved"
 );
 assert(
@@ -51,10 +52,10 @@ assert(
   "Stripe test card 4242… is accepted; invalid numbers, expiry and CVC are rejected"
 );
 assert(
-  cardPaymentAmountGbp({ kind: "lead", commitmentFeeGbp: 2500 }) === 2500 &&
+  cardPaymentAmountGbp({ kind: "lead", commitmentFeeGbp: 2500 }) === 2625 &&
     cardPaymentAmountGbp({ kind: "local", paidGbp: 825, sponsorshipGbp: 750 }) ===
       825,
-  "Lead pays the Commitment Fee; Local pays the wallet amount including the fee"
+  "Lead Stripe charge is Match-Sponsorship plus 5% Platform Fee; Local pays the wallet amount including the fee"
 );
 
 const wallet = readFileSync("app/sponsor/wallet/page.tsx", "utf8");

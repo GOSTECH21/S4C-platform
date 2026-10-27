@@ -16,13 +16,13 @@ import {
   GLOBAL_COMMITMENT_FEE_RANGES,
   GLOBAL_INVITE_SUBJECT,
   GLOBAL_INVITE_WINDOW_HOURS,
-  GLOBAL_SPONSORSHIP_GOAL_RANGES,
+  GLOBAL_MATCH_SPONSORSHIP_RANGES,
   GLOBAL_SPONSORS_ACCEPTED_PER_MATCH,
-  INVITE_COMMITMENT_FEE_LABEL,
-  INVITE_GBP_PER_GOAL_LABEL,
   INVITE_LOCKED_NEXT_COPY,
-  INVITE_MAXIMUM_LABEL,
   INVITE_PROCEED_APPROVAL_LABEL,
+  MATCH_SPONSORSHIP_COMMIT_LABEL,
+  MATCH_SPONSORSHIP_LABEL,
+  MATCH_SPONSORSHIP_RANGE_LABEL,
   LOCAL_INVITE_AMOUNT_LABEL,
   LOCAL_INVITE_NEXT_COPY,
   LOCAL_INVITE_SIGN_LABEL,
@@ -72,15 +72,16 @@ assert(
   "Directory seeds enough Global Brands and Local Businesses to invite"
 );
 assert(
-  globals.every((row) => row.commitmentFeeRangeId && row.sponsorshipGoalRangeId) &&
+  globals.every((row) => row.commitmentFeeRangeId) &&
     locals.every((row) => row.amountRangeId),
-  "Global listings carry fee and goal ranges; locals carry an amount range"
+  "Global listings carry a Match-Sponsorship range; locals carry an amount range"
 );
 assert(
-  GLOBAL_COMMITMENT_FEE_RANGES.length >= 4 &&
-    GLOBAL_SPONSORSHIP_GOAL_RANGES.length >= 4 &&
-    LOCAL_SPONSORSHIP_AMOUNT_RANGES.length >= 4,
-  "Register forms have Commitment Fee, Sponsorship/Goal, and local amount ranges"
+  GLOBAL_MATCH_SPONSORSHIP_RANGES.length >= 4 &&
+    GLOBAL_COMMITMENT_FEE_RANGES.length >= 4 &&
+    LOCAL_SPONSORSHIP_AMOUNT_RANGES.length >= 4 &&
+    MATCH_SPONSORSHIP_LABEL === "Match-Sponsorship",
+  "Register forms have Match-Sponsorship and local amount ranges"
 );
 
 const registered = upsertSponsorListing(listings, {
@@ -155,19 +156,15 @@ assert(
 const funded = commitGlobalSponsorship(
   high.round,
   globals[0],
-  {
-    commitmentFeeGbp: 4000,
-    gbpPerGoal: 6000,
-    maximumSponsorshipGbp: 18000,
-  },
+  18000,
   "2026-10-26T13:00:00.000Z"
 );
 assert(
   funded.round.lockedBrandName === globals[0].brandName &&
     funded.round.lockedAmountGbp === 18000 &&
     funded.round.commitments.find((row) => row.listingId === globals[0].id)
-      ?.gbpPerGoal === 6000,
-  "Highest Maximum Sponsorship wins; Commitment Fee and Sponsorship/Goal-Scored are stored"
+      ?.commitmentFeeGbp === 18000,
+  "Highest Match-Sponsorship within 8 hours wins"
 );
 assert(
   sponsorInvitationsNavLabel(0) === "Invitations" &&
@@ -181,12 +178,12 @@ assert(
     !lockedInviteSummary({ amountGbp: 13000 }).includes("undefined") &&
     lockedInviteSummary({
       amountGbp: 18000,
-      commitmentFeeGbp: 4000,
-      gbpPerGoal: 6000,
+      commitmentFeeGbp: 18000,
+      gbpPerGoal: 0,
       maximumSponsorshipGbp: 18000,
-    }).includes("4,000") &&
+    }).includes("Match-Sponsorship") &&
     lockedInviteSummary(undefined, 13000).includes("13,000"),
-  "Lock-in copy formats old single amounts and the three new funding fields"
+  "Lock-in copy names the Match-Sponsorship amount"
 );
 
 const late = commitGlobalSponsorship(
@@ -257,9 +254,9 @@ assert(
   "Club nav Sponsors opens the listings; after choosing 5 projects the SD lands on invitations"
 );
 assert(
-  globalRegister.includes("Commitment Fee Range") &&
-    globalRegister.includes("Sponsorship/Goal range") &&
+  globalRegister.includes("MATCH_SPONSORSHIP_RANGE_LABEL") &&
     globalRegister.includes("registerSponsorListing") &&
+    !globalRegister.includes("Sponsorship/Goal range") &&
     localRegister.includes("Sponsorship amount range") &&
     localRegister.includes('kind: "local"'),
   "Global and Local sign-up write range fields onto the Sponsors directory"
@@ -281,12 +278,11 @@ assert(
     sponsorNav.includes("s4pTabClass(onDashboard)") &&
     sponsorNav.includes("s4pTabClass(onCalendar)") &&
     sponsorNav.includes("sponsorInvitationsNavLabel") &&
-    inbox.includes("INVITE_COMMITMENT_FEE_LABEL") &&
-    inbox.includes("INVITE_GBP_PER_GOAL_LABEL") &&
-    inbox.includes("INVITE_MAXIMUM_LABEL") &&
-    INVITE_COMMITMENT_FEE_LABEL === "Commitment Fee (Day 1)" &&
-    INVITE_GBP_PER_GOAL_LABEL === "Sponsorship/Goal-Scored" &&
-    INVITE_MAXIMUM_LABEL === "Maximum Sponsorship Amount" &&
+    inbox.includes("MATCH_SPONSORSHIP_LABEL") &&
+    inbox.includes("MATCH_SPONSORSHIP_COMMIT_LABEL") &&
+    MATCH_SPONSORSHIP_LABEL === "Match-Sponsorship" &&
+    MATCH_SPONSORSHIP_COMMIT_LABEL === "Commit Match-Sponsorship" &&
+    MATCH_SPONSORSHIP_RANGE_LABEL === "Match-Sponsorship Range" &&
     INVITE_LOCKED_NEXT_COPY === "Proceed to Approval and Payment section" &&
     INVITE_PROCEED_APPROVAL_LABEL === "Proceed to Approval & Payment" &&
     inbox.includes("INVITE_LOCKED_NEXT_COPY") &&

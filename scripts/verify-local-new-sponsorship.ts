@@ -59,8 +59,8 @@ assert(
     LOCAL_FIVE_RECORD_COPY.includes("insert your Sponsorship amount") &&
     !walletPage.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     !LOCAL_FIVE_RECORD_COPY.includes("Goals-scored") &&
-    MATCH_DAY_GOALS_SCORED_COPY.includes("Goals-scored"),
-  "The five Climate Projects are a Local record, not Lead Goals-scored copy"
+    MATCH_DAY_GOALS_SCORED_COPY.includes("Match-Sponsorship"),
+  "The five Climate Projects are a Local record, not Lead Match-Sponsorship copy"
 );
 
 assert(

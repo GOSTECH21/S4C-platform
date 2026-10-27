@@ -94,8 +94,8 @@ export function MatchDayFolderPanel({
             </ul>
           ) : (
             <p className="mt-4 text-sm text-slate-500">
-              No sponsors file saved yet. Lead wallets show the Day 1
-              Commitment Fee; local wallets show the cash they paid in.
+              No sponsors file saved yet. Lead wallets show the
+              Match-Sponsorship; local wallets show the cash they paid in.
             </p>
           )}
           <button

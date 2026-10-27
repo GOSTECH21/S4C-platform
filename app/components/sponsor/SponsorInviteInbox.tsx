@@ -3,21 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  GLOBAL_COMMITMENT_FEE_RANGES,
   GLOBAL_INVITE_WINDOW_HOURS,
-  GLOBAL_SPONSORSHIP_GOAL_RANGES,
-  INVITE_COMMITMENT_FEE_HINT,
-  INVITE_COMMITMENT_FEE_LABEL,
-  INVITE_GBP_PER_GOAL_HINT,
-  INVITE_GBP_PER_GOAL_LABEL,
+  GLOBAL_MATCH_SPONSORSHIP_RANGES,
   INVITE_LOCKED_NEXT_COPY,
-  INVITE_MAXIMUM_HINT,
-  INVITE_MAXIMUM_LABEL,
   INVITE_PROCEED_APPROVAL_LABEL,
   LOCAL_INVITE_AMOUNT_LABEL,
   LOCAL_INVITE_NEXT_COPY,
   LOCAL_INVITE_SIGN_LABEL,
   LOCAL_SPONSORSHIP_AMOUNT_RANGES,
+  MATCH_SPONSORSHIP_COMMIT_LABEL,
+  MATCH_SPONSORSHIP_HINT,
+  MATCH_SPONSORSHIP_LABEL,
+  MATCH_SPONSORSHIP_RANGE_LABEL,
   formatRangeLabel,
   formatInviteGbp,
   inviteDeadlineLabel,
@@ -83,20 +80,16 @@ function InviteCard({
   round: SponsorInviteRound;
   onRoundChange?: (round: SponsorInviteRound) => void;
 }) {
-  const feeRange = rangeById(
-    GLOBAL_COMMITMENT_FEE_RANGES,
+  const matchRange = rangeById(
+    GLOBAL_MATCH_SPONSORSHIP_RANGES,
     listing.commitmentFeeRangeId
-  );
-  const goalRange = rangeById(
-    GLOBAL_SPONSORSHIP_GOAL_RANGES,
-    listing.sponsorshipGoalRangeId
   );
   const localRange = rangeById(
     LOCAL_SPONSORSHIP_AMOUNT_RANGES,
     listing.amountRangeId
   );
-  const [commitmentFee, setCommitmentFee] = useState(
-    listing.kind === "global" ? String(feeRange?.minGbp ?? "") : ""
+  const [matchSponsorship, setMatchSponsorship] = useState(
+    listing.kind === "global" ? String(matchRange?.minGbp ?? "") : ""
   );
   const [localAmount, setLocalAmount] = useState(
     listing.kind === "local"
@@ -105,16 +98,6 @@ function InviteCard({
   );
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [signerName, setSignerName] = useState("");
-  const [gbpPerGoal, setGbpPerGoal] = useState(
-    listing.kind === "global" ? String(goalRange?.minGbp ?? "") : ""
-  );
-  const [maximumSponsorship, setMaximumSponsorship] = useState(
-    listing.kind === "global"
-      ? String(
-          (feeRange?.minGbp ?? 0) + 2 * (goalRange?.minGbp ?? 0) || ""
-        )
-      : ""
-  );
   const router = useRouter();
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -135,9 +118,10 @@ function InviteCard({
       clubId: round.clubId,
       listing,
       funding: {
-        commitmentFeeGbp: Number(commitmentFee),
-        gbpPerGoal: Number(gbpPerGoal),
-        maximumSponsorshipGbp: Number(maximumSponsorship),
+        matchSponsorshipGbp: Number(matchSponsorship),
+        commitmentFeeGbp: Number(matchSponsorship),
+        gbpPerGoal: 0,
+        maximumSponsorshipGbp: Number(matchSponsorship),
       },
     });
     if (result.round) onRoundChange?.(result.round);
@@ -146,7 +130,7 @@ function InviteCard({
       setNotice(`${INVITE_LOCKED_NEXT_COPY}.`);
     } else {
       setNotice(
-        "Your amounts are recorded. The highest Maximum Sponsorship within 8 hours is accepted."
+        `Your ${MATCH_SPONSORSHIP_LABEL} is recorded. The highest amount within 8 hours is accepted.`
       );
     }
     setSaving(false);
@@ -225,8 +209,8 @@ function InviteCard({
       {round.lockedBrandName && !isWinner && (
         <p className="mt-4 text-sm text-amber-200">
           {round.lockedBrandName} currently holds this Match Day at{" "}
-          {formatInviteGbp(round.lockedAmountGbp)}. A higher Maximum
-          Sponsorship within the window can still take the slot.
+          {formatInviteGbp(round.lockedAmountGbp)}. A higher{" "}
+          {MATCH_SPONSORSHIP_LABEL} within the window can still take the slot.
         </p>
       )}
       {notice && <p className="mt-4 text-sm text-green-300">{notice}</p>}
@@ -244,59 +228,25 @@ function InviteCard({
       {listing.kind === "global" && open && !isWinner && (
         <div className="mt-5 space-y-4">
           <p className="text-sm text-slate-400">
-            Registered ranges: Commitment Fee{" "}
+            Your registered {MATCH_SPONSORSHIP_RANGE_LABEL}:{" "}
             {formatRangeLabel(
-              GLOBAL_COMMITMENT_FEE_RANGES,
+              GLOBAL_MATCH_SPONSORSHIP_RANGES,
               listing.commitmentFeeRangeId
             )}
-            {" · "}
-            Sponsorship/Goal{" "}
-            {formatRangeLabel(
-              GLOBAL_SPONSORSHIP_GOAL_RANGES,
-              listing.sponsorshipGoalRangeId
-            )}
-            . Enter the three amounts for this Match Day.
+            . Enter how much you wish to sponsor this Match for.
           </p>
           <label className="block text-sm text-slate-400">
-            {INVITE_COMMITMENT_FEE_LABEL}
+            {MATCH_SPONSORSHIP_LABEL} (£)
             <SafeInput
               type="number"
               min={1}
               step={100}
-              value={commitmentFee}
-              onChange={(event) => setCommitmentFee(event.target.value)}
+              value={matchSponsorship}
+              onChange={(event) => setMatchSponsorship(event.target.value)}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
             />
             <span className="mt-1 block text-xs text-slate-500">
-              {INVITE_COMMITMENT_FEE_HINT}
-            </span>
-          </label>
-          <label className="block text-sm text-slate-400">
-            {INVITE_GBP_PER_GOAL_LABEL}
-            <SafeInput
-              type="number"
-              min={1}
-              step={100}
-              value={gbpPerGoal}
-              onChange={(event) => setGbpPerGoal(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            />
-            <span className="mt-1 block text-xs text-slate-500">
-              {INVITE_GBP_PER_GOAL_HINT}
-            </span>
-          </label>
-          <label className="block text-sm text-slate-400">
-            {INVITE_MAXIMUM_LABEL}
-            <SafeInput
-              type="number"
-              min={1}
-              step={100}
-              value={maximumSponsorship}
-              onChange={(event) => setMaximumSponsorship(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-            />
-            <span className="mt-1 block text-xs text-slate-500">
-              {INVITE_MAXIMUM_HINT}
+              {MATCH_SPONSORSHIP_HINT}
             </span>
           </label>
           <button
@@ -305,7 +255,7 @@ function InviteCard({
             onClick={() => void commit()}
             className="w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-60"
           >
-            {saving ? "Submitting..." : "Commit sponsorship amounts"}
+            {saving ? "Submitting..." : MATCH_SPONSORSHIP_COMMIT_LABEL}
           </button>
         </div>
       )}

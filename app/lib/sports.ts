@@ -17,7 +17,7 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     exampleS2PS: "£10,000/Goal",
     icon: "⚽",
     summary:
-      "Each Goal scored by the sponsored club adds the posted Sponsorship per Goal to the Base Match Sponsorship, never above that Match's Maximum.",
+      "A Lead Climate Sponsor pays one Match-Sponsorship amount for the Match, plus a 5% Platform Fee via Stripe. Fans then FUND-IT that cash onto the Club's chosen Climate Projects.",
   },
   {
     name: "Rugby",

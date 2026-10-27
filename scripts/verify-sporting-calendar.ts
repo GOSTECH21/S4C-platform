@@ -365,7 +365,7 @@ assert(
       "Type-in the Name of the Club you wish to sponsor" &&
     GLOBAL_MATCH_DAY_STEPS[3].includes("Lock-in that Match") &&
     GLOBAL_MATCH_DAY_STEPS[3].includes("Carbon Wallet") &&
-    GLOBAL_MATCH_DAY_STEPS[4].includes("sponsorship amounts"),
+    GLOBAL_MATCH_DAY_STEPS[4].includes("Match-Sponsorship amount"),
   "The calendar intro is the five numbered club-first steps"
 );
 assert(
@@ -420,7 +420,7 @@ assert(
     ) &&
     matchDay.includes("Lock-in that Match and go straight to your Carbon Wallet") &&
     matchDay.includes(
-      "See this Club's chosen Climate Projects, then enter your sponsorship amounts"
+      "See this Club's chosen Climate Projects, then enter your Match-Sponsorship amount"
     ) &&
     !matchDay.includes("Look at the Sporting Calendar") &&
     !matchDay.includes("Open any day on the 2026/27 Sporting Calendar") &&

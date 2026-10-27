@@ -64,7 +64,7 @@ const cityTerms = {
 
 assert(
   totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 0 }) === 3000,
-  "0–0 still pays the £3,000 Base Match Sponsorship"
+  "Historic 0–0 still pays the £3,000 Match-Sponsorship"
 );
 assert(
   totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 1 }) === 6000,
@@ -124,28 +124,30 @@ assert(
 );
 
 assert(
-  formatMatchFundingLine(cityTerms) ===
-    "£3,000 Base Match Sponsorship · £3,000/Goal · up to a maximum of £15,000",
-  "Funding line lists base, per Goal, and the cap"
+  formatMatchFundingLine({ baseAmount: 3000 }) === "£3,000 Match-Sponsorship",
+  "Funding line is one Match-Sponsorship amount"
 );
 assert(
   formatSponsorPayableCopy({
-    baseAmount: 3000,
-    gbpPerGoal: 3000,
-    maxAmount: 15000,
+    baseAmount: 4000,
     clubName: "Manchester City",
-  }).includes("even if Manchester City players score no Goals"),
-  "Sponsor copy states the base is payable at 0–0"
+  }).includes("5%") &&
+    formatSponsorPayableCopy({
+      baseAmount: 4000,
+      clubName: "Manchester City",
+    }).includes("£4,200"),
+  "Sponsor copy states Match-Sponsorship plus the 5% Platform Fee"
 );
 assert(
   formatSponsorPayableCopy({
-    baseAmount: 2300,
-    gbpPerGoal: 4000,
-    maxAmount: 7500,
+    baseAmount: 4000,
     clubName: "Hearts",
-  }) ===
-    "You pay the £2,300 Base Match Sponsorship even if Hearts players score no Goals, plus £4,000 for each Goal scored, up to a maximum of £7,500.",
-  "Amex Hearts sign-off copy uses the deposited Commitment Fee, £/Goal and Maximum"
+  }).includes("£4,000 Match-Sponsorship") &&
+    formatSponsorPayableCopy({
+      baseAmount: 4000,
+      clubName: "Hearts",
+    }).includes("via Stripe"),
+  "Hearts sign-off copy is one Match-Sponsorship plus Platform Fee via Stripe"
 );
 assert(
   formatLocalSponsorPayableCopy({
@@ -204,12 +206,15 @@ const terms = readFileSync(
   "utf8"
 );
 assert(
-  terms.includes("even if the club scores no Goals"),
-  "Sponsor terms keep the base payable at 0–0"
+  terms.includes("one Match-Sponsorship amount") &&
+    terms.includes("5% Platform Fee") &&
+    terms.includes("£4,200"),
+  "Sponsor terms are one Match-Sponsorship plus the 5% Platform Fee"
 );
 assert(
-  !terms.includes("you pay nothing"),
-  "Sponsor terms no longer say the sponsor pays nothing if there are no Goals"
+  !terms.includes("you pay nothing") &&
+    !terms.includes("even if the club scores no Goals"),
+  "Sponsor terms no longer use the Base Match plus Goals formula"
 );
 
 if (failures.length > 0) {

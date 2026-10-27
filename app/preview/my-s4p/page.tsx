@@ -162,7 +162,7 @@ export default function MyS4PPreviewPage() {
                   )
                 );
                 setNotice(
-                  `Hibernian scored. American Express Carbon Wallet now includes ${formatWalletGbp(lead.gbpPerGoal)} Goals-scored Sponsorship Cash.`
+                  `Hibernian scored. American Express Carbon Wallet still holds the ${formatWalletGbp(lead.commitmentFeeGbp)} Match-Sponsorship.`
                 );
                 setError(null);
               }}

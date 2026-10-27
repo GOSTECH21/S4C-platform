@@ -2,6 +2,7 @@
 
 import { brandsMatch, clubsMatch } from "./climate-sponsors";
 import { MATCH_DAY_APPROVED_LABEL } from "./partner-projects";
+import { matchSponsorshipTopUp } from "./sponsor-wallet";
 
 export const MATCH_DAY_CARD_PAYMENT_STORAGE = "s4p.match-day-card-payment";
 
@@ -12,7 +13,7 @@ export const STRIPE_TEST_CARD_COPY =
   "Use test card 4242 4242 4242 4242, any future expiry, and any 3-digit CVC.";
 export const CARD_PAYMENT_CONFIRMED_COPY = `Payment confirmed. Climate Projects tagged pending approval are now ${MATCH_DAY_APPROVED_LABEL}.`;
 export const CLIMATE_WALLET_CONFIRMATION_COPY =
-  "This confirmation page shows what you are committing to. Your last action before Pay with your Credit/Debit Card is to click Deposit into Climate Sponsorship Wallet.";
+  "This confirmation page shows your Match-Sponsorship. Your last action before Pay with your Credit/Debit Card is to click Deposit into Climate Sponsorship Wallet. Stripe then takes the Match-Sponsorship plus the 5% Platform Fee.";
 export const LOCAL_WALLET_CONFIRMATION_COPY =
   "This confirmation page shows what you are committing to. Your last action before Pay with your Credit/Debit Card is to click Put into Carbon Wallet.";
 export const WALLET_PROJECTS_AWAIT_PAYMENT_COPY =
@@ -182,5 +183,5 @@ export function cardPaymentAmountGbp(wallet: {
       Number(wallet.paidGbp) || Number(wallet.sponsorshipGbp) || 0
     );
   }
-  return Math.max(0, Number(wallet.commitmentFeeGbp) || 0);
+  return matchSponsorshipTopUp(Number(wallet.commitmentFeeGbp) || 0).paidGbp;
 }

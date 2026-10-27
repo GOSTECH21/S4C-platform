@@ -94,11 +94,7 @@ export default function SponsorListingsPreviewPage() {
       drafted,
       bidder,
       demo === "winner"
-        ? {
-            commitmentFeeGbp: 3500,
-            gbpPerGoal: 3000,
-            maximumSponsorshipGbp: 12500,
-          }
+        ? 12500
         : 8000,
       "2026-10-26T10:00:00.000Z"
     );

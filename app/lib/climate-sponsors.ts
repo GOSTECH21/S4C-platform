@@ -1144,7 +1144,7 @@ export function selectedBrandsReadyToReceive(
 }
 
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
-  return `${hours} hours before kick-off, choose the Match you wish to lock-in for Goal-Sponsorship; see this Club's Match Day chosen Climate Projects; open your Climate Sponsorship Wallet; deposit your Commitment Fee & Goals-scored Sponsorship; sign-off your Match Day sponsorship`;
+  return `${hours} hours before kick-off, choose the Match you wish to lock-in for Match-Sponsorship; see this Club's Match Day chosen Climate Projects; open your Climate Sponsorship Wallet; deposit your Match-Sponsorship; complete payment of the Match-Sponsorship plus the 5% Platform Fee via Stripe`;
 }
 
 /** Club chosen at Register as Sponsor — not a second Premier League / Scottish Premiership picker. */

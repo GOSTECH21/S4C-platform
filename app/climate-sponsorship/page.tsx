@@ -11,7 +11,7 @@ export default function ClimateSponsorshipPage() {
     <SolutionPage
       kicker="Solutions"
       title="Climate Sponsorship"
-      intro="Brands fund sporting moments as Climate Credits. Every Goal, Try, Touchdown or 3-point scored during a Match can unlock sponsorship that fans then FUND-IT towards Climate Projects — £0.20 once from each Carbon Wallet, up to 5 times."
+      intro="Brands fund a Match-Sponsorship. Fans then FUND-IT that cash towards Climate Projects — £0.20 once from each Carbon Wallet, up to 5 times."
       currentPath={CLIMATE_SPONSORSHIP_PATH}
     >
       <div className="grid gap-6 md:grid-cols-2">
@@ -31,12 +31,28 @@ export default function ClimateSponsorshipPage() {
       </div>
 
       <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
-        <h2 className="text-3xl font-black">How a Match Day lock-in works</h2>
+        <h2 className="text-3xl font-black">How a Match-Sponsorship works</h2>
         <ol className="mt-6 space-y-4 text-lg text-slate-300">
-          <li>1. The Sponsorship Manager chooses clubs for their Goal Sponsorship Network.</li>
-          <li>2. 72 hours before kick-off they lock in one club and the Match (Premier League, Champions League, FA Cup).</li>
-          <li>3. That club&apos;s Sustainability Director posts five Climate Projects. Fans press FUND-IT up to 5 times, taking £0.20 once from each Carbon Wallet onto any Project.</li>
-          <li>4. The sponsor pays a Base Match Sponsorship even if the club scores no Goals, plus the Sustainability Director&apos;s amount for each Goal scored, up to the Maximum they set for the Match. The stipulated amount per Climate Project is a brand-exposure counter: 1 post = 1 eyeball = 5 exposures.</li>
+          <li>
+            1. The Club Sustainability Director sends their chosen Match Day
+            Climate Projects to the Match-Sponsors.
+          </li>
+          <li>
+            2. The Sponsorship Director sees those Projects on the Invitations
+            tab.
+          </li>
+          <li>
+            3. The Sponsorship Manager logs in, sees the Projects, and accepts
+            the Invitation to Sponsor.
+          </li>
+          <li>
+            4. They enter one Match-Sponsorship amount for this Match.
+          </li>
+          <li>
+            5. They complete payment of that Match-Sponsorship plus a 5%
+            Platform Fee via Stripe. The stipulated amount per Climate Project
+            is a brand-exposure counter: 1 post = 1 eyeball = 5 exposures.
+          </li>
         </ol>
         <Link
           href={SPONSOR_REGISTER_PATH}

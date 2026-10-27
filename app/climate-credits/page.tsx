@@ -8,16 +8,16 @@ import {
 
 const STEPS = [
   {
-    title: "A score is recorded",
-    copy: "Whenever your Team scores — a Goal, a Try, a Touchdown or a 3-point — extra Climate Credits are added to the Base Match Sponsorship, up to the posted Maximum.",
+    title: "A Match-Sponsorship is paid",
+    copy: "The Lead Climate Sponsor enters one Match-Sponsorship amount for the Match and pays that amount plus a 5% Platform Fee via Stripe. That cash sits in the Climate Sponsorship Wallet.",
   },
   {
     title: "Supporters & Fans receive a share",
-    copy: "The funding is split with the people who follow that club. Credits appear on My S4P so you can see the Base Match Sponsorship, the amount added for each Goal, and the Maximum the sponsor can pay.",
+    copy: "Fans of that club take cash from the Carbon Wallet and put it onto Climate Projects. Credits appear on My S4P so you can see the Match-Sponsorship and where it went.",
   },
   {
     title: "You vote",
-    copy: "Direct your Climate Credits towards the Climate Projects you prefer. The project with the most votes receives the Match Day sponsorship funding.",
+    copy: "Direct that Match-Sponsorship towards the Climate Projects you prefer. FUND-IT takes £0.20 once from each Carbon Wallet, up to 5 times.",
   },
 ];
 
@@ -26,7 +26,7 @@ export default function ClimateCreditsPage() {
     <SolutionPage
       kicker="Solutions"
       title="Climate Credits"
-      intro="Climate Credits are the funding sponsors commit to sporting moments. Supporters & Fans receive a share whenever their Team scores, then vote those credits onto Climate Projects."
+      intro="Climate Credits are the Match-Sponsorship brands commit to a Match. Supporters & Fans then FUND-IT that cash onto Climate Projects."
       currentPath={CLIMATE_CREDITS_PATH}
     >
       <div className="grid gap-6 md:grid-cols-3">
@@ -45,16 +45,14 @@ export default function ClimateCreditsPage() {
       </div>
 
       <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
-        <h2 className="text-3xl font-black">Base plus Goals, up to a Maximum</h2>
+        <h2 className="text-3xl font-black">One Match-Sponsorship amount</h2>
         <p className="mt-4 max-w-3xl text-lg text-slate-300">
-          The Sustainability Director inserts a Base Match Sponsorship (the
-          Minimum Payment, for example £3,000), the amount payable per Goal
-          scored (for example another £3,000), and an &quot;Up to a Maximum
-          of&quot; cap. A 0–0 still pays the base; 1–0 pays base plus one Goal;
-          2–0 adds another Goal, never above the cap. The stipulated amount per
-          Climate Project is a counter for brand exposure: every post to a fan
-          is 1 eyeball and 5 exposures, even if the fan chooses 3 of the 5
-          Climate Projects.
+          The Lead Climate Sponsor specifies one Match-Sponsorship for the
+          Match — for example £4,000. Stripe takes that amount plus a 5%
+          Platform Fee (£200), total £4,200. The £4,000 sits in the Carbon
+          Wallet for fans to FUND-IT onto the Club&apos;s chosen Climate
+          Projects. The stipulated amount per Climate Project is a counter for
+          brand exposure: every post to a fan is 1 eyeball and 5 exposures.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Link

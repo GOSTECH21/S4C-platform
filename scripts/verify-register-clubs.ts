@@ -165,7 +165,7 @@ assert(
 const registerPage = readFileSync("app/sponsor/register/page.tsx", "utf8");
 assert(
   registerPage.includes("ClubNetworkPicker") &&
-    registerPage.includes("Clubs whose Goals you would like to sponsor") &&
+    registerPage.includes("Clubs whose Matches you would like to sponsor") &&
     registerPage.includes("League through NBA"),
   "National sponsor registration still uses the club picker"
 );

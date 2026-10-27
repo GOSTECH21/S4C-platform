@@ -21,8 +21,8 @@ import {
 import { roleRegisterAccount } from "@/app/lib/role-login";
 import { SafeInput, SafeSelect } from "@/app/components/forms/SafeFormField";
 import {
-  GLOBAL_COMMITMENT_FEE_RANGES,
-  GLOBAL_SPONSORSHIP_GOAL_RANGES,
+  GLOBAL_MATCH_SPONSORSHIP_RANGES,
+  MATCH_SPONSORSHIP_RANGE_LABEL,
   listingIdFor,
 } from "@/app/lib/sponsor-listings";
 import { registerSponsorListing } from "@/app/services/sponsor-listings.service";
@@ -39,7 +39,6 @@ export default function SponsorRegisterPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [commitmentFeeRangeId, setCommitmentFeeRangeId] = useState("");
-  const [sponsorshipGoalRangeId, setSponsorshipGoalRangeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,8 +62,8 @@ export default function SponsorRegisterPage() {
       setLoading(false);
       return;
     }
-    if (!commitmentFeeRangeId || !sponsorshipGoalRangeId) {
-      setError("Select your Commitment Fee Range and your Sponsorship/Goal range.");
+    if (!commitmentFeeRangeId) {
+      setError(`Select your ${MATCH_SPONSORSHIP_RANGE_LABEL}.`);
       return;
     }
     setLoading(true);
@@ -92,7 +91,6 @@ export default function SponsorRegisterPage() {
         email,
         logoUrl,
         commitmentFeeRangeId,
-        sponsorshipGoalRangeId,
         createdAt: new Date().toISOString(),
         source: "registered",
       });
@@ -111,9 +109,9 @@ export default function SponsorRegisterPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Create your Global Brand account, add your Commitment Fee Range and
-            Sponsorship/Goal range, and you are listed on the club Sponsors
-            section — nowhere else. Clubs invite you from that list.
+            Create your Global Brand account, add your Match-Sponsorship Range,
+            and you are listed on the club Sponsors section — nowhere else.
+            Clubs invite you from that list.
           </p>
 
       {error && (
@@ -210,7 +208,7 @@ export default function SponsorRegisterPage() {
           }}
         />
         <label className="block text-sm text-slate-400">
-          Commitment Fee Range
+          {MATCH_SPONSORSHIP_RANGE_LABEL}
           <SafeSelect
             required
             value={commitmentFeeRangeId}
@@ -218,23 +216,7 @@ export default function SponsorRegisterPage() {
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
           >
             <option value="">Select range</option>
-            {GLOBAL_COMMITMENT_FEE_RANGES.map((range) => (
-              <option key={range.id} value={range.id}>
-                {range.label}
-              </option>
-            ))}
-          </SafeSelect>
-        </label>
-        <label className="block text-sm text-slate-400">
-          Sponsorship/Goal range
-          <SafeSelect
-            required
-            value={sponsorshipGoalRangeId}
-            onChange={(event) => setSponsorshipGoalRangeId(event.target.value)}
-            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
-          >
-            <option value="">Select range</option>
-            {GLOBAL_SPONSORSHIP_GOAL_RANGES.map((range) => (
+            {GLOBAL_MATCH_SPONSORSHIP_RANGES.map((range) => (
               <option key={range.id} value={range.id}>
                 {range.label}
               </option>
@@ -243,7 +225,7 @@ export default function SponsorRegisterPage() {
         </label>
         <div>
           <p className="text-sm text-slate-400">
-            Clubs whose Goals you would like to sponsor
+            Clubs whose Matches you would like to sponsor
           </p>
           <div className="mt-3">
             <ClubNetworkPicker

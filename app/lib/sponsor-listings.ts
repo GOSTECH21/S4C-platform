@@ -33,12 +33,9 @@ export const GLOBAL_COMMITMENT_FEE_RANGES: MoneyRange[] = [
   { id: "fee-25-plus", label: "£25,000+", minGbp: 25000, maxGbp: null },
 ];
 
-export const GLOBAL_SPONSORSHIP_GOAL_RANGES: MoneyRange[] = [
-  { id: "goal-1-3", label: "£1,000 – £3,000 per Goal", minGbp: 1000, maxGbp: 3000 },
-  { id: "goal-3-5", label: "£3,000 – £5,000 per Goal", minGbp: 3000, maxGbp: 5000 },
-  { id: "goal-5-10", label: "£5,000 – £10,000 per Goal", minGbp: 5000, maxGbp: 10000 },
-  { id: "goal-10-plus", label: "£10,000+ per Goal", minGbp: 10000, maxGbp: null },
-];
+/** Lead Climate Sponsors list one Match-Sponsorship range, not fee + £/Goal. */
+export const GLOBAL_MATCH_SPONSORSHIP_RANGES = GLOBAL_COMMITMENT_FEE_RANGES;
+export const GLOBAL_SPONSORSHIP_GOAL_RANGES: MoneyRange[] = [];
 
 export const LOCAL_SPONSORSHIP_AMOUNT_RANGES: MoneyRange[] = [
   { id: "local-500-1k", label: "£500 – £1,000", minGbp: 500, maxGbp: 1000 },
@@ -62,6 +59,7 @@ export type SponsorListing = {
 };
 
 export type GlobalInviteFunding = {
+  matchSponsorshipGbp?: number;
   commitmentFeeGbp: number;
   gbpPerGoal: number;
   maximumSponsorshipGbp: number;
@@ -74,15 +72,17 @@ export type SponsorInviteCommitment = GlobalInviteFunding & {
   receivedAt: string;
 };
 
-export const INVITE_COMMITMENT_FEE_LABEL = "Commitment Fee (Day 1)";
-export const INVITE_GBP_PER_GOAL_LABEL = "Sponsorship/Goal-Scored";
-export const INVITE_MAXIMUM_LABEL = "Maximum Sponsorship Amount";
-export const INVITE_COMMITMENT_FEE_HINT =
-  "This covers the Match ending 0-0. It is not the full sponsorship.";
-export const INVITE_GBP_PER_GOAL_HINT =
-  "Paid for every goal the sponsored team scores.";
-export const INVITE_MAXIMUM_HINT =
-  "The cap for this Match Day. Highest Maximum Sponsorship wins.";
+export const MATCH_SPONSORSHIP_LABEL = "Match-Sponsorship";
+export const MATCH_SPONSORSHIP_RANGE_LABEL = "Match-Sponsorship Range";
+export const MATCH_SPONSORSHIP_HINT =
+  "One amount for this Match Day. The highest Match-Sponsorship within 8 hours is accepted.";
+export const MATCH_SPONSORSHIP_COMMIT_LABEL = "Commit Match-Sponsorship";
+export const INVITE_COMMITMENT_FEE_LABEL = MATCH_SPONSORSHIP_LABEL;
+export const INVITE_GBP_PER_GOAL_LABEL = MATCH_SPONSORSHIP_LABEL;
+export const INVITE_MAXIMUM_LABEL = MATCH_SPONSORSHIP_LABEL;
+export const INVITE_COMMITMENT_FEE_HINT = MATCH_SPONSORSHIP_HINT;
+export const INVITE_GBP_PER_GOAL_HINT = MATCH_SPONSORSHIP_HINT;
+export const INVITE_MAXIMUM_HINT = MATCH_SPONSORSHIP_HINT;
 export const INVITE_LOCKED_NEXT_COPY =
   "Proceed to Approval and Payment section";
 export const INVITE_PROCEED_APPROVAL_LABEL = "Proceed to Approval & Payment";
@@ -91,36 +91,48 @@ export const LOCAL_INVITE_SIGN_LABEL = "Sign and proceed to Payment";
 export const LOCAL_INVITE_NEXT_COPY =
   "Enter how much you are putting up for this Match Day, tick the Terms & Conditions, sign the sponsorship, then proceed to Payment.";
 
+export function matchSponsorshipGbpFrom(
+  value:
+    | number
+    | Partial<GlobalInviteFunding>
+    | Partial<SponsorInviteCommitment>
+    | null
+    | undefined
+): number {
+  if (typeof value === "number") {
+    return Math.max(0, Math.round(Number(value) || 0));
+  }
+  return Math.max(
+    0,
+    Math.round(
+      Number(value?.matchSponsorshipGbp) ||
+        Number(value?.amountGbp) ||
+        Number(value?.commitmentFeeGbp) ||
+        Number(value?.maximumSponsorshipGbp) ||
+        0
+    )
+  );
+}
+
 export function normalizeInviteFunding(
   value: number | GlobalInviteFunding
 ): GlobalInviteFunding {
-  if (typeof value === "number") {
-    const amount = Math.max(0, Math.round(Number(value) || 0));
-    return {
-      commitmentFeeGbp: amount,
-      gbpPerGoal: 0,
-      maximumSponsorshipGbp: amount,
-    };
-  }
+  const amount = matchSponsorshipGbpFrom(value);
   return {
-    commitmentFeeGbp: Math.max(0, Math.round(Number(value.commitmentFeeGbp) || 0)),
-    gbpPerGoal: Math.max(0, Math.round(Number(value.gbpPerGoal) || 0)),
-    maximumSponsorshipGbp: Math.max(
-      0,
-      Math.round(Number(value.maximumSponsorshipGbp) || 0)
-    ),
+    matchSponsorshipGbp: amount,
+    commitmentFeeGbp: amount,
+    gbpPerGoal: 0,
+    maximumSponsorshipGbp: amount,
   };
 }
 
 export function rankingAmountGbp(
   row: Pick<
     SponsorInviteCommitment,
-    "amountGbp" | "maximumSponsorshipGbp" | "commitmentFeeGbp"
+    "amountGbp" | "maximumSponsorshipGbp" | "commitmentFeeGbp" | "matchSponsorshipGbp"
   >
 ): number {
-  if (Number(row.maximumSponsorshipGbp) > 0) return Number(row.maximumSponsorshipGbp);
-  if (Number(row.amountGbp) > 0) return Number(row.amountGbp);
-  return Number(row.commitmentFeeGbp) || 0;
+  return matchSponsorshipGbpFrom(row);
 }
 
 export function formatInviteGbp(value: unknown): string {
@@ -168,14 +180,7 @@ export function lockedInviteSummary(
     ? rankingAmountGbp(hydrated)
     : Math.max(0, Math.round(Number(fallbackAmount) || 0));
   if (amount <= 0) return "";
-  const hasDetail =
-    Number(row?.commitmentFeeGbp) > 0 ||
-    Number(row?.gbpPerGoal) > 0 ||
-    Number(row?.maximumSponsorshipGbp) > 0;
-  if (hasDetail && hydrated) {
-    return ` — ${INVITE_COMMITMENT_FEE_LABEL} ${formatInviteGbp(hydrated.commitmentFeeGbp)}, ${INVITE_GBP_PER_GOAL_LABEL} ${formatInviteGbp(hydrated.gbpPerGoal)}, ${INVITE_MAXIMUM_LABEL} ${formatInviteGbp(hydrated.maximumSponsorshipGbp)}`;
-  }
-  return ` at ${formatInviteGbp(amount)}`;
+  return ` — ${MATCH_SPONSORSHIP_LABEL} ${formatInviteGbp(amount)}`;
 }
 
 export function hydrateInviteRound(round: SponsorInviteRound): SponsorInviteRound {
@@ -651,44 +656,20 @@ export function commitGlobalSponsorship(
     };
   }
   const amounts = normalizeInviteFunding(funding);
-  const detailed = typeof funding !== "number";
-  if (amounts.commitmentFeeGbp <= 0) {
-    return {
-      round,
-      locked: Boolean(round.lockedListingId),
-      winnerChanged: false,
-      error: "Enter the Commitment Fee for a 0-0 Match.",
-    };
-  }
-  if (detailed && amounts.gbpPerGoal <= 0) {
-    return {
-      round,
-      locked: Boolean(round.lockedListingId),
-      winnerChanged: false,
-      error: "Enter the Sponsorship/Goal-Scored amount.",
-    };
-  }
-  if (detailed && amounts.maximumSponsorshipGbp < amounts.commitmentFeeGbp) {
-    return {
-      round,
-      locked: Boolean(round.lockedListingId),
-      winnerChanged: false,
-      error: "Maximum Sponsorship must be at least the Commitment Fee.",
-    };
-  }
   const amount = rankingAmountGbp(amounts);
   if (amount <= 0) {
     return {
       round,
       locked: Boolean(round.lockedListingId),
       winnerChanged: false,
-      error: "Enter the sponsorship amount you are committing.",
+      error: `Enter how much you wish to sponsor this Match for (${MATCH_SPONSORSHIP_LABEL}).`,
     };
   }
   const commitment: SponsorInviteCommitment = {
     listingId: listing.id,
     brandName: listing.brandName,
     amountGbp: amount,
+    matchSponsorshipGbp: amounts.matchSponsorshipGbp,
     commitmentFeeGbp: amounts.commitmentFeeGbp,
     gbpPerGoal: amounts.gbpPerGoal,
     maximumSponsorshipGbp: amounts.maximumSponsorshipGbp || amount,
@@ -772,7 +753,7 @@ export function globalInvitationEmailBody({
     `(i) Sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours of this invitation (deadline ${inviteDeadlineLabel(expiresAt)});`,
     `(ii) A Sponsor that has committed the highest amount of sponsorship.`,
     "",
-    "Please log in to Score-For-Planet and commit your sponsorship amount before the deadline.",
+    `Please log in to Score-For-Planet, see this Club's chosen Climate Projects, and enter your ${MATCH_SPONSORSHIP_LABEL} amount before the deadline.`,
     "",
     "Kind regards,",
     directorName,
