@@ -68,7 +68,7 @@ export default function SponsorCardPaymentPreview() {
         </p>
       ) : (
         <StripeCardPayment
-          amountGbp={2500}
+          amountGbp={2625}
           clubName={clubName}
           onPay={() => {
             recordMatchDayCardPayment({
@@ -76,7 +76,7 @@ export default function SponsorCardPaymentPreview() {
               clubName,
               brandName: "Preview Brand",
               projectIds: PROJECTS.map((project) => project.id),
-              amountGbp: 2500,
+              amountGbp: 2625,
               kind: "lead",
             });
             setPaid(true);

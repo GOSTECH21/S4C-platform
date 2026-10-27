@@ -21,6 +21,7 @@ import {
   type SponsorListing,
   type SponsorListingKind,
 } from "@/app/lib/sponsor-listings";
+import { saveClubInviteRound } from "@/app/services/sponsor-listings.service";
 
 const PROJECTS = [
   { id: "gss", name: "Global Schools Solar" },
@@ -50,7 +51,12 @@ export default function SponsorListingsPreviewPage() {
       ? "local"
       : "global";
   });
-  const sentAt = "2026-10-26T09:00:00.000Z";
+  const sentAt = useMemo(
+    () => new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    []
+  );
+  const hoursAfterSent = (hours: number) =>
+    new Date(new Date(sentAt).getTime() + hours * 60 * 60 * 1000).toISOString();
   const approved = Boolean(round?.lockedListingId);
   const bidder = globals.find((row) => selectedGlobalIds.includes(row.id)) ?? globals[0];
   const demoLocalInvite =
@@ -82,6 +88,7 @@ export default function SponsorListingsPreviewPage() {
       sentAt,
     });
     if (demo === "sent" || demo === "local-sent" || demo === "local-invite") {
+      saveClubInviteRound(drafted);
       setRound(drafted);
       setNotice(
         demo === "local-sent"
@@ -96,9 +103,10 @@ export default function SponsorListingsPreviewPage() {
       demo === "winner"
         ? 12500
         : 8000,
-      "2026-10-26T10:00:00.000Z"
+      hoursAfterSent(1)
     );
     if (demo === "winner") {
+      saveClubInviteRound(first.round);
       setRound(first.round);
       setNotice(`${INVITE_LOCKED_NEXT_COPY}.`);
       return;
@@ -110,8 +118,9 @@ export default function SponsorListingsPreviewPage() {
       first.round,
       rival,
       12000,
-      "2026-10-26T12:00:00.000Z"
+      hoursAfterSent(3)
     );
+    saveClubInviteRound(second.round);
     setRound(second.round);
     setNotice(
       `${second.round.lockedBrandName} locked in at £${second.round.lockedAmountGbp?.toLocaleString("en-GB")}. Projects are ${MATCH_DAY_APPROVED_LABEL}.`
@@ -148,6 +157,7 @@ export default function SponsorListingsPreviewPage() {
       sentAt,
     });
     const next = round ? mergeInviteRound(round, drafted) : drafted;
+    saveClubInviteRound(next);
     setRound(next);
     setError(null);
     setNotice(
@@ -162,7 +172,12 @@ export default function SponsorListingsPreviewPage() {
       setError("Send the Global Brand invitations first.");
       return;
     }
-    const first = commitGlobalSponsorship(current, bidder, 8000, "2026-10-26T10:00:00.000Z");
+    const first = commitGlobalSponsorship(
+      current,
+      bidder,
+      8000,
+      hoursAfterSent(1)
+    );
     const rival =
       globals.find((row) => row.id !== bidder.id && selectedGlobalIds.includes(row.id)) ??
       bidder;
@@ -170,8 +185,9 @@ export default function SponsorListingsPreviewPage() {
       first.round,
       rival,
       12000,
-      "2026-10-26T12:00:00.000Z"
+      hoursAfterSent(3)
     );
+    saveClubInviteRound(second.round);
     setRound(second.round);
     setNotice(
       `${second.round.lockedBrandName} locked in at £${second.round.lockedAmountGbp?.toLocaleString("en-GB")}. Projects are ${MATCH_DAY_APPROVED_LABEL}.`
@@ -229,6 +245,7 @@ export default function SponsorListingsPreviewPage() {
               <SponsorInviteInbox
                 listing={demoLocalInvite ? locals[0] : bidder}
                 rounds={[round]}
+                onRoundChange={setRound}
               />
             </div>
           </section>
