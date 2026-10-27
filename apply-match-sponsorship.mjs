@@ -17,11 +17,13 @@ const FILES = [
   "app/components/club/ClubSponsorsListings.tsx",
   "app/components/club/MatchDayFolderPanel.tsx",
   "app/components/sponsor/ClimateSponsorshipWallet.tsx",
+  "app/components/sponsor/ClubChosenProjectsPanel.tsx",
   "app/components/sponsor/SponsorInviteInbox.tsx",
   "app/components/sponsor/FundedClimateProjectsList.tsx",
   "app/club/dashboard/page.tsx",
   "app/sponsor/register/page.tsx",
   "app/sponsor/invitations/page.tsx",
+  "app/sponsor/wallet/page.tsx",
   "app/sponsor/offers/OfferSignOff.tsx",
   "app/climate-sponsorship/page.tsx",
   "app/climate-credits/page.tsx",
@@ -63,33 +65,41 @@ function read(rel) {
   return existsSync(rel) ? readFileSync(rel, "utf8") : "";
 }
 
-if (
-  !read("app/lib/sponsor-listings.ts").includes("MATCH_SPONSORSHIP_LABEL") ||
-  !read("app/lib/sponsor-listings.ts").includes("matchSponsorshipGbpFrom") ||
-  !read("app/lib/sponsor-wallet.ts").includes("PLATFORM_FEE_RATE = 0.05") ||
-  !read("app/lib/sponsor-wallet.ts").includes("matchSponsorshipTopUp") ||
-  !read("app/sponsor/register/page.tsx").includes("MATCH_SPONSORSHIP_RANGE_LABEL") ||
-  read("app/sponsor/register/page.tsx").includes("Sponsorship/Goal range") ||
-  !read("app/components/sponsor/SponsorInviteInbox.tsx").includes(
-    "MATCH_SPONSORSHIP_COMMIT_LABEL"
-  ) ||
-  read("app/components/sponsor/ClimateSponsorshipWallet.tsx").includes(
-    "Sponsorship/Goal-Scored"
-  ) ||
-  !read("app/components/sponsor/ClimateSponsorshipWallet.tsx").includes(
-    "matchSponsorshipTopUp"
-  ) ||
-  !read("app/lib/sponsor-card-payment.ts").includes("5% Platform Fee") ||
-  !read("app/sponsor/offers/OfferSignOff.tsx").includes("5% Platform Fee") ||
-  !read("app/lib/climate-sponsors.ts").includes("Match-Sponsorship")
-) {
-  failed += 1;
-  console.error(
-    "Match-Sponsorship files are missing. Pull the files above, then hard-refresh."
-  );
+const wallet = read("app/components/sponsor/ClimateSponsorshipWallet.tsx");
+const record = read("app/lib/match-day-carbon-offset.ts");
+const payCopy = read("app/lib/sponsor-card-payment.ts");
+const checks = [
+  [
+    wallet.includes("matchSponsorshipTopUp") &&
+      wallet.includes("MATCH_SPONSORSHIP_LABEL") &&
+      wallet.includes("PLATFORM_FEE_LABEL"),
+    "ClimateSponsorshipWallet is still the old Commitment Fee form.",
+  ],
+  [
+    !wallet.includes("Commitment Fee (Day 1)") &&
+      !wallet.includes("Sponsorship/Goal-Scored") &&
+      !wallet.includes("Maximum Sponsorship Amount"),
+    "ClimateSponsorshipWallet still contains Commitment Fee or Sponsorship/Goal-Scored.",
+  ],
+  [
+    record.includes("one Match-Sponsorship") &&
+      !record.includes("Goals-scored Climate Projects"),
+    "Match Day record copy still says Goals-scored Climate Projects.",
+  ],
+  [
+    payCopy.includes("Match-Sponsorship plus the 5% Platform Fee"),
+    "Wallet confirmation copy is still the old Commitment Fee text.",
+  ],
+];
+
+for (const [ok, message] of checks) {
+  if (!ok) {
+    failed += 1;
+    console.error(message);
+  }
 }
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Lead Climate Sponsors now enter one Match-Sponsorship plus a 5% Platform Fee via Stripe. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: The American Express wallet is now one Match-Sponsorship plus a 5% Platform Fee. Stop npm run dev, delete the .next folder, start npm run dev again, then hard-refresh (Ctrl+F5)."
 );
