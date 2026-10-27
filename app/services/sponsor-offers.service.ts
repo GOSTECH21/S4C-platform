@@ -335,7 +335,7 @@ function stampCommittedFundingOnOffer(
   const next = {
     ...offer,
     sponsorshipAmountGbp: funding.baseAmount || offer.sponsorshipAmountGbp,
-    gbpPerGoal: funding.gbpPerGoal || offer.gbpPerGoal || null,
+    gbpPerGoal: funding.gbpPerGoal,
     maxAmount: funding.maxAmount || offer.maxAmount || null,
   };
   if (
@@ -613,7 +613,7 @@ export async function ensureCarbonOffsetSponsorshipOffer(options: {
     clubName: uploaded?.clubName || lock.clubName,
     projects,
     sponsorshipAmountGbp: funding.baseAmount || uploaded?.minAmount,
-    gbpPerGoal: funding.gbpPerGoal || uploaded?.gbpPerGoal,
+    gbpPerGoal: funding.gbpPerGoal,
     maxAmount: funding.maxAmount || uploaded?.maxAmount,
     gbpPerVote: uploaded?.gbpPerVote,
     targetBrandNames: [brandName],
@@ -815,7 +815,7 @@ export async function ensureOfferFromLockedClubUploads(options: {
     clubName: uploaded.clubName,
     projects: uploaded.projects,
     sponsorshipAmountGbp: funding.baseAmount || uploaded.minAmount,
-    gbpPerGoal: funding.gbpPerGoal || uploaded.gbpPerGoal,
+    gbpPerGoal: funding.gbpPerGoal,
     maxAmount: funding.maxAmount || uploaded.maxAmount,
     gbpPerVote: uploaded.gbpPerVote,
     targetBrandNames: [brandName],

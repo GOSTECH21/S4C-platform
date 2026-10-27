@@ -82,22 +82,29 @@ export function resolveCommittedMatchFunding({
   gbpPerGoal: number;
   maxAmount: number;
 } {
+  const deposited = firstPositiveGbp(
+    lock?.commitmentFeeGbp,
+    wallet?.commitmentFeeGbp
+  );
+  if (deposited > 0) {
+    const gbpPerGoal =
+      Number(lock?.commitmentFeeGbp) > 0
+        ? Math.max(0, Number(lock?.gbpPerGoal) || 0)
+        : Math.max(0, Number(wallet?.gbpPerGoal) || 0);
+    return {
+      baseAmount: deposited,
+      gbpPerGoal,
+      maxAmount:
+        firstPositiveGbp(
+          lock?.maximumSponsorshipGbp,
+          wallet?.maximumSponsorshipGbp
+        ) || deposited,
+    };
+  }
   return {
-    baseAmount: firstPositiveGbp(
-      lock?.commitmentFeeGbp,
-      wallet?.commitmentFeeGbp,
-      offer?.sponsorshipAmountGbp
-    ),
-    gbpPerGoal: firstPositiveGbp(
-      lock?.gbpPerGoal,
-      wallet?.gbpPerGoal,
-      offer?.gbpPerGoal
-    ),
-    maxAmount: firstPositiveGbp(
-      lock?.maximumSponsorshipGbp,
-      wallet?.maximumSponsorshipGbp,
-      offer?.maxAmount
-    ),
+    baseAmount: firstPositiveGbp(offer?.sponsorshipAmountGbp),
+    gbpPerGoal: firstPositiveGbp(offer?.gbpPerGoal),
+    maxAmount: firstPositiveGbp(offer?.maxAmount),
   };
 }
 

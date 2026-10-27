@@ -7,6 +7,8 @@ const FILES = [
   "app/lib/sponsor-wallet.ts",
   "app/lib/sponsor-card-payment.ts",
   "app/lib/sponsorship-auction.ts",
+  "app/lib/sponsor-completion-flow.ts",
+  "app/services/sponsor-offers.service.ts",
   "app/lib/match-day-carbon-offset.ts",
   "app/lib/climate-sponsors.ts",
   "app/lib/sponsor-dashboard.ts",
