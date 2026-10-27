@@ -71,6 +71,7 @@ export default function SponsorListingsPreviewPage() {
       demo !== "lock" &&
       demo !== "winner" &&
       demo !== "sent" &&
+      demo !== "historic" &&
       demo !== "local-sent" &&
       demo !== "local-invite"
     ) {
@@ -87,6 +88,29 @@ export default function SponsorListingsPreviewPage() {
       localInviteeIds: selectedLocalIds,
       sentAt,
     });
+    if (demo === "historic") {
+      const historic = {
+        ...drafted,
+        lockedListingId: bidder.id,
+        lockedBrandName: bidder.brandName,
+        lockedAmountGbp: 8000,
+        commitments: [
+          {
+            listingId: bidder.id,
+            brandName: bidder.brandName,
+            amountGbp: 8000,
+            commitmentFeeGbp: 2500,
+            gbpPerGoal: 2000,
+            maximumSponsorshipGbp: 8000,
+            receivedAt: hoursAfterSent(1),
+          },
+        ],
+      };
+      saveClubInviteRound(historic);
+      setRound(historic);
+      setNotice("Historic three-field invite collapsed to one Match-Sponsorship.");
+      return;
+    }
     if (demo === "sent" || demo === "local-sent" || demo === "local-invite") {
       saveClubInviteRound(drafted);
       setRound(drafted);
