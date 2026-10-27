@@ -69,6 +69,7 @@ export const CLUB_SELECT_PROJECTS_ALIASES = [
 ];
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
 export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
+export const SPONSOR_INVITATIONS_PATH = "/sponsor/invitations";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
@@ -80,12 +81,19 @@ export const SPONSOR_NEW_SPONSORSHIP_QUERY = "new";
 export const SPONSOR_NEW_SPONSORSHIP_LABEL =
   "Click here to initiate a New Sponsorship";
 export const SPONSOR_WALLET_PATH = "/sponsor/wallet";
+export const SPONSOR_PAY_PATH = "/sponsor/pay";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 
 export function sponsorWalletPath(clubName?: string | null): string {
   const club = String(clubName ?? "").trim();
   if (!club) return SPONSOR_WALLET_PATH;
   return `${SPONSOR_WALLET_PATH}?club=${encodeURIComponent(club)}`;
+}
+
+export function sponsorPayPath(clubName?: string | null): string {
+  const club = String(clubName ?? "").trim();
+  if (!club) return SPONSOR_PAY_PATH;
+  return `${SPONSOR_PAY_PATH}?club=${encodeURIComponent(club)}`;
 }
 
 /** Same-origin /sponsor… return paths only — used after homepage match clicks. */
@@ -144,6 +152,18 @@ export const SPONSOR_CREATE_CAMPAIGN_PATH = "/sponsor/campaigns/select";
 
 export function sponsorOfferSignOffPath(offerId: string): string {
   return `${SPONSOR_OFFER_SIGN_OFF_PATH}?id=${encodeURIComponent(offerId)}`;
+}
+
+export const SPONSOR_APPROVAL_SECTION_ID = "awaiting-acceptance";
+
+export function sponsorInviteApprovalPath(offerId?: string | null): string {
+  const id = String(offerId ?? "").trim();
+  if (id) return `${sponsorOfferSignOffPath(id)}&from=invite`;
+  return `${SPONSOR_DASHBOARD_PATH}#${SPONSOR_APPROVAL_SECTION_ID}`;
+}
+
+export function localSponsorLoginPath(inviteCount: number): string {
+  return inviteCount > 0 ? SPONSOR_INVITATIONS_PATH : LOCAL_SPONSOR_HOME_PATH;
 }
 export const ADMIN_LOGIN_PATH = "/admin/login";
 export const ADMIN_REGISTER_PATH = "/admin/register";

@@ -122,18 +122,18 @@ assert(
 );
 assert(
   readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-    "sponsorOfferSignOffPath"
+    "sponsorPayPath"
   ) &&
     readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-      "ensureCarbonOffsetSponsorshipOffer"
+      "stampMatchDayFunding"
     ) &&
-    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-      "chosenProjectsReadyForMatchDay"
+    !readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "Sign off this Match Day sponsorship"
     ) &&
-    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-      "MATCH_DAY_SIGNOFF_PENDING_COPY"
+    readFileSync("app/sponsor/pay/page.tsx", "utf8").includes(
+      "StripeCardPayment"
     ),
-  "Step 3 after a wallet deposit opens Terms & Conditions + sign-off only after the Club's Climate Projects are visible"
+  "Step 3 after a wallet deposit opens Stripe card payment rather than a second sign-off tab"
 );
 
 const projects = [

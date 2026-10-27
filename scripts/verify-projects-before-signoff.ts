@@ -68,12 +68,12 @@ assert(
 
 assert(
   wallet.includes("ClubChosenProjectsPanel") &&
-    wallet.includes("chosenProjectsReadyForMatchDay") &&
-    wallet.includes("MATCH_DAY_SIGNOFF_PENDING_COPY") &&
-    wallet.includes("openLeadSignOffAfterProjects") &&
+    wallet.includes("sponsorPayPath") &&
+    !wallet.includes("Sign off this Match Day sponsorship") &&
+    !wallet.includes("openLeadSignOffAfterProjects") &&
     wallet.indexOf("<ClubChosenProjectsPanel") <
       wallet.indexOf("<ClimateSponsorshipWallet"),
-  "The Carbon Wallet shows the Club's Projects before deposit and only opens sign-off after they are visible"
+  "The Carbon Wallet shows the Club's Projects as a confirmation page, then Deposit opens card payment"
 );
 
 assert(

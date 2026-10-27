@@ -19,7 +19,13 @@ import {
   readPendingSponsorMatch,
 } from "@/app/lib/pending-sponsor-match";
 import { roleRegisterAccount } from "@/app/lib/role-login";
-import { SafeInput } from "@/app/components/forms/SafeFormField";
+import { SafeInput, SafeSelect } from "@/app/components/forms/SafeFormField";
+import {
+  GLOBAL_COMMITMENT_FEE_RANGES,
+  GLOBAL_SPONSORSHIP_GOAL_RANGES,
+  listingIdFor,
+} from "@/app/lib/sponsor-listings";
+import { registerSponsorListing } from "@/app/services/sponsor-listings.service";
 
 export default function SponsorRegisterPage() {
   const account = roleRegisterAccount("sponsor");
@@ -32,6 +38,8 @@ export default function SponsorRegisterPage() {
   const [clubNames, setClubNames] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [commitmentFeeRangeId, setCommitmentFeeRangeId] = useState("");
+  const [sponsorshipGoalRangeId, setSponsorshipGoalRangeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +63,10 @@ export default function SponsorRegisterPage() {
       setLoading(false);
       return;
     }
+    if (!commitmentFeeRangeId || !sponsorshipGoalRangeId) {
+      setError("Select your Commitment Fee Range and your Sponsorship/Goal range.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -72,6 +84,18 @@ export default function SponsorRegisterPage() {
         email,
         clubNames,
       });
+      registerSponsorListing({
+        id: listingIdFor("global", companyName, email),
+        kind: "global",
+        brandName: companyName,
+        contactName,
+        email,
+        logoUrl,
+        commitmentFeeRangeId,
+        sponsorshipGoalRangeId,
+        createdAt: new Date().toISOString(),
+        source: "registered",
+      });
       window.location.href =
         continueAfterSponsorAuth() || SPONSOR_DASHBOARD_PATH;
     } catch (err) {
@@ -87,12 +111,9 @@ export default function SponsorRegisterPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Create your Sponsorship Manager account and choose the clubs whose
-            Goals you want to sponsor at national or global scale — Premier
-            League through NBA, rugby and NFL. Those clubs join your Goal
-            Sponsorship Network. 72 hours before a Match Day you lock in one
-            club — and only that club&apos;s posted Climate Projects appear
-            here.
+            Create your Global Brand account, add your Commitment Fee Range and
+            Sponsorship/Goal range, and you are listed on the club Sponsors
+            section — nowhere else. Clubs invite you from that list.
           </p>
 
       {error && (
@@ -188,6 +209,38 @@ export default function SponsorRegisterPage() {
             setLogoUrl(next);
           }}
         />
+        <label className="block text-sm text-slate-400">
+          Commitment Fee Range
+          <SafeSelect
+            required
+            value={commitmentFeeRangeId}
+            onChange={(event) => setCommitmentFeeRangeId(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+          >
+            <option value="">Select range</option>
+            {GLOBAL_COMMITMENT_FEE_RANGES.map((range) => (
+              <option key={range.id} value={range.id}>
+                {range.label}
+              </option>
+            ))}
+          </SafeSelect>
+        </label>
+        <label className="block text-sm text-slate-400">
+          Sponsorship/Goal range
+          <SafeSelect
+            required
+            value={sponsorshipGoalRangeId}
+            onChange={(event) => setSponsorshipGoalRangeId(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+          >
+            <option value="">Select range</option>
+            {GLOBAL_SPONSORSHIP_GOAL_RANGES.map((range) => (
+              <option key={range.id} value={range.id}>
+                {range.label}
+              </option>
+            ))}
+          </SafeSelect>
+        </label>
         <div>
           <p className="text-sm text-slate-400">
             Clubs whose Goals you would like to sponsor

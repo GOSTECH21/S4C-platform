@@ -17,13 +17,21 @@ import {
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
+import {
+  WALLET_PROJECTS_AWAIT_PAYMENT_COPY,
+  WALLET_PROJECTS_PAID_COPY,
+} from "@/app/lib/sponsor-card-payment";
 
 export function ClubChosenProjectsPanel({
   clubName,
   projects: provided,
+  approved = false,
+  confirmation = false,
 }: {
   clubName: string;
   projects?: ClimateProject[];
+  approved?: boolean;
+  confirmation?: boolean;
 }) {
   const [loaded, setLoaded] = useState<ClimateProject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -91,7 +99,7 @@ export function ClubChosenProjectsPanel({
                         </span>
                       ) : null}
                       <span className="rounded-full border border-s4p-mark bg-s4p-mark/15 px-3 py-1 text-xs font-semibold text-slate-950">
-                        {matchDayProjectApprovalLabel(false)}
+                        {matchDayProjectApprovalLabel(approved)}
                       </span>
                     </span>
                   </div>
@@ -107,9 +115,15 @@ export function ClubChosenProjectsPanel({
               ready ? "text-green-300" : "text-amber-200"
             }`}
           >
-            {ready
-              ? MATCH_DAY_PROJECTS_SEEN_COPY
-              : `${MATCH_DAY_SIGNOFF_PENDING_COPY} Tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} until the full five are uploaded.`}
+            {approved
+              ? WALLET_PROJECTS_PAID_COPY
+              : confirmation
+                ? ready
+                  ? WALLET_PROJECTS_AWAIT_PAYMENT_COPY
+                  : `${MATCH_DAY_SIGNOFF_PENDING_COPY} Tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} until the full five are uploaded.`
+                : ready
+                  ? MATCH_DAY_PROJECTS_SEEN_COPY
+                  : `${MATCH_DAY_SIGNOFF_PENDING_COPY} Tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} until the full five are uploaded.`}
           </p>
         </>
       ) : (

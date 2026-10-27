@@ -1,0 +1,487 @@
+import { notifySignedSponsorship } from "../lib/sponsor-completion-flow";
+import { MATCH_DAY_PROJECT_COUNT } from "../lib/partner-projects";
+import {
+  GLOBAL_BRAND_INVITE_COUNT,
+  LOCAL_BUSINESS_INVITE_COUNT,
+  SPONSOR_DIRECTORY_STORAGE,
+  SPONSOR_INVITE_ROUNDS_STORAGE,
+  approvedProjectIdsFromInvite,
+  commitGlobalSponsorship,
+  createInviteRound,
+  invitationCountForBrand,
+  currentRoundForClub,
+  hydrateInviteCommitment,
+  hydrateInviteRound,
+  inviteRoundApprovesProjects,
+  listingsOfKind,
+  mergeInviteRound,
+  mergeSeededSponsorListings,
+  pendingInvitesForBrand,
+  requireExactInviteCount,
+  resolveInviteRound,
+  seededSponsorListings,
+  upsertInviteRound,
+  upsertSponsorListing,
+  type GlobalInviteFunding,
+  type SponsorInviteRound,
+  type SponsorListing,
+  type SponsorListingKind,
+} from "../lib/sponsor-listings";
+import { brandsMatch } from "../lib/climate-sponsors";
+import { paidProjectIdsForClub } from "../lib/sponsor-card-payment";
+import { sponsorInviteApprovalPath, sponsorWalletPath } from "../lib/routes";
+import {
+  LOCAL_SPONSOR_MIN_GBP,
+  writeLocalSponsorRecord,
+} from "../lib/local-sponsor";
+
+function readJson<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(key: string, value: unknown) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(key, JSON.stringify(value));
+}
+
+export function loadSponsorDirectory(): SponsorListing[] {
+  const stored = readJson<SponsorListing[]>(SPONSOR_DIRECTORY_STORAGE, []);
+  const listings = Array.isArray(stored) ? stored : [];
+  const merged = mergeSeededSponsorListings(listings, seededSponsorListings());
+  if (merged.length !== listings.length) writeJson(SPONSOR_DIRECTORY_STORAGE, merged);
+  return merged;
+}
+
+export function saveSponsorDirectory(listings: SponsorListing[]) {
+  writeJson(SPONSOR_DIRECTORY_STORAGE, listings);
+}
+
+export function registerSponsorListing(listing: SponsorListing): SponsorListing[] {
+  const next = upsertSponsorListing(loadSponsorDirectory(), listing);
+  saveSponsorDirectory(next);
+  return next;
+}
+
+export function loadInviteRounds(): SponsorInviteRound[] {
+  const stored = readJson<SponsorInviteRound[]>(SPONSOR_INVITE_ROUNDS_STORAGE, []);
+  return (Array.isArray(stored) ? stored : []).map(hydrateInviteRound);
+}
+
+export function saveInviteRounds(rounds: SponsorInviteRound[]) {
+  writeJson(SPONSOR_INVITE_ROUNDS_STORAGE, rounds);
+}
+
+export function loadClubInviteRound(clubId: string): SponsorInviteRound | null {
+  return currentRoundForClub(loadInviteRounds(), clubId);
+}
+
+export function saveClubInviteRound(round: SponsorInviteRound): SponsorInviteRound {
+  const rounds = upsertInviteRound(loadInviteRounds(), round);
+  saveInviteRounds(rounds);
+  return round;
+}
+
+export function listingsForKind(kind: SponsorListingKind): SponsorListing[] {
+  return listingsOfKind(loadSponsorDirectory(), kind);
+}
+
+export function listingForBrand(
+  brandName: string,
+  email?: string | null
+): SponsorListing | null {
+  const listings = loadSponsorDirectory();
+  const mail = String(email ?? "").trim().toLowerCase();
+  return (
+    listings.find(
+      (row) =>
+        brandsMatch(row.brandName, brandName) &&
+        (!mail || row.email.trim().toLowerCase() === mail)
+    ) ??
+    listings.find((row) => brandsMatch(row.brandName, brandName)) ??
+    null
+  );
+}
+
+export function recordSponsorInvites({
+  clubId,
+  clubName,
+  directorName,
+  matchLabel,
+  projectIds,
+  projectNames,
+  globalInviteeIds = [],
+  localInviteeIds = [],
+  kind,
+  sentAt = new Date(),
+}: {
+  clubId: string;
+  clubName: string;
+  directorName: string;
+  matchLabel: string;
+  projectIds: string[];
+  projectNames: string[];
+  globalInviteeIds?: string[];
+  localInviteeIds?: string[];
+  kind: SponsorListingKind;
+  sentAt?: Date | string;
+}): { round: SponsorInviteRound; error: string | null } {
+  const selected =
+    kind === "global" ? globalInviteeIds : localInviteeIds;
+  const expected = kind === "global" ? GLOBAL_BRAND_INVITE_COUNT : LOCAL_BUSINESS_INVITE_COUNT;
+  const expectedError = requireExactInviteCount(selected, expected, kind);
+  if (expectedError) {
+    return {
+      round: createInviteRound({
+        clubId,
+        clubName,
+        directorName,
+        matchLabel,
+        projectIds,
+        projectNames,
+        globalInviteeIds,
+        localInviteeIds,
+        sentAt,
+      }),
+      error: expectedError,
+    };
+  }
+
+  if (projectIds.length < MATCH_DAY_PROJECT_COUNT) {
+    return {
+      round: createInviteRound({
+        clubId,
+        clubName,
+        directorName,
+        matchLabel,
+        projectIds,
+        projectNames,
+        globalInviteeIds,
+        localInviteeIds,
+        sentAt,
+      }),
+      error: `Choose ${MATCH_DAY_PROJECT_COUNT} Climate Projects for this Match Day before sending invitations.`,
+    };
+  }
+
+  const drafted = createInviteRound({
+    clubId,
+    clubName,
+    directorName,
+    matchLabel,
+    projectIds,
+    projectNames,
+    globalInviteeIds: kind === "global" ? globalInviteeIds : [],
+    localInviteeIds: kind === "local" ? localInviteeIds : [],
+    sentAt,
+  });
+  const existing = loadClubInviteRound(clubId);
+  let round = drafted;
+  if (existing) {
+    if (kind === "global" && !existing.lockedListingId) {
+      round = {
+        ...existing,
+        matchLabel: drafted.matchLabel,
+        projectIds: drafted.projectIds,
+        projectNames: drafted.projectNames,
+        directorName: drafted.directorName,
+        globalInviteeIds: drafted.globalInviteeIds,
+        sentAt: drafted.sentAt,
+        expiresAt: drafted.expiresAt,
+        commitments: [],
+        lockedListingId: null,
+        lockedBrandName: null,
+        lockedAmountGbp: null,
+        lockedAt: null,
+        approvedProjectIds: [],
+      };
+    } else if (kind === "global") {
+      round = mergeInviteRound(existing, {
+        ...drafted,
+        id: existing.id,
+        sentAt: existing.sentAt,
+        expiresAt: existing.expiresAt,
+      });
+    } else {
+      round = {
+        ...existing,
+        localInviteeIds: drafted.localInviteeIds,
+        localInvitedAt: drafted.localInvitedAt ?? drafted.sentAt,
+        matchLabel: drafted.matchLabel || existing.matchLabel,
+        projectIds: existing.projectIds.length
+          ? existing.projectIds
+          : drafted.projectIds,
+        projectNames: existing.projectNames.length
+          ? existing.projectNames
+          : drafted.projectNames,
+      };
+    }
+  }
+  saveClubInviteRound(round);
+  return { round, error: null };
+}
+
+export async function submitGlobalSponsorshipCommitment({
+  clubId,
+  listing,
+  funding,
+  amountGbp,
+  now = new Date(),
+}: {
+  clubId: string;
+  listing: SponsorListing;
+  funding?: GlobalInviteFunding;
+  amountGbp?: number;
+  now?: Date | string;
+}): Promise<{ round: SponsorInviteRound | null; error: string | null }> {
+  const current = loadClubInviteRound(clubId);
+  if (!current) {
+    return { round: null, error: "No Invitation to Sponsor is open for this club." };
+  }
+  const result = commitGlobalSponsorship(
+    current,
+    listing,
+    funding ?? amountGbp ?? 0,
+    now
+  );
+  saveClubInviteRound(result.round);
+  if (result.error) return { round: result.round, error: result.error };
+  if (result.locked && result.winnerChanged) {
+    await publishLockedInviteToFans(result.round);
+  }
+  return { round: result.round, error: null };
+}
+
+export async function closeInviteWindowIfExpired(
+  clubId: string,
+  now = new Date()
+): Promise<SponsorInviteRound | null> {
+  const current = loadClubInviteRound(clubId);
+  if (!current) return null;
+  const next = resolveInviteRound(current, now);
+  saveClubInviteRound(next);
+  if (
+    inviteRoundApprovesProjects(next) &&
+    next.lockedListingId &&
+    next.lockedListingId !== current.lockedListingId
+  ) {
+    await publishLockedInviteToFans(next);
+  }
+  return next;
+}
+
+export function invitesWaitingForBrand(brandName: string): SponsorInviteRound[] {
+  return pendingInvitesForBrand(
+    loadInviteRounds(),
+    brandName,
+    loadSponsorDirectory()
+  );
+}
+
+export function inviteCountWaitingForBrand(brandName: string): number {
+  return invitationCountForBrand(
+    loadInviteRounds(),
+    brandName,
+    loadSponsorDirectory()
+  );
+}
+
+export function approvedIdsForClubMatch(clubId: string): string[] {
+  const round = loadClubInviteRound(clubId);
+  return [
+    ...new Set([
+      ...approvedProjectIdsFromInvite(round),
+      ...paidProjectIdsForClub({
+        clubId,
+        clubName: round?.clubName,
+      }),
+    ]),
+  ];
+}
+
+export async function prepareInviteApprovalPath({
+  listing,
+  round,
+}: {
+  listing: SponsorListing;
+  round: SponsorInviteRound;
+}): Promise<string> {
+  const brandName = listing.brandName.trim();
+  const winner =
+    round.commitments.find((row) => row.listingId === listing.id) ??
+    round.commitments.find((row) => row.listingId === round.lockedListingId);
+  const funding = hydrateInviteCommitment(winner);
+  try {
+    const { ensureGoalNetwork, lockMatchDayClub, stampMatchDayFunding } =
+      await import("./climate-sponsors.service");
+    ensureGoalNetwork({
+      brandName,
+      clubNames: [round.clubName],
+    });
+    try {
+      lockMatchDayClub({
+        brandName,
+        clubName: round.clubName,
+        matchLabel: round.matchLabel,
+        fixtureName: round.matchLabel,
+      });
+      if (funding) {
+        stampMatchDayFunding({
+          brandName,
+          clubName: round.clubName,
+          commitmentFeeGbp: funding.commitmentFeeGbp,
+          gbpPerGoal: funding.gbpPerGoal,
+          maximumSponsorshipGbp: funding.maximumSponsorshipGbp,
+        });
+      }
+    } catch {
+      // Offer sign-off can still open if this Match Day lock is already taken.
+    }
+    const { publishSponsorMatchOffer } = await import("./sponsor-offers.service");
+    const offer = await publishSponsorMatchOffer({
+      clubId: round.clubId,
+      clubName: round.clubName,
+      projects: round.projectIds.map((id, index) => ({
+        id,
+        name: round.projectNames[index] || id,
+        description: null,
+        category: null,
+        country: null,
+        estimated_co2: null,
+        funding_goal: null,
+        image_url: null,
+        status: "active",
+      })),
+      sponsorshipAmountGbp: funding?.commitmentFeeGbp,
+      gbpPerGoal: funding?.gbpPerGoal,
+      maxAmount: funding?.maximumSponsorshipGbp,
+      targetBrandNames: [brandName],
+      matchTitle: round.matchLabel,
+    });
+    return sponsorInviteApprovalPath(offer.id);
+  } catch {
+    return sponsorInviteApprovalPath();
+  }
+}
+
+export async function acceptLocalInviteSponsorship({
+  listing,
+  round,
+  amountGbp,
+  signerName,
+  acceptedTerms,
+}: {
+  listing: SponsorListing;
+  round: SponsorInviteRound;
+  amountGbp: number;
+  signerName: string;
+  acceptedTerms: boolean;
+}): Promise<{ error: string | null; paymentPath: string | null }> {
+  if (listing.kind !== "local") {
+    return { error: "Only Local Business Climate Sponsors use this form.", paymentPath: null };
+  }
+  if (!round.localInviteeIds.includes(listing.id)) {
+    return {
+      error: `${listing.brandName} was not invited for this Match Day.`,
+      paymentPath: null,
+    };
+  }
+  if (!acceptedTerms) {
+    return { error: "Tick the Terms & Conditions to sign.", paymentPath: null };
+  }
+  const signer = signerName.trim();
+  if (!signer) {
+    return { error: "Type your full name to sign.", paymentPath: null };
+  }
+  const amount = Math.round(Number(amountGbp) || 0);
+  if (amount < LOCAL_SPONSOR_MIN_GBP) {
+    return {
+      error: `Enter a sponsorship amount of at least £${LOCAL_SPONSOR_MIN_GBP.toLocaleString("en-GB")}.`,
+      paymentPath: null,
+    };
+  }
+  const now = new Date().toISOString();
+  writeLocalSponsorRecord({
+    brandName: listing.brandName,
+    email: listing.email,
+    clubName: round.clubName,
+    pledgeGbp: amount,
+    createdAt: now,
+    source: "registered",
+    matchSponsorships: [{ fixtureName: round.matchLabel, amountGbp: amount }],
+    submittedAt: now,
+    acceptedTerms: true,
+    signerName: signer,
+    signedAt: now,
+  });
+  try {
+    const { publishSponsorMatchOffer, signSponsorOffer } = await import(
+      "./sponsor-offers.service"
+    );
+    const offer = await publishSponsorMatchOffer({
+      clubId: round.clubId,
+      clubName: round.clubName,
+      projects: round.projectIds.map((id, index) => ({
+        id,
+        name: round.projectNames[index] || id,
+        description: null,
+        category: null,
+        country: null,
+        estimated_co2: null,
+        funding_goal: null,
+        image_url: null,
+        status: "active",
+      })),
+      sponsorshipAmountGbp: amount,
+      targetBrandNames: [listing.brandName],
+      matchTitle: round.matchLabel,
+    });
+    await signSponsorOffer({
+      offerId: offer.id,
+      signerName: signer,
+      brandName: listing.brandName,
+    });
+  } catch {
+    // The signed local record still stands; Payment can open from the wallet.
+  }
+  return { error: null, paymentPath: sponsorWalletPath(round.clubName) };
+}
+
+async function publishLockedInviteToFans(round: SponsorInviteRound) {
+  const projectIds = approvedProjectIdsFromInvite(round);
+  if (projectIds.length === 0 || !round.lockedBrandName) return;
+  try {
+    const { publishSignedSponsorshipToFans } = await import(
+      "./club-match-day.service"
+    );
+    const winner = round.commitments.find(
+      (row) => row.listingId === round.lockedListingId
+    );
+    await publishSignedSponsorshipToFans({
+      clubId: round.clubId,
+      clubName: round.clubName,
+      brandName: round.lockedBrandName,
+      projects: projectIds.map((id, index) => ({
+        id,
+        name: round.projectNames[index] || id,
+      })),
+      minAmount: winner?.commitmentFeeGbp,
+      gbpPerGoal: winner?.gbpPerGoal,
+      maxAmount: winner?.maximumSponsorshipGbp,
+    });
+  } catch {
+    // Invitation lock-in still stands if the fan post cannot be written yet.
+  }
+  notifySignedSponsorship({
+    clubId: round.clubId,
+    clubName: round.clubName,
+    brandName: round.lockedBrandName,
+    projectIds,
+  });
+}

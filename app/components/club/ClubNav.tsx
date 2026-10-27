@@ -10,6 +10,7 @@ import {
   CLUB_SELECT_PROJECTS_ALIASES,
   CLUB_SELECT_PROJECTS_PATH,
   CLUB_SPONSOR_LEADERBOARD_PATH,
+  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import { storedFullName, welcomeBackMessage } from "@/app/lib/s4p-admin";
 import { loadClubSession } from "@/app/services/club-match-day.service";
@@ -27,9 +28,9 @@ const LINKS = [
     match: "projects" as const,
   },
   {
-    href: CLUB_SPONSOR_LEADERBOARD_PATH,
-    label: "Sponsor",
-    match: "sponsor" as const,
+    href: CLUB_SPONSORS_PATH,
+    label: "Sponsors",
+    match: "sponsors" as const,
   },
 ];
 
@@ -87,7 +88,8 @@ export default function ClubNav() {
               ? pathname === CLUB_DASHBOARD_PATH
               : link.match === "projects"
                 ? CLUB_SELECT_PROJECTS_ALIASES.includes(pathname ?? "")
-                : pathname === CLUB_SPONSOR_LEADERBOARD_PATH;
+                : pathname === CLUB_SPONSORS_PATH ||
+                  pathname === CLUB_SPONSOR_LEADERBOARD_PATH;
 
           return (
             <Link

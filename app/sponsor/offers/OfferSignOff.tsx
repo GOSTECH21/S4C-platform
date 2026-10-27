@@ -16,6 +16,7 @@ import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_OFFER_SIGN_SECTION_ID,
 } from "@/app/lib/routes";
+import { LEAD_APPROVED_SECTION_ID } from "@/app/lib/lead-sponsor-home";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
@@ -172,7 +173,11 @@ export function OfferSignOffForm({
         brandName: brandName || brandDefault,
       });
       setSignedBrand(signed.brandName);
-      router.replace(sponsorHomePath(signed.brandName) || LOCAL_SPONSOR_HOME_PATH);
+      router.replace(
+        isLocalClimateSponsor(signed.brandName)
+          ? LOCAL_SPONSOR_HOME_PATH
+          : `${SPONSOR_DASHBOARD_PATH}#${LEAD_APPROVED_SECTION_ID}`
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your signature."

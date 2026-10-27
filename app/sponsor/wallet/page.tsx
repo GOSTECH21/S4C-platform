@@ -16,13 +16,12 @@ import {
   readLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
 import {
-  bindFundedSponsorToClub,
   clearMatchDayLock,
   ensureGoalNetwork,
   ensureMatchDayClubLock,
   loadMatchDayLock,
   lockMatchDayClub,
-  lockWalletFundingToClub,
+  stampMatchDayFunding,
 } from "@/app/services/climate-sponsors.service";
 import {
   ClubLeagueMenu,
@@ -38,8 +37,6 @@ import {
   type MatchDayClubLock,
 } from "@/app/lib/climate-sponsors";
 import {
-  ensureCarbonOffsetSponsorshipOffer,
-  loadClubChosenClimateProjects,
   loadSponsorFolder,
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
@@ -53,7 +50,7 @@ import {
   SPONSOR_OFFERS_PATH,
   SPONSOR_RECEIVE_SECTION_ID,
   isNewSponsorshipRequest,
-  sponsorOfferSignOffPath,
+  sponsorPayPath,
 } from "@/app/lib/routes";
 import {
   isLeadSponsorHome,
@@ -64,13 +61,11 @@ import {
 import {
   LOCAL_FIVE_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
-  MATCH_DAY_SIGNOFF_PENDING_COPY,
-  chosenProjectsReadyForMatchDay,
   climateWalletFansCopy,
   climateWalletHeading,
 } from "@/app/lib/match-day-carbon-offset";
-import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
-import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
+import { isMatchDayCardPaymentConfirmed } from "@/app/lib/sponsor-card-payment";
+import { createLeadWallet, type ClimateWallet } from "@/app/lib/sponsor-wallet";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 
 export default function SponsorWalletPage() {
@@ -88,9 +83,7 @@ export default function SponsorWalletPage() {
   const [wallet, setWallet] = useState<ClimateWallet | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [chosenCount, setChosenCount] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -130,7 +123,24 @@ export default function SponsorWalletPage() {
           router.replace(LOCAL_SPONSOR_HOME_PATH);
           return;
         }
-        if (club) setWallet(readClimateWallet(club, brandName));
+        if (club) {
+          const stored = readClimateWallet(club, brandName);
+          if (stored && Number(stored.commitmentFeeGbp) > 0) {
+            setWallet(stored);
+          } else if (Number(matchLock?.commitmentFeeGbp) > 0) {
+            setWallet(
+              createLeadWallet({
+                clubName: club,
+                brandName,
+                commitmentFeeGbp: matchLock?.commitmentFeeGbp ?? 0,
+                gbpPerGoal: matchLock?.gbpPerGoal,
+                maximumSponsorshipGbp: matchLock?.maximumSponsorshipGbp,
+              })
+            );
+          } else {
+            setWallet(stored);
+          }
+        }
         if (localKind) {
           const folder = await loadSponsorFolder({
             brandName,
@@ -177,24 +187,6 @@ export default function SponsorWalletPage() {
       })
       .finally(() => {
         if (!cancelled) setFixturesLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [kind, clubName]);
-
-  useEffect(() => {
-    if (kind !== "lead" || !clubName) {
-      setChosenCount(0);
-      return;
-    }
-    let cancelled = false;
-    void loadClubChosenClimateProjects(clubName)
-      .then((uploaded) => {
-        if (!cancelled) setChosenCount(uploaded?.projects.length ?? 0);
-      })
-      .catch(() => {
-        if (!cancelled) setChosenCount(0);
       });
     return () => {
       cancelled = true;
@@ -264,21 +256,8 @@ export default function SponsorWalletPage() {
     fixtureName: lockFixture,
   });
 
-  async function openLeadSignOffAfterProjects() {
-    const uploaded = await loadClubChosenClimateProjects(clubName);
-    const count = uploaded?.projects.length ?? 0;
-    setChosenCount(count);
-    if (!chosenProjectsReadyForMatchDay(count)) {
-      setNotice(MATCH_DAY_SIGNOFF_PENDING_COPY);
-      return false;
-    }
-    const offset = await ensureCarbonOffsetSponsorshipOffer({
-      brandName: brand,
-    });
-    router.push(
-      offset ? sponsorOfferSignOffPath(offset.id) : SPONSOR_OFFERS_PATH
-    );
-    return true;
+  function openCardPayment() {
+    router.push(sponsorPayPath(clubName));
   }
 
   if (loading) {
@@ -399,8 +378,15 @@ export default function SponsorWalletPage() {
         </section>
       ) : null}
 
-      {kind === "lead" && clubName ? (
-        <ClubChosenProjectsPanel clubName={clubName} />
+      {clubName ? (
+        <ClubChosenProjectsPanel
+          clubName={clubName}
+          confirmation
+          approved={isMatchDayCardPaymentConfirmed({
+            clubName,
+            brandName: brand,
+          })}
+        />
       ) : null}
 
       <div id="top-up-cash" className="scroll-mt-6">
@@ -411,7 +397,6 @@ export default function SponsorWalletPage() {
         heading={kind === "lead" ? walletHeading : undefined}
         busy={busy}
         error={error}
-        notice={notice}
         onLocalDeposit={(input) => {
           if (!clubName || !brand) {
             setError("Choose the club this Local Business Climate Sponsor supports.");
@@ -433,20 +418,12 @@ export default function SponsorWalletPage() {
               brandName: brand,
               sponsorshipGbp: input.sponsorshipGbp,
             });
-            bindFundedSponsorToClub({
-              clubName,
-              brandName: brand,
-              spentGbp: next.sponsorshipGbp,
-            });
             setWallet(next);
-            setNotice(
-              `${formatWalletGbp(next.sponsorshipGbp)} is in the Carbon Wallet for ${clubName} (${formatWalletGbp(next.paidGbp)} paid including the 10% management fee).`
-            );
+            openCardPayment();
           } catch (err) {
             setError(
               err instanceof Error ? err.message : "Could not update the wallet."
             );
-          } finally {
             setBusy(false);
           }
         }}
@@ -457,62 +434,43 @@ export default function SponsorWalletPage() {
           }
           setBusy(true);
           setError(null);
-          void (async () => {
-            try {
-              const existing = loadMatchDayLock(brand);
-              ensureMatchDayClubLock({
-                brandName: brand,
-                clubName,
-                matchLabel: existing?.matchLabel,
-                fixtureName: existing?.fixtureName,
-                competition: existing?.competition,
-                fixtureDate: existing?.fixtureDate,
-                kickoff: existing?.kickoff,
-                venue: existing?.venue,
-                sourceUrl: existing?.sourceUrl,
-              });
-              const next = depositLeadClimateWallet({
-                clubName,
-                brandName: brand,
-                ...input,
-              });
-              lockWalletFundingToClub({
-                brandName: brand,
-                clubName,
-                commitmentFeeGbp: next.commitmentFeeGbp,
-                gbpPerGoal: next.gbpPerGoal,
-                maximumSponsorshipGbp: next.maximumSponsorshipGbp,
-              });
-              ensureGoalNetwork({
-                brandName: brand,
-                clubNames: [clubName],
-              });
-              bindFundedSponsorToClub({
-                clubName,
-                brandName: brand,
-                spentGbp: next.commitmentFeeGbp,
-              });
-              setWallet(next);
-              setNotice(
-                `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for ${clubName}.`
-              );
-              if (isLeadSponsorHome(brand)) {
-                const opened = await openLeadSignOffAfterProjects();
-                if (!opened) {
-                  setNotice(
-                    `Commitment Fee ${formatWalletGbp(next.commitmentFeeGbp)} is locked in for ${clubName}. ${MATCH_DAY_SIGNOFF_PENDING_COPY}`
-                  );
-                }
-                return;
-              }
-            } catch (err) {
-              setError(
-                err instanceof Error ? err.message : "Could not update the wallet."
-              );
-            } finally {
-              setBusy(false);
-            }
-          })();
+          try {
+            const existing = loadMatchDayLock(brand);
+            ensureMatchDayClubLock({
+              brandName: brand,
+              clubName,
+              matchLabel: existing?.matchLabel,
+              fixtureName: existing?.fixtureName,
+              competition: existing?.competition,
+              fixtureDate: existing?.fixtureDate,
+              kickoff: existing?.kickoff,
+              venue: existing?.venue,
+              sourceUrl: existing?.sourceUrl,
+            });
+            const next = depositLeadClimateWallet({
+              clubName,
+              brandName: brand,
+              ...input,
+            });
+            stampMatchDayFunding({
+              brandName: brand,
+              clubName,
+              commitmentFeeGbp: next.commitmentFeeGbp,
+              gbpPerGoal: next.gbpPerGoal,
+              maximumSponsorshipGbp: next.maximumSponsorshipGbp,
+            });
+            ensureGoalNetwork({
+              brandName: brand,
+              clubNames: [clubName],
+            });
+            setWallet(next);
+            openCardPayment();
+          } catch (err) {
+            setError(
+              err instanceof Error ? err.message : "Could not update the wallet."
+            );
+            setBusy(false);
+          }
         }}
       />
       </div>
@@ -539,24 +497,6 @@ export default function SponsorWalletPage() {
             </p>
           </Link>
         </section>
-      ) : null}
-
-      {isLeadSponsorHome(brand) &&
-      clubName &&
-      Number(wallet?.commitmentFeeGbp) > 0 &&
-      chosenProjectsReadyForMatchDay(chosenCount) ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            setBusy(true);
-            setError(null);
-            void openLeadSignOffAfterProjects().finally(() => setBusy(false));
-          }}
-          className="rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950 disabled:opacity-70"
-        >
-          Sign off this Match Day sponsorship
-        </button>
       ) : null}
 
       {isLeadSponsorHome(brand) ? (

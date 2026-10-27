@@ -51,8 +51,8 @@ if (existsSync(lockIn) && existsSync(wallet) && existsSync(panel)) {
   const panelSrc = readFileSync(panel, "utf8");
   if (
     !lockSrc.includes("ClubChosenProjectsPanel") ||
-    !walletSrc.includes("chosenProjectsReadyForMatchDay") ||
-    !walletSrc.includes("MATCH_DAY_SIGNOFF_PENDING_COPY") ||
+    !walletSrc.includes("sponsorPayPath") ||
+    walletSrc.includes("Sign off this Match Day sponsorship") ||
     !panelSrc.includes("MATCH_DAY_PENDING_APPROVAL_LABEL")
   ) {
     failed += 1;

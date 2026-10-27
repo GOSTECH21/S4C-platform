@@ -24,7 +24,12 @@ import {
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import { continueAfterSponsorAuth, readPendingSponsorMatch } from "@/app/lib/pending-sponsor-match";
 import { roleRegisterAccount } from "@/app/lib/role-login";
-import { SafeInput } from "@/app/components/forms/SafeFormField";
+import { SafeInput, SafeSelect } from "@/app/components/forms/SafeFormField";
+import {
+  LOCAL_SPONSORSHIP_AMOUNT_RANGES,
+  listingIdFor,
+} from "@/app/lib/sponsor-listings";
+import { registerSponsorListing } from "@/app/services/sponsor-listings.service";
 
 export default function LocalSponsorRegisterPage() {
   const account = roleRegisterAccount("local");
@@ -41,6 +46,7 @@ export default function LocalSponsorRegisterPage() {
   const [logoError, setLogoError] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [signerName, setSignerName] = useState("");
+  const [amountRangeId, setAmountRangeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,6 +104,10 @@ export default function LocalSponsorRegisterPage() {
       setError("Type your full name to sign off this Local Business Climate Sponsorship.");
       return;
     }
+    if (!amountRangeId) {
+      setError("Select your Sponsorship amount range.");
+      return;
+    }
     const matchSponsorships: LocalMatchSponsorship[] = [];
     for (const fixtureName of selectedMatches) {
       const amount = Number(amounts[fixtureName]);
@@ -148,6 +158,17 @@ export default function LocalSponsorRegisterPage() {
         signedAt: new Date().toISOString(),
         postcode: postcode.trim(),
       });
+      registerSponsorListing({
+        id: listingIdFor("local", companyName, email),
+        kind: "local",
+        brandName: companyName,
+        contactName,
+        email,
+        logoUrl,
+        amountRangeId,
+        createdAt: new Date().toISOString(),
+        source: "registered",
+      });
       ensureLocalWallet({
         clubName,
         brandName: companyName,
@@ -172,10 +193,16 @@ export default function LocalSponsorRegisterPage() {
       <ol className="mt-4 list-decimal space-y-1 pl-5 text-slate-300">
         <li>Enter all required registration info including business postcode</li>
         <li>Upload your business logo (if available)</li>
+        <li>Select your Sponsorship amount range</li>
         <li>Select the Club you wish to sponsor</li>
         <li>read and agree to Score-4-Planet Terms & Conditions</li>
         <li>Sign & SUBMIT</li>
       </ol>
+      <p className="mt-3 text-sm text-slate-400">
+        Registered Local Businesses are listed on the club Sponsors section —
+        nowhere else — so Sustainability Directors can send an Invitation to
+        Sponsor.
+      </p>
 
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -273,6 +300,22 @@ export default function LocalSponsorRegisterPage() {
             autoComplete="off"
             required
           />
+        </label>
+        <label className="mt-4 block text-sm text-slate-400">
+          Sponsorship amount range
+          <SafeSelect
+            required
+            value={amountRangeId}
+            onChange={(event) => setAmountRangeId(event.target.value)}
+            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+          >
+            <option value="">Select range</option>
+            {LOCAL_SPONSORSHIP_AMOUNT_RANGES.map((range) => (
+              <option key={range.id} value={range.id}>
+                {range.label}
+              </option>
+            ))}
+          </SafeSelect>
         </label>
           <p className="mt-4 text-sm text-slate-400">
             Club you wish to sponsor

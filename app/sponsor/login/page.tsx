@@ -7,14 +7,17 @@ import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_REGISTER_PATH,
+  localSponsorLoginPath,
   localSponsorRegisterPath,
   sponsorRegisterPath,
 } from "@/app/lib/routes";
 import { continueAfterSponsorAuth } from "@/app/lib/pending-sponsor-match";
 import {
+  isLocalClimateSponsor,
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
+import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { roleLoginAccount } from "@/app/lib/role-login";
 
 export default function SponsorLoginPage() {
@@ -45,11 +48,18 @@ export default function SponsorLoginPage() {
       await loginSponsor({ email, password });
       const sponsor = await getCurrentSponsor();
       rememberLocalSponsorSession(sponsor);
-      window.location.href =
-        continueAfterSponsorAuth() ||
-        sponsorHomePath(String(sponsor.name ?? ""), {
-          jobTitle: String(sponsor.industry ?? ""),
-        });
+      const brandName = String(sponsor.name ?? "");
+      const jobTitle = String(sponsor.industry ?? "");
+      const pendingMatch = continueAfterSponsorAuth();
+      if (pendingMatch) {
+        window.location.href = pendingMatch;
+      } else if (isLocalClimateSponsor(brandName, { jobTitle })) {
+        window.location.href = localSponsorLoginPath(
+          inviteCountWaitingForBrand(brandName)
+        );
+      } else {
+        window.location.href = sponsorHomePath(brandName, { jobTitle });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
       setLoading(false);
