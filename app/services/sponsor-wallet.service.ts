@@ -65,7 +65,7 @@ export function listClimateWalletsForClub(clubName: string): ClimateWallet[] {
   );
 }
 
-/** Goal-scored terms already set by the Lead Climate Sponsor in their wallet. */
+/** Match-Sponsorship already set by the Lead Climate Sponsor in their wallet. */
 export function leadWalletMatchFunding(clubName: string): {
   minAmount: number;
   gbpPerGoal: number;

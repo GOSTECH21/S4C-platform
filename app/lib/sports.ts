@@ -14,7 +14,7 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     name: "Football",
     scoreLabel: "Goal",
     scoreEvent: "Goal scored",
-    exampleS2PS: "£10,000/Goal",
+    exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "⚽",
     summary:
       "A Lead Climate Sponsor pays one Match-Sponsorship amount for the Match, plus a 5% Platform Fee via Stripe. Fans then FUND-IT that cash onto the Club's chosen Climate Projects.",

@@ -102,16 +102,13 @@ export function matchSponsorshipGbpFrom(
   if (typeof value === "number") {
     return Math.max(0, Math.round(Number(value) || 0));
   }
-  return Math.max(
-    0,
-    Math.round(
-      Number(value?.matchSponsorshipGbp) ||
-        Number(value?.amountGbp) ||
-        Number(value?.commitmentFeeGbp) ||
-        Number(value?.maximumSponsorshipGbp) ||
-        0
-    )
-  );
+  const amounts = [
+    Number(value?.matchSponsorshipGbp),
+    Number(value?.amountGbp),
+    Number(value?.maximumSponsorshipGbp),
+    Number(value?.commitmentFeeGbp),
+  ].map((amount) => Math.max(0, Math.round(Number(amount) || 0)));
+  return Math.max(0, ...amounts);
 }
 
 export function normalizeInviteFunding(
@@ -521,12 +518,6 @@ export function highestCommitment(
     const rightMax = rankingAmountGbp(right);
     const leftMax = rankingAmountGbp(left);
     if (rightMax !== leftMax) return rightMax - leftMax;
-    const rightGoal = Number(right.gbpPerGoal) || 0;
-    const leftGoal = Number(left.gbpPerGoal) || 0;
-    if (rightGoal !== leftGoal) return rightGoal - leftGoal;
-    const rightFee = Number(right.commitmentFeeGbp) || 0;
-    const leftFee = Number(left.commitmentFeeGbp) || 0;
-    if (rightFee !== leftFee) return rightFee - leftFee;
     return toTime(left.receivedAt) - toTime(right.receivedAt);
   })[0];
 }

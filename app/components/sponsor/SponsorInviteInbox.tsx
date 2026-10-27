@@ -1,25 +1,16 @@
 "use client";
 
+/* s4p-match-sponsorship-inbox-v2 */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  GLOBAL_COMMITMENT_FEE_RANGES,
   GLOBAL_INVITE_WINDOW_HOURS,
-  GLOBAL_MATCH_SPONSORSHIP_RANGES,
-  INVITE_LOCKED_NEXT_COPY,
-  INVITE_PROCEED_APPROVAL_LABEL,
-  LOCAL_INVITE_AMOUNT_LABEL,
-  LOCAL_INVITE_NEXT_COPY,
-  LOCAL_INVITE_SIGN_LABEL,
   LOCAL_SPONSORSHIP_AMOUNT_RANGES,
-  MATCH_SPONSORSHIP_COMMIT_LABEL,
-  MATCH_SPONSORSHIP_HINT,
-  MATCH_SPONSORSHIP_LABEL,
-  MATCH_SPONSORSHIP_RANGE_LABEL,
   formatRangeLabel,
-  formatInviteGbp,
   inviteDeadlineLabel,
   inviteWindowOpen,
-  lockedInviteSummary,
   rangeById,
   type SponsorInviteRound,
   type SponsorListing,
@@ -38,6 +29,55 @@ import {
   localSponsorsForClub,
 } from "@/app/lib/local-sponsor";
 import { brandsMatch } from "@/app/lib/climate-sponsors";
+
+const MATCH_SPONSORSHIP_LABEL = "Match-Sponsorship";
+const MATCH_SPONSORSHIP_RANGE_LABEL = "Match-Sponsorship Range";
+const MATCH_SPONSORSHIP_HINT =
+  "One amount for this Match Day. The highest Match-Sponsorship within 8 hours is accepted.";
+const MATCH_SPONSORSHIP_COMMIT_LABEL = "Commit Match-Sponsorship";
+const INVITE_LOCKED_NEXT_COPY = "Proceed to Approval and Payment section";
+const INVITE_PROCEED_APPROVAL_LABEL = "Proceed to Approval & Payment";
+const LOCAL_INVITE_AMOUNT_LABEL = "Sponsorship amount for this Match Day (£)";
+const LOCAL_INVITE_SIGN_LABEL = "Sign and proceed to Payment";
+const LOCAL_INVITE_NEXT_COPY =
+  "Enter how much you are putting up for this Match Day, tick the Terms & Conditions, sign the sponsorship, then proceed to Payment.";
+
+function formatInviteGbp(value: unknown): string {
+  return `£${Math.max(0, Math.round(Number(value) || 0)).toLocaleString("en-GB")}`;
+}
+
+function matchAmountFrom(
+  row?: {
+    matchSponsorshipGbp?: number;
+    amountGbp?: number;
+    maximumSponsorshipGbp?: number;
+    commitmentFeeGbp?: number;
+  } | null,
+  fallbackAmount?: number | null
+): number {
+  const amounts = [
+    Number(row?.matchSponsorshipGbp),
+    Number(row?.amountGbp),
+    Number(row?.maximumSponsorshipGbp),
+    Number(row?.commitmentFeeGbp),
+    Number(fallbackAmount),
+  ].map((value) => Math.max(0, Math.round(Number(value) || 0)));
+  return Math.max(0, ...amounts);
+}
+
+function formatLockedSummary(
+  row?: {
+    matchSponsorshipGbp?: number;
+    amountGbp?: number;
+    maximumSponsorshipGbp?: number;
+    commitmentFeeGbp?: number;
+  } | null,
+  fallbackAmount?: number | null
+): string {
+  const amount = matchAmountFrom(row, fallbackAmount);
+  if (amount <= 0) return "";
+  return ` — ${MATCH_SPONSORSHIP_LABEL} ${formatInviteGbp(amount)}`;
+}
 
 export function SponsorInviteInbox({
   listing,
@@ -81,7 +121,7 @@ function InviteCard({
   onRoundChange?: (round: SponsorInviteRound) => void;
 }) {
   const matchRange = rangeById(
-    GLOBAL_MATCH_SPONSORSHIP_RANGES,
+    GLOBAL_COMMITMENT_FEE_RANGES,
     listing.commitmentFeeRangeId
   );
   const localRange = rangeById(
@@ -202,7 +242,7 @@ function InviteCard({
       {isWinner && (
         <p className="mt-4 font-semibold text-green-300">
           Locked in
-          {lockedInviteSummary(ownCommitment, round.lockedAmountGbp)}.{" "}
+          {formatLockedSummary(ownCommitment, round.lockedAmountGbp)}.{" "}
           {INVITE_LOCKED_NEXT_COPY}.
         </p>
       )}
@@ -230,7 +270,7 @@ function InviteCard({
           <p className="text-sm text-slate-400">
             Your registered {MATCH_SPONSORSHIP_RANGE_LABEL}:{" "}
             {formatRangeLabel(
-              GLOBAL_MATCH_SPONSORSHIP_RANGES,
+              GLOBAL_COMMITMENT_FEE_RANGES,
               listing.commitmentFeeRangeId
             )}
             . Enter how much you wish to sponsor this Match for.

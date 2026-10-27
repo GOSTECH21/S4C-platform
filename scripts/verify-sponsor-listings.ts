@@ -182,7 +182,25 @@ assert(
       gbpPerGoal: 0,
       maximumSponsorshipGbp: 18000,
     }).includes("Match-Sponsorship") &&
-    lockedInviteSummary(undefined, 13000).includes("13,000"),
+    lockedInviteSummary(undefined, 13000).includes("13,000") &&
+    lockedInviteSummary({
+      amountGbp: 8000,
+      commitmentFeeGbp: 2500,
+      gbpPerGoal: 2000,
+      maximumSponsorshipGbp: 8000,
+    }).includes("Match-Sponsorship") &&
+    !lockedInviteSummary({
+      amountGbp: 8000,
+      commitmentFeeGbp: 2500,
+      gbpPerGoal: 2000,
+      maximumSponsorshipGbp: 8000,
+    }).includes("Commitment Fee") &&
+    !lockedInviteSummary({
+      amountGbp: 8000,
+      commitmentFeeGbp: 2500,
+      gbpPerGoal: 2000,
+      maximumSponsorshipGbp: 8000,
+    }).includes("Goal-Scored"),
   "Lock-in copy names the Match-Sponsorship amount"
 );
 
@@ -278,8 +296,10 @@ assert(
     sponsorNav.includes("s4pTabClass(onDashboard)") &&
     sponsorNav.includes("s4pTabClass(onCalendar)") &&
     sponsorNav.includes("sponsorInvitationsNavLabel") &&
+    inbox.includes("s4p-match-sponsorship-inbox-v2") &&
     inbox.includes("MATCH_SPONSORSHIP_LABEL") &&
     inbox.includes("MATCH_SPONSORSHIP_COMMIT_LABEL") &&
+    inbox.includes("Commit Match-Sponsorship") &&
     MATCH_SPONSORSHIP_LABEL === "Match-Sponsorship" &&
     MATCH_SPONSORSHIP_COMMIT_LABEL === "Commit Match-Sponsorship" &&
     MATCH_SPONSORSHIP_RANGE_LABEL === "Match-Sponsorship Range" &&
@@ -288,7 +308,13 @@ assert(
     inbox.includes("INVITE_LOCKED_NEXT_COPY") &&
     inbox.includes("INVITE_PROCEED_APPROVAL_LABEL") &&
     inbox.includes("prepareInviteApprovalPath") &&
+    !inbox.includes("Commitment Fee") &&
+    !inbox.includes("Sponsorship/Goal") &&
+    !inbox.includes("Commit sponsorship amounts") &&
+    !inbox.includes("Maximum Sponsorship Amount") &&
     !inbox.includes("Projects are Approved") &&
+    !invitePage.includes("Commitment Fee") &&
+    invitePage.includes("one Match-Sponsorship amount") &&
     readFileSync("app/lib/routes.ts", "utf8").includes("sponsorInviteApprovalPath") &&
     readFileSync("app/sponsor/offers/OfferSignOff.tsx", "utf8").includes(
       "LEAD_APPROVED_SECTION_ID"

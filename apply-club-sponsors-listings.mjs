@@ -36,6 +36,24 @@ const FILES = [
   "scripts/verify-sponsor-card-payment.ts",
 ];
 
+function peek(rel) {
+  return existsSync(rel) ? readFileSync(rel, "utf8") : "";
+}
+
+if (
+  peek("app/components/sponsor/SponsorInviteInbox.tsx").includes(
+    "s4p-match-sponsorship-inbox-v2"
+  ) ||
+  peek("app/components/sponsor/ClimateSponsorshipWallet.tsx").includes(
+    "s4p-match-sponsorship-wallet-v2"
+  )
+) {
+  console.error(
+    "STOP: Match-Sponsorship is already applied. The listings overlay puts Commitment Fee and £/Goal cards back. Use apply-match-sponsorship.mjs instead."
+  );
+  process.exit(1);
+}
+
 async function pullFile(rel) {
   const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
   let lastError = null;

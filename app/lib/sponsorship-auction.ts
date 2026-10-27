@@ -90,8 +90,7 @@ export function currentSponsorshipAmount({
 }
 
 /**
- * Historic lead wallets with a £/Goal still add Goals to the Match-Sponsorship.
- * New Match-Sponsorships store gbpPerGoal as 0, so this returns the one amount.
+ * Match-Sponsorship is one amount. Historic gbpPerGoal is ignored for display and ranking.
  */
 export function totalMatchSponsorshipPayable({
   baseAmount,
@@ -230,7 +229,6 @@ export function formatBrandExposureLabel(posts?: number | null): string {
 
 export function formatMatchFundingLine({
   baseAmount,
-  gbpPerGoal,
   maxAmount,
 }: {
   baseAmount?: number | null;
@@ -244,20 +242,11 @@ export function formatMatchFundingLine({
         ? Number(maxAmount)
         : 0;
   if (!(matchAmount > 0)) return "";
-  if (Number(gbpPerGoal) > 0) {
-    const parts = [`${formatMoney(matchAmount)} Match-Sponsorship`];
-    parts.push(`${formatMoney(Number(gbpPerGoal))}/Goal`);
-    if (Number(maxAmount) > 0) {
-      parts.push(`up to a maximum of ${formatMoney(Number(maxAmount))}`);
-    }
-    return parts.join(" · ");
-  }
   return `${formatMoney(matchAmount)} Match-Sponsorship`;
 }
 
 export function formatSponsorPayableCopy({
   baseAmount,
-  gbpPerGoal,
   maxAmount,
   clubName,
 }: {
@@ -274,9 +263,6 @@ export function formatSponsorPayableCopy({
         : 0;
   const who = clubName ? `${clubName}` : "this Match";
   const topUp = matchSponsorshipTopUp(matchAmount);
-  if (Number(gbpPerGoal) > 0) {
-    return `You pay the ${formatMoney(matchAmount)} Match-Sponsorship for ${who}, plus ${formatMoney(Number(gbpPerGoal))} for each Goal scored.`;
-  }
   return `You pay the ${formatMoney(topUp.matchSponsorshipGbp)} Match-Sponsorship for ${who}, plus a ${PLATFORM_FEE_PERCENT_LABEL} Platform Fee of ${formatMoney(topUp.platformFeeGbp)} (total ${formatMoney(topUp.paidGbp)}) via Stripe.`;
 }
 

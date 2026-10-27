@@ -273,7 +273,7 @@ export async function recordSponsoredGoal({
       awayName,
       awayScore: nextAway,
     })}`,
-    message: `${scoringName} scored against ${opponentName}. ${goalBrand} has released £${goalAmount.toLocaleString("en-GB")} Goals-scored sponsorship into the Carbon Wallet.`,
+    message: `${scoringName} scored against ${opponentName}. ${goalBrand} has released £${goalAmount.toLocaleString("en-GB")} Match-Sponsorship into the Carbon Wallet.`,
   });
 
   return {

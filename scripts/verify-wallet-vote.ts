@@ -681,8 +681,10 @@ assert(
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
   !clubSelect.includes("Goal-scored funding for this Match") &&
+    !clubSelect.includes("Goal-scored funding is already") &&
     clubSelect.includes("DEFAULT_WALLET_VOTE_GBP") &&
-    clubSelect.includes("leadWalletMatchFunding"),
+    clubSelect.includes("leadWalletMatchFunding") &&
+    clubSelect.includes("Match-Sponsorship is already"),
   "Club Climate Projects does not set Goal-scored funding; FUND-IT stays £0.20"
 );
 

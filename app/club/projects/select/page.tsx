@@ -360,9 +360,9 @@ export default function SelectMatchDayProjectsPage() {
             {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon
             Wallet. Lead Climate Sponsor wallets fund Global Schools Solar
             (75%) and local Climate Projects (25%). Local Business Climate
-            Sponsor wallets fund local Climate Projects only. Goal-scored
-            funding is already set by the Lead Climate Sponsor in the Climate
-            Sponsorship Wallet.
+            Sponsor wallets fund local Climate Projects only. The Lead Climate
+            Sponsor's Match-Sponsorship is already in the Climate Sponsorship
+            Wallet.
           </p>
           <button
             onClick={confirm}

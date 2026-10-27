@@ -70,11 +70,10 @@ export default function ArsenalGoalSimulationPage() {
         </p>
         <h1 className="text-4xl font-black">Simulate an Arsenal sponsored goal</h1>
         <p className="text-slate-300">
-          This posts a Goal-scored event on Arsenal's upcoming fixture, releases
-          the agreed {formatWalletGbp(DEFAULT_LEAD_GBP_PER_GOAL)} / Goal from the
-          Lead Climate Sponsor who signed that match into the Carbon Wallet,
-          alerts registered Arsenal fans, and adds one Impact Moment on the
-          homepage.
+          This posts a live score event on Arsenal's upcoming fixture, alerts
+          registered Arsenal fans, and adds one Impact Moment on the homepage.
+          Match-Sponsorship is the one amount already in the Climate Sponsorship
+          Wallet ({formatWalletGbp(DEFAULT_LEAD_GBP_PER_GOAL)} in this test).
         </p>
         <p className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-300">
           Fixture: {fixtureLabel}

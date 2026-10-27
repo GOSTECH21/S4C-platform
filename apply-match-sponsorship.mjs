@@ -8,19 +8,31 @@ import {
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/match-sponsorship-18f9";
+const MARKERS = new Set([
+  "ClimateSponsorshipWallet.tsx",
+  "SponsorInviteInbox.tsx",
+]);
 const FILES = [
   "app/components/sponsor/ClimateSponsorshipWallet.tsx",
+  "app/components/sponsor/SponsorInviteInbox.tsx",
   "app/components/sponsor/ClubChosenProjectsPanel.tsx",
+  "app/components/club/ClubSponsorsListings.tsx",
+  "app/sponsor/invitations/page.tsx",
+  "app/sponsor/register/page.tsx",
+  "app/sponsor/offers/OfferSignOff.tsx",
+  "app/sponsor/wallet/page.tsx",
+  "app/club/projects/select/page.tsx",
   "app/lib/match-day-carbon-offset.ts",
   "app/lib/sponsor-card-payment.ts",
   "app/lib/sponsor-wallet.ts",
   "app/lib/sponsor-listings.ts",
-  "app/sponsor/wallet/page.tsx",
+  "app/lib/sponsorship-auction.ts",
+  "app/lib/sports.ts",
 ];
 
 console.log("Folder:", process.cwd());
 
-function findWalletFiles(dir, depth, found) {
+function findMarkerFiles(dir, depth, found) {
   if (depth > 6) return;
   let entries = [];
   try {
@@ -37,27 +49,27 @@ function findWalletFiles(dir, depth, found) {
       continue;
     }
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) findWalletFiles(path, depth + 1, found);
-    else if (entry.name === "ClimateSponsorshipWallet.tsx") found.push(path);
+    if (entry.isDirectory()) findMarkerFiles(path, depth + 1, found);
+    else if (MARKERS.has(entry.name)) found.push(path);
   }
 }
 
-const wallets = [];
-findWalletFiles(process.cwd(), 0, wallets);
-if (wallets.length === 0) {
+function appRootFromMarker(file) {
+  return dirname(dirname(dirname(dirname(file))));
+}
+
+const markers = [];
+findMarkerFiles(process.cwd(), 0, markers);
+if (markers.length === 0) {
   console.error(
-    "Could not find ClimateSponsorshipWallet.tsx under this folder. In the SAME terminal where you run npm run dev, cd to S4C-platform and run this again."
+    "Could not find SponsorInviteInbox.tsx or ClimateSponsorshipWallet.tsx under this folder. In the SAME terminal where you run npm run dev, cd to S4C-platform and run this again."
   );
   process.exit(1);
 }
 
-const roots = [
-  ...new Set(
-    wallets.map((file) => dirname(dirname(dirname(dirname(file)))))
-  ),
-];
-console.log("Updating wallet files:");
-for (const file of wallets) console.log(" ", file);
+const roots = [...new Set(markers.map(appRootFromMarker))];
+console.log("Updating app roots:");
+for (const root of roots) console.log(" ", root);
 
 async function pullFile(root, rel) {
   const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
@@ -91,17 +103,31 @@ for (const root of roots) {
   }
 }
 
-for (const file of wallets) {
-  const wallet = existsSync(file) ? readFileSync(file, "utf8") : "";
-  if (!wallet.includes("s4p-match-sponsorship-wallet-v2")) {
+for (const root of roots) {
+  const wallet = join(root, "app/components/sponsor/ClimateSponsorshipWallet.tsx");
+  const inbox = join(root, "app/components/sponsor/SponsorInviteInbox.tsx");
+  const walletText = existsSync(wallet) ? readFileSync(wallet, "utf8") : "";
+  const inboxText = existsSync(inbox) ? readFileSync(inbox, "utf8") : "";
+  if (!walletText.includes("s4p-match-sponsorship-wallet-v2")) {
     failed += 1;
-    console.error("Still old wallet:", file);
+    console.error("Still old wallet:", wallet);
   } else {
-    console.log("Updated wallet:", file);
+    console.log("Updated wallet:", wallet);
+  }
+  if (
+    !inboxText.includes("s4p-match-sponsorship-inbox-v2") ||
+    inboxText.includes("Commitment Fee") ||
+    inboxText.includes("Sponsorship/Goal") ||
+    inboxText.includes("Commit sponsorship amounts")
+  ) {
+    failed += 1;
+    console.error("Still old invitations inbox:", inbox);
+  } else {
+    console.log("Updated invitations inbox:", inbox);
   }
 }
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Every ClimateSponsorshipWallet.tsx now has Match-Sponsorship + 5% Platform Fee. In the npm run dev terminal: Ctrl+C, then rmdir /s /q .next && npm run dev, then Ctrl+F5."
+  "OK: Invitations and wallet now use one Match-Sponsorship amount. In the npm run dev terminal: Ctrl+C, then rmdir /s /q .next && npm run dev, then Ctrl+F5 on Invitations."
 );

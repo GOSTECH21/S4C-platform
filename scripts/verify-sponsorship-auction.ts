@@ -124,7 +124,17 @@ assert(
 );
 
 assert(
-  formatMatchFundingLine({ baseAmount: 3000 }) === "£3,000 Match-Sponsorship",
+  formatMatchFundingLine({ baseAmount: 3000 }) === "£3,000 Match-Sponsorship" &&
+    formatMatchFundingLine({
+      baseAmount: 2500,
+      gbpPerGoal: 2000,
+      maxAmount: 8000,
+    }) === "£2,500 Match-Sponsorship" &&
+    !formatMatchFundingLine({
+      baseAmount: 2500,
+      gbpPerGoal: 2000,
+      maxAmount: 8000,
+    }).includes("/Goal"),
   "Funding line is one Match-Sponsorship amount"
 );
 assert(
@@ -146,7 +156,19 @@ assert(
     formatSponsorPayableCopy({
       baseAmount: 4000,
       clubName: "Hearts",
-    }).includes("via Stripe"),
+    }).includes("via Stripe") &&
+    !formatSponsorPayableCopy({
+      baseAmount: 2500,
+      gbpPerGoal: 2000,
+      maxAmount: 8000,
+      clubName: "Fulham",
+    }).includes("each Goal") &&
+    !formatSponsorPayableCopy({
+      baseAmount: 2500,
+      gbpPerGoal: 2000,
+      maxAmount: 8000,
+      clubName: "Fulham",
+    }).includes("/Goal"),
   "Hearts sign-off copy is one Match-Sponsorship plus Platform Fee via Stripe"
 );
 assert(
@@ -223,5 +245,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Match Day funding: sponsor wallet sets Base + £/Goal; club page keeps £0.20 FUND-IT."
+  "Match Day funding: one Match-Sponsorship plus 5% Platform Fee; club page keeps £0.20 FUND-IT."
 );
