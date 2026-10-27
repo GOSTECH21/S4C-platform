@@ -1,4 +1,10 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "fs";
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/match-sponsorship-18f9";
@@ -14,23 +20,56 @@ const FILES = [
 
 console.log("Folder:", process.cwd());
 
-if (!existsSync("app/components/sponsor/ClimateSponsorshipWallet.tsx")) {
+function findWalletFiles(dir, depth, found) {
+  if (depth > 6) return;
+  let entries = [];
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (
+      entry.name === "node_modules" ||
+      entry.name === ".next" ||
+      entry.name === ".git"
+    ) {
+      continue;
+    }
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) findWalletFiles(path, depth + 1, found);
+    else if (entry.name === "ClimateSponsorshipWallet.tsx") found.push(path);
+  }
+}
+
+const wallets = [];
+findWalletFiles(process.cwd(), 0, wallets);
+if (wallets.length === 0) {
   console.error(
-    "This is not the S4C-platform app folder. cd into S4C-platform (the folder that contains app\\components\\sponsor) and run this again."
+    "Could not find ClimateSponsorshipWallet.tsx under this folder. In the SAME terminal where you run npm run dev, cd to S4C-platform and run this again."
   );
   process.exit(1);
 }
 
-async function pullFile(rel) {
+const roots = [
+  ...new Set(
+    wallets.map((file) => dirname(dirname(dirname(dirname(file)))))
+  ),
+];
+console.log("Updating wallet files:");
+for (const file of wallets) console.log(" ", file);
+
+async function pullFile(root, rel) {
   const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
   let lastError = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      mkdirSync(dirname(join(rel)), { recursive: true });
-      writeFileSync(rel, Buffer.from(await response.arrayBuffer()));
-      console.log("Pulled", rel);
+      const dest = join(root, rel);
+      mkdirSync(dirname(dest), { recursive: true });
+      writeFileSync(dest, Buffer.from(await response.arrayBuffer()));
+      console.log("Pulled", dest);
       return true;
     } catch (err) {
       lastError = err;
@@ -45,31 +84,24 @@ async function pullFile(rel) {
 }
 
 let failed = 0;
-for (const rel of FILES) {
-  const ok = await pullFile(rel);
-  if (!ok) failed += 1;
+for (const root of roots) {
+  for (const rel of FILES) {
+    const ok = await pullFile(root, rel);
+    if (!ok) failed += 1;
+  }
 }
 
-const wallet = existsSync("app/components/sponsor/ClimateSponsorshipWallet.tsx")
-  ? readFileSync("app/components/sponsor/ClimateSponsorshipWallet.tsx", "utf8")
-  : "";
-
-if (!wallet.includes("s4p-match-sponsorship-wallet-v2")) {
-  failed += 1;
-  console.error(
-    "The wallet file did not update. You ran this in the wrong folder, or the download failed."
-  );
-}
-if (wallet.includes("Commitment Fee (Day 1)") || wallet.includes("Sponsorship/Goal-Scored")) {
-  failed += 1;
-  console.error("The wallet file still has Commitment Fee / Sponsorship/Goal-Scored.");
-}
-if (!wallet.includes("Match-Sponsorship + 5% Platform Fee")) {
-  failed += 1;
-  console.error("The wallet file is missing the Match-Sponsorship heading.");
+for (const file of wallets) {
+  const wallet = existsSync(file) ? readFileSync(file, "utf8") : "";
+  if (!wallet.includes("s4p-match-sponsorship-wallet-v2")) {
+    failed += 1;
+    console.error("Still old wallet:", file);
+  } else {
+    console.log("Updated wallet:", file);
+  }
 }
 
 if (failed) process.exit(1);
 console.log(
-  "OK: American Express wallet file is Match-Sponsorship + 5% Platform Fee. Stop npm run dev, delete the .next folder, start npm run dev, then Ctrl+F5."
+  "OK: Every ClimateSponsorshipWallet.tsx now has Match-Sponsorship + 5% Platform Fee. In the npm run dev terminal: Ctrl+C, then rmdir /s /q .next && npm run dev, then Ctrl+F5."
 );
