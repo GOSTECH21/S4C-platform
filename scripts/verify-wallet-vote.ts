@@ -380,7 +380,12 @@ const leadOnLocal = allocateWalletVote({
   projects,
   projectNumber: 3,
 });
-assert(!leadOnLocal.ok, "Lead wallets cannot put the chosen £0.20 on a local Climate Project");
+assert(
+  leadOnLocal.ok &&
+    leadOnLocal.project.name === "Wee Spoke Hub" &&
+    leadOnLocal.project.fundedGbp === 0.2,
+  "Lead wallets can put the chosen £0.20 on any listed Climate Project"
+);
 
 const expandedFromOne = withFanGssChoices([
   { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
@@ -405,8 +410,8 @@ const internationalVote = allocateWalletVote({
 assert(
   internationalVote.ok &&
     internationalVote.project.name === FEATURED_GSS_WORLD_NAME &&
-    internationalVote.project.fundedGbp === 0.15,
-  "Lead FUND-IT on International Global Schools Solar credits that version 75%"
+    internationalVote.project.fundedGbp === 0.2,
+  "Lead FUND-IT on International Global Schools Solar credits that listed project £0.20"
 );
 
 const leadVoted = allocateWalletVote({
@@ -421,15 +426,15 @@ if (leadVoted.ok) {
     "Amex Carbon Wallet then displays £2,999.80"
   );
   assert(
-    leadVoted.project.number === 1 && leadVoted.project.fundedGbp === 0.15,
-    "The chosen GSS version receives 75% (£0.15) from the Amex Carbon Wallet"
+    leadVoted.project.number === 1 && leadVoted.project.fundedGbp === 0.2,
+    "The chosen listed Climate Project receives the full £0.20 from the Amex Carbon Wallet"
   );
-  const localShareTotal = (leadVoted.shares ?? [])
-    .filter((share) => share.project.number > 2)
+  const otherShareTotal = (leadVoted.shares ?? [])
+    .filter((share) => share.project.number !== 1)
     .reduce((sum, share) => sum + share.amount, 0);
   assert(
-    Math.round(localShareTotal * 100) / 100 === 0.05,
-    "25% (£0.05) of the Lead FUND-IT is split across local Climate Projects"
+    otherShareTotal === 0,
+    "FUND-IT does not split the £0.20 across other listed Climate Projects"
   );
   assert(
     totalAllocatedGbp([leadVoted.wallet]) === 0.2,
@@ -703,7 +708,8 @@ assert(
 assert(
   fanPage.includes("Climate Projects List") &&
     fanPage.includes("space-y-2") &&
-    fanPage.includes("select the project by name") &&
+    fanPage.includes("listed Climate Project") &&
+    fanPage.includes("drop-down next to a Carbon Wallet") &&
     fanPage.includes("There is never a second") &&
     fanPage.includes("withFeaturedGssVersions"),
   "My S4P uses the Climate Projects List heading as a stacked accordion with one Featured GSS"
@@ -763,14 +769,15 @@ assert(
   sponsorsUi.includes("Carbon Wallet") &&
     sponsorsUi.includes("FundProjectSelect") &&
     sponsorsUi.includes("Select a Climate Project") &&
-    sponsorsUi.includes("featuredFromList") &&
+    sponsorsUi.includes("projects={projectChoices}") &&
     sponsorsUi.includes("localFromList") &&
+    !sponsorsUi.includes("featuredFromList") &&
     !sponsorsUi.includes("Select a Global Schools Solar version") &&
     !sponsorsUi.includes(">Checkbox<") &&
     sponsorsUi.includes("FUND_IT_LABEL") &&
     sponsorsUi.includes("canPressFundIt") &&
     !sponsorsUi.includes(">Vote<"),
-  "Lead wallets pick a GSS version; Local Business wallets pick a local Climate Project"
+  "Lead wallets pick any listed Climate Project; Local Business wallets pick a local Climate Project"
 );
 assert(
   sponsorsUi.includes("fundItCopy") &&

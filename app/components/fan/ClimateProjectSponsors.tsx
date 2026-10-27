@@ -6,7 +6,7 @@ import { LEAD_CLIMATE_SPONSOR_LABEL } from "@/app/lib/dual-sponsor";
 import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
 import { fanInviteRegisterPath } from "@/app/lib/climate-funding";
 import { FAN_REGISTER_PATH } from "@/app/lib/routes";
-import { featuredFromList, localFromList } from "@/app/lib/featured-gss";
+import { localFromList } from "@/app/lib/featured-gss";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
@@ -113,7 +113,6 @@ export function ClimateProjectSponsors({
           number: index + 1,
           name: `Climate Project ${index + 1}`,
         }));
-  const leadChoices = featuredFromList(projectChoices);
   const localChoices = localFromList(projectChoices);
 
   function fundLead() {
@@ -180,7 +179,7 @@ export function ClimateProjectSponsors({
             <CarbonWalletBox amount={lead.remainingGbp} />
             <FundProjectSelect
               brandName={lead.brandName}
-              projects={leadChoices}
+              projects={projectChoices}
               numberValue={leadNumber}
               used={leadUsed}
               onNumber={setLeadNumber}

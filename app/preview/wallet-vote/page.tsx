@@ -154,8 +154,7 @@ export default function WalletVotePreviewPage() {
             and press {FUND_IT_LABEL}: the Carbon Wallet shows{" "}
             {formatWalletGbp(1200 - DEFAULT_WALLET_VOTE_GBP)} and Edinburgh Tree
             Planting receives {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}.
-            Lead wallets fund a Global Schools Solar version (75%) and split 25%
-            across local Climate Projects.
+            Lead wallets list every Match Day Climate Project in the drop-down.
           </p>
         </div>
 
