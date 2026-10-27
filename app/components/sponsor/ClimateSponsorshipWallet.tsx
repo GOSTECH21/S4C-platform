@@ -1,27 +1,45 @@
 "use client";
 
+/* s4p-match-sponsorship-wallet-v2 */
+
 import { useEffect, useState } from "react";
 import {
   DEFAULT_WALLET_VOTE_GBP,
-  PLATFORM_FEE_LABEL,
   formatWalletGbp,
   leadCarbonWalletGbp,
   localWalletTopUp,
-  matchSponsorshipTopUp,
   remainingGbp,
   type ClimateWallet,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
-import { MATCH_SPONSORSHIP_LABEL } from "@/app/lib/sponsor-listings";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import {
   TOP_UP_CASH_HEADING,
   climateWalletHeading,
 } from "@/app/lib/match-day-carbon-offset";
-import {
-  CLIMATE_WALLET_CONFIRMATION_COPY,
-  LOCAL_WALLET_CONFIRMATION_COPY,
-} from "@/app/lib/sponsor-card-payment";
+
+const MATCH_SPONSORSHIP_LABEL = "Match-Sponsorship";
+const PLATFORM_FEE_LABEL = "Platform Fee (5%)";
+const PLATFORM_FEE_RATE = 0.05;
+const CLIMATE_WALLET_CONFIRMATION_COPY =
+  "This confirmation page shows your Match-Sponsorship. Your last action before Pay with your Credit/Debit Card is to click Deposit into Climate Sponsorship Wallet. Stripe then takes the Match-Sponsorship plus the 5% Platform Fee.";
+const LOCAL_WALLET_CONFIRMATION_COPY =
+  "This confirmation page shows what you are committing to. Your last action before Pay with your Credit/Debit Card is to click Put into Carbon Wallet.";
+
+function matchSponsorshipTopUp(matchSponsorshipGbp: number): {
+  matchSponsorshipGbp: number;
+  platformFeeGbp: number;
+  paidGbp: number;
+} {
+  const matchSponsorship = Math.round((Number(matchSponsorshipGbp) || 0) * 100) / 100;
+  const platformFeeGbp =
+    Math.round(Math.max(0, matchSponsorship) * PLATFORM_FEE_RATE * 100) / 100;
+  return {
+    matchSponsorshipGbp: Math.max(0, matchSponsorship),
+    platformFeeGbp,
+    paidGbp: Math.round((Math.max(0, matchSponsorship) + platformFeeGbp) * 100) / 100,
+  };
+}
 
 export function ClimateSponsorshipWallet({
   kind,
@@ -61,15 +79,13 @@ export function ClimateSponsorshipWallet({
   return (
     <div className="rounded-3xl border border-emerald-400/30 bg-slate-900 p-8">
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
-        Climate Sponsorship Wallet
+        Match-Sponsorship + 5% Platform Fee
       </p>
       <h2 className="mt-2 text-3xl font-black">
         {kind === "local" ? TOP_UP_CASH_HEADING : heading || climateWalletHeading({ clubName })}
       </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        {kind === "lead"
-          ? CLIMATE_WALLET_CONFIRMATION_COPY
-          : LOCAL_WALLET_CONFIRMATION_COPY}
+        {kind === "lead" ? CLIMATE_WALLET_CONFIRMATION_COPY : LOCAL_WALLET_CONFIRMATION_COPY}
       </p>
       <p className="mt-3 max-w-3xl text-slate-400">
         {kind === "lead"
@@ -177,6 +193,7 @@ export function ClimateSponsorshipWallet({
               value={commitmentFee}
               onChange={(event) => setCommitmentFee(event.target.value)}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+              data-testid="match-sponsorship-amount"
             />
           </label>
           <p className="max-w-2xl text-sm text-slate-400">
