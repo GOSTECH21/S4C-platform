@@ -36,22 +36,33 @@ const FILES = [
   "scripts/verify-sponsor-card-payment.ts",
 ];
 
+async function pullFile(rel) {
+  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
+  let lastError = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      mkdirSync(dirname(join(rel)), { recursive: true });
+      writeFileSync(rel, Buffer.from(await response.arrayBuffer()));
+      console.log("Pulled", rel);
+      return true;
+    } catch (err) {
+      lastError = err;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 400));
+    }
+  }
+  console.error(
+    `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
+    lastError instanceof Error ? lastError.message : lastError
+  );
+  return false;
+}
+
 let failed = 0;
 for (const rel of FILES) {
-  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    mkdirSync(dirname(join(rel)), { recursive: true });
-    writeFileSync(rel, Buffer.from(await response.arrayBuffer()));
-    console.log("Pulled", rel);
-  } catch (err) {
-    failed += 1;
-    console.error(
-      `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
-      err instanceof Error ? err.message : err
-    );
-  }
+  const ok = await pullFile(rel);
+  if (!ok) failed += 1;
 }
 
 function read(rel) {
@@ -85,19 +96,23 @@ if (
     "LOCAL_INVITE_SIGN_LABEL"
   ) ||
   !read("app/sponsor/login/page.tsx").includes("localSponsorLoginPath") ||
+  !read("app/lib/sponsor-card-payment.ts").includes("PAY_WITH_CARD_LABEL") ||
   !read("app/lib/routes.ts").includes("sponsorPayPath") ||
   !read("app/sponsor/wallet/page.tsx").includes("sponsorPayPath") ||
   read("app/sponsor/wallet/page.tsx").includes(
     "Sign off this Match Day sponsorship"
   ) ||
   !read("app/sponsor/pay/page.tsx").includes("StripeCardPayment") ||
+  !read("app/services/sponsor-card-payment.service.ts").includes(
+    "confirmMatchDayCardPayment"
+  ) ||
   !read("app/components/sponsor/StripeCardPayment.tsx").includes(
     "PAY_WITH_CARD_LABEL"
   )
 ) {
   failed += 1;
   console.error(
-    "Sponsors listings are missing. Pull the files above, then hard-refresh."
+    "Sponsors listings or card payment files are missing. Pull the files above, then hard-refresh."
   );
 }
 
