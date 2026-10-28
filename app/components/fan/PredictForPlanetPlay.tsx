@@ -121,7 +121,7 @@ export function PredictForPlanetPlay({
   const slotIndex = sponsored?.slotIndex ?? 0;
   const playableWindows = windowsForGameTimeSlot(slotIndex);
   const slot = slots[slotIndex];
-  const window =
+  const playWindow =
     playableWindows.find((row) => row.index === windowIndex) ??
     playableWindows[0];
   const wallet =
@@ -148,9 +148,9 @@ export function PredictForPlanetPlay({
     predictions,
     fanId,
     liveFixture,
-    window?.index ?? 0
+    playWindow?.index ?? 0
   );
-  const windowAllowed = isWindowInGameTimeSlot(window?.index ?? -1, slotIndex);
+  const windowAllowed = isWindowInGameTimeSlot(playWindow?.index ?? -1, slotIndex);
   const canPredict = Boolean(
     wallet &&
       remaining > 0 &&
@@ -163,8 +163,8 @@ export function PredictForPlanetPlay({
   const challenge = wallet
     ? p4pLiveChallenge(wallet, allPredictions)
     : null;
-  const countdown = wallet && window
-    ? p4pWindowCountdown(wallet.kickoffAt, window, now)
+  const countdown = wallet && playWindow
+    ? p4pWindowCountdown(wallet.kickoffAt, playWindow, now)
     : null;
   void tick;
 
@@ -207,7 +207,7 @@ export function PredictForPlanetPlay({
       fanId,
       clubName: liveClub,
       fixtureName: liveFixture,
-      windowIndex: window?.index ?? 0,
+      windowIndex: playWindow?.index ?? 0,
       categoryId,
       projectName,
     });
@@ -362,7 +362,7 @@ export function PredictForPlanetPlay({
           <label className="block min-w-0 flex-1 text-sm font-semibold text-slate-700">
             5-minute slot
             <select
-              value={window?.index ?? 0}
+              value={playWindow?.index ?? 0}
               onChange={(event) => setWindowIndex(Number(event.target.value))}
               className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-950"
             >
@@ -441,7 +441,7 @@ export function PredictForPlanetPlay({
           type="button"
           onClick={predict}
           disabled={!canPredict}
-          className="mt-5 w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          className="mt-5 w-full rounded-xl border border-transparent bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:border-slate-400 disabled:bg-slate-200 disabled:text-slate-800"
         >
           {alreadyInWindow
             ? "Already predicted this 5-minute slot"
