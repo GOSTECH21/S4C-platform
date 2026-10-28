@@ -7,7 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/predict-for-planet-18f9";
+const BRANCH = "cursor/p4p-live-challenge-18f9";
+const BUST = "p4p-accuracy-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -15,6 +16,7 @@ const FILES = [
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
+  "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
   "app/dashboard/supporter/predict/page.tsx",
   "app/supporter/dashboard/predict/page.tsx",
@@ -78,11 +80,11 @@ console.log("Updating app roots:");
 for (const root of roots) console.log(" ", root);
 
 async function pullFile(root, rel) {
-  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
+  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}?v=${BUST}`;
   let lastError = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const dest = join(root, rel);
       mkdirSync(dirname(dest), { recursive: true });
@@ -112,14 +114,22 @@ for (const root of roots) {
 for (const root of roots) {
   const how = join(root, "app/components/home/HowItWorks.tsx");
   const lib = join(root, "app/lib/predict-for-planet.ts");
+  const play = join(root, "app/components/fan/PredictForPlanetPlay.tsx");
+  const phone = join(root, "app/components/home/PredictForPlanet.tsx");
+  const gameTime = join(root, "app/sponsor/game-time/page.tsx");
+  const preview = join(root, "app/components/fan/P4pLiveChallengePreview.tsx");
   const register = join(root, "app/sponsor/register/page.tsx");
   const nav = join(root, "app/dashboard/supporter/components/FanNav.tsx");
   const howText = existsSync(how) ? readFileSync(how, "utf8") : "";
   const libText = existsSync(lib) ? readFileSync(lib, "utf8") : "";
+  const playText = existsSync(play) ? readFileSync(play, "utf8") : "";
+  const phoneText = existsSync(phone) ? readFileSync(phone, "utf8") : "";
+  const gameTimeText = existsSync(gameTime) ? readFileSync(gameTime, "utf8") : "";
+  const previewText = existsSync(preview) ? readFileSync(preview, "utf8") : "";
   const registerText = existsSync(register) ? readFileSync(register, "utf8") : "";
   const navText = existsSync(nav) ? readFileSync(nav, "utf8") : "";
   if (
-    !howText.includes("s4p-predict-for-planet-v1") ||
+    !howText.includes("s4p-predict-for-planet-v4") ||
     !howText.includes("PredictForPlanetPhone") ||
     howText.includes("Plan Your Travel")
   ) {
@@ -129,15 +139,57 @@ for (const root of roots) {
     console.log("Updated How S4P Works Step 4:", how);
   }
   if (
-    !libText.includes("s4p-predict-for-planet-v1") ||
+    !libText.includes("s4p-predict-for-planet-v4") ||
     !libText.includes("Handball offence") ||
     !libText.includes("VAR referee review") ||
-    !libText.includes("pickSponsoredGameTimeMatch")
+    !libText.includes("pickSponsoredGameTimeMatch") ||
+    !libText.includes("Fans engagement with this challenge") ||
+    !libText.includes("p4pPlayIntroCopy") ||
+    !libText.includes("P4P_ACCURACY_GBP")
   ) {
     failed += 1;
     console.error("Still old Predict-For Planet model:", lib);
   } else {
     console.log("Updated Predict-For Planet model:", lib);
+  }
+  if (
+    !playText.includes("s4p-predict-for-planet-v4") ||
+    !playText.includes('data-testid="p4p-powered-by"') ||
+    !playText.includes("What happens next?") ||
+    !playText.includes("p4pPlayIntroCopy") ||
+    !playText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
+    !playText.includes("FAN_CARBON_WALLET_LABEL") ||
+    !playText.includes("awardP4pSlotEvent") ||
+    playText.includes("bg-[#10262c]") ||
+    playText.includes("text-[#f4f1e6]")
+  ) {
+    failed += 1;
+    console.error("Still old dark P4P live board:", play);
+  } else {
+    console.log("Ivory live board and sponsor mark beside What happens next:", play);
+  }
+  if (
+    !phoneText.includes("s4p-predict-for-planet-v4") ||
+    !phoneText.includes("#fffdf8") ||
+    phoneText.includes("#0b1f14") ||
+    !phoneText.includes("P4P_POWERED_BY_LABEL")
+  ) {
+    failed += 1;
+    console.error("Still old dark How S4P Works P4P phone:", phone);
+  } else {
+    console.log("Ivory How S4P Works P4P phone with sponsor mark:", phone);
+  }
+  if (
+    !gameTimeText.includes("P4pLiveChallengePreview") ||
+    !previewText.includes("What fans see on Predict-For Planet") ||
+    !previewText.includes('data-testid="p4p-powered-by"') ||
+    !previewText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
+    previewText.includes("bg-[#10262c]")
+  ) {
+    failed += 1;
+    console.error("Still old Game-Time page without the ivory P4P preview:", gameTime);
+  } else {
+    console.log("Game-Time shows ivory live board and sponsor mark:", gameTime);
   }
   if (
     !registerText.includes("GAME_TIME_PRODUCT_LABEL") ||
@@ -158,5 +210,5 @@ for (const root of roots) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Predict-For Planet is How S4P Works Step 4. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then npm run dev, then Ctrl+F5. Open How S4P Works Step 4, or http://localhost:3000/preview/predict-for-planet"
+  "OK: P4P now says Fans engagement with this challenge. Participating earns £0.10; the right event earns another £0.30 into the Fan Carbon Wallet. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open P4P: http://localhost:3000/supporter/dashboard/predict"
 );

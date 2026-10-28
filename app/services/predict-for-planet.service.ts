@@ -1,21 +1,28 @@
+/* s4p-predict-for-planet-v4 */
 import {
   P4P_WINDOWS_PER_SLOT,
+  awardP4pAccuracy,
   createGameTimeWallet,
+  gameTimeFixtureMatches,
   gameTimeWalletId,
   gameTimeWalletMatchesMatch,
   isPaidGameTimeWallet,
+  p4pCategoryById,
   pickSponsoredGameTimeMatch,
   recordP4pEngagement,
   remainingGameTimeGbp,
   type GameTimeCheckout,
   type GameTimeWallet,
+  type P4pCategoryId,
   type P4pEngagementResult,
   type P4pPrediction,
+  type P4pSlotEvent,
   type SponsoredGameTimeMatch,
 } from "@/app/lib/predict-for-planet";
 
 export const GAME_TIME_WALLETS_STORAGE = "s4p.game-time.wallets";
 export const P4P_PREDICTIONS_STORAGE = "s4p.p4p.predictions";
+export const P4P_SLOT_EVENTS_STORAGE = "s4p.p4p.slot-events";
 export const GAME_TIME_CHECKOUT_STORAGE = "s4p.game-time.checkout";
 export const GAME_TIME_PAYMENTS_STORAGE = "s4p.game-time.payments";
 export const SPONSOR_PROFILE_STORAGE = "s4p.sponsor.profile";
@@ -200,7 +207,7 @@ export function submitP4pPrediction(input: {
   const predictions = listP4pPredictions();
   const windowIndex = Math.round(Number(input.windowIndex) || 0);
   const slotIndex = Math.floor(windowIndex / P4P_WINDOWS_PER_SLOT);
-  const wallet = gameTimeWalletForSlot({
+  const slotWallet = gameTimeWalletForSlot({
     clubName: input.clubName,
     fixtureName: input.fixtureName,
     slotIndex,
@@ -208,11 +215,125 @@ export function submitP4pPrediction(input: {
   const result = recordP4pEngagement({
     ...input,
     windowIndex,
-    wallet,
+    wallet: slotWallet,
     predictions,
   });
   if (!result.ok) return result;
-  writeJson(P4P_PREDICTIONS_STORAGE, [...predictions, result.prediction]);
-  if (result.wallet) saveGameTimeWallet(result.wallet);
-  return result;
+  let prediction = result.prediction;
+  let wallet = result.wallet;
+  let takenGbp = result.takenGbp;
+  if (
+    slotEventAwarded(
+      listP4pSlotEvents(),
+      input.fixtureName,
+      windowIndex,
+      prediction.categoryId
+    )
+  ) {
+    const settled = awardP4pAccuracy({
+      prediction,
+      wallet,
+      categoryId: prediction.categoryId,
+    });
+    prediction = settled.prediction;
+    wallet = settled.wallet;
+    takenGbp += settled.takenGbp;
+  }
+  writeJson(P4P_PREDICTIONS_STORAGE, [...predictions, prediction]);
+  if (wallet) saveGameTimeWallet(wallet);
+  return { ok: true, prediction, wallet, takenGbp };
+}
+
+export function listP4pSlotEvents(): P4pSlotEvent[] {
+  return readJson<P4pSlotEvent>(P4P_SLOT_EVENTS_STORAGE);
+}
+
+export function awardP4pSlotEvent(input: {
+  clubName: string;
+  fixtureName: string;
+  windowIndex: number;
+  categoryId: string;
+}): {
+  ok: true;
+  wallet: GameTimeWallet | null;
+  predictions: P4pPrediction[];
+  takenGbp: number;
+  awardedCount: number;
+} | { ok: false; error: string } {
+  const category = p4pCategoryById(input.categoryId);
+  if (!category) {
+    return { ok: false, error: "Choose one of the eight Predict-For Planet events." };
+  }
+  const windowIndex = Math.round(Number(input.windowIndex) || 0);
+  const events = listP4pSlotEvents();
+  const already = events.some(
+    (row) =>
+      gameTimeFixtureMatches(row.fixtureName, input.fixtureName) &&
+      row.windowIndex === windowIndex &&
+      row.categoryId === category.id
+  );
+  if (!already) {
+    writeJson(P4P_SLOT_EVENTS_STORAGE, [
+      ...events,
+      {
+        fixtureName: input.fixtureName,
+        windowIndex,
+        categoryId: category.id,
+        at: new Date().toISOString(),
+      },
+    ]);
+  }
+  const slotIndex = Math.floor(windowIndex / P4P_WINDOWS_PER_SLOT);
+  let wallet = gameTimeWalletForSlot({
+    clubName: input.clubName,
+    fixtureName: input.fixtureName,
+    slotIndex,
+  });
+  const predictions = listP4pPredictions();
+  let takenGbp = 0;
+  let awardedCount = 0;
+  const nextPredictions = predictions.map((row) => {
+    if (
+      !gameTimeFixtureMatches(row.fixtureName, input.fixtureName) ||
+      row.windowIndex !== windowIndex
+    ) {
+      return row;
+    }
+    const settled = awardP4pAccuracy({
+      prediction: row,
+      wallet,
+      categoryId: category.id,
+    });
+    if (settled.takenGbp > 0) {
+      takenGbp += settled.takenGbp;
+      awardedCount += 1;
+      wallet = settled.wallet;
+    } else if (settled.prediction.correct === true && row.correct !== true) {
+      awardedCount += 1;
+    }
+    return settled.prediction;
+  });
+  writeJson(P4P_PREDICTIONS_STORAGE, nextPredictions);
+  if (wallet) saveGameTimeWallet(wallet);
+  return {
+    ok: true,
+    wallet,
+    predictions: nextPredictions,
+    takenGbp,
+    awardedCount,
+  };
+}
+
+export function slotEventAwarded(
+  events: P4pSlotEvent[],
+  fixtureName: string,
+  windowIndex: number,
+  categoryId: P4pCategoryId
+): boolean {
+  return events.some(
+    (row) =>
+      gameTimeFixtureMatches(row.fixtureName, fixtureName) &&
+      row.windowIndex === windowIndex &&
+      row.categoryId === categoryId
+  );
 }

@@ -10,13 +10,15 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/predict-for-planet-18f9"
+$branch = "cursor/p4p-live-challenge-18f9"
+$bust = "p4p-accuracy-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
+  "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
   "app/dashboard/supporter/predict/page.tsx",
   "app/supporter/dashboard/predict/page.tsx",
@@ -45,7 +47,7 @@ $roots = $markers | ForEach-Object {
 foreach ($root in $roots) {
   Write-Host "Updating $root"
   foreach ($rel in $files) {
-    $url = "https://raw.githubusercontent.com/GOSTECH21/S4C-platform/$branch/$rel"
+    $url = "https://raw.githubusercontent.com/GOSTECH21/S4C-platform/$branch/$rel`?v=$bust"
     $dest = Join-Path $root ($rel -replace "/", "\")
     New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
     Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $dest
@@ -57,10 +59,18 @@ $updated = 0
 foreach ($root in $roots) {
   $how = Join-Path $root "app\components\home\HowItWorks.tsx"
   $lib = Join-Path $root "app\lib\predict-for-planet.ts"
+  $play = Join-Path $root "app\components\fan\PredictForPlanetPlay.tsx"
+  $phone = Join-Path $root "app\components\home\PredictForPlanet.tsx"
+  $gameTime = Join-Path $root "app\sponsor\game-time\page.tsx"
+  $preview = Join-Path $root "app\components\fan\P4pLiveChallengePreview.tsx"
   $howText = if (Test-Path $how) { Get-Content -Raw $how } else { "" }
   $libText = if (Test-Path $lib) { Get-Content -Raw $lib } else { "" }
+  $playText = if (Test-Path $play) { Get-Content -Raw $play } else { "" }
+  $phoneText = if (Test-Path $phone) { Get-Content -Raw $phone } else { "" }
+  $gameTimeText = if (Test-Path $gameTime) { Get-Content -Raw $gameTime } else { "" }
+  $previewText = if (Test-Path $preview) { Get-Content -Raw $preview } else { "" }
   if (
-    $howText -match "s4p-predict-for-planet-v1" -and
+    $howText -match "s4p-predict-for-planet-v4" -and
     $howText -match "PredictForPlanetPhone" -and
     $howText -notmatch "Plan Your Travel"
   ) {
@@ -70,16 +80,53 @@ foreach ($root in $roots) {
     Write-Host "Still old How S4P Works Step 4: $how"
   }
   if (
-    $libText -match "s4p-predict-for-planet-v1" -and
+    $libText -match "s4p-predict-for-planet-v4" -and
     $libText -match "Handball offence" -and
-    $libText -match "VAR referee review"
+    $libText -match "VAR referee review" -and
+    $libText -match "Fans engagement with this challenge" -and
+    $libText -match "p4pPlayIntroCopy"
   ) {
     Write-Host "Updated Predict-For Planet model: $lib"
     $updated++
   } else {
     Write-Host "Still old Predict-For Planet model: $lib"
   }
+  if (
+    $playText -match "s4p-predict-for-planet-v4" -and
+    $playText -match "p4p-powered-by" -and
+    $playText -match "What happens next" -and
+    $playText -match "p4pPlayIntroCopy" -and
+    $playText -match "P4P_FANS_ENGAGEMENT_LABEL" -and
+    $playText -match "FAN_CARBON_WALLET_LABEL" -and
+    $playText -notmatch "bg-\[#10262c\]"
+  ) {
+    Write-Host "Ivory live board and sponsor mark beside What happens next: $play"
+    $updated++
+  } else {
+    Write-Host "Still old dark P4P live board: $play"
+  }
+  if (
+    $phoneText -match "s4p-predict-for-planet-v4" -and
+    $phoneText -match "#fffdf8" -and
+    $phoneText -notmatch "#0b1f14"
+  ) {
+    Write-Host "Ivory How S4P Works P4P phone with sponsor mark: $phone"
+    $updated++
+  } else {
+    Write-Host "Still old dark How S4P Works P4P phone: $phone"
+  }
+  if (
+    $gameTimeText -match "P4pLiveChallengePreview" -and
+    $previewText -match "What fans see on Predict-For Planet" -and
+    $previewText -match "p4p-powered-by" -and
+    $previewText -match "P4P_FANS_ENGAGEMENT_LABEL"
+  ) {
+    Write-Host "Game-Time shows ivory live board and sponsor mark: $gameTime"
+    $updated++
+  } else {
+    Write-Host "Still old Game-Time page without the ivory P4P preview: $gameTime"
+  }
 }
 
-if ($updated -lt 2) { exit 1 }
-Write-Host "OK: Predict-For Planet is How S4P Works Step 4. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, npm run dev, then Ctrl+F5. Open How S4P Works Step 4, or http://localhost:3000/preview/predict-for-planet"
+if ($updated -lt 5) { exit 1 }
+Write-Host "OK: P4P now says Fans engagement with this challenge. Participating earns £0.10; the right event earns another £0.30 into the Fan Carbon Wallet. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open P4P: http://localhost:3000/supporter/dashboard/predict"

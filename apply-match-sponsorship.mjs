@@ -77,8 +77,8 @@ for (const root of roots) {
   const p4pText = existsSync(p4p) ? readFileSync(p4p, "utf8") : "";
   const howText = existsSync(how) ? readFileSync(how, "utf8") : "";
   if (
-    p4pText.includes("s4p-predict-for-planet-v1") ||
-    howText.includes("s4p-predict-for-planet-v1")
+    p4pText.includes("s4p-predict-for-planet-v") ||
+    howText.includes("s4p-predict-for-planet-v")
   ) {
     console.error(
       "STOP: Predict-For Planet is already applied. Re-running Match-Sponsorship would drop Game-Time. Use apply-predict-for-planet.mjs instead."

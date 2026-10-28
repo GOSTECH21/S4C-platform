@@ -1,4 +1,4 @@
-/* s4p-predict-for-planet-v1 */
+/* s4p-predict-for-planet-v4 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
@@ -13,6 +13,16 @@ export const GAME_TIME_CARBON_WALLET_LABEL = "Game-Time Carbon Wallet";
 export const MATCH_SPONSOR_PRODUCT_LABEL = "Match-Sponsor";
 export const GAME_TIME_PRODUCT_LABEL = "Game-Time Sponsor";
 export const SPONSORED_BY_LABEL = "Sponsored by";
+export const P4P_POWERED_BY_LABEL = "This Climate Challenge is powered by";
+export const P4P_LIVE_CHALLENGE_LABEL = "P4P Live Climate Challenge";
+export const P4P_TAGLINE = "Predict. Participate. Power Climate Action";
+export const P4P_MAKE_PREDICTION_LABEL = "Make your prediction";
+export const P4P_CHOOSE_PROJECT_LABEL = "Choose your climate project";
+export const P4P_MATCH_DAY_IMPACT_LABEL = "Your Match Day Impact";
+export const P4P_LIVE_CHALLENGE_FOOTER =
+  "Participating earns £0.10 for your Climate Project, right or wrong. The right event earns another £0.30.";
+export const P4P_FANS_ENGAGEMENT_LABEL = "Fans engagement with this challenge";
+export const FAN_CARBON_WALLET_LABEL = "Fan Carbon Wallet";
 export const P4P_FALLBACK_PROJECTS = [
   "Local Global Schools Solar",
   "International Global Schools Solar",
@@ -31,8 +41,12 @@ export const MATCH_SPONSORSHIP_DAYS = 5;
 export const P4P_WINDOW_MINUTES = 5;
 /** One prediction per fan per 5-minute window. */
 export const P4P_PREDICTIONS_PER_WINDOW = 1;
-/** Every prediction — right or wrong — is an Engagement. */
+/** Participating in a 5-minute slot earns £0.10, right or wrong. */
 export const P4P_ENGAGEMENT_GBP = 0.1;
+export const P4P_PARTICIPATION_GBP = P4P_ENGAGEMENT_GBP;
+/** Predicting the event that is awarded in that slot earns another £0.30. */
+export const P4P_ACCURACY_GBP = 0.3;
+export const P4P_CORRECT_TOTAL_GBP = P4P_PARTICIPATION_GBP + P4P_ACCURACY_GBP;
 
 export const GAME_TIME_SLOT_COUNT =
   GAME_TIME_DURATION_MINUTES / GAME_TIME_SLOT_MINUTES;
@@ -117,6 +131,71 @@ export function p4pWindows(): P4pWindow[] {
   });
 }
 
+export function windowsForGameTimeSlot(slotIndex: number): P4pWindow[] {
+  const slot = Math.max(
+    0,
+    Math.min(GAME_TIME_SLOT_COUNT - 1, Math.round(Number(slotIndex) || 0))
+  );
+  return p4pWindows().filter((row) => row.slotIndex === slot);
+}
+
+export function isWindowInGameTimeSlot(
+  windowIndex: number,
+  slotIndex: number
+): boolean {
+  const window = p4pWindows()[Math.round(Number(windowIndex) || 0)];
+  if (!window) return false;
+  return window.slotIndex === Math.round(Number(slotIndex) || 0);
+}
+
+export function gameTimeSlotShortLabel(slot: GameTimeSlot): string {
+  return `${slot.startMinute}'–${slot.endMinute}'`;
+}
+
+export function formatP4pClock(totalSeconds: number): string {
+  const value = Math.max(0, Math.round(Number(totalSeconds) || 0));
+  const minutes = Math.floor(value / 60);
+  const seconds = value % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+export type P4pWindowCountdown = {
+  state: "upcoming" | "live" | "ended";
+  remainingSeconds: number;
+  label: string;
+};
+
+export function p4pWindowCountdown(
+  kickoffAt: Date | string,
+  window: P4pWindow,
+  now: Date | string = new Date()
+): P4pWindowCountdown {
+  const start = toDate(kickoffAt).getTime() + window.startMinute * 60 * 1000;
+  const end = toDate(kickoffAt).getTime() + window.endMinute * 60 * 1000;
+  const at = toDate(now).getTime();
+  if (at < start) {
+    const remainingSeconds = Math.max(0, Math.round((start - at) / 1000));
+    return {
+      state: "upcoming",
+      remainingSeconds,
+      label: `Starts in ${formatP4pClock(remainingSeconds)}`,
+    };
+  }
+  if (at >= end) {
+    return {
+      state: "ended",
+      remainingSeconds: 0,
+      label: "This 5-minute slot has ended",
+    };
+  }
+  const remainingSeconds = Math.max(0, Math.round((end - at) / 1000));
+  return {
+    state: "live",
+    remainingSeconds,
+    label: `${formatP4pClock(remainingSeconds)} left`,
+  };
+}
+
 export function windowForMinute(minute: number): P4pWindow | null {
   const windows = p4pWindows();
   const clamped = Math.max(0, Math.min(GAME_TIME_DURATION_MINUTES - 0.001, Number(minute) || 0));
@@ -125,6 +204,37 @@ export function windowForMinute(minute: number): P4pWindow | null {
       (row) => clamped >= row.startMinute && clamped < row.endMinute
     ) ?? null
   );
+}
+
+export function elapsedGameMinutes(
+  kickoffAt: Date | string,
+  now: Date | string = new Date()
+): number {
+  return (toDate(now).getTime() - toDate(kickoffAt).getTime()) / 60000;
+}
+
+export function liveGameTimeSlotIndex(
+  kickoffAt: Date | string,
+  now: Date | string = new Date()
+): number {
+  const elapsed = elapsedGameMinutes(kickoffAt, now);
+  if (elapsed < 0) return 0;
+  if (elapsed >= GAME_TIME_DURATION_MINUTES) return GAME_TIME_SLOT_COUNT - 1;
+  return Math.min(
+    GAME_TIME_SLOT_COUNT - 1,
+    Math.floor(elapsed / GAME_TIME_SLOT_MINUTES)
+  );
+}
+
+export function liveWindowIndexForSlot(
+  kickoffAt: Date | string,
+  slotIndex: number,
+  now: Date | string = new Date()
+): number {
+  const playable = windowsForGameTimeSlot(slotIndex);
+  const live = windowForMinute(Math.max(0, elapsedGameMinutes(kickoffAt, now)));
+  if (live && live.slotIndex === slotIndex) return live.index;
+  return playable[0]?.index ?? slotIndex * P4P_WINDOWS_PER_SLOT;
 }
 
 export function p4pCategoryById(id: string | null | undefined): P4pCategory | null {
@@ -269,11 +379,17 @@ function toSponsoredGameTimeMatch(wallet: GameTimeWallet): SponsoredGameTimeMatc
 function rankSponsoredWallets(
   left: GameTimeWallet,
   right: GameTimeWallet,
-  preferredClubNames: string[]
+  preferredClubNames: string[],
+  now: Date | string = new Date()
 ): number {
   const leftPref = isPreferredSponsoredMatch(left, preferredClubNames) ? 0 : 1;
   const rightPref = isPreferredSponsoredMatch(right, preferredClubNames) ? 0 : 1;
   if (leftPref !== rightPref) return leftPref - rightPref;
+  const leftLive =
+    left.slotIndex === liveGameTimeSlotIndex(left.kickoffAt, now) ? 0 : 1;
+  const rightLive =
+    right.slotIndex === liveGameTimeSlotIndex(right.kickoffAt, now) ? 0 : 1;
+  if (leftLive !== rightLive) return leftLive - rightLive;
   const remaining = remainingGameTimeGbp(right) - remainingGameTimeGbp(left);
   if (remaining !== 0) return remaining;
   return toDate(right.updatedAt).getTime() - toDate(left.updatedAt).getTime();
@@ -300,20 +416,20 @@ export function pickSponsoredGameTimeMatch(
 export function firstFundedWindowIndex(
   wallets: GameTimeWallet[],
   clubName: string,
-  fixtureName: string
+  fixtureName: string,
+  now: Date | string = new Date()
 ): number {
-  const windows = p4pWindows();
-  for (const window of windows) {
-    const funded = wallets.some(
-      (row) =>
-        isPaidGameTimeWallet(row) &&
-        gameTimeWalletMatchesMatch(row, clubName, fixtureName) &&
-        row.slotIndex === window.slotIndex &&
-        remainingGameTimeGbp(row) > 0
-    );
-    if (funded) return window.index;
-  }
-  return 0;
+  const funded = wallets.filter(
+    (row) =>
+      isPaidGameTimeWallet(row) &&
+      gameTimeWalletMatchesMatch(row, clubName, fixtureName) &&
+      remainingGameTimeGbp(row) > 0
+  );
+  if (funded.length === 0) return 0;
+  const liveSlot = liveGameTimeSlotIndex(funded[0].kickoffAt, now);
+  const liveWallet =
+    funded.find((row) => row.slotIndex === liveSlot) ?? funded[0];
+  return liveWindowIndexForSlot(liveWallet.kickoffAt, liveWallet.slotIndex, now);
 }
 
 export function createGameTimeWallet(input: {
@@ -354,7 +470,17 @@ export type P4pPrediction = {
   categoryId: P4pCategoryId;
   projectName: string;
   engagementGbp: number;
+  participationGbp?: number;
+  accuracyGbp?: number;
+  correct?: boolean | null;
   walletId: string | null;
+  at: string;
+};
+
+export type P4pSlotEvent = {
+  fixtureName: string;
+  windowIndex: number;
+  categoryId: P4pCategoryId;
   at: string;
 };
 
@@ -435,9 +561,10 @@ export function recordP4pEngagement({
     };
   }
   if (wallet.slotIndex !== window.slotIndex) {
+    const slot = gameTimeSlots()[wallet.slotIndex];
     return {
       ok: false,
-      error: "This Game-Time Sponsor bought a different 30-minute slot.",
+      error: `That 5-minute slot is not in this Game-Time Sponsorship. The Game-Time Sponsor bought ${slot?.label ?? "a different 30-minute slot"}.`,
     };
   }
   const remaining = remainingGameTimeGbp(wallet);
@@ -448,7 +575,7 @@ export function recordP4pEngagement({
     };
   }
   const at = asIso(now);
-  const takenGbp = roundP4pGbp(Math.min(P4P_ENGAGEMENT_GBP, remaining));
+  const takenGbp = roundP4pGbp(Math.min(P4P_PARTICIPATION_GBP, remaining));
   const nextWallet: GameTimeWallet = {
     ...wallet,
     allocatedGbp: roundP4pGbp(wallet.allocatedGbp + takenGbp),
@@ -462,11 +589,157 @@ export function recordP4pEngagement({
     windowIndex: window.index,
     categoryId: category.id,
     projectName: chosenProject,
+    participationGbp: takenGbp,
+    accuracyGbp: 0,
     engagementGbp: takenGbp,
+    correct: null,
     walletId: nextWallet.id,
     at,
   };
   return { ok: true, prediction, wallet: nextWallet, takenGbp };
+}
+
+export function p4pPredictionAmounts(row: P4pPrediction): {
+  participationGbp: number;
+  accuracyGbp: number;
+  totalGbp: number;
+  correct: boolean | null;
+} {
+  const participationGbp = roundP4pGbp(
+    row.participationGbp ?? (row.accuracyGbp ? roundP4pGbp((row.engagementGbp || 0) - (row.accuracyGbp || 0)) : row.engagementGbp) ?? 0
+  );
+  const accuracyGbp = roundP4pGbp(row.accuracyGbp ?? 0);
+  const correct =
+    row.correct === undefined ? (accuracyGbp > 0 ? true : null) : row.correct;
+  return {
+    participationGbp,
+    accuracyGbp,
+    totalGbp: roundP4pGbp(participationGbp + accuracyGbp),
+    correct,
+  };
+}
+
+export type P4pAccuracySuccess = {
+  ok: true;
+  prediction: P4pPrediction;
+  wallet: GameTimeWallet | null;
+  takenGbp: number;
+};
+
+export function awardP4pAccuracy({
+  prediction,
+  wallet,
+  categoryId,
+  now = new Date(),
+}: {
+  prediction: P4pPrediction;
+  wallet: GameTimeWallet | null;
+  categoryId: string;
+  now?: Date | string;
+}): P4pAccuracySuccess {
+  const amounts = p4pPredictionAmounts(prediction);
+  const category = p4pCategoryById(categoryId);
+  if (!category || prediction.categoryId !== category.id) {
+    return { ok: true, prediction, wallet, takenGbp: 0 };
+  }
+  if (amounts.accuracyGbp > 0 || amounts.correct === true) {
+    return { ok: true, prediction, wallet, takenGbp: 0 };
+  }
+  if (!wallet || !isPaidGameTimeWallet(wallet)) {
+    return { ok: true, prediction, wallet, takenGbp: 0 };
+  }
+  const remaining = remainingGameTimeGbp(wallet);
+  if (remaining <= 0) {
+    return { ok: true, prediction, wallet, takenGbp: 0 };
+  }
+  const takenGbp = roundP4pGbp(Math.min(P4P_ACCURACY_GBP, remaining));
+  const at = asIso(now);
+  const nextWallet: GameTimeWallet = {
+    ...wallet,
+    allocatedGbp: roundP4pGbp(wallet.allocatedGbp + takenGbp),
+    updatedAt: at,
+  };
+  const nextPrediction: P4pPrediction = {
+    ...prediction,
+    participationGbp: amounts.participationGbp,
+    accuracyGbp: takenGbp,
+    engagementGbp: roundP4pGbp(amounts.participationGbp + takenGbp),
+    correct: true,
+  };
+  return { ok: true, prediction: nextPrediction, wallet: nextWallet, takenGbp };
+}
+
+export function fanCarbonWalletFromPredictions(
+  predictions: P4pPrediction[],
+  fanId: string
+): { totalGbp: number; byProject: { projectName: string; amountGbp: number }[] } {
+  const mine = predictions.filter(
+    (row) => normalizeP4pKey(row.fanId) === normalizeP4pKey(fanId)
+  );
+  return {
+    totalGbp: roundP4pGbp(
+      mine.reduce((sum, row) => sum + p4pPredictionAmounts(row).totalGbp, 0)
+    ),
+    byProject: p4pCreditsByProject(mine),
+  };
+}
+
+export function p4pPlayIntroCopy(): string {
+  return `Predict what is likely to happen in the next ${P4P_WINDOW_MINUTES}-minute slot of this Game-Time Sponsorship. One prediction per slot. Participating earns you ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Carbon Wallet of the Game-Time Sponsor for your chosen Climate Project. Predicting the right event gives you ${formatP4pGbp(P4P_ACCURACY_GBP)}.`;
+}
+
+export function slotEventKey(
+  fixtureName: string,
+  windowIndex: number,
+  categoryId: string
+): string {
+  return `${normalizeP4pKey(fixtureName)}:${windowIndex}:${categoryId}`;
+}
+
+export type P4pLiveChallenge = {
+  uniqueFans: number;
+  eligiblePredictions: number;
+  engagementTarget: number;
+  progressRatio: number;
+  progressPercent: number;
+  fundingUnlockedGbp: number;
+  sponsorCommitmentGbp: number;
+};
+
+export function p4pLiveChallenge(
+  wallet: GameTimeWallet,
+  predictions: P4pPrediction[]
+): P4pLiveChallenge {
+  const eligible = predictions.filter((row) => {
+    const window = p4pWindows()[row.windowIndex];
+    return (
+      gameTimeFixtureMatches(row.fixtureName, wallet.fixtureName) &&
+      window?.slotIndex === wallet.slotIndex
+    );
+  });
+  const uniqueFans = new Set(
+    eligible.map((row) => normalizeP4pKey(row.fanId)).filter(Boolean)
+  ).size;
+  const eligiblePredictions = eligible.length;
+  const sponsorCommitmentGbp = roundP4pGbp(wallet.sponsorshipGbp);
+  const fundingUnlockedGbp = roundP4pGbp(wallet.allocatedGbp);
+  const engagementTarget = Math.max(
+    1,
+    Math.round(sponsorCommitmentGbp / P4P_ENGAGEMENT_GBP)
+  );
+  const progressRatio =
+    sponsorCommitmentGbp > 0
+      ? Math.min(1, fundingUnlockedGbp / sponsorCommitmentGbp)
+      : 0;
+  return {
+    uniqueFans,
+    eligiblePredictions,
+    engagementTarget,
+    progressRatio,
+    progressPercent: Math.round(progressRatio * 100),
+    fundingUnlockedGbp,
+    sponsorCommitmentGbp,
+  };
 }
 
 export function p4pCreditsByProject(
@@ -478,7 +751,7 @@ export function p4pCreditsByProject(
     if (!name) continue;
     totals.set(
       name,
-      roundP4pGbp((totals.get(name) ?? 0) + (Number(row.engagementGbp) || 0))
+      roundP4pGbp((totals.get(name) ?? 0) + p4pPredictionAmounts(row).totalGbp)
     );
   }
   return [...totals.entries()]
@@ -504,13 +777,13 @@ export function gameTimeIsLive(wallet: GameTimeWallet, now: Date | string = new 
 }
 
 export function p4pHowItWorksCaption(): string {
-  return `Predict what is likely to happen in the next ${P4P_WINDOW_MINUTES}-minute slot. One prediction per slot. Every prediction is an Engagement and takes ${formatP4pGbp(P4P_ENGAGEMENT_GBP)} from the Game-Time Carbon Wallet into your chosen Climate Projects, until that wallet reads ${formatP4pGbp(0)}.`;
+  return `Predict what is likely to happen in the next ${P4P_WINDOW_MINUTES}-minute slot. One prediction per slot. Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Game-Time Carbon Wallet. The right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)}. That money is recorded in your ${FAN_CARBON_WALLET_LABEL} for your chosen Climate Project.`;
 }
 
 export function p4pHowItWorksPoints(): string[] {
   return [
-    `One prediction per ${P4P_WINDOW_MINUTES}-minute slot — right or wrong, it is an Engagement`,
-    `Each Engagement takes ${formatP4pGbp(P4P_ENGAGEMENT_GBP)} from the Game-Time Carbon Wallet`,
+    `One prediction per ${P4P_WINDOW_MINUTES}-minute slot`,
+    `Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)}; the right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)} into your ${FAN_CARBON_WALLET_LABEL}`,
     `A Game-Time Sponsor buys a ${GAME_TIME_SLOT_MINUTES}-minute slot; the Game lasts ${GAME_TIME_DURATION_MINUTES} minutes`,
   ];
 }
