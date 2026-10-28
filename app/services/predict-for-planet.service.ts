@@ -13,11 +13,44 @@ import {
   type P4pPrediction,
   type SponsoredGameTimeMatch,
 } from "@/app/lib/predict-for-planet";
+import { getCurrentSponsor } from "./current-sponsor.service";
 
 export const GAME_TIME_WALLETS_STORAGE = "s4p.game-time.wallets";
 export const P4P_PREDICTIONS_STORAGE = "s4p.p4p.predictions";
 export const GAME_TIME_CHECKOUT_STORAGE = "s4p.game-time.checkout";
 export const GAME_TIME_PAYMENTS_STORAGE = "s4p.game-time.payments";
+export const SPONSOR_PROFILE_STORAGE = "s4p.sponsor.profile";
+const SPONSOR_SESSION_TIMEOUT_MS = 2500;
+
+export function readLocalSponsorBrandName(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = window.localStorage.getItem(SPONSOR_PROFILE_STORAGE);
+    const parsed = raw
+      ? (JSON.parse(raw) as { companyName?: string })
+      : null;
+    return String(parsed?.companyName ?? "").trim();
+  } catch {
+    return "";
+  }
+}
+
+export async function resolveGameTimeSponsorBrand(): Promise<string> {
+  try {
+    const sponsor = await Promise.race([
+      getCurrentSponsor(),
+      new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error("Sponsor session timed out.")),
+          SPONSOR_SESSION_TIMEOUT_MS
+        );
+      }),
+    ]);
+    return String(sponsor.name ?? "").trim() || readLocalSponsorBrandName();
+  } catch {
+    return readLocalSponsorBrandName();
+  }
+}
 
 function readJson<T>(key: string): T[] {
   if (typeof window === "undefined") return [];

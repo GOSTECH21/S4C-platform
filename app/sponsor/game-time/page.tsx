@@ -24,10 +24,10 @@ import {
   SPONSOR_GAME_TIME_PAY_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
-import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import {
   listGameTimeWallets,
+  resolveGameTimeSponsorBrand,
   saveGameTimeCheckout,
 } from "@/app/services/predict-for-planet.service";
 
@@ -52,29 +52,12 @@ export default function GameTimeSponsorshipPage() {
   useEffect(() => {
     async function load() {
       try {
-        const sponsor = await getCurrentSponsor();
-        const brandName = String(sponsor.name ?? "").trim();
+        const brandName = await resolveGameTimeSponsorBrand();
         if (!brandName) {
           router.replace(SPONSOR_LOGIN_PATH);
           return;
         }
         setBrand(brandName);
-      } catch {
-        try {
-          const raw = window.localStorage.getItem("s4p.sponsor.profile");
-          const parsed = raw
-            ? (JSON.parse(raw) as { companyName?: string })
-            : null;
-          const brandName = parsed?.companyName?.trim() ?? "";
-          if (!brandName) {
-            router.replace(SPONSOR_LOGIN_PATH);
-            return;
-          }
-          setBrand(brandName);
-        } catch {
-          router.replace(SPONSOR_LOGIN_PATH);
-          return;
-        }
       } finally {
         setLoading(false);
         setWallets(listGameTimeWallets());

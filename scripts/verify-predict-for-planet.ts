@@ -351,7 +351,8 @@ assert(
     play.includes("pickSponsoredGameTimeMatch") &&
     play.includes("No Game-Time Sponsor has funded a Match yet") &&
     play.includes("SPONSORED_BY_LABEL") &&
-    play.includes("BrandMark"),
+    play.includes("BrandMark") &&
+    play.includes("hydrated"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
 );
 const fanPredictPage = readFileSync(
@@ -369,6 +370,7 @@ assert(
     !gameTimePage.includes("vs Chelsea") &&
     gameTimePage.includes("allPlatformClubs") &&
     gameTimePage.includes("Continue to payment") &&
+    gameTimePage.includes("resolveGameTimeSponsorBrand") &&
     gameTimePage.includes("SPONSOR_GAME_TIME_PAY_PATH"),
   "Game-Time lists every platform club and continues to Stripe payment"
 );
@@ -376,6 +378,7 @@ const gameTimePay = readFileSync("app/sponsor/game-time/pay/page.tsx", "utf8");
 assert(
   gameTimePay.includes("StripeCardPayment") &&
     gameTimePay.includes("confirmGameTimeCardPayment") &&
+    gameTimePay.includes("resolveGameTimeSponsorBrand") &&
     SPONSOR_GAME_TIME_PAY_PATH === "/sponsor/game-time/pay",
   "Game-Time payment is the wallet amount plus the 5% Platform Fee via Stripe"
 );
@@ -397,12 +400,16 @@ assert(
   "Climate Sponsorship explains Game-Time as the P4P engagement product"
 );
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
+const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
   applyP4p.includes('BRANCH = "cursor/predict-for-planet-18f9"') &&
     applyP4p.includes("PredictForPlanetPhone") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
-    applyP4p.includes("game-time/pay"),
+    applyP4p.includes("game-time/pay") &&
+    applyP4pPs1.includes("game-time/pay") &&
+    applyP4pPs1.includes("ClubMatchMenus") &&
+    applyP4pPs1.includes("calendar-clubs"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"
 );
 assert(

@@ -23,10 +23,10 @@ import {
   SPONSOR_GAME_TIME_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
-import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   confirmGameTimeCardPayment,
   readGameTimeCheckout,
+  resolveGameTimeSponsorBrand,
 } from "@/app/services/predict-for-planet.service";
 
 export default function GameTimeCardPaymentPage() {
@@ -46,8 +46,7 @@ export default function GameTimeCardPaymentPage() {
   useEffect(() => {
     async function load() {
       try {
-        const sponsor = await getCurrentSponsor();
-        const brandName = String(sponsor.name ?? "").trim();
+        const brandName = await resolveGameTimeSponsorBrand();
         if (!brandName) {
           router.replace(SPONSOR_LOGIN_PATH);
           return;
