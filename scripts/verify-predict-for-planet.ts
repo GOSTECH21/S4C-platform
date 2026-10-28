@@ -263,6 +263,13 @@ assert(
     climatePage.includes("Game-Time Carbon Wallet"),
   "Climate Sponsorship explains Game-Time as the P4P engagement product"
 );
+const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
+assert(
+  applyP4p.includes('BRANCH = "cursor/predict-for-planet-18f9"') &&
+    applyP4p.includes("PredictForPlanetPhone") &&
+    applyP4p.includes("Do not re-run the listings overlay"),
+  "PC overlay pulls Predict-For Planet last and does not re-run listings"
+);
 assert(
   listingsUi.includes("isMatchSponsorListing") &&
     readFileSync("app/supporter/dashboard/predict/page.tsx", "utf8").includes(

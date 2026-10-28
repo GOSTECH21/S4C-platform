@@ -71,6 +71,22 @@ const roots = [...new Set(markers.map(appRootFromMarker))];
 console.log("Updating app roots:");
 for (const root of roots) console.log(" ", root);
 
+for (const root of roots) {
+  const p4p = join(root, "app/lib/predict-for-planet.ts");
+  const how = join(root, "app/components/home/HowItWorks.tsx");
+  const p4pText = existsSync(p4p) ? readFileSync(p4p, "utf8") : "";
+  const howText = existsSync(how) ? readFileSync(how, "utf8") : "";
+  if (
+    p4pText.includes("s4p-predict-for-planet-v1") ||
+    howText.includes("s4p-predict-for-planet-v1")
+  ) {
+    console.error(
+      "STOP: Predict-For Planet is already applied. Re-running Match-Sponsorship would drop Game-Time. Use apply-predict-for-planet.mjs instead."
+    );
+    process.exit(1);
+  }
+}
+
 async function pullFile(root, rel) {
   const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
   let lastError = null;
