@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/p4p-live-challenge-18f9";
-const BUST = "p4p-ivory-3";
+const BUST = "p4p-accuracy-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -129,7 +129,7 @@ for (const root of roots) {
   const registerText = existsSync(register) ? readFileSync(register, "utf8") : "";
   const navText = existsSync(nav) ? readFileSync(nav, "utf8") : "";
   if (
-    !howText.includes("s4p-predict-for-planet-v3") ||
+    !howText.includes("s4p-predict-for-planet-v4") ||
     !howText.includes("PredictForPlanetPhone") ||
     howText.includes("Plan Your Travel")
   ) {
@@ -139,10 +139,13 @@ for (const root of roots) {
     console.log("Updated How S4P Works Step 4:", how);
   }
   if (
-    !libText.includes("s4p-predict-for-planet-v3") ||
+    !libText.includes("s4p-predict-for-planet-v4") ||
     !libText.includes("Handball offence") ||
     !libText.includes("VAR referee review") ||
-    !libText.includes("pickSponsoredGameTimeMatch")
+    !libText.includes("pickSponsoredGameTimeMatch") ||
+    !libText.includes("Fans engagement with this challenge") ||
+    !libText.includes("p4pPlayIntroCopy") ||
+    !libText.includes("P4P_ACCURACY_GBP")
   ) {
     failed += 1;
     console.error("Still old Predict-For Planet model:", lib);
@@ -150,9 +153,13 @@ for (const root of roots) {
     console.log("Updated Predict-For Planet model:", lib);
   }
   if (
-    !playText.includes("s4p-predict-for-planet-v3") ||
+    !playText.includes("s4p-predict-for-planet-v4") ||
     !playText.includes('data-testid="p4p-powered-by"') ||
     !playText.includes("What happens next?") ||
+    !playText.includes("p4pPlayIntroCopy") ||
+    !playText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
+    !playText.includes("FAN_CARBON_WALLET_LABEL") ||
+    !playText.includes("awardP4pSlotEvent") ||
     playText.includes("bg-[#10262c]") ||
     playText.includes("text-[#f4f1e6]")
   ) {
@@ -162,7 +169,7 @@ for (const root of roots) {
     console.log("Ivory live board and sponsor mark beside What happens next:", play);
   }
   if (
-    !phoneText.includes("s4p-predict-for-planet-v3") ||
+    !phoneText.includes("s4p-predict-for-planet-v4") ||
     !phoneText.includes("#fffdf8") ||
     phoneText.includes("#0b1f14") ||
     !phoneText.includes("P4P_POWERED_BY_LABEL")
@@ -176,6 +183,7 @@ for (const root of roots) {
     !gameTimeText.includes("P4pLiveChallengePreview") ||
     !previewText.includes("What fans see on Predict-For Planet") ||
     !previewText.includes('data-testid="p4p-powered-by"') ||
+    !previewText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
     previewText.includes("bg-[#10262c]")
   ) {
     failed += 1;
@@ -202,5 +210,5 @@ for (const root of roots) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Game-Time now shows the ivory Live Climate Challenge and your brand beside What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open Game-Time: http://localhost:3000/sponsor/game-time"
+  "OK: P4P now says Fans engagement with this challenge. Participating earns £0.10; the right event earns another £0.30 into the Fan Carbon Wallet. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open P4P: http://localhost:3000/supporter/dashboard/predict"
 );

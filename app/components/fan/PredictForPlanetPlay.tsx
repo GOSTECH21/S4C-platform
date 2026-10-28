@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v3 */
+/* s4p-predict-for-planet-v4 */
 
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -8,18 +8,22 @@ import {
   GAME_TIME_SLOT_COUNT,
   P4P_CATEGORIES,
   P4P_CHOOSE_PROJECT_LABEL,
-  P4P_ENGAGEMENT_GBP,
+  FAN_CARBON_WALLET_LABEL,
+  P4P_ACCURACY_GBP,
+  P4P_CORRECT_TOTAL_GBP,
   P4P_FALLBACK_PROJECTS,
+  P4P_FANS_ENGAGEMENT_LABEL,
   P4P_LABEL,
   P4P_LIVE_CHALLENGE_FOOTER,
   P4P_LIVE_CHALLENGE_LABEL,
   P4P_MAKE_PREDICTION_LABEL,
   P4P_MATCH_DAY_IMPACT_LABEL,
+  P4P_PARTICIPATION_GBP,
   P4P_POWERED_BY_LABEL,
   P4P_SHORT,
   P4P_TAGLINE,
-  P4P_WINDOW_MINUTES,
   alreadyPredictedWindow,
+  fanCarbonWalletFromPredictions,
   firstFundedWindowIndex,
   formatP4pGbp,
   gameTimeFixtureMatches,
@@ -28,6 +32,8 @@ import {
   isWindowInGameTimeSlot,
   p4pCreditsByProject,
   p4pLiveChallenge,
+  p4pPlayIntroCopy,
+  p4pPredictionAmounts,
   p4pWindowCountdown,
   remainingGameTimeGbp,
   windowsForGameTimeSlot,
@@ -38,8 +44,11 @@ import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import {
   depositGameTimeSponsorship,
   gameTimeWalletForSlot,
+  awardP4pSlotEvent,
   listGameTimeWallets,
   listP4pPredictions,
+  listP4pSlotEvents,
+  slotEventAwarded,
   submitP4pPrediction,
 } from "@/app/services/predict-for-planet.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
@@ -145,6 +154,8 @@ export function PredictForPlanetPlay({
   const predictions = allPredictions.filter(
     (row) => row.fanId.toLowerCase() === fanId.toLowerCase()
   );
+  const slotEvents = hydrated ? listP4pSlotEvents() : [];
+  const fanWallet = fanCarbonWalletFromPredictions(predictions, fanId);
   const alreadyInWindow = alreadyPredictedWindow(
     predictions,
     fanId,
@@ -216,13 +227,53 @@ export function PredictForPlanetPlay({
       setError(result.error);
       return;
     }
-    const taken = formatP4pGbp(result.takenGbp);
+    const amounts = p4pPredictionAmounts(result.prediction);
     const left = result.wallet
       ? formatP4pGbp(remainingGameTimeGbp(result.wallet))
       : formatP4pGbp(0);
-    setNotice(
-      `Engagement. ${taken} left the ${GAME_TIME_CARBON_WALLET_LABEL} into ${projectName}. Wallet now ${left}.`
+    if (amounts.correct) {
+      setNotice(
+        `Accurate prediction. ${formatP4pGbp(amounts.totalGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName} (${formatP4pGbp(amounts.participationGbp)} participation + ${formatP4pGbp(amounts.accuracyGbp)} accuracy). Game-Time wallet now ${left}.`
+      );
+    } else {
+      setNotice(
+        `Participation. ${formatP4pGbp(amounts.participationGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName}. If this event is awarded in this slot, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} (total ${formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Game-Time wallet now ${left}.`
+      );
+    }
+    setTick((value) => value + 1);
+  }
+
+  function awardEvent(id: P4pCategoryId) {
+    setNotice(null);
+    setError(null);
+    if (!liveClub || !liveFixture) return;
+    const result = awardP4pSlotEvent({
+      clubName: liveClub,
+      fixtureName: liveFixture,
+      windowIndex: playWindow?.index ?? 0,
+      categoryId: id,
+    });
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    const mine = result.predictions.find(
+      (row) =>
+        row.fanId.toLowerCase() === fanId.toLowerCase() &&
+        row.windowIndex === (playWindow?.index ?? 0)
     );
+    const amounts = mine ? p4pPredictionAmounts(mine) : null;
+    const eventLabel =
+      P4P_CATEGORIES.find((item) => item.id === id)?.label ?? id;
+    if (amounts?.correct) {
+      setNotice(
+        `${eventLabel} was awarded. Accurate prediction: another ${formatP4pGbp(amounts.accuracyGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${mine?.projectName ?? projectName}. Total ${formatP4pGbp(amounts.totalGbp)}.`
+      );
+    } else {
+      setNotice(
+        `${eventLabel} was awarded in this 5-minute slot. Matching predictions earn ${formatP4pGbp(P4P_ACCURACY_GBP)} more.`
+      );
+    }
     setTick((value) => value + 1);
   }
 
@@ -267,12 +318,7 @@ export function PredictForPlanetPlay({
         >
           {liveFixture}
         </h1>
-        <p className="mt-3 max-w-3xl text-slate-700">
-          Predict what is likely to happen in the next {P4P_WINDOW_MINUTES}-minute
-          slot of this Game-Time Sponsorship. One prediction per slot — right or
-          wrong, it is an Engagement of {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from the{" "}
-          {GAME_TIME_CARBON_WALLET_LABEL} into your chosen Climate Project.
-        </p>
+        <p className="mt-3 max-w-3xl text-slate-700">{p4pPlayIntroCopy()}</p>
       </div>
 
       {challenge && wallet ? (
@@ -303,7 +349,7 @@ export function PredictForPlanetPlay({
 
           <div className="mt-6">
             <div className="flex items-end justify-between gap-3">
-              <p className="text-lg font-black">Fans powering the challenge</p>
+              <p className="text-lg font-black">{P4P_FANS_ENGAGEMENT_LABEL}</p>
               <p className="text-lg font-black tabular-nums">
                 {challenge.eligiblePredictions.toLocaleString("en-GB")} /{" "}
                 {challenge.engagementTarget.toLocaleString("en-GB")}
@@ -441,6 +487,42 @@ export function PredictForPlanetPlay({
             </div>
           </aside>
         </div>
+        {countdown && countdown.state !== "upcoming" ? (
+          <div className="mt-5">
+            <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+              Awarded in this 5-minute slot
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              If this event is awarded in the match, matching predictions earn
+              another {formatP4pGbp(P4P_ACCURACY_GBP)}.
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {P4P_CATEGORIES.map((category) => {
+                const awarded = slotEventAwarded(
+                  slotEvents,
+                  liveFixture,
+                  playWindow?.index ?? 0,
+                  category.id
+                );
+                return (
+                  <button
+                    key={`award-${category.id}`}
+                    type="button"
+                    onClick={() => awardEvent(category.id)}
+                    disabled={awarded}
+                    className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
+                      awarded
+                        ? "border-emerald-700 bg-emerald-50 text-emerald-900"
+                        : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
+                    }`}
+                  >
+                    {awarded ? `${category.label} · awarded` : category.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div>
@@ -467,7 +549,7 @@ export function PredictForPlanetPlay({
         >
           {alreadyInWindow
             ? "Already predicted this 5-minute slot"
-            : `Predict · ${formatP4pGbp(P4P_ENGAGEMENT_GBP)} Engagement`}
+            : `Predict · ${formatP4pGbp(P4P_PARTICIPATION_GBP)} participation`}
         </button>
         {error ? (
           <p role="alert" className="mt-3 rounded-xl border border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-800">
@@ -497,18 +579,38 @@ export function PredictForPlanetPlay({
           </p>
         </div>
 
+        <div className="mt-4 rounded-2xl border border-emerald-700/30 bg-white p-5">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-800">
+            {FAN_CARBON_WALLET_LABEL}
+          </p>
+          <p className="mt-2 text-3xl font-black text-emerald-800">
+            {formatP4pGbp(fanWallet.totalGbp)}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            These amounts go to your chosen Climate Projects. Participating
+            earns {formatP4pGbp(P4P_PARTICIPATION_GBP)}; the right event earns
+            another {formatP4pGbp(P4P_ACCURACY_GBP)}.
+          </p>
+        </div>
+
         {predictions.length > 0 ? (
           <div className="mt-5">
             <h3 className="text-lg font-black">Your predictions this Game</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-700">
-              {predictions.map((row) => (
-                <li key={row.id}>
-                  {playableWindows.find((item) => item.index === row.windowIndex)?.label ||
-                    `${row.windowIndex}`}:{" "}
-                  {P4P_CATEGORIES.find((item) => item.id === row.categoryId)?.label}{" "}
-                  → {row.projectName} ({formatP4pGbp(row.engagementGbp)})
-                </li>
-              ))}
+              {predictions.map((row) => {
+                const amounts = p4pPredictionAmounts(row);
+                const status = amounts.correct
+                  ? `accurate ${formatP4pGbp(amounts.totalGbp)}`
+                  : `participation ${formatP4pGbp(amounts.participationGbp)}`;
+                return (
+                  <li key={row.id}>
+                    {playableWindows.find((item) => item.index === row.windowIndex)?.label ||
+                      `${row.windowIndex}`}:{" "}
+                    {P4P_CATEGORIES.find((item) => item.id === row.categoryId)?.label}{" "}
+                    → {row.projectName} ({status})
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ) : null}

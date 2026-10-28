@@ -1,10 +1,11 @@
 "use client";
-/* s4p-predict-for-planet-v3 */
+/* s4p-predict-for-planet-v4 */
 
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   P4P_CATEGORIES,
   P4P_ENGAGEMENT_GBP,
+  P4P_FANS_ENGAGEMENT_LABEL,
   P4P_LIVE_CHALLENGE_FOOTER,
   P4P_LIVE_CHALLENGE_LABEL,
   P4P_POWERED_BY_LABEL,
@@ -76,7 +77,7 @@ export function P4pLiveChallengePreview({
 
         <div className="mt-6">
           <div className="flex items-end justify-between gap-3">
-            <p className="text-lg font-black">Fans powering the challenge</p>
+            <p className="text-lg font-black">{P4P_FANS_ENGAGEMENT_LABEL}</p>
             <p className="text-lg font-black tabular-nums">
               {eligiblePredictions.toLocaleString("en-GB")} /{" "}
               {engagementTarget.toLocaleString("en-GB")}

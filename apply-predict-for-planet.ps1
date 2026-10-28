@@ -11,7 +11,7 @@ if (-not $markers) {
 }
 
 $branch = "cursor/p4p-live-challenge-18f9"
-$bust = "p4p-ivory-3"
+$bust = "p4p-accuracy-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
@@ -70,7 +70,7 @@ foreach ($root in $roots) {
   $gameTimeText = if (Test-Path $gameTime) { Get-Content -Raw $gameTime } else { "" }
   $previewText = if (Test-Path $preview) { Get-Content -Raw $preview } else { "" }
   if (
-    $howText -match "s4p-predict-for-planet-v3" -and
+    $howText -match "s4p-predict-for-planet-v4" -and
     $howText -match "PredictForPlanetPhone" -and
     $howText -notmatch "Plan Your Travel"
   ) {
@@ -80,9 +80,11 @@ foreach ($root in $roots) {
     Write-Host "Still old How S4P Works Step 4: $how"
   }
   if (
-    $libText -match "s4p-predict-for-planet-v3" -and
+    $libText -match "s4p-predict-for-planet-v4" -and
     $libText -match "Handball offence" -and
-    $libText -match "VAR referee review"
+    $libText -match "VAR referee review" -and
+    $libText -match "Fans engagement with this challenge" -and
+    $libText -match "p4pPlayIntroCopy"
   ) {
     Write-Host "Updated Predict-For Planet model: $lib"
     $updated++
@@ -90,9 +92,12 @@ foreach ($root in $roots) {
     Write-Host "Still old Predict-For Planet model: $lib"
   }
   if (
-    $playText -match "s4p-predict-for-planet-v3" -and
+    $playText -match "s4p-predict-for-planet-v4" -and
     $playText -match "p4p-powered-by" -and
     $playText -match "What happens next" -and
+    $playText -match "p4pPlayIntroCopy" -and
+    $playText -match "P4P_FANS_ENGAGEMENT_LABEL" -and
+    $playText -match "FAN_CARBON_WALLET_LABEL" -and
     $playText -notmatch "bg-\[#10262c\]"
   ) {
     Write-Host "Ivory live board and sponsor mark beside What happens next: $play"
@@ -101,7 +106,7 @@ foreach ($root in $roots) {
     Write-Host "Still old dark P4P live board: $play"
   }
   if (
-    $phoneText -match "s4p-predict-for-planet-v3" -and
+    $phoneText -match "s4p-predict-for-planet-v4" -and
     $phoneText -match "#fffdf8" -and
     $phoneText -notmatch "#0b1f14"
   ) {
@@ -113,7 +118,8 @@ foreach ($root in $roots) {
   if (
     $gameTimeText -match "P4pLiveChallengePreview" -and
     $previewText -match "What fans see on Predict-For Planet" -and
-    $previewText -match "p4p-powered-by"
+    $previewText -match "p4p-powered-by" -and
+    $previewText -match "P4P_FANS_ENGAGEMENT_LABEL"
   ) {
     Write-Host "Game-Time shows ivory live board and sponsor mark: $gameTime"
     $updated++
@@ -123,4 +129,4 @@ foreach ($root in $roots) {
 }
 
 if ($updated -lt 5) { exit 1 }
-Write-Host "OK: Game-Time now shows the ivory Live Climate Challenge and your brand beside What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open Game-Time: http://localhost:3000/sponsor/game-time"
+Write-Host "OK: P4P now says Fans engagement with this challenge. Participating earns £0.10; the right event earns another £0.30 into the Fan Carbon Wallet. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open P4P: http://localhost:3000/supporter/dashboard/predict"

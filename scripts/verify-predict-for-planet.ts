@@ -6,12 +6,22 @@ import {
   GAME_TIME_SLOT_MINUTES,
   MATCH_SPONSORSHIP_DAYS,
   P4P_CATEGORIES,
+  P4P_ACCURACY_GBP,
+  P4P_CORRECT_TOTAL_GBP,
   P4P_ENGAGEMENT_GBP,
+  P4P_FANS_ENGAGEMENT_LABEL,
+  P4P_PARTICIPATION_GBP,
+  awardP4pAccuracy,
+  fanCarbonWalletFromPredictions,
+  p4pPlayIntroCopy,
+  p4pPredictionAmounts,
   P4P_WINDOW_MINUTES,
   P4P_WINDOWS_PER_MATCH,
   alreadyPredictedWindow,
   createGameTimeWallet,
   firstFundedWindowIndex,
+  liveGameTimeSlotIndex,
+  liveWindowIndexForSlot,
   formatP4pGbp,
   gameTimePersistsUntil,
   gameTimeSlots,
@@ -66,7 +76,14 @@ assert(GAME_TIME_DURATION_MINUTES === 90, "A Game lasts 90 minutes");
 assert(GAME_TIME_SLOT_COUNT === 3, "There are three 30-minute Game-Time slots");
 assert(P4P_WINDOW_MINUTES === 5, "Fans predict in 5-minute slots");
 assert(P4P_WINDOWS_PER_MATCH === 18, "A 90-minute Game has eighteen 5-minute slots");
-assert(P4P_ENGAGEMENT_GBP === 0.1, "Every prediction is a £0.10 Engagement");
+assert(P4P_ENGAGEMENT_GBP === 0.1, "Participating earns £0.10");
+assert(P4P_PARTICIPATION_GBP === 0.1, "Participation is £0.10");
+assert(P4P_ACCURACY_GBP === 0.3, "The right event earns another £0.30");
+assert(P4P_CORRECT_TOTAL_GBP === 0.4, "A correct prediction totals £0.40");
+assert(
+  P4P_FANS_ENGAGEMENT_LABEL === "Fans engagement with this challenge",
+  "Live board label is Fans engagement with this challenge"
+);
 assert(MATCH_SPONSORSHIP_DAYS === 5, "Match-Sponsorship persists 5 days");
 assert(
   gameTimeSlots()
@@ -103,6 +120,45 @@ assert(
 assert(
   first.ok && first.prediction.projectName === "Local Global Schools Solar",
   "The Engagement names the fan's chosen Climate Project"
+);
+assert(
+  first.ok && p4pPredictionAmounts(first.prediction).participationGbp === 0.1,
+  "The first take is £0.10 participation into the Fan Carbon Wallet"
+);
+const accurate = awardP4pAccuracy({
+  prediction: first.ok ? first.prediction : ({} as never),
+  wallet: first.ok ? first.wallet : wallet,
+  categoryId: "corner",
+});
+assert(accurate.takenGbp === 0.3, "Awarding Corner pays the extra £0.30");
+assert(
+  p4pPredictionAmounts(accurate.prediction).totalGbp === 0.4,
+  "A correct Corner prediction totals £0.40"
+);
+assert(
+  remainingGameTimeGbp(accurate.wallet!) === 0.6,
+  "£0.40 has left the Game-Time Carbon Wallet after a correct prediction"
+);
+assert(
+  fanCarbonWalletFromPredictions([accurate.prediction], "fan-1").totalGbp === 0.4,
+  "The Fan Carbon Wallet records the £0.40 for the chosen Climate Project"
+);
+const miss = awardP4pAccuracy({
+  prediction: first.ok ? first.prediction : ({} as never),
+  wallet: first.ok ? first.wallet : wallet,
+  categoryId: "goal",
+});
+assert(miss.takenGbp === 0, "A Goal awarded does not pay a Corner prediction");
+const twice = awardP4pAccuracy({
+  prediction: accurate.prediction,
+  wallet: accurate.wallet,
+  categoryId: "corner",
+});
+assert(twice.takenGbp === 0, "Accuracy is paid only once");
+assert(
+  p4pPlayIntroCopy().includes("Participating earns you £0.10") &&
+    p4pPlayIntroCopy().includes("Predicting the right event gives you £0.30"),
+  "P4P intro copy states participation £0.10 and accuracy £0.30"
 );
 
 const second = recordP4pEngagement({
@@ -243,6 +299,44 @@ assert(
 assert(
   firstFundedWindowIndex([heartsWallet], "Hearts", "Hearts vs Rangers") === 6,
   "The first 5-minute slot sits inside the funded 30-minute Game-Time slot"
+);
+const liveKickoff = new Date().toISOString();
+const slotWallets = [0, 1, 2].map((slotIndex) =>
+  createGameTimeWallet({
+    clubName: "Arsenal",
+    brandName: "EA Sports",
+    fixtureName: "Arsenal vs Chelsea",
+    slotIndex,
+    sponsorshipGbp: 2,
+    kickoffAt: liveKickoff,
+  })
+);
+assert(
+  liveGameTimeSlotIndex(liveKickoff) === 0,
+  "Just after kick-off the live Game-Time slot is 0–30"
+);
+assert(
+  pickSponsoredGameTimeMatch(slotWallets)?.slotIndex === 0,
+  "P4P stays on the live 0–30 slot instead of a later unused slot"
+);
+assert(
+  firstFundedWindowIndex(slotWallets, "Arsenal", "Arsenal vs Chelsea") === 0,
+  "The live 5-minute window at kick-off is 0–5 minutes"
+);
+const later = new Date(Date.now() - 62 * 60 * 1000).toISOString();
+assert(
+  liveGameTimeSlotIndex(later) === 2,
+  "At minute 62 the live Game-Time slot is 60–90"
+);
+assert(
+  liveWindowIndexForSlot(later, 2) === 12,
+  "At minute 62 the live 5-minute window is 60–65"
+);
+assert(
+  pickSponsoredGameTimeMatch(
+    slotWallets.map((row) => ({ ...row, kickoffAt: later }))
+  )?.slotIndex === 2,
+  "During 60–90 P4P uses the live Game-Time slot even if earlier slots still have cash"
 );
 assert(
   windowsForGameTimeSlot(1)
@@ -442,7 +536,11 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("What happens next?") &&
-    play.includes("s4p-predict-for-planet-v3") &&
+    play.includes("s4p-predict-for-planet-v4") &&
+    play.includes("p4pPlayIntroCopy") &&
+    play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
+    play.includes("awardP4pSlotEvent") &&
+    play.includes("FAN_CARBON_WALLET_LABEL") &&
     !play.includes("bg-[#10262c]") &&
     !play.includes("text-[#f4f1e6]"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
@@ -477,6 +575,7 @@ assert(
     gameTimePreview.includes("What happens next?") &&
     gameTimePreview.includes('data-testid="p4p-powered-by"') &&
     gameTimePreview.includes("P4P_LIVE_CHALLENGE_LABEL") &&
+    gameTimePreview.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
     !gameTimePreview.includes("bg-[#10262c]"),
   "Game-Time P4P preview is ivory with the sponsor mark beside What happens next"
 );
@@ -510,14 +609,18 @@ assert(
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
-    applyP4p.includes("s4p-predict-for-planet-v3") &&
-    applyP4p.includes("p4p-ivory-3") &&
+    applyP4p.includes("s4p-predict-for-planet-v4") &&
+    applyP4p.includes("p4p-accuracy-1") &&
     applyP4p.includes("P4pLiveChallengePreview") &&
+    applyP4p.includes("Fans engagement with this challenge") &&
+    applyP4p.includes("p4pPlayIntroCopy") &&
+    applyP4p.includes("FAN_CARBON_WALLET_LABEL") &&
     applyP4p.includes("Still old dark P4P live board") &&
-    applyP4p.includes("/sponsor/game-time") &&
+    applyP4p.includes("/supporter/dashboard/predict") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
-    applyP4pPs1.includes("s4p-predict-for-planet-v3") &&
+    applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
+    applyP4pPs1.includes("p4p-accuracy-1") &&
     applyP4pPs1.includes("P4pLiveChallengePreview"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"
 );
@@ -541,5 +644,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Predict-For Planet: eight events, 30-minute Game-Time slots, £0.10 Engagements until the wallet is £0.00."
+  "Predict-For Planet: eight events, 30-minute Game-Time slots, £0.10 participation plus £0.30 for the right event."
 );

@@ -3,6 +3,7 @@
 import { PredictForPlanetPlay } from "@/app/components/fan/PredictForPlanetPlay";
 import {
   GAME_TIME_CARBON_WALLET_LABEL,
+  P4P_ACCURACY_GBP,
   P4P_ENGAGEMENT_GBP,
   P4P_FALLBACK_PROJECTS,
   P4P_LABEL,
@@ -21,8 +22,8 @@ export default function PredictForPlanetPreviewPage() {
       </p>
       <p className="mt-2 text-sm text-slate-700">
         {BRAND} put {formatP4pGbp(2)} on each 30-minute {GAME_TIME_CARBON_WALLET_LABEL}{" "}
-        for {FIXTURE}. Each {P4P_LABEL} prediction takes{" "}
-        {formatP4pGbp(P4P_ENGAGEMENT_GBP)}.
+        for {FIXTURE}. Participating takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)}; the
+        right event takes another {formatP4pGbp(P4P_ACCURACY_GBP)}.
       </p>
       <div className="mt-8">
         <PredictForPlanetPlay

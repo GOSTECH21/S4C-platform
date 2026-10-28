@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v3 */
+/* s4p-predict-for-planet-v4 */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -11,10 +11,12 @@ import {
 import { StripeCardPayment } from "@/app/components/sponsor/StripeCardPayment";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
 import {
+  FAN_CARBON_WALLET_LABEL,
   GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_DURATION_MINUTES,
   GAME_TIME_SLOT_MINUTES,
   GAME_TIME_SPONSORSHIP_LABEL,
+  P4P_ACCURACY_GBP,
   P4P_ENGAGEMENT_GBP,
   formatP4pGbp,
   gameTimeSlotShortLabel,
@@ -195,8 +197,10 @@ export default function GameTimeSponsorshipPage() {
       <p className="mt-3 max-w-3xl text-slate-700">
         Buy a {GAME_TIME_SLOT_MINUTES}-minute slot of fan engagement for this
         Game. Pay this Game-Time amount plus a 5% Platform Fee via Stripe.
-        Predict-For Planet then takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from this{" "}
-        {GAME_TIME_CARBON_WALLET_LABEL} for every prediction until it reads{" "}
+        Participating takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from this{" "}
+        {GAME_TIME_CARBON_WALLET_LABEL}; the right event takes another{" "}
+        {formatP4pGbp(P4P_ACCURACY_GBP)}. That money is recorded in the fan&apos;s{" "}
+        {FAN_CARBON_WALLET_LABEL} for their chosen Climate Project, until this wallet reads{" "}
         {formatP4pGbp(0)}. The Game lasts {GAME_TIME_DURATION_MINUTES} minutes.
       </p>
 

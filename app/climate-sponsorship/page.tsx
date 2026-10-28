@@ -6,8 +6,11 @@ import {
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
 import {
+  FAN_CARBON_WALLET_LABEL,
   GAME_TIME_DURATION_MINUTES,
   GAME_TIME_SLOT_MINUTES,
+  P4P_ACCURACY_GBP,
+  P4P_CORRECT_TOTAL_GBP,
   P4P_ENGAGEMENT_GBP,
   P4P_WINDOW_MINUTES,
   formatP4pGbp,
@@ -86,15 +89,15 @@ export default function ClimateSponsorshipPage() {
             issued, Penalty awarded, or VAR referee review.
           </li>
           <li>
-            2. One prediction per {P4P_WINDOW_MINUTES}-minute slot per fan. Right
-            or wrong, that is an Engagement of {formatP4pGbp(P4P_ENGAGEMENT_GBP)}.
+            2. One prediction per {P4P_WINDOW_MINUTES}-minute slot per fan.
+            Participating earns {formatP4pGbp(P4P_ENGAGEMENT_GBP)} in the fan&apos;s{" "}
+            {FAN_CARBON_WALLET_LABEL} for their chosen Climate Project.
           </li>
           <li>
-            3. Each Engagement takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)}
-            {" "}
-            from the Game-Time Carbon Wallet into the fan&apos;s chosen Climate
-            Project,
-            until that wallet reads {formatP4pGbp(0)}.
+            3. If that event is awarded in the slot, the fan earns another{" "}
+            {formatP4pGbp(P4P_ACCURACY_GBP)} (total {formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Both
+            amounts leave the Game-Time Carbon Wallet until it reads{" "}
+            {formatP4pGbp(0)}.
           </li>
         </ol>
         <Link

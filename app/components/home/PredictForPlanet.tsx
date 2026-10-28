@@ -1,10 +1,11 @@
 "use client";
-/* s4p-predict-for-planet-v3 */
+/* s4p-predict-for-planet-v4 */
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useSelectMatch } from "@/app/components/home/SelectMatchFixtures";
 import {
+  P4P_ACCURACY_GBP,
   P4P_CATEGORIES,
   P4P_ENGAGEMENT_GBP,
   P4P_LABEL,
@@ -46,7 +47,7 @@ export function PredictForPlanetPhone({
     setPicked(id);
     const category = P4P_CATEGORIES.find((row) => row.id === id);
     setNotice(
-      `Engagement. ${formatP4pGbp(P4P_ENGAGEMENT_GBP)} leaves the Game-Time Carbon Wallet.`
+      `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
     );
     return category;
   }
@@ -133,7 +134,7 @@ export function PredictForPlanetPhone({
           </div>
           <p className="mt-1.5 text-[9px] font-semibold leading-4 text-slate-700">
             {notice ||
-              `Right or wrong, this is an Engagement of ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}.`}
+              `Participating earns ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. The right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`}
           </p>
         </div>
       </div>
