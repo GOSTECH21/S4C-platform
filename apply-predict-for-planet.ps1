@@ -11,6 +11,7 @@ if (-not $markers) {
 }
 
 $branch = "cursor/p4p-live-challenge-18f9"
+$bust = "p4p-ivory-2"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
@@ -45,7 +46,7 @@ $roots = $markers | ForEach-Object {
 foreach ($root in $roots) {
   Write-Host "Updating $root"
   foreach ($rel in $files) {
-    $url = "https://raw.githubusercontent.com/GOSTECH21/S4C-platform/$branch/$rel"
+    $url = "https://raw.githubusercontent.com/GOSTECH21/S4C-platform/$branch/$rel`?v=$bust"
     $dest = Join-Path $root ($rel -replace "/", "\")
     New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
     Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $dest
@@ -57,10 +58,14 @@ $updated = 0
 foreach ($root in $roots) {
   $how = Join-Path $root "app\components\home\HowItWorks.tsx"
   $lib = Join-Path $root "app\lib\predict-for-planet.ts"
+  $play = Join-Path $root "app\components\fan\PredictForPlanetPlay.tsx"
+  $phone = Join-Path $root "app\components\home\PredictForPlanet.tsx"
   $howText = if (Test-Path $how) { Get-Content -Raw $how } else { "" }
   $libText = if (Test-Path $lib) { Get-Content -Raw $lib } else { "" }
+  $playText = if (Test-Path $play) { Get-Content -Raw $play } else { "" }
+  $phoneText = if (Test-Path $phone) { Get-Content -Raw $phone } else { "" }
   if (
-    $howText -match "s4p-predict-for-planet-v1" -and
+    $howText -match "s4p-predict-for-planet-v2" -and
     $howText -match "PredictForPlanetPhone" -and
     $howText -notmatch "Plan Your Travel"
   ) {
@@ -70,7 +75,7 @@ foreach ($root in $roots) {
     Write-Host "Still old How S4P Works Step 4: $how"
   }
   if (
-    $libText -match "s4p-predict-for-planet-v1" -and
+    $libText -match "s4p-predict-for-planet-v2" -and
     $libText -match "Handball offence" -and
     $libText -match "VAR referee review"
   ) {
@@ -79,7 +84,28 @@ foreach ($root in $roots) {
   } else {
     Write-Host "Still old Predict-For Planet model: $lib"
   }
+  if (
+    $playText -match "s4p-predict-for-planet-v2" -and
+    $playText -match "p4p-powered-by" -and
+    $playText -match "What happens next" -and
+    $playText -notmatch "bg-\[#10262c\]"
+  ) {
+    Write-Host "Ivory live board and sponsor mark beside What happens next: $play"
+    $updated++
+  } else {
+    Write-Host "Still old dark P4P live board: $play"
+  }
+  if (
+    $phoneText -match "s4p-predict-for-planet-v2" -and
+    $phoneText -match "#fffdf8" -and
+    $phoneText -notmatch "#0b1f14"
+  ) {
+    Write-Host "Ivory How S4P Works P4P phone with sponsor mark: $phone"
+    $updated++
+  } else {
+    Write-Host "Still old dark How S4P Works P4P phone: $phone"
+  }
 }
 
-if ($updated -lt 2) { exit 1 }
-Write-Host "OK: Predict-For Planet is How S4P Works Step 4. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, npm run dev, then Ctrl+F5. Open How S4P Works Step 4, or http://localhost:3000/preview/predict-for-planet"
+if ($updated -lt 4) { exit 1 }
+Write-Host "OK: Live Climate Challenge is ivory like the rest of the page. The sponsor mark is to the right of What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open http://localhost:3000/preview/predict-for-planet"

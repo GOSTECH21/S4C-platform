@@ -8,6 +8,7 @@ import {
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/p4p-live-challenge-18f9";
+const BUST = "p4p-ivory-2";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -78,11 +79,11 @@ console.log("Updating app roots:");
 for (const root of roots) console.log(" ", root);
 
 async function pullFile(root, rel) {
-  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}`;
+  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}?v=${BUST}`;
   let lastError = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const dest = join(root, rel);
       mkdirSync(dirname(dest), { recursive: true });
@@ -112,14 +113,18 @@ for (const root of roots) {
 for (const root of roots) {
   const how = join(root, "app/components/home/HowItWorks.tsx");
   const lib = join(root, "app/lib/predict-for-planet.ts");
+  const play = join(root, "app/components/fan/PredictForPlanetPlay.tsx");
+  const phone = join(root, "app/components/home/PredictForPlanet.tsx");
   const register = join(root, "app/sponsor/register/page.tsx");
   const nav = join(root, "app/dashboard/supporter/components/FanNav.tsx");
   const howText = existsSync(how) ? readFileSync(how, "utf8") : "";
   const libText = existsSync(lib) ? readFileSync(lib, "utf8") : "";
+  const playText = existsSync(play) ? readFileSync(play, "utf8") : "";
+  const phoneText = existsSync(phone) ? readFileSync(phone, "utf8") : "";
   const registerText = existsSync(register) ? readFileSync(register, "utf8") : "";
   const navText = existsSync(nav) ? readFileSync(nav, "utf8") : "";
   if (
-    !howText.includes("s4p-predict-for-planet-v1") ||
+    !howText.includes("s4p-predict-for-planet-v2") ||
     !howText.includes("PredictForPlanetPhone") ||
     howText.includes("Plan Your Travel")
   ) {
@@ -129,7 +134,7 @@ for (const root of roots) {
     console.log("Updated How S4P Works Step 4:", how);
   }
   if (
-    !libText.includes("s4p-predict-for-planet-v1") ||
+    !libText.includes("s4p-predict-for-planet-v2") ||
     !libText.includes("Handball offence") ||
     !libText.includes("VAR referee review") ||
     !libText.includes("pickSponsoredGameTimeMatch")
@@ -138,6 +143,29 @@ for (const root of roots) {
     console.error("Still old Predict-For Planet model:", lib);
   } else {
     console.log("Updated Predict-For Planet model:", lib);
+  }
+  if (
+    !playText.includes("s4p-predict-for-planet-v2") ||
+    !playText.includes('data-testid="p4p-powered-by"') ||
+    !playText.includes("What happens next?") ||
+    playText.includes("bg-[#10262c]") ||
+    playText.includes("text-[#f4f1e6]")
+  ) {
+    failed += 1;
+    console.error("Still old dark P4P live board:", play);
+  } else {
+    console.log("Ivory live board and sponsor mark beside What happens next:", play);
+  }
+  if (
+    !phoneText.includes("s4p-predict-for-planet-v2") ||
+    !phoneText.includes("#fffdf8") ||
+    phoneText.includes("#0b1f14") ||
+    !phoneText.includes("P4P_POWERED_BY_LABEL")
+  ) {
+    failed += 1;
+    console.error("Still old dark How S4P Works P4P phone:", phone);
+  } else {
+    console.log("Ivory How S4P Works P4P phone with sponsor mark:", phone);
   }
   if (
     !registerText.includes("GAME_TIME_PRODUCT_LABEL") ||
@@ -158,5 +186,5 @@ for (const root of roots) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Predict-For Planet is How S4P Works Step 4. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then npm run dev, then Ctrl+F5. Open How S4P Works Step 4, or http://localhost:3000/preview/predict-for-planet"
+  "OK: Live Climate Challenge is ivory like the rest of the page. The sponsor mark is to the right of What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open http://localhost:3000/preview/predict-for-planet"
 );

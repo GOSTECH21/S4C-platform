@@ -410,8 +410,11 @@ assert(
 assert(
   phone.includes("P4P_CATEGORIES") &&
     phone.includes("Game-Time Wallet") &&
-    phone.includes("1 prediction this slot"),
-  "The Step 04 phone overlay lists the eight P4P events"
+    phone.includes("1 prediction this slot") &&
+    phone.includes("#fffdf8") &&
+    phone.includes("P4P_POWERED_BY_LABEL") &&
+    !phone.includes("#0b1f14"),
+  "The Step 04 phone overlay is ivory with a sponsor mark beside What happens next"
 );
 assert(
   register.includes("GAME_TIME_PRODUCT_LABEL") &&
@@ -439,6 +442,7 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("What happens next?") &&
+    play.includes("s4p-predict-for-planet-v2") &&
     !play.includes("bg-[#10262c]") &&
     !play.includes("text-[#f4f1e6]"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
@@ -493,8 +497,13 @@ assert(
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
+    applyP4p.includes("s4p-predict-for-planet-v2") &&
+    applyP4p.includes("p4p-ivory-2") &&
+    applyP4p.includes("Still old dark P4P live board") &&
+    applyP4p.includes("preview/predict-for-planet") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
-    applyP4pPs1.includes("calendar-clubs"),
+    applyP4pPs1.includes("calendar-clubs") &&
+    applyP4pPs1.includes("s4p-predict-for-planet-v2"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"
 );
 assert(
