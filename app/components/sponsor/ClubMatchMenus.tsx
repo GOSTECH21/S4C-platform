@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
 import { CURRENT_SEASON_LEAGUES } from "@/app/lib/current-season";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
 import {
@@ -148,18 +149,39 @@ export function ClubLeagueMenu({
   value,
   onChange,
   clubs,
+  allPlatformClubs = false,
 }: {
   value: string;
   onChange: (club: string) => void;
   clubs?: string[];
+  allPlatformClubs?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const rootRef = useDismiss(open, () => setOpen(false));
   const fromRegister = clubs !== undefined;
   const registered = (clubs ?? []).map((name) => name.trim()).filter(Boolean);
-  const groups = fromRegister
-    ? [["Registered clubs", registered] as [string, string[]]]
-    : Object.entries(CURRENT_SEASON_LEAGUES);
+  const needle = query.trim().toLowerCase();
+  const groups = (
+    fromRegister
+      ? [["Registered clubs", registered] as [string, string[]]]
+      : allPlatformClubs
+        ? sportingCalendarClubGroups().map(
+            (group) => [group.league, group.clubs] as [string, string[]]
+          )
+        : Object.entries(CURRENT_SEASON_LEAGUES)
+  )
+    .map(([league, list]) => {
+      const filtered = needle
+        ? list.filter(
+            (club) =>
+              club.toLowerCase().includes(needle) ||
+              league.toLowerCase().includes(needle)
+          )
+        : list;
+      return [league, filtered] as [string, string[]];
+    })
+    .filter(([, list]) => list.length > 0);
   const extra =
     value &&
     !groups.some(([, list]) =>
@@ -203,10 +225,24 @@ export function ClubLeagueMenu({
           aria-label={
             registered.length > 0
               ? "Registered clubs"
-              : "Premier League and Scottish Premiership clubs"
+              : allPlatformClubs
+                ? "All clubs on the platform"
+                : "Premier League and Scottish Premiership clubs"
           }
-          className="absolute z-40 mt-2 w-full min-w-[16rem] rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
+          className={`absolute z-40 mt-2 w-full min-w-[16rem] rounded-xl border border-slate-300 bg-white p-3 shadow-lg ${
+            allPlatformClubs ? "max-h-[24rem] overflow-y-auto" : ""
+          }`}
         >
+          {allPlatformClubs ? (
+            <input
+              type="search"
+              aria-label="Search clubs"
+              placeholder="Search clubs"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="mb-3 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-950"
+            />
+          ) : null}
           {groups.map(([league, clubs]) => (
             <div key={league} className="mb-3 last:mb-0">
               <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -228,6 +264,7 @@ export function ClubLeagueMenu({
                         event.preventDefault();
                         event.stopPropagation();
                         onChange(club);
+                        setQuery("");
                         setOpen(false);
                       }}
                       className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${

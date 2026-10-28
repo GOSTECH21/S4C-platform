@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_SLOT_COUNT,
@@ -10,6 +11,7 @@ import {
   P4P_LABEL,
   P4P_SHORT,
   P4P_WINDOW_MINUTES,
+  SPONSORED_BY_LABEL,
   firstFundedWindowIndex,
   formatP4pGbp,
   gameTimeFixtureMatches,
@@ -21,6 +23,7 @@ import {
   remainingGameTimeGbp,
   type P4pCategoryId,
 } from "@/app/lib/predict-for-planet";
+import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import {
   depositGameTimeSponsorship,
   gameTimeWalletForSlot,
@@ -28,6 +31,7 @@ import {
   listP4pPredictions,
   submitP4pPrediction,
 } from "@/app/services/predict-for-planet.service";
+import { sponsorLogoSrc } from "@/app/services/teams.service";
 
 export function PredictForPlanetPlay({
   fanId,
@@ -55,6 +59,7 @@ export function PredictForPlanetPlay({
   const [liveMatch, setLiveMatch] = useState<{
     clubName: string;
     fixtureName: string;
+    brandName: string;
   } | null>(null);
   const seedBrand = seedWallet?.brandName ?? "";
   const seedAmount = seedWallet?.amountGbp ?? 0;
@@ -110,7 +115,11 @@ export function PredictForPlanetPlay({
         return current;
       }
       return picked
-        ? { clubName: picked.clubName, fixtureName: picked.fixtureName }
+        ? {
+            clubName: picked.clubName,
+            fixtureName: picked.fixtureName,
+            brandName: picked.brandName,
+          }
         : null;
     });
   }, [
@@ -148,6 +157,10 @@ export function PredictForPlanetPlay({
         })
       : null;
   const remaining = wallet ? remainingGameTimeGbp(wallet) : 0;
+  const sponsorBrand =
+    wallet?.brandName || liveMatch?.brandName || sponsored?.brandName || "";
+  const sponsorLogo =
+    loadBrandLogo(sponsorBrand) || sponsorLogoSrc(sponsorBrand, null);
   const canPredict = Boolean(wallet && remaining > 0 && categoryId && projectName);
   const predictions = listP4pPredictions().filter(
     (row) =>
@@ -272,29 +285,45 @@ export function PredictForPlanetPlay({
         </select>
       </label>
 
-      <div>
-        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-          What happens next?
-        </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {P4P_CATEGORIES.map((category) => {
-            const selected = categoryId === category.id;
-            return (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setCategoryId(category.id)}
-                className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
-                  selected
-                    ? "border-s4p-mark bg-s4p-mark text-black"
-                    : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
-                }`}
-              >
-                {category.label}
-              </button>
-            );
-          })}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+            What happens next?
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {P4P_CATEGORIES.map((category) => {
+              const selected = categoryId === category.id;
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => setCategoryId(category.id)}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
+                    selected
+                      ? "border-s4p-mark bg-s4p-mark text-black"
+                      : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
+                  }`}
+                >
+                  {category.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+        <aside className="w-full shrink-0 sm:w-44">
+          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+            {SPONSORED_BY_LABEL}
+          </p>
+          <div className="mt-3 rounded-2xl border border-slate-300 bg-white p-4 text-center">
+            <BrandMark
+              name={sponsorBrand}
+              logoUrl={sponsorLogo}
+              large
+              className="mx-auto h-20 w-20 text-xl"
+            />
+            <p className="mt-3 text-sm font-black text-slate-950">{sponsorBrand}</p>
+          </div>
+        </aside>
       </div>
 
       <button

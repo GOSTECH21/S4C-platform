@@ -2,6 +2,7 @@
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
+import { matchSponsorshipTopUp } from "./sponsor-wallet";
 import { namesMatch } from "./upcoming-matches";
 
 export const P4P_LABEL = "Predict-For Planet";
@@ -11,6 +12,7 @@ export const GAME_TIME_SPONSOR_LABEL = "Game-Time Sponsor";
 export const GAME_TIME_CARBON_WALLET_LABEL = "Game-Time Carbon Wallet";
 export const MATCH_SPONSOR_PRODUCT_LABEL = "Match-Sponsor";
 export const GAME_TIME_PRODUCT_LABEL = "Game-Time Sponsor";
+export const SPONSORED_BY_LABEL = "Sponsored by";
 export const P4P_FALLBACK_PROJECTS = [
   "Local Global Schools Solar",
   "International Global Schools Solar",
@@ -151,7 +153,31 @@ export type GameTimeWallet = {
   allocatedGbp: number;
   kickoffAt: string;
   updatedAt: string;
+  /** Set only after Stripe takes the Game-Time amount plus the 5% Platform Fee. */
+  paidAt?: string | null;
 };
+
+export type GameTimeCheckout = {
+  clubName: string;
+  brandName: string;
+  fixtureName: string;
+  slotIndex: number;
+  sponsorshipGbp: number;
+  kickoffAt?: string;
+};
+
+export function gameTimeSponsorshipTopUp(sponsorshipGbp: number): {
+  sponsorshipGbp: number;
+  platformFeeGbp: number;
+  paidGbp: number;
+} {
+  const topUp = matchSponsorshipTopUp(sponsorshipGbp);
+  return {
+    sponsorshipGbp: topUp.matchSponsorshipGbp,
+    platformFeeGbp: topUp.platformFeeGbp,
+    paidGbp: topUp.paidGbp,
+  };
+}
 
 export function gameTimeWalletId(input: {
   clubName: string;
@@ -201,8 +227,13 @@ export function fixtureInvolvesClub(fixtureName: string, clubName: string): bool
   return gameTimeClubMatches(sides[0], clubName) || gameTimeClubMatches(sides[1], clubName);
 }
 
+export function isPaidGameTimeWallet(wallet: GameTimeWallet | null | undefined): boolean {
+  if (!wallet) return false;
+  return Boolean(wallet.paidAt) && roundP4pGbp(wallet.sponsorshipGbp) > 0;
+}
+
 export function depositedGameTimeWallets(wallets: GameTimeWallet[]): GameTimeWallet[] {
-  return wallets.filter((row) => roundP4pGbp(row.sponsorshipGbp) > 0);
+  return wallets.filter((row) => isPaidGameTimeWallet(row));
 }
 
 export type SponsoredGameTimeMatch = {
@@ -275,6 +306,7 @@ export function firstFundedWindowIndex(
   for (const window of windows) {
     const funded = wallets.some(
       (row) =>
+        isPaidGameTimeWallet(row) &&
         gameTimeWalletMatchesMatch(row, clubName, fixtureName) &&
         row.slotIndex === window.slotIndex &&
         remainingGameTimeGbp(row) > 0
@@ -292,6 +324,7 @@ export function createGameTimeWallet(input: {
   sponsorshipGbp: number;
   kickoffAt?: string;
   now?: Date | string;
+  paidAt?: string | null;
 }): GameTimeWallet {
   const now = asIso(input.now ?? new Date());
   const slotIndex = Math.max(
@@ -308,6 +341,7 @@ export function createGameTimeWallet(input: {
     allocatedGbp: 0,
     kickoffAt: input.kickoffAt || now,
     updatedAt: now,
+    paidAt: input.paidAt === undefined ? now : input.paidAt,
   };
 }
 
@@ -394,7 +428,7 @@ export function recordP4pEngagement({
       error: "You can make only 1 Prediction in each 5-minute slot.",
     };
   }
-  if (!wallet) {
+  if (!wallet || !isPaidGameTimeWallet(wallet)) {
     return {
       ok: false,
       error: "No Game-Time Sponsor has put money on this Match yet.",

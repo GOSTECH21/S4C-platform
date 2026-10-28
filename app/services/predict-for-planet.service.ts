@@ -3,9 +3,11 @@ import {
   createGameTimeWallet,
   gameTimeWalletId,
   gameTimeWalletMatchesMatch,
+  isPaidGameTimeWallet,
   pickSponsoredGameTimeMatch,
   recordP4pEngagement,
   remainingGameTimeGbp,
+  type GameTimeCheckout,
   type GameTimeWallet,
   type P4pEngagementResult,
   type P4pPrediction,
@@ -14,6 +16,8 @@ import {
 
 export const GAME_TIME_WALLETS_STORAGE = "s4p.game-time.wallets";
 export const P4P_PREDICTIONS_STORAGE = "s4p.p4p.predictions";
+export const GAME_TIME_CHECKOUT_STORAGE = "s4p.game-time.checkout";
+export const GAME_TIME_PAYMENTS_STORAGE = "s4p.game-time.payments";
 
 function readJson<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -48,20 +52,79 @@ export function depositGameTimeSponsorship(input: {
   slotIndex: number;
   sponsorshipGbp: number;
   kickoffAt?: string;
+  paidAt?: string | null;
 }): GameTimeWallet {
   const id = gameTimeWalletId(input);
   const existing = listGameTimeWallets().find((row) => row.id === id);
+  const paidAt =
+    input.paidAt !== undefined
+      ? input.paidAt
+      : existing?.paidAt ?? new Date().toISOString();
+  const alreadyPaid = Boolean(existing?.paidAt);
+  const incoming = Math.max(0, Number(input.sponsorshipGbp) || 0);
+  const sponsorshipGbp =
+    existing && !alreadyPaid && paidAt
+      ? incoming || Number(existing.sponsorshipGbp) || 0
+      : (existing ? Number(existing.sponsorshipGbp) || 0 : 0) + incoming;
   const next = createGameTimeWallet({
     ...input,
-    sponsorshipGbp:
-      (existing ? Number(existing.sponsorshipGbp) || 0 : 0) +
-      Math.max(0, Number(input.sponsorshipGbp) || 0),
+    sponsorshipGbp,
     kickoffAt: input.kickoffAt || existing?.kickoffAt,
+    paidAt,
   });
   if (existing) {
     next.allocatedGbp = existing.allocatedGbp;
   }
   return saveGameTimeWallet(next);
+}
+
+export function saveGameTimeCheckout(checkout: GameTimeCheckout): GameTimeCheckout {
+  if (typeof window === "undefined") return checkout;
+  window.localStorage.setItem(GAME_TIME_CHECKOUT_STORAGE, JSON.stringify(checkout));
+  return checkout;
+}
+
+export function readGameTimeCheckout(): GameTimeCheckout | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(GAME_TIME_CHECKOUT_STORAGE);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GameTimeCheckout;
+    if (!parsed?.clubName || !parsed?.fixtureName || !parsed?.brandName) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function clearGameTimeCheckout() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(GAME_TIME_CHECKOUT_STORAGE);
+}
+
+export function confirmGameTimeCardPayment(
+  checkout: GameTimeCheckout
+): GameTimeWallet {
+  const paidAt = new Date().toISOString();
+  const wallet = depositGameTimeSponsorship({
+    ...checkout,
+    paidAt,
+  });
+  const payments = readJson<{
+    walletId: string;
+    paidAt: string;
+    sponsorshipGbp: number;
+  }>(GAME_TIME_PAYMENTS_STORAGE);
+  writeJson(GAME_TIME_PAYMENTS_STORAGE, [
+    ...payments,
+    {
+      walletId: wallet.id,
+      paidAt,
+      sponsorshipGbp: wallet.sponsorshipGbp,
+    },
+  ]);
+  clearGameTimeCheckout();
+  return wallet;
 }
 
 export function gameTimeWalletForSlot(input: {
@@ -72,6 +135,7 @@ export function gameTimeWalletForSlot(input: {
   const slot = Math.round(Number(input.slotIndex) || 0);
   const matches = listGameTimeWallets().filter(
     (row) =>
+      isPaidGameTimeWallet(row) &&
       gameTimeWalletMatchesMatch(row, input.clubName, input.fixtureName) &&
       row.slotIndex === slot
   );

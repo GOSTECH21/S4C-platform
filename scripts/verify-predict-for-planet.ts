@@ -23,6 +23,7 @@ import {
   pickSponsoredGameTimeMatch,
   recordP4pEngagement,
   remainingGameTimeGbp,
+  gameTimeSponsorshipTopUp,
 } from "../app/lib/predict-for-planet";
 import {
   GAME_TIME_SPONSORSHIP_RANGE_LABEL,
@@ -31,8 +32,10 @@ import {
 } from "../app/lib/sponsor-listings";
 import {
   SPONSOR_GAME_TIME_PATH,
+  SPONSOR_GAME_TIME_PAY_PATH,
   SUPPORTER_PREDICT_PATH,
 } from "../app/lib/routes";
+import { sportingCalendarClubCount } from "../app/lib/calendar-clubs";
 
 const failures: string[] = [];
 
@@ -197,6 +200,43 @@ assert(
   pickSponsoredGameTimeMatch([], ["Hearts"]) === null,
   "P4P has no Match until a Game-Time Sponsor funds a Carbon Wallet"
 );
+const unpaidWallet = createGameTimeWallet({
+  clubName: "Arsenal",
+  brandName: "Budweiser Europe",
+  fixtureName: "Liverpool v Arsenal",
+  slotIndex: 1,
+  sponsorshipGbp: 2500,
+  paidAt: null,
+});
+assert(
+  pickSponsoredGameTimeMatch([unpaidWallet], ["Arsenal"]) === null,
+  "Fans cannot take £0.10 until Game-Time payment is confirmed"
+);
+assert(
+  pickSponsoredGameTimeMatch(
+    [
+      unpaidWallet,
+      createGameTimeWallet({
+        clubName: "Arsenal",
+        brandName: "Budweiser Europe",
+        fixtureName: "Liverpool v Arsenal",
+        slotIndex: 1,
+        sponsorshipGbp: 2500,
+      }),
+    ],
+    ["Hearts"]
+  )?.fixtureName === "Liverpool v Arsenal",
+  "P4P headline is the Match the Game-Time Sponsor paid for"
+);
+assert(
+  gameTimeSponsorshipTopUp(2500).paidGbp === 2625 &&
+    gameTimeSponsorshipTopUp(2500).platformFeeGbp === 125,
+  "Game-Time Stripe charge is the wallet amount plus a 5% Platform Fee"
+);
+assert(
+  sportingCalendarClubCount() > 3,
+  "Game-Time Club list is every club on the platform, not the three-club demo"
+);
 assert(
   firstFundedWindowIndex([heartsWallet], "Hearts", "Hearts vs Rangers") === 6,
   "The first 5-minute slot sits inside the funded 30-minute Game-Time slot"
@@ -309,7 +349,9 @@ assert(
     play.includes("Climate Project") &&
     play.includes("Predict ·") &&
     play.includes("pickSponsoredGameTimeMatch") &&
-    play.includes("No Game-Time Sponsor has funded a Match yet"),
+    play.includes("No Game-Time Sponsor has funded a Match yet") &&
+    play.includes("SPONSORED_BY_LABEL") &&
+    play.includes("BrandMark"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
 );
 const fanPredictPage = readFileSync(
@@ -324,8 +366,18 @@ assert(
 const gameTimePage = readFileSync("app/sponsor/game-time/page.tsx", "utf8");
 assert(
   gameTimePage.includes("Select the Match you are buying Game-Time for.") &&
-    !gameTimePage.includes("vs Chelsea"),
-  "Game-Time deposit requires the published Match"
+    !gameTimePage.includes("vs Chelsea") &&
+    gameTimePage.includes("allPlatformClubs") &&
+    gameTimePage.includes("Continue to payment") &&
+    gameTimePage.includes("SPONSOR_GAME_TIME_PAY_PATH"),
+  "Game-Time lists every platform club and continues to Stripe payment"
+);
+const gameTimePay = readFileSync("app/sponsor/game-time/pay/page.tsx", "utf8");
+assert(
+  gameTimePay.includes("StripeCardPayment") &&
+    gameTimePay.includes("confirmGameTimeCardPayment") &&
+    SPONSOR_GAME_TIME_PAY_PATH === "/sponsor/game-time/pay",
+  "Game-Time payment is the wallet amount plus the 5% Platform Fee via Stripe"
 );
 assert(
   fanNav.includes("SUPPORTER_PREDICT_PATH") &&
@@ -349,7 +401,8 @@ assert(
   applyP4p.includes('BRANCH = "cursor/predict-for-planet-18f9"') &&
     applyP4p.includes("PredictForPlanetPhone") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
-    applyP4p.includes("pickSponsoredGameTimeMatch"),
+    applyP4p.includes("pickSponsoredGameTimeMatch") &&
+    applyP4p.includes("game-time/pay"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"
 );
 assert(
@@ -358,7 +411,7 @@ assert(
       "PredictForPlanetPlay"
     ) &&
     readFileSync("app/sponsor/game-time/page.tsx", "utf8").includes(
-      "depositGameTimeSponsorship"
+      "saveGameTimeCheckout"
     ) &&
     readFileSync("app/preview/predict-for-planet/page.tsx", "utf8").includes(
       "seedWallet"
