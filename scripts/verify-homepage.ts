@@ -745,6 +745,9 @@ assert(
     howItWorks.includes("PredictForPlanetPhone") &&
     howItWorks.includes("PredictForPlanetPanel") &&
     readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
+      "P4P_CATEGORIES"
+    ) &&
+    readFileSync("app/lib/predict-for-planet.ts", "utf8").includes(
       "Handball offence"
     ) &&
     !howItWorks.includes("Estimate your return distance") &&

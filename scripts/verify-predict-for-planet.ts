@@ -226,9 +226,9 @@ assert(
   "How S4P Works Step 04 is Predict-For Planet, not Plan Your Travel"
 );
 assert(
-  phone.includes("Handball offence") &&
-    phone.includes("VAR referee review") &&
-    phone.includes("Game-Time Wallet"),
+  phone.includes("P4P_CATEGORIES") &&
+    phone.includes("Game-Time Wallet") &&
+    phone.includes("1 prediction this slot"),
   "The Step 04 phone overlay lists the eight P4P events"
 );
 assert(
