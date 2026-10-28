@@ -277,24 +277,24 @@ export function PredictForPlanetPlay({
       {challenge && wallet ? (
         <article
           data-testid="p4p-live-challenge"
-          className="rounded-3xl bg-[#10262c] p-6 text-[#f4f1e6] shadow-lg"
+          className="rounded-3xl border border-emerald-700/30 bg-white p-6 text-slate-950"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-800">
                 {P4P_LIVE_CHALLENGE_LABEL}
               </p>
               <h2 className="mt-2 text-3xl font-black">{liveFixture}</h2>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Game-Time Sponsor · {gameTimeSlotShortLabel(slot)}
               </p>
             </div>
             {shouldSeed ? (
-              <span className="rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-bold text-emerald-200">
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
                 Demo
               </span>
             ) : (
-              <span className="rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-bold text-emerald-200">
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
                 Live
               </span>
             )}
@@ -308,46 +308,46 @@ export function PredictForPlanetPlay({
                 {challenge.engagementTarget.toLocaleString("en-GB")}
               </p>
             </div>
-            <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-3 h-3 overflow-hidden rounded-full bg-emerald-100">
               <div
-                className="h-full rounded-full bg-emerald-400"
+                className="h-full rounded-full bg-emerald-600"
                 style={{ width: `${challenge.progressPercent}%` }}
               />
             </div>
-            <p className="mt-2 text-sm text-emerald-300">
+            <p className="mt-2 text-sm text-emerald-800">
               {challenge.progressPercent}% of engagement target achieved
             </p>
           </div>
 
           <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-white/5 p-4">
-              <dt className="text-sm text-white/70">Unique fans participating</dt>
+            <div className="rounded-2xl border border-emerald-700/20 bg-[var(--s4p-canvas)] p-4">
+              <dt className="text-sm text-slate-600">Unique fans participating</dt>
               <dd className="mt-1 text-2xl font-black tabular-nums">
                 {challenge.uniqueFans.toLocaleString("en-GB")}
               </dd>
             </div>
-            <div className="rounded-2xl bg-white/5 p-4">
-              <dt className="text-sm text-white/70">
+            <div className="rounded-2xl border border-emerald-700/20 bg-[var(--s4p-canvas)] p-4">
+              <dt className="text-sm text-slate-600">
                 Total eligible predictions submitted
               </dt>
               <dd className="mt-1 text-2xl font-black tabular-nums">
                 {challenge.eligiblePredictions.toLocaleString("en-GB")}
               </dd>
             </div>
-            <div className="rounded-2xl bg-white/5 p-4">
-              <dt className="text-sm text-white/70">Climate funding unlocked</dt>
-              <dd className="mt-1 text-3xl font-black text-emerald-300">
+            <div className="rounded-2xl border border-emerald-700/20 bg-[var(--s4p-canvas)] p-4">
+              <dt className="text-sm text-slate-600">Climate funding unlocked</dt>
+              <dd className="mt-1 text-3xl font-black text-emerald-800">
                 {formatP4pGbp(challenge.fundingUnlockedGbp)}
               </dd>
             </div>
-            <div className="rounded-2xl bg-white/5 p-4">
-              <dt className="text-sm text-white/70">Sponsor commitment</dt>
+            <div className="rounded-2xl border border-emerald-700/20 bg-[var(--s4p-canvas)] p-4">
+              <dt className="text-sm text-slate-600">Sponsor commitment</dt>
               <dd className="mt-1 text-3xl font-black">
                 {formatP4pGbp(challenge.sponsorCommitmentGbp)}
               </dd>
             </div>
           </dl>
-          <p className="mt-5 text-sm text-white/70">{P4P_LIVE_CHALLENGE_FOOTER}</p>
+          <p className="mt-5 text-sm text-slate-600">{P4P_LIVE_CHALLENGE_FOOTER}</p>
         </article>
       ) : null}
 
@@ -397,27 +397,48 @@ export function PredictForPlanetPlay({
             </p>
           ) : null}
         </div>
-        <p className="mt-3 text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-          What happens next?
-        </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {P4P_CATEGORIES.map((category) => {
-            const selected = categoryId === category.id;
-            return (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setCategoryId(category.id)}
-                className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
-                  selected
-                    ? "border-s4p-mark bg-s4p-mark text-black"
-                    : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
-                }`}
-              >
-                {category.label}
-              </button>
-            );
-          })}
+        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+              What happens next?
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {P4P_CATEGORIES.map((category) => {
+                const selected = categoryId === category.id;
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setCategoryId(category.id)}
+                    className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
+                      selected
+                        ? "border-s4p-mark bg-s4p-mark text-black"
+                        : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <aside
+            data-testid="p4p-powered-by"
+            className="w-full shrink-0 sm:w-44"
+          >
+            <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+              {P4P_POWERED_BY_LABEL}
+            </p>
+            <div className="mt-3 rounded-2xl border border-slate-300 bg-white p-4 text-center">
+              <BrandMark
+                name={sponsorBrand}
+                logoUrl={sponsorLogo}
+                large
+                className="mx-auto h-20 w-20 text-xl"
+              />
+              <p className="mt-3 text-sm font-black text-slate-950">{sponsorBrand}</p>
+            </div>
+          </aside>
         </div>
       </div>
 
@@ -503,21 +524,6 @@ export function PredictForPlanetPlay({
             </ul>
           </div>
         ) : null}
-
-        <aside className="mt-6 max-w-sm">
-          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-            {P4P_POWERED_BY_LABEL}
-          </p>
-          <div className="mt-3 rounded-2xl border border-slate-300 bg-white p-4 text-center">
-            <BrandMark
-              name={sponsorBrand}
-              logoUrl={sponsorLogo}
-              large
-              className="mx-auto h-20 w-20 text-xl"
-            />
-            <p className="mt-3 text-sm font-black text-slate-950">{sponsorBrand}</p>
-          </div>
-        </aside>
       </div>
     </section>
   );

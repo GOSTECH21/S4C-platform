@@ -436,7 +436,11 @@ assert(
     play.includes("alreadyPredictedWindow") &&
     play.includes("p4p-slot-countdown") &&
     play.includes("BrandMark") &&
-    play.includes("hydrated"),
+    play.includes("hydrated") &&
+    play.includes('data-testid="p4p-powered-by"') &&
+    play.includes("What happens next?") &&
+    !play.includes("bg-[#10262c]") &&
+    !play.includes("text-[#f4f1e6]"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
 );
 const fanPredictPage = readFileSync(
