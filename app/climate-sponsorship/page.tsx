@@ -90,8 +90,10 @@ export default function ClimateSponsorshipPage() {
             or wrong, that is an Engagement of {formatP4pGbp(P4P_ENGAGEMENT_GBP)}.
           </li>
           <li>
-            3. Each Engagement takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from the
-            Game-Time Carbon Wallet into the fan&apos;s chosen Climate Project,
+            3. Each Engagement takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)}
+            {" "}
+            from the Game-Time Carbon Wallet into the fan&apos;s chosen Climate
+            Project,
             until that wallet reads {formatP4pGbp(0)}.
           </li>
         </ol>
