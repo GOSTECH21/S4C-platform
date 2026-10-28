@@ -7,7 +7,7 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/predict-for-planet-18f9";
+const BRANCH = "cursor/p4p-live-challenge-18f9";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",

@@ -24,6 +24,10 @@ import {
   recordP4pEngagement,
   remainingGameTimeGbp,
   gameTimeSponsorshipTopUp,
+  windowsForGameTimeSlot,
+  isWindowInGameTimeSlot,
+  p4pLiveChallenge,
+  p4pWindowCountdown,
 } from "../app/lib/predict-for-planet";
 import {
   GAME_TIME_SPONSORSHIP_RANGE_LABEL,
@@ -240,6 +244,82 @@ assert(
   firstFundedWindowIndex([heartsWallet], "Hearts", "Hearts vs Rangers") === 6,
   "The first 5-minute slot sits inside the funded 30-minute Game-Time slot"
 );
+assert(
+  windowsForGameTimeSlot(1)
+    .map((row) => row.label)
+    .join("|") === "30–35 min|35–40 min|40–45 min|45–50 min|50–55 min|55–60 min",
+  "A 30–60 Game-Time slot only offers those six 5-minute windows"
+);
+assert(
+  !windowsForGameTimeSlot(1).some((row) => row.label.startsWith("20–25")) &&
+    !isWindowInGameTimeSlot(4, 1),
+  "20–25 min is not selectable when the Game-Time Sponsor bought 30–60 minutes"
+);
+assert(isWindowInGameTimeSlot(6, 1), "35–40 min sits inside the 30–60 Game-Time slot");
+const kickoff = new Date("2026-08-15T15:00:00.000Z");
+const liveBoard = p4pLiveChallenge(heartsWallet, [
+  {
+    id: "a",
+    fanId: "fan-a",
+    clubName: heartsWallet.clubName,
+    fixtureName: heartsWallet.fixtureName,
+    windowIndex: 6,
+    categoryId: "corner",
+    projectName: "Wee Spoke Hub",
+    engagementGbp: 0.1,
+    walletId: heartsWallet.id,
+    at: kickoff.toISOString(),
+  },
+  {
+    id: "b",
+    fanId: "fan-b",
+    clubName: heartsWallet.clubName,
+    fixtureName: heartsWallet.fixtureName,
+    windowIndex: 7,
+    categoryId: "goal",
+    projectName: "Wee Spoke Hub",
+    engagementGbp: 0.1,
+    walletId: heartsWallet.id,
+    at: kickoff.toISOString(),
+  },
+  {
+    id: "c",
+    fanId: "fan-a",
+    clubName: heartsWallet.clubName,
+    fixtureName: heartsWallet.fixtureName,
+    windowIndex: 0,
+    categoryId: "foul",
+    projectName: "Wee Spoke Hub",
+    engagementGbp: 0.1,
+    walletId: heartsWallet.id,
+    at: kickoff.toISOString(),
+  },
+]);
+assert(
+  liveBoard.uniqueFans === 2 &&
+    liveBoard.eligiblePredictions === 2 &&
+    liveBoard.sponsorCommitmentGbp === 10 &&
+    liveBoard.engagementTarget === 100,
+  "Live challenge counts unique fans and eligible predictions in the funded 30-minute slot"
+);
+const liveClock = p4pWindowCountdown(
+  kickoff,
+  p4pWindows()[6],
+  new Date("2026-08-15T15:32:00.000Z")
+);
+assert(
+  liveClock.state === "live" && liveClock.label.includes("left"),
+  "The 5-minute slot countdown shows time left while that window is live"
+);
+const endedClock = p4pWindowCountdown(
+  kickoff,
+  p4pWindows()[4],
+  new Date("2026-08-15T15:32:00.000Z")
+);
+assert(
+  endedClock.state === "ended",
+  "A 20–25 minute window has ended once the Game is in the 30–60 slot"
+);
 
 const takeFromSponsor = recordP4pEngagement({
   fanId: "fan-hearts",
@@ -265,7 +345,6 @@ assert(
   "Taken cash is grouped onto the chosen Climate Project"
 );
 
-const kickoff = new Date("2026-08-15T15:00:00.000Z");
 assert(
   gameTimePersistsUntil(kickoff).getTime() - kickoff.getTime() ===
     GAME_TIME_DURATION_MINUTES * 60 * 1000,
@@ -349,7 +428,13 @@ assert(
     play.includes("Predict ·") &&
     play.includes("pickSponsoredGameTimeMatch") &&
     play.includes("No Game-Time Sponsor has funded a Match yet") &&
-    play.includes("SPONSORED_BY_LABEL") &&
+    play.includes("P4P_POWERED_BY_LABEL") &&
+    play.includes("P4P_LIVE_CHALLENGE_LABEL") &&
+    play.includes("P4P_TAGLINE") &&
+    play.includes("P4P_MATCH_DAY_IMPACT_LABEL") &&
+    play.includes("windowsForGameTimeSlot") &&
+    play.includes("alreadyPredictedWindow") &&
+    play.includes("p4p-slot-countdown") &&
     play.includes("BrandMark") &&
     play.includes("hydrated"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
@@ -399,7 +484,7 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/predict-for-planet-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-live-challenge-18f9"') &&
     applyP4p.includes("PredictForPlanetPhone") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&

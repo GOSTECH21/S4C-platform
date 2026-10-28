@@ -10,7 +10,7 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/predict-for-planet-18f9"
+$branch = "cursor/p4p-live-challenge-18f9"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
