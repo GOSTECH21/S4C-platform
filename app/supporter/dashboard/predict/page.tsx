@@ -52,14 +52,14 @@ export default function PredictForPlanetPage() {
 
   if (loading || !fanId) {
     return (
-      <main className="mx-auto max-w-3xl px-6 pb-16 text-white">
+      <main className="mx-auto max-w-3xl px-6 pb-16">
         Loading Predict-For Planet...
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-16 text-white">
+    <main className="mx-auto max-w-3xl px-6 pb-16">
       <PredictForPlanetPlay
         fanId={fanId}
         clubName={clubName}

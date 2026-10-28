@@ -66,7 +66,7 @@ export function PredictForPlanetPhone({
           top: "12.6%",
           left: "6.4%",
           right: "6%",
-          bottom: "10.8%",
+          bottom: "5.6%",
           backgroundColor: "#0b1f14",
           borderRadius: "0 0 1.35rem 1.35rem",
           color: "#f7f4e8",

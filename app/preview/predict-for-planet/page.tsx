@@ -15,11 +15,11 @@ const BRAND = "EA Sports";
 
 export default function PredictForPlanetPreviewPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 text-white">
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+    <main className="mx-auto max-w-3xl px-6 py-12">
+      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-800">
         Preview
       </p>
-      <p className="mt-2 text-sm text-slate-400">
+      <p className="mt-2 text-sm text-slate-700">
         {BRAND} put {formatP4pGbp(2)} on each 30-minute {GAME_TIME_CARBON_WALLET_LABEL}{" "}
         for {FIXTURE}. Each {P4P_LABEL} prediction takes{" "}
         {formatP4pGbp(P4P_ENGAGEMENT_GBP)}.

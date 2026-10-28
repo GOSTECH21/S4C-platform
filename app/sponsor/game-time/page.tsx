@@ -126,19 +126,19 @@ export default function GameTimeSponsorshipPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl py-10 text-white">
+      <main className="mx-auto max-w-3xl py-10">
         Loading Game-Time Sponsorship...
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl py-10 text-white">
-      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+    <main className="mx-auto max-w-3xl py-10 text-slate-950">
+      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
         {brand}
       </p>
       <h1 className="mt-3 text-4xl font-black">{GAME_TIME_SPONSORSHIP_LABEL}</h1>
-      <p className="mt-3 max-w-3xl text-slate-300">
+      <p className="mt-3 max-w-3xl text-slate-700">
         Buy a {GAME_TIME_SLOT_MINUTES}-minute slot of fan engagement for this
         Game. Predict-For Planet takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from this{" "}
         {GAME_TIME_CARBON_WALLET_LABEL} for every prediction until it reads{" "}
@@ -154,14 +154,14 @@ export default function GameTimeSponsorshipPage() {
           loading={fixturesLoading}
           onChange={setFixture}
         />
-        <fieldset className="rounded-xl border border-slate-700 p-4">
-          <legend className="px-1 text-sm text-slate-400">
+        <fieldset className="rounded-xl border border-slate-300 bg-white p-4">
+          <legend className="px-1 text-sm font-semibold text-slate-700">
             30-minute Game-Time slot
           </legend>
           {slots.map((slot) => (
             <label
               key={slot.index}
-              className="mt-2 flex cursor-pointer items-center gap-3 text-sm text-slate-200"
+              className="mt-2 flex cursor-pointer items-center gap-3 text-sm text-slate-950"
             >
               <input
                 type="radio"
@@ -174,7 +174,7 @@ export default function GameTimeSponsorshipPage() {
             </label>
           ))}
         </fieldset>
-        <label className="block text-sm text-slate-400">
+        <label className="block text-sm font-semibold text-slate-700">
           Amount on the {GAME_TIME_CARBON_WALLET_LABEL} (£)
           <input
             type="number"
@@ -182,7 +182,7 @@ export default function GameTimeSponsorshipPage() {
             step={1}
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
-            className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-950"
           />
         </label>
         <button
@@ -195,7 +195,7 @@ export default function GameTimeSponsorshipPage() {
         {error ? (
           <p
             role="alert"
-            className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300"
+            className="rounded-xl border border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-800"
           >
             {error}
           </p>
@@ -203,7 +203,7 @@ export default function GameTimeSponsorshipPage() {
         {notice ? (
           <p
             role="status"
-            className="rounded-xl border border-green-500/40 bg-green-500/10 p-3 text-sm text-green-300"
+            className="rounded-xl border border-emerald-700 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900"
           >
             {notice}
           </p>
@@ -219,12 +219,12 @@ export default function GameTimeSponsorshipPage() {
               .map((row) => (
                 <li
                   key={row.id}
-                  className="rounded-xl border border-slate-700 bg-slate-900 p-4"
+                  className="rounded-xl border border-slate-300 bg-white p-4"
                 >
                   <p className="font-bold">
                     {row.fixtureName} · {slots[row.slotIndex]?.label}
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-slate-600">
                     Remaining {formatP4pGbp(remainingGameTimeGbp(row))} of{" "}
                     {formatP4pGbp(row.sponsorshipGbp)}
                   </p>

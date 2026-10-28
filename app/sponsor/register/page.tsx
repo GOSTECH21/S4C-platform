@@ -233,11 +233,11 @@ export default function SponsorRegisterPage() {
             setLogoUrl(next);
           }}
         />
-        <fieldset className="rounded-xl border border-slate-700 p-4">
-          <legend className="px-1 text-sm text-slate-400">
+        <fieldset className="rounded-xl border border-slate-300 bg-white p-4">
+          <legend className="px-1 text-sm font-semibold text-slate-700">
             Sponsorship product
           </legend>
-          <label className="mt-2 flex cursor-pointer items-start gap-3 text-sm text-slate-200">
+          <label className="mt-2 flex cursor-pointer items-start gap-3 text-sm text-slate-950">
             <input
               type="radio"
               name="sponsor-product"
@@ -251,7 +251,7 @@ export default function SponsorRegisterPage() {
               amount; highest within 8 hours is accepted.
             </span>
           </label>
-          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-200">
+          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-950">
             <input
               type="radio"
               name="sponsor-product"

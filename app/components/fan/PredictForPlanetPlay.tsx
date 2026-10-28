@@ -113,18 +113,17 @@ export function PredictForPlanetPlay({
         ? `Engagement. ${taken} left the ${GAME_TIME_CARBON_WALLET_LABEL} into ${projectName}. Wallet now ${left}.`
         : `Prediction recorded. The ${GAME_TIME_CARBON_WALLET_LABEL} is ${formatP4pGbp(0)}.`
     );
-    setCategoryId("");
     setTick((value) => value + 1);
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 text-slate-950">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
           {P4P_SHORT} · {P4P_LABEL}
         </p>
         <h1 className="mt-2 text-4xl font-black">{fixtureName}</h1>
-        <p className="mt-3 max-w-3xl text-slate-300">
+        <p className="mt-3 max-w-3xl text-slate-700">
           Predict what is likely to happen in the next {P4P_WINDOW_MINUTES}-minute
           slot. One prediction per slot — right or wrong, it is an Engagement of{" "}
           {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from the {GAME_TIME_CARBON_WALLET_LABEL}{" "}
@@ -132,26 +131,26 @@ export function PredictForPlanetPlay({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-emerald-400/30 bg-slate-950/70 p-5">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+      <div className="rounded-2xl border border-emerald-700/30 bg-white p-5">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-800">
           {GAME_TIME_CARBON_WALLET_LABEL}
         </p>
-        <p className="mt-2 text-3xl font-black text-s4p-mark">
+        <p className="mt-2 text-3xl font-black text-emerald-800">
           {formatP4pGbp(remaining)}
         </p>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-slate-600">
           {wallet
             ? `${wallet.brandName} bought the ${slot?.label} slot.`
             : `No Game-Time Sponsor has bought the ${slot?.label} slot yet.`}
         </p>
       </div>
 
-      <label className="block text-sm text-slate-400">
+      <label className="block text-sm font-semibold text-slate-700">
         5-minute slot
         <select
           value={windowIndex}
           onChange={(event) => setWindowIndex(Number(event.target.value))}
-          className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+          className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-950"
         >
           {windows.map((row) => (
             <option key={row.index} value={row.index}>
@@ -161,12 +160,12 @@ export function PredictForPlanetPlay({
         </select>
       </label>
 
-      <label className="block text-sm text-slate-400">
+      <label className="block text-sm font-semibold text-slate-700">
         Climate Project
         <select
           value={projectName}
           onChange={(event) => setProjectName(event.target.value)}
-          className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
+          className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-950"
         >
           {projects.map((name) => (
             <option key={name} value={name}>
@@ -177,7 +176,7 @@ export function PredictForPlanetPlay({
       </label>
 
       <div>
-        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-400">
+        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
           What happens next?
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -190,8 +189,8 @@ export function PredictForPlanetPlay({
                 onClick={() => setCategoryId(category.id)}
                 className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
                   selected
-                    ? "border-s4p-mark bg-s4p-mark text-slate-950"
-                    : "border-slate-700 bg-slate-900 text-slate-100 hover:border-s4p-mark"
+                    ? "border-s4p-mark bg-s4p-mark text-black"
+                    : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
                 }`}
               >
                 {category.label}
@@ -210,12 +209,12 @@ export function PredictForPlanetPlay({
       </button>
 
       {error ? (
-        <p role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+        <p role="alert" className="rounded-xl border border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-800">
           {error}
         </p>
       ) : null}
       {notice ? (
-        <p role="status" className="rounded-xl border border-green-500/40 bg-green-500/10 p-3 text-sm text-green-300">
+        <p role="status" className="rounded-xl border border-emerald-700 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900">
           {notice}
         </p>
       ) : null}
@@ -223,7 +222,7 @@ export function PredictForPlanetPlay({
       {predictions.length > 0 ? (
         <div>
           <h2 className="text-xl font-black">Your predictions this Game</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-300">
+          <ul className="mt-3 space-y-2 text-sm text-slate-700">
             {predictions.map((row) => (
               <li key={row.id}>
                 {windows[row.windowIndex]?.label}:{" "}
@@ -238,7 +237,7 @@ export function PredictForPlanetPlay({
       {credits.length > 0 ? (
         <div>
           <h2 className="text-xl font-black">Taken into Climate Projects</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-300">
+          <ul className="mt-3 space-y-2 text-sm text-slate-700">
             {credits.map((row) => (
               <li key={row.projectName}>
                 {row.projectName}: {formatP4pGbp(row.amountGbp)}
