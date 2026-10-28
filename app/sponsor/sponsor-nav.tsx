@@ -10,6 +10,7 @@ import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
+  SPONSOR_GAME_TIME_PATH,
   SPONSOR_INVITATIONS_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
@@ -104,9 +105,11 @@ export function SponsorNav() {
 
   const onInvitations = (pathname ?? "").startsWith(SPONSOR_INVITATIONS_PATH);
   const onCalendar = (pathname ?? "").startsWith(SPONSOR_CALENDAR_PATH);
+  const onGameTime = (pathname ?? "").startsWith(SPONSOR_GAME_TIME_PATH);
   const onDashboard =
     !onInvitations &&
     !onCalendar &&
+    !onGameTime &&
     ((pathname ?? "") === homePath ||
       (pathname ?? "") === SPONSOR_DASHBOARD_PATH ||
       (pathname ?? "") === LOCAL_SPONSOR_HOME_PATH);
@@ -121,12 +124,20 @@ export function SponsorNav() {
           Dashboard
         </Link>
         {homePath === SPONSOR_DASHBOARD_PATH ? (
-          <Link
-            href={SPONSOR_CALENDAR_PATH}
-            className={`${tabClass} ${s4pTabClass(onCalendar)}`}
-          >
-            Calendar
-          </Link>
+          <>
+            <Link
+              href={SPONSOR_CALENDAR_PATH}
+              className={`${tabClass} ${s4pTabClass(onCalendar)}`}
+            >
+              Calendar
+            </Link>
+            <Link
+              href={SPONSOR_GAME_TIME_PATH}
+              className={`${tabClass} ${s4pTabClass(onGameTime)}`}
+            >
+              Game-Time
+            </Link>
+          </>
         ) : null}
         <Link
           href={SPONSOR_INVITATIONS_PATH}

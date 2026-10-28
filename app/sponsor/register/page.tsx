@@ -12,6 +12,7 @@ import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import {
   LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_DASHBOARD_PATH,
+  SPONSOR_GAME_TIME_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
 import {
@@ -21,10 +22,20 @@ import {
 import { roleRegisterAccount } from "@/app/lib/role-login";
 import { SafeInput, SafeSelect } from "@/app/components/forms/SafeFormField";
 import {
+  GAME_TIME_SPONSORSHIP_RANGE_LABEL,
+  GAME_TIME_SPONSORSHIP_RANGES,
   GLOBAL_MATCH_SPONSORSHIP_RANGES,
   MATCH_SPONSORSHIP_RANGE_LABEL,
   listingIdFor,
+  type GlobalSponsorProduct,
 } from "@/app/lib/sponsor-listings";
+import {
+  GAME_TIME_DURATION_MINUTES,
+  GAME_TIME_PRODUCT_LABEL,
+  GAME_TIME_SLOT_MINUTES,
+  MATCH_SPONSOR_PRODUCT_LABEL,
+  MATCH_SPONSORSHIP_DAYS,
+} from "@/app/lib/predict-for-planet";
 import { registerSponsorListing } from "@/app/services/sponsor-listings.service";
 
 export default function SponsorRegisterPage() {
@@ -39,8 +50,17 @@ export default function SponsorRegisterPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [commitmentFeeRangeId, setCommitmentFeeRangeId] = useState("");
+  const [product, setProduct] = useState<GlobalSponsorProduct>("match");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const rangeLabel =
+    product === "game-time"
+      ? GAME_TIME_SPONSORSHIP_RANGE_LABEL
+      : MATCH_SPONSORSHIP_RANGE_LABEL;
+  const amountRanges =
+    product === "game-time"
+      ? GAME_TIME_SPONSORSHIP_RANGES
+      : GLOBAL_MATCH_SPONSORSHIP_RANGES;
 
   useEffect(() => {
     setFormReady(true);
@@ -63,7 +83,7 @@ export default function SponsorRegisterPage() {
       return;
     }
     if (!commitmentFeeRangeId) {
-      setError(`Select your ${MATCH_SPONSORSHIP_RANGE_LABEL}.`);
+      setError(`Select your ${rangeLabel}.`);
       return;
     }
     setLoading(true);
@@ -91,11 +111,15 @@ export default function SponsorRegisterPage() {
         email,
         logoUrl,
         commitmentFeeRangeId,
+        product,
         createdAt: new Date().toISOString(),
         source: "registered",
       });
       window.location.href =
-        continueAfterSponsorAuth() || SPONSOR_DASHBOARD_PATH;
+        continueAfterSponsorAuth() ||
+        (product === "game-time"
+          ? SPONSOR_GAME_TIME_PATH
+          : SPONSOR_DASHBOARD_PATH);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
       setLoading(false);
@@ -109,9 +133,11 @@ export default function SponsorRegisterPage() {
       </p>
       <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Create your Global Brand account, add your Match-Sponsorship Range,
-            and you are listed on the club Sponsors section — nowhere else.
-            Clubs invite you from that list.
+            Create your Global Brand account and choose Match-Sponsor (
+            {MATCH_SPONSORSHIP_DAYS} days) or Game-Time Sponsor (
+            {GAME_TIME_DURATION_MINUTES} minutes). Match-Sponsors are listed on
+            the club Sponsors section — nowhere else. Game-Time Sponsors buy a{" "}
+            {GAME_TIME_SLOT_MINUTES}-minute slot of fan engagement.
           </p>
 
       {error && (
@@ -207,8 +233,42 @@ export default function SponsorRegisterPage() {
             setLogoUrl(next);
           }}
         />
+        <fieldset className="rounded-xl border border-slate-300 bg-white p-4">
+          <legend className="px-1 text-sm font-semibold text-slate-700">
+            Sponsorship product
+          </legend>
+          <label className="mt-2 flex cursor-pointer items-start gap-3 text-sm text-slate-950">
+            <input
+              type="radio"
+              name="sponsor-product"
+              className="mt-1 accent-green-500"
+              checked={product === "match"}
+              onChange={() => setProduct("match")}
+            />
+            <span>
+              <span className="font-bold">{MATCH_SPONSOR_PRODUCT_LABEL}</span>
+              {" — "}persists {MATCH_SPONSORSHIP_DAYS} days. One Match-Sponsorship
+              amount; highest within 8 hours is accepted.
+            </span>
+          </label>
+          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-950">
+            <input
+              type="radio"
+              name="sponsor-product"
+              className="mt-1 accent-green-500"
+              checked={product === "game-time"}
+              onChange={() => setProduct("game-time")}
+            />
+            <span>
+              <span className="font-bold">{GAME_TIME_PRODUCT_LABEL}</span>
+              {" — "}persists {GAME_TIME_DURATION_MINUTES} minutes. Buy a{" "}
+              {GAME_TIME_SLOT_MINUTES}-minute slot of Predict-For Planet fan
+              engagement.
+            </span>
+          </label>
+        </fieldset>
         <label className="block text-sm text-slate-400">
-          {MATCH_SPONSORSHIP_RANGE_LABEL}
+          {rangeLabel}
           <SafeSelect
             required
             value={commitmentFeeRangeId}
@@ -216,7 +276,7 @@ export default function SponsorRegisterPage() {
             className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
           >
             <option value="">Select range</option>
-            {GLOBAL_MATCH_SPONSORSHIP_RANGES.map((range) => (
+            {amountRanges.map((range) => (
               <option key={range.id} value={range.id}>
                 {range.label}
               </option>

@@ -17,7 +17,7 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "⚽",
     summary:
-      "A Lead Climate Sponsor pays one Match-Sponsorship amount for the Match, plus a 5% Platform Fee via Stripe. Fans then FUND-IT that cash onto the Club's chosen Climate Projects.",
+      "A Lead Climate Sponsor pays one Match-Sponsorship amount for the Match, plus a 5% Platform Fee via Stripe. Fans then FUND-IT that cash onto the Club's chosen Climate Projects. A Global Brand can instead be a Game-Time Sponsor: buy a 30-minute slot of Predict-For Planet fan engagement.",
   },
   {
     name: "Rugby",

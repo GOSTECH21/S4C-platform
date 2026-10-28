@@ -44,7 +44,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Fans",
     kicker: "Support your team. Make a difference.",
     description:
-      "Follow your team, plan your travel (or support remotely), take part in predictions and direct sponsor-funded money to climate projects.",
+      "Follow your team, support at the stadium or remotely, take part in Predict-For Planet and direct sponsor-funded money to climate projects.",
     shortDescription:
       "Follow your team and direct sponsor-funded money to climate projects.",
     register: FAN_REGISTER_PATH,
@@ -74,7 +74,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Global Brands",
     kicker: "Turn your brand purpose into real impact.",
     description:
-      "Reach passionate audiences, fund measurable climate action and gain recognition on S4P and project provider websites.",
+      "Reach passionate audiences, fund measurable climate action as a Match-Sponsor or Game-Time Sponsor, and gain recognition on S4P and project provider websites.",
     shortDescription:
       "Fund measurable climate action and reach passionate audiences.",
     register: SPONSOR_REGISTER_PATH,

@@ -274,6 +274,8 @@ assert(
 assert(
   globalRegister.includes("MATCH_SPONSORSHIP_RANGE_LABEL") &&
     globalRegister.includes("registerSponsorListing") &&
+    globalRegister.includes("GAME_TIME_PRODUCT_LABEL") &&
+    globalRegister.includes("product,") &&
     !globalRegister.includes("Sponsorship/Goal range") &&
     localRegister.includes("Sponsorship amount range") &&
     localRegister.includes('kind: "local"'),

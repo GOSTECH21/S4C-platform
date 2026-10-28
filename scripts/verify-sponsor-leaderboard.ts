@@ -357,6 +357,8 @@ assert(
   !nav.includes('label: "Sponsor"') &&
     !nav.includes("SUPPORTER_SPONSOR_PATH") &&
     nav.includes("SUPPORTER_CLIMATE_SPONSORS_PATH") &&
+    nav.includes("SUPPORTER_PREDICT_PATH") &&
+    nav.includes('label: "P4P"') &&
     nav.includes('label: "Climate Sponsors"'),
   "Fan navigation has Climate Sponsors, not the old Sponsor tab"
 );

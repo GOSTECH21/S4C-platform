@@ -31,6 +31,7 @@ import {
   localInvitesDeliveredCopy,
   localInvitesSentCopy,
   inviteReceiptsForKind,
+  isMatchSponsorListing,
   sponsorsSectionIntroCopy,
   type SponsorInviteRound,
   type SponsorListing,
@@ -77,7 +78,7 @@ export function ClubSponsorsListings({
 }: ClubSponsorsListingsProps) {
   const [tab, setTab] = useState<DirectoryTab>(initialTab);
   const globals = useMemo(
-    () => listings.filter((row) => row.kind === "global"),
+    () => listings.filter((row) => isMatchSponsorListing(row)),
     [listings]
   );
   const locals = useMemo(

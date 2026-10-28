@@ -2,8 +2,16 @@ import Link from "next/link";
 import { SolutionPage } from "@/app/components/home/SolutionPage";
 import {
   CLIMATE_SPONSORSHIP_PATH,
+  SPONSOR_GAME_TIME_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
+import {
+  GAME_TIME_DURATION_MINUTES,
+  GAME_TIME_SLOT_MINUTES,
+  P4P_ENGAGEMENT_GBP,
+  P4P_WINDOW_MINUTES,
+  formatP4pGbp,
+} from "@/app/lib/predict-for-planet";
 import { SPORT_CATEGORIES } from "@/app/lib/sports";
 
 export default function ClimateSponsorshipPage() {
@@ -59,6 +67,41 @@ export default function ClimateSponsorshipPage() {
           className="mt-8 inline-flex rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950"
         >
           Register as a Climate Sponsor
+        </Link>
+      </div>
+
+      <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
+        <h2 className="text-3xl font-black">How Game-Time Sponsorship works</h2>
+        <p className="mt-4 text-lg text-slate-300">
+          A Global Brand buys fan engagement, not a 5-day Match-Sponsorship.
+          They put an amount on a Game-Time Carbon Wallet for one{" "}
+          {GAME_TIME_SLOT_MINUTES}-minute slot. The Game lasts{" "}
+          {GAME_TIME_DURATION_MINUTES} minutes.
+        </p>
+        <ol className="mt-6 space-y-4 text-lg text-slate-300">
+          <li>
+            1. Fans open Predict-For Planet and choose what is likely to happen
+            in the next {P4P_WINDOW_MINUTES}-minute slot — Handball offence, Foul
+            committed, Corner awarded, Goal scored, Yellow card issued, Red card
+            issued, Penalty awarded, or VAR referee review.
+          </li>
+          <li>
+            2. One prediction per {P4P_WINDOW_MINUTES}-minute slot per fan. Right
+            or wrong, that is an Engagement of {formatP4pGbp(P4P_ENGAGEMENT_GBP)}.
+          </li>
+          <li>
+            3. Each Engagement takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)}
+            {" "}
+            from the Game-Time Carbon Wallet into the fan&apos;s chosen Climate
+            Project,
+            until that wallet reads {formatP4pGbp(0)}.
+          </li>
+        </ol>
+        <Link
+          href={SPONSOR_GAME_TIME_PATH}
+          className="mt-8 inline-flex rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950"
+        >
+          Buy a Game-Time slot
         </Link>
       </div>
     </SolutionPage>

@@ -62,7 +62,7 @@ assert(
       ?.kicker.includes("Support your team") &&
     !HOME_STAKEHOLDERS.find((card) => card.title === "Fans")
       ?.description.includes("FUND-IT up to 5 times"),
-  "Fan narrative follows the team, travel and sponsor-funded projects"
+  "Fan narrative follows the team, Predict-For Planet and sponsor-funded projects"
 );
 assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses")
@@ -741,10 +741,18 @@ assert(
 );
 assert(
   howItWorks.includes("/images/home/plan-your-travel-phone.png") &&
-    howItWorks.includes("Estimate your return distance") &&
-    howItWorks.includes("No tracking. No postcode.") &&
+    howItWorks.includes("Predict-For Planet") &&
+    howItWorks.includes("PredictForPlanetPhone") &&
+    howItWorks.includes("PredictForPlanetPanel") &&
+    readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
+      "P4P_CATEGORIES"
+    ) &&
+    readFileSync("app/lib/predict-for-planet.ts", "utf8").includes(
+      "Handball offence"
+    ) &&
+    !howItWorks.includes("Estimate your return distance") &&
     !howItWorks.includes("PROJECTS DELIVER THE IMPACT"),
-  "Step 04 is Plan Your Travel plus the return-distance line"
+  "Step 04 is Predict-For Planet with the eight in-game events"
 );
 assert(
   howItWorks.includes("/images/home/match-day-climate-mission-phone.png") &&

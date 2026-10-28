@@ -1,4 +1,5 @@
 "use client";
+/* s4p-predict-for-planet-v1 */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -11,6 +12,14 @@ import {
   HowYoureSupportingPhone,
   HowYoureSupportingProvider,
 } from "@/app/components/home/HowYoureSupporting";
+import {
+  PredictForPlanetPanel,
+  PredictForPlanetPhone,
+} from "@/app/components/home/PredictForPlanet";
+import {
+  p4pHowItWorksCaption,
+  p4pHowItWorksPoints,
+} from "@/app/lib/predict-for-planet";
 
 const MARK_GREEN = "#5bc662";
 const MINT = "#0c5c2c";
@@ -120,24 +129,19 @@ const steps: Array<{
       "Both stadium and remote fans are part of the same match-day climate mission.",
     points: [
       "Tell us if you are attending or watching remotely",
-      "Stadium fans plan travel and help cut fan-travel emissions",
+      "Stadium and remote fans both join Predict-For Planet during the match",
       "Remote fans join the same match-day climate mission",
     ],
   },
   {
     src: "/images/home/plan-your-travel-phone.png",
-    alt: "Plan your travel. Simple input. No postcode. Just your estimated miles and travel type. Arsenal vs Chelsea travel footprint.",
+    alt: "Predict-For Planet. Choose what is likely to happen in the next 5-minute slot of the match. One prediction per slot.",
     width: 244,
     height: 581,
     number: "04",
-    title: "Plan Your Travel",
-    caption:
-      "Estimate your return distance, choose your transport type and see your estimated travel emissions. No tracking. No postcode.",
-    points: [
-      "Enter your estimated return distance in miles",
-      "Choose car, train, bus, coach or walk",
-      "See your estimated travel emissions. No tracking. No postcode.",
-    ],
+    title: "Predict-For Planet",
+    caption: p4pHowItWorksCaption(),
+    points: p4pHowItWorksPoints(),
   },
   {
     src: "/images/home/match-day-climate-mission-phone.png",
@@ -398,6 +402,8 @@ export default function HowItWorks({
                       <SelectMatchPhone src={step.src} alt={step.alt} />
                     ) : stepIndex === 2 ? (
                       <HowYoureSupportingPhone src={step.src} alt={step.alt} />
+                    ) : stepIndex === 3 ? (
+                      <PredictForPlanetPhone src={step.src} alt={step.alt} />
                     ) : (
                       <Image
                         src={step.src}
@@ -427,6 +433,14 @@ export default function HowItWorks({
                   </div>
                   {stepIndex === 2 ? (
                     <HowYoureSupportingPanel
+                      badge={`Step ${stepIndex + 1} of ${steps.length}`}
+                      title={step.title}
+                      number={step.number}
+                      caption={step.caption}
+                      points={step.points}
+                    />
+                  ) : stepIndex === 3 ? (
+                    <PredictForPlanetPanel
                       badge={`Step ${stepIndex + 1} of ${steps.length}`}
                       title={step.title}
                       number={step.number}

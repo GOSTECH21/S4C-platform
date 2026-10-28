@@ -81,7 +81,10 @@ export const SPONSOR_NEW_SPONSORSHIP_QUERY = "new";
 export const SPONSOR_NEW_SPONSORSHIP_LABEL =
   "Click here to initiate a New Sponsorship";
 export const SPONSOR_WALLET_PATH = "/sponsor/wallet";
+export const SPONSOR_GAME_TIME_PATH = "/sponsor/game-time";
+export const SPONSOR_GAME_TIME_PAY_PATH = "/sponsor/game-time";
 export const SPONSOR_PAY_PATH = "/sponsor/pay";
+export const SUPPORTER_PREDICT_PATH = "/supporter/dashboard/predict";
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 
 export function sponsorWalletPath(clubName?: string | null): string {

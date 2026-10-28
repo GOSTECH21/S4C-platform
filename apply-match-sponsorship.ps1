@@ -37,6 +37,17 @@ $roots = $markers | ForEach-Object {
 } | Select-Object -Unique
 
 foreach ($root in $roots) {
+  $p4p = Join-Path $root "app\lib\predict-for-planet.ts"
+  $how = Join-Path $root "app\components\home\HowItWorks.tsx"
+  $p4pText = if (Test-Path $p4p) { Get-Content -Raw $p4p } else { "" }
+  $howText = if (Test-Path $how) { Get-Content -Raw $how } else { "" }
+  if ($p4pText -match "s4p-predict-for-planet-v1" -or $howText -match "s4p-predict-for-planet-v1") {
+    Write-Host "STOP: Predict-For Planet is already applied. Re-running Match-Sponsorship would drop Game-Time. Use apply-predict-for-planet.mjs instead."
+    exit 1
+  }
+}
+
+foreach ($root in $roots) {
   Write-Host "Updating $root"
   foreach ($rel in $files) {
     $url = "https://raw.githubusercontent.com/GOSTECH21/S4C-platform/$branch/$rel"
