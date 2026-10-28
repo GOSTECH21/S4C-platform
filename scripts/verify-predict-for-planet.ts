@@ -11,13 +11,16 @@ import {
   P4P_WINDOWS_PER_MATCH,
   alreadyPredictedWindow,
   createGameTimeWallet,
+  firstFundedWindowIndex,
   formatP4pGbp,
   gameTimePersistsUntil,
   gameTimeSlots,
+  gameTimeWalletMatchesMatch,
   matchSponsorshipPersistsUntil,
   p4pCreditsByProject,
   p4pHowItWorksCaption,
   p4pWindows,
+  pickSponsoredGameTimeMatch,
   recordP4pEngagement,
   remainingGameTimeGbp,
 } from "../app/lib/predict-for-planet";
@@ -151,8 +154,69 @@ const lastPence = recordP4pEngagement({
   predictions: [],
 });
 assert(
-  lastPence.ok && lastPence.takenGbp === 0,
-  "When the Game-Time Carbon Wallet is £0.00 the prediction still records and takes nothing"
+  lastPence.ok === false,
+  "When the Game-Time Carbon Wallet is £0.00 the prediction is refused"
+);
+
+const missingWallet = recordP4pEngagement({
+  fanId: "fan-3",
+  clubName: "Hearts",
+  fixtureName: "Hearts vs Chelsea",
+  windowIndex: 0,
+  categoryId: "corner",
+  projectName: "Wee Spoke Hub",
+  wallet: null,
+  predictions: [],
+});
+assert(
+  missingWallet.ok === false,
+  "A prediction without a Game-Time Carbon Wallet is refused"
+);
+
+const heartsWallet = createGameTimeWallet({
+  clubName: "Heart of Midlothian",
+  brandName: "Diageo",
+  fixtureName: "Heart of Midlothian v Rangers",
+  slotIndex: 1,
+  sponsorshipGbp: 10,
+});
+assert(
+  gameTimeWalletMatchesMatch(
+    heartsWallet,
+    "Hearts",
+    "Hearts vs Rangers"
+  ),
+  "Game-Time wallets match vs/v fixture spelling and Hearts aliases"
+);
+assert(
+  pickSponsoredGameTimeMatch([heartsWallet], ["Hearts"])?.fixtureName ===
+    "Heart of Midlothian v Rangers",
+  "P4P uses the Match the Game-Time Sponsor put money on, not an invented fixture"
+);
+assert(
+  pickSponsoredGameTimeMatch([], ["Hearts"]) === null,
+  "P4P has no Match until a Game-Time Sponsor funds a Carbon Wallet"
+);
+assert(
+  firstFundedWindowIndex([heartsWallet], "Hearts", "Hearts vs Rangers") === 6,
+  "The first 5-minute slot sits inside the funded 30-minute Game-Time slot"
+);
+
+const takeFromSponsor = recordP4pEngagement({
+  fanId: "fan-hearts",
+  clubName: heartsWallet.clubName,
+  fixtureName: heartsWallet.fixtureName,
+  windowIndex: 6,
+  categoryId: "corner",
+  projectName: "Wee Spoke Hub",
+  wallet: heartsWallet,
+  predictions: [],
+});
+assert(
+  takeFromSponsor.ok &&
+    takeFromSponsor.takenGbp === 0.1 &&
+    remainingGameTimeGbp(takeFromSponsor.wallet!) === 9.9,
+  "Predict · £0.10 takes that amount from the Game-Time Sponsor's Carbon Wallet"
 );
 
 const credits = p4pCreditsByProject(first.ok ? [first.prediction] : []);
@@ -243,8 +307,25 @@ assert(
 assert(
   play.includes("submitP4pPrediction") &&
     play.includes("Climate Project") &&
-    play.includes("Predict ·"),
-  "Fans submit one P4P prediction into a chosen Climate Project"
+    play.includes("Predict ·") &&
+    play.includes("pickSponsoredGameTimeMatch") &&
+    play.includes("No Game-Time Sponsor has funded a Match yet"),
+  "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
+);
+const fanPredictPage = readFileSync(
+  "app/supporter/dashboard/predict/page.tsx",
+  "utf8"
+);
+assert(
+  fanPredictPage.includes("preferredClubNames") &&
+    !fanPredictPage.includes("vs Chelsea"),
+  "Fan P4P does not invent a vs Chelsea Match"
+);
+const gameTimePage = readFileSync("app/sponsor/game-time/page.tsx", "utf8");
+assert(
+  gameTimePage.includes("Select the Match you are buying Game-Time for.") &&
+    !gameTimePage.includes("vs Chelsea"),
+  "Game-Time deposit requires the published Match"
 );
 assert(
   fanNav.includes("SUPPORTER_PREDICT_PATH") &&
@@ -267,7 +348,8 @@ const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 assert(
   applyP4p.includes('BRANCH = "cursor/predict-for-planet-18f9"') &&
     applyP4p.includes("PredictForPlanetPhone") &&
-    applyP4p.includes("Do not re-run the listings overlay"),
+    applyP4p.includes("Do not re-run the listings overlay") &&
+    applyP4p.includes("pickSponsoredGameTimeMatch"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"
 );
 assert(

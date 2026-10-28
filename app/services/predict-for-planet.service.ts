@@ -2,10 +2,14 @@ import {
   P4P_WINDOWS_PER_SLOT,
   createGameTimeWallet,
   gameTimeWalletId,
+  gameTimeWalletMatchesMatch,
+  pickSponsoredGameTimeMatch,
   recordP4pEngagement,
+  remainingGameTimeGbp,
   type GameTimeWallet,
   type P4pEngagementResult,
   type P4pPrediction,
+  type SponsoredGameTimeMatch,
 } from "@/app/lib/predict-for-planet";
 
 export const GAME_TIME_WALLETS_STORAGE = "s4p.game-time.wallets";
@@ -66,14 +70,21 @@ export function gameTimeWalletForSlot(input: {
   slotIndex: number;
 }): GameTimeWallet | null {
   const slot = Math.round(Number(input.slotIndex) || 0);
-  return (
-    listGameTimeWallets().find(
-      (row) =>
-        row.clubName.toLowerCase() === input.clubName.toLowerCase() &&
-        row.fixtureName.toLowerCase() === input.fixtureName.toLowerCase() &&
-        row.slotIndex === slot
-    ) ?? null
+  const matches = listGameTimeWallets().filter(
+    (row) =>
+      gameTimeWalletMatchesMatch(row, input.clubName, input.fixtureName) &&
+      row.slotIndex === slot
   );
+  if (matches.length === 0) return null;
+  return [...matches].sort(
+    (left, right) => remainingGameTimeGbp(right) - remainingGameTimeGbp(left)
+  )[0];
+}
+
+export function sponsoredP4pMatchForFan(
+  preferredClubNames: string[] = []
+): SponsoredGameTimeMatch | null {
+  return pickSponsoredGameTimeMatch(listGameTimeWallets(), preferredClubNames);
 }
 
 export function listP4pPredictions(): P4pPrediction[] {

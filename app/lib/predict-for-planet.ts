@@ -1,6 +1,9 @@
 /* s4p-predict-for-planet-v1 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
+import { sameNamedFixture, fixtureSides } from "./club-fixtures";
+import { namesMatch } from "./upcoming-matches";
+
 export const P4P_LABEL = "Predict-For Planet";
 export const P4P_SHORT = "P4P";
 export const GAME_TIME_SPONSORSHIP_LABEL = "Game-Time Sponsorship";
@@ -173,6 +176,114 @@ export function remainingGameTimeGbp(wallet: GameTimeWallet): number {
   );
 }
 
+export function gameTimeClubMatches(left: string, right: string): boolean {
+  return namesMatch(left, right);
+}
+
+export function gameTimeFixtureMatches(left: string, right: string): boolean {
+  return sameNamedFixture(left, right);
+}
+
+export function gameTimeWalletMatchesMatch(
+  wallet: GameTimeWallet,
+  clubName: string,
+  fixtureName: string
+): boolean {
+  return (
+    gameTimeClubMatches(wallet.clubName, clubName) &&
+    gameTimeFixtureMatches(wallet.fixtureName, fixtureName)
+  );
+}
+
+export function fixtureInvolvesClub(fixtureName: string, clubName: string): boolean {
+  const sides = fixtureSides(fixtureName);
+  if (!sides) return gameTimeClubMatches(fixtureName, clubName);
+  return gameTimeClubMatches(sides[0], clubName) || gameTimeClubMatches(sides[1], clubName);
+}
+
+export function depositedGameTimeWallets(wallets: GameTimeWallet[]): GameTimeWallet[] {
+  return wallets.filter((row) => roundP4pGbp(row.sponsorshipGbp) > 0);
+}
+
+export type SponsoredGameTimeMatch = {
+  clubName: string;
+  fixtureName: string;
+  brandName: string;
+  remainingGbp: number;
+  slotIndex: number;
+};
+
+function isPreferredSponsoredMatch(
+  wallet: GameTimeWallet,
+  preferredClubNames: string[]
+): boolean {
+  if (preferredClubNames.length === 0) return false;
+  return preferredClubNames.some(
+    (name) =>
+      gameTimeClubMatches(wallet.clubName, name) ||
+      fixtureInvolvesClub(wallet.fixtureName, name)
+  );
+}
+
+function toSponsoredGameTimeMatch(wallet: GameTimeWallet): SponsoredGameTimeMatch {
+  return {
+    clubName: wallet.clubName,
+    fixtureName: wallet.fixtureName,
+    brandName: wallet.brandName,
+    remainingGbp: remainingGameTimeGbp(wallet),
+    slotIndex: wallet.slotIndex,
+  };
+}
+
+function rankSponsoredWallets(
+  left: GameTimeWallet,
+  right: GameTimeWallet,
+  preferredClubNames: string[]
+): number {
+  const leftPref = isPreferredSponsoredMatch(left, preferredClubNames) ? 0 : 1;
+  const rightPref = isPreferredSponsoredMatch(right, preferredClubNames) ? 0 : 1;
+  if (leftPref !== rightPref) return leftPref - rightPref;
+  const remaining = remainingGameTimeGbp(right) - remainingGameTimeGbp(left);
+  if (remaining !== 0) return remaining;
+  return toDate(right.updatedAt).getTime() - toDate(left.updatedAt).getTime();
+}
+
+/** The Match P4P is played on: a Game-Time Sponsor deposited into its Carbon Wallet. */
+export function pickSponsoredGameTimeMatch(
+  wallets: GameTimeWallet[],
+  preferredClubNames: string[] = []
+): SponsoredGameTimeMatch | null {
+  const deposited = depositedGameTimeWallets(wallets);
+  if (deposited.length === 0) return null;
+  const withCash = deposited.filter((row) => remainingGameTimeGbp(row) > 0);
+  const pool = withCash.length > 0 ? withCash : deposited;
+  const preferred = pool.filter((row) =>
+    isPreferredSponsoredMatch(row, preferredClubNames)
+  );
+  const ranked = [...(preferred.length > 0 ? preferred : pool)].sort((left, right) =>
+    rankSponsoredWallets(left, right, preferredClubNames)
+  );
+  return ranked[0] ? toSponsoredGameTimeMatch(ranked[0]) : null;
+}
+
+export function firstFundedWindowIndex(
+  wallets: GameTimeWallet[],
+  clubName: string,
+  fixtureName: string
+): number {
+  const windows = p4pWindows();
+  for (const window of windows) {
+    const funded = wallets.some(
+      (row) =>
+        gameTimeWalletMatchesMatch(row, clubName, fixtureName) &&
+        row.slotIndex === window.slotIndex &&
+        remainingGameTimeGbp(row) > 0
+    );
+    if (funded) return window.index;
+  }
+  return 0;
+}
+
 export function createGameTimeWallet(input: {
   clubName: string;
   brandName: string;
@@ -234,11 +345,10 @@ export function alreadyPredictedWindow(
   windowIndex: number
 ): boolean {
   const fan = normalizeP4pKey(fanId);
-  const fixture = normalizeP4pKey(fixtureName);
   return predictions.some(
     (row) =>
       normalizeP4pKey(row.fanId) === fan &&
-      normalizeP4pKey(row.fixtureName) === fixture &&
+      gameTimeFixtureMatches(row.fixtureName, fixtureName) &&
       row.windowIndex === windowIndex
   );
 }
@@ -284,24 +394,32 @@ export function recordP4pEngagement({
       error: "You can make only 1 Prediction in each 5-minute slot.",
     };
   }
-  const at = asIso(now);
-  let takenGbp = 0;
-  let nextWallet = wallet;
-  if (wallet) {
-    if (wallet.slotIndex !== window.slotIndex) {
-      return {
-        ok: false,
-        error: "This Game-Time Sponsor bought a different 30-minute slot.",
-      };
-    }
-    const remaining = remainingGameTimeGbp(wallet);
-    takenGbp = roundP4pGbp(Math.min(P4P_ENGAGEMENT_GBP, remaining));
-    nextWallet = {
-      ...wallet,
-      allocatedGbp: roundP4pGbp(wallet.allocatedGbp + takenGbp),
-      updatedAt: at,
+  if (!wallet) {
+    return {
+      ok: false,
+      error: "No Game-Time Sponsor has put money on this Match yet.",
     };
   }
+  if (wallet.slotIndex !== window.slotIndex) {
+    return {
+      ok: false,
+      error: "This Game-Time Sponsor bought a different 30-minute slot.",
+    };
+  }
+  const remaining = remainingGameTimeGbp(wallet);
+  if (remaining <= 0) {
+    return {
+      ok: false,
+      error: `The ${GAME_TIME_CARBON_WALLET_LABEL} is ${formatP4pGbp(0)}. A Game-Time Sponsor must put money in before fans can Predict.`,
+    };
+  }
+  const at = asIso(now);
+  const takenGbp = roundP4pGbp(Math.min(P4P_ENGAGEMENT_GBP, remaining));
+  const nextWallet: GameTimeWallet = {
+    ...wallet,
+    allocatedGbp: roundP4pGbp(wallet.allocatedGbp + takenGbp),
+    updatedAt: at,
+  };
   const prediction: P4pPrediction = {
     id: `${normalizeP4pKey(fanId)}:${normalizeP4pKey(fixtureName)}:${window.index}`,
     fanId,
@@ -311,7 +429,7 @@ export function recordP4pEngagement({
     categoryId: category.id,
     projectName: chosenProject,
     engagementGbp: takenGbp,
-    walletId: nextWallet?.id ?? null,
+    walletId: nextWallet.id,
     at,
   };
   return { ok: true, prediction, wallet: nextWallet, takenGbp };

@@ -129,7 +129,8 @@ for (const root of roots) {
   if (
     !libText.includes("s4p-predict-for-planet-v1") ||
     !libText.includes("Handball offence") ||
-    !libText.includes("VAR referee review")
+    !libText.includes("VAR referee review") ||
+    !libText.includes("pickSponsoredGameTimeMatch")
   ) {
     failed += 1;
     console.error("Still old Predict-For Planet model:", lib);

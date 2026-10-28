@@ -104,8 +104,11 @@ export default function GameTimeSponsorshipPage() {
       setError("Select a club.");
       return;
     }
-    const fixtureName =
-      fixture?.fixtureName || `${clubName.trim()} vs Chelsea`;
+    const fixtureName = fixture?.fixtureName?.trim() ?? "";
+    if (!fixtureName) {
+      setError("Select the Match you are buying Game-Time for.");
+      return;
+    }
     if (sponsorshipGbp <= 0) {
       setError("Enter how much you are putting on the Game-Time Carbon Wallet.");
       return;

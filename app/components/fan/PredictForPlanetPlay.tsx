@@ -10,16 +10,21 @@ import {
   P4P_LABEL,
   P4P_SHORT,
   P4P_WINDOW_MINUTES,
+  firstFundedWindowIndex,
   formatP4pGbp,
+  gameTimeFixtureMatches,
   gameTimeSlots,
+  gameTimeWalletMatchesMatch,
   p4pCreditsByProject,
   p4pWindows,
+  pickSponsoredGameTimeMatch,
   remainingGameTimeGbp,
   type P4pCategoryId,
 } from "@/app/lib/predict-for-planet";
 import {
   depositGameTimeSponsorship,
   gameTimeWalletForSlot,
+  listGameTimeWallets,
   listP4pPredictions,
   submitP4pPrediction,
 } from "@/app/services/predict-for-planet.service";
@@ -28,12 +33,14 @@ export function PredictForPlanetPlay({
   fanId,
   clubName,
   fixtureName,
+  preferredClubNames = [],
   projects = P4P_FALLBACK_PROJECTS,
   seedWallet,
 }: {
   fanId: string;
-  clubName: string;
-  fixtureName: string;
+  clubName?: string;
+  fixtureName?: string;
+  preferredClubNames?: string[];
   projects?: string[];
   seedWallet?: { brandName: string; amountGbp: number };
 }) {
@@ -45,12 +52,17 @@ export function PredictForPlanetPlay({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [liveMatch, setLiveMatch] = useState<{
+    clubName: string;
+    fixtureName: string;
+  } | null>(null);
   const seedBrand = seedWallet?.brandName ?? "";
   const seedAmount = seedWallet?.amountGbp ?? 0;
   const shouldSeed = Boolean(seedWallet);
+  const preferredKey = preferredClubNames.join("|");
 
   useEffect(() => {
-    if (!shouldSeed || !seedBrand) return;
+    if (!shouldSeed || !seedBrand || !clubName || !fixtureName) return;
     const kickoffAt = new Date().toISOString();
     let seeded = false;
     for (let slotIndex = 0; slotIndex < GAME_TIME_SLOT_COUNT; slotIndex += 1) {
@@ -73,29 +85,99 @@ export function PredictForPlanetPlay({
     if (seeded) setTick((value) => value + 1);
   }, [clubName, fixtureName, seedAmount, seedBrand, shouldSeed]);
 
-  const window = windows[windowIndex] ?? windows[0];
-  const slot = slots[window?.slotIndex ?? 0];
-  const wallet = gameTimeWalletForSlot({
+  useEffect(() => {
+    const wallets = listGameTimeWallets();
+    const picked =
+      pickSponsoredGameTimeMatch(wallets, preferredKey ? preferredKey.split("|") : []) ??
+      (shouldSeed && clubName && fixtureName
+        ? {
+            clubName,
+            fixtureName,
+            brandName: seedBrand,
+            remainingGbp: seedAmount,
+            slotIndex: 0,
+          }
+        : null);
+    setLiveMatch((current) => {
+      if (
+        current &&
+        wallets.some(
+          (row) =>
+            gameTimeWalletMatchesMatch(row, current.clubName, current.fixtureName) &&
+            row.sponsorshipGbp > 0
+        )
+      ) {
+        return current;
+      }
+      return picked
+        ? { clubName: picked.clubName, fixtureName: picked.fixtureName }
+        : null;
+    });
+  }, [
     clubName,
     fixtureName,
-    slotIndex: window?.slotIndex ?? 0,
-  });
+    preferredKey,
+    seedAmount,
+    seedBrand,
+    shouldSeed,
+    tick,
+  ]);
+
+  const pickedNow =
+    pickSponsoredGameTimeMatch(listGameTimeWallets(), preferredClubNames) ??
+    (shouldSeed && clubName && fixtureName
+      ? {
+          clubName,
+          fixtureName,
+          brandName: seedBrand,
+          remainingGbp: seedAmount,
+          slotIndex: 0,
+        }
+      : null);
+  const sponsored = liveMatch ?? pickedNow;
+  const liveClub = sponsored?.clubName ?? "";
+  const liveFixture = sponsored?.fixtureName ?? "";
+  const window = windows[windowIndex] ?? windows[0];
+  const slot = slots[window?.slotIndex ?? 0];
+  const wallet =
+    liveClub && liveFixture
+      ? gameTimeWalletForSlot({
+          clubName: liveClub,
+          fixtureName: liveFixture,
+          slotIndex: window?.slotIndex ?? 0,
+        })
+      : null;
   const remaining = wallet ? remainingGameTimeGbp(wallet) : 0;
+  const canPredict = Boolean(wallet && remaining > 0 && categoryId && projectName);
   const predictions = listP4pPredictions().filter(
     (row) =>
       row.fanId.toLowerCase() === fanId.toLowerCase() &&
-      row.fixtureName.toLowerCase() === fixtureName.toLowerCase()
+      liveFixture &&
+      gameTimeFixtureMatches(row.fixtureName, liveFixture)
   );
-  const credits = p4pCreditsByProject(listP4pPredictions());
+  const credits = p4pCreditsByProject(
+    listP4pPredictions().filter(
+      (row) => liveFixture && gameTimeFixtureMatches(row.fixtureName, liveFixture)
+    )
+  );
   void tick;
+
+  useEffect(() => {
+    if (!liveClub || !liveFixture) return;
+    setWindowIndex(firstFundedWindowIndex(listGameTimeWallets(), liveClub, liveFixture));
+  }, [liveClub, liveFixture]);
 
   function predict() {
     setNotice(null);
     setError(null);
+    if (!liveClub || !liveFixture) {
+      setError("P4P is played on the Match a Game-Time Sponsor has put money into their Carbon Wallet for.");
+      return;
+    }
     const result = submitP4pPrediction({
       fanId,
-      clubName,
-      fixtureName,
+      clubName: liveClub,
+      fixtureName: liveFixture,
       windowIndex,
       categoryId,
       projectName,
@@ -109,11 +191,26 @@ export function PredictForPlanetPlay({
       ? formatP4pGbp(remainingGameTimeGbp(result.wallet))
       : formatP4pGbp(0);
     setNotice(
-      result.takenGbp > 0
-        ? `Engagement. ${taken} left the ${GAME_TIME_CARBON_WALLET_LABEL} into ${projectName}. Wallet now ${left}.`
-        : `Prediction recorded. The ${GAME_TIME_CARBON_WALLET_LABEL} is ${formatP4pGbp(0)}.`
+      `Engagement. ${taken} left the ${GAME_TIME_CARBON_WALLET_LABEL} into ${projectName}. Wallet now ${left}.`
     );
     setTick((value) => value + 1);
+  }
+
+  if (!sponsored) {
+    return (
+      <section className="space-y-6 text-slate-950">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
+            {P4P_SHORT} · {P4P_LABEL}
+          </p>
+          <h1 className="mt-2 text-4xl font-black">{P4P_LABEL}</h1>
+          <p className="mt-3 max-w-3xl text-slate-700">
+            Predict-For Planet is played on the Match a Game-Time Sponsor has put
+            money into their Carbon Wallet for. No Game-Time Sponsor has funded a Match yet.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -122,7 +219,7 @@ export function PredictForPlanetPlay({
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
           {P4P_SHORT} · {P4P_LABEL}
         </p>
-        <h1 className="mt-2 text-4xl font-black">{fixtureName}</h1>
+        <h1 className="mt-2 text-4xl font-black">{liveFixture}</h1>
         <p className="mt-3 max-w-3xl text-slate-700">
           Predict what is likely to happen in the next {P4P_WINDOW_MINUTES}-minute
           slot. One prediction per slot — right or wrong, it is an Engagement of{" "}
@@ -203,7 +300,8 @@ export function PredictForPlanetPlay({
       <button
         type="button"
         onClick={predict}
-        className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400"
+        disabled={!canPredict}
+        className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
       >
         Predict · {formatP4pGbp(P4P_ENGAGEMENT_GBP)} Engagement
       </button>

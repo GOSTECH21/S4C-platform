@@ -13,8 +13,7 @@ import {
 
 export default function PredictForPlanetPage() {
   const [fanId, setFanId] = useState<string | null>(null);
-  const [clubName, setClubName] = useState("Arsenal");
-  const [fixtureName, setFixtureName] = useState("Arsenal vs Chelsea");
+  const [preferredClubNames, setPreferredClubNames] = useState<string[]>([]);
   const [projects, setProjects] = useState<string[]>(P4P_FALLBACK_PROJECTS);
   const [loading, setLoading] = useState(true);
 
@@ -28,18 +27,21 @@ export default function PredictForPlanetPage() {
         }
         setFanId(supporter.email || supporter.id || "fan");
         const teams = await getSupportedTeams(supporter);
-        const club = teams[0]?.name || "Arsenal";
-        setClubName(club);
-        const folder = visibleMatchDayFolderForClub({
-          clubId: teams[0]?.id,
-          clubName: club,
-        });
-        const listed = fanVisibleProjects(folder, teams[0]?.id ?? null);
-        if (listed.length > 0) {
-          setProjects(listed.map((row) => row.name));
+        const clubs = teams
+          .map((team) => team.name || team.displayName)
+          .filter((name): name is string => Boolean(name?.trim()));
+        setPreferredClubNames(clubs);
+        const club = clubs[0];
+        if (club) {
+          const folder = visibleMatchDayFolderForClub({
+            clubId: teams[0]?.id,
+            clubName: club,
+          });
+          const listed = fanVisibleProjects(folder, teams[0]?.id ?? null);
+          if (listed.length > 0) {
+            setProjects(listed.map((row) => row.name));
+          }
         }
-        const home = club.replace(/\s+fc$/i, "").trim();
-        setFixtureName(`${home} vs Chelsea`);
       } catch {
         window.location.href = FAN_LOGIN_PATH;
         return;
@@ -62,8 +64,7 @@ export default function PredictForPlanetPage() {
     <main className="mx-auto max-w-3xl px-6 pb-16">
       <PredictForPlanetPlay
         fanId={fanId}
-        clubName={clubName}
-        fixtureName={fixtureName}
+        preferredClubNames={preferredClubNames}
         projects={projects}
       />
     </main>
