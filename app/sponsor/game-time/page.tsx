@@ -1,7 +1,9 @@
 "use client";
+/* s4p-predict-for-planet-v3 */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { P4pLiveChallengePreview } from "@/app/components/fan/P4pLiveChallengePreview";
 import {
   ClubLeagueMenu,
   MatchFixtureMenu,
@@ -15,6 +17,7 @@ import {
   GAME_TIME_SPONSORSHIP_LABEL,
   P4P_ENGAGEMENT_GBP,
   formatP4pGbp,
+  gameTimeSlotShortLabel,
   gameTimeSlots,
   gameTimeSponsorshipTopUp,
   isPaidGameTimeWallet,
@@ -57,6 +60,30 @@ export default function GameTimeSponsorshipPage() {
       ),
     [amount, checkout?.sponsorshipGbp]
   );
+  const brandWallets = useMemo(
+    () =>
+      wallets.filter(
+        (row) => row.brandName.toLowerCase() === brand.toLowerCase()
+      ),
+    [brand, wallets]
+  );
+  const previewFixture =
+    paidWallet?.fixtureName ||
+    checkout?.fixtureName ||
+    fixture?.fixtureName ||
+    brandWallets[0]?.fixtureName ||
+    "Your Match";
+  const previewSlotIndex =
+    paidWallet?.slotIndex ??
+    checkout?.slotIndex ??
+    (fixture ? slotIndex : (brandWallets[0]?.slotIndex ?? slotIndex));
+  const previewSlot = slots[previewSlotIndex] ?? slots[0];
+  const previewAmount =
+    paidWallet?.sponsorshipGbp ??
+    checkout?.sponsorshipGbp ??
+    (Number(amount) || brandWallets[0]?.sponsorshipGbp || 0);
+  const previewAllocated =
+    paidWallet?.allocatedGbp ?? brandWallets[0]?.allocatedGbp ?? 0;
 
   useEffect(() => {
     async function load() {
@@ -172,6 +199,19 @@ export default function GameTimeSponsorshipPage() {
         {GAME_TIME_CARBON_WALLET_LABEL} for every prediction until it reads{" "}
         {formatP4pGbp(0)}. The Game lasts {GAME_TIME_DURATION_MINUTES} minutes.
       </p>
+
+      {brand ? (
+        <div className="mt-8">
+          <P4pLiveChallengePreview
+            fixtureName={previewFixture}
+            brandName={brand}
+            slotLabel={gameTimeSlotShortLabel(previewSlot)}
+            sponsorshipGbp={previewAmount}
+            allocatedGbp={previewAllocated}
+            badge={paidWallet ? "Live" : "Preview"}
+          />
+        </div>
+      ) : null}
 
       {paidWallet ? (
         <div className="mt-8 rounded-3xl border border-emerald-700/40 bg-emerald-50 p-8">

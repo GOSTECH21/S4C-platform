@@ -442,7 +442,7 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("What happens next?") &&
-    play.includes("s4p-predict-for-planet-v2") &&
+    play.includes("s4p-predict-for-planet-v3") &&
     !play.includes("bg-[#10262c]") &&
     !play.includes("text-[#f4f1e6]"),
   "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
@@ -458,14 +458,27 @@ assert(
 );
 const gameTimePage = readFileSync("app/sponsor/game-time/page.tsx", "utf8");
 assert(
-  gameTimePage.includes("Select the Match you are buying Game-Time for.") &&
+    gameTimePage.includes("Select the Match you are buying Game-Time for.") &&
     !gameTimePage.includes("vs Chelsea") &&
     gameTimePage.includes("allPlatformClubs") &&
     gameTimePage.includes("Continue to payment") &&
     gameTimePage.includes("StripeCardPayment") &&
     gameTimePage.includes("confirmGameTimeCardPayment") &&
-    gameTimePage.includes("resolveGameTimeSponsorBrand"),
-  "Game-Time lists every platform club and continues to Stripe payment"
+    gameTimePage.includes("resolveGameTimeSponsorBrand") &&
+    gameTimePage.includes("P4pLiveChallengePreview"),
+  "Game-Time lists every platform club, continues to Stripe payment, and shows the ivory P4P preview"
+);
+const gameTimePreview = readFileSync(
+  "app/components/fan/P4pLiveChallengePreview.tsx",
+  "utf8"
+);
+assert(
+  gameTimePreview.includes("What fans see on Predict-For Planet") &&
+    gameTimePreview.includes("What happens next?") &&
+    gameTimePreview.includes('data-testid="p4p-powered-by"') &&
+    gameTimePreview.includes("P4P_LIVE_CHALLENGE_LABEL") &&
+    !gameTimePreview.includes("bg-[#10262c]"),
+  "Game-Time P4P preview is ivory with the sponsor mark beside What happens next"
 );
 assert(
   gameTimePage.includes("PAY_WITH_CARD_LABEL") &&
@@ -497,13 +510,15 @@ assert(
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
-    applyP4p.includes("s4p-predict-for-planet-v2") &&
-    applyP4p.includes("p4p-ivory-2") &&
+    applyP4p.includes("s4p-predict-for-planet-v3") &&
+    applyP4p.includes("p4p-ivory-3") &&
+    applyP4p.includes("P4pLiveChallengePreview") &&
     applyP4p.includes("Still old dark P4P live board") &&
-    applyP4p.includes("preview/predict-for-planet") &&
+    applyP4p.includes("/sponsor/game-time") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
-    applyP4pPs1.includes("s4p-predict-for-planet-v2"),
+    applyP4pPs1.includes("s4p-predict-for-planet-v3") &&
+    applyP4pPs1.includes("P4pLiveChallengePreview"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"
 );
 assert(

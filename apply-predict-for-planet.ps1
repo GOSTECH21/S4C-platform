@@ -11,13 +11,14 @@ if (-not $markers) {
 }
 
 $branch = "cursor/p4p-live-challenge-18f9"
-$bust = "p4p-ivory-2"
+$bust = "p4p-ivory-3"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
+  "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
   "app/dashboard/supporter/predict/page.tsx",
   "app/supporter/dashboard/predict/page.tsx",
@@ -60,12 +61,16 @@ foreach ($root in $roots) {
   $lib = Join-Path $root "app\lib\predict-for-planet.ts"
   $play = Join-Path $root "app\components\fan\PredictForPlanetPlay.tsx"
   $phone = Join-Path $root "app\components\home\PredictForPlanet.tsx"
+  $gameTime = Join-Path $root "app\sponsor\game-time\page.tsx"
+  $preview = Join-Path $root "app\components\fan\P4pLiveChallengePreview.tsx"
   $howText = if (Test-Path $how) { Get-Content -Raw $how } else { "" }
   $libText = if (Test-Path $lib) { Get-Content -Raw $lib } else { "" }
   $playText = if (Test-Path $play) { Get-Content -Raw $play } else { "" }
   $phoneText = if (Test-Path $phone) { Get-Content -Raw $phone } else { "" }
+  $gameTimeText = if (Test-Path $gameTime) { Get-Content -Raw $gameTime } else { "" }
+  $previewText = if (Test-Path $preview) { Get-Content -Raw $preview } else { "" }
   if (
-    $howText -match "s4p-predict-for-planet-v2" -and
+    $howText -match "s4p-predict-for-planet-v3" -and
     $howText -match "PredictForPlanetPhone" -and
     $howText -notmatch "Plan Your Travel"
   ) {
@@ -75,7 +80,7 @@ foreach ($root in $roots) {
     Write-Host "Still old How S4P Works Step 4: $how"
   }
   if (
-    $libText -match "s4p-predict-for-planet-v2" -and
+    $libText -match "s4p-predict-for-planet-v3" -and
     $libText -match "Handball offence" -and
     $libText -match "VAR referee review"
   ) {
@@ -85,7 +90,7 @@ foreach ($root in $roots) {
     Write-Host "Still old Predict-For Planet model: $lib"
   }
   if (
-    $playText -match "s4p-predict-for-planet-v2" -and
+    $playText -match "s4p-predict-for-planet-v3" -and
     $playText -match "p4p-powered-by" -and
     $playText -match "What happens next" -and
     $playText -notmatch "bg-\[#10262c\]"
@@ -96,7 +101,7 @@ foreach ($root in $roots) {
     Write-Host "Still old dark P4P live board: $play"
   }
   if (
-    $phoneText -match "s4p-predict-for-planet-v2" -and
+    $phoneText -match "s4p-predict-for-planet-v3" -and
     $phoneText -match "#fffdf8" -and
     $phoneText -notmatch "#0b1f14"
   ) {
@@ -105,7 +110,17 @@ foreach ($root in $roots) {
   } else {
     Write-Host "Still old dark How S4P Works P4P phone: $phone"
   }
+  if (
+    $gameTimeText -match "P4pLiveChallengePreview" -and
+    $previewText -match "What fans see on Predict-For Planet" -and
+    $previewText -match "p4p-powered-by"
+  ) {
+    Write-Host "Game-Time shows ivory live board and sponsor mark: $gameTime"
+    $updated++
+  } else {
+    Write-Host "Still old Game-Time page without the ivory P4P preview: $gameTime"
+  }
 }
 
-if ($updated -lt 4) { exit 1 }
-Write-Host "OK: Live Climate Challenge is ivory like the rest of the page. The sponsor mark is to the right of What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open http://localhost:3000/preview/predict-for-planet"
+if ($updated -lt 5) { exit 1 }
+Write-Host "OK: Game-Time now shows the ivory Live Climate Challenge and your brand beside What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open Game-Time: http://localhost:3000/sponsor/game-time"

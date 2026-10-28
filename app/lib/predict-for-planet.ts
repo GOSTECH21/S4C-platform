@@ -1,4 +1,4 @@
-/* s4p-predict-for-planet-v2 */
+/* s4p-predict-for-planet-v3 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";

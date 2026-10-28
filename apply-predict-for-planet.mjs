@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 
 const BRANCH = "cursor/p4p-live-challenge-18f9";
-const BUST = "p4p-ivory-2";
+const BUST = "p4p-ivory-3";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -16,6 +16,7 @@ const FILES = [
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
+  "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
   "app/dashboard/supporter/predict/page.tsx",
   "app/supporter/dashboard/predict/page.tsx",
@@ -115,16 +116,20 @@ for (const root of roots) {
   const lib = join(root, "app/lib/predict-for-planet.ts");
   const play = join(root, "app/components/fan/PredictForPlanetPlay.tsx");
   const phone = join(root, "app/components/home/PredictForPlanet.tsx");
+  const gameTime = join(root, "app/sponsor/game-time/page.tsx");
+  const preview = join(root, "app/components/fan/P4pLiveChallengePreview.tsx");
   const register = join(root, "app/sponsor/register/page.tsx");
   const nav = join(root, "app/dashboard/supporter/components/FanNav.tsx");
   const howText = existsSync(how) ? readFileSync(how, "utf8") : "";
   const libText = existsSync(lib) ? readFileSync(lib, "utf8") : "";
   const playText = existsSync(play) ? readFileSync(play, "utf8") : "";
   const phoneText = existsSync(phone) ? readFileSync(phone, "utf8") : "";
+  const gameTimeText = existsSync(gameTime) ? readFileSync(gameTime, "utf8") : "";
+  const previewText = existsSync(preview) ? readFileSync(preview, "utf8") : "";
   const registerText = existsSync(register) ? readFileSync(register, "utf8") : "";
   const navText = existsSync(nav) ? readFileSync(nav, "utf8") : "";
   if (
-    !howText.includes("s4p-predict-for-planet-v2") ||
+    !howText.includes("s4p-predict-for-planet-v3") ||
     !howText.includes("PredictForPlanetPhone") ||
     howText.includes("Plan Your Travel")
   ) {
@@ -134,7 +139,7 @@ for (const root of roots) {
     console.log("Updated How S4P Works Step 4:", how);
   }
   if (
-    !libText.includes("s4p-predict-for-planet-v2") ||
+    !libText.includes("s4p-predict-for-planet-v3") ||
     !libText.includes("Handball offence") ||
     !libText.includes("VAR referee review") ||
     !libText.includes("pickSponsoredGameTimeMatch")
@@ -145,7 +150,7 @@ for (const root of roots) {
     console.log("Updated Predict-For Planet model:", lib);
   }
   if (
-    !playText.includes("s4p-predict-for-planet-v2") ||
+    !playText.includes("s4p-predict-for-planet-v3") ||
     !playText.includes('data-testid="p4p-powered-by"') ||
     !playText.includes("What happens next?") ||
     playText.includes("bg-[#10262c]") ||
@@ -157,7 +162,7 @@ for (const root of roots) {
     console.log("Ivory live board and sponsor mark beside What happens next:", play);
   }
   if (
-    !phoneText.includes("s4p-predict-for-planet-v2") ||
+    !phoneText.includes("s4p-predict-for-planet-v3") ||
     !phoneText.includes("#fffdf8") ||
     phoneText.includes("#0b1f14") ||
     !phoneText.includes("P4P_POWERED_BY_LABEL")
@@ -166,6 +171,17 @@ for (const root of roots) {
     console.error("Still old dark How S4P Works P4P phone:", phone);
   } else {
     console.log("Ivory How S4P Works P4P phone with sponsor mark:", phone);
+  }
+  if (
+    !gameTimeText.includes("P4pLiveChallengePreview") ||
+    !previewText.includes("What fans see on Predict-For Planet") ||
+    !previewText.includes('data-testid="p4p-powered-by"') ||
+    previewText.includes("bg-[#10262c]")
+  ) {
+    failed += 1;
+    console.error("Still old Game-Time page without the ivory P4P preview:", gameTime);
+  } else {
+    console.log("Game-Time shows ivory live board and sponsor mark:", gameTime);
   }
   if (
     !registerText.includes("GAME_TIME_PRODUCT_LABEL") ||
@@ -186,5 +202,5 @@ for (const root of roots) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Live Climate Challenge is ivory like the rest of the page. The sponsor mark is to the right of What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open http://localhost:3000/preview/predict-for-planet"
+  "OK: Game-Time now shows the ivory Live Climate Challenge and your brand beside What happens next. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open Game-Time: http://localhost:3000/sponsor/game-time"
 );
