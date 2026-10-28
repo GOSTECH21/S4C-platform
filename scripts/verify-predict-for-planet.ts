@@ -32,7 +32,6 @@ import {
 } from "../app/lib/sponsor-listings";
 import {
   SPONSOR_GAME_TIME_PATH,
-  SPONSOR_GAME_TIME_PAY_PATH,
   SUPPORTER_PREDICT_PATH,
 } from "../app/lib/routes";
 import { sportingCalendarClubCount } from "../app/lib/calendar-clubs";
@@ -370,16 +369,14 @@ assert(
     !gameTimePage.includes("vs Chelsea") &&
     gameTimePage.includes("allPlatformClubs") &&
     gameTimePage.includes("Continue to payment") &&
-    gameTimePage.includes("resolveGameTimeSponsorBrand") &&
-    gameTimePage.includes("SPONSOR_GAME_TIME_PAY_PATH"),
+    gameTimePage.includes("StripeCardPayment") &&
+    gameTimePage.includes("confirmGameTimeCardPayment") &&
+    gameTimePage.includes("resolveGameTimeSponsorBrand"),
   "Game-Time lists every platform club and continues to Stripe payment"
 );
-const gameTimePay = readFileSync("app/sponsor/game-time/pay/page.tsx", "utf8");
 assert(
-  gameTimePay.includes("StripeCardPayment") &&
-    gameTimePay.includes("confirmGameTimeCardPayment") &&
-    gameTimePay.includes("resolveGameTimeSponsorBrand") &&
-    SPONSOR_GAME_TIME_PAY_PATH === "/sponsor/game-time/pay",
+  gameTimePage.includes("PAY_WITH_CARD_LABEL") &&
+    gameTimePage.includes("Fans can take £0.10 only after"),
   "Game-Time payment is the wallet amount plus the 5% Platform Fee via Stripe"
 );
 assert(
@@ -406,8 +403,7 @@ assert(
     applyP4p.includes("PredictForPlanetPhone") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
-    applyP4p.includes("game-time/pay") &&
-    applyP4pPs1.includes("game-time/pay") &&
+    applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs"),
   "PC overlay pulls Predict-For Planet last and does not re-run listings"

@@ -13,7 +13,6 @@ import {
   type P4pPrediction,
   type SponsoredGameTimeMatch,
 } from "@/app/lib/predict-for-planet";
-import { getCurrentSponsor } from "./current-sponsor.service";
 
 export const GAME_TIME_WALLETS_STORAGE = "s4p.game-time.wallets";
 export const P4P_PREDICTIONS_STORAGE = "s4p.p4p.predictions";
@@ -35,10 +34,12 @@ export function readLocalSponsorBrandName(): string {
   }
 }
 
-export async function resolveGameTimeSponsorBrand(): Promise<string> {
+export async function resolveGameTimeSponsorBrand(
+  fetchSponsor: () => Promise<{ name?: string | null }>
+): Promise<string> {
   try {
     const sponsor = await Promise.race([
-      getCurrentSponsor(),
+      fetchSponsor(),
       new Promise<never>((_, reject) => {
         setTimeout(
           () => reject(new Error("Sponsor session timed out.")),

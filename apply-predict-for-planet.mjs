@@ -20,7 +20,6 @@ const FILES = [
   "app/supporter/dashboard/predict/page.tsx",
   "app/preview/predict-for-planet/page.tsx",
   "app/sponsor/game-time/page.tsx",
-  "app/sponsor/game-time/pay/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
   "app/lib/calendar-clubs.ts",
   "app/sponsor/register/page.tsx",
