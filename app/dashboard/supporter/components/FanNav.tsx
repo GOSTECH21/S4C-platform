@@ -8,6 +8,7 @@ import {
   FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_PATH,
   SUPPORTER_CLIMATE_SPONSORS_PATH,
+  SUPPORTER_PREDICT_PATH,
   SUPPORTER_PROJECTS_PATH,
   SUPPORTER_TEAMS_PATH,
   isMyS4PPath,
@@ -22,6 +23,11 @@ import { getOrCreateSupporter } from "@/app/services/votes.service";
 
 const LINKS = [
   { href: SUPPORTER_CAMPAIGN_PATH, label: "My S4P", match: "campaign" as const },
+  {
+    href: SUPPORTER_PREDICT_PATH,
+    label: "P4P",
+    match: "predict" as const,
+  },
   {
     href: SUPPORTER_PROJECTS_PATH,
     label: "Climate Projects",
@@ -111,8 +117,11 @@ export default function FanNav() {
                 : link.match === "sponsors"
                   ? pathname === SUPPORTER_CLIMATE_SPONSORS_PATH ||
                     pathname === "/dashboard/supporter/climate-sponsors"
-                  : pathname === SUPPORTER_PROJECTS_PATH ||
-                    pathname === "/supporter/dashboard/vote";
+                  : link.match === "predict"
+                    ? pathname === SUPPORTER_PREDICT_PATH ||
+                      pathname === "/dashboard/supporter/predict"
+                    : pathname === SUPPORTER_PROJECTS_PATH ||
+                      pathname === "/supporter/dashboard/vote";
 
           return (
             <Link

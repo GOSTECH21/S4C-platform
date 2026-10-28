@@ -6,6 +6,9 @@ import {
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
 } from "./partner-projects";
+import type { GlobalSponsorProduct } from "./predict-for-planet";
+
+export type { GlobalSponsorProduct } from "./predict-for-planet";
 
 export const GLOBAL_BRAND_INVITE_COUNT = 5;
 export const LOCAL_BUSINESS_INVITE_COUNT = 10;
@@ -54,6 +57,8 @@ export type SponsorListing = {
   commitmentFeeRangeId?: string;
   sponsorshipGoalRangeId?: string;
   amountRangeId?: string;
+  /** Global Brands: Match-Sponsor (5 days) or Game-Time Sponsor (90 minutes). */
+  product?: GlobalSponsorProduct;
   createdAt: string;
   source?: "seeded" | "registered";
 };
@@ -77,6 +82,17 @@ export const MATCH_SPONSORSHIP_RANGE_LABEL = "Match-Sponsorship Range";
 export const MATCH_SPONSORSHIP_HINT =
   "One amount for this Match Day. The highest Match-Sponsorship within 8 hours is accepted.";
 export const MATCH_SPONSORSHIP_COMMIT_LABEL = "Commit Match-Sponsorship";
+export const GAME_TIME_SPONSORSHIP_RANGE_LABEL = "Game-Time Sponsorship Amount";
+export const GAME_TIME_SPONSORSHIP_RANGES = GLOBAL_MATCH_SPONSORSHIP_RANGES;
+
+export function isGameTimeSponsorListing(row: SponsorListing): boolean {
+  return row.kind === "global" && row.product === "game-time";
+}
+
+export function isMatchSponsorListing(row: SponsorListing): boolean {
+  return row.kind === "global" && row.product !== "game-time";
+}
+
 export const INVITE_COMMITMENT_FEE_LABEL = MATCH_SPONSORSHIP_LABEL;
 export const INVITE_GBP_PER_GOAL_LABEL = MATCH_SPONSORSHIP_LABEL;
 export const INVITE_MAXIMUM_LABEL = MATCH_SPONSORSHIP_LABEL;
