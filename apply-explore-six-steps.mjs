@@ -5,9 +5,6 @@ const BRANCH = "cursor/explore-six-steps-18f9";
 const FILES = [
   "app/components/home/HomeJoinMission.tsx",
   "app/components/home/HomeRoleSection.tsx",
-  "app/components/home/HowItWorks.tsx",
-  "scripts/verify-homepage.ts",
-  "scripts/verify-pitch-theme.ts",
 ];
 
 let failed = 0;
@@ -48,13 +45,13 @@ if (
   !join.includes("Turn every score in a match into a sponsored climate action") ||
   roles.includes("Already registered? Login") ||
   roles.includes("card.loginText") ||
-  !how.includes("Explore the six steps below.") ||
+  how.includes("Explore the six steps below.") ||
   how.includes("Swipe left or right") ||
-  !how.includes("data-how-s4p-arrow")
+  how.includes("data-how-s4p-arrow")
 ) {
   failed += 1;
   console.error(
-    "The heading, role-card login lines, or How S4P Works arrows are not in place. Pull the files above, then hard-refresh."
+    "The heading, role-card login lines, or How S4P Works Access & Join panel are not in place. Pull the files above, then hard-refresh."
   );
 }
 

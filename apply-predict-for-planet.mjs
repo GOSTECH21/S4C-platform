@@ -7,22 +7,30 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-live-challenge-18f9";
-const BUST = "p4p-accuracy-1";
+const BRANCH = "cursor/how-s4p-split-steps-18f9";
+const BUST = "how-s4p-split-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
+  "app/lib/how-s4p-works.ts",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
+  "app/components/home/HowS4pSelectMatch.tsx",
+  "app/components/home/SelectMatchFixtures.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
   "app/dashboard/supporter/predict/page.tsx",
+  "app/dashboard/supporter/preferences/page.tsx",
   "app/supporter/dashboard/predict/page.tsx",
   "app/preview/predict-for-planet/page.tsx",
   "app/sponsor/game-time/page.tsx",
+  "app/sponsor/local/register/page.tsx",
+  "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
+  "app/components/sponsor/MatchDayLockIn.tsx",
+  "app/club/dashboard/page.tsx",
   "app/lib/calendar-clubs.ts",
   "app/sponsor/register/page.tsx",
   "app/sponsor/sponsor-nav.tsx",
@@ -36,6 +44,7 @@ const FILES = [
   "apply-match-sponsorship.ps1",
   "scripts/verify-predict-for-planet.ts",
   "scripts/verify-homepage.ts",
+  "scripts/verify-how-s4p-split.ts",
 ];
 
 console.log("Folder:", process.cwd());
@@ -129,14 +138,16 @@ for (const root of roots) {
   const registerText = existsSync(register) ? readFileSync(register, "utf8") : "";
   const navText = existsSync(nav) ? readFileSync(nav, "utf8") : "";
   if (
-    !howText.includes("s4p-predict-for-planet-v4") ||
-    !howText.includes("PredictForPlanetPhone") ||
+    !howText.includes("how-s4p-split-steps-v1") ||
+    !howText.includes("HOW_S4P_ACCESS_JOIN") ||
+    howText.includes("Explore the six steps below") ||
+    howText.includes("PredictForPlanetPhone") ||
     howText.includes("Plan Your Travel")
   ) {
     failed += 1;
-    console.error("Still old How S4P Works Step 4:", how);
+    console.error("Still old How S4P Works six-step carousel:", how);
   } else {
-    console.log("Updated How S4P Works Step 4:", how);
+    console.log("Updated How S4P Works Access & Join:", how);
   }
   if (
     !libText.includes("s4p-predict-for-planet-v4") ||

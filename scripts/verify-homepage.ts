@@ -559,62 +559,55 @@ assert(
   "How It Works uses the S4P mark green from the numeral 4"
 );
 assert(
-    howItWorks.includes("snap-x") &&
-    howItWorks.includes("snap-mandatory") &&
-    howItWorks.includes("overflow-y-hidden") &&
-    howItWorks.includes("data-how-s4p-scroller") &&
-    howItWorks.includes("style={{ width: `${steps.length * 100}%` }}") &&
-    howItWorks.includes("flex: `0 0 ${100 / steps.length}%`") &&
-    howItWorks.includes("Explore the six steps below.") &&
+    !howItWorks.includes("snap-x") &&
+    !howItWorks.includes("data-how-s4p-scroller") &&
+    !howItWorks.includes("Explore the six steps below.") &&
     !howItWorks.includes("Swipe left or right") &&
     howItWorks.includes("lg:items-center") &&
-    howItWorks.includes("Step ${stepIndex + 1} of ${steps.length}") &&
+    !howItWorks.includes("Step ${stepIndex + 1} of ${steps.length}") &&
+    !howItWorks.includes("Step 1 of 6") &&
     !howItWorks.includes("{index + 1} of 6") &&
     !howItWorks.includes("Final step") &&
     !howItWorks.includes("how-s4p-step-index") &&
-    howItWorks.includes('aria-roledescription="carousel"') &&
-    howItWorks.includes("Join in seconds") &&
-    howItWorks.includes("Choose from five club-approved climate projects") &&
-    howItWorks.includes("Direct Your Impact") &&
-    howItWorks.includes('data-how-s4p-arrow={direction}') &&
-    howItWorks.includes("hidden") &&
-    howItWorks.includes("lg:inline-flex") &&
+    !howItWorks.includes('aria-roledescription="carousel"') &&
+    readFileSync("app/lib/how-s4p-works.ts", "utf8").includes("Join in seconds") &&
+    !howItWorks.includes("Choose from five club-approved climate projects") &&
+    !howItWorks.includes("Direct Your Impact") &&
+    !howItWorks.includes("data-how-s4p-arrow") &&
     howItWorks.includes("bg-s4p-mark") &&
     howItWorks.includes("text-black") &&
-    !howItWorks.includes("hover:bg-s4p-mark") &&
-    howItWorks.includes("Show the previous How S4P Works step") &&
-    howItWorks.includes("Show the following How S4P Works step") &&
     !howItWorks.includes("s4p-ticker") &&
     !howItWorks.includes("lg:grid-cols-3") &&
     !howItWorks.includes("xl:grid-cols-6") &&
     !howItWorks.includes("»") &&
     !howItWorks.includes("‹"),
-  "How S4P Works keeps swipe, adds desktop arrows, and says Explore the six steps below"
+  "How S4P Works is Access & Join only — no six-step carousel, Explore line, or Step 1 of 6"
 );
 assert(
-  howItWorks.includes("/images/home/access-join-phone.png") &&
-    howItWorks.includes("Join in seconds") &&
-    howItWorks.includes("matches, predictions and climate impact features") &&
+  readFileSync("app/lib/how-s4p-works.ts", "utf8").includes(
+    "/images/home/access-join-phone.png"
+  ) &&
+    howItWorks.includes("HOW_S4P_ACCESS_JOIN") &&
+    readFileSync("app/lib/how-s4p-works.ts", "utf8").includes("Join in seconds") &&
     howItWorks.includes('id={ACCESS_JOIN_ID}') &&
     howItWorks.includes('"Create Account"') &&
     howItWorks.includes('"Log in"') &&
     howItWorks.includes('"Join via website"') &&
     howItWorks.includes('"Scan QR to join"') &&
     howItWorks.includes("unoptimized") &&
+    howItWorks.includes("{HOW_S4P_ACCESS_JOIN.title}") &&
+    !howItWorks.includes("1. {") &&
     !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
-  "Step 01 is Access & Join plus the Join in seconds line"
+  "How S4P Works keeps Access & Join with the Join in seconds line and no 1. prefix"
 );
 assert(
-  howItWorks.includes("/images/home/select-match-phone.png") &&
-    howItWorks.includes("Pick the upcoming match") &&
-    howItWorks.includes("kick-off time") &&
-    howItWorks.includes("climate mission") &&
-    howItWorks.includes("SelectMatchFixtures") &&
-    howItWorks.includes("SelectMatchPhone") &&
-    howItWorks.includes("SelectMatchProvider") &&
-    howItWorks.includes("next 10 upcoming league and cup matches") &&
-    !howItWorks.includes("SPONSORS FUND THE IMPACT MOMENTS"),
-  "Step 02 is Select Match plus the live upcoming-match phone"
+  !howItWorks.includes("/images/home/select-match-phone.png") &&
+    !howItWorks.includes("SelectMatchFixtures") &&
+    !howItWorks.includes("SelectMatchPhone") &&
+    !howItWorks.includes("SelectMatchProvider") &&
+    !howItWorks.includes("PredictForPlanetPhone") &&
+    !howItWorks.includes("HowYoureSupportingPhone"),
+  "Select Match and later How S4P Works phones are off the homepage"
 );
 const upcomingMatchesApi = readFileSync(
   "app/api/home/upcoming-matches/route.ts",
@@ -631,19 +624,60 @@ assert(
     selectMatchFixtures.includes("Choose your club") &&
     selectMatchFixtures.includes("league and cup matches") &&
     selectMatchFixtures.includes("/api/home/upcoming-matches") &&
-    selectMatchFixtures.includes('useState("Arsenal")') &&
+    selectMatchFixtures.includes('useState(initialClub?.trim() || "Arsenal")') &&
     selectMatchFixtures.includes("if (!active) return") &&
     selectMatchFixtures.includes("SelectMatchPhone") &&
+    selectMatchFixtures.includes("SelectMatchMode") &&
+    selectMatchFixtures.includes('mode = "sponsor"') &&
+    selectMatchFixtures.includes('mode === "view"') &&
+    selectMatchFixtures.includes('mode === "club"') &&
     selectMatchFixtures.includes("sponsorFromMatchPath") &&
     selectMatchFixtures.includes("savePendingSponsorMatch") &&
     selectMatchFixtures.includes("hardNavigateOnClick") &&
     selectMatchFixtures.includes("data-phone-match-sponsor") &&
+    selectMatchFixtures.includes("data-phone-match-select") &&
     selectMatchFixtures.includes("setSelectedMatch") &&
     selectMatchFixtures.includes("complete this sponsorship and sign it off") &&
     selectMatchFixtures.includes("Tap a match to lock it in") &&
     selectMatchFixtures.includes("Sponsor · Sign off") &&
+    selectMatchFixtures.includes("Select this Match") &&
     !selectMatchFixtures.includes("Tap a match to choose it for Match Day"),
-  "Select Match auto-loads the next 10 matches and each phone fixture opens sponsorship lock-in and sign-off"
+  "Select Match auto-loads the next 10 matches; sponsor rows lock in, fan/club rows select on the phone"
+);
+const howS4pSelectMatch = readFileSync(
+  "app/components/home/HowS4pSelectMatch.tsx",
+  "utf8"
+);
+const howS4pWorksLib = readFileSync("app/lib/how-s4p-works.ts", "utf8");
+assert(
+  howS4pSelectMatch.includes("/images/home/select-match-phone.png") === false &&
+    howS4pSelectMatch.includes("HOW_S4P_SELECT_MATCH") &&
+    howS4pSelectMatch.includes('audience="fan"') === false &&
+    howS4pSelectMatch.includes('data-how-s4p-select-match={audience}') &&
+    howS4pSelectMatch.includes('fan: "view"') &&
+    howS4pSelectMatch.includes('sponsor: "sponsor"') &&
+    howS4pSelectMatch.includes('club: "club"') &&
+    howS4pWorksLib.includes("/images/home/select-match-phone.png") &&
+    howS4pWorksLib.includes("next 10 upcoming league and cup matches") &&
+    howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_FAN") &&
+    howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_SPONSOR") &&
+    howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_CLUB") &&
+    readFileSync("app/dashboard/supporter/preferences/page.tsx", "utf8").includes(
+      'audience="fan"'
+    ) &&
+    readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(
+      'audience="sponsor"'
+    ) &&
+    readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(
+      'audience="sponsor"'
+    ) &&
+    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      'audience="sponsor"'
+    ) &&
+    readFileSync("app/club/dashboard/page.tsx", "utf8").includes(
+      'audience="club"'
+    ),
+  "Select Match phone is assigned to fans, lead/local sponsors, and the Club Sustainability Director"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
@@ -653,21 +687,19 @@ assert(
     fromMatchPage.includes("sponsorLoginPath") &&
     pendingMatch.includes("sponsorFromMatchPath") &&
     pendingMatch.includes("PENDING_SPONSOR_MATCH_KEY"),
-  "Tapping a homepage match takes a Sponsor through login if needed, then lock-in and the wallet"
-);
-assert(
-  howItWorks.includes("/images/home/how-youre-supporting-phone.png") &&
-    howItWorks.includes("Both stadium and remote fans") &&
-    howItWorks.includes("same match-day climate mission") &&
-    howItWorks.includes("HowYoureSupportingPhone") &&
-    howItWorks.includes("HowYoureSupportingPanel") &&
-    howItWorks.includes("HowYoureSupportingProvider") &&
-    !howItWorks.includes("FANS DIRECT THE FUNDING"),
-  "Step 03 is How You're Supporting plus live Continue buttons"
+  "Tapping a Select Match phone fixture takes a Sponsor through login if needed, then lock-in and the wallet"
 );
 const howYoureSupporting = readFileSync(
   "app/components/home/HowYoureSupporting.tsx",
   "utf8"
+);
+assert(
+  howYoureSupporting.includes("HowYoureSupportingPhone") &&
+    howYoureSupporting.includes("HowYoureSupportingPanel") &&
+    howYoureSupporting.includes("HowYoureSupportingProvider") &&
+    !howItWorks.includes("HowYoureSupportingPhone") &&
+    !howItWorks.includes("FANS DIRECT THE FUNDING"),
+  "How You're Supporting stays as a phone panel for a later assignment, not on the homepage"
 );
 assert(
   howYoureSupporting.includes('aria-label="Continue — I\'m attending the match"') &&
@@ -740,10 +772,9 @@ assert(
   "Fan login can return to My S4P after a homepage FUND-IT"
 );
 assert(
-  howItWorks.includes("/images/home/plan-your-travel-phone.png") &&
-    howItWorks.includes("Predict-For Planet") &&
-    howItWorks.includes("PredictForPlanetPhone") &&
-    howItWorks.includes("PredictForPlanetPanel") &&
+  !howItWorks.includes("/images/home/plan-your-travel-phone.png") &&
+    !howItWorks.includes("PredictForPlanetPhone") &&
+    !howItWorks.includes("PredictForPlanetPanel") &&
     readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
       "P4P_CATEGORIES"
     ) &&
@@ -752,20 +783,19 @@ assert(
     ) &&
     !howItWorks.includes("Estimate your return distance") &&
     !howItWorks.includes("PROJECTS DELIVER THE IMPACT"),
-  "Step 04 is Predict-For Planet with the eight in-game events"
+  "Predict-For Planet stays as a phone panel, not on the homepage How S4P Works"
 );
 assert(
-  howItWorks.includes("/images/home/match-day-climate-mission-phone.png") &&
-    howItWorks.includes("live carbon target") &&
-    howItWorks.includes("sponsor channel") &&
+  !howItWorks.includes("/images/home/match-day-climate-mission-phone.png") &&
+    !howItWorks.includes("live carbon target") &&
     !howItWorks.includes("EVERYONE CREATES IMPACT"),
-  "Step 05 is Match Day Climate Mission plus the live target line"
+  "Match Day Climate Mission is off the homepage How S4P Works"
 );
 assert(
-  howItWorks.includes("/images/home/choose-direct-impact-phone.png") &&
-    howItWorks.includes("five club-approved climate projects") &&
-    howItWorks.includes("sponsor-funded money"),
-  "Step 06 is Choose & Direct Your Impact plus the club-approved projects line"
+  !howItWorks.includes("/images/home/choose-direct-impact-phone.png") &&
+    !howItWorks.includes("five club-approved climate projects") &&
+    !howItWorks.includes("sponsor-funded money"),
+  "Direct Your Impact is off the homepage How S4P Works"
 );
 
 const footer = readFileSync("app/components/home/Footer.tsx", "utf8");

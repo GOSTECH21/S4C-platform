@@ -10,6 +10,7 @@ import {
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import { MatchSponsorshipPicker } from "@/app/components/sponsor/MatchSponsorshipPicker";
+import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_LOGIN_PATH,
@@ -342,6 +343,11 @@ export default function LocalSponsorRegisterPage() {
             fixture. Each club on the Sporting Calendar has its own fixture list.
           </p>
           <div className="mt-3">
+            <HowS4pSelectMatch
+              audience="sponsor"
+              initialClub={clubName}
+              className="mb-4"
+            />
             <MatchSponsorshipPicker
               clubName={clubName}
               selected={selectedMatches}

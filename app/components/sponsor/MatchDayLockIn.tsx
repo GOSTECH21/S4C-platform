@@ -23,6 +23,7 @@ import {
   lockMatchDayClub,
 } from "@/app/services/climate-sponsors.service";
 import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
+import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 
 export function MatchDayLockIn({
   brandName,
@@ -140,6 +141,11 @@ export function MatchDayLockIn({
 
   return (
     <>
+    <HowS4pSelectMatch
+      audience="sponsor"
+      initialClub={lockClub}
+      className="mb-8"
+    />
     <section className="overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
         Match Day lock-in

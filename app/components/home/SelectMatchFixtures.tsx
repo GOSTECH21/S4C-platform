@@ -37,6 +37,8 @@ export type HomeUpcomingMatch = {
   fixtureName: string;
 };
 
+export type SelectMatchMode = "view" | "sponsor" | "club";
+
 type SelectMatchState = {
   groups: ReturnType<typeof sportingCalendarClubGroups>;
   club: string;
@@ -48,6 +50,9 @@ type SelectMatchState = {
   loading: boolean;
   error: string | null;
   load: (nextClub: string) => Promise<void>;
+  mode: SelectMatchMode;
+  clubLocked: boolean;
+  clubOptions: string[] | null;
 };
 
 const SelectMatchContext = createContext<SelectMatchState | null>(null);
@@ -86,16 +91,24 @@ export function useSelectMatch() {
 export function SelectMatchProvider({
   active,
   children,
+  initialClub,
+  clubLocked = false,
+  clubOptions = null,
+  mode = "sponsor",
 }: {
   active: boolean;
   children: ReactNode;
+  initialClub?: string;
+  clubLocked?: boolean;
+  clubOptions?: string[] | null;
+  mode?: SelectMatchMode;
 }) {
   const groups = useMemo(
     () =>
       sportingCalendarClubGroups().filter((group) => group.sport === "Football"),
     []
   );
-  const [club, setClub] = useState("Arsenal");
+  const [club, setClub] = useState(initialClub?.trim() || "Arsenal");
   const [matches, setMatches] = useState<HomeUpcomingMatch[] | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<HomeUpcomingMatch | null>(
     null
@@ -152,6 +165,13 @@ export function SelectMatchProvider({
     void load(club);
   }, [active, club, matches, load]);
 
+  useEffect(() => {
+    const next = initialClub?.trim();
+    if (!next || next === club) return;
+    setClub(next);
+    void load(next);
+  }, [initialClub, club, load]);
+
   const value = useMemo(
     () => ({
       groups,
@@ -164,6 +184,9 @@ export function SelectMatchProvider({
       loading,
       error,
       load,
+      mode,
+      clubLocked,
+      clubOptions,
     }),
     [
       groups,
@@ -174,6 +197,9 @@ export function SelectMatchProvider({
       loading,
       error,
       load,
+      mode,
+      clubLocked,
+      clubOptions,
     ]
   );
 
@@ -199,6 +225,7 @@ export function SelectMatchPhone({
     setSelectedMatch,
     loading,
     error,
+    mode,
   } = useSelectMatch();
   const shown = resolvedClub || club;
 
@@ -290,25 +317,11 @@ export function SelectMatchPhone({
                     const href = sponsorFromMatchPath(pending);
                     const label = match.fixtureName.replace(" v ", " vs ");
                     const selected = selectedMatch?.id === match.id;
-                    return (
-                      <li key={match.id}>
-                        <a
-                          href={href}
-                          data-phone-match-sponsor="true"
-                          aria-current={selected ? "true" : undefined}
-                          aria-label={`Sponsor ${label} — complete this sponsorship and sign it off`}
-                          onPointerDown={(event) => event.stopPropagation()}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedMatch(match);
-                            savePendingSponsorMatch(pending);
-                            hardNavigateOnClick(href, event);
-                          }}
-                          className={`block cursor-pointer rounded-2xl px-2.5 py-2 hover:brightness-[0.98] ${
-                            selected ? "ring-2 ring-[#5bc662]" : ""
-                          }`}
-                          style={{ backgroundColor: "#f3f5f8" }}
-                        >
+                    const rowClass = `block rounded-2xl px-2.5 py-2 ${
+                      selected ? "ring-2 ring-[#5bc662]" : ""
+                    } ${mode === "view" ? "" : "cursor-pointer hover:brightness-[0.98]"}`;
+                    const body = (
+                      <>
                           <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
                             <span>
                               {formatMatchDateYear(match.date)} ·{" "}
@@ -335,13 +348,68 @@ export function SelectMatchPhone({
                               .filter(Boolean)
                               .join(" · ")}
                           </p>
-                          <span
-                            className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black"
-                            style={{ backgroundColor: MARK_GREEN }}
+                          {mode === "sponsor" ? (
+                            <span
+                              className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black"
+                              style={{ backgroundColor: MARK_GREEN }}
+                            >
+                              Sponsor · Sign off
+                            </span>
+                          ) : null}
+                          {mode === "club" ? (
+                            <span
+                              className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black"
+                              style={{ backgroundColor: MARK_GREEN }}
+                            >
+                              {selected ? "Selected Match Day" : "Select this Match"}
+                            </span>
+                          ) : null}
+                      </>
+                    );
+                    if (mode === "sponsor") {
+                      return (
+                        <li key={match.id}>
+                          <a
+                            href={href}
+                            data-phone-match-sponsor="true"
+                            aria-current={selected ? "true" : undefined}
+                            aria-label={`Sponsor ${label} — complete this sponsorship and sign it off`}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedMatch(match);
+                              savePendingSponsorMatch(pending);
+                              hardNavigateOnClick(href, event);
+                            }}
+                            className={rowClass}
+                            style={{ backgroundColor: "#f3f5f8" }}
                           >
-                            Sponsor · Sign off
-                          </span>
-                        </a>
+                            {body}
+                          </a>
+                        </li>
+                      );
+                    }
+                    return (
+                      <li key={match.id}>
+                        <button
+                          type="button"
+                          data-phone-match-select="true"
+                          aria-current={selected ? "true" : undefined}
+                          aria-label={
+                            mode === "club"
+                              ? `Select ${label} for sponsorship`
+                              : label
+                          }
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedMatch(match);
+                          }}
+                          className={`${rowClass} w-full text-left`}
+                          style={{ backgroundColor: "#f3f5f8" }}
+                        >
+                          {body}
+                        </button>
                       </li>
                     );
                   })}
@@ -365,11 +433,21 @@ export default function SelectMatchFixtures() {
     loading,
     error,
     load,
+    mode,
+    clubLocked,
+    clubOptions,
   } = useSelectMatch();
   const shown = resolvedClub || club;
+  const names =
+    clubOptions && clubOptions.length > 0
+      ? clubOptions
+      : groups.flatMap((group) => group.clubs);
 
   return (
     <div className="mt-6 max-w-xl">
+      {clubLocked ? (
+        <p className="text-xs font-black uppercase tracking-[0.18em]">{shown}</p>
+      ) : (
       <label className="block text-xs font-black uppercase tracking-[0.18em]">
         Choose your club
         <select
@@ -382,17 +460,26 @@ export default function SelectMatchFixtures() {
           }}
           className="mt-2 w-full rounded-xl border border-emerald-400/40 bg-s4p-paper px-3 py-3 text-sm font-semibold"
         >
-          {groups.map((group) => (
-            <optgroup key={group.league} label={group.league}>
-              {group.clubs.map((name) => (
-                <option key={`${group.league}-${name}`} value={name}>
-                  {name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
+          {clubOptions && clubOptions.length > 0 ? (
+            clubOptions.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))
+          ) : (
+            groups.map((group) => (
+              <optgroup key={group.league} label={group.league}>
+                {group.clubs.map((name) => (
+                  <option key={`${group.league}-${name}`} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </optgroup>
+            ))
+          )}
         </select>
       </label>
+      )}
       <button
         type="button"
         onClick={() => void load(club)}
@@ -409,8 +496,17 @@ export default function SelectMatchFixtures() {
       {matches && !loading ? (
         <p className="mt-4 text-sm font-semibold leading-6">
           {clubPossessive(shown)} next {matches.length} league and cup matches
-          are on the phone. Tap a match to lock it in, complete your
-          sponsorship and sign it off.
+          are on the phone.
+          {mode === "sponsor"
+            ? " Tap a match to lock it in, complete your sponsorship and sign it off."
+            : mode === "club"
+              ? " Tap a match to select it for this Club's Match Day sponsorship."
+              : ""}
+        </p>
+      ) : null}
+      {names.length === 0 ? (
+        <p className="mt-4 text-sm font-semibold">
+          Add a club in My Teams to see their Matches.
         </p>
       ) : null}
     </div>

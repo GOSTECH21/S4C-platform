@@ -10,21 +10,29 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/p4p-live-challenge-18f9"
-$bust = "p4p-accuracy-1"
+$branch = "cursor/how-s4p-split-steps-18f9"
+$bust = "how-s4p-split-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
+  "app/lib/how-s4p-works.ts",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
+  "app/components/home/HowS4pSelectMatch.tsx",
+  "app/components/home/SelectMatchFixtures.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
   "app/dashboard/supporter/predict/page.tsx",
+  "app/dashboard/supporter/preferences/page.tsx",
   "app/supporter/dashboard/predict/page.tsx",
   "app/preview/predict-for-planet/page.tsx",
   "app/sponsor/game-time/page.tsx",
+  "app/sponsor/local/register/page.tsx",
+  "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
+  "app/components/sponsor/MatchDayLockIn.tsx",
+  "app/club/dashboard/page.tsx",
   "app/lib/calendar-clubs.ts",
   "app/sponsor/register/page.tsx",
   "app/sponsor/sponsor-nav.tsx",
@@ -37,7 +45,8 @@ $files = @(
   "apply-match-sponsorship.mjs",
   "apply-match-sponsorship.ps1",
   "scripts/verify-predict-for-planet.ts",
-  "scripts/verify-homepage.ts"
+  "scripts/verify-homepage.ts",
+  "scripts/verify-how-s4p-split.ts"
 )
 
 $roots = $markers | ForEach-Object {
@@ -70,14 +79,16 @@ foreach ($root in $roots) {
   $gameTimeText = if (Test-Path $gameTime) { Get-Content -Raw $gameTime } else { "" }
   $previewText = if (Test-Path $preview) { Get-Content -Raw $preview } else { "" }
   if (
-    $howText -match "s4p-predict-for-planet-v4" -and
-    $howText -match "PredictForPlanetPhone" -and
+    $howText -match "how-s4p-split-steps-v1" -and
+    $howText -match "HOW_S4P_ACCESS_JOIN" -and
+    $howText -notmatch "Explore the six steps below" -and
+    $howText -notmatch "PredictForPlanetPhone" -and
     $howText -notmatch "Plan Your Travel"
   ) {
-    Write-Host "Updated How S4P Works Step 4: $how"
+    Write-Host "Updated How S4P Works Access & Join: $how"
     $updated++
   } else {
-    Write-Host "Still old How S4P Works Step 4: $how"
+    Write-Host "Still old How S4P Works six-step carousel: $how"
   }
   if (
     $libText -match "s4p-predict-for-planet-v4" -and

@@ -41,6 +41,7 @@ import {
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
 import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
+import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_ANOTHER_TEAM_CLICK,
@@ -302,6 +303,13 @@ export default function SponsorWalletPage() {
         >
           Back to your sponsored Match Days
         </button>
+      ) : null}
+
+      {kind === "local" ? (
+        <HowS4pSelectMatch
+          audience="sponsor"
+          initialClub={clubName}
+        />
       ) : null}
 
       {kind === "local" ? (

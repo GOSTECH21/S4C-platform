@@ -70,19 +70,19 @@ assert(
 assert(css.includes("--color-s4p-mark: #5bc662"), "S4P mark green stays for buttons");
 assert(
   !css.includes("s4p-ticker 96s") &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+    !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "snap-x"
     ) &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+    !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "Explore the six steps below."
     ) &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+    !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "data-how-s4p-arrow"
     ) &&
     !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "s4p-ticker"
     ),
-  "How S4P Works is a swipeable strip of steps, not a ticker tape"
+  "How S4P Works is Access & Join only, not a ticker tape or six-step strip"
 );
 assert(css.includes(".s4p-navy-panel"), "Info panels sit on paper glass");
 assert(
@@ -127,24 +127,22 @@ assert(
   "Join your team's climate mission sits above How S4P Works"
 );
 assert(
-  readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+  readFileSync("app/lib/how-s4p-works.ts", "utf8").includes(
     "/images/home/access-join-phone.png"
   ) &&
     readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
+      "HOW_S4P_ACCESS_JOIN"
+    ) &&
+    !readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
       "/images/home/select-match-phone.png"
     ) &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      "/images/home/how-youre-supporting-phone.png"
+    readFileSync("app/lib/how-s4p-works.ts", "utf8").includes(
+      "/images/home/select-match-phone.png"
     ) &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      "/images/home/plan-your-travel-phone.png"
-    ) &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      "/images/home/match-day-climate-mission-phone.png"
-    ) &&
-    readFileSync("app/components/home/HowItWorks.tsx", "utf8").includes(
-      "/images/home/choose-direct-impact-phone.png"
-    ) &&
+    existsSync("public/images/home/how-youre-supporting-phone.png") &&
+    existsSync("public/images/home/plan-your-travel-phone.png") &&
+    existsSync("public/images/home/match-day-climate-mission-phone.png") &&
+    existsSync("public/images/home/choose-direct-impact-phone.png") &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes('src="/images/home/global-sports-cluster.png"') &&
     banner.includes("width={912}") &&
@@ -155,7 +153,7 @@ assert(
     !banner.includes("hero.png") &&
     !banner.includes("#041018") &&
     !banner.includes("bg-black"),
-  "Home uses the S4P lockup and ivory global-sports banner plus the six How S4P Works phones"
+  "Home uses the S4P lockup, ivory global-sports banner, Access & Join on How S4P Works, and Select Match assigned to roles"
 );
 assert(!home.includes("drop-shadow-2xl"), "The mark has no dark box-shadow behind it");
 assert(

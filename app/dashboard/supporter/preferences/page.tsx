@@ -6,6 +6,7 @@ import FanNav from "../components/FanNav";
 import TeamPicker from "@/app/components/fan/TeamPicker";
 import MyTeamsList from "@/app/components/fan/MyTeamsList";
 import UpcomingMatches from "@/app/components/fan/UpcomingMatches";
+import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 import {
   getSupportedTeams,
   loadFanRegisterCatalog,
@@ -226,6 +227,11 @@ export default function SupporterPreferencesPage() {
               />
             ) : (
               <>
+                <HowS4pSelectMatch
+                  audience="fan"
+                  initialClub={selected[0]?.name}
+                  clubOptions={selected.map((team) => team.name)}
+                />
                 <UpcomingMatches
                   items={upcoming}
                   cups={cups}

@@ -76,6 +76,7 @@ import {
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import ClubNav from "@/app/components/club/ClubNav";
+import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
@@ -364,6 +365,12 @@ export default function ClubDashboardPage() {
     <main className="min-h-screen p-10 text-white">
       <div className="mx-auto max-w-7xl">
         <ClubNav />
+        <HowS4pSelectMatch
+          audience="club"
+          initialClub={club.name}
+          clubLocked
+          className="mb-10"
+        />
         {postError && (
           <p className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
             {postError}

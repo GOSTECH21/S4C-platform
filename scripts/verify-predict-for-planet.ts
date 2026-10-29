@@ -494,12 +494,13 @@ const listingsUi = readFileSync(
 );
 
 assert(
-  howItWorks.includes('title: "Predict-For Planet"') &&
-    howItWorks.includes("PredictForPlanetPhone") &&
-    howItWorks.includes("PredictForPlanetPanel") &&
+  !howItWorks.includes("PredictForPlanetPhone") &&
+    !howItWorks.includes("PredictForPlanetPanel") &&
     !howItWorks.includes("Plan Your Travel") &&
-    !howItWorks.includes("Estimate your return distance"),
-  "How S4P Works Step 04 is Predict-For Planet, not Plan Your Travel"
+    !howItWorks.includes("Estimate your return distance") &&
+    howItWorks.includes("HOW_S4P_ACCESS_JOIN") &&
+    !howItWorks.includes("Explore the six steps below."),
+  "How S4P Works homepage is Access & Join only; Predict-For Planet stays on the fan play page"
 );
 assert(
   phone.includes("P4P_CATEGORIES") &&
@@ -604,25 +605,27 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-live-challenge-18f9"') &&
-    applyP4p.includes("PredictForPlanetPhone") &&
+  applyP4p.includes('BRANCH = "cursor/how-s4p-split-steps-18f9"') &&
+    applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("p4p-accuracy-1") &&
+    applyP4p.includes("how-s4p-split-1") &&
     applyP4p.includes("P4pLiveChallengePreview") &&
     applyP4p.includes("Fans engagement with this challenge") &&
     applyP4p.includes("p4pPlayIntroCopy") &&
     applyP4p.includes("FAN_CARBON_WALLET_LABEL") &&
     applyP4p.includes("Still old dark P4P live board") &&
     applyP4p.includes("/supporter/dashboard/predict") &&
+    applyP4p.includes("HOW_S4P_ACCESS_JOIN") &&
+    applyP4p.includes("HowS4pSelectMatch") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("p4p-accuracy-1") &&
+    applyP4pPs1.includes("how-s4p-split-1") &&
     applyP4pPs1.includes("P4pLiveChallengePreview"),
-  "PC overlay pulls Predict-For Planet last and does not re-run listings"
+  "PC overlay pulls Predict-For Planet last, with How S4P Works split, and does not re-run listings"
 );
 assert(
   listingsUi.includes("isMatchSponsorListing") &&
