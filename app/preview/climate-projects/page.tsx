@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
+import { SUPPORTER_CLIMATE_SPONSORS_HASH } from "@/app/lib/routes";
 import { formatWalletGbp, type NumberedClimateProject } from "@/app/lib/sponsor-wallet";
 import { loadFundedProjects } from "@/app/lib/climate-funding";
 import { climateProjectsReceivedCopy } from "@/app/lib/voting-window";
@@ -90,6 +91,21 @@ export default function ClimateProjectsPreviewPage() {
               ))}
             </ol>
           </div>
+        </section>
+
+        <section
+          id={SUPPORTER_CLIMATE_SPONSORS_HASH}
+          className="mt-16 scroll-mt-28 rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+            Climate Sponsors
+          </p>
+          <h2 className="mt-2 text-2xl font-black">Climate Sponsors</h2>
+          <p className="mt-2 max-w-3xl text-sm text-slate-300">
+            Climate Sponsors now sit on this Climate Projects tab. Choose a
+            sponsor, pick the Climate Project from the drop-down, then press
+            FUND-IT.
+          </p>
         </section>
       </div>
     </main>

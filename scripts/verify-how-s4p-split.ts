@@ -13,7 +13,7 @@ const fixtures = readFileSync(
 );
 const lib = readFileSync("app/lib/how-s4p-works.ts", "utf8");
 const fan = readFileSync(
-  "app/dashboard/supporter/preferences/page.tsx",
+  "app/components/fan/FanMyTeamsPanel.tsx",
   "utf8"
 );
 const lead = readFileSync(

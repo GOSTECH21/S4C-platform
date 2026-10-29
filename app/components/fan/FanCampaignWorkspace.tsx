@@ -17,8 +17,8 @@ import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service
 import {
   FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_PATH,
-  SUPPORTER_CLIMATE_SPONSORS_PATH,
-  SUPPORTER_TEAMS_PATH,
+  SUPPORTER_CLIMATE_SPONSORS_HASH,
+  SUPPORTER_PROJECTS_PATH,
 } from "@/app/lib/routes";
 import { campaignHeadline } from "@/app/lib/sponsorship-auction";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
@@ -151,12 +151,12 @@ export function FanCampaignWorkspace({
             football, rugby and other sports so you receive their climate
             projects on match day.
           </p>
-          <Link
-            href={SUPPORTER_TEAMS_PATH}
+          <a
+            href={`${SUPPORTER_CAMPAIGN_PATH}#my-teams`}
             className="mt-6 inline-flex rounded-lg bg-green-500 px-5 py-3 font-bold text-slate-950"
           >
             Choose my teams
-          </Link>
+          </a>
         </div>
       </main>
     );
@@ -177,12 +177,12 @@ export function FanCampaignWorkspace({
             . When a club Sustainability Director posts Climate Projects, they
             appear here for 5 days.
           </p>
-          <Link
-            href={SUPPORTER_TEAMS_PATH}
+          <a
+            href={`${SUPPORTER_CAMPAIGN_PATH}#my-teams`}
             className="mt-6 inline-flex rounded-lg border border-green-500/40 px-5 py-3 font-bold text-green-300"
           >
             Update my teams
-          </Link>
+          </a>
         </div>
         </div>
       </main>
@@ -545,12 +545,12 @@ function CampaignPanel({
             <div className="mt-8 rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6">
               <h3 className="text-xl font-black">Climate Project Sponsors</h3>
               <p className="mt-2 max-w-3xl text-sm text-slate-300">
-                The sponsor list and FUND-IT wallets are on a separate page.
+                The sponsor list and FUND-IT wallets sit on Climate Projects.
                 Choose a sponsor, pick the Climate Project from the drop-down,
                 then press FUND-IT.
               </p>
               <Link
-                href={SUPPORTER_CLIMATE_SPONSORS_PATH}
+                href={`${SUPPORTER_PROJECTS_PATH}#${SUPPORTER_CLIMATE_SPONSORS_HASH}`}
                 className="mt-4 inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-green-400"
               >
                 Open Climate Project Sponsors

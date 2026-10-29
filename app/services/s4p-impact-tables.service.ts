@@ -30,48 +30,59 @@ async function loadCistRows() {
   }
 }
 
+async function ciftEntries() {
+  const { data: votes, error: voteError } = await supabase
+    .from("supporter_votes")
+    .select("supporter_id");
+  if (voteError || !votes?.length) return [];
+
+  const counts = new Map<string, number>();
+  for (const row of votes) {
+    const id = String((row as { supporter_id?: string }).supporter_id ?? "");
+    if (!id) continue;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  if (counts.size === 0) return [];
+
+  const ids = [...counts.keys()];
+  const { data: fans, error: fanError } = await supabase
+    .from("supporters")
+    .select("id, full_name, email")
+    .in("id", ids);
+  if (fanError) return [];
+
+  const names = new Map(
+    (fans ?? []).map((row) => {
+      const fan = row as { id?: string; full_name?: string | null; email?: string | null };
+      return [
+        String(fan.id ?? ""),
+        publicFanName(adminDisplayName(fan.full_name, fan.email)),
+      ] as const;
+    })
+  );
+
+  return [...counts.entries()].map(([id, votesCast]) => ({
+    id,
+    name: names.get(id) || "Fan",
+    metric: formatFundingGbp(votesCast * DEFAULT_WALLET_VOTE_GBP),
+    sortValue: votesCast,
+    impactMoments: votesCast.toLocaleString("en-GB"),
+    funding: formatFundingGbp(votesCast * DEFAULT_WALLET_VOTE_GBP),
+    climateImpact: "—",
+  }));
+}
+
 async function loadCiftRows() {
   try {
-    const { data: votes, error: voteError } = await supabase
-      .from("supporter_votes")
-      .select("supporter_id");
-    if (voteError || !votes?.length) return [];
+    return rankImpactRows(await ciftEntries());
+  } catch {
+    return [];
+  }
+}
 
-    const counts = new Map<string, number>();
-    for (const row of votes) {
-      const id = String((row as { supporter_id?: string }).supporter_id ?? "");
-      if (!id) continue;
-      counts.set(id, (counts.get(id) ?? 0) + 1);
-    }
-    if (counts.size === 0) return [];
-
-    const ids = [...counts.keys()];
-    const { data: fans, error: fanError } = await supabase
-      .from("supporters")
-      .select("id, full_name, email")
-      .in("id", ids);
-    if (fanError) return [];
-
-    const names = new Map(
-      (fans ?? []).map((row) => {
-        const fan = row as { id?: string; full_name?: string | null; email?: string | null };
-        return [
-          String(fan.id ?? ""),
-          publicFanName(adminDisplayName(fan.full_name, fan.email)),
-        ] as const;
-      })
-    );
-
-    return rankImpactRows(
-      [...counts.entries()].map(([id, votesCast]) => ({
-        name: names.get(id) || "Fan",
-        metric: formatFundingGbp(votesCast * DEFAULT_WALLET_VOTE_GBP),
-        sortValue: votesCast,
-        impactMoments: votesCast.toLocaleString("en-GB"),
-        funding: formatFundingGbp(votesCast * DEFAULT_WALLET_VOTE_GBP),
-        climateImpact: "—",
-      }))
-    );
+export async function loadFanCiftRows() {
+  try {
+    return rankImpactRows(await ciftEntries(), 500);
   } catch {
     return [];
   }

@@ -696,14 +696,15 @@ assert(
 const fanPage = readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8");
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 const sponsorsPage = readFileSync(
-  "app/supporter/dashboard/climate-sponsors/page.tsx",
+  "app/dashboard/supporter/vote/page.tsx",
   "utf8"
 );
 assert(
   fanPage.includes('section === "projects"') &&
     fanPage.includes("Open Climate Project Sponsors") &&
-    sponsorsPage.includes('section="sponsors"'),
-  "My S4P guides fans to a separate Climate Project Sponsors page"
+    sponsorsPage.includes('section="sponsors"') &&
+    sponsorsPage.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
+  "My S4P guides fans to Climate Sponsors inside Climate Projects"
 );
 assert(
   fanPage.includes("Climate Projects List") &&

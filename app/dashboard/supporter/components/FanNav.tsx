@@ -3,43 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase";
 import {
   FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_PATH,
-  SUPPORTER_CLIMATE_SPONSORS_PATH,
-  SUPPORTER_PREDICT_PATH,
-  SUPPORTER_PROJECTS_PATH,
-  SUPPORTER_TEAMS_PATH,
-  isMyS4PPath,
 } from "@/app/lib/routes";
 import { fanWelcomeMessage, welcomeBackMessage } from "@/app/lib/s4p-admin";
 import {
   destinationForSignedInKind,
   isFanFacingKind,
 } from "@/app/lib/signed-in-role";
-import { identifySignedInKind } from "@/app/services/signed-in-role.service";
-import { getOrCreateSupporter } from "@/app/services/votes.service";
-
-const LINKS = [
-  { href: SUPPORTER_CAMPAIGN_PATH, label: "My S4P", match: "campaign" as const },
-  {
-    href: SUPPORTER_PREDICT_PATH,
-    label: "P4P",
-    match: "predict" as const,
-  },
-  {
-    href: SUPPORTER_PROJECTS_PATH,
-    label: "Climate Projects",
-    match: "projects" as const,
-  },
-  {
-    href: SUPPORTER_CLIMATE_SPONSORS_PATH,
-    label: "Climate Sponsors",
-    match: "sponsors" as const,
-  },
-  { href: SUPPORTER_TEAMS_PATH, label: "My Teams", match: "teams" as const },
-];
+import { FanTabBar } from "./FanTabBar";
 
 export default function FanNav() {
   const pathname = usePathname();
@@ -49,6 +22,12 @@ export default function FanNav() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const [{ supabase }, { identifySignedInKind }, { getOrCreateSupporter }] =
+        await Promise.all([
+          import("@/app/lib/supabase"),
+          import("@/app/services/signed-in-role.service"),
+          import("@/app/services/votes.service"),
+        ]);
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -85,6 +64,7 @@ export default function FanNav() {
   }, [router]);
 
   async function logout() {
+    const { supabase } = await import("@/app/lib/supabase");
     await supabase.auth.signOut();
     router.push(FAN_LOGIN_PATH);
   }
@@ -107,44 +87,7 @@ export default function FanNav() {
         )}
       </Link>
 
-      <nav className="flex items-center gap-2">
-        {LINKS.map((link) => {
-          const active =
-            link.match === "campaign"
-              ? isMyS4PPath(pathname)
-              : link.match === "teams"
-                ? pathname === SUPPORTER_TEAMS_PATH
-                : link.match === "sponsors"
-                  ? pathname === SUPPORTER_CLIMATE_SPONSORS_PATH ||
-                    pathname === "/dashboard/supporter/climate-sponsors"
-                  : link.match === "predict"
-                    ? pathname === SUPPORTER_PREDICT_PATH ||
-                      pathname === "/dashboard/supporter/predict"
-                    : pathname === SUPPORTER_PROJECTS_PATH ||
-                      pathname === "/supporter/dashboard/vote";
-
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                active
-                  ? "bg-green-500 text-slate-950"
-                  : "bg-slate-800 text-slate-200 hover:bg-slate-700"
-              }`}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
-
-        <button
-          onClick={logout}
-          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-red-600 hover:text-white"
-        >
-          Logout
-        </button>
-      </nav>
+      <FanTabBar pathname={pathname} onLogout={() => void logout()} />
     </header>
   );
 }

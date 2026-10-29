@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import Link from "next/link";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
-import { SUPPORTER_CLIMATE_SPONSORS_PATH } from "@/app/lib/routes";
+import {
+  SUPPORTER_CLIMATE_SPONSORS_HASH,
+  SUPPORTER_PROJECTS_PATH,
+} from "@/app/lib/routes";
 import { loadFundedProjects } from "@/app/lib/climate-funding";
 import {
   applyLeadCommitment,
@@ -208,7 +211,7 @@ export default function MyS4PPreviewPage() {
             then press FUND-IT.
           </p>
           <Link
-            href={SUPPORTER_CLIMATE_SPONSORS_PATH}
+            href={`${SUPPORTER_PROJECTS_PATH}#${SUPPORTER_CLIMATE_SPONSORS_HASH}`}
             className="mt-4 inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-green-400"
           >
             Open Climate Project Sponsors

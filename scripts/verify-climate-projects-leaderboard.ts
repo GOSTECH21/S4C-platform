@@ -59,18 +59,19 @@ const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(page.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
 assert(!page.includes("Posted for"), "The posted-for box no longer lists posted projects");
 assert(
-  !page.includes("ClimateProjectSponsors") &&
-    !page.includes("Climate Project Sponsor"),
-  "Climate Projects does not repeat Climate Project Sponsor wallets from My S4P"
+  page.includes("FanCampaignWorkspace") &&
+    page.includes('section="sponsors"') &&
+    page.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
+  "Climate Projects includes Climate Sponsors FUND-IT wallets"
 );
 assert(
   readFileSync("app/supporter/dashboard/climate-sponsors/page.tsx", "utf8").includes(
-    'section="sponsors"'
+    "SUPPORTER_PROJECTS_PATH"
   ) &&
     readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "Open Climate Project Sponsors"
     ),
-  "Climate Project Sponsor wallets live on a guided Sponsors page"
+  "The old Climate Sponsors URL opens Climate Sponsors on Climate Projects"
 );
 assert(
   page.includes("Climate Project list") &&

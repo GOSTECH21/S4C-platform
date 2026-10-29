@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/how-s4p-split-steps-18f9";
-const BUST = "how-s4p-split-1";
+const BRANCH = "cursor/fan-five-tabs-cift-18f9";
+const BUST = "fan-tabs-cift-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -21,8 +21,19 @@ const FILES = [
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
+  "app/dashboard/supporter/components/FanTabBar.tsx",
   "app/dashboard/supporter/predict/page.tsx",
   "app/dashboard/supporter/preferences/page.tsx",
+  "app/dashboard/supporter/vote/page.tsx",
+  "app/components/fan/FanMyTeamsPanel.tsx",
+  "app/components/fan/FanCiftTable.tsx",
+  "app/components/fan/FanCampaignWorkspace.tsx",
+  "app/supporter/dashboard/page.tsx",
+  "app/supporter/dashboard/cift/page.tsx",
+  "app/supporter/dashboard/climate-sponsors/page.tsx",
+  "app/lib/s4p-impact-tables.ts",
+  "app/services/s4p-impact-tables.service.ts",
+  "scripts/verify-fan-five-tabs.ts",
   "app/supporter/dashboard/predict/page.tsx",
   "app/preview/predict-for-planet/page.tsx",
   "app/sponsor/game-time/page.tsx",
@@ -128,7 +139,7 @@ for (const root of roots) {
   const gameTime = join(root, "app/sponsor/game-time/page.tsx");
   const preview = join(root, "app/components/fan/P4pLiveChallengePreview.tsx");
   const register = join(root, "app/sponsor/register/page.tsx");
-  const nav = join(root, "app/dashboard/supporter/components/FanNav.tsx");
+  const nav = join(root, "app/dashboard/supporter/components/FanTabBar.tsx");
   const howText = existsSync(how) ? readFileSync(how, "utf8") : "";
   const libText = existsSync(lib) ? readFileSync(lib, "utf8") : "";
   const playText = existsSync(play) ? readFileSync(play, "utf8") : "";

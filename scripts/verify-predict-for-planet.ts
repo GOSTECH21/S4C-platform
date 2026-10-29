@@ -485,7 +485,12 @@ const howItWorks = readFileSync("app/components/home/HowItWorks.tsx", "utf8");
 const phone = readFileSync("app/components/home/PredictForPlanet.tsx", "utf8");
 const register = readFileSync("app/sponsor/register/page.tsx", "utf8");
 const play = readFileSync("app/components/fan/PredictForPlanetPlay.tsx", "utf8");
-const fanNav = readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8");
+const fanNav =
+  readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8") +
+  readFileSync(
+    "app/dashboard/supporter/components/FanTabBar.tsx",
+    "utf8"
+  );
 const sponsorNav = readFileSync("app/sponsor/sponsor-nav.tsx", "utf8");
 const climatePage = readFileSync("app/climate-sponsorship/page.tsx", "utf8");
 const listingsUi = readFileSync(
@@ -605,13 +610,13 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/how-s4p-split-steps-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/fan-five-tabs-cift-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("how-s4p-split-1") &&
+    applyP4p.includes("fan-tabs-cift-1") &&
     applyP4p.includes("P4pLiveChallengePreview") &&
     applyP4p.includes("Fans engagement with this challenge") &&
     applyP4p.includes("p4pPlayIntroCopy") &&
@@ -620,10 +625,11 @@ assert(
     applyP4p.includes("/supporter/dashboard/predict") &&
     applyP4p.includes("HOW_S4P_ACCESS_JOIN") &&
     applyP4p.includes("HowS4pSelectMatch") &&
+    applyP4p.includes("FanCiftTable") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("how-s4p-split-1") &&
+    applyP4pPs1.includes("fan-tabs-cift-1") &&
     applyP4pPs1.includes("P4pLiveChallengePreview"),
   "PC overlay pulls Predict-For Planet last, with How S4P Works split, and does not re-run listings"
 );

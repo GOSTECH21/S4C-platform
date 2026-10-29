@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   getMyS4PCampaigns,
   getOrCreateSupporter,
-  describeDataError,
   type CampaignProject,
   type S4PCampaign,
   type Supporter,
 } from "@/app/services/votes.service";
 import FanNav from "../components/FanNav";
-import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import {
+  FAN_LOGIN_PATH,
+  SUPPORTER_CAMPAIGN_PATH,
+  SUPPORTER_CLIMATE_SPONSORS_HASH,
+} from "@/app/lib/routes";
 import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
 import { getSupportedTeams } from "@/app/services/teams.service";
@@ -31,6 +35,14 @@ import {
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
+
+const FanCampaignWorkspace = dynamic(
+  () =>
+    import("@/app/components/fan/FanCampaignWorkspace").then(
+      (mod) => mod.FanCampaignWorkspace
+    ),
+  { ssr: false }
+);
 
 function campaignProjects(campaign: S4PCampaign): CampaignProject[] {
   const listed = campaign.featuredProject
@@ -145,6 +157,13 @@ export default function VotePage() {
             />
           ))
         )}
+
+        <section
+          id={SUPPORTER_CLIMATE_SPONSORS_HASH}
+          className="mt-16 scroll-mt-28"
+        >
+          <FanCampaignWorkspace section="sponsors" />
+        </section>
       </div>
     </main>
   );

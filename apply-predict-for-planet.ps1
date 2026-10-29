@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/how-s4p-split-steps-18f9"
-$bust = "how-s4p-split-1"
+$branch = "cursor/fan-five-tabs-cift-18f9"
+$bust = "fan-tabs-cift-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
@@ -23,8 +23,19 @@ $files = @(
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",
   "app/dashboard/supporter/components/FanNav.tsx",
+  "app/dashboard/supporter/components/FanTabBar.tsx",
   "app/dashboard/supporter/predict/page.tsx",
   "app/dashboard/supporter/preferences/page.tsx",
+  "app/dashboard/supporter/vote/page.tsx",
+  "app/components/fan/FanMyTeamsPanel.tsx",
+  "app/components/fan/FanCiftTable.tsx",
+  "app/components/fan/FanCampaignWorkspace.tsx",
+  "app/supporter/dashboard/page.tsx",
+  "app/supporter/dashboard/cift/page.tsx",
+  "app/supporter/dashboard/climate-sponsors/page.tsx",
+  "app/lib/s4p-impact-tables.ts",
+  "app/services/s4p-impact-tables.service.ts",
+  "scripts/verify-fan-five-tabs.ts",
   "app/supporter/dashboard/predict/page.tsx",
   "app/preview/predict-for-planet/page.tsx",
   "app/sponsor/game-time/page.tsx",

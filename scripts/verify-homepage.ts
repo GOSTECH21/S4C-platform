@@ -662,7 +662,7 @@ assert(
     howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_FAN") &&
     howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_SPONSOR") &&
     howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_CLUB") &&
-    readFileSync("app/dashboard/supporter/preferences/page.tsx", "utf8").includes(
+    readFileSync("app/components/fan/FanMyTeamsPanel.tsx", "utf8").includes(
       'audience="fan"'
     ) &&
     readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(

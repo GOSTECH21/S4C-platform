@@ -352,15 +352,23 @@ assert(
   "The Sponsor Leaderboard has a select menu that defaults to Global"
 );
 
-const nav = readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8");
+const nav =
+  readFileSync("app/dashboard/supporter/components/FanNav.tsx", "utf8") +
+  readFileSync(
+    "app/dashboard/supporter/components/FanTabBar.tsx",
+    "utf8"
+  );
 assert(
   !nav.includes('label: "Sponsor"') &&
     !nav.includes("SUPPORTER_SPONSOR_PATH") &&
-    nav.includes("SUPPORTER_CLIMATE_SPONSORS_PATH") &&
+    !nav.includes('label: "Climate Sponsors"') &&
+    !nav.includes('label: "My Teams"') &&
     nav.includes("SUPPORTER_PREDICT_PATH") &&
     nav.includes('label: "P4P"') &&
-    nav.includes('label: "Climate Sponsors"'),
-  "Fan navigation has Climate Sponsors, not the old Sponsor tab"
+    nav.includes('label: "CIFT"') &&
+    nav.includes("grid-cols-5") &&
+    nav.includes('data-fan-tabs="5"'),
+  "Fan navigation is five non-scrolling tabs: My S4P, P4P, Climate Projects, CIFT, Logout"
 );
 assert(
   readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(

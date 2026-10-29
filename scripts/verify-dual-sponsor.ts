@@ -503,7 +503,7 @@ assert(
 assert(
   vote.includes("ClimateProjectSponsors") &&
     vote.includes("Open Climate Project Sponsors"),
-  "Lead and local Carbon Wallets sit on the Climate Project Sponsors page"
+  "Lead and local Carbon Wallets sit on Climate Projects"
 );
 assert(
   !vote.includes("leftoverSponsor"),

@@ -24,6 +24,7 @@ export type ImpactTableRow = {
   impactMoments: string;
   funding: string;
   climateImpact: string;
+  id?: string;
 };
 
 export type ImpactTableEntry = {
@@ -37,6 +38,7 @@ export type ImpactTableEntry = {
   competition?: string;
   country?: string;
   season?: string;
+  id?: string;
 };
 
 export type ImpactTableBoard = {
@@ -243,14 +245,17 @@ export function impactTableHeading(tab: ImpactTableId, filter?: CiltFilter | nul
   return meta.title;
 }
 
-export function rankImpactRows(entries: ImpactTableEntry[]): ImpactTableRow[] {
+export function rankImpactRows(
+  entries: ImpactTableEntry[],
+  limit = IMPACT_TABLE_FULL_LIMIT
+): ImpactTableRow[] {
   return [...entries]
     .filter((row) => row.name.trim())
     .sort((left, right) => {
       if (right.sortValue !== left.sortValue) return right.sortValue - left.sortValue;
       return left.name.localeCompare(right.name);
     })
-    .slice(0, IMPACT_TABLE_FULL_LIMIT)
+    .slice(0, limit)
     .map((row, index) => ({
       rank: index + 1,
       name: row.name.trim(),
@@ -258,7 +263,17 @@ export function rankImpactRows(entries: ImpactTableEntry[]): ImpactTableRow[] {
       impactMoments: row.impactMoments ?? "0",
       funding: row.funding ?? "£0",
       climateImpact: row.climateImpact ?? row.metric,
+      id: row.id,
     }));
+}
+
+export function findImpactRow(
+  rows: ImpactTableRow[],
+  id: string | null | undefined
+): ImpactTableRow | null {
+  const key = String(id ?? "").trim();
+  if (!key) return null;
+  return rows.find((row) => row.id === key) ?? null;
 }
 
 export function publicFanName(fullName: string): string {
