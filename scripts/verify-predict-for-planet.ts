@@ -557,8 +557,10 @@ const fanPredictPage = readFileSync(
 );
 assert(
   fanPredictPage.includes("preferredClubNames") &&
+    fanPredictPage.includes("HowS4pPredictForPlanet") &&
+    fanPredictPage.includes("PredictForPlanetPlay") &&
     !fanPredictPage.includes("vs Chelsea"),
-  "Fan P4P does not invent a vs Chelsea Match"
+  "Fan P4P shows Image P4P and the live board, and does not invent a vs Chelsea Match"
 );
 const gameTimePage = readFileSync("app/sponsor/game-time/page.tsx", "utf8");
 assert(
@@ -610,13 +612,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/fan-five-tabs-cift-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/fan-p4p-image-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
+    applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("fan-tabs-cift-1") &&
+    applyP4p.includes("fan-p4p-image-1") &&
     applyP4p.includes("P4pLiveChallengePreview") &&
     applyP4p.includes("Fans engagement with this challenge") &&
     applyP4p.includes("p4pPlayIntroCopy") &&
@@ -629,7 +632,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("fan-tabs-cift-1") &&
+    applyP4pPs1.includes("fan-p4p-image-1") &&
     applyP4pPs1.includes("P4pLiveChallengePreview"),
   "PC overlay pulls Predict-For Planet last, with How S4P Works split, and does not re-run listings"
 );

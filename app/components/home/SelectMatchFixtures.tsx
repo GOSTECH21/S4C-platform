@@ -80,8 +80,12 @@ function clubInitials(name: string) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
+export function useOptionalSelectMatch() {
+  return useContext(SelectMatchContext);
+}
+
 export function useSelectMatch() {
-  const ctx = useContext(SelectMatchContext);
+  const ctx = useOptionalSelectMatch();
   if (!ctx) {
     throw new Error("SelectMatchProvider is required");
   }

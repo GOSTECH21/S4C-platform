@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/fan-five-tabs-cift-18f9"
-$bust = "fan-tabs-cift-1"
+$branch = "cursor/fan-p4p-image-18f9"
+$bust = "fan-p4p-image-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
@@ -19,6 +19,7 @@ $files = @(
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",
+  "app/components/home/HowS4pPredictForPlanet.tsx",
   "app/components/home/SelectMatchFixtures.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",

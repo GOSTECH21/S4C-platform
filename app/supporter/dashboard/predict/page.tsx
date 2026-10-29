@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import HowS4pPredictForPlanet from "@/app/components/home/HowS4pPredictForPlanet";
 import { PredictForPlanetPlay } from "@/app/components/fan/PredictForPlanetPlay";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
 import { P4P_FALLBACK_PROJECTS } from "@/app/lib/predict-for-planet";
@@ -54,19 +55,24 @@ export default function PredictForPlanetPage() {
 
   if (loading || !fanId) {
     return (
-      <main className="mx-auto max-w-3xl px-6 pb-16">
+      <main className="mx-auto max-w-6xl px-6 pb-16">
         Loading Predict-For Planet...
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-16">
-      <PredictForPlanetPlay
-        fanId={fanId}
-        preferredClubNames={preferredClubNames}
-        projects={projects}
-      />
+    <main className="mx-auto max-w-6xl px-6 pb-16">
+      <HowS4pPredictForPlanet
+        initialClub={preferredClubNames[0]}
+        clubOptions={preferredClubNames}
+      >
+        <PredictForPlanetPlay
+          fanId={fanId}
+          preferredClubNames={preferredClubNames}
+          projects={projects}
+        />
+      </HowS4pPredictForPlanet>
     </main>
   );
 }

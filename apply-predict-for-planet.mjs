@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/fan-five-tabs-cift-18f9";
-const BUST = "fan-tabs-cift-1";
+const BRANCH = "cursor/fan-p4p-image-18f9";
+const BUST = "fan-p4p-image-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -17,6 +17,7 @@ const FILES = [
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",
+  "app/components/home/HowS4pPredictForPlanet.tsx",
   "app/components/home/SelectMatchFixtures.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",

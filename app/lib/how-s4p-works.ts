@@ -53,6 +53,14 @@ export const HOW_S4P_SELECT_MATCH_CLUB = {
   ],
 } as const;
 
+export const HOW_S4P_P4P = {
+  src: "/images/home/plan-your-travel-phone.png",
+  alt: "Predict-For Planet. Choose what is likely to happen in this 5-minute slot of the Game.",
+  width: 244,
+  height: 581,
+  title: "Predict-For Planet",
+} as const;
+
 export type HowS4pSelectMatchAudience = "fan" | "sponsor" | "club";
 
 export function howS4pSelectMatchCopy(audience: HowS4pSelectMatchAudience) {

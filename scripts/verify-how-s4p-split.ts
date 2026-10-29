@@ -16,6 +16,14 @@ const fan = readFileSync(
   "app/components/fan/FanMyTeamsPanel.tsx",
   "utf8"
 );
+const fanP4p = readFileSync(
+  "app/supporter/dashboard/predict/page.tsx",
+  "utf8"
+);
+const p4pSection = readFileSync(
+  "app/components/home/HowS4pPredictForPlanet.tsx",
+  "utf8"
+);
 const lead = readFileSync(
   "app/components/sponsor/MatchDayLockIn.tsx",
   "utf8"
@@ -74,6 +82,19 @@ assert(
     club.includes('audience="club"') &&
     club.includes("clubLocked"),
   "Select Match is on fan My Teams, lead lock-in, local register/wallet, and club dashboard"
+);
+assert(
+  fanP4p.includes("HowS4pPredictForPlanet") &&
+    fanP4p.includes("PredictForPlanetPlay") &&
+    p4pSection.includes("data-how-s4p-p4p") &&
+    p4pSection.includes("PredictForPlanetPhone") &&
+    p4pSection.includes("PredictForPlanetPanel") &&
+    p4pSection.includes("HOW_S4P_P4P") &&
+    lib.includes('title: "Predict-For Planet"') &&
+    lib.includes("/images/home/plan-your-travel-phone.png") &&
+    !how.includes("PredictForPlanetPhone") &&
+    !how.includes("HOW_S4P_P4P"),
+  "Image P4P lands on the Fan P4P tab with the live prediction board, not the homepage"
 );
 assert(
   existsSync("public/images/home/access-join-phone.png") &&

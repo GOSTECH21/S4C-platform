@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import { useSelectMatch } from "@/app/components/home/SelectMatchFixtures";
+import { useOptionalSelectMatch } from "@/app/components/home/SelectMatchFixtures";
 import {
   P4P_ACCURACY_GBP,
   P4P_CATEGORIES,
@@ -30,14 +30,19 @@ function stopCarouselSwipe(event: React.PointerEvent) {
 export function PredictForPlanetPhone({
   src,
   alt,
+  fixtureName,
 }: {
   src: string;
   alt: string;
+  fixtureName?: string;
 }) {
-  const { selectedMatch } = useSelectMatch();
-  const fixture = selectedMatch
-    ? `${selectedMatch.homeName} vs ${selectedMatch.awayName}`
-    : "Arsenal vs Chelsea";
+  const selectedMatch = useOptionalSelectMatch()?.selectedMatch ?? null;
+  const fixture =
+    fixtureName ||
+    (selectedMatch
+      ? `${selectedMatch.homeName} vs ${selectedMatch.awayName}`
+      : null) ||
+    "Game-Time Match";
   const window = p4pWindows()[3];
   const [picked, setPicked] = useState<P4pCategoryId | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -149,18 +154,20 @@ export function PredictForPlanetPanel({
   caption,
   points,
 }: {
-  badge: string;
+  badge?: string;
   title: string;
-  number: string;
+  number?: string;
   caption: string;
   points: string[];
 }) {
   const slots = useMemo(() => gameTimeSlots(), []);
+  const step = String(number ?? "").replace(/^0/, "");
   return (
     <div className="min-w-0 flex-1">
-      <p className={STEP_TAB_CLASS}>{badge}</p>
+      {badge ? <p className={STEP_TAB_CLASS}>{badge}</p> : null}
       <h3 className="mt-2 text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
-        {number.replace(/^0/, "")}. {title}
+        {step ? `${step}. ` : null}
+        {title}
       </h3>
       <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
         {caption}
