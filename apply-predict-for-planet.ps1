@@ -11,7 +11,7 @@ if (-not $markers) {
 }
 
 $branch = "cursor/match-day-offset-copy-18f9"
-$bust = "match-day-offset-1"
+$bust = "match-day-offset-2"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
@@ -87,7 +87,9 @@ foreach ($root in $roots) {
   $phone = Join-Path $root "app\components\home\PredictForPlanet.tsx"
   $gameTime = Join-Path $root "app\sponsor\game-time\page.tsx"
   $preview = Join-Path $root "app\components\fan\P4pLiveChallengePreview.tsx"
+  $banner = Join-Path $root "app\components\home\HomeTopBanner.tsx"
   $howText = if (Test-Path $how) { Get-Content -Raw $how } else { "" }
+  $bannerText = if (Test-Path $banner) { Get-Content -Raw $banner } else { "" }
   $libText = if (Test-Path $lib) { Get-Content -Raw $lib } else { "" }
   $playText = if (Test-Path $play) { Get-Content -Raw $play } else { "" }
   $phoneText = if (Test-Path $phone) { Get-Content -Raw $phone } else { "" }
@@ -106,6 +108,16 @@ foreach ($root in $roots) {
     $updated++
   } else {
     Write-Host "Still old How S4P Works six-step carousel: $how"
+  }
+  if (
+    $bannerText -match "offset its Match Day carbon emissions" -and
+    $bannerText -match "Global Brands & Businesses" -and
+    $bannerText -notmatch "We help elite sports clubs, their fans, sponsors and partners"
+  ) {
+    Write-Host "Updated homepage hero Match Day offset copy: $banner"
+    $updated++
+  } else {
+    Write-Host "Still old homepage hero copy: $banner"
   }
   if (
     $libText -match "s4p-predict-for-planet-v4" -and
@@ -157,5 +169,5 @@ foreach ($root in $roots) {
   }
 }
 
-if ($updated -lt 5) { exit 1 }
-Write-Host "OK: P4P now says Fans engagement with this challenge. Participating earns £0.10; the right event earns another £0.30 into the Fan Carbon Wallet. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open P4P: http://localhost:3000/supporter/dashboard/predict"
+if ($updated -lt 6) { exit 1 }
+Write-Host "OK: Homepage hero now says we help your team offset Match Day carbon emissions with climate projects funded by Global Brands & Businesses. Desktop still shows the How S4P phone mockups; a handset does not. Do not re-run the listings overlay or Match-Sponsorship overlay after this. In the npm run dev terminal: Ctrl+C, then delete the .next folder, then npm run dev, then Ctrl+F5. Open http://localhost:3000/"

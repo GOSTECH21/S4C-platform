@@ -620,8 +620,9 @@ assert(
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("match-day-offset-1") &&
+    applyP4p.includes("match-day-offset-2") &&
     applyP4p.includes("HomeTopBanner.tsx") &&
+    applyP4p.includes("offset its Match Day carbon emissions") &&
     applyP4p.includes("PhoneFrame.tsx") &&
     applyP4p.includes("P4pLiveChallengePreview") &&
     applyP4p.includes("Fans engagement with this challenge") &&
@@ -635,7 +636,8 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("match-day-offset-1") &&
+    applyP4pPs1.includes("match-day-offset-2") &&
+    applyP4pPs1.includes("offset its Match Day carbon emissions") &&
     applyP4pPs1.includes("P4pLiveChallengePreview"),
   "PC overlay pulls Predict-For Planet last, with How S4P Works split, and does not re-run listings"
 );
