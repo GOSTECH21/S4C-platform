@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v5 */
+/* s4p-predict-for-planet-v6 */
 
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";

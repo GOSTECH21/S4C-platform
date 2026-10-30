@@ -1,6 +1,5 @@
 import { readFileSync } from "fs";
 import {
-  GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_DURATION_MINUTES,
   GAME_TIME_SLOT_COUNT,
   GAME_TIME_SLOT_MINUTES,
@@ -508,9 +507,10 @@ assert(
 );
 
 assert(
-  p4pHowItWorksCaption().includes(GAME_TIME_CARBON_WALLET_LABEL) &&
-    p4pHowItWorksCaption().includes(formatP4pGbp(P4P_ENGAGEMENT_GBP)),
-  "How S4P Works Step 04 explains the £0.10 Game-Time Carbon Wallet take"
+  p4pHowItWorksCaption().includes(
+    "Predict-For Planet is played on the Match a Game-Time Sponsor has put money into their Wallet for."
+  ) && !p4pHowItWorksCaption().includes("Choose 3 likely events"),
+  "P4P caption is the Game-Time Sponsor match, not the 3-of-7 paragraph"
 );
 assert(
   p4pWindows()[3]?.label === "15–20 min" && p4pWindows()[3]?.slotIndex === 0,
@@ -567,6 +567,10 @@ assert(
 assert(
   phone.includes("P4P_CATEGORIES") &&
     phone.includes("Game-Time Wallet") &&
+    phone.includes("earnedGbp") &&
+    !phone.includes("12.4") &&
+    !phone.includes("Seven {P4P_SHORT} prediction categories") &&
+    phone.includes("Global Brands buy a 30-minute Game-Time slot") &&
     phone.includes("3 of 7 this slot") &&
     phone.includes("#fffdf8") &&
     phone.includes("P4P_POWERED_BY_LABEL") &&
@@ -600,7 +604,7 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("What happens next?") &&
-    play.includes("s4p-predict-for-planet-v5") &&
+    play.includes("s4p-predict-for-planet-v6") &&
     play.includes("p4pPlayIntroCopy") &&
     play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
     play.includes("awardP4pSlotEvent") &&
@@ -673,14 +677,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-three-picks-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-earned-wallet-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
-    applyP4p.includes("s4p-predict-for-planet-v5") &&
-    applyP4p.includes("p4p-three-picks-1") &&
+    applyP4p.includes("s4p-predict-for-planet-v6") &&
+    applyP4p.includes("p4p-earned-wallet-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -699,8 +703,8 @@ assert(
     applyP4p.includes("FanCiftTable") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
-    applyP4pPs1.includes("s4p-predict-for-planet-v5") &&
-    applyP4pPs1.includes("p4p-three-picks-1") &&
+    applyP4pPs1.includes("s4p-predict-for-planet-v6") &&
+    applyP4pPs1.includes("p4p-earned-wallet-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

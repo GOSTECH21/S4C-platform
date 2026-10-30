@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-three-picks-18f9";
-const BUST = "p4p-three-picks-1";
+const BRANCH = "cursor/p4p-earned-wallet-18f9";
+const BUST = "p4p-earned-wallet-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -193,7 +193,7 @@ for (const root of roots) {
     console.log("Updated homepage hero Match Day offset copy:", banner);
   }
   if (
-    !libText.includes("s4p-predict-for-planet-v5") ||
+    !libText.includes("s4p-predict-for-planet-v6") ||
     !libText.includes("Handball offence") ||
     !libText.includes("VAR referee review") ||
     !libText.includes("pickSponsoredGameTimeMatch") ||
@@ -207,7 +207,7 @@ for (const root of roots) {
     console.log("Updated Predict-For Planet model:", lib);
   }
   if (
-    !playText.includes("s4p-predict-for-planet-v5") ||
+    !playText.includes("s4p-predict-for-planet-v6") ||
     !playText.includes('data-testid="p4p-powered-by"') ||
     !playText.includes("What happens next?") ||
     !playText.includes("p4pPlayIntroCopy") ||
@@ -223,9 +223,11 @@ for (const root of roots) {
     console.log("Ivory live board and sponsor mark beside What happens next:", play);
   }
   if (
-    !phoneText.includes("s4p-predict-for-planet-v5") ||
+    !phoneText.includes("s4p-predict-for-planet-v6") ||
     !phoneText.includes("#fffdf8") ||
     phoneText.includes("#0b1f14") ||
+    !phoneText.includes("earnedGbp") ||
+    phoneText.includes("12.4") ||
     !phoneText.includes("P4P_POWERED_BY_LABEL") ||
     !phoneText.includes("PhoneFrame")
   ) {

@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v5 */
+/* s4p-predict-for-planet-v6 */
 
 import { useMemo, useState } from "react";
 import { PhoneFrame } from "@/app/components/home/PhoneFrame";
@@ -9,6 +9,7 @@ import {
   P4P_CATEGORIES,
   P4P_ENGAGEMENT_GBP,
   P4P_LABEL,
+  P4P_PARTICIPATION_GBP,
   P4P_POWERED_BY_LABEL,
   P4P_PREDICTIONS_PER_WINDOW,
   P4P_SHORT,
@@ -46,6 +47,8 @@ export function PredictForPlanetPhone({
   const window = p4pWindows()[3];
   const [picked, setPicked] = useState<P4pCategoryId[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const earnedGbp =
+    picked.length === P4P_PREDICTIONS_PER_WINDOW ? P4P_PARTICIPATION_GBP : 0;
 
   function toggle(id: P4pCategoryId) {
     setPicked((current) => {
@@ -98,7 +101,7 @@ export function PredictForPlanetPhone({
             className="mt-2 rounded-xl px-2 py-1.5 text-center text-[10px] font-black text-black"
             style={{ backgroundColor: MARK_GREEN }}
           >
-            Game-Time Wallet {formatP4pGbp(12.4)}
+            Game-Time Wallet {formatP4pGbp(earnedGbp)}
           </div>
           <div className="mt-2 flex items-start gap-2">
             <p className="min-w-0 flex-1 text-[9px] font-black uppercase tracking-[0.14em] text-slate-700">
@@ -196,20 +199,7 @@ export function PredictForPlanetPanel({
         ))}
       </ul>
       <div className="mt-6 max-w-xl rounded-[1.4rem] border border-emerald-400/30 bg-s4p-paper px-5 py-5">
-        <p
-          className="text-xs font-black uppercase tracking-[0.18em]"
-          style={{ color: MINT }}
-        >
-          Seven {P4P_SHORT} prediction categories
-        </p>
-        <ol className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {P4P_CATEGORIES.map((category, index) => (
-            <li key={category.id} className="text-sm font-semibold">
-              {index + 1}. {category.label}
-            </li>
-          ))}
-        </ol>
-        <p className="mt-4 text-sm font-semibold leading-6">
+        <p className="text-sm font-semibold leading-6">
           Global Brands buy a 30-minute Game-Time slot
           {slots.map((slot) => ` (${slot.label})`).join("")}. That is fan
           engagement, not a 5-day Match-Sponsorship.

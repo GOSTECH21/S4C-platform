@@ -1,4 +1,4 @@
-/* s4p-predict-for-planet-v5 */
+/* s4p-predict-for-planet-v6 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
@@ -827,7 +827,7 @@ export function gameTimeIsLive(wallet: GameTimeWallet, now: Date | string = new 
 }
 
 export function p4pHowItWorksCaption(): string {
-  return `Choose 3 likely events that could happen (out of 7) in the next ${P4P_WINDOW_MINUTES}-minute slot. Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Game-Time Carbon Wallet. If one of those events is awarded, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)}. That money is recorded in your ${FAN_CARBON_WALLET_LABEL} for your chosen Climate Project.`;
+  return "Predict-For Planet is played on the Match a Game-Time Sponsor has put money into their Wallet for.";
 }
 
 export function p4pHowItWorksPoints(): string[] {

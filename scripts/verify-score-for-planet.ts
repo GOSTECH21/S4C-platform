@@ -120,6 +120,9 @@ assert(
     !climate.includes("via Stripe") &&
     !climate.includes("Sponsorship Manager logs in") &&
     readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
+      "Global Brands buy a 30-minute Game-Time slot"
+    ) &&
+    !readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
       "Seven {P4P_SHORT} prediction categories"
     ),
   "Copy moves Goal scored off P4P and onto S4P thirds unlock"

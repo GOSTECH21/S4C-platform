@@ -89,6 +89,8 @@ assert(
     p4pSection.includes("data-how-s4p-p4p") &&
     p4pSection.includes("PredictForPlanetPhone") &&
     p4pSection.includes("PredictForPlanetPanel") &&
+    p4pSection.indexOf("PredictForPlanetPanel") <
+      p4pSection.indexOf("PredictForPlanetPhone") &&
     p4pSection.includes("HOW_S4P_P4P") &&
     lib.includes('title: "Predict-For Planet"') &&
     lib.includes("/images/home/plan-your-travel-phone.png") &&
