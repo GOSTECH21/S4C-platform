@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v4 */
+/* s4p-predict-for-planet-v5 */
 
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -20,6 +20,7 @@ import {
   P4P_MATCH_DAY_IMPACT_LABEL,
   P4P_PARTICIPATION_GBP,
   P4P_POWERED_BY_LABEL,
+  P4P_PREDICTIONS_PER_WINDOW,
   P4P_SHORT,
   P4P_TAGLINE,
   alreadyPredictedWindow,
@@ -34,6 +35,7 @@ import {
   p4pLiveChallenge,
   p4pPlayIntroCopy,
   p4pPredictionAmounts,
+  predictionCategoryIds,
   p4pWindowCountdown,
   remainingGameTimeGbp,
   windowsForGameTimeSlot,
@@ -70,7 +72,7 @@ export function PredictForPlanetPlay({
 }) {
   const slots = useMemo(() => gameTimeSlots(), []);
   const [windowIndex, setWindowIndex] = useState(0);
-  const [categoryId, setCategoryId] = useState<P4pCategoryId | "">("");
+  const [categoryIds, setCategoryIds] = useState<P4pCategoryId[]>([]);
   const [projectName, setProjectName] = useState(projects[0] ?? "");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -166,7 +168,7 @@ export function PredictForPlanetPlay({
   const canPredict = Boolean(
     wallet &&
       remaining > 0 &&
-      categoryId &&
+      categoryIds.length === P4P_PREDICTIONS_PER_WINDOW &&
       projectName &&
       windowAllowed &&
       !alreadyInWindow
@@ -212,7 +214,11 @@ export function PredictForPlanetPlay({
       return;
     }
     if (alreadyInWindow) {
-      setError("You can make only 1 Prediction in each 5-minute slot.");
+      setError("You have already chosen 3 events in this 5-minute slot.");
+      return;
+    }
+    if (categoryIds.length !== P4P_PREDICTIONS_PER_WINDOW) {
+      setError("Choose 3 of the seven Predict-For Planet events.");
       return;
     }
     const result = submitP4pPrediction({
@@ -220,7 +226,7 @@ export function PredictForPlanetPlay({
       clubName: liveClub,
       fixtureName: liveFixture,
       windowIndex: playWindow?.index ?? 0,
-      categoryId,
+      categoryIds,
       projectName,
     });
     if (!result.ok) {
@@ -237,7 +243,7 @@ export function PredictForPlanetPlay({
       );
     } else {
       setNotice(
-        `Participation. ${formatP4pGbp(amounts.participationGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName}. If this event is awarded in this slot, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} (total ${formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Game-Time wallet now ${left}.`
+        `Participation. ${formatP4pGbp(amounts.participationGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName}. If one of those events is awarded in this slot, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} (total ${formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Game-Time wallet now ${left}.`
       );
     }
     setTick((value) => value + 1);
@@ -447,23 +453,37 @@ export function PredictForPlanetPlay({
         <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-              What happens next?
+              What happens next? · {categoryIds.length}/{P4P_PREDICTIONS_PER_WINDOW} of 7
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {P4P_CATEGORIES.map((category) => {
-                const selected = categoryId === category.id;
+                const selectedIndex = categoryIds.indexOf(category.id);
+                const selected = selectedIndex >= 0;
+                const full = categoryIds.length >= P4P_PREDICTIONS_PER_WINDOW;
                 return (
                   <button
                     key={category.id}
                     type="button"
-                    onClick={() => setCategoryId(category.id)}
+                    disabled={alreadyInWindow || (full && !selected)}
+                    onClick={() =>
+                      setCategoryIds((current) => {
+                        if (current.includes(category.id)) {
+                          return current.filter((id) => id !== category.id);
+                        }
+                        if (current.length >= P4P_PREDICTIONS_PER_WINDOW) {
+                          return current;
+                        }
+                        return [...current, category.id];
+                      })
+                    }
                     className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
                       selected
                         ? "border-s4p-mark bg-s4p-mark text-black"
                         : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
-                    }`}
+                    } disabled:opacity-50`}
                   >
                     {category.label}
+                    {selected ? ` · ${selectedIndex + 1}/${P4P_PREDICTIONS_PER_WINDOW}` : ""}
                   </button>
                 );
               })}
@@ -493,8 +513,8 @@ export function PredictForPlanetPlay({
               Awarded in this 5-minute slot
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              If this event is awarded in the match, matching predictions earn
-              another {formatP4pGbp(P4P_ACCURACY_GBP)}.
+              If one of the 3 chosen events is awarded in the match, that
+              prediction earns another {formatP4pGbp(P4P_ACCURACY_GBP)}.
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {P4P_CATEGORIES.map((category) => {
@@ -548,8 +568,8 @@ export function PredictForPlanetPlay({
           className="mt-5 w-full rounded-xl border border-transparent bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:border-slate-400 disabled:bg-slate-200 disabled:text-slate-800"
         >
           {alreadyInWindow
-            ? "Already predicted this 5-minute slot"
-            : `Predict · ${formatP4pGbp(P4P_PARTICIPATION_GBP)} participation`}
+            ? "Already chosen 3 events this 5-minute slot"
+            : `Predict 3 events · ${formatP4pGbp(P4P_PARTICIPATION_GBP)} participation`}
         </button>
         {error ? (
           <p role="alert" className="mt-3 rounded-xl border border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-800">
@@ -588,8 +608,8 @@ export function PredictForPlanetPlay({
           </p>
           <p className="mt-1 text-sm text-slate-600">
             These amounts go to your chosen Climate Projects. Participating
-            earns {formatP4pGbp(P4P_PARTICIPATION_GBP)}; the right event earns
-            another {formatP4pGbp(P4P_ACCURACY_GBP)}.
+            earns {formatP4pGbp(P4P_PARTICIPATION_GBP)}; if one of your 3 events
+            is awarded you earn another {formatP4pGbp(P4P_ACCURACY_GBP)}.
           </p>
         </div>
 
@@ -606,7 +626,13 @@ export function PredictForPlanetPlay({
                   <li key={row.id}>
                     {playableWindows.find((item) => item.index === row.windowIndex)?.label ||
                       `${row.windowIndex}`}:{" "}
-                    {P4P_CATEGORIES.find((item) => item.id === row.categoryId)?.label}{" "}
+                    {predictionCategoryIds(row)
+                      .map(
+                        (id) =>
+                          P4P_CATEGORIES.find((item) => item.id === id)?.label ??
+                          id
+                      )
+                      .join(", ")}{" "}
                     → {row.projectName} ({status})
                   </li>
                 );

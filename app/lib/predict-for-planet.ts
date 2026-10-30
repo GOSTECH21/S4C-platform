@@ -1,4 +1,4 @@
-/* s4p-predict-for-planet-v4 */
+/* s4p-predict-for-planet-v5 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
@@ -20,7 +20,7 @@ export const P4P_MAKE_PREDICTION_LABEL = "Make your prediction";
 export const P4P_CHOOSE_PROJECT_LABEL = "Choose your climate project";
 export const P4P_MATCH_DAY_IMPACT_LABEL = "Your Match Day Impact";
 export const P4P_LIVE_CHALLENGE_FOOTER =
-  "Participating earns £0.10 for your Climate Project, right or wrong. The right event earns another £0.30.";
+  "Choose 3 of 7 events. Participating earns £0.10 for your Climate Project, right or wrong. If one of those events is awarded, you earn another £0.30.";
 export const P4P_FANS_ENGAGEMENT_LABEL = "Fans engagement with this challenge";
 export const FAN_CARBON_WALLET_LABEL = "Fan Carbon Wallet";
 export const P4P_FALLBACK_PROJECTS = [
@@ -39,8 +39,8 @@ export const GAME_TIME_DURATION_MINUTES = 90;
 export const MATCH_SPONSORSHIP_DAYS = 5;
 /** Fans predict what will happen in this window. */
 export const P4P_WINDOW_MINUTES = 5;
-/** One prediction per fan per 5-minute window. */
-export const P4P_PREDICTIONS_PER_WINDOW = 1;
+/** Three likely events per fan per 5-minute window, chosen from the seven P4P events. */
+export const P4P_PREDICTIONS_PER_WINDOW = 3;
 /** Participating in a 5-minute slot earns £0.10, right or wrong. */
 export const P4P_ENGAGEMENT_GBP = 0.1;
 export const P4P_PARTICIPATION_GBP = P4P_ENGAGEMENT_GBP;
@@ -466,6 +466,7 @@ export type P4pPrediction = {
   fixtureName: string;
   windowIndex: number;
   categoryId: P4pCategoryId;
+  categoryIds?: P4pCategoryId[];
   projectName: string;
   engagementGbp: number;
   participationGbp?: number;
@@ -474,6 +475,50 @@ export type P4pPrediction = {
   walletId: string | null;
   at: string;
 };
+
+export function parseP4pPicks(input: {
+  categoryId?: string;
+  categoryIds?: string[];
+}): P4pCategory[] | null {
+  const ids =
+    Array.isArray(input.categoryIds) && input.categoryIds.length > 0
+      ? input.categoryIds
+      : input.categoryId
+        ? [input.categoryId]
+        : [];
+  const unique: P4pCategory[] = [];
+  for (const id of ids) {
+    const category = p4pCategoryById(id);
+    if (!category) return null;
+    if (!unique.some((row) => row.id === category.id)) unique.push(category);
+  }
+  if (unique.length !== P4P_PREDICTIONS_PER_WINDOW) return null;
+  return unique;
+}
+
+export function predictionCategoryIds(
+  row: Pick<P4pPrediction, "categoryId" | "categoryIds">
+): P4pCategoryId[] {
+  const fromList = (row.categoryIds ?? [])
+    .map((id) => p4pCategoryById(id)?.id)
+    .filter((id): id is P4pCategoryId => Boolean(id));
+  const unique: P4pCategoryId[] = [];
+  for (const id of fromList) {
+    if (!unique.includes(id)) unique.push(id);
+  }
+  if (unique.length > 0) return unique;
+  const single = p4pCategoryById(row.categoryId)?.id;
+  return single ? [single] : [];
+}
+
+export function predictionIncludesCategory(
+  row: Pick<P4pPrediction, "categoryId" | "categoryIds">,
+  categoryId: string
+): boolean {
+  const category = p4pCategoryById(categoryId);
+  if (!category) return false;
+  return predictionCategoryIds(row).includes(category.id);
+}
 
 export type P4pSlotEvent = {
   fixtureName: string;
@@ -517,6 +562,7 @@ export function recordP4pEngagement({
   fixtureName,
   windowIndex,
   categoryId,
+  categoryIds,
   projectName,
   wallet,
   predictions,
@@ -526,16 +572,21 @@ export function recordP4pEngagement({
   clubName: string;
   fixtureName: string;
   windowIndex: number;
-  categoryId: string;
+  categoryId?: string;
+  categoryIds?: string[];
   projectName?: string;
   wallet: GameTimeWallet | null;
   predictions: P4pPrediction[];
   now?: Date | string;
 }): P4pEngagementResult {
-  const category = p4pCategoryById(categoryId);
-  if (!category) {
-    return { ok: false, error: "Choose one of the seven Predict-For Planet events." };
+  const picks = parseP4pPicks({ categoryId, categoryIds });
+  if (!picks) {
+    return {
+      ok: false,
+      error: "Choose 3 of the seven Predict-For Planet events.",
+    };
   }
+  const category = picks[0];
   const chosenProject = String(projectName ?? "").trim();
   if (!chosenProject) {
     return { ok: false, error: "Choose a Climate Project for this Engagement." };
@@ -549,7 +600,7 @@ export function recordP4pEngagement({
   ) {
     return {
       ok: false,
-      error: "You can make only 1 Prediction in each 5-minute slot.",
+      error: "You have already chosen 3 events in this 5-minute slot.",
     };
   }
   if (!wallet || !isPaidGameTimeWallet(wallet)) {
@@ -586,6 +637,7 @@ export function recordP4pEngagement({
     fixtureName,
     windowIndex: window.index,
     categoryId: category.id,
+    categoryIds: picks.map((row) => row.id),
     projectName: chosenProject,
     participationGbp: takenGbp,
     accuracyGbp: 0,
@@ -637,7 +689,7 @@ export function awardP4pAccuracy({
 }): P4pAccuracySuccess {
   const amounts = p4pPredictionAmounts(prediction);
   const category = p4pCategoryById(categoryId);
-  if (!category || prediction.categoryId !== category.id) {
+  if (!category || !predictionIncludesCategory(prediction, category.id)) {
     return { ok: true, prediction, wallet, takenGbp: 0 };
   }
   if (amounts.accuracyGbp > 0 || amounts.correct === true) {
@@ -683,7 +735,7 @@ export function fanCarbonWalletFromPredictions(
 }
 
 export function p4pPlayIntroCopy(): string {
-  return `Predict what is likely to happen in the next ${P4P_WINDOW_MINUTES}-minute slot of this Game-Time Sponsorship. One prediction per slot. Participating earns you ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Carbon Wallet of the Game-Time Sponsor for your chosen Climate Project. Predicting the right event gives you ${formatP4pGbp(P4P_ACCURACY_GBP)}.`;
+  return `Choose 3 likely events that could happen (out of 7) in the next ${P4P_WINDOW_MINUTES}-minute slot of this Game-Time Sponsorship. Participating earns you ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Carbon Wallet of the Game-Time Sponsor for your chosen Climate Project. If one of those events is awarded, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`;
 }
 
 export function slotEventKey(
@@ -775,13 +827,13 @@ export function gameTimeIsLive(wallet: GameTimeWallet, now: Date | string = new 
 }
 
 export function p4pHowItWorksCaption(): string {
-  return `Predict what is likely to happen in the next ${P4P_WINDOW_MINUTES}-minute slot. One prediction per slot. Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Game-Time Carbon Wallet. The right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)}. That money is recorded in your ${FAN_CARBON_WALLET_LABEL} for your chosen Climate Project.`;
+  return `Choose 3 likely events that could happen (out of 7) in the next ${P4P_WINDOW_MINUTES}-minute slot. Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Game-Time Carbon Wallet. If one of those events is awarded, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)}. That money is recorded in your ${FAN_CARBON_WALLET_LABEL} for your chosen Climate Project.`;
 }
 
 export function p4pHowItWorksPoints(): string[] {
   return [
-    `One prediction per ${P4P_WINDOW_MINUTES}-minute slot`,
-    `Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)}; the right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)} into your ${FAN_CARBON_WALLET_LABEL}`,
+    `Choose 3 of 7 events in each ${P4P_WINDOW_MINUTES}-minute slot`,
+    `Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)}; if one of those events is awarded you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} into your ${FAN_CARBON_WALLET_LABEL}`,
     `A Game-Time Sponsor buys a ${GAME_TIME_SLOT_MINUTES}-minute slot; the Game lasts ${GAME_TIME_DURATION_MINUTES} minutes`,
     "Goal scored is exclusive to Score-For-Planet, not Predict-For Planet",
   ];

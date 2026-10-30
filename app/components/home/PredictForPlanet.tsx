@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v4 */
+/* s4p-predict-for-planet-v5 */
 
 import { useMemo, useState } from "react";
 import { PhoneFrame } from "@/app/components/home/PhoneFrame";
@@ -10,8 +10,8 @@ import {
   P4P_ENGAGEMENT_GBP,
   P4P_LABEL,
   P4P_POWERED_BY_LABEL,
+  P4P_PREDICTIONS_PER_WINDOW,
   P4P_SHORT,
-  P4P_WINDOW_MINUTES,
   formatP4pGbp,
   gameTimeSlots,
   p4pWindows,
@@ -44,17 +44,24 @@ export function PredictForPlanetPhone({
       : null) ||
     "Game-Time Match";
   const window = p4pWindows()[3];
-  const [picked, setPicked] = useState<P4pCategoryId | null>(null);
+  const [picked, setPicked] = useState<P4pCategoryId[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
 
-  function predict(id: P4pCategoryId) {
-    if (picked) return;
-    setPicked(id);
-    const category = P4P_CATEGORIES.find((row) => row.id === id);
-    setNotice(
-      `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
-    );
-    return category;
+  function toggle(id: P4pCategoryId) {
+    setPicked((current) => {
+      if (current.includes(id)) {
+        setNotice(null);
+        return current.filter((row) => row !== id);
+      }
+      if (current.length >= P4P_PREDICTIONS_PER_WINDOW) return current;
+      const next = [...current, id];
+      if (next.length === P4P_PREDICTIONS_PER_WINDOW) {
+        setNotice(
+          `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
+        );
+      }
+      return next;
+    });
   }
 
   return (
@@ -85,7 +92,7 @@ export function PredictForPlanetPhone({
           </p>
           <p className="mt-1 text-[12px] font-black leading-tight">{fixture}</p>
           <p className="mt-0.5 text-[9px] font-semibold text-slate-700">
-            {window.label} · 1 prediction this slot
+            {window.label} · 3 of 7 this slot
           </p>
           <div
             className="mt-2 rounded-xl px-2 py-1.5 text-center text-[10px] font-black text-black"
@@ -112,14 +119,16 @@ export function PredictForPlanetPhone({
           </div>
           <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain [touch-action:pan-y]">
             {P4P_CATEGORIES.map((category) => {
-              const selected = picked === category.id;
+              const selectedIndex = picked.indexOf(category.id);
+              const selected = selectedIndex >= 0;
+              const full = picked.length >= P4P_PREDICTIONS_PER_WINDOW;
               return (
                 <button
                   key={category.id}
                   type="button"
-                  disabled={Boolean(picked) && !selected}
+                  disabled={full && !selected}
                   onPointerDown={stopCarouselSwipe}
-                  onClick={() => predict(category.id)}
+                  onClick={() => toggle(category.id)}
                   className={`flex w-full items-center justify-between rounded-lg border px-2 py-1.5 text-left text-[10px] font-bold [touch-action:manipulation] ${
                     selected
                       ? "border-s4p-mark bg-s4p-mark text-black"
@@ -127,7 +136,11 @@ export function PredictForPlanetPhone({
                   } disabled:opacity-50`}
                 >
                   <span>{category.label}</span>
-                  {selected ? <span>1/{P4P_WINDOW_MINUTES} min</span> : null}
+                  {selected ? (
+                    <span>
+                      {selectedIndex + 1}/{P4P_PREDICTIONS_PER_WINDOW}
+                    </span>
+                  ) : null}
                 </button>
               );
             })}

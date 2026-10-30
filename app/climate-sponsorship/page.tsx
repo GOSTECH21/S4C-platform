@@ -91,22 +91,22 @@ export default function ClimateSponsorshipPage() {
         </p>
         <ol className="mt-6 space-y-4 text-lg text-slate-300">
           <li>
-            1. Fans open Predict-For Planet and choose what is likely to happen
-            in the next {P4P_WINDOW_MINUTES}-minute slot — Handball offence, Foul
-            committed, Corner awarded, Yellow card issued, Red card issued,
-            Penalty awarded, or VAR referee review. Goal scored is exclusive to
-            Score-For-Planet.
+            1. Fans open Predict-For Planet and choose 3 likely events that
+            could happen (out of 7) in the next {P4P_WINDOW_MINUTES}-minute slot
+            — Handball offence, Foul committed, Corner awarded, Yellow card
+            issued, Red card issued, Penalty awarded, or VAR referee review.
+            Goal scored is exclusive to Score-For-Planet.
           </li>
           <li>
-            2. One prediction per {P4P_WINDOW_MINUTES}-minute slot per fan.
+            2. Three events per {P4P_WINDOW_MINUTES}-minute slot per fan.
             Participating earns {formatP4pGbp(P4P_ENGAGEMENT_GBP)} in the fan&apos;s{" "}
             {FAN_CARBON_WALLET_LABEL} for their chosen Climate Project.
           </li>
           <li>
-            3. If that event is awarded in the slot, the fan earns another{" "}
-            {formatP4pGbp(P4P_ACCURACY_GBP)} (total {formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Both
-            amounts leave the Game-Time Carbon Wallet until it reads{" "}
-            {formatP4pGbp(0)}.
+            3. If one of those events is awarded in the slot, the fan earns
+            another {formatP4pGbp(P4P_ACCURACY_GBP)} (total{" "}
+            {formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Both amounts leave the
+            Game-Time Carbon Wallet until it reads {formatP4pGbp(0)}.
           </li>
         </ol>
         <Link

@@ -1,4 +1,4 @@
-/* s4p-predict-for-planet-v4 */
+/* s4p-predict-for-planet-v5 */
 import {
   P4P_WINDOWS_PER_SLOT,
   awardP4pAccuracy,
@@ -9,6 +9,7 @@ import {
   isPaidGameTimeWallet,
   p4pCategoryById,
   pickSponsoredGameTimeMatch,
+  predictionCategoryIds,
   recordP4pEngagement,
   remainingGameTimeGbp,
   type GameTimeCheckout,
@@ -201,7 +202,8 @@ export function submitP4pPrediction(input: {
   clubName: string;
   fixtureName: string;
   windowIndex: number;
-  categoryId: string;
+  categoryId?: string;
+  categoryIds: string[];
   projectName: string;
 }): P4pEngagementResult {
   const predictions = listP4pPredictions();
@@ -222,18 +224,19 @@ export function submitP4pPrediction(input: {
   let prediction = result.prediction;
   let wallet = result.wallet;
   let takenGbp = result.takenGbp;
-  if (
+  const alreadyAwarded = predictionCategoryIds(prediction).find((id) =>
     slotEventAwarded(
       listP4pSlotEvents(),
       input.fixtureName,
       windowIndex,
-      prediction.categoryId
+      id
     )
-  ) {
+  );
+  if (alreadyAwarded) {
     const settled = awardP4pAccuracy({
       prediction,
       wallet,
-      categoryId: prediction.categoryId,
+      categoryId: alreadyAwarded,
     });
     prediction = settled.prediction;
     wallet = settled.wallet;

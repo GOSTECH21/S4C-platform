@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/s4p-thirds-unlock-18f9"
-$bust = "s4p-thirds-unlock-1"
+$branch = "cursor/p4p-three-picks-18f9"
+$bust = "p4p-three-picks-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -134,7 +134,7 @@ foreach ($root in $roots) {
     Write-Host "Still old homepage hero copy: $banner"
   }
   if (
-    $libText -match "s4p-predict-for-planet-v4" -and
+    $libText -match "s4p-predict-for-planet-v5" -and
     $libText -match "Handball offence" -and
     $libText -match "VAR referee review" -and
     $libText -match "Fans engagement with this challenge" -and
@@ -146,7 +146,7 @@ foreach ($root in $roots) {
     Write-Host "Still old Predict-For Planet model: $lib"
   }
   if (
-    $playText -match "s4p-predict-for-planet-v4" -and
+    $playText -match "s4p-predict-for-planet-v5" -and
     $playText -match "p4p-powered-by" -and
     $playText -match "What happens next" -and
     $playText -match "p4pPlayIntroCopy" -and
@@ -160,7 +160,7 @@ foreach ($root in $roots) {
     Write-Host "Still old dark P4P live board: $play"
   }
   if (
-    $phoneText -match "s4p-predict-for-planet-v4" -and
+    $phoneText -match "s4p-predict-for-planet-v5" -and
     $phoneText -match "#fffdf8" -and
     $phoneText -match "PhoneFrame" -and
     $phoneText -notmatch "#0b1f14"

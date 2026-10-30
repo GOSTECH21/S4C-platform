@@ -55,7 +55,7 @@ export const HOW_S4P_SELECT_MATCH_CLUB = {
 
 export const HOW_S4P_P4P = {
   src: "/images/home/plan-your-travel-phone.png",
-  alt: "Predict-For Planet. Choose what is likely to happen in this 5-minute slot of the Game.",
+  alt: "Predict-For Planet. Choose 3 likely events that could happen in this 5-minute slot of the Game.",
   width: 244,
   height: 581,
   title: "Predict-For Planet",

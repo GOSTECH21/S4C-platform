@@ -15,6 +15,7 @@ import {
   fanCarbonWalletFromPredictions,
   p4pPlayIntroCopy,
   p4pPredictionAmounts,
+  P4P_PREDICTIONS_PER_WINDOW,
   P4P_WINDOW_MINUTES,
   P4P_WINDOWS_PER_MATCH,
   alreadyPredictedWindow,
@@ -75,6 +76,10 @@ assert(GAME_TIME_SLOT_MINUTES === 30, "Each Game-Time slot is 30 minutes");
 assert(GAME_TIME_DURATION_MINUTES === 90, "A Game lasts 90 minutes");
 assert(GAME_TIME_SLOT_COUNT === 3, "There are three 30-minute Game-Time slots");
 assert(P4P_WINDOW_MINUTES === 5, "Fans predict in 5-minute slots");
+assert(
+  P4P_PREDICTIONS_PER_WINDOW === 3,
+  "Fans choose 3 likely events in each 5-minute slot"
+);
 assert(P4P_WINDOWS_PER_MATCH === 18, "A 90-minute Game has eighteen 5-minute slots");
 assert(P4P_ENGAGEMENT_GBP === 0.1, "Participating earns £0.10");
 assert(P4P_PARTICIPATION_GBP === 0.1, "Participation is £0.10");
@@ -101,17 +106,22 @@ const wallet = createGameTimeWallet({
 });
 assert(remainingGameTimeGbp(wallet) === 1, "A £1 Game-Time wallet starts at £1");
 
+const SLOT_PICKS = ["handball", "foul", "corner"];
 const first = recordP4pEngagement({
   fanId: "fan-1",
   clubName: "Arsenal",
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
-  categoryId: "corner",
+  categoryIds: SLOT_PICKS,
   projectName: "Local Global Schools Solar",
   wallet,
   predictions: [],
 });
 assert(first.ok === true, "The first prediction in a 5-minute slot is an Engagement");
+assert(
+  first.ok && first.prediction.categoryIds?.join("|") === SLOT_PICKS.join("|"),
+  "The Engagement stores the 3 chosen events"
+);
 assert(first.ok && first.takenGbp === 0.1, "The Engagement takes £0.10");
 assert(
   first.ok && remainingGameTimeGbp(first.wallet!) === 0.9,
@@ -148,7 +158,23 @@ const miss = awardP4pAccuracy({
   wallet: first.ok ? first.wallet : wallet,
   categoryId: "penalty",
 });
-assert(miss.takenGbp === 0, "A Penalty awarded does not pay a Corner prediction");
+assert(miss.takenGbp === 0, "A Penalty awarded does not pay if it is not one of the 3 events");
+const otherPick = awardP4pAccuracy({
+  prediction: first.ok
+    ? {
+        ...first.prediction,
+        accuracyGbp: 0,
+        correct: null,
+        engagementGbp: 0.1,
+      }
+    : ({} as never),
+  wallet: first.ok ? first.wallet : wallet,
+  categoryId: "foul",
+});
+assert(
+  otherPick.takenGbp === 0.3,
+  "Awarding any of the 3 chosen events pays the extra £0.30"
+);
 const rejectedGoal = recordP4pEngagement({
   fanId: "fan-2",
   clubName: "Arsenal",
@@ -172,8 +198,24 @@ const twice = awardP4pAccuracy({
 assert(twice.takenGbp === 0, "Accuracy is paid only once");
 assert(
   p4pPlayIntroCopy().includes("Participating earns you £0.10") &&
-    p4pPlayIntroCopy().includes("Predicting the right event gives you £0.30"),
-  "P4P intro copy states participation £0.10 and accuracy £0.30"
+    p4pPlayIntroCopy().includes("Choose 3 likely events") &&
+    p4pPlayIntroCopy().includes("£0.30"),
+  "P4P intro copy states 3 of 7 events, participation £0.10 and accuracy £0.30"
+);
+const onePick = recordP4pEngagement({
+  fanId: "fan-1b",
+  clubName: "Arsenal",
+  fixtureName: "Arsenal vs Chelsea",
+  windowIndex: 0,
+  categoryId: "corner",
+  projectName: "Local Global Schools Solar",
+  wallet,
+  predictions: [],
+});
+assert(
+  onePick.ok === false &&
+    String(onePick.error ?? "").includes("Choose 3 of the seven"),
+  "A single event is not enough; fans must choose 3 of 7"
 );
 
 const second = recordP4pEngagement({
@@ -181,12 +223,12 @@ const second = recordP4pEngagement({
   clubName: "Arsenal",
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
-  categoryId: "foul",
+  categoryIds: ["yellow-card", "red-card", "penalty"],
   projectName: "Local Global Schools Solar",
   wallet: first.ok ? first.wallet : wallet,
   predictions: first.ok ? [first.prediction] : [],
 });
-assert(second.ok === false, "A fan may make only 1 Prediction in each 5-minute slot");
+assert(second.ok === false, "A fan may choose 3 events only once in each 5-minute slot");
 assert(
   alreadyPredictedWindow(
     first.ok ? [first.prediction] : [],
@@ -194,7 +236,7 @@ assert(
     "Arsenal vs Chelsea",
     0
   ),
-  "The 1-prediction rule is keyed by fan, fixture and 5-minute slot"
+  "The 3-event rule is keyed by fan, fixture and 5-minute slot"
 );
 
 const otherSlot = recordP4pEngagement({
@@ -202,7 +244,7 @@ const otherSlot = recordP4pEngagement({
   clubName: "Arsenal",
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 7,
-  categoryId: "foul",
+  categoryIds: ["foul", "yellow-card", "var"],
   projectName: "Wee Spoke Hub",
   wallet: first.ok ? first.wallet : wallet,
   predictions: first.ok ? [first.prediction] : [],
@@ -225,7 +267,7 @@ const lastPence = recordP4pEngagement({
   clubName: "Arsenal",
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 1,
-  categoryId: "var",
+  categoryIds: ["var", "handball", "penalty"],
   projectName: "Porty Community Energy",
   wallet: empty,
   predictions: [],
@@ -240,7 +282,7 @@ const missingWallet = recordP4pEngagement({
   clubName: "Hearts",
   fixtureName: "Hearts vs Chelsea",
   windowIndex: 0,
-  categoryId: "corner",
+  categoryIds: SLOT_PICKS,
   projectName: "Wee Spoke Hub",
   wallet: null,
   predictions: [],
@@ -435,7 +477,7 @@ const takeFromSponsor = recordP4pEngagement({
   clubName: heartsWallet.clubName,
   fixtureName: heartsWallet.fixtureName,
   windowIndex: 6,
-  categoryId: "corner",
+  categoryIds: SLOT_PICKS,
   projectName: "Wee Spoke Hub",
   wallet: heartsWallet,
   predictions: [],
@@ -525,7 +567,7 @@ assert(
 assert(
   phone.includes("P4P_CATEGORIES") &&
     phone.includes("Game-Time Wallet") &&
-    phone.includes("1 prediction this slot") &&
+    phone.includes("3 of 7 this slot") &&
     phone.includes("#fffdf8") &&
     phone.includes("P4P_POWERED_BY_LABEL") &&
     phone.includes("PhoneFrame") &&
@@ -544,7 +586,7 @@ assert(
 assert(
   play.includes("submitP4pPrediction") &&
     play.includes("Climate Project") &&
-    play.includes("Predict ·") &&
+    play.includes("Predict 3 events ·") &&
     play.includes("pickSponsoredGameTimeMatch") &&
     play.includes("No Game-Time Sponsor has funded a Match yet") &&
     play.includes("P4P_POWERED_BY_LABEL") &&
@@ -558,14 +600,14 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("What happens next?") &&
-    play.includes("s4p-predict-for-planet-v4") &&
+    play.includes("s4p-predict-for-planet-v5") &&
     play.includes("p4pPlayIntroCopy") &&
     play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
     play.includes("awardP4pSlotEvent") &&
     play.includes("FAN_CARBON_WALLET_LABEL") &&
     !play.includes("bg-[#10262c]") &&
     !play.includes("text-[#f4f1e6]"),
-  "Fans submit one P4P prediction into a chosen Climate Project on the sponsored Match"
+  "Fans submit 3 P4P events into a chosen Climate Project on the sponsored Match"
 );
 const fanPredictPage = readFileSync(
   "app/supporter/dashboard/predict/page.tsx",
@@ -631,14 +673,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/s4p-thirds-unlock-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-three-picks-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
-    applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("s4p-thirds-unlock-1") &&
+    applyP4p.includes("s4p-predict-for-planet-v5") &&
+    applyP4p.includes("p4p-three-picks-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -657,8 +699,8 @@ assert(
     applyP4p.includes("FanCiftTable") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
-    applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("s4p-thirds-unlock-1") &&
+    applyP4pPs1.includes("s4p-predict-for-planet-v5") &&
+    applyP4pPs1.includes("p4p-three-picks-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&
