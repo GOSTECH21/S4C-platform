@@ -7,13 +7,14 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/no-phone-frame-mobile-18f9";
-const BUST = "no-phone-frame-1";
+const BRANCH = "cursor/match-day-offset-copy-18f9";
+const BUST = "match-day-offset-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
   "app/lib/how-s4p-works.ts",
+  "app/components/home/HomeTopBanner.tsx",
   "app/components/home/PhoneFrame.tsx",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",

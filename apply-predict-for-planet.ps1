@@ -10,12 +10,13 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/no-phone-frame-mobile-18f9"
-$bust = "no-phone-frame-1"
+$branch = "cursor/match-day-offset-copy-18f9"
+$bust = "match-day-offset-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
   "app/lib/how-s4p-works.ts",
+  "app/components/home/HomeTopBanner.tsx",
   "app/components/home/PhoneFrame.tsx",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",

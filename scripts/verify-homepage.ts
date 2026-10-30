@@ -405,6 +405,11 @@ assert(
     banner.includes("Sport unites people") &&
     banner.includes("Together we drive change") &&
     banner.includes("passion into progress") &&
+    banner.includes(
+      "We help your team to offset its Match Day carbon emissions"
+    ) &&
+    banner.includes("Global Brands & Businesses") &&
+    !banner.includes("We help elite sports clubs, their fans, sponsors and partners") &&
     banner.includes("Five Major Sports") &&
     banner.includes("Measure emissions") &&
     banner.includes("A cleaner, greener planet") &&
