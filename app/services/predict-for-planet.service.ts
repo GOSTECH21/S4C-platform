@@ -1,4 +1,4 @@
-/* s4p-predict-for-planet-v6 */
+/* s4p-predict-for-planet-v7 */
 import {
   P4P_WINDOWS_PER_SLOT,
   awardP4pAccuracy,

@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-earned-wallet-18f9";
-const BUST = "p4p-earned-wallet-1";
+const BRANCH = "cursor/p4p-drop-repeat-18f9";
+const BUST = "p4p-drop-repeat-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -193,7 +193,7 @@ for (const root of roots) {
     console.log("Updated homepage hero Match Day offset copy:", banner);
   }
   if (
-    !libText.includes("s4p-predict-for-planet-v6") ||
+    !libText.includes("s4p-predict-for-planet-v7") ||
     !libText.includes("Handball offence") ||
     !libText.includes("VAR referee review") ||
     !libText.includes("pickSponsoredGameTimeMatch") ||
@@ -207,10 +207,10 @@ for (const root of roots) {
     console.log("Updated Predict-For Planet model:", lib);
   }
   if (
-    !playText.includes("s4p-predict-for-planet-v6") ||
+    !playText.includes("s4p-predict-for-planet-v7") ||
     !playText.includes('data-testid="p4p-powered-by"') ||
     !playText.includes("What happens next?") ||
-    !playText.includes("p4pPlayIntroCopy") ||
+    !playText.includes("if (!hydrated || !sponsored)") ||
     !playText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
     !playText.includes("FAN_CARBON_WALLET_LABEL") ||
     !playText.includes("awardP4pSlotEvent") ||
@@ -223,7 +223,7 @@ for (const root of roots) {
     console.log("Ivory live board and sponsor mark beside What happens next:", play);
   }
   if (
-    !phoneText.includes("s4p-predict-for-planet-v6") ||
+    !phoneText.includes("s4p-predict-for-planet-v7") ||
     !phoneText.includes("#fffdf8") ||
     phoneText.includes("#0b1f14") ||
     !phoneText.includes("earnedGbp") ||

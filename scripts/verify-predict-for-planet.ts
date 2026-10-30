@@ -592,7 +592,8 @@ assert(
     play.includes("Climate Project") &&
     play.includes("Predict 3 events ·") &&
     play.includes("pickSponsoredGameTimeMatch") &&
-    play.includes("No Game-Time Sponsor has funded a Match yet") &&
+    play.includes("if (!hydrated || !sponsored)") &&
+    !play.includes("No Game-Time Sponsor has funded a Match yet") &&
     play.includes("P4P_POWERED_BY_LABEL") &&
     play.includes("P4P_LIVE_CHALLENGE_LABEL") &&
     play.includes("P4P_TAGLINE") &&
@@ -604,8 +605,7 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("What happens next?") &&
-    play.includes("s4p-predict-for-planet-v6") &&
-    play.includes("p4pPlayIntroCopy") &&
+    play.includes("s4p-predict-for-planet-v7") &&
     play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
     play.includes("awardP4pSlotEvent") &&
     play.includes("FAN_CARBON_WALLET_LABEL") &&
@@ -677,14 +677,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-earned-wallet-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-drop-repeat-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
-    applyP4p.includes("s4p-predict-for-planet-v6") &&
-    applyP4p.includes("p4p-earned-wallet-1") &&
+    applyP4p.includes("s4p-predict-for-planet-v7") &&
+    applyP4p.includes("p4p-drop-repeat-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -703,8 +703,8 @@ assert(
     applyP4p.includes("FanCiftTable") &&
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
-    applyP4pPs1.includes("s4p-predict-for-planet-v6") &&
-    applyP4pPs1.includes("p4p-earned-wallet-1") &&
+    applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
+    applyP4pPs1.includes("p4p-drop-repeat-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

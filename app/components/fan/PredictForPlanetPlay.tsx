@@ -1,5 +1,5 @@
 "use client";
-/* s4p-predict-for-planet-v6 */
+/* s4p-predict-for-planet-v7 */
 
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -13,7 +13,6 @@ import {
   P4P_CORRECT_TOTAL_GBP,
   P4P_FALLBACK_PROJECTS,
   P4P_FANS_ENGAGEMENT_LABEL,
-  P4P_LABEL,
   P4P_LIVE_CHALLENGE_FOOTER,
   P4P_LIVE_CHALLENGE_LABEL,
   P4P_MAKE_PREDICTION_LABEL,
@@ -21,7 +20,6 @@ import {
   P4P_PARTICIPATION_GBP,
   P4P_POWERED_BY_LABEL,
   P4P_PREDICTIONS_PER_WINDOW,
-  P4P_SHORT,
   P4P_TAGLINE,
   alreadyPredictedWindow,
   fanCarbonWalletFromPredictions,
@@ -33,7 +31,6 @@ import {
   isWindowInGameTimeSlot,
   p4pCreditsByProject,
   p4pLiveChallenge,
-  p4pPlayIntroCopy,
   p4pPredictionAmounts,
   predictionCategoryIds,
   p4pWindowCountdown,
@@ -283,50 +280,16 @@ export function PredictForPlanetPlay({
     setTick((value) => value + 1);
   }
 
-  if (!hydrated) {
-    return (
-      <section className="space-y-6 text-slate-950">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
-          {P4P_SHORT} · {P4P_LABEL}
-        </p>
-        <h1 className="mt-2 text-4xl font-black">{P4P_LABEL}</h1>
-      </section>
-    );
-  }
-
-  if (!sponsored) {
-    return (
-      <section className="space-y-6 text-slate-950">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
-            {P4P_SHORT} · {P4P_LABEL}
-          </p>
-          <h1 className="mt-2 text-4xl font-black">{P4P_LABEL}</h1>
-          <p className="mt-3 max-w-3xl text-slate-700">
-            Predict-For Planet is played on the Match a Game-Time Sponsor has put
-            money into their Carbon Wallet for. No Game-Time Sponsor has funded a Match yet.
-          </p>
-        </div>
-      </section>
-    );
+  if (!hydrated || !sponsored) {
+    return null;
   }
 
   return (
-    <section className="space-y-8 text-slate-950">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
-          {P4P_SHORT} · {P4P_LABEL}
-        </p>
-        <h1
-          data-testid="p4p-match"
-          data-wallet-count={wallets.length}
-          className="mt-2 text-4xl font-black"
-        >
-          {liveFixture}
-        </h1>
-        <p className="mt-3 max-w-3xl text-slate-700">{p4pPlayIntroCopy()}</p>
-      </div>
-
+    <section
+      data-testid="p4p-match"
+      data-wallet-count={wallets.length}
+      className="space-y-8 text-slate-950"
+    >
       {challenge && wallet ? (
         <article
           data-testid="p4p-live-challenge"
