@@ -16,13 +16,17 @@ import {
   formatP4pGbp,
 } from "@/app/lib/predict-for-planet";
 import { SPORT_CATEGORIES } from "@/app/lib/sports";
+import {
+  S4P_CAP_COPY,
+  S4P_THIRD_UNLOCK_COPY,
+} from "@/app/lib/score-for-planet";
 
 export default function ClimateSponsorshipPage() {
   return (
     <SolutionPage
       kicker="Solutions"
       title="Climate Sponsorship"
-      intro="Brands fund a Match-Sponsorship. Fans then FUND-IT that cash towards Climate Projects — £0.20 once from each Carbon Wallet, up to 5 times."
+      intro="A Sponsor will fund a Match by paying money into their Carbon Wallet. Registered Sports Fans on S4P directly engage with their sponsorship by taking £0.20 (or its local currency equivalent) from the Wallet and donates that to a chosen Climate Project."
       currentPath={CLIMATE_SPONSORSHIP_PATH}
     >
       <div className="grid gap-6 md:grid-cols-2">
@@ -53,7 +57,7 @@ export default function ClimateSponsorshipPage() {
             tab.
           </li>
           <li>
-            3. The Sponsorship Manager logs in, sees the Projects, and accepts
+            3. The Sponsorship Director logs in, sees the Projects, and accepts
             the Invitation to Sponsor.
           </li>
           <li>
@@ -63,13 +67,10 @@ export default function ClimateSponsorshipPage() {
           </li>
           <li>
             5. They complete payment of that Match-Sponsorship plus a 5%
-            Platform Fee via Stripe. 80% is the Fan Participation Pool for
-            eligible fan-directed allocations. 20% is the Score Impact Pool,
-            unlocked by a confirmed score from the sponsored team in £1,000–£1,500
-            tranches. Further scores after that pool is unlocked still count in
-            S4P statistics but do not add sponsor liabilities. If the match
-            finishes 0–0, the 20% stays committed and is allocated under the
-            post-match rule so 100% of the Match-Sponsorship is complete.
+            Platform Fee. 80% is the Fan Participation Pool for eligible
+            fan-directed allocations. 20% is the Score Impact Pool, unlocked by
+            a confirmed score from the sponsored team. {S4P_THIRD_UNLOCK_COPY}{" "}
+            {S4P_CAP_COPY}
           </li>
         </ol>
         <Link

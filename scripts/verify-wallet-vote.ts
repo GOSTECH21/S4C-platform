@@ -139,24 +139,24 @@ assert(
   "American Express Fan Participation Pool is 80% of the Match-Sponsorship"
 );
 assert(
-  remainingGbp({ ...amex, goalsScored: 1 }) === 3000,
-  "The first score unlocks the 20% Score Impact Pool"
+  remainingGbp({ ...amex, goalsScored: 1 }) === 2600,
+  "The first score unlocks one-third of the Score Impact Pool"
 );
 assert(
-  remainingGbp({ ...amex, goalsScored: 2 }) === 3000,
-  "A second score does not add sponsor liabilities once the pool is unlocked"
+  remainingGbp({ ...amex, goalsScored: 3 }) === 3000,
+  "The third score exhausts the 20% Score Impact Pool"
 );
 assert(
   leadSponsorshipFromGoalsGbp(amex) === 0,
   "Score Impact Pool starts locked before any goal"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 1 }) === 600,
-  "One goal unlocks the £600 Score Impact Pool on a £3,000 Match-Sponsorship"
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 1 }) === 200,
+  "One goal unlocks one-third of the £600 Score Impact Pool"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 2 }) === 600,
-  "Further goals stay at the Score Impact Pool cap"
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 3 }) === 600,
+  "Three goals exhaust the Score Impact Pool cap"
 );
 assert(
   formatLeadSponsorshipGbp(0) === "£0.0",
@@ -167,12 +167,12 @@ assert(
   "Amount in CARBON WALLET starts as the Fan Participation Pool"
 );
 assert(
-  leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 3000,
-  "Amount in CARBON WALLET is 80% plus the unlocked Score Impact Pool"
+  leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 2600,
+  "Amount in CARBON WALLET is 80% plus the unlocked third"
 );
 assert(
-  leadCarbonWalletGbp({ ...amex, scoreImpactSettled: true }) === 3000,
-  "A 0–0 full-time settle still commits 100% of the Match-Sponsorship"
+  leadCarbonWalletGbp({ ...amex, scoreImpactSettled: true }) === 2400,
+  "A 0–0 does not unlock the Score Impact Pool"
 );
 
 const puma = createLeadWallet({
@@ -187,20 +187,20 @@ assert(
   "Puma Score Impact Pool is locked before a live goal"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 1 }) === 600,
-  "One Arsenal goal unlocks the 20% Score Impact Pool, not a £/Goal rate"
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 1 }) === 200,
+  "One Arsenal goal unlocks one-third of the Score Impact Pool, not a £/Goal rate"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 2 }) === 600,
-  "Further Arsenal goals stay at the Score Impact Pool cap"
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 3 }) === 600,
+  "Three Arsenal goals exhaust the Score Impact Pool cap"
 );
 assert(
   leadCarbonWalletGbp(puma) === 2400,
   "Puma CARBON WALLET starts at the 80% Fan Participation Pool"
 );
 assert(
-  leadCarbonWalletGbp({ ...puma, goalsScored: 1 }) === 3000,
-  "Puma CARBON WALLET is the full £3,000 Match-Sponsorship after the pool unlocks"
+  leadCarbonWalletGbp({ ...puma, goalsScored: 1 }) === 2600,
+  "Puma CARBON WALLET adds one-third of the Score Impact Pool after the first Goal"
 );
 
 const leftoverMax = normalizeClimateWallet({

@@ -53,16 +53,20 @@ const wallet = createLeadWallet({
 });
 assert(remainingGbp(wallet) === 2400, "Lead wallet starts at the 80% Fan Participation Pool");
 assert(
-  leadWalletIncreaseGbp(wallet) === 600,
-  "A sponsored goal unlocks the 20% Score Impact Pool"
+  leadWalletIncreaseGbp(wallet) === 200,
+  "A sponsored goal unlocks one-third of the Score Impact Pool"
 );
 assert(
-  remainingGbp(creditLeadWalletForGoal(wallet)) === 3000,
-  "After one Arsenal goal the Lead Carbon Wallet holds the full £3,000 Match-Sponsorship"
+  remainingGbp(creditLeadWalletForGoal(wallet)) === 2600,
+  "After one Arsenal goal the Lead Carbon Wallet holds 80% plus one-third of 20%"
 );
 assert(
-  remainingGbp(creditLeadWalletForGoal(creditLeadWalletForGoal(wallet))) === 3000,
-  "A second Arsenal goal does not add sponsor liabilities"
+  remainingGbp(
+    creditLeadWalletForGoal(
+      creditLeadWalletForGoal(creditLeadWalletForGoal(wallet))
+    )
+  ) === 3000,
+  "The third Arsenal goal exhausts the Score Impact Pool"
 );
 
 const localAlerts = [

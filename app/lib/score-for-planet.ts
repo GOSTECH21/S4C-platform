@@ -1,4 +1,4 @@
-/* s4p-score-impact-pool-v1 */
+/* s4p-score-impact-pool-v2 */
 /** Score-For-Planet (S4P): Match-Sponsorship with scoring-triggered climate funding. */
 
 function roundGbp(value: number): number {
@@ -11,8 +11,7 @@ export const FAN_PARTICIPATION_POOL_LABEL = "Fan Participation Pool";
 export const SCORE_IMPACT_POOL_LABEL = "Score Impact Pool";
 export const FAN_PARTICIPATION_POOL_RATE = 0.8;
 export const SCORE_IMPACT_POOL_RATE = 0.2;
-export const SCORE_IMPACT_TRANCHE_MIN_GBP = 1000;
-export const SCORE_IMPACT_TRANCHE_MAX_GBP = 1500;
+export const SCORE_IMPACT_TRANCHE_COUNT = 3;
 export const S4P_CAMPAIGN_DAYS = 5;
 
 export const S4P_SCORE_EXCLUSIVE_COPY =
@@ -21,16 +20,13 @@ export const S4P_SCORE_EXCLUSIVE_COPY =
 export const S4P_CAMPAIGN_COPY = `An S4P Match-Sponsorship is a ${S4P_CAMPAIGN_DAYS}-day campaign for a selected Match Day.`;
 
 export const S4P_POOL_SPLIT_COPY =
-  "80% of the Match-Sponsorship is the Fan Participation Pool for eligible fan-directed allocations throughout the five-day campaign. The remaining 20% is the Score Impact Pool, unlocked by a confirmed score from the sponsored team.";
+  "80% of the Match-Sponsorship is the Fan Participation Pool for eligible fan-directed allocations throughout the campaign. The remaining 20% is the Score Impact Pool, unlocked by a confirmed score from the sponsored team.";
 
 export const S4P_CAP_COPY =
-  "Once the Score Impact Pool is fully unlocked, further scores still count towards the club's S4P scoring statistics but do not create additional sponsor liabilities.";
+  "Further scores after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities.";
 
-export const S4P_NIL_NIL_COPY =
-  "If the match finishes 0–0, the Score Impact Pool stays committed to climate projects and is allocated under the agreed post-match rule.";
-
-export const S4P_FULL_TIME_COPY =
-  "Score Impact Pool tranches are between £1,000 and £1,500. Any amount still locked at full time is added to the pot so 100% of the Match-Sponsorship is complete.";
+export const S4P_THIRD_UNLOCK_COPY =
+  "If the score is 0–0, no payment will be unlocked. Any score during the Match will unlock one-third of the 20% amount until the total amount reads £0.00.";
 
 export function matchSponsorshipGbp(amount: number): number {
   return roundGbp(Math.max(0, Number(amount) || 0));
@@ -45,39 +41,19 @@ export function scoreImpactPoolGbp(matchSponsorship: number): number {
   return roundGbp(total - fanParticipationPoolGbp(total));
 }
 
-/** Split the Score Impact Pool into £1,000–£1,500 scoring tranches, exhausting the pool. */
+/** Split the Score Impact Pool into three equal scoring unlocks, exhausting the pool. */
 export function scoreImpactTranches(poolGbp: number): number[] {
   const pool = roundGbp(Math.max(0, Number(poolGbp) || 0));
   if (pool <= 0) return [];
-  if (pool <= SCORE_IMPACT_TRANCHE_MAX_GBP) return [pool];
-  const count = Math.ceil(pool / SCORE_IMPACT_TRANCHE_MAX_GBP);
-  const parts: number[] = [];
-  let left = pool;
-  for (let index = 0; index < count; index += 1) {
-    if (index === count - 1) {
-      parts.push(roundGbp(left));
-      break;
-    }
-    const remainingTranches = count - index;
-    let share = roundGbp(left / remainingTranches);
-    share = Math.min(SCORE_IMPACT_TRANCHE_MAX_GBP, share);
-    if (left - share >= 0) {
-      share = Math.max(
-        Math.min(SCORE_IMPACT_TRANCHE_MIN_GBP, left),
-        Math.min(share, left)
-      );
-    }
-    share = Math.min(share, left);
-    parts.push(share);
-    left = roundGbp(left - share);
-  }
-  return parts.filter((part) => part > 0);
+  const first = roundGbp(pool / SCORE_IMPACT_TRANCHE_COUNT);
+  const second = roundGbp(pool / SCORE_IMPACT_TRANCHE_COUNT);
+  const third = roundGbp(pool - first - second);
+  return [first, second, third].filter((part) => part > 0);
 }
 
 export function scoreImpactUnlockedGbp({
   matchSponsorshipGbp: amount,
   goalsScored,
-  matchFinished = false,
 }: {
   matchSponsorshipGbp: number;
   goalsScored?: number;
@@ -85,7 +61,6 @@ export function scoreImpactUnlockedGbp({
 }): number {
   const pool = scoreImpactPoolGbp(amount);
   if (pool <= 0) return 0;
-  if (matchFinished) return pool;
   const scores = Math.max(0, Math.round(Number(goalsScored) || 0));
   if (scores <= 0) return 0;
   const tranches = scoreImpactTranches(pool);
@@ -136,7 +111,7 @@ export function s4pLeadSponsorCopy(matchSponsorship = 0): string {
     amount > 0
       ? ` Of ${formatS4pGbp(amount)}, ${formatS4pGbp(fanParticipationPoolGbp(amount))} is the ${FAN_PARTICIPATION_POOL_LABEL} and ${formatS4pGbp(scoreImpactPoolGbp(amount))} is the ${SCORE_IMPACT_POOL_LABEL}.`
       : "";
-  return `${S4P_CAMPAIGN_COPY} ${S4P_POOL_SPLIT_COPY}${example} ${S4P_CAP_COPY} ${S4P_NIL_NIL_COPY} ${S4P_FULL_TIME_COPY} ${S4P_SCORE_EXCLUSIVE_COPY}`;
+  return `${S4P_CAMPAIGN_COPY} ${S4P_POOL_SPLIT_COPY}${example} ${S4P_THIRD_UNLOCK_COPY} ${S4P_CAP_COPY} ${S4P_SCORE_EXCLUSIVE_COPY}`;
 }
 
 export function formatS4pGbp(amount: number): string {

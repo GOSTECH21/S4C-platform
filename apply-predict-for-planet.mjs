@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/s4p-score-impact-18f9";
-const BUST = "s4p-score-impact-1";
+const BRANCH = "cursor/s4p-thirds-unlock-18f9";
+const BUST = "s4p-thirds-unlock-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",

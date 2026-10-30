@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/s4p-score-impact-18f9"
-$bust = "s4p-score-impact-1"
+$branch = "cursor/s4p-thirds-unlock-18f9"
+$bust = "s4p-thirds-unlock-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",

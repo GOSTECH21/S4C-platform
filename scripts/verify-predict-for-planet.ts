@@ -631,14 +631,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/s4p-score-impact-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/s4p-thirds-unlock-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("s4p-score-impact-1") &&
+    applyP4p.includes("s4p-thirds-unlock-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -658,7 +658,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("s4p-score-impact-1") &&
+    applyP4pPs1.includes("s4p-thirds-unlock-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

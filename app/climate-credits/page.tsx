@@ -5,19 +5,20 @@ import {
   FAN_REGISTER_PATH,
   SUPPORTER_PROJECTS_PATH,
 } from "@/app/lib/routes";
+import { S4P_THIRD_UNLOCK_COPY } from "@/app/lib/score-for-planet";
 
 const STEPS = [
   {
     title: "A Match-Sponsorship is paid",
-    copy: "The S4P Lead Sponsor enters one fixed Match-Sponsorship for the Match Day and pays that amount plus a 5% Platform Fee via Stripe. 80% is the Fan Participation Pool; 20% is the Score Impact Pool unlocked by confirmed scores.",
+    copy: "The S4P Lead Sponsor enters one fixed Match-Sponsorship for the Match Day and pays that amount plus a 5% Platform Fee. 80% is the Fan Participation Pool; 20% is the Score Impact Pool unlocked by confirmed scores.",
   },
   {
     title: "Supporters & Fans receive a share",
     copy: "Fans of that club take cash from the Carbon Wallet and put it onto Climate Projects. Credits appear on My S4P so you can see the Match-Sponsorship and where it went.",
   },
   {
-    title: "You vote",
-    copy: "Direct that Match-Sponsorship towards the Climate Projects you prefer. FUND-IT takes £0.20 once from each Carbon Wallet, up to 5 times.",
+    title: "Your Donation",
+    copy: "Direct that Match-Sponsorship towards the Climate Projects you prefer. Take £0.20 once from each Carbon Wallet, up to 5 times.",
   },
 ];
 
@@ -26,7 +27,7 @@ export default function ClimateCreditsPage() {
     <SolutionPage
       kicker="Solutions"
       title="Climate Credits"
-      intro="Climate Credits are the Match-Sponsorship brands commit to a Match. Supporters & Fans then FUND-IT that cash onto Climate Projects."
+      intro="Climate Credits are the Match-Sponsorship cash brands commit to a Match. Supporters & Fans then take that cash onto chosen Climate Projects."
       currentPath={CLIMATE_CREDITS_PATH}
     >
       <div className="grid gap-6 md:grid-cols-3">
@@ -48,12 +49,11 @@ export default function ClimateCreditsPage() {
         <h2 className="text-3xl font-black">One Match-Sponsorship amount</h2>
         <p className="mt-4 max-w-3xl text-lg text-slate-300">
           The S4P Lead Sponsor specifies one fixed Match-Sponsorship for the
-          Match — for example £4,000. Stripe takes that amount plus a 5%
-          Platform Fee (£200), total £4,200. £3,200 (80%) is the Fan
-          Participation Pool for the five-day campaign. £800 (20%) is the Score
-          Impact Pool, unlocked by confirmed scores, then added to the pot at
-          full time if still locked so 100% of the £4,000 is complete. Goal
-          scored is exclusive to S4P, not Predict-For Planet.
+          Match — for example £4,000. That amount plus a 5% Platform Fee (£200)
+          is paid, total £4,200. £3,200 (80%) is the Fan Participation Pool for
+          the five-day campaign. £800 (20%) is the Score Impact Pool, unlocked
+          by confirmed scores. {S4P_THIRD_UNLOCK_COPY} Goal scored is exclusive
+          to S4P, not Predict-For Planet.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Link
