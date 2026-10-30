@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { PHONE_COLUMN_CLASS } from "@/app/components/home/PhoneFrame";
 import { SelectMatchProvider } from "@/app/components/home/SelectMatchFixtures";
 import {
   PredictForPlanetPanel,
@@ -38,7 +39,7 @@ export default function HowS4pPredictForPlanet({
         className={`s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8 ${className}`}
       >
         <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
-          <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
+          <div className={PHONE_COLUMN_CLASS}>
             <PredictForPlanetPhone
               src={HOW_S4P_P4P.src}
               alt={HOW_S4P_P4P.alt}

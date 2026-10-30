@@ -105,6 +105,31 @@ assert(
     existsSync("public/images/home/choose-direct-impact-phone.png"),
   "All six How S4P Works phone images remain in public/images/home"
 );
+const frame = readFileSync("app/components/home/PhoneFrame.tsx", "utf8");
+const supporting = readFileSync(
+  "app/components/home/HowYoureSupporting.tsx",
+  "utf8"
+);
+const p4pPhone = readFileSync(
+  "app/components/home/PredictForPlanet.tsx",
+  "utf8"
+);
+assert(
+  frame.includes("data-phone-frame") &&
+    frame.includes("hidden h-auto w-full md:block") &&
+    frame.includes("PHONE_COLUMN_CLASS") &&
+    how.includes("hidden md:block") &&
+    how.includes("data-phone-frame") &&
+    how.includes("PHONE_COLUMN_CLASS") &&
+    how.includes("onLogin") &&
+    select.includes("PHONE_COLUMN_CLASS") &&
+    p4pSection.includes("PHONE_COLUMN_CLASS") &&
+    fixtures.includes("PhoneFrame") &&
+    p4pPhone.includes("PhoneFrame") &&
+    supporting.includes("PhoneFrame") &&
+    supporting.includes("max-md:static"),
+  "Phone bezels hide below md; Access & Join, Select Match, P4P, and How You're Supporting are handset-native"
+);
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));

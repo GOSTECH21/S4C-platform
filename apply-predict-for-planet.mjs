@@ -7,17 +7,19 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/fan-p4p-image-18f9";
-const BUST = "fan-p4p-image-1";
+const BRANCH = "cursor/no-phone-frame-mobile-18f9";
+const BUST = "no-phone-frame-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
   "app/lib/how-s4p-works.ts",
+  "app/components/home/PhoneFrame.tsx",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",
   "app/components/home/HowS4pPredictForPlanet.tsx",
+  "app/components/home/HowYoureSupporting.tsx",
   "app/components/home/SelectMatchFixtures.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",
@@ -152,6 +154,8 @@ for (const root of roots) {
   if (
     !howText.includes("how-s4p-split-steps-v1") ||
     !howText.includes("HOW_S4P_ACCESS_JOIN") ||
+    !howText.includes("hidden md:block") ||
+    !howText.includes("data-phone-frame") ||
     howText.includes("Explore the six steps below") ||
     howText.includes("PredictForPlanetPhone") ||
     howText.includes("Plan Your Travel")
@@ -195,7 +199,8 @@ for (const root of roots) {
     !phoneText.includes("s4p-predict-for-planet-v4") ||
     !phoneText.includes("#fffdf8") ||
     phoneText.includes("#0b1f14") ||
-    !phoneText.includes("P4P_POWERED_BY_LABEL")
+    !phoneText.includes("P4P_POWERED_BY_LABEL") ||
+    !phoneText.includes("PhoneFrame")
   ) {
     failed += 1;
     console.error("Still old dark How S4P Works P4P phone:", phone);

@@ -10,16 +10,18 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/fan-p4p-image-18f9"
-$bust = "fan-p4p-image-1"
+$branch = "cursor/no-phone-frame-mobile-18f9"
+$bust = "no-phone-frame-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/services/predict-for-planet.service.ts",
   "app/lib/how-s4p-works.ts",
+  "app/components/home/PhoneFrame.tsx",
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowItWorks.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",
   "app/components/home/HowS4pPredictForPlanet.tsx",
+  "app/components/home/HowYoureSupporting.tsx",
   "app/components/home/SelectMatchFixtures.tsx",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/fan/P4pLiveChallengePreview.tsx",
@@ -93,6 +95,8 @@ foreach ($root in $roots) {
   if (
     $howText -match "how-s4p-split-steps-v1" -and
     $howText -match "HOW_S4P_ACCESS_JOIN" -and
+    $howText -match "hidden md:block" -and
+    $howText -match "data-phone-frame" -and
     $howText -notmatch "Explore the six steps below" -and
     $howText -notmatch "PredictForPlanetPhone" -and
     $howText -notmatch "Plan Your Travel"
@@ -131,6 +135,7 @@ foreach ($root in $roots) {
   if (
     $phoneText -match "s4p-predict-for-planet-v4" -and
     $phoneText -match "#fffdf8" -and
+    $phoneText -match "PhoneFrame" -and
     $phoneText -notmatch "#0b1f14"
   ) {
     Write-Host "Ivory How S4P Works P4P phone with sponsor mark: $phone"

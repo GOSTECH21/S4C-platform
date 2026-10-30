@@ -596,9 +596,35 @@ assert(
     howItWorks.includes('"Scan QR to join"') &&
     howItWorks.includes("unoptimized") &&
     howItWorks.includes("{HOW_S4P_ACCESS_JOIN.title}") &&
+    howItWorks.includes("hidden md:block") &&
+    howItWorks.includes("data-phone-frame") &&
+    howItWorks.includes("PHONE_COLUMN_CLASS") &&
     !howItWorks.includes("1. {") &&
     !howItWorks.includes("CLUBS CHOOSE PROJECTS"),
   "How S4P Works keeps Access & Join with the Join in seconds line and no 1. prefix"
+);
+assert(
+  readFileSync("app/components/home/PhoneFrame.tsx", "utf8").includes(
+    "data-phone-frame"
+  ) &&
+    readFileSync("app/components/home/HowS4pSelectMatch.tsx", "utf8").includes(
+      "PHONE_COLUMN_CLASS"
+    ) &&
+    readFileSync(
+      "app/components/home/HowS4pPredictForPlanet.tsx",
+      "utf8"
+    ).includes("PHONE_COLUMN_CLASS") &&
+    readFileSync(
+      "app/components/home/SelectMatchFixtures.tsx",
+      "utf8"
+    ).includes("PhoneFrame") &&
+    readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
+      "PhoneFrame"
+    ) &&
+    readFileSync("app/components/home/HowYoureSupporting.tsx", "utf8").includes(
+      "PhoneFrame"
+    ),
+  "PhoneFrame hides the decorative handset on mobile"
 );
 assert(
   !howItWorks.includes("/images/home/select-match-phone.png") &&

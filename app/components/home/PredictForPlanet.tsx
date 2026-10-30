@@ -2,7 +2,7 @@
 /* s4p-predict-for-planet-v4 */
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
+import { PhoneFrame } from "@/app/components/home/PhoneFrame";
 import { useOptionalSelectMatch } from "@/app/components/home/SelectMatchFixtures";
 import {
   P4P_ACCURACY_GBP,
@@ -58,30 +58,25 @@ export function PredictForPlanetPhone({
   }
 
   return (
-    <>
-      <Image
-        src={src}
-        alt={alt}
-        width={244}
-        height={581}
-        className="h-auto w-full"
-        unoptimized
-      />
+    <PhoneFrame
+      src={src}
+      alt={alt}
+      width={244}
+      height={581}
+      screenClassName="[pointer-events:auto] max-md:min-h-[28rem] text-black md:rounded-[0_0_1.35rem_1.35rem]"
+      screenStyle={{
+        top: "8.2%",
+        left: "6.4%",
+        right: "6%",
+        bottom: "5.6%",
+        backgroundColor: "#fffdf8",
+      }}
+    >
       <div
-        className="absolute z-20 overflow-hidden [pointer-events:auto]"
+        className="flex h-full flex-col px-3 pt-2.5 pb-2"
         onPointerDown={stopCarouselSwipe}
-        style={{
-          top: "8.2%",
-          left: "6.4%",
-          right: "6%",
-          bottom: "5.6%",
-          backgroundColor: "#fffdf8",
-          borderRadius: "0 0 1.35rem 1.35rem",
-          color: "#000000",
-        }}
         aria-label={`${P4P_LABEL}. ${fixture}. ${window.label} slot.`}
       >
-        <div className="flex h-full flex-col px-3 pt-2.5 pb-2">
           <p
             className="text-[9px] font-black uppercase tracking-[0.18em]"
             style={{ color: MINT }}
@@ -141,9 +136,8 @@ export function PredictForPlanetPhone({
             {notice ||
               `Participating earns ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. The right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`}
           </p>
-        </div>
       </div>
-    </>
+    </PhoneFrame>
   );
 }
 

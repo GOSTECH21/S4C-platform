@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Image from "next/image";
+import { PhoneFrame } from "@/app/components/home/PhoneFrame";
 import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
 import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 import {
@@ -234,33 +234,29 @@ export function SelectMatchPhone({
   const shown = resolvedClub || club;
 
   return (
-    <>
-      <Image
-        src={src}
-        alt={alt}
-        width={247}
-        height={589}
-        className="h-auto w-full"
-        unoptimized
-      />
+    <PhoneFrame
+      src={src}
+      alt={alt}
+      width={247}
+      height={589}
+      screenClassName="[pointer-events:auto] max-md:min-h-[28rem] md:rounded-[0_0_1.35rem_1.35rem]"
+      screenStyle={{
+        top: "14.9%",
+        left: "6.2%",
+        right: "5.8%",
+        bottom: "11.2%",
+        backgroundColor: "#ffffff",
+      }}
+    >
       <div
-        className="absolute z-20 overflow-hidden [pointer-events:auto]"
+        className="flex h-full flex-col px-3 pt-2.5"
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
-        style={{
-          top: "14.9%",
-          left: "6.2%",
-          right: "5.8%",
-          bottom: "11.2%",
-          backgroundColor: "#ffffff",
-          borderRadius: "0 0 1.35rem 1.35rem",
-        }}
         aria-live="polite"
         aria-label={`${clubPossessive(shown)} next ${
           matches?.length ?? 10
         } league and cup matches`}
       >
-        <div className="flex h-full flex-col px-3 pt-2.5">
           <p
             className="flex items-center gap-1.5 text-[11px] font-black"
             style={{ color: MINT }}
@@ -421,9 +417,8 @@ export function SelectMatchPhone({
               )
             ) : null}
           </div>
-        </div>
       </div>
-    </>
+    </PhoneFrame>
   );
 }
 

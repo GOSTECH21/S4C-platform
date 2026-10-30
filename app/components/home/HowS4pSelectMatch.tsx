@@ -1,5 +1,6 @@
 "use client";
 
+import { PHONE_COLUMN_CLASS } from "@/app/components/home/PhoneFrame";
 import SelectMatchFixtures, {
   SelectMatchPhone,
   SelectMatchProvider,
@@ -48,7 +49,7 @@ export default function HowS4pSelectMatch({
         className={`s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8 ${className}`}
       >
         <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
-          <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
+          <div className={PHONE_COLUMN_CLASS}>
             <SelectMatchPhone
               src={HOW_S4P_SELECT_MATCH.src}
               alt={HOW_S4P_SELECT_MATCH.alt}

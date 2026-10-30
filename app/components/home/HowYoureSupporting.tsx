@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Image from "next/image";
+import { PhoneFrame } from "@/app/components/home/PhoneFrame";
 import {
   useSelectMatch,
   type HomeUpcomingMatch,
@@ -241,19 +241,23 @@ export function HowYoureSupportingPhone({
     : "Choose a match";
 
   return (
-    <>
-      <Image
-        src={src}
-        alt={alt}
-        width={252}
-        height={585}
-        className="h-auto w-full"
-        unoptimized
-      />
+    <PhoneFrame
+      src={src}
+      alt={alt}
+      width={252}
+      height={585}
+      screenClassName="max-md:flex max-md:flex-col max-md:gap-3 max-md:bg-white max-md:p-3"
+      screenStyle={{
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+    >
       <div
         id="match-day-banner"
         data-match-day-fixture={match ? fixture : ""}
-        className="absolute z-20 overflow-hidden"
+        className="absolute z-20 overflow-hidden max-md:static max-md:!inset-auto max-md:!h-auto max-md:w-full"
         style={{
           top: "13.4%",
           left: "8.4%",
@@ -270,7 +274,7 @@ export function HowYoureSupportingPhone({
             : "No match selected yet"
         }
       >
-        <div className="flex h-full items-center gap-1.5 px-2">
+        <div className="flex h-full items-center gap-1.5 px-2 max-md:py-3">
           <ClubMark name={homeName} side="home" />
           <div className="min-w-0 flex-1 text-center">
             <p
@@ -298,37 +302,39 @@ export function HowYoureSupportingPhone({
           <ClubMark name={awayName} side="away" />
         </div>
       </div>
-      <button
-        type="button"
-        aria-label="Continue — I'm attending the match"
-        onPointerDown={stopCarouselSwipe}
-        onClick={chooseAttending}
-        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[11px] font-black text-black hover:brightness-110 [touch-action:manipulation]"
-        style={{
-          left: "9%",
-          top: "62.4%",
-          width: "35%",
-          height: "5.4%",
-        }}
-      >
-        Continue
-      </button>
-      <button
-        type="button"
-        aria-label="Continue — I'm watching remotely"
-        onPointerDown={stopCarouselSwipe}
-        onClick={chooseRemote}
-        className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[11px] font-black text-black hover:brightness-110 [touch-action:manipulation]"
-        style={{
-          left: "54.5%",
-          top: "62.4%",
-          width: "35%",
-          height: "5.4%",
-        }}
-      >
-        Continue
-      </button>
-    </>
+      <div className="max-md:flex max-md:gap-3 md:contents">
+        <button
+          type="button"
+          aria-label="Continue — I'm attending the match"
+          onPointerDown={stopCarouselSwipe}
+          onClick={chooseAttending}
+          className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[11px] font-black text-black hover:brightness-110 [touch-action:manipulation] max-md:static max-md:!inset-auto max-md:!h-12 max-md:!w-auto max-md:flex-1"
+          style={{
+            left: "9%",
+            top: "62.4%",
+            width: "35%",
+            height: "5.4%",
+          }}
+        >
+          Continue
+        </button>
+        <button
+          type="button"
+          aria-label="Continue — I'm watching remotely"
+          onPointerDown={stopCarouselSwipe}
+          onClick={chooseRemote}
+          className="absolute z-20 flex cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-2 text-[11px] font-black text-black hover:brightness-110 [touch-action:manipulation] max-md:static max-md:!inset-auto max-md:!h-12 max-md:!w-auto max-md:flex-1"
+          style={{
+            left: "54.5%",
+            top: "62.4%",
+            width: "35%",
+            height: "5.4%",
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    </PhoneFrame>
   );
 }
 

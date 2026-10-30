@@ -2,6 +2,7 @@
 /* how-s4p-split-steps-v1 */
 
 import Image from "next/image";
+import { PHONE_COLUMN_CLASS } from "@/app/components/home/PhoneFrame";
 import { HOW_S4P_ACCESS_JOIN } from "@/app/lib/how-s4p-works";
 
 const MARK_GREEN = "#5bc662";
@@ -87,15 +88,19 @@ export default function HowItWorks({
           className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 sm:px-6 sm:py-8 md:px-8"
         >
           <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
-            <div className="relative w-full max-w-[18rem] shrink-0 overflow-hidden sm:max-w-[20rem]">
+            <div
+              className={`${PHONE_COLUMN_CLASS} hidden md:block`}
+              data-phone-column
+            >
               <Image
                 src={HOW_S4P_ACCESS_JOIN.src}
                 alt={HOW_S4P_ACCESS_JOIN.alt}
                 width={HOW_S4P_ACCESS_JOIN.width}
                 height={HOW_S4P_ACCESS_JOIN.height}
-                className="h-auto w-full"
+                className="pointer-events-none hidden h-auto w-full md:block"
                 unoptimized
                 priority
+                data-phone-frame
               />
               {ACCESS_JOIN_HOTSPOTS.map((spot) => (
                 <button
@@ -132,13 +137,22 @@ export default function HowItWorks({
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                onClick={onCreateAccount}
-                className="mt-6 inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
-              >
-                Create your free account <span aria-hidden> →</span>
-              </button>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onCreateAccount}
+                  className="inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
+                >
+                  Create your free account <span aria-hidden> →</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onLogin}
+                  className="inline-flex items-center rounded-full border-2 border-black px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:bg-black hover:text-[#f7f4e8]"
+                >
+                  Log in
+                </button>
+              </div>
             </div>
           </div>
         </div>
