@@ -247,8 +247,9 @@ export default function SponsorRegisterPage() {
             />
             <span>
               <span className="font-bold">{MATCH_SPONSOR_PRODUCT_LABEL}</span>
-              {" — "}persists {MATCH_SPONSORSHIP_DAYS} days. One Match-Sponsorship
-              amount; highest within 8 hours is accepted.
+              {" — "}persists {MATCH_SPONSORSHIP_DAYS} days. One fixed
+              Match-Sponsorship; 80% Fan Participation Pool, 20% Score Impact
+              Pool unlocked by scores. Highest within 8 hours is accepted.
             </span>
           </label>
           <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-950">

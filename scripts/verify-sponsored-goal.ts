@@ -51,14 +51,18 @@ const wallet = createLeadWallet({
   commitmentFeeGbp: 3000,
   gbpPerGoal: DEFAULT_LEAD_GBP_PER_GOAL,
 });
-assert(remainingGbp(wallet) === 3000, "Lead wallet starts at the Match-Sponsorship");
+assert(remainingGbp(wallet) === 2400, "Lead wallet starts at the 80% Fan Participation Pool");
 assert(
-  leadWalletIncreaseGbp(wallet) === DEFAULT_LEAD_GBP_PER_GOAL,
-  "A sponsored goal releases the agreed £/Goal into the Lead wallet"
+  leadWalletIncreaseGbp(wallet) === 600,
+  "A sponsored goal unlocks the 20% Score Impact Pool"
 );
 assert(
-  remainingGbp(creditLeadWalletForGoal(wallet)) === 6000,
-  "After one Arsenal goal the Lead Carbon Wallet holds £6,000"
+  remainingGbp(creditLeadWalletForGoal(wallet)) === 3000,
+  "After one Arsenal goal the Lead Carbon Wallet holds the full £3,000 Match-Sponsorship"
+);
+assert(
+  remainingGbp(creditLeadWalletForGoal(creditLeadWalletForGoal(wallet))) === 3000,
+  "A second Arsenal goal does not add sponsor liabilities"
 );
 
 const localAlerts = [
@@ -237,7 +241,10 @@ const pumaWallet = {
   }),
   allocatedGbp: 0.2,
 };
-assert(remainingGbp(pumaWallet) === 3499.8, "Puma's Carbon Wallet shows £3,499.80 after FUND-IT");
+assert(
+  remainingGbp(pumaWallet) === 2799.8,
+  "Puma's Fan Participation Pool shows £2,799.80 after FUND-IT, before a score"
+);
 assert(
   goalStatementAmountGbp(pumaWallet) === 3500,
   "The GOAL statement uses Puma's committed £3,500, not a leftover £3,000 /Goal"
@@ -299,7 +306,9 @@ assert(
 const admin = readFileSync("app/admin/fixtures/page.tsx", "utf8");
 assert(
   admin.includes("Simulate Arsenal Goal") &&
-    admin.includes("runClientSponsoredGoal"),
+    admin.includes("runClientSponsoredGoal") &&
+    admin.includes("Settle Arsenal Score Impact Pool") &&
+    admin.includes("settleLeadWalletsForMatchFinish"),
   "Fixtures Admin can post the Arsenal sponsored goal"
 );
 
@@ -317,6 +326,7 @@ assert(
     service.includes("supporter_preferences") &&
     service.includes("leadSponsorBrandForFixture") &&
     service.includes("brandNameFromGoalMessage") &&
+    service.includes("goalStatementAmountGbp") &&
     !service.includes("brandName: DEFAULT_LEAD_GOAL_SPONSOR"),
   "A sponsored goal posts a score event and names the Lead Climate Sponsor who signed that match"
 );
@@ -327,7 +337,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Sponsored Arsenal goal: Sports Teams stay at 3; Lead wallet +£3,000; fan alert stored."
+  "Sponsored Arsenal goal: Sports Teams stay at 3; Score Impact Pool unlocks 20%; fan alert stored."
 );
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

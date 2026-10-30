@@ -90,26 +90,17 @@ export function currentSponsorshipAmount({
 }
 
 /**
- * Match-Sponsorship is one amount. Historic gbpPerGoal is ignored for display and ranking.
+ * Match-Sponsorship is one fixed amount. Extra scores do not add sponsor liabilities.
  */
 export function totalMatchSponsorshipPayable({
   baseAmount,
-  gbpPerGoal,
-  goalsScored,
-  maxAmount,
 }: {
   baseAmount: number;
-  gbpPerGoal: number;
-  goalsScored: number;
+  gbpPerGoal?: number;
+  goalsScored?: number;
   maxAmount?: number | null;
 }): number {
-  const base = Math.max(0, Math.round(Number(baseAmount) || 0));
-  const perGoal = Math.max(0, Math.round(Number(gbpPerGoal) || 0));
-  const goals = Math.max(0, Math.round(Number(goalsScored) || 0));
-  const payable = base + perGoal * goals;
-  const cap = Math.max(0, Math.round(Number(maxAmount) || 0));
-  if (cap <= 0) return payable;
-  return Math.min(payable, Math.max(cap, base));
+  return Math.max(0, Math.round(Number(baseAmount) || 0));
 }
 
 export function totalSponsorshipPayable({

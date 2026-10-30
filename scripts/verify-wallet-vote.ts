@@ -135,36 +135,44 @@ const amex = createLeadWallet({
   gbpPerGoal: 3000,
 });
 assert(
-  remainingGbp(amex) === 3000,
-  "American Express deposits the Match-Sponsorship into the Carbon Wallet"
+  remainingGbp(amex) === 2400,
+  "American Express Fan Participation Pool is 80% of the Match-Sponsorship"
 );
 assert(
-  remainingGbp({ ...amex, goalsScored: 1 }) === 6000,
-  "The Carbon Wallet increases when the sponsored team scores"
+  remainingGbp({ ...amex, goalsScored: 1 }) === 3000,
+  "The first score unlocks the 20% Score Impact Pool"
+);
+assert(
+  remainingGbp({ ...amex, goalsScored: 2 }) === 3000,
+  "A second score does not add sponsor liabilities once the pool is unlocked"
 );
 assert(
   leadSponsorshipFromGoalsGbp(amex) === 0,
-  "Sponsorship/Goal-Scored starts at £0 before any goal"
+  "Score Impact Pool starts locked before any goal"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 1 }) === 3000,
-  "One goal multiplies Goals-scored Sponsorship Cash by 1"
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 1 }) === 600,
+  "One goal unlocks the £600 Score Impact Pool on a £3,000 Match-Sponsorship"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 2 }) === 6000,
-  "A second goal doubles Sponsorship/Goal-Scored"
+  leadSponsorshipFromGoalsGbp({ ...amex, goalsScored: 2 }) === 600,
+  "Further goals stay at the Score Impact Pool cap"
 );
 assert(
   formatLeadSponsorshipGbp(0) === "£0.0",
-  "Sponsorship/Goal-Scored reads £0.0 when Goals-Scored is 0"
+  "Locked Score Impact Pool reads £0.0 before a score"
 );
 assert(
-  leadCarbonWalletGbp(amex) === 3000,
-  "Amount in CARBON WALLET starts as the Match-Sponsorship"
+  leadCarbonWalletGbp(amex) === 2400,
+  "Amount in CARBON WALLET starts as the Fan Participation Pool"
 );
 assert(
-  leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 6000,
-  "Amount in CARBON WALLET is Commitment Fee plus Sponsorship/Goal-Scored"
+  leadCarbonWalletGbp({ ...amex, goalsScored: 1 }) === 3000,
+  "Amount in CARBON WALLET is 80% plus the unlocked Score Impact Pool"
+);
+assert(
+  leadCarbonWalletGbp({ ...amex, scoreImpactSettled: true }) === 3000,
+  "A 0–0 full-time settle still commits 100% of the Match-Sponsorship"
 );
 
 const puma = createLeadWallet({
@@ -176,27 +184,23 @@ const puma = createLeadWallet({
 });
 assert(
   leadSponsorshipFromGoalsGbp(puma) === 0,
-  "Puma Sponsorship/Goal-Scored is £0 before a live goal"
+  "Puma Score Impact Pool is locked before a live goal"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 1 }) === 4000,
-  "One Arsenal goal copies the Sponsorship/Goal-Scored rate"
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 1 }) === 600,
+  "One Arsenal goal unlocks the 20% Score Impact Pool, not a £/Goal rate"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 2 }) === 8000,
-  "Two Arsenal goals multiply the rate by 2"
+  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 2 }) === 600,
+  "Further Arsenal goals stay at the Score Impact Pool cap"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 3 }) === 12000,
-  "Three Arsenal goals reach the Maximum Sponsorship Amount"
+  leadCarbonWalletGbp(puma) === 2400,
+  "Puma CARBON WALLET starts at the 80% Fan Participation Pool"
 );
 assert(
-  leadSponsorshipFromGoalsGbp({ ...puma, goalsScored: 4 }) === 12000,
-  "Further goals stay at the Maximum Sponsorship Amount"
-);
-assert(
-  leadCarbonWalletGbp({ ...puma, goalsScored: 1 }) === 7000,
-  "CARBON WALLET is £3,000 + £4,000 after one goal"
+  leadCarbonWalletGbp({ ...puma, goalsScored: 1 }) === 3000,
+  "Puma CARBON WALLET is the full £3,000 Match-Sponsorship after the pool unlocks"
 );
 
 const leftoverMax = normalizeClimateWallet({
@@ -215,7 +219,7 @@ assert(
 );
 assert(
   leadSponsorshipFromGoalsGbp(leftoverMax) === 0,
-  "After restoring Maximum Sponsorship Amount, Sponsorship/Goal-Scored is £0.0"
+  "After restoring Maximum Sponsorship Amount, the Score Impact Pool stays locked"
 );
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
@@ -247,8 +251,8 @@ const gilletteVoted = allocateWalletVote({
 assert(gilletteVoted.ok, "Selecting a GSS version next to Gillette and pressing FUND-IT succeeds");
 if (gilletteVoted.ok) {
   assert(
-    remainingGbp(gilletteVoted.wallet) === 999.8,
-    "Gillette's Carbon Wallet then displays £999.80 Remaining"
+    remainingGbp(gilletteVoted.wallet) === 799.8,
+    "Gillette's Fan Participation Pool then displays £799.80 Remaining"
   );
   const heartsAlias = createLeadWallet({
     clubName: "Hearts of Midlothian FC",
@@ -261,7 +265,7 @@ if (gilletteVoted.ok) {
     "Gillette UK"
   );
   assert(
-    kept.length === 1 && remainingGbp(kept[0]) === 999.8,
+    kept.length === 1 && remainingGbp(kept[0]) === 799.8,
     "A Hearts of Midlothian FC Gillette clone does not restore the £1,000 wallet after FUND-IT"
   );
   const visibleLead = withLiveWalletRemaining(
@@ -269,7 +273,7 @@ if (gilletteVoted.ok) {
     [heartsAlias, gilletteVoted.wallet]
   ).find((row) => row.kind === "lead");
   assert(
-    visibleLead?.remainingGbp === 999.8,
+    visibleLead?.remainingGbp === 799.8,
     "Climate Sponsors subtracts £0.20 from the Lead Carbon Wallet whenever FUND-IT is used"
   );
 }
@@ -354,7 +358,7 @@ if (malmaisonVoted.ok) {
     "Climate Sponsors subtracts £0.20 from the Malmaison Carbon Wallet"
   );
   assert(
-    amexRow?.remainingGbp === 2999.6,
+    amexRow?.remainingGbp === 2399.6,
     "Climate Sponsors still shows the Lead Carbon Wallet remaining after a local take"
   );
 }
@@ -422,8 +426,8 @@ const leadVoted = allocateWalletVote({
 assert(leadVoted.ok, "Selecting a GSS version next to the Lead wallet and pressing FUND-IT succeeds");
 if (leadVoted.ok) {
   assert(
-    remainingGbp(leadVoted.wallet) === 2999.8,
-    "Amex Carbon Wallet then displays £2,999.80"
+    remainingGbp(leadVoted.wallet) === 2399.8,
+    "Amex Fan Participation Pool then displays £2,399.80"
   );
   assert(
     leadVoted.project.number === 1 && leadVoted.project.fundedGbp === 0.2,
@@ -746,7 +750,7 @@ const registerPage = readFileSync("app/register/page.tsx", "utf8");
 assert(
   fanLogin.includes("FUND up to 5 Projects shown to you") &&
     supporterLogin.includes("FUND up to 5 Projects shown to you") &&
-    registerPage.includes("FUND-IT up to 5 times") &&
+    registerPage.includes("FAN_REGISTER_INTRO") &&
     !fanLogin.includes("vote on your club's climate projects") &&
     !supporterLogin.includes("vote on your club's climate projects"),
   "Fan login says FUND up to 5 Projects shown to you"
@@ -854,8 +858,10 @@ assert(
     walletForm.includes("PLATFORM_FEE_LABEL") &&
     !walletForm.includes("Sponsorship/Goal-Scored") &&
     !walletForm.includes("Maximum Sponsorship Amount") &&
-    !walletForm.includes("Stays at 0 until a live broadcast goal is received."),
-  "Lead wallet is one Match-Sponsorship amount plus the 5% Platform Fee"
+    !walletForm.includes("Stays at 0 until a live broadcast goal is received.") &&
+    walletForm.includes("SCORE_IMPACT_POOL_LABEL") &&
+    walletForm.includes("FAN_PARTICIPATION_POOL_LABEL"),
+  "Lead wallet is one Match-Sponsorship amount plus the 5% Platform Fee and the 80/20 pools"
 );
 assert(
   walletPage.includes("SPONSORED_GOAL_EVENT"),

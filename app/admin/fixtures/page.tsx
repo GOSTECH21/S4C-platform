@@ -13,6 +13,8 @@ import {
   deleteFixtures,
 } from "../../services/fixtures.service";
 import { runClientSponsoredGoal } from "../../services/sponsored-goal.service";
+import { settleLeadWalletsForMatchFinish } from "../../services/sponsor-wallet.service";
+import { remainingGbp } from "../../lib/sponsor-wallet";
 import { goalScoreline } from "../../lib/sponsored-goal";
 
 type Competition = {
@@ -136,6 +138,25 @@ async function loadData() {
     loadData();
   }, []);
 
+  const handleSettleArsenalScoreImpact = () => {
+    try {
+      const wallets = settleLeadWalletsForMatchFinish("Arsenal");
+      const remaining = wallets[0] ? remainingGbp(wallets[0]) : 0;
+      alert(
+        wallets.length
+          ? `Score Impact Pool settled for Arsenal. Carbon Wallet remaining: £${remaining.toLocaleString("en-GB")}.`
+          : "No Arsenal Lead Climate Sponsor wallet to settle."
+      );
+    } catch (error: unknown) {
+      console.error(error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to settle the Arsenal Score Impact Pool."
+      );
+    }
+  };
+
   const handleSimulateArsenalGoal = async () => {
     try {
       const { scored } = await runClientSponsoredGoal("Arsenal");
@@ -212,6 +233,12 @@ setFixtures(refreshed);
             className="rounded bg-emerald-500 px-4 py-2 font-semibold text-slate-950"
           >
             Simulate Arsenal Goal
+          </button>
+          <button
+            onClick={handleSettleArsenalScoreImpact}
+            className="rounded bg-lime-400 px-4 py-2 font-semibold text-slate-950"
+          >
+            Settle Arsenal Score Impact Pool
           </button>
         </div>
         <div className="grid gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 md:grid-cols-3">

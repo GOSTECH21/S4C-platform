@@ -56,20 +56,20 @@ function assert(condition: boolean, message: string) {
   if (!condition) failures.push(message);
 }
 
-assert(P4P_CATEGORIES.length === 8, "Predict-For Planet has eight event categories");
+assert(P4P_CATEGORIES.length === 7, "Predict-For Planet has seven event categories");
 assert(
   P4P_CATEGORIES.map((row) => row.label).join("|") ===
     [
       "Handball offence",
       "Foul committed",
       "Corner awarded",
-      "Goal scored",
       "Yellow card issued",
       "Red card issued",
       "Penalty awarded",
       "VAR referee review",
-    ].join("|"),
-  "The eight P4P events match the in-game list"
+    ].join("|") &&
+    !P4P_CATEGORIES.some((row) => row.id === "goal" || row.label === "Goal scored"),
+  "The seven P4P events exclude Goal scored, which is exclusive to S4P"
 );
 assert(GAME_TIME_SLOT_MINUTES === 30, "Each Game-Time slot is 30 minutes");
 assert(GAME_TIME_DURATION_MINUTES === 90, "A Game lasts 90 minutes");
@@ -146,9 +146,24 @@ assert(
 const miss = awardP4pAccuracy({
   prediction: first.ok ? first.prediction : ({} as never),
   wallet: first.ok ? first.wallet : wallet,
-  categoryId: "goal",
+  categoryId: "penalty",
 });
-assert(miss.takenGbp === 0, "A Goal awarded does not pay a Corner prediction");
+assert(miss.takenGbp === 0, "A Penalty awarded does not pay a Corner prediction");
+const rejectedGoal = recordP4pEngagement({
+  fanId: "fan-2",
+  clubName: "Arsenal",
+  fixtureName: "Arsenal vs Chelsea",
+  windowIndex: 0,
+  categoryId: "goal",
+  projectName: "Local Global Schools Solar",
+  wallet,
+  predictions: [],
+});
+assert(
+  rejectedGoal.ok === false &&
+    String(rejectedGoal.error ?? "").includes("seven Predict-For Planet events"),
+  "Goal scored cannot be predicted in P4P"
+);
 const twice = awardP4pAccuracy({
   prediction: accurate.prediction,
   wallet: accurate.wallet,
@@ -166,7 +181,7 @@ const second = recordP4pEngagement({
   clubName: "Arsenal",
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
-  categoryId: "goal",
+  categoryId: "foul",
   projectName: "Local Global Schools Solar",
   wallet: first.ok ? first.wallet : wallet,
   predictions: first.ok ? [first.prediction] : [],
@@ -370,7 +385,7 @@ const liveBoard = p4pLiveChallenge(heartsWallet, [
     clubName: heartsWallet.clubName,
     fixtureName: heartsWallet.fixtureName,
     windowIndex: 7,
-    categoryId: "goal",
+    categoryId: "var",
     projectName: "Wee Spoke Hub",
     engagementGbp: 0.1,
     walletId: heartsWallet.id,
@@ -607,20 +622,27 @@ assert(
 );
 assert(
   climatePage.includes("How Game-Time Sponsorship works") &&
-    climatePage.includes("Game-Time Carbon Wallet"),
+    climatePage.includes("Game-Time Carbon Wallet") &&
+    climatePage.includes("Goal scored is exclusive to") &&
+    climatePage.includes("Score Impact Pool") &&
+    climatePage.includes("Fan Participation Pool"),
   "Climate Sponsorship explains Game-Time as the P4P engagement product"
 );
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/match-day-offset-copy-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/s4p-score-impact-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v4") &&
-    applyP4p.includes("match-day-offset-2") &&
+    applyP4p.includes("s4p-score-impact-1") &&
+    applyP4p.includes("score-for-planet.ts") &&
+    applyP4p.includes("fan-register-copy.ts") &&
+    applyP4p.includes("sponsored-goal.service.ts") &&
+    applyP4p.includes("sponsor-wallet.service.ts") &&
     applyP4p.includes("HomeTopBanner.tsx") &&
     applyP4p.includes("offset its Match Day carbon emissions") &&
     applyP4p.includes("PhoneFrame.tsx") &&
@@ -636,7 +658,10 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v4") &&
-    applyP4pPs1.includes("match-day-offset-2") &&
+    applyP4pPs1.includes("s4p-score-impact-1") &&
+    applyP4pPs1.includes("score-for-planet.ts") &&
+    applyP4pPs1.includes("sponsored-goal.service.ts") &&
+    applyP4pPs1.includes("sponsor-wallet.service.ts") &&
     applyP4pPs1.includes("offset its Match Day carbon emissions") &&
     applyP4pPs1.includes("P4pLiveChallengePreview"),
   "PC overlay pulls Predict-For Planet last, with How S4P Works split, and does not re-run listings"
@@ -661,5 +686,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Predict-For Planet: eight events, 30-minute Game-Time slots, £0.10 participation plus £0.30 for the right event."
+  "Predict-For Planet: seven events, 30-minute Game-Time slots, £0.10 participation plus £0.30 for the right event."
 );

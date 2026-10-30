@@ -9,7 +9,7 @@ import {
 const STEPS = [
   {
     title: "A Match-Sponsorship is paid",
-    copy: "The Lead Climate Sponsor enters one Match-Sponsorship amount for the Match and pays that amount plus a 5% Platform Fee via Stripe. That cash sits in the Climate Sponsorship Wallet.",
+    copy: "The S4P Lead Sponsor enters one fixed Match-Sponsorship for the Match Day and pays that amount plus a 5% Platform Fee via Stripe. 80% is the Fan Participation Pool; 20% is the Score Impact Pool unlocked by confirmed scores.",
   },
   {
     title: "Supporters & Fans receive a share",
@@ -47,12 +47,13 @@ export default function ClimateCreditsPage() {
       <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
         <h2 className="text-3xl font-black">One Match-Sponsorship amount</h2>
         <p className="mt-4 max-w-3xl text-lg text-slate-300">
-          The Lead Climate Sponsor specifies one Match-Sponsorship for the
+          The S4P Lead Sponsor specifies one fixed Match-Sponsorship for the
           Match — for example £4,000. Stripe takes that amount plus a 5%
-          Platform Fee (£200), total £4,200. The £4,000 sits in the Carbon
-          Wallet for fans to FUND-IT onto the Club&apos;s chosen Climate
-          Projects. The stipulated amount per Climate Project is a counter for
-          brand exposure: every post to a fan is 1 eyeball and 5 exposures.
+          Platform Fee (£200), total £4,200. £3,200 (80%) is the Fan
+          Participation Pool for the five-day campaign. £800 (20%) is the Score
+          Impact Pool, unlocked by confirmed scores, then added to the pot at
+          full time if still locked so 100% of the £4,000 is complete. Goal
+          scored is exclusive to S4P, not Predict-For Planet.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Link

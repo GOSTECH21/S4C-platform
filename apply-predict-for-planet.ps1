@@ -10,11 +10,25 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/match-day-offset-copy-18f9"
-$bust = "match-day-offset-2"
+$branch = "cursor/s4p-score-impact-18f9"
+$bust = "s4p-score-impact-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
+  "app/lib/score-for-planet.ts",
+  "app/lib/sponsor-wallet.ts",
+  "app/lib/sponsorship-auction.ts",
+  "app/lib/sports.ts",
+  "app/lib/sponsored-goal.ts",
+  "app/lib/fan-register-copy.ts",
+  "app/services/sponsored-goal.service.ts",
+  "app/services/sponsor-wallet.service.ts",
+  "app/lib/match-day-carbon-offset.ts",
+  "app/climate-sponsorship/page.tsx",
+  "app/climate-credits/page.tsx",
+  "app/sponsor/offers/OfferSignOff.tsx",
+  "app/components/sponsor/ClimateSponsorshipWallet.tsx",
   "app/services/predict-for-planet.service.ts",
+  "scripts/verify-score-for-planet.ts",
   "app/lib/how-s4p-works.ts",
   "app/components/home/HomeTopBanner.tsx",
   "app/components/home/PhoneFrame.tsx",

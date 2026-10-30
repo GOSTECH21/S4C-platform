@@ -6,6 +6,7 @@ import {
   createLocalWallet,
   normalizeClimateWallet,
   remainingGbp,
+  settleLeadScoreImpactPool,
   brandsMatch,
   walletIdFor,
   type ClimateWallet,
@@ -257,7 +258,6 @@ export function healLocalWalletsForClub(clubName: string): ClimateWallet[] {
 export function creditLeadWalletsForSponsoredGoal({
   clubName,
   brandName,
-  gbpPerGoal = 3000,
   commitmentFeeGbp = 3000,
 }: {
   clubName: string;
@@ -278,7 +278,7 @@ export function creditLeadWalletsForSponsoredGoal({
           clubName,
           brandName: brand,
           commitmentFeeGbp,
-          gbpPerGoal,
+          gbpPerGoal: 0,
           goalsScored: 1,
         })
       ),
@@ -288,11 +288,16 @@ export function creditLeadWalletsForSponsoredGoal({
     const current = normalizeClimateWallet(wallet);
     return writeClimateWallet(
       applyLeadCommitment(current, {
-        gbpPerGoal: current.gbpPerGoal || gbpPerGoal,
         goalsScored: current.goalsScored + 1,
       })
     );
   });
+}
+
+export function settleLeadWalletsForMatchFinish(clubName: string): ClimateWallet[] {
+  return listClimateWalletsForClub(clubName)
+    .filter((wallet) => wallet.kind === "lead")
+    .map((wallet) => writeClimateWallet(settleLeadScoreImpactPool(wallet)));
 }
 
 export function depositLeadClimateWallet({

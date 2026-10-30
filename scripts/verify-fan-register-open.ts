@@ -18,7 +18,7 @@ assert(
 );
 assert(
   FAN_REGISTER_TEAMS_COPY ===
-    "Pick from the current 2026/27 season. A Goal for those clubs releases the sponsor amount agreed for that match.",
+    "Pick from the current 2026/27 season. A confirmed score by those clubs unlocks the Score Impact Pool on that Match-Sponsorship. Extra scores count in S4P statistics but do not add sponsor liabilities.",
   "Fan registration team copy names the season without the three-club demo list"
 );
 assert(

@@ -12,6 +12,14 @@ import {
   type ClimateWallet,
   type SponsorWalletKind,
 } from "@/app/lib/sponsor-wallet";
+import {
+  FAN_PARTICIPATION_POOL_LABEL,
+  SCORE_IMPACT_POOL_LABEL,
+  fanParticipationPoolGbp,
+  scoreImpactPoolGbp,
+  scoreImpactUnlockedGbp,
+  s4pLeadSponsorCopy,
+} from "@/app/lib/score-for-planet";
 import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
 import {
   TOP_UP_CASH_HEADING,
@@ -89,12 +97,12 @@ export function ClimateSponsorshipWallet({
       </p>
       <p className="mt-3 max-w-3xl text-slate-400">
         {kind === "lead"
-          ? `As a Lead Climate Sponsor you pay one ${MATCH_SPONSORSHIP_LABEL} for this Match, plus a 5% Platform Fee, via Stripe.`
+          ? s4pLeadSponsorCopy(Number(commitmentFee) || wallet?.commitmentFeeGbp || 0)
           : `As a Local Business Climate Sponsor, put the amount you are sponsoring into this Carbon Wallet. Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from it onto local Climate Projects.`}
       </p>
 
       {wallet && kind === "lead" ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <WalletStat
             label={MATCH_SPONSORSHIP_LABEL}
             value={formatWalletGbp(wallet.commitmentFeeGbp)}
@@ -108,6 +116,22 @@ export function ClimateSponsorshipWallet({
           <WalletStat
             label="Amount in CARBON WALLET"
             value={formatWalletGbp(leadCarbonWalletGbp(wallet))}
+          />
+          <WalletStat
+            label="Remaining"
+            value={`${formatWalletGbp(remainingGbp(wallet))} Remaining`}
+          />
+          <WalletStat
+            label={FAN_PARTICIPATION_POOL_LABEL}
+            value={formatWalletGbp(fanParticipationPoolGbp(wallet.commitmentFeeGbp))}
+          />
+          <WalletStat
+            label={SCORE_IMPACT_POOL_LABEL}
+            value={`${formatWalletGbp(scoreImpactUnlockedGbp({
+              matchSponsorshipGbp: wallet.commitmentFeeGbp,
+              goalsScored: wallet.goalsScored,
+              matchFinished: Boolean(wallet.scoreImpactSettled),
+            }))} of ${formatWalletGbp(scoreImpactPoolGbp(wallet.commitmentFeeGbp))} unlocked`}
           />
         </div>
       ) : null}

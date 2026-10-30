@@ -8,9 +8,10 @@ import {
   readClimateWallet,
 } from "./sponsor-wallet.service";
 import {
-  DEFAULT_LEAD_GBP_PER_GOAL,
+  DEFAULT_LEAD_COMMITMENT_GBP,
   brandNameFromGoalMessage,
   goalScoreline,
+  goalStatementAmountGbp,
   recordFanGoalAlert,
   type FanGoalAlert,
   type SponsoredGoalResult,
@@ -195,10 +196,9 @@ function resolveMatchLeadSponsor(
     readClimateWallet(clubName, brand) ??
     readClimateWallet(homeName, brand) ??
     readClimateWallet(awayName, brand);
+  const fromWallet = wallet ? goalStatementAmountGbp(wallet) : 0;
   const amountGbp =
-    Number(wallet?.gbpPerGoal) > 0
-      ? Number(wallet?.gbpPerGoal)
-      : DEFAULT_LEAD_GBP_PER_GOAL;
+    fromWallet > 0 ? fromWallet : DEFAULT_LEAD_COMMITMENT_GBP;
   return { brandName: brand, amountGbp };
 }
 

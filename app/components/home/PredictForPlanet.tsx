@@ -187,7 +187,7 @@ export function PredictForPlanetPanel({
           className="text-xs font-black uppercase tracking-[0.18em]"
           style={{ color: MINT }}
         >
-          Eight {P4P_SHORT} prediction categories
+          Seven {P4P_SHORT} prediction categories
         </p>
         <ol className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {P4P_CATEGORIES.map((category, index) => (

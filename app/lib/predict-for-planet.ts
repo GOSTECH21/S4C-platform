@@ -60,7 +60,6 @@ export type P4pCategoryId =
   | "handball"
   | "foul"
   | "corner"
-  | "goal"
   | "yellow-card"
   | "red-card"
   | "penalty"
@@ -75,7 +74,6 @@ export const P4P_CATEGORIES: P4pCategory[] = [
   { id: "handball", label: "Handball offence" },
   { id: "foul", label: "Foul committed" },
   { id: "corner", label: "Corner awarded" },
-  { id: "goal", label: "Goal scored" },
   { id: "yellow-card", label: "Yellow card issued" },
   { id: "red-card", label: "Red card issued" },
   { id: "penalty", label: "Penalty awarded" },
@@ -536,7 +534,7 @@ export function recordP4pEngagement({
 }): P4pEngagementResult {
   const category = p4pCategoryById(categoryId);
   if (!category) {
-    return { ok: false, error: "Choose one of the eight Predict-For Planet events." };
+    return { ok: false, error: "Choose one of the seven Predict-For Planet events." };
   }
   const chosenProject = String(projectName ?? "").trim();
   if (!chosenProject) {
@@ -785,6 +783,7 @@ export function p4pHowItWorksPoints(): string[] {
     `One prediction per ${P4P_WINDOW_MINUTES}-minute slot`,
     `Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)}; the right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)} into your ${FAN_CARBON_WALLET_LABEL}`,
     `A Game-Time Sponsor buys a ${GAME_TIME_SLOT_MINUTES}-minute slot; the Game lasts ${GAME_TIME_DURATION_MINUTES} minutes`,
+    "Goal scored is exclusive to Score-For-Planet, not Predict-For Planet",
   ];
 }
 

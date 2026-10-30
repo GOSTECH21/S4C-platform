@@ -262,7 +262,7 @@ export function awardP4pSlotEvent(input: {
 } | { ok: false; error: string } {
   const category = p4pCategoryById(input.categoryId);
   if (!category) {
-    return { ok: false, error: "Choose one of the eight Predict-For Planet events." };
+    return { ok: false, error: "Choose one of the seven Predict-For Planet events." };
   }
   const windowIndex = Math.round(Number(input.windowIndex) || 0);
   const events = listP4pSlotEvents();

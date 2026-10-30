@@ -17,34 +17,34 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "⚽",
     summary:
-      "A Lead Climate Sponsor pays one Match-Sponsorship amount for the Match, plus a 5% Platform Fee via Stripe. Fans then FUND-IT that cash onto the Club's chosen Climate Projects. A Global Brand can instead be a Game-Time Sponsor: buy a 30-minute slot of Predict-For Planet fan engagement.",
+      "An S4P Lead Sponsor pays one fixed Match-Sponsorship for the Match Day, plus a 5% Platform Fee via Stripe. 80% is the Fan Participation Pool for the five-day campaign. 20% is the Score Impact Pool, unlocked by Goals scored by the sponsored team. Extra Goals after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities. A Global Brand can instead be a Game-Time Sponsor: buy a 30-minute slot of Predict-For Planet fan engagement — P4P does not include Goal scored.",
   },
   {
     name: "Rugby",
     scoreLabel: "Try",
     scoreEvent: "Try scored",
-    exampleS2PS: "£10,000/Try",
+    exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "🏉",
     summary:
-      "Each Try scored (for example Scotland in the Six Nations) releases the sponsor amount agreed for that match.",
+      "An S4P Lead Sponsor pays one fixed Match-Sponsorship. Tries scored by the sponsored team unlock the 20% Score Impact Pool. Further Tries after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities.",
   },
   {
     name: "NFL",
     scoreLabel: "Touchdown",
     scoreEvent: "Touchdown scored",
-    exampleS2PS: "£10,000/Touchdown",
+    exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "🏈",
     summary:
-      "Each Touchdown scored by an NFL team releases the sponsor amount agreed for that game.",
+      "An S4P Lead Sponsor pays one fixed Match-Sponsorship. Touchdowns scored by the sponsored team unlock the 20% Score Impact Pool. Further Touchdowns after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities.",
   },
   {
     name: "NBA",
     scoreLabel: "3-Point",
     scoreEvent: "3-Point Score",
-    exampleS2PS: "£10,000/3-Point",
+    exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "🏀",
     summary:
-      "Each 3-Point Score Sponsorship releases the sponsor amount agreed for that game.",
+      "An S4P Lead Sponsor pays one fixed Match-Sponsorship. 3-Point scores by the sponsored team unlock the 20% Score Impact Pool. Further 3-Point scores after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities.",
   },
 ];
 

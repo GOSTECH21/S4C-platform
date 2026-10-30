@@ -15,7 +15,7 @@ export const MATCH_DAY_PROJECTS_RECORD_LABEL =
   "The club's 5 chosen Climate Projects";
 
 export const MATCH_DAY_GOALS_SCORED_COPY =
-  "You are sponsoring this Club's selected Match Day Climate Projects (as shown or to be shown here) to help them offset their carbon footprint with one Match-Sponsorship.";
+  "You are sponsoring this Club's selected Match Day Climate Projects (as shown or to be shown here) to help them offset their carbon footprint with one fixed Match-Sponsorship. 80% is the Fan Participation Pool; 20% is the Score Impact Pool unlocked by confirmed scores.";
 
 export const MATCH_DAY_PROJECTS_RECORD_COPY =
   "Sponsored Projects will be saved in a Folder for your Record";

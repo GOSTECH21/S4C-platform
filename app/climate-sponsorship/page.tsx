@@ -57,12 +57,19 @@ export default function ClimateSponsorshipPage() {
             the Invitation to Sponsor.
           </li>
           <li>
-            4. They enter one Match-Sponsorship amount for this Match.
+            4. They enter one fixed Match-Sponsorship amount for this Match
+            Day. That S4P Lead Sponsor has exclusive rights to scoring-triggered
+            climate funding for a five-day campaign.
           </li>
           <li>
             5. They complete payment of that Match-Sponsorship plus a 5%
-            Platform Fee via Stripe. The stipulated amount per Climate Project
-            is a brand-exposure counter: 1 post = 1 eyeball = 5 exposures.
+            Platform Fee via Stripe. 80% is the Fan Participation Pool for
+            eligible fan-directed allocations. 20% is the Score Impact Pool,
+            unlocked by a confirmed score from the sponsored team in £1,000–£1,500
+            tranches. Further scores after that pool is unlocked still count in
+            S4P statistics but do not add sponsor liabilities. If the match
+            finishes 0–0, the 20% stays committed and is allocated under the
+            post-match rule so 100% of the Match-Sponsorship is complete.
           </li>
         </ol>
         <Link
@@ -85,8 +92,9 @@ export default function ClimateSponsorshipPage() {
           <li>
             1. Fans open Predict-For Planet and choose what is likely to happen
             in the next {P4P_WINDOW_MINUTES}-minute slot — Handball offence, Foul
-            committed, Corner awarded, Goal scored, Yellow card issued, Red card
-            issued, Penalty awarded, or VAR referee review.
+            committed, Corner awarded, Yellow card issued, Red card issued,
+            Penalty awarded, or VAR referee review. Goal scored is exclusive to
+            Score-For-Planet.
           </li>
           <li>
             2. One prediction per {P4P_WINDOW_MINUTES}-minute slot per fan.

@@ -67,16 +67,16 @@ assert(
   "Historic 0–0 still pays the £3,000 Match-Sponsorship"
 );
 assert(
-  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 1 }) === 6000,
-  "1–0 pays £3,000 base + £3,000 per Goal = £6,000"
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 1 }) === 3000,
+  "A score does not add Match-Sponsorship beyond the fixed amount"
 );
 assert(
-  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 2 }) === 9000,
-  "2–0 pays £6,000 + another £3,000 = £9,000"
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 2 }) === 3000,
+  "Further scores do not create additional sponsor liabilities"
 );
 assert(
-  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 5 }) === 15000,
-  "Five Goals would be £18,000 but the £15,000 cap binds"
+  totalMatchSponsorshipPayable({ ...cityTerms, goalsScored: 5 }) === 3000,
+  "Five Goals still pay only the fixed £3,000 Match-Sponsorship"
 );
 assert(
   totalSponsorshipPayable({
@@ -85,7 +85,7 @@ assert(
     baseAmount: 3000,
     maxAmount: 15000,
   }) === 3000,
-  "totalSponsorshipPayable uses the same base-plus-goals formula"
+  "totalSponsorshipPayable uses the fixed Match-Sponsorship amount"
 );
 
 assert(
@@ -228,10 +228,12 @@ const terms = readFileSync(
   "utf8"
 );
 assert(
-  terms.includes("one Match-Sponsorship amount") &&
+  terms.includes("one fixed Match-Sponsorship amount") &&
     terms.includes("5% Platform Fee") &&
-    terms.includes("£4,200"),
-  "Sponsor terms are one Match-Sponsorship plus the 5% Platform Fee"
+    terms.includes("£4,200") &&
+    terms.includes("Score Impact Pool") &&
+    terms.includes("Fan Participation Pool"),
+  "Sponsor terms are one Match-Sponsorship plus the 5% Platform Fee with 80/20 pools"
 );
 assert(
   !terms.includes("you pay nothing") &&
