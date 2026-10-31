@@ -57,6 +57,18 @@ assert(
   "Selecting a tab reveals that role image, heading and brief description"
 );
 
+assert(
+  HOME_STAKEHOLDERS.every(
+    (card) =>
+      card.loginText === "Already registered? Login" && Boolean(card.login)
+  ) &&
+    roles.includes("card.loginText") &&
+    roles.includes("card.login") &&
+    roles.includes("role-card-login-v1") &&
+    roles.includes("RoleLoginLine"),
+  "Each role card has Already registered? Login under the green CTA"
+);
+
 if (failures.length > 0) {
   console.error("verify-role-tabs-mobile failed:");
   for (const failure of failures) console.error(`- ${failure}`);

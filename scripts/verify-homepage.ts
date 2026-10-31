@@ -109,6 +109,13 @@ assert(
   ),
   "Each role card has a shorter mobile description"
 );
+assert(
+  HOME_STAKEHOLDERS.every(
+    (card) =>
+      card.loginText === "Already registered? Login" && Boolean(card.login)
+  ),
+  "Every role card keeps Already registered? Login as the login line"
+);
 
 assert(LOCAL_SPONSOR_MIN_GBP === 500, "Local businesses can sponsor from £500");
 assert(
@@ -325,8 +332,10 @@ assert(
     !roles.includes("Swipe left or right to see each role.") &&
     !roles.includes("xl:grid-cols-6") &&
     !roles.includes("Are You...?") &&
-    !roles.includes("Already registered? Login") &&
-    !roles.includes("card.loginText") &&
+    roles.includes("card.loginText") &&
+    roles.includes("card.login") &&
+    roles.includes("role-card-login-v1") &&
+    roles.includes("RoleLoginLine") &&
     !roles.includes("bg-black") &&
     !roles.includes("hero.png"),
   "The Different Roles heading and six photographs sit in one paper box"

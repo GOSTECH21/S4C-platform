@@ -81,6 +81,26 @@ function roleCta(
   return { href, text };
 }
 
+function RoleLoginLine({
+  card,
+  className,
+}: {
+  card: HomeStakeholder;
+  className: string;
+}) {
+  return (
+    <a
+      href={card.login}
+      onClick={(event) => hardNavigateOnClick(card.login, event)}
+      data-role-card-login="role-card-login-v1"
+      className={className}
+      style={{ color: MINT }}
+    >
+      {card.loginText}
+    </a>
+  );
+}
+
 function RoleCard({
   card,
   joinIntent,
@@ -124,6 +144,10 @@ function RoleCard({
         >
           {text}
         </a>
+        <RoleLoginLine
+          card={card}
+          className="mt-2.5 block text-center text-[0.68rem] font-semibold underline decoration-s4p-mint/60 underline-offset-2 hover:decoration-s4p-mint sm:text-xs"
+        />
       </div>
     </article>
   );
@@ -249,6 +273,10 @@ export default function HomeRoleSection({
               >
                 {selectedCta.text}
               </a>
+              <RoleLoginLine
+                card={selected}
+                className="mt-3 block text-center text-sm font-semibold underline decoration-s4p-mint/60 underline-offset-2 hover:decoration-s4p-mint"
+              />
             </div>
           </div>
 
