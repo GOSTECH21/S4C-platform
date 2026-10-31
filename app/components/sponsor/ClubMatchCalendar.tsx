@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CALENDAR_WEEKDAY_CLASS } from "@/app/components/calendar/CalendarMonthNav";
 import {
   WEEKDAY_LABELS,
   monthCells,
@@ -104,9 +105,9 @@ export function ClubMatchCalendar({
                     <h4 className="mb-2 text-base font-black">
                       {monthLabel(month.year, month.month)}
                     </h4>
-                    <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                    <div className={CALENDAR_WEEKDAY_CLASS}>
                       {WEEKDAY_LABELS.map((label) => (
-                        <div key={label} className="py-1">
+                        <div key={label} className="min-w-0 py-1">
                           {label}
                         </div>
                       ))}

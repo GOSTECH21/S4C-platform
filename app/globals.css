@@ -351,3 +351,73 @@ html[data-theme="forest-dusk"] {
   --s4p-overlay: linear-gradient(168deg, rgb(6 40 24 / 0.55) 0%, rgb(11 74 50 / 0.4) 48%, rgb(26 122 72 / 0.38) 100%);
   --color-s4p-mint: #9ee89a;
 }
+
+/*
+  Phone scale: desktop pages use p-8 / tracking-[0.3em] / text-6xl.
+  On a ~360px viewport those utilities overflow (calendar Next, weekday
+  labels, register fields). Keep the same class names from sm up.
+*/
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+@layer base {
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+main,
+section,
+article,
+header {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 639px) {
+  .p-8 {
+    padding: 1rem;
+  }
+  .p-10 {
+    padding: 1.25rem;
+  }
+  .px-6 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .px-8 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .py-10,
+  .py-12 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  .py-16,
+  .py-20,
+  .py-24 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  .text-6xl {
+    font-size: 1.875rem;
+    line-height: 1.15;
+  }
+  .text-5xl {
+    font-size: 1.75rem;
+    line-height: 1.15;
+  }
+  .text-4xl {
+    font-size: 1.625rem;
+    line-height: 1.2;
+  }
+  [class*="tracking-[0."] {
+    letter-spacing: 0.06em;
+  }
+}

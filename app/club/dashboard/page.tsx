@@ -365,7 +365,7 @@ export default function ClubDashboardPage() {
   }
 
   return (
-    <main className="min-h-screen p-10 text-white">
+    <main className="min-h-screen p-4 text-white sm:p-10">
       <div className="mx-auto max-w-7xl">
         <ClubNav />
         <HowS4pSelectMatch

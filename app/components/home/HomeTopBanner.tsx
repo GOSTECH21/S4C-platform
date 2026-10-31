@@ -326,17 +326,17 @@ export default function HomeTopBanner({
         data-home-mobile-intro="home-mobile-simplify-v1"
         className="mx-auto max-w-[1600px] px-4 pb-4 pt-3 md:hidden"
       >
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center justify-between gap-2">
           <Image
             src="/images/home/s4p-lockup.png"
             alt="S4P SCORE-FOR-PLANET"
             width={1087}
             height={458}
-            className="h-10 w-auto shrink-0"
+            className="h-10 w-auto max-w-[6.75rem] shrink-0 object-contain object-left"
             unoptimized
             priority
           />
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center justify-end gap-2">
             <AuthPills
               joinIntent={joinIntent}
               onLogin={onLogin}

@@ -36,7 +36,7 @@ export function LocalSignedSponsorHome({
     amountGbp: 0,
   }));
   return (
-    <div className="space-y-10">
+    <div className="min-w-0 space-y-10">
       <div>
         <div className="flex items-center gap-4">
           <BrandMark name={brand} logoUrl={logoUrl} large />

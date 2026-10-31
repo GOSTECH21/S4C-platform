@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeBootScript } from "@/app/components/ThemeBootScript";
 import ThemeTrialBanner from "@/app/components/ThemeTrialBanner";
@@ -21,6 +21,11 @@ export const metadata: Metadata = {
     "Every score creates a funded impact moment. Fans, sports clubs, local businesses, national sponsors and climate project providers turn match days into climate action.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +36,7 @@ export default function RootLayout({
       lang="en"
       data-theme={DEFAULT_S4P_THEME}
       suppressHydrationWarning
+      data-site-mobile-scale="site-mobile-scale-v1"
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <head>

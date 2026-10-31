@@ -6,7 +6,7 @@ export default function ClubLandingPage() {
 
       {/* HERO */}
 
-      <section className="mx-auto max-w-7xl px-8 py-24">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-24">
 
         <p className="text-green-400 font-semibold uppercase tracking-widest">
           FOR FOOTBALL CLUBS
@@ -26,18 +26,18 @@ export default function ClubLandingPage() {
           impact through your supporters.
         </p>
 
-        <div className="mt-12 flex gap-6">
+        <div className="mt-8 flex flex-col gap-3 sm:mt-12 sm:flex-row sm:gap-6">
 
           <Link
             href="/club/register"
-            className="rounded-xl bg-green-500 px-8 py-4 font-bold text-black hover:bg-green-400"
+            className="w-full rounded-xl bg-green-500 px-8 py-4 text-center font-bold text-black hover:bg-green-400 sm:w-auto"
           >
             Register Your Club
           </Link>
 
           <Link
             href="/"
-            className="rounded-xl border border-slate-700 px-8 py-4"
+            className="w-full rounded-xl border border-slate-700 px-8 py-4 text-center sm:w-auto"
           >
             Back Home
           </Link>

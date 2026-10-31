@@ -25,7 +25,7 @@ import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.serv
 import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 
-const tabClass = "rounded-lg px-5 py-2 text-sm font-bold";
+const tabClass = "rounded-lg px-3 py-2 text-xs font-bold sm:px-5 sm:text-sm";
 
 export function SponsorNav() {
   const router = useRouter();

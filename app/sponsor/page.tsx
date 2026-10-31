@@ -28,7 +28,7 @@ export default function SponsorHomePage() {
 
         </p>
 
-        <div className="mt-12 flex justify-center gap-6">
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-12 sm:flex-row sm:gap-6">
 
           <Link
             href="/sponsor/register"

@@ -2,6 +2,10 @@
 
 import { useMemo, useState } from "react";
 import {
+  CALENDAR_WEEKDAY_CLASS,
+  CalendarMonthNav,
+} from "@/app/components/calendar/CalendarMonthNav";
+import {
   WEEKDAY_LABELS,
   defaultCalendarMonth,
   matchesOnDate,
@@ -36,32 +40,20 @@ export function SponsoredMatchCalendar({
   }
 
   return (
-    <section className="rounded-3xl border border-green-500/30 bg-slate-900 p-8">
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-green-500/30 bg-slate-900 p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
         Sponsored Match Days
       </p>
       <h2 className="mt-2 text-3xl font-black">Your calendar</h2>
       <p className="mt-3 max-w-3xl text-slate-300">{intro}</p>
-      <div className="mt-6 flex items-center justify-between gap-4">
-        <button
-          type="button"
-          onClick={() => go(-1)}
-          className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold"
-        >
-          Previous
-        </button>
-        <h3 className="text-xl font-black">{monthLabel(year, month)}</h3>
-        <button
-          type="button"
-          onClick={() => go(1)}
-          className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold"
-        >
-          Next
-        </button>
-      </div>
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+      <CalendarMonthNav
+        label={monthLabel(year, month)}
+        onPrev={() => go(-1)}
+        onNext={() => go(1)}
+      />
+      <div className={`mt-4 ${CALENDAR_WEEKDAY_CLASS}`}>
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="py-2">
+          <div key={label} className="min-w-0 py-2">
             {label}
           </div>
         ))}
