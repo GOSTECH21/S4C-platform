@@ -479,7 +479,7 @@ const joinMission = readFileSync(
 assert(
   joinMission.includes("For club sustainability") &&
     joinMission.includes(
-      "Turn match-day passion into sponsorship revenue and climate action"
+      "Turn Match Day Scores into sponsored funding for Climate Projects"
     ) &&
     joinMission.includes("Give your club a new way to engage supporters") &&
     joinMission.includes("attract global and") &&
@@ -491,8 +491,11 @@ assert(
     joinMission.includes(
       "commercial opportunities around every match"
     ) &&
-    joinMission.includes('data-club-director-copy="club-passion-copy-v1"') &&
+    joinMission.includes('data-club-director-copy="club-scores-copy-v1"') &&
     joinMission.includes("Explore club partnership") &&
+    joinMission.includes("club-cta-one-line-v1") &&
+    joinMission.includes("whitespace-nowrap") &&
+    joinMission.includes("text-[0.72rem]") &&
     joinMission.includes("CLUB_REGISTER_PATH") &&
     joinMission.includes("Every fan counts") &&
     joinMission.includes("Support your team. Help fund climate action") &&
@@ -500,6 +503,7 @@ assert(
     joinMission.includes("FAN_REGISTER_PATH") &&
     joinMission.includes("s4p-navy-panel") &&
     joinMission.includes("bg-s4p-mark") &&
+    !joinMission.includes("Turn match-day passion into sponsorship revenue and climate action") &&
     !joinMission.includes("Turn every score in a match into a sponsored climate action") &&
     !joinMission.includes("Emissions measurement") &&
     !joinMission.includes("Global fan engagement") &&

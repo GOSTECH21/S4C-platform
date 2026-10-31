@@ -8,9 +8,9 @@ function assert(condition: boolean, message: string) {
 const join = readFileSync("app/components/home/HomeJoinMission.tsx", "utf8");
 
 assert(
-  join.includes('data-club-director-copy="club-passion-copy-v1"') &&
+  join.includes('data-club-director-copy="club-scores-copy-v1"') &&
     join.includes(
-      "Turn match-day passion into sponsorship revenue and climate action"
+      "Turn Match Day Scores into sponsored funding for Climate Projects"
     ) &&
     join.includes(
       "Give your club a new way to engage supporters, attract global and"
@@ -20,12 +20,16 @@ assert(
     join.includes("From scoring moments to live fan predictions, S4P creates new") &&
     join.includes("commercial opportunities around every match.") &&
     join.includes("Explore club partnership") &&
+    join.includes("club-cta-one-line-v1") &&
+    join.includes("whitespace-nowrap") &&
+    join.includes("text-[0.72rem]") &&
     join.includes("CLUB_REGISTER_PATH"),
-  "Club-director panel uses the new heading, two body paragraphs, and Explore club partnership CTA"
+  "Club-director panel uses the Match Day Scores heading, two body paragraphs, and a one-line Explore club partnership CTA"
 );
 
 assert(
   !join.includes("Turn every score in a match into a sponsored climate action") &&
+    !join.includes("Turn match-day passion into sponsorship revenue and climate action") &&
     !join.includes("Turn match-day emissions into a measurable climate funding mission") &&
     !join.includes("Emissions measurement") &&
     !join.includes("Global fan engagement") &&

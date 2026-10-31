@@ -17,7 +17,7 @@ export default function HomeJoinMission() {
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
         <article
           aria-labelledby="club-director-heading"
-          data-club-director-copy="club-passion-copy-v1"
+          data-club-director-copy="club-scores-copy-v1"
           className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9"
         >
           <p
@@ -30,7 +30,7 @@ export default function HomeJoinMission() {
             id="club-director-heading"
             className="mt-3 text-[1.45rem] font-black uppercase leading-snug tracking-tight sm:text-4xl"
           >
-            Turn match-day passion into sponsorship revenue and climate action
+            Turn Match Day Scores into sponsored funding for Climate Projects
           </h2>
           <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
             Give your club a new way to engage supporters, attract global and
@@ -44,7 +44,8 @@ export default function HomeJoinMission() {
           <a
             href={CLUB_REGISTER_PATH}
             onClick={(event) => hardNavigateOnClick(CLUB_REGISTER_PATH, event)}
-            className="mt-8 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-4 py-4 text-sm font-black uppercase tracking-[0.12em] text-black hover:brightness-110 sm:px-6 sm:text-base sm:tracking-[0.18em]"
+            data-club-cta="club-cta-one-line-v1"
+            className="mt-8 flex w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-full bg-s4p-mark px-3 py-3.5 text-[0.72rem] font-black uppercase tracking-[0.06em] text-black hover:brightness-110 sm:px-6 sm:py-4 sm:text-base sm:tracking-[0.18em]"
           >
             Explore club partnership <span aria-hidden> →</span>
           </a>

@@ -22,10 +22,10 @@ assert(
   join.includes('id="club-director-heading"') &&
     join.includes("text-[1.45rem]") &&
     join.includes(
-      "Turn match-day passion into sponsorship revenue and climate action"
+      "Turn Match Day Scores into sponsored funding for Climate Projects"
     ) &&
     join.includes("sm:text-4xl"),
-  "Match-day passion heading is smaller on mobile and unchanged from sm up"
+  "Match Day Scores heading is smaller on mobile and unchanged from sm up"
 );
 
 if (failures.length > 0) {
