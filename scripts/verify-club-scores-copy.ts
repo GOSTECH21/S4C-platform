@@ -8,14 +8,17 @@ function assert(condition: boolean, message: string) {
 const join = readFileSync("app/components/home/HomeJoinMission.tsx", "utf8");
 
 assert(
-  join.includes('data-club-director-copy="club-scores-copy-v1"') &&
+  join.includes('data-club-director-copy="club-sponsorship-copy-v1"') &&
     join.includes(
-      "Turn Match Day Scores into sponsored funding for Climate Projects"
+      "Turn Match Day Scores into sponsorship for Climate Projects"
     ) &&
     !join.includes(
       "Turn match-day passion into sponsorship revenue and climate action"
+    ) &&
+    !join.includes(
+      "Turn Match Day Scores into sponsored funding for Climate Projects"
     ),
-  "Club-director heading is Turn Match Day Scores into sponsored funding for Climate Projects"
+  "Club-director heading is Turn Match Day Scores into sponsorship for Climate Projects"
 );
 
 assert(

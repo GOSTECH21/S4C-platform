@@ -17,7 +17,7 @@ export default function HomeJoinMission() {
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
         <article
           aria-labelledby="club-director-heading"
-          data-club-director-copy="club-scores-copy-v1"
+          data-club-director-copy="club-sponsorship-copy-v1"
           className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9"
         >
           <p
@@ -30,7 +30,7 @@ export default function HomeJoinMission() {
             id="club-director-heading"
             className="mt-3 text-[1.45rem] font-black uppercase leading-snug tracking-tight sm:text-4xl"
           >
-            Turn Match Day Scores into sponsored funding for Climate Projects
+            Turn Match Day Scores into sponsorship for Climate Projects
           </h2>
           <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
             Give your club a new way to engage supporters, attract global and
