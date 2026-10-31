@@ -72,12 +72,12 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Local Businesses",
     kicker: "Support your club. Support your community.",
     description:
-      "Gain local visibility, align your brand with climate action and fund projects through match-day sponsorship.",
+      "Gain local visibility, align your brand with climate action, fund climate projects through Match-Day sponsorship and attract sports fans as customers.",
     shortDescription:
-      "Fund climate projects through match-day sponsorship.",
+      "Fund climate projects through Match-Day sponsorship and attract sports fans as customers.",
     tabHeading: "Support your club. Support your community.",
     tabDescription:
-      "Fund climate projects through match-day sponsorship.",
+      "Fund climate projects through Match-Day sponsorship and attract sports fans as customers.",
     tabCta: "Become a Local Sponsor →",
     register: LOCAL_SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,

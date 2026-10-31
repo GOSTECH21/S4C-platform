@@ -75,6 +75,17 @@ assert(
   "Local sponsor homepage card does not mention the £500 leftover line"
 );
 assert(
+  HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses")
+    ?.tabDescription ===
+    "Fund climate projects through Match-Day sponsorship and attract sports fans as customers." &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses")
+      ?.shortDescription ===
+      "Fund climate projects through Match-Day sponsorship and attract sports fans as customers." &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses")
+      ?.description.includes("attract sports fans as customers"),
+  "Local Businesses card funds climate projects through Match-Day sponsorship and attracts sports fans"
+);
+assert(
   HOME_STAKEHOLDERS.find((card) => card.title === "Global Brands")
     ?.description.includes("fund measurable climate action") &&
     HOME_STAKEHOLDERS.find((card) => card.title === "Global Brands")
