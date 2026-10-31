@@ -446,20 +446,33 @@ const joinMission = readFileSync(
 );
 assert(
   joinMission.includes("For club sustainability") &&
-    joinMission.includes("Turn every score in a match into a sponsored climate action") &&
-    joinMission.includes("Emissions measurement") &&
-    joinMission.includes("Global fan engagement") &&
-    joinMission.includes("Four funding channels") &&
-    joinMission.includes("Transparent project reporting") &&
-    joinMission.includes("Explore club partnership") &&
-    joinMission.includes("CLUB_REGISTER_PATH") &&
+    joinMission.includes(
+      "Turn match-day passion into sponsorship revenue and climate action"
+    ) &&
+    joinMission.includes("Give your club a new way to engage supporters") &&
+    joinMission.includes("attract global and") &&
+    joinMission.includes("local sponsors") &&
+    joinMission.includes("fund approved climate projects") &&
+    joinMission.includes("demonstrate") &&
+    joinMission.includes("measurable progress") &&
+    joinMission.includes("From scoring moments to live fan predictions") &&
+    joinMission.includes(
+      "commercial opportunities around every match"
+    ) &&
+    joinMission.includes('data-club-director-copy="club-passion-copy-v1"') &&
     joinMission.includes("Every fan counts") &&
     joinMission.includes("Support your team. Help fund climate action") &&
     joinMission.includes("Join free") &&
     joinMission.includes("FAN_REGISTER_PATH") &&
     joinMission.includes("s4p-navy-panel") &&
     joinMission.includes("bg-s4p-mark") &&
-    joinMission.includes("#5bc662") &&
+    !joinMission.includes("Turn every score in a match into a sponsored climate action") &&
+    !joinMission.includes("Emissions measurement") &&
+    !joinMission.includes("Global fan engagement") &&
+    !joinMission.includes("Four funding channels") &&
+    !joinMission.includes("Transparent project reporting") &&
+    !joinMission.includes("Explore club partnership") &&
+    !joinMission.includes("measurable climate funding mission") &&
     !joinMission.includes("See how it works") &&
     !joinMission.includes("climate mission today") &&
     !joinMission.includes("Register free") &&

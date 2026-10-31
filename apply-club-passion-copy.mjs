@@ -1,0 +1,56 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
+
+const BRANCH = "cursor/club-passion-copy-18f9";
+const BUST = "club-passion-copy-1";
+const FILES = [
+  "app/components/home/HomeJoinMission.tsx",
+  "scripts/verify-club-passion-copy.ts",
+  "scripts/verify-homepage.ts",
+];
+
+let failed = 0;
+for (const rel of FILES) {
+  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}?v=${BUST}`;
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    mkdirSync(dirname(join(rel)), { recursive: true });
+    writeFileSync(rel, Buffer.from(await response.arrayBuffer()));
+    console.log("Pulled", rel);
+  } catch (err) {
+    failed += 1;
+    console.error(
+      `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
+      err instanceof Error ? err.message : err
+    );
+  }
+}
+
+const join = "app/components/home/HomeJoinMission.tsx";
+if (existsSync(join)) {
+  const src = readFileSync(join, "utf8");
+  if (
+    !src.includes("club-passion-copy-v1") ||
+    !src.includes(
+      "Turn match-day passion into sponsorship revenue and climate action"
+    ) ||
+    !src.includes("Give your club a new way to engage supporters") ||
+    !src.includes("From scoring moments to live fan predictions") ||
+    src.includes("Explore club partnership") ||
+    src.includes("Emissions measurement")
+  ) {
+    failed += 1;
+    console.error(
+      "The club-director copy is still the old version. Pull the files above, then hard-refresh."
+    );
+  }
+} else {
+  failed += 1;
+  console.error("app/components/home/HomeJoinMission.tsx is missing.");
+}
+
+if (failed) process.exit(1);
+console.log(
+  "OK: Club-director panel now uses the match-day passion heading and two body paragraphs. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+);
