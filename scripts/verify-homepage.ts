@@ -88,6 +88,10 @@ assert(
     ?.description.includes(
       "Mobilize your fans to unlock sponsored funding to deliver approved climate projects & offset your Match Day carbon footprint"
     ) &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
+      ?.tabHeading === "Turn every match into a climate mission." &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
+      ?.tabCta.includes("Explore Club Partnership") &&
     !HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
       ?.description.includes("Measure match-day emissions"),
   "Club narrative mobilizes fans to unlock sponsored funding and offset Match Day carbon"
@@ -298,6 +302,14 @@ assert(
     roles.includes("mx-auto max-w-[1400px]") &&
     roles.includes("data-role-cards-panel") &&
     roles.includes("data-role-cards-grid") &&
+    roles.includes("data-role-tabs-mobile") &&
+    roles.includes("role-tabs-mobile-v1") &&
+    roles.includes("Who are you joining as?") &&
+    roles.includes("selected.tabHeading") &&
+    roles.includes("selected.tabDescription") &&
+    roles.includes("selected.image") &&
+    roles.includes("hidden md:grid") &&
+    roles.includes("md:hidden") &&
     roles.indexOf("data-role-cards-panel") < roles.indexOf("data-role-cards-grid") &&
     roles.includes("lg:grid-cols-3") &&
     roles.includes("sm:grid-cols-2") &&
@@ -347,7 +359,7 @@ assert(
 );
 assert(
   roles.includes("hardNavigateOnClick") &&
-    roles.includes("primaryHref") &&
+    roles.includes("roleCta") &&
     !roles.includes('from "next/link"'),
   "Different Roles join buttons do a normal page load so they do not 404 after Create your free account"
 );

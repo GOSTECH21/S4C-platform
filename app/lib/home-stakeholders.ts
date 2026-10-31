@@ -10,11 +10,16 @@ import {
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
 
+export const HOME_ROLE_TABS_STAMP = "role-tabs-mobile-v1";
+
 export type HomeStakeholder = {
   title: string;
   kicker: string;
   description: string;
   shortDescription: string;
+  tabHeading: string;
+  tabDescription: string;
+  tabCta: string;
   register: string;
   login: string;
   registerText: string;
@@ -32,6 +37,10 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
       "Mobilize your fans to unlock sponsored funding to deliver approved climate projects & offset your Match Day carbon footprint.",
     shortDescription:
       "Mobilize fans to unlock sponsored funding and offset your Match Day carbon footprint.",
+    tabHeading: "Turn every match into a climate mission.",
+    tabDescription:
+      "Engage fans, unlock sponsor-funded climate projects and create new commercial opportunities.",
+    tabCta: "Explore Club Partnership →",
     register: CLUB_REGISTER_PATH,
     login: CLUB_LOGIN_PATH,
     registerText: "Discover Club Benefits →",
@@ -47,6 +56,10 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
       "Follow your team, support at the stadium or remotely, take part in Predict-For Planet and direct sponsor-funded money to climate projects.",
     shortDescription:
       "Follow your team and direct sponsor-funded money to climate projects.",
+    tabHeading: "Support your team. Make a difference.",
+    tabDescription:
+      "Follow your team and direct sponsor-funded money to climate projects.",
+    tabCta: "Join as a Fan →",
     register: FAN_REGISTER_PATH,
     login: FAN_LOGIN_PATH,
     registerText: "Join as a Fan →",
@@ -62,6 +75,10 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
       "Gain local visibility, align your brand with climate action and fund projects through match-day sponsorship.",
     shortDescription:
       "Fund climate projects through match-day sponsorship.",
+    tabHeading: "Support your club. Support your community.",
+    tabDescription:
+      "Fund climate projects through match-day sponsorship.",
+    tabCta: "Become a Local Sponsor →",
     register: LOCAL_SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Become a Local Sponsor →",
@@ -77,6 +94,10 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
       "Reach passionate audiences, fund measurable climate action as a Match-Sponsor or Game-Time Sponsor, and gain recognition on S4P and project provider websites.",
     shortDescription:
       "Fund measurable climate action and reach passionate audiences.",
+    tabHeading: "Turn your brand purpose into real impact.",
+    tabDescription:
+      "Fund measurable climate action and reach passionate audiences.",
+    tabCta: "Explore Brand Sponsorship →",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Explore Brand Sponsorship →",
@@ -92,6 +113,10 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
       "Make a climate donation (any amount per match) and let fans direct your gift to the climate projects that helps your Team climb our Climate Impact League Table (CILT).",
     shortDescription:
       "Make a climate donation and let fans help your team climb the Climate Impact League Table.",
+    tabHeading: "Empower fans. Amplify impact.",
+    tabDescription:
+      "Make a climate donation and let fans help your team climb the Climate Impact League Table.",
+    tabCta: "Be a Philanthropic Sponsor →",
     register: SPONSOR_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Be a Philanthropic Sponsor →",
@@ -107,6 +132,10 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
       "Receive funding, implement high-quality climate projects and showcase sponsor support on your website.",
     shortDescription:
       "Receive funding and deliver high-quality climate projects.",
+    tabHeading: "Deliver solutions. Create lasting impact.",
+    tabDescription:
+      "Receive funding and deliver high-quality climate projects.",
+    tabCta: "Partner with S4P →",
     register: PARTNER_REGISTER_PATH,
     login: PARTNER_LOGIN_PATH,
     registerText: "Partner with S4P →",
