@@ -1,10 +1,15 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
   CLIMATE_CREDITS_PATH,
+  CLUB_REGISTER_PATH,
+  FAN_REGISTER_PATH,
   S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
+import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 
 const MARK_GREEN = "#5bc662";
 
@@ -97,11 +102,146 @@ function FeatureIcon({ name }: { name: (typeof FEATURES)[number]["icon"] }) {
   );
 }
 
-export default function HomeTopBanner({
-  children,
+function AuthPills({
+  joinIntent,
+  onLogin,
+  onJoinFree,
+  compact,
 }: {
-  children?: ReactNode;
+  joinIntent: "login" | "register";
+  onLogin: () => void;
+  onJoinFree: () => void;
+  compact?: boolean;
 }) {
+  const pad = compact ? "px-3 py-1.5 text-xs" : "px-5 py-2 text-sm";
+  return (
+    <div
+      role="tablist"
+      aria-label="Login or Join Free"
+      className="flex shrink-0 items-center gap-2"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={joinIntent === "login"}
+        onClick={onLogin}
+        className={`rounded-full border font-bold ${pad} ${
+          joinIntent === "login"
+            ? "border-s4p-mark bg-s4p-paper text-slate-950"
+            : "border-emerald-400/50 bg-s4p-paper hover:bg-s4p-mark/20"
+        }`}
+      >
+        Login
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={joinIntent === "register"}
+        onClick={onJoinFree}
+        className={`rounded-full bg-s4p-mark font-bold text-slate-950 hover:brightness-110 ${pad}`}
+      >
+        Join Free
+      </button>
+    </div>
+  );
+}
+
+function SportClusterImage({
+  className,
+  blend,
+}: {
+  className?: string;
+  blend?: boolean;
+}) {
+  return (
+    <div className={`relative min-w-0 ${className ?? ""}`}>
+      <Image
+        src="/images/home/global-sports-cluster.png"
+        alt="Football, rugby, NFL, basketball and cricket athletes looking toward Earth. Five major sports. A cleaner, greener planet."
+        width={912}
+        height={364}
+        className="h-auto w-full select-none"
+        unoptimized
+        priority
+      />
+      {blend ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 h-[52%] w-[4.25rem]"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, #f7f4e8 0%, #f7f4e8 35%, transparent 100%)",
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function JoinRoleTabs() {
+  return (
+    <div
+      role="tablist"
+      aria-label="Join as a Fan or For Sports Clubs"
+      className="grid grid-cols-2 gap-2"
+    >
+      <a
+        href={FAN_REGISTER_PATH}
+        role="tab"
+        onClick={(event) => hardNavigateOnClick(FAN_REGISTER_PATH, event)}
+        className="rounded-full bg-s4p-mark px-3 py-3 text-center text-sm font-black text-slate-950 hover:brightness-110"
+      >
+        Join as a Fan
+      </a>
+      <a
+        href={CLUB_REGISTER_PATH}
+        role="tab"
+        onClick={(event) => hardNavigateOnClick(CLUB_REGISTER_PATH, event)}
+        className="rounded-full border border-emerald-400/50 bg-s4p-paper px-3 py-3 text-center text-sm font-black text-slate-950 hover:bg-s4p-mark/20"
+      >
+        For Sports Clubs
+      </a>
+    </div>
+  );
+}
+
+function HeadlineAndFeatures() {
+  return (
+    <div className="min-w-0">
+      <h1 className="text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl xl:text-[3.35rem]">
+        A global sports
+        <br />
+        platform turning
+        <br />
+        <span style={{ color: MARK_GREEN }}>passion into progress.</span>
+      </h1>
+      <p className="mt-4 max-w-xl text-sm font-semibold leading-6 sm:text-base">
+        We help your team to offset its Match Day carbon emissions by
+        implementing climate projects funded by Global Brands & Businesses.
+      </p>
+      <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 xl:grid-cols-4">
+        {FEATURES.map((item) => (
+          <li key={item.label} className="flex items-center gap-2.5">
+            <FeatureIcon name={item.icon} />
+            <span className="text-sm font-bold leading-tight">{item.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function HomeTopBanner({
+  joinIntent,
+  onLogin,
+  onJoinFree,
+}: {
+  joinIntent: "login" | "register";
+  onLogin: () => void;
+  onJoinFree: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <header className="relative isolate border-b-2 border-emerald-400/20 text-black">
       <div
@@ -109,7 +249,8 @@ export default function HomeTopBanner({
         style={{ backgroundColor: MARK_GREEN }}
         aria-hidden
       />
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-5 py-4 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-6 xl:py-3">
+
+      <div className="mx-auto hidden md:flex max-w-[1600px] flex-col gap-4 px-5 py-4 md:px-10 xl:flex-row xl:items-center xl:justify-between xl:gap-6 xl:py-3">
         <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
           <Image
             src="/images/home/s4p-lockup.png"
@@ -149,52 +290,89 @@ export default function HomeTopBanner({
               </Link>
             ))}
           </nav>
-          {children}
+          <AuthPills
+            joinIntent={joinIntent}
+            onLogin={onLogin}
+            onJoinFree={onJoinFree}
+          />
+        </div>
+      </div>
+
+      <div
+        data-home-mobile-intro="home-mobile-simplify-v1"
+        className="mx-auto max-w-[1600px] px-4 pb-4 pt-3 md:hidden"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <Image
+            src="/images/home/s4p-lockup.png"
+            alt="S4P SCORE-FOR-PLANET"
+            width={1087}
+            height={458}
+            className="h-10 w-auto shrink-0"
+            unoptimized
+            priority
+          />
+          <div className="flex items-center gap-2">
+            <AuthPills
+              joinIntent={joinIntent}
+              onLogin={onLogin}
+              onJoinFree={onJoinFree}
+              compact
+            />
+            <button
+              type="button"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-400/40 text-slate-950"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+                {menuOpen ? (
+                  <path d="M6.2 5.4 12 11.2l5.8-5.8 1.4 1.4L13.4 12.6l5.8 5.8-1.4 1.4L12 14l-5.8 5.8-1.4-1.4 5.8-5.8-5.8-5.8 1.4-1.4Z" />
+                ) : (
+                  <path d="M4 6.2h16v1.8H4V6.2Zm0 4.9h16v1.8H4v-1.8Zm0 4.9h16V18H4v-1.8Z" />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+        {menuOpen ? (
+          <nav aria-label="Homepage" className="mt-3 grid grid-cols-5 gap-2">
+            {NAV.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex flex-col items-center text-center text-[0.65rem] font-bold leading-tight"
+              >
+                <span style={{ color: MARK_GREEN }}>
+                  <NavIcon name={item.icon} />
+                </span>
+                <span className="mt-1">{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+        ) : null}
+        <h1 className="mt-5 text-[1.65rem] font-black uppercase leading-[1.05] tracking-tight">
+          EVERY SCORE COUNTS.{" "}
+          <span style={{ color: MARK_GREEN }}>EVERY FAN COUNTS.</span>
+        </h1>
+        <p className="mt-3 text-sm font-semibold leading-6">
+          Sport brings fans together. S4P turns match-day participation and
+          scoring moments into sponsor-funded climate action.
+        </p>
+        <SportClusterImage className="mt-4" />
+        <div className="mt-4">
+          <JoinRoleTabs />
         </div>
       </div>
 
       <div className="mx-auto grid max-w-[1600px] items-center gap-6 px-5 pb-6 pt-2 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-4 lg:pb-4">
-        <div className="min-w-0">
-          <h1 className="text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl xl:text-[3.35rem]">
-            A global sports
-            <br />
-            platform turning
-            <br />
-            <span style={{ color: MARK_GREEN }}>passion into progress.</span>
-          </h1>
-          <p className="mt-4 max-w-xl text-sm font-semibold leading-6 sm:text-base">
-            We help your team to offset its Match Day carbon emissions by
-            implementing climate projects funded by Global Brands & Businesses.
-          </p>
-          <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 xl:grid-cols-4">
-            {FEATURES.map((item) => (
-              <li key={item.label} className="flex items-center gap-2.5">
-                <FeatureIcon name={item.icon} />
-                <span className="text-sm font-bold leading-tight">
-                  {item.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="relative min-w-0">
-          <Image
-            src="/images/home/global-sports-cluster.png"
-            alt="Football, rugby, NFL, basketball and cricket athletes looking toward Earth. Five major sports. A cleaner, greener planet."
-            width={912}
-            height={364}
-            className="h-auto w-full select-none"
-            unoptimized
-            priority
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-0 top-0 h-[52%] w-[4.25rem]"
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, #f7f4e8 0%, #f7f4e8 35%, transparent 100%)",
-            }}
-          />
+        <HeadlineAndFeatures />
+        <div className="hidden min-w-0 md:block">
+          <SportClusterImage blend />
+          <div className="mt-4 max-w-xl">
+            <JoinRoleTabs />
+          </div>
         </div>
       </div>
     </header>

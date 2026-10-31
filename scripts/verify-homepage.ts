@@ -319,18 +319,19 @@ assert(
   front.includes('showJoin("login")') &&
     front.includes('showJoin("register")') &&
     front.includes("scrollIntoView") &&
-    front.includes("role=\"tablist\"") &&
     !front.includes("sticky top-0") &&
-    banner.includes("{children}") &&
-    banner.indexOf("News") < banner.indexOf("{children}"),
-  "Login and Register sit to the right of the homepage nav in the top banner"
+    banner.includes('role="tablist"') &&
+    banner.includes("Join Free") &&
+    banner.includes("Login") &&
+    banner.indexOf("News") < banner.indexOf("Join Free"),
+  "Login and Join Free sit to the right of the homepage nav in the top banner"
 );
 assert(
-  front.includes("bg-s4p-mark") &&
-    front.includes("text-slate-950") &&
-    front.includes("rounded-full") &&
+  banner.includes("bg-s4p-mark") &&
+    banner.includes("text-slate-950") &&
+    banner.includes("rounded-full") &&
     !front.includes("bg-emerald-500 text-slate-950"),
-  "Login is an outline pill and Register uses the S4P mark green from the numeral 4"
+  "Login is an outline pill and Join Free uses the S4P mark green from the numeral 4"
 );
 assert(
   roles.includes("backgroundColor: MINT") &&
@@ -413,13 +414,18 @@ assert(
     banner.includes("Five Major Sports") &&
     banner.includes("Measure emissions") &&
     banner.includes("A cleaner, greener planet") &&
+    banner.includes("EVERY SCORE COUNTS") &&
+    banner.includes("EVERY FAN COUNTS") &&
+    banner.includes("Join as a Fan") &&
+    banner.includes("For Sports Clubs") &&
+    banner.includes("data-home-mobile-intro") &&
+    banner.includes("md:hidden") &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes('src="/images/home/global-sports-cluster.png"') &&
     banner.includes("width={912}") &&
     banner.includes("#5bc662") &&
     banner.includes("unoptimized") &&
     banner.includes("border-b-2 border-emerald-400/20") &&
-    !banner.includes("Every score counts") &&
     !banner.includes("Fans at the stadium") &&
     !banner.includes("every-score-counts-banner.png") &&
     !banner.includes("hero.png") &&
