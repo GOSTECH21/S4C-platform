@@ -16,6 +16,15 @@ import {
   clubRegisterStateKey,
 } from "@/app/lib/club-register-contact";
 
+const CLUB_REGISTER_FIELD_CLASS =
+  "w-full min-w-0 max-w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-base sm:p-4";
+const CLUB_REGISTER_SELECT_CLASS =
+  "w-full min-w-0 max-w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-3 pr-8 text-base sm:py-4 sm:pl-4 sm:pr-10";
+const CLUB_REGISTER_BACK_CLASS =
+  "min-w-0 flex-1 rounded-xl border border-slate-700 px-4 py-3 text-center hover:bg-slate-800 sm:flex-none sm:px-8";
+const CLUB_REGISTER_CONTINUE_CLASS =
+  "min-w-0 flex-1 rounded-xl bg-green-500 px-3 py-3 text-center text-sm font-bold text-black hover:bg-green-400 sm:flex-none sm:px-8 sm:text-base";
+
 export default function ClubRegistrationPage() {
   const account = roleRegisterAccount("club");
   const [formReady, setFormReady] = useState(false);
@@ -160,23 +169,26 @@ confirmPassword: "",
 
   return (
 
-    <main className="min-h-screen text-white">
+    <main className="min-h-screen overflow-x-hidden text-white">
 
-      <section className="mx-auto max-w-5xl px-8 py-20">
+      <section
+        className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-20"
+        data-club-register-scale="club-register-mobile-scale-v1"
+      >
 
-        <p className="font-bold uppercase tracking-[0.3em] text-green-400">
+        <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-400 sm:text-base sm:tracking-[0.3em]">
 
           CLUB REGISTRATION
 
         </p>
 
-        <h1 className="mt-6 text-6xl font-black">
+        <h1 className="mt-4 text-3xl font-black sm:mt-6 sm:text-6xl">
 
           Register Your Club
 
         </h1>
 
-        <p className="mt-8 max-w-3xl text-xl leading-9 text-slate-300">
+        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:mt-8 sm:text-xl sm:leading-9">
           Join Score-4-Planet; turn every Sporting Moment (e.g a Goal
           Scored), into a Measurable Climate Impact Moment through
           Brands-led{" "}
@@ -189,7 +201,7 @@ confirmPassword: "",
 
         {/* Progress */}
 
-        <div className="mt-12">
+        <div className="mt-8 sm:mt-12">
 
           <div className="mb-3 flex justify-between text-sm text-slate-400">
 
@@ -221,11 +233,11 @@ confirmPassword: "",
         </div>
 
         {!formReady ? (
-        <div className="mt-16 min-h-[28rem] rounded-2xl border border-slate-800 bg-slate-900 p-10" />
+        <div className="mt-8 min-h-[28rem] rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:mt-16 sm:p-10" />
         ) : (
         <form
           id={account.formId}
-          className="mt-16 rounded-2xl border border-slate-800 bg-slate-900 p-10"
+          className="mt-8 min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:mt-16 sm:p-10"
           autoComplete="off"
           onSubmit={(event) => {
             event.preventDefault();
@@ -238,7 +250,7 @@ confirmPassword: "",
 {step === 1 && (
   <>
 
-    <h2 className="text-3xl font-bold">
+    <h2 className="text-xl font-bold sm:text-3xl">
 
       Step 1 — Club Details
 
@@ -250,7 +262,7 @@ confirmPassword: "",
 
     </p>
 
-    <div className="mt-10 grid gap-8 md:grid-cols-2">
+    <div className="mt-6 grid min-w-0 gap-5 md:grid-cols-2 sm:mt-10 sm:gap-8">
 
       <div>
 
@@ -266,7 +278,7 @@ confirmPassword: "",
           name="clubName"
           value={formData.clubName}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
 
       </div>
@@ -285,7 +297,7 @@ confirmPassword: "",
           value={formData.sport}
           onChange={handleChange}
           aria-label="Sport"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_SELECT_CLASS}
         >
 
           {SPORT_SELECT_OPTIONS.map((sport) => (
@@ -312,7 +324,7 @@ confirmPassword: "",
           value={formData.country}
           onChange={handleChange}
           aria-label="Country"
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_SELECT_CLASS}
         >
 
           <option value="">Select the Country</option>
@@ -341,7 +353,7 @@ confirmPassword: "",
           onChange={handleChange}
           aria-label="League"
           disabled={!formData.country}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4 disabled:opacity-50"
+          className={`${CLUB_REGISTER_SELECT_CLASS} disabled:opacity-50`}
         >
 
           <option value="">
@@ -375,7 +387,7 @@ confirmPassword: "",
           name="website"
           value={formData.website}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
           placeholder="https://www.arsenal.com"
         />
 
@@ -393,7 +405,7 @@ confirmPassword: "",
 {step === 2 && (
   <>
 
-    <h2 className="text-3xl font-bold">
+    <h2 className="text-xl font-bold sm:text-3xl">
 
       Step 2 — Primary Club Representative
 
@@ -405,7 +417,7 @@ confirmPassword: "",
 
     </p>
 
-    <div className="mt-10 grid gap-8 md:grid-cols-2">
+    <div className="mt-6 grid min-w-0 gap-5 md:grid-cols-2 sm:mt-10 sm:gap-8">
 
       <div>
 
@@ -421,7 +433,7 @@ confirmPassword: "",
           name="firstName"
           value={formData.firstName}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
 
       </div>
@@ -440,7 +452,7 @@ confirmPassword: "",
           name="lastName"
           value={formData.lastName}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
 
       </div>
@@ -458,7 +470,7 @@ confirmPassword: "",
           name="jobTitle"
           value={formData.jobTitle}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         >
 
           <option value="">Select Job Title</option>
@@ -502,7 +514,7 @@ confirmPassword: "",
           aria-label="Phone Number"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
 
       </div>
@@ -524,7 +536,7 @@ confirmPassword: "",
           aria-label="Club Email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
 
       </div>
@@ -544,7 +556,7 @@ confirmPassword: "",
           aria-label="Password"
           value={formData.password}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
           required
         />
 
@@ -565,7 +577,7 @@ confirmPassword: "",
           aria-label="Confirm Password"
           value={formData.confirmPassword}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
           required
         />
 
@@ -582,7 +594,7 @@ confirmPassword: "",
 {step === 3 && (
   <>
 
-    <h2 className="text-3xl font-bold">
+    <h2 className="text-xl font-bold sm:text-3xl">
       Step 3 — Club Sustainability Profile
     </h2>
 
@@ -590,7 +602,7 @@ confirmPassword: "",
       Help us understand your club and its sustainability ambitions.
     </p>
 
-    <div className="mt-10 grid gap-8 md:grid-cols-2">
+    <div className="mt-6 grid min-w-0 gap-5 md:grid-cols-2 sm:mt-10 sm:gap-8">
 
       <div>
         <label className="mb-2 block text-sm text-slate-400">
@@ -603,7 +615,7 @@ confirmPassword: "",
           name="stadium"
           value={formData.stadium}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
       </div>
 
@@ -617,7 +629,7 @@ confirmPassword: "",
           name="supporterBase"
           value={formData.supporterBase}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         >
           <option value="">Select</option>
           <option>Under 5,000</option>
@@ -639,7 +651,7 @@ confirmPassword: "",
           name="attendance"
           value={formData.attendance}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
       </div>
 
@@ -654,7 +666,7 @@ confirmPassword: "",
           value={formData.sustainability}
           onChange={handleChange}
           rows={5}
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4"
+          className={CLUB_REGISTER_FIELD_CLASS}
         />
       </div>
 
@@ -670,7 +682,7 @@ confirmPassword: "",
 {step === 4 && (
   <>
 
-    <h2 className="text-3xl font-bold">
+    <h2 className="text-xl font-bold sm:text-3xl">
       Step 4 — Climate Commitment
     </h2>
 
@@ -678,9 +690,9 @@ confirmPassword: "",
       Choose how your club wants to participate in the S4P ecosystem.
     </p>
 
-    <div className="mt-10 space-y-6">
+    <div className="mt-6 space-y-5 sm:mt-10 sm:space-y-6">
 
-      <label className="flex items-center gap-4">
+      <label className="flex items-start gap-3 sm:items-center sm:gap-4">
 
         <input
           suppressHydrationWarning
@@ -696,7 +708,7 @@ confirmPassword: "",
 
       </label>
 
-      <label className="flex items-center gap-4">
+      <label className="flex items-start gap-3 sm:items-center sm:gap-4">
 
         <input
           suppressHydrationWarning
@@ -713,7 +725,7 @@ confirmPassword: "",
 
       </label>
 
-      <label className="flex items-center gap-4">
+      <label className="flex items-start gap-3 sm:items-center sm:gap-4">
 
         <input
           suppressHydrationWarning
@@ -730,7 +742,7 @@ confirmPassword: "",
 
       </label>
 
-      <label className="flex items-center gap-4">
+      <label className="flex items-start gap-3 sm:items-center sm:gap-4">
 
         <input
           suppressHydrationWarning
@@ -758,7 +770,7 @@ confirmPassword: "",
 {step === 5 && (
   <>
 
-    <h2 className="text-3xl font-bold">
+    <h2 className="text-xl font-bold sm:text-3xl">
       Step 5 — Review & Submit
     </h2>
 
@@ -766,46 +778,46 @@ confirmPassword: "",
       Please review your club registration before submitting.
     </p>
 
-    <div className="mt-10 space-y-6 rounded-2xl border border-slate-700 bg-slate-950 p-8">
+    <div className="mt-6 space-y-5 rounded-2xl border border-slate-700 bg-slate-950 p-4 sm:mt-10 sm:space-y-6 sm:p-8">
 
-      <div className="flex justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col gap-1 border-b border-slate-800 pb-4 sm:flex-row sm:justify-between">
         <span className="text-slate-400">Club</span>
-        <span className="font-semibold">{formData.clubName || "-"}</span>
+        <span className="min-w-0 break-words font-semibold">{formData.clubName || "-"}</span>
       </div>
 
-      <div className="flex justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col gap-1 border-b border-slate-800 pb-4 sm:flex-row sm:justify-between">
         <span className="text-slate-400">Sport</span>
-        <span>{formData.sport}</span>
+        <span className="min-w-0 break-words">{formData.sport}</span>
       </div>
 
-      <div className="flex justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col gap-1 border-b border-slate-800 pb-4 sm:flex-row sm:justify-between">
         <span className="text-slate-400">Country</span>
-        <span>{formData.country || "-"}</span>
+        <span className="min-w-0 break-words">{formData.country || "-"}</span>
       </div>
 
-      <div className="flex justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col gap-1 border-b border-slate-800 pb-4 sm:flex-row sm:justify-between">
         <span className="text-slate-400">League</span>
-        <span>{formData.league || "-"}</span>
+        <span className="min-w-0 break-words">{formData.league || "-"}</span>
       </div>
 
-      <div className="flex justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col gap-1 border-b border-slate-800 pb-4 sm:flex-row sm:justify-between">
         <span className="text-slate-400">Representative</span>
-        <span>
+        <span className="min-w-0 break-words">
           {formData.firstName} {formData.lastName}
         </span>
       </div>
 
-      <div className="flex justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col gap-1 border-b border-slate-800 pb-4 sm:flex-row sm:justify-between">
         <span className="text-slate-400">Email</span>
-        <span>{formData.email || "-"}</span>
+        <span className="min-w-0 break-words">{formData.email || "-"}</span>
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
         <span className="text-slate-400">
           Climate Commitments
         </span>
 
-        <div className="text-right text-green-400">
+        <div className="min-w-0 text-left text-green-400 sm:text-right">
 
           {formData.climateSponsorship && (
             <div>✓ Climate Sponsorship</div>
@@ -842,7 +854,7 @@ confirmPassword: "",
     NAVIGATION
 ============================ */}
 
-<div className="mt-12 flex justify-between">
+<div className="mt-8 flex gap-3 sm:mt-12 sm:justify-between">
 
   {step > 1 ? (
 
@@ -850,7 +862,7 @@ confirmPassword: "",
       suppressHydrationWarning
       type="button"
       onClick={previousStep}
-      className="rounded-xl border border-slate-700 px-8 py-3 hover:bg-slate-800"
+      className={CLUB_REGISTER_BACK_CLASS}
     >
       ← Previous
     </button>
@@ -859,7 +871,7 @@ confirmPassword: "",
 
     <Link
       href="/club"
-      className="rounded-xl border border-slate-700 px-8 py-3 hover:bg-slate-800"
+      className={CLUB_REGISTER_BACK_CLASS}
     >
       Back
     </Link>
@@ -872,7 +884,7 @@ confirmPassword: "",
       suppressHydrationWarning
       type="button"
       onClick={nextStep}
-      className="rounded-xl bg-green-500 px-8 py-3 font-bold text-black hover:bg-green-400"
+      className={CLUB_REGISTER_CONTINUE_CLASS}
     >
       Continue →
     </button>
@@ -884,7 +896,7 @@ confirmPassword: "",
       type="button"
       onClick={submitRegistration}
       disabled={busy}
-      className="rounded-xl bg-green-500 px-8 py-3 font-bold text-black hover:bg-green-400 disabled:opacity-70"
+      className={`${CLUB_REGISTER_CONTINUE_CLASS} disabled:opacity-70`}
     >
       {busy ? "Opening your dashboard..." : "Complete Club Registration"}
     </button>

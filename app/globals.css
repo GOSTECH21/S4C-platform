@@ -187,6 +187,9 @@ input,
 textarea,
 select {
   color: var(--foreground);
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 input::placeholder,
