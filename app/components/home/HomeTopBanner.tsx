@@ -4,6 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  HOME_JOIN_COMMUNITY_HREF,
+  HOME_JOIN_COMMUNITY_LABEL,
+} from "@/app/lib/home-hero";
+import {
   CLIMATE_CREDITS_PATH,
   CLUB_REGISTER_PATH,
   FAN_REGISTER_PATH,
@@ -205,7 +209,11 @@ function JoinRoleTabs() {
   );
 }
 
-function HeadlineAndFeatures() {
+function HeadlineAndFeatures({
+  onJoinCommunity,
+}: {
+  onJoinCommunity: () => void;
+}) {
   return (
     <div className="min-w-0">
       <h1
@@ -230,6 +238,17 @@ function HeadlineAndFeatures() {
           </li>
         ))}
       </ul>
+      <a
+        href={HOME_JOIN_COMMUNITY_HREF}
+        data-join-community="join-community-v1"
+        onClick={(event) => {
+          event.preventDefault();
+          onJoinCommunity();
+        }}
+        className="mt-6 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-4 py-3.5 text-sm font-black text-slate-950 hover:brightness-110 md:hidden"
+      >
+        {HOME_JOIN_COMMUNITY_LABEL}
+      </a>
     </div>
   );
 }
@@ -238,10 +257,12 @@ export default function HomeTopBanner({
   joinIntent,
   onLogin,
   onJoinFree,
+  onJoinCommunity,
 }: {
   joinIntent: "login" | "register";
   onLogin: () => void;
   onJoinFree: () => void;
+  onJoinCommunity: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -340,8 +361,8 @@ export default function HomeTopBanner({
           </div>
         </div>
         {menuOpen ? (
-          <nav aria-label="Homepage" className="mt-3 grid grid-cols-5 gap-2">
-            {NAV.map((item) => (
+          <nav aria-label="Homepage" className="mt-3 grid grid-cols-4 gap-2">
+            {NAV.filter((item) => item.label !== "How it works").map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
@@ -364,13 +385,10 @@ export default function HomeTopBanner({
           scoring moments into sponsor-funded climate action.
         </p>
         <SportClusterImage className="mt-4" />
-        <div className="mt-4">
-          <JoinRoleTabs />
-        </div>
       </div>
 
       <div className="mx-auto grid max-w-[1600px] items-center gap-6 px-5 pb-6 pt-2 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-4 lg:pb-4">
-        <HeadlineAndFeatures />
+        <HeadlineAndFeatures onJoinCommunity={onJoinCommunity} />
         <div className="hidden min-w-0 md:block">
           <SportClusterImage blend />
           <div className="mt-4 max-w-xl">

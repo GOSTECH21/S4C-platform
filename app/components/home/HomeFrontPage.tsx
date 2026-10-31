@@ -48,14 +48,17 @@ export default function HomeFrontPage() {
         joinIntent={joinIntent}
         onLogin={() => showJoin("login")}
         onJoinFree={() => showJoin("register")}
+        onJoinCommunity={() => showJoin("register")}
       />
       <div className="relative flex flex-col">
         <HomeJoinMission />
 
-        <HowItWorks
-          onCreateAccount={() => showJoin("register")}
-          onLogin={() => showJoin("login")}
-        />
+        <div className="hidden md:block" data-how-s4p-desktop="true">
+          <HowItWorks
+            onCreateAccount={() => showJoin("register")}
+            onLogin={() => showJoin("login")}
+          />
+        </div>
 
         <HomeRoleSection joinIntent={joinIntent} onJoin={showJoin} />
       </div>

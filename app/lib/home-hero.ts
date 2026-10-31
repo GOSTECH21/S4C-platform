@@ -11,3 +11,5 @@ export const HOME_JOIN_FAN_LABEL = "Join as a Fan";
 export const HOME_JOIN_CLUB_LABEL = "For Sports Clubs";
 export const HOME_JOIN_FREE_LABEL = "Join Free";
 export const HOME_LOGIN_LABEL = "Login";
+export const HOME_JOIN_COMMUNITY_LABEL = "Join the Community";
+export const HOME_JOIN_COMMUNITY_HREF = "#are-you";

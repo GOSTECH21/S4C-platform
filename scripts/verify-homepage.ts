@@ -385,8 +385,10 @@ assert(
 );
 assert(
   front.includes("<HowItWorks") &&
-    front.indexOf("<HowItWorks") < front.indexOf("<HomeRoleSection"),
-  "How S4P Works sits above the role cards"
+    front.indexOf("<HowItWorks") < front.indexOf("<HomeRoleSection") &&
+    front.includes("hidden md:block") &&
+    front.includes('data-how-s4p-desktop="true"'),
+  "How S4P Works sits above the role cards on desktop and is hidden on mobile"
 );
 assert(
   front.includes("HomeJoinMission") &&
@@ -436,6 +438,9 @@ assert(
     banner.includes("EVERY FAN COUNTS") &&
     banner.includes("Join as a Fan") &&
     banner.includes("For Sports Clubs") &&
+    banner.includes("HOME_JOIN_COMMUNITY_LABEL") &&
+    banner.includes("data-join-community") &&
+    banner.includes("onJoinCommunity") &&
     banner.includes("data-home-mobile-intro") &&
     banner.includes("md:hidden") &&
     banner.includes('src="/images/home/s4p-lockup.png"') &&

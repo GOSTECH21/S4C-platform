@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import {
   HOME_JOIN_CLUB_LABEL,
+  HOME_JOIN_COMMUNITY_LABEL,
   HOME_JOIN_FAN_LABEL,
   HOME_JOIN_FREE_LABEL,
   HOME_MOBILE_HEADLINE,
@@ -40,14 +41,18 @@ assert(
     banner.includes("FAN_REGISTER_PATH") &&
     banner.includes("CLUB_REGISTER_PATH") &&
     banner.includes("passion into progress") &&
-    banner.includes("Sport unites people"),
-  "Mobile uses the compact header, five-sports banner, Fan and Clubs tabs, and Login beside Join Free"
+    banner.includes("Sport unites people") &&
+    banner.includes("HOME_JOIN_COMMUNITY_LABEL") &&
+    banner.includes("data-join-community"),
+  "Mobile uses the compact header, five-sports banner, Join the Community, and Login beside Join Free"
 );
 
 assert(
   front.includes("onJoinFree") &&
+    front.includes("onJoinCommunity") &&
     front.includes('showJoin("register")') &&
     front.includes("onLogin") &&
+    front.includes("hidden md:block") &&
     !front.includes(">Register<") &&
     !front.includes("{children}"),
   "The front page passes Login and Join Free into the simplified banner"
