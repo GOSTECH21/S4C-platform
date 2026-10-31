@@ -5,6 +5,7 @@ const sportEvents: Record<string, { label: string; emoji: string }> = {
   Rugby: { label: "TRY!", emoji: "🏉" },
   NFL: { label: "TOUCHDOWN!", emoji: "🏈" },
   NBA: { label: "3-POINT!", emoji: "🏀" },
+  Cricket: { label: "SIX!", emoji: "🏏" },
 };
 
 const sponsorGroups: Record<
@@ -30,6 +31,11 @@ const sponsorGroups: Record<
     { name: "🥤 Sprite", amount: 10000 },
     { name: "👟 Nike", amount: 10000 },
     { name: "📡 State Farm", amount: 10000 },
+  ],
+  Cricket: [
+    { name: "💳 Mastercard", amount: 10000 },
+    { name: "✈️ Emirates", amount: 10000 },
+    { name: "📺 Star Sports", amount: 10000 },
   ],
 };
 

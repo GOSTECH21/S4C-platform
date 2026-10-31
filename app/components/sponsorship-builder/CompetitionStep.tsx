@@ -35,6 +35,15 @@ const competitions: Record<string, string[]> = {
     "NBA",
   ],
 
+  Cricket: [
+    "County Championship",
+    "Vitality Blast",
+    "The Hundred",
+    "Indian Premier League",
+    "Big Bash League",
+    "ICC Men's Cricket",
+  ],
+
   Hockey: [
     "NHL",
   ],

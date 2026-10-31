@@ -87,7 +87,14 @@ type PublishedFile = {
 };
 
 function asCalendarSport(value: string): CalendarSport {
-  if (value === "NFL" || value === "NBA" || value === "Rugby") return value;
+  if (
+    value === "NFL" ||
+    value === "NBA" ||
+    value === "Rugby" ||
+    value === "Cricket"
+  ) {
+    return value;
+  }
   return "Football";
 }
 

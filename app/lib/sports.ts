@@ -1,4 +1,4 @@
-/** The four S4P sport categories and the score that unlocks sponsorship. */
+/** The five S4P sport categories and the score that unlocks sponsorship. */
 
 export type SportCategory = {
   name: string;
@@ -50,6 +50,15 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     summary:
       `An S4P Lead Sponsor pays one fixed Match-Sponsorship. ${FAN_POOL_SENTENCE} 3-Point scores by the sponsored team unlock the 20% Score Impact Pool. ${THIRD_UNLOCK} Further 3-Point scores after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities.`,
   },
+  {
+    name: "Cricket",
+    scoreLabel: "Six",
+    scoreEvent: "Six scored",
+    exampleS2PS: "£10,000 Match-Sponsorship",
+    icon: "🏏",
+    summary:
+      `An S4P Lead Sponsor pays one fixed Match-Sponsorship. ${FAN_POOL_SENTENCE} Sixes scored by the sponsored team unlock the 20% Score Impact Pool. ${THIRD_UNLOCK} Further Sixes after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities.`,
+  },
 ];
 
 export const PRIMARY_SPORTS = SPORT_CATEGORIES.map((sport) => sport.name);
@@ -76,6 +85,9 @@ export function sportCategory(
   }
   if (value.includes("nba") || value.includes("basketball")) {
     return CATEGORY_BY_NAME.get("nba") ?? null;
+  }
+  if (value.includes("cricket")) {
+    return CATEGORY_BY_NAME.get("cricket") ?? null;
   }
   if (value.includes("football") || value.includes("soccer")) {
     return CATEGORY_BY_NAME.get("football") ?? null;

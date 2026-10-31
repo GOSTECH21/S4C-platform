@@ -19,8 +19,8 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(
-  SPORT_SELECT_OPTIONS.join(",") === "Football,Rugby,NFL,NBA",
-  "Sport lists Football, Rugby, NFL and NBA"
+  SPORT_SELECT_OPTIONS.join(",") === "Football,Rugby,NFL,NBA,Cricket",
+  "Sport lists Football, Rugby, NFL, NBA and Cricket"
 );
 
 const countries = clubRegisterCountries();
@@ -54,7 +54,8 @@ assert(
     englandFootball.includes("Carabao Cup") &&
     !englandFootball.includes("Scottish Premiership") &&
     !englandFootball.includes("Premiership Rugby") &&
-    !englandFootball.includes("NFL"),
+    !englandFootball.includes("NFL") &&
+    !englandFootball.includes("County Championship"),
   "England + Football lists English football leagues and cups"
 );
 
@@ -78,6 +79,17 @@ assert(
   clubRegisterLeaguesFor("United States", "NFL").join(",") === "NFL" &&
     clubRegisterLeaguesFor("United States", "NBA").join(",") === "NBA",
   "United States lists NFL or NBA from the chosen sport"
+);
+
+const englandCricket = clubRegisterLeaguesFor("England", "Cricket");
+assert(
+  englandCricket.includes("County Championship") &&
+    englandCricket.includes("Vitality Blast") &&
+    englandCricket.includes("The Hundred") &&
+    !englandCricket.includes("Premier League") &&
+    clubRegisterLeaguesFor("India", "Cricket").includes("Indian Premier League") &&
+    clubRegisterLeaguesFor("Australia", "Cricket").includes("Big Bash League"),
+  "Cricket lists County Championship, The Hundred, IPL and Big Bash by country"
 );
 
 assert(

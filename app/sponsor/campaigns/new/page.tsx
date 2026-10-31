@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createSponsorshipCampaign } from "@/app/services/sponsorship-campaigns.service";
-import { scoreEventForSport, scoreLabelForSport } from "@/app/lib/sports";
+import {
+  SPORT_SELECT_OPTIONS,
+  scoreEventForSport,
+  scoreLabelForSport,
+} from "@/app/lib/sports";
 
 export default function CampaignBuilderPage() {
 
@@ -176,20 +180,12 @@ return (
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
 
-            {["Football", "Rugby", "NFL", "NBA"].map((sport) => (
+            {SPORT_SELECT_OPTIONS.map((sport) => (
               <button
                 key={sport}
                 onClick={() => {
                   setSelectedSport(sport);
-                  setTrigger(
-                    sport === "Rugby"
-                      ? "Try"
-                      : sport === "NFL"
-                        ? "Touchdown"
-                        : sport === "NBA"
-                          ? "3-Point"
-                          : "Goal"
-                  );
+                  setTrigger(scoreLabelForSport(sport));
                   setStep(2);
                 }}
                 className="rounded-xl border p-6 text-center transition hover:border-emerald-600 hover:bg-emerald-50"

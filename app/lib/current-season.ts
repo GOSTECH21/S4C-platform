@@ -45,6 +45,16 @@ const LEAGUE_ALIASES: Record<string, string> = {
   nba: "NBA",
   "national basketball association": "NBA",
   basketball: "NBA",
+  cricket: "County Championship",
+  "county championship": "County Championship",
+  "vitality blast": "Vitality Blast",
+  "t20 blast": "Vitality Blast",
+  "the hundred": "The Hundred",
+  ipl: "Indian Premier League",
+  "indian premier league": "Indian Premier League",
+  bbl: "Big Bash League",
+  "big bash league": "Big Bash League",
+  "big bash": "Big Bash League",
 };
 
 const CLUB_ALIASES: Record<string, string[]> = {

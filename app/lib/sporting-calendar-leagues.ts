@@ -1,6 +1,6 @@
 /** Confirmed 2026/27 competition rosters (promotion and relegation applied) — not the three-club demo. */
 
-export type CalendarSport = "Football" | "NFL" | "Rugby" | "NBA";
+export type CalendarSport = "Football" | "NFL" | "Rugby" | "NBA" | "Cricket";
 
 export type SportingTeam = {
   name: string;
@@ -367,6 +367,75 @@ export const NBA_TEAMS: SportingTeam[] = [
   t("Washington Wizards", "Capital One Arena"),
 ];
 
+export const COUNTY_CHAMPIONSHIP_TEAMS: SportingTeam[] = [
+  t("Derbyshire", "Queen's Park"),
+  t("Durham", "Seat Unique Riverside"),
+  t("Essex", "Cloud County Ground"),
+  t("Glamorgan", "Sophia Gardens"),
+  t("Gloucestershire", "Seat Unique Stadium"),
+  t("Hampshire", "Utilita Bowl"),
+  t("Kent", "St Lawrence Ground"),
+  t("Lancashire", "Emirates Old Trafford"),
+  t("Leicestershire", "Uptonsteel County Ground"),
+  t("Middlesex", "Lord's"),
+  t("Northamptonshire", "County Ground"),
+  t("Nottinghamshire", "Trent Bridge"),
+  t("Somerset", "Cooper Associates County Ground"),
+  t("Surrey", "The Kia Oval"),
+  t("Sussex", "1st Central County Ground"),
+  t("Warwickshire", "Edgbaston"),
+  t("Worcestershire", "Visit Worcestershire New Road"),
+  t("Yorkshire", "Headingley"),
+];
+
+export const THE_HUNDRED_TEAMS: SportingTeam[] = [
+  t("Birmingham Phoenix", "Edgbaston"),
+  t("London Spirit", "Lord's"),
+  t("Manchester Originals", "Emirates Old Trafford"),
+  t("Northern Superchargers", "Headingley"),
+  t("Oval Invincibles", "The Kia Oval"),
+  t("Southern Brave", "Utilita Bowl"),
+  t("Trent Rockets", "Trent Bridge"),
+  t("Welsh Fire", "Sophia Gardens"),
+];
+
+export const IPL_TEAMS: SportingTeam[] = [
+  t("Chennai Super Kings", "M. A. Chidambaram Stadium"),
+  t("Delhi Capitals", "Arun Jaitley Stadium"),
+  t("Gujarat Titans", "Narendra Modi Stadium"),
+  t("Kolkata Knight Riders", "Eden Gardens"),
+  t("Lucknow Super Giants", "Ekana Cricket Stadium"),
+  t("Mumbai Indians", "Wankhede Stadium"),
+  t("Punjab Kings", "PCA Stadium"),
+  t("Rajasthan Royals", "Sawai Mansingh Stadium"),
+  t("Royal Challengers Bengaluru", "M. Chinnaswamy Stadium"),
+  t("Sunrisers Hyderabad", "Rajiv Gandhi Stadium"),
+];
+
+export const BBL_TEAMS: SportingTeam[] = [
+  t("Adelaide Strikers", "Adelaide Oval"),
+  t("Brisbane Heat", "The Gabba"),
+  t("Hobart Hurricanes", "Blundstone Arena"),
+  t("Melbourne Renegades", "Marvel Stadium"),
+  t("Melbourne Stars", "Melbourne Cricket Ground"),
+  t("Perth Scorchers", "Optus Stadium"),
+  t("Sydney Sixers", "Sydney Cricket Ground"),
+  t("Sydney Thunder", "Sydney Showground Stadium"),
+];
+
+export const ICC_TEAMS: SportingTeam[] = [
+  t("Afghanistan", "Sharjah Cricket Stadium"),
+  t("Australia", "Melbourne Cricket Ground"),
+  t("Bangladesh", "Sher-e-Bangla National Stadium"),
+  t("England", "Lord's"),
+  t("India", "Narendra Modi Stadium"),
+  t("New Zealand", "Eden Park"),
+  t("Pakistan", "Gaddafi Stadium"),
+  t("South Africa", "Newlands"),
+  t("Sri Lanka", "R. Premadasa Stadium"),
+  t("West Indies", "Kensington Oval"),
+];
+
 export const SPORTING_CALENDAR_LEAGUES: SportingLeagueDef[] = [
   {
     name: "Premier League",
@@ -624,6 +693,61 @@ export const SPORTING_CALENDAR_LEAGUES: SportingLeagueDef[] = [
     weekday: 2,
     startDate: "2026-10-27",
     teams: NBA_TEAMS,
+  },
+  {
+    name: "County Championship",
+    sport: "Cricket",
+    country: "England",
+    kickoff: "11:00",
+    weekday: 4,
+    startDate: "2026-04-10",
+    teams: COUNTY_CHAMPIONSHIP_TEAMS,
+  },
+  {
+    name: "Vitality Blast",
+    sport: "Cricket",
+    country: "England",
+    kickoff: "18:30",
+    weekday: 5,
+    startDate: "2026-05-29",
+    teams: COUNTY_CHAMPIONSHIP_TEAMS,
+  },
+  {
+    name: "The Hundred",
+    sport: "Cricket",
+    country: "England",
+    kickoff: "18:30",
+    weekday: 5,
+    startDate: "2026-07-23",
+    teams: THE_HUNDRED_TEAMS,
+  },
+  {
+    name: "Indian Premier League",
+    sport: "Cricket",
+    country: "India",
+    kickoff: "14:30",
+    weekday: 6,
+    startDate: "2027-03-20",
+    teams: IPL_TEAMS,
+  },
+  {
+    name: "Big Bash League",
+    sport: "Cricket",
+    country: "Australia",
+    kickoff: "08:00",
+    weekday: 6,
+    startDate: "2026-12-14",
+    teams: BBL_TEAMS,
+  },
+  {
+    name: "ICC Men's Cricket",
+    sport: "Cricket",
+    country: "International",
+    kickoff: "10:00",
+    weekday: 6,
+    startDate: "2026-10-08",
+    singleLegs: 9,
+    teams: ICC_TEAMS,
   },
 ];
 

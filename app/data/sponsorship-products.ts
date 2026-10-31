@@ -54,6 +54,17 @@ export const sponsorshipProducts: SponsorshipProduct[] = [
   },
 
   {
+    id: "sxs",
+    name: "Sixes Sponsorship",
+    acronym: "SXS",
+    sport: "Cricket",
+    trigger: "Six",
+    description:
+      "Reward supporters every time the sponsored team hits a Six.",
+    icon: "🏏",
+  },
+
+  {
     id: "hgs",
     name: "Goal Sponsorship",
     acronym: "HGS",

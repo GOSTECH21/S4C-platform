@@ -105,9 +105,10 @@ assert(scoreLabelForSport("Football") === "Goal", "Football sponsorship is per G
 assert(scoreLabelForSport("Rugby") === "Try", "Rugby sponsorship is per Try");
 assert(scoreLabelForSport("NFL") === "Touchdown", "NFL sponsorship is per Touchdown");
 assert(scoreLabelForSport("NBA") === "3-Point", "NBA sponsorship is per 3-Point");
+assert(scoreLabelForSport("Cricket") === "Six", "Cricket sponsorship is per Six");
 assert(
-  SPORT_SELECT_OPTIONS.join(",") === "Football,Rugby,NFL,NBA",
-  "Club sport picker lists every platform sport: Football, Rugby, NFL, NBA"
+  SPORT_SELECT_OPTIONS.join(",") === "Football,Rugby,NFL,NBA,Cricket",
+  "Club sport picker lists every platform sport: Football, Rugby, NFL, NBA, Cricket"
 );
 
 assert(

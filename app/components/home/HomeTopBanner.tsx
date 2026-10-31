@@ -14,6 +14,7 @@ import {
   S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
 import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
+import { SPORT_CATEGORIES } from "@/app/lib/sports";
 
 const MARK_GREEN = "#5bc662";
 
@@ -385,6 +386,21 @@ export default function HomeTopBanner({
           scoring moments into sponsor-funded climate action.
         </p>
         <SportClusterImage className="mt-4" />
+        <div
+          data-home-five-sports="cricket-fifth-sport-v1"
+          className="mt-3 grid grid-cols-5 gap-1 text-center"
+        >
+          {SPORT_CATEGORIES.map((sport) => (
+            <div key={sport.name} className="min-w-0">
+              <span className="block text-lg leading-none" aria-hidden>
+                {sport.icon}
+              </span>
+              <span className="mt-1 block text-[10px] font-black uppercase leading-tight tracking-wide">
+                {sport.name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mx-auto grid max-w-[1600px] items-center gap-6 px-5 pb-6 pt-2 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-4 lg:pb-4">
