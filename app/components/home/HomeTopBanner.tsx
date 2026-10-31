@@ -216,8 +216,8 @@ function HeadlineAndFeatures() {
         <span style={{ color: MARK_GREEN }}>passion into progress.</span>
       </h1>
       <p className="mt-4 max-w-xl text-sm font-semibold leading-6 sm:text-base">
-        We help your team to offset its Match Day carbon emissions by
-        implementing climate projects funded by Global Brands & Businesses.
+        We help your club address match-day carbon emissions & fund meaningful
+        climate action through global brands, local businesses & supporters.
       </p>
       <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 xl:grid-cols-4">
         {FEATURES.map((item) => (

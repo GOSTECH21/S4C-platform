@@ -41,7 +41,7 @@ assert(
 assert(
   clubs?.tabHeading === "Turn every match into a climate mission." &&
     clubs?.tabDescription.includes(
-      "Engage fans, unlock sponsor-funded climate projects"
+      "address your match-day carbon footprint through funded, measurable climate projects"
     ) &&
     clubs?.tabCta.includes("Explore Club Partnership") &&
     clubs?.image.includes("role-club"),

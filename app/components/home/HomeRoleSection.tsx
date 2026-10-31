@@ -24,7 +24,7 @@ const FOREST_STATS: Array<{
     detail: "Club. One Match. Two Climate Missions.",
     icon: "calendar",
   },
-  { label: "Millions", detail: "of Fans Worldwide", icon: "fans" },
+  { label: "Built for", detail: "Fans Worldwide", icon: "fans" },
   { label: "Real", detail: "Climate Projects", icon: "seedling" },
   { label: "A Cleaner,", detail: "Greener Future", icon: "globe" },
 ];

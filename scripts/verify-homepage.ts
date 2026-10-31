@@ -84,9 +84,9 @@ assert(
   "Global brands keep /sponsor/register and purpose-to-impact copy"
 );
 assert(
-  HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
+    HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
     ?.description.includes(
-      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects & offset your Match Day carbon footprint"
+      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects to address your match-day carbon footprint through funded, measurable climate projects"
     ) &&
     HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs")
       ?.tabHeading === "Turn every match into a climate mission." &&
@@ -297,6 +297,10 @@ assert(
     !roles.includes("S4P helps you") &&
     !roles.includes("reach your goals") &&
     roles.includes("Major Sports") &&
+    roles.includes("Built for") &&
+    roles.includes("Fans Worldwide") &&
+    !roles.includes("of Fans Worldwide") &&
+    !roles.includes('"Millions"') &&
     !roles.includes("/images/home/roles-heading-strip.png") &&
     roles.includes("/images/home/roles-forest.png") &&
     roles.includes("mx-auto max-w-[1400px]") &&
@@ -419,9 +423,11 @@ assert(
     banner.includes("Together we drive change") &&
     banner.includes("passion into progress") &&
     banner.includes(
-      "We help your team to offset its Match Day carbon emissions"
+      "We help your club address match-day carbon emissions"
     ) &&
-    banner.includes("Global Brands & Businesses") &&
+    banner.includes("global brands, local businesses & supporters") &&
+    !banner.includes("We help your team to offset its Match Day carbon emissions") &&
+    !banner.includes("Global Brands & Businesses") &&
     !banner.includes("We help elite sports clubs, their fans, sponsors and partners") &&
     banner.includes("Five Major Sports") &&
     banner.includes("Measure emissions") &&

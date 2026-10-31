@@ -34,12 +34,12 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Sports Clubs",
     kicker: "Lead your club to a cleaner future.",
     description:
-      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects & offset your Match Day carbon footprint.",
+      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects to address your match-day carbon footprint through funded, measurable climate projects.",
     shortDescription:
-      "Mobilize fans to unlock sponsored funding and offset your Match Day carbon footprint.",
+      "Mobilize fans to unlock sponsored funding that addresses your match-day carbon footprint.",
     tabHeading: "Turn every match into a climate mission.",
     tabDescription:
-      "Engage fans, unlock sponsor-funded climate projects and create new commercial opportunities.",
+      "Mobilize your fans to unlock sponsored funding to deliver approved climate projects to address your match-day carbon footprint through funded, measurable climate projects.",
     tabCta: "Explore Club Partnership →",
     register: CLUB_REGISTER_PATH,
     login: CLUB_LOGIN_PATH,
