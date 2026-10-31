@@ -53,6 +53,7 @@ export default function HomeJoinMission() {
 
         <article
           aria-labelledby="fan-join-heading"
+          data-fan-join-copy="fan-p4p-copy-v1"
           className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9"
         >
           <p
@@ -68,9 +69,9 @@ export default function HomeJoinMission() {
             Support your team. Help fund climate action.
           </h2>
           <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-            At the stadium or following from anywhere, join S4P for free, take
-            part in match-day activities and direct eligible sponsor-funded
-            contributions to climate projects.
+            At the stadium or following from anywhere, join S4P for free. Play{" "}
+            <span className="whitespace-nowrap">Predict-4-Planet (P4P)</span>{" "}
+            Match Day entertainment that generates sponsored-funding for Climate Projects.
           </p>
           <a
             href={FAN_REGISTER_PATH}

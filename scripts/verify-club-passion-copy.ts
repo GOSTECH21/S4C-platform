@@ -44,9 +44,10 @@ assert(
 assert(
   join.includes("Every fan counts") &&
     join.includes("Support your team. Help fund climate action") &&
+    join.includes("Predict-4-Planet (P4P)") &&
     join.includes("Join free") &&
     join.includes("FAN_REGISTER_PATH"),
-  "Fan join panel is unchanged"
+  "Fan join panel uses Predict-4-Planet copy"
 );
 
 if (failures.length > 0) {

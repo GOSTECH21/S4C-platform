@@ -499,6 +499,12 @@ assert(
     joinMission.includes("CLUB_REGISTER_PATH") &&
     joinMission.includes("Every fan counts") &&
     joinMission.includes("Support your team. Help fund climate action") &&
+    joinMission.includes('data-fan-join-copy="fan-p4p-copy-v1"') &&
+    joinMission.includes("join S4P for free. Play") &&
+    joinMission.includes("Predict-4-Planet (P4P)") &&
+    joinMission.includes("sponsored-funding for Climate Projects") &&
+    !joinMission.includes("take part in match-day activities") &&
+    !joinMission.includes("eligible sponsor-funded") &&
     joinMission.includes("Join free") &&
     joinMission.includes("FAN_REGISTER_PATH") &&
     joinMission.includes("s4p-navy-panel") &&
