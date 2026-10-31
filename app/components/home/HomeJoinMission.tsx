@@ -28,7 +28,7 @@ export default function HomeJoinMission() {
           </p>
           <h2
             id="club-director-heading"
-            className="mt-3 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl"
+            className="mt-3 text-[1.45rem] font-black uppercase leading-snug tracking-tight sm:text-4xl"
           >
             Turn match-day passion into sponsorship revenue and climate action
           </h2>

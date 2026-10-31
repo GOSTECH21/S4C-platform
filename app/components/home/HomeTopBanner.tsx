@@ -208,7 +208,10 @@ function JoinRoleTabs() {
 function HeadlineAndFeatures() {
   return (
     <div className="min-w-0">
-      <h1 className="text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl xl:text-[3.35rem]">
+      <h1
+        data-home-headline-size="mobile-headline-size-v1"
+        className="text-[1.85rem] font-black uppercase leading-[1.02] tracking-tight sm:text-5xl xl:text-[3.35rem]"
+      >
         A global sports
         <br />
         platform turning
