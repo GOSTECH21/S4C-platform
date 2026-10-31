@@ -22,6 +22,7 @@ import {
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
 import { sponsorInvitationsNavLabel } from "@/app/lib/sponsor-listings";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
+import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 
 const tabClass = "rounded-lg px-5 py-2 text-sm font-bold";
@@ -38,9 +39,13 @@ export function SponsorNav() {
     async function resolveHome() {
       try {
         const sponsor = await getCurrentSponsor();
+        const brandName = String(sponsor.name ?? "");
+        await hydrateLocalSponsorRecords({
+          brandName,
+          sponsor,
+        });
         rememberLocalSponsorSession(sponsor);
         if (!mounted) return;
-        const brandName = String(sponsor.name ?? "");
         setHomePath(
           sponsorHomePath(brandName, {
             jobTitle: String(sponsor.industry ?? ""),

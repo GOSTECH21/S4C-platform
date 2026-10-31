@@ -63,7 +63,8 @@ export function recordMonthKey(
     const fixture = fixtures.find((item) =>
       sameNamedFixture(item.fixtureName, row.fixtureName)
     );
-    const key = monthKeyFromDate(fixture?.date);
+    const key =
+      monthKeyFromDate(row.date) || monthKeyFromDate(fixture?.date);
     if (key) return key;
   }
   return (
@@ -87,6 +88,7 @@ export function localFundingInMonth(
         sameNamedFixture(item.fixtureName, row.fixtureName)
       );
       const key =
+        monthKeyFromDate(row.date) ||
         monthKeyFromDate(fixture?.date) ||
         monthKeyFromDate(record.submittedAt) ||
         monthKeyFromDate(record.signedAt) ||

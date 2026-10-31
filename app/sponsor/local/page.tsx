@@ -16,8 +16,10 @@ import { lobiRowsForArea, inferredPostcodeArea, monthKeyFromDate } from "@/app/l
 import {
   localCommittedGbp,
   localRecordsForBrand,
+  localSponsoredClubMatches,
   localSponsoredMatches,
 } from "@/app/lib/local-sponsor-home";
+import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import {
   defaultCalendarMonth,
   fundedClimateProjectsForHome,
@@ -40,6 +42,9 @@ export default function LocalSponsorHomePage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [matches, setMatches] = useState(
     localSponsoredMatches({ records: [] })
+  );
+  const [clubMatches, setClubMatches] = useState(
+    localSponsoredClubMatches([])
   );
   const [projects, setProjects] = useState(
     fundedClimateProjectsForHome([], [])
@@ -70,6 +75,12 @@ export default function LocalSponsorHomePage() {
           router.replace(SPONSOR_LOGIN_PATH);
           return;
         }
+        const hydrated = await hydrateLocalSponsorRecords({
+          brandName,
+          email: (sponsor.email as string | null) ?? "",
+          sponsor,
+        });
+        rememberLocalSponsorSession(sponsor);
         setBrand(brandName);
         setLogoUrl(
           loadBrandLogo(brandName) ||
@@ -77,9 +88,11 @@ export default function LocalSponsorHomePage() {
             sponsorLogoSrc(brandName, (sponsor.logo_url as string | null) ?? null)
         );
         const records = localRecordsForBrand(brandName, [
+          ...hydrated,
           ...allLocalSponsors(),
           ...(readLocalSponsorRecord() ? [readLocalSponsorRecord()!] : []),
         ]);
+        setClubMatches(localSponsoredClubMatches(records));
         const lock = loadMatchDayLock(brandName);
         const clubs = [
           ...new Set(records.map((row) => row.clubName).filter(Boolean)),
@@ -155,6 +168,7 @@ export default function LocalSponsorHomePage() {
       brand={brand}
       logoUrl={logoUrl}
       matches={matches}
+      clubMatches={clubMatches}
       projects={projects}
       lobiRows={lobiRows}
       postcodeArea={area}

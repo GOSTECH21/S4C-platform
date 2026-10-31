@@ -2,7 +2,10 @@
 
 import { LocalSignedSponsorHome } from "@/app/components/sponsor/LocalSignedSponsorHome";
 import { lobiRowsForArea } from "@/app/lib/lobi";
-import { localSponsoredMatches } from "@/app/lib/local-sponsor-home";
+import {
+  localSponsoredClubMatches,
+  localSponsoredMatches,
+} from "@/app/lib/local-sponsor-home";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
 import type { FundedSponsorProject } from "@/app/lib/sponsor-signed-home";
 
@@ -65,7 +68,36 @@ const fulhamDuplicate: LocalSponsorRecord = {
   source: "uploaded",
 };
 
+const scotmid: LocalSponsorRecord = {
+  brandName: "Scotmid Coop",
+  email: "scotmid@local.test",
+  clubName: "Hearts",
+  pledgeGbp: 500,
+  createdAt: "2026-10-20T12:00:00.000Z",
+  submittedAt: "2026-10-20T12:00:00.000Z",
+  signedAt: "2026-10-20T12:00:00.000Z",
+  postcode: "EH1 1YZ",
+  source: "registered",
+  matchSponsorships: [
+    { fixtureName: "Hearts v Aberdeen", amountGbp: 500, date: "2026-12-02" },
+  ],
+};
+const crSmith: LocalSponsorRecord = {
+  brandName: "CR Smith",
+  email: "crsmith@local.test",
+  clubName: "Hearts",
+  pledgeGbp: 1000,
+  createdAt: "2026-10-02T12:00:00.000Z",
+  submittedAt: "2026-10-02T12:00:00.000Z",
+  postcode: "EH4 2AA",
+  source: "registered",
+  matchSponsorships: [
+    { fixtureName: "Hearts v Dundee United", amountGbp: 1000, date: "2026-12-05" },
+  ],
+};
+
 const records = [mashTun, mashHearts, kokobean];
+const scotmidRecords = [scotmid, crSmith];
 const fixtures = [
   { fixtureName: "Hibernian v Motherwell", date: "2026-10-18" },
   { fixtureName: "Hearts v Aberdeen", date: "2026-10-31" },
@@ -87,6 +119,22 @@ const projects: FundedSponsorProject[] = [
 export default function LocalSponsorHomePreview() {
   return (
     <div className="min-h-screen bg-slate-950 p-8 text-white">
+      <LocalSignedSponsorHome
+        brand="Scotmid Coop"
+        logoUrl={null}
+        matches={localSponsoredMatches({ records: [scotmid] })}
+        clubMatches={localSponsoredClubMatches([scotmid])}
+        projects={[]}
+        lobiRows={lobiRowsForArea({
+          records: scotmidRecords,
+          area: "EH",
+          monthKey: "2026-12",
+          brandName: "Scotmid Coop",
+        })}
+        postcodeArea="EH"
+        onNewSponsorship={() => undefined}
+      />
+      <div className="mt-16">
       <LocalSignedSponsorHome
         brand="Mash Tun"
         logoUrl={null}
@@ -115,6 +163,7 @@ export default function LocalSponsorHomePreview() {
         postcodeArea="EH"
         onNewSponsorship={() => undefined}
       />
+      </div>
       <div className="mt-16">
         <LocalSignedSponsorHome
           brand="Fulham Pier"

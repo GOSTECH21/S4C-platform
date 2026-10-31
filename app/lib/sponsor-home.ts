@@ -101,6 +101,10 @@ export function rememberLocalSponsorSession(sponsor: {
     const previous = raw
       ? (JSON.parse(raw) as Record<string, unknown>)
       : {};
+    const record = readLocalSponsorRecord() ?? localRecordFromProfile();
+    const fromClubs = allLocalSponsors().find(
+      (row) => row.brandName.trim().toLowerCase() === companyName.toLowerCase()
+    );
     window.localStorage.setItem(
       "s4p.sponsor.profile",
       JSON.stringify({
@@ -108,7 +112,18 @@ export function rememberLocalSponsorSession(sponsor: {
         companyName,
         jobTitle: jobTitle || previous.jobTitle || "Local Business Climate Sponsor",
         tier: "local",
-        clubName: previous.clubName ?? null,
+        clubName:
+          previous.clubName ??
+          record?.clubName ??
+          fromClubs?.clubName ??
+          null,
+        pledgeGbp: previous.pledgeGbp ?? record?.pledgeGbp ?? fromClubs?.pledgeGbp ?? null,
+        postcode: previous.postcode ?? record?.postcode ?? fromClubs?.postcode ?? null,
+        matchSponsorships:
+          previous.matchSponsorships ??
+          record?.matchSponsorships ??
+          fromClubs?.matchSponsorships ??
+          [],
       })
     );
   } catch {

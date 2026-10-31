@@ -6,6 +6,7 @@ import {
   allLocalSponsors,
   totalLocalPledge,
   uniqueLocalClubBrandRecords,
+  type LocalMatchSponsorship,
   type LocalSponsorRecord,
 } from "./local-sponsor";
 import {
@@ -13,6 +14,7 @@ import {
   sponsoredMatchesFromLock,
   type SponsoredMatchListing,
 } from "./sponsor-signed-home";
+import { sportingCalendarMatches } from "./sporting-calendar";
 
 export function localRecordsForBrand(
   brandName: string,
@@ -20,6 +22,87 @@ export function localRecordsForBrand(
 ): LocalSponsorRecord[] {
   return uniqueLocalClubBrandRecords(
     records.filter((row) => brandsMatch(row.brandName, brandName))
+  );
+}
+
+export type LocalSponsoredClubMatch = {
+  clubName: string;
+  fixtureName: string;
+  amountGbp: number;
+};
+
+export function localSponsoredClubMatches(
+  records: LocalSponsorRecord[]
+): LocalSponsoredClubMatch[] {
+  const lines: LocalSponsoredClubMatch[] = [];
+  const seen = new Set<string>();
+  for (const record of uniqueLocalClubBrandRecords(records)) {
+    const matches = record.matchSponsorships ?? [];
+    if (matches.length === 0 && record.clubName) {
+      const key = `${record.clubName.toLowerCase()}|${record.clubName.toLowerCase()} match`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      lines.push({
+        clubName: record.clubName,
+        fixtureName: `${record.clubName} Match`,
+        amountGbp: totalLocalPledge(record),
+      });
+      continue;
+    }
+    for (const match of matches) {
+      const fixtureName = match.fixtureName.trim();
+      if (!fixtureName) continue;
+      const key = `${record.clubName.toLowerCase()}|${fixtureName.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      lines.push({
+        clubName: record.clubName,
+        fixtureName,
+        amountGbp: Number(match.amountGbp) || 0,
+      });
+    }
+  }
+  return lines;
+}
+
+function calendarDateForFixture(
+  fixtureName: string,
+  clubName?: string
+): string | null {
+  const catalog = sportingCalendarMatches().filter((row) =>
+    sameNamedFixture(row.fixtureName, fixtureName)
+  );
+  const exact = catalog.find((row) => row.fixtureName === fixtureName);
+  if (exact) return matchDateKey(exact.date);
+  if (clubName) {
+    const forClub = catalog.find(
+      (row) =>
+        row.homeName.toLowerCase().includes(clubName.trim().toLowerCase()) ||
+        row.awayName.toLowerCase().includes(clubName.trim().toLowerCase()) ||
+        clubName.toLowerCase().includes(row.homeName.toLowerCase()) ||
+        clubName.toLowerCase().includes(row.awayName.toLowerCase())
+    );
+    if (forClub) return matchDateKey(forClub.date);
+  }
+  return matchDateKey(catalog[0]?.date);
+}
+
+function dateForSponsoredMatch(
+  match: LocalMatchSponsorship,
+  record: LocalSponsorRecord,
+  fixtures: ClubFixture[]
+): string | null {
+  const fromRecord = matchDateKey(match.date);
+  if (fromRecord) return fromRecord;
+  const fixture = fixtures.find((row) =>
+    sameNamedFixture(row.fixtureName, match.fixtureName)
+  );
+  return (
+    matchDateKey(fixture?.date) ||
+    calendarDateForFixture(match.fixtureName, record.clubName) ||
+    matchDateKey(record.submittedAt) ||
+    matchDateKey(record.signedAt) ||
+    matchDateKey(record.createdAt)
   );
 }
 
@@ -61,14 +144,7 @@ export function localSponsoredMatches({
       continue;
     }
     for (const match of matches) {
-      const fixture = fixtures.find((row) =>
-        sameNamedFixture(row.fixtureName, match.fixtureName)
-      );
-      const date =
-        matchDateKey(fixture?.date) ||
-        matchDateKey(record.submittedAt) ||
-        matchDateKey(record.signedAt) ||
-        matchDateKey(record.createdAt);
+      const date = dateForSponsoredMatch(match, record, fixtures);
       if (!date) continue;
       add({
         date,

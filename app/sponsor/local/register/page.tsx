@@ -22,6 +22,12 @@ import {
   writeLocalSponsorRecord,
   type LocalMatchSponsorship,
 } from "@/app/lib/local-sponsor";
+import { sameNamedFixture } from "@/app/lib/club-fixtures";
+import { matchDateKey } from "@/app/lib/sponsor-signed-home";
+import {
+  calendarFixturesForClub,
+  sportingCalendarMatches,
+} from "@/app/lib/sporting-calendar";
 import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import { continueAfterSponsorAuth, readPendingSponsorMatch } from "@/app/lib/pending-sponsor-match";
 import { roleRegisterAccount } from "@/app/lib/role-login";
@@ -110,6 +116,9 @@ export default function LocalSponsorRegisterPage() {
       return;
     }
     const matchSponsorships: LocalMatchSponsorship[] = [];
+    const clubFixtures = calendarFixturesForClub(clubName, {
+      fromDate: "2026-08-01",
+    });
     for (const fixtureName of selectedMatches) {
       const amount = Number(amounts[fixtureName]);
       if (!Number.isFinite(amount) || amount < LOCAL_SPONSOR_MIN_GBP) {
@@ -118,7 +127,20 @@ export default function LocalSponsorRegisterPage() {
         );
         return;
       }
-      matchSponsorships.push({ fixtureName, amountGbp: amount });
+      const fromClub = clubFixtures.find((row) =>
+        sameNamedFixture(row.fixtureName, fixtureName)
+      );
+      const fromCatalog = sportingCalendarMatches().find(
+        (row) => row.fixtureName === fixtureName
+      );
+      matchSponsorships.push({
+        fixtureName,
+        amountGbp: amount,
+        date:
+          matchDateKey(fromClub?.date) ||
+          matchDateKey(fromCatalog?.date) ||
+          undefined,
+      });
     }
     const pledge = matchSponsorships.reduce(
       (sum, row) => sum + row.amountGbp,
@@ -137,6 +159,8 @@ export default function LocalSponsorRegisterPage() {
         tier: "local",
         pledgeGbp: pledge,
         clubName,
+        postcode: postcode.trim(),
+        matchSponsorships,
       });
       if (logoUrl) saveBrandLogo(companyName, logoUrl);
       ensureGoalNetwork({

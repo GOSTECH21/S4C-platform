@@ -14,6 +14,8 @@ export async function registerSponsor({
   tier = "national",
   pledgeGbp,
   clubName,
+  postcode,
+  matchSponsorships,
 }: {
   companyName: string;
   contactName: string;
@@ -24,6 +26,12 @@ export async function registerSponsor({
   tier?: "local" | "national";
   pledgeGbp?: number;
   clubName?: string;
+  postcode?: string;
+  matchSponsorships?: Array<{
+    fixtureName: string;
+    amountGbp: number;
+    date?: string | null;
+  }>;
 }) {
   if (isRemovedSponsorBrand(companyName)) {
     throw new Error("This brand is not available as a Climate Sponsor.");
@@ -56,17 +64,28 @@ export async function registerSponsor({
     website: contactName,
     ...(logoDataUrl ? { logo_url: logoDataUrl } : {}),
   };
-  const { error: sponsorError } = await supabase.from("sponsors").insert(payload);
-  if (sponsorError && logoDataUrl) {
-    const { error: withoutLogo } = await supabase.from("sponsors").insert({
-      user_id: authData.user.id,
-      name: companyName,
-      industry: jobTitle || "Sponsorship Manager",
-      website: contactName,
-    });
-    if (withoutLogo) throw withoutLogo;
-  } else if (sponsorError) {
-    throw sponsorError;
+  const shared = {
+    ...payload,
+    club_name: clubName ?? null,
+    postcode: postcode ?? null,
+    pledge_gbp: pledgeGbp ?? null,
+    match_sponsorships: matchSponsorships ?? [],
+    sponsor_tier: tier,
+  };
+  const { error: sponsorError } = await supabase.from("sponsors").insert(shared);
+  if (sponsorError) {
+    const { error: fallbackError } = await supabase.from("sponsors").insert(payload);
+    if (fallbackError && logoDataUrl) {
+      const { error: withoutLogo } = await supabase.from("sponsors").insert({
+        user_id: authData.user.id,
+        name: companyName,
+        industry: jobTitle || "Sponsorship Manager",
+        website: contactName,
+      });
+      if (withoutLogo) throw withoutLogo;
+    } else if (fallbackError) {
+      throw fallbackError;
+    }
   }
 
   if (typeof window !== "undefined") {
@@ -81,6 +100,8 @@ export async function registerSponsor({
         tier,
         pledgeGbp: pledgeGbp ?? null,
         clubName: clubName ?? null,
+        postcode: postcode ?? null,
+        matchSponsorships: matchSponsorships ?? [],
       })
     );
   }

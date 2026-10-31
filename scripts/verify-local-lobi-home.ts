@@ -217,8 +217,19 @@ assert(
     ) &&
     readFileSync("app/components/sponsor/LocalSignedSponsorHome.tsx", "utf8").includes(
       "FundedClimateProjectsList"
+    ) &&
+    readFileSync("app/components/sponsor/LocalSignedSponsorHome.tsx", "utf8").includes(
+      "Who you are sponsoring"
     ),
-  "The Local home shows calendar, where money went, and LOBI"
+  "The Local home shows club/match, calendar, where money went, and LOBI"
+);
+assert(
+  homePage.includes("hydrateLocalSponsorRecords") &&
+    homePage.includes("localSponsoredClubMatches") &&
+    readFileSync("app/sponsor/login/page.tsx", "utf8").includes(
+      "hydrateLocalSponsorRecords"
+    ),
+  "Local home and login copy club and Match records onto this device"
 );
 
 const moneyWent = readFileSync(

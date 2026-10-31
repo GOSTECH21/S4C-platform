@@ -17,6 +17,7 @@ import {
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
+import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { roleLoginAccount } from "@/app/lib/role-login";
 
@@ -47,9 +48,14 @@ export default function SponsorLoginPage() {
     try {
       await loginSponsor({ email, password });
       const sponsor = await getCurrentSponsor();
-      rememberLocalSponsorSession(sponsor);
       const brandName = String(sponsor.name ?? "");
       const jobTitle = String(sponsor.industry ?? "");
+      await hydrateLocalSponsorRecords({
+        brandName,
+        email,
+        sponsor,
+      });
+      rememberLocalSponsorSession(sponsor);
       const pendingMatch = continueAfterSponsorAuth();
       if (pendingMatch) {
         window.location.href = pendingMatch;

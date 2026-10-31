@@ -20,6 +20,7 @@ export type SponsorTier = "local" | "national";
 export type LocalMatchSponsorship = {
   fixtureName: string;
   amountGbp: number;
+  date?: string | null;
 };
 
 export type LocalSponsorRecord = {
@@ -38,6 +39,57 @@ export type LocalSponsorRecord = {
   signedAt?: string;
   postcode?: string;
 };
+
+export function parseMatchSponsorships(value: unknown): LocalMatchSponsorship[] {
+  if (!Array.isArray(value)) return [];
+  const rows: LocalMatchSponsorship[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as {
+      fixtureName?: string;
+      fixture_name?: string;
+      amountGbp?: number;
+      amount_gbp?: number;
+      date?: string | null;
+    };
+    const fixtureName = String(row.fixtureName ?? row.fixture_name ?? "").trim();
+    if (!fixtureName) continue;
+    const iso = String(row.date ?? "").slice(0, 10);
+    rows.push({
+      fixtureName,
+      amountGbp: Number(row.amountGbp ?? row.amount_gbp) || 0,
+      date: /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : undefined,
+    });
+  }
+  return rows;
+}
+
+export function recordFromSponsorRow(row: {
+  name?: string | null;
+  email?: string | null;
+  club_name?: string | null;
+  postcode?: string | null;
+  pledge_gbp?: number | null;
+  match_sponsorships?: unknown;
+  logo_url?: string | null;
+} | null | undefined): LocalSponsorRecord | null {
+  if (!row) return null;
+  const brandName = String(row.name ?? "").trim();
+  const clubName = String(row.club_name ?? "").trim();
+  if (!brandName || !clubName || !isSportingCalendarClub(clubName)) return null;
+  const matchSponsorships = parseMatchSponsorships(row.match_sponsorships);
+  return withAgreedPledge({
+    brandName,
+    email: String(row.email ?? "").trim(),
+    clubName,
+    pledgeGbp: Number(row.pledge_gbp) || 0,
+    createdAt: new Date().toISOString(),
+    logoUrl: row.logo_url ?? null,
+    source: "registered",
+    matchSponsorships,
+    postcode: String(row.postcode ?? "").trim() || undefined,
+  });
+}
 
 export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee. Fans can take £0.20 from your Climate Sponsorship Wallet and donate it to a Climate Projects of their choice. Your business name & logo will appear to Fans that takes £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
 
@@ -71,12 +123,16 @@ function parseClubLocals(value: unknown): LocalSponsorRecord[] {
   return [];
 }
 
-function clubKey(clubName: string): string {
+export function clubKey(clubName: string): string {
   return clubName.trim().toLowerCase();
 }
 
-function brandKey(name: string): string {
+export function localBrandKey(name: string): string {
   return name.trim().toLowerCase();
+}
+
+function brandKey(name: string): string {
+  return localBrandKey(name);
 }
 
 export function leftoverProjectsFromVotes<T extends { id: string }>({
@@ -304,6 +360,62 @@ export function removeLocalSponsorForClub(clubName: string, brandName: string) {
   );
 }
 
+export function replaceAllLocalSponsors(records: LocalSponsorRecord[]) {
+  if (typeof window === "undefined") return;
+  const unique = uniqueLocalClubBrandRecords(records).filter(
+    (row) =>
+      isSportingCalendarClub(row.clubName) &&
+      !isRemovedSponsorBrand(row.brandName) &&
+      !isRemovedSponsorIdentity(row.signerName, row.email)
+  );
+  const store: Record<string, LocalSponsorRecord[]> = {};
+  for (const row of unique) {
+    const key = clubKey(row.clubName);
+    store[key] = [...(store[key] ?? []), row];
+  }
+  writeLocalsStore(store);
+}
+
+function syncLocalSponsorProfile(record: LocalSponsorRecord) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem("s4p.sponsor.profile");
+    const previous = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+    window.localStorage.setItem(
+      "s4p.sponsor.profile",
+      JSON.stringify({
+        ...previous,
+        companyName: record.brandName,
+        email: record.email || previous.email || "",
+        jobTitle:
+          previous.jobTitle || "Local Business Climate Sponsor",
+        tier: "local",
+        clubName: record.clubName,
+        pledgeGbp: totalLocalPledge(record),
+        postcode: record.postcode ?? previous.postcode ?? null,
+        matchSponsorships: record.matchSponsorships ?? [],
+        logoUrl: record.logoUrl ?? previous.logoUrl ?? null,
+      })
+    );
+  } catch {
+    // Profile storage can be blocked; club/match still live on the record keys.
+  }
+}
+
+export function shouldSyncLocalSponsorRecord(record: LocalSponsorRecord): boolean {
+  if (!record?.brandName?.trim() || !isSportingCalendarClub(record.clubName)) {
+    return false;
+  }
+  if (isRemovedSponsorBrand(record.brandName)) return false;
+  if (isRemovedSponsorIdentity(record.signerName, record.email)) return false;
+  if (record.source === "example" || record.source === "uploaded") return false;
+  return (
+    (record.matchSponsorships?.length ?? 0) > 0 ||
+    totalLocalPledge(record) > 0 ||
+    Boolean(record.clubName.trim())
+  );
+}
+
 export function writeLocalSponsorRecord(record: LocalSponsorRecord) {
   if (
     typeof window === "undefined" ||
@@ -313,8 +425,15 @@ export function writeLocalSponsorRecord(record: LocalSponsorRecord) {
   ) {
     return;
   }
-  window.localStorage.setItem(LOCAL_SPONSOR_STORAGE, JSON.stringify(record));
-  writeLocalSponsorForClub(record);
+  const next = withAgreedPledge(record);
+  window.localStorage.setItem(LOCAL_SPONSOR_STORAGE, JSON.stringify(next));
+  writeLocalSponsorForClub(next);
+  syncLocalSponsorProfile(next);
+  void import("../services/local-sponsor.service")
+    .then((mod) => mod.persistLocalSponsorRecord(next))
+    .catch(() => {
+      // Shared catalog is optional until migration 0020 is applied.
+    });
 }
 
 export function localMatchLabels(record: LocalSponsorRecord): string[] {
@@ -455,17 +574,28 @@ export function localRecordFromProfile(): LocalSponsorRecord | null {
       email?: string;
       clubName?: string;
       pledgeGbp?: number;
+      postcode?: string | null;
+      matchSponsorships?: LocalMatchSponsorship[];
+      logoUrl?: string | null;
     };
     if (parsed.tier !== "local" || !parsed.companyName || !parsed.clubName) {
       return null;
     }
+    const matchSponsorships = Array.isArray(parsed.matchSponsorships)
+      ? parsed.matchSponsorships.filter(
+          (row) => row && typeof row.fixtureName === "string"
+        )
+      : [];
     return {
       brandName: parsed.companyName,
       email: parsed.email ?? "",
       clubName: parsed.clubName,
       pledgeGbp: Number(parsed.pledgeGbp) || LOCAL_SPONSOR_MIN_GBP,
       createdAt: new Date().toISOString(),
-      logoUrl: (parsed as { logoUrl?: string | null }).logoUrl ?? null,
+      logoUrl: parsed.logoUrl ?? null,
+      postcode: parsed.postcode ?? undefined,
+      source: "registered",
+      matchSponsorships,
     };
   } catch {
     return null;

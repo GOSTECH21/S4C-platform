@@ -81,6 +81,7 @@ import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import { approvedIdsForClubMatch } from "@/app/services/sponsor-listings.service";
+import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 
 export default function ClubDashboardPage() {
   const router = useRouter();
@@ -158,6 +159,7 @@ export default function ClubDashboardPage() {
       setMaxAmount(stored?.maxAmount && stored.maxAmount > 0 ? stored.maxAmount : null);
       setGbpPerVote(stored?.gbpPerVote ?? null);
       await hydrateClubSponsorsFromSigned(session.club.id, session.club.name);
+      await hydrateLocalSponsorRecords();
       setSignedCopies(
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
@@ -180,6 +182,7 @@ export default function ClubDashboardPage() {
     async function refreshSignedLive() {
       if (!club) return;
       await hydrateClubSponsorsFromSigned(club.id, club.name);
+      await hydrateLocalSponsorRecords();
       setSignedCopies(
         await listClubSignedSponsorships(club.id, club.name)
       );
