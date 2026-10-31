@@ -460,6 +460,8 @@ assert(
       "commercial opportunities around every match"
     ) &&
     joinMission.includes('data-club-director-copy="club-passion-copy-v1"') &&
+    joinMission.includes("Explore club partnership") &&
+    joinMission.includes("CLUB_REGISTER_PATH") &&
     joinMission.includes("Every fan counts") &&
     joinMission.includes("Support your team. Help fund climate action") &&
     joinMission.includes("Join free") &&
@@ -471,7 +473,6 @@ assert(
     !joinMission.includes("Global fan engagement") &&
     !joinMission.includes("Four funding channels") &&
     !joinMission.includes("Transparent project reporting") &&
-    !joinMission.includes("Explore club partnership") &&
     !joinMission.includes("measurable climate funding mission") &&
     !joinMission.includes("See how it works") &&
     !joinMission.includes("climate mission today") &&

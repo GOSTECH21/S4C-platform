@@ -1,7 +1,10 @@
 "use client";
 
 import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
-import { FAN_REGISTER_PATH } from "@/app/lib/routes";
+import {
+  CLUB_REGISTER_PATH,
+  FAN_REGISTER_PATH,
+} from "@/app/lib/routes";
 
 const MINT = "#0c5c2c";
 
@@ -38,6 +41,13 @@ export default function HomeJoinMission() {
             From scoring moments to live fan predictions, S4P creates new
             commercial opportunities around every match.
           </p>
+          <a
+            href={CLUB_REGISTER_PATH}
+            onClick={(event) => hardNavigateOnClick(CLUB_REGISTER_PATH, event)}
+            className="mt-8 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-4 py-4 text-sm font-black uppercase tracking-[0.12em] text-black hover:brightness-110 sm:px-6 sm:text-base sm:tracking-[0.18em]"
+          >
+            Explore club partnership <span aria-hidden> →</span>
+          </a>
         </article>
 
         <article

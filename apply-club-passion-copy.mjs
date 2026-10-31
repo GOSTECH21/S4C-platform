@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/club-passion-copy-18f9";
-const BUST = "club-passion-copy-1";
+const BRANCH = "cursor/explore-club-partnership-18f9";
+const BUST = "explore-club-partnership-1";
 const FILES = [
   "app/components/home/HomeJoinMission.tsx",
   "scripts/verify-club-passion-copy.ts",
@@ -37,7 +37,6 @@ if (existsSync(join)) {
     ) ||
     !src.includes("Give your club a new way to engage supporters") ||
     !src.includes("From scoring moments to live fan predictions") ||
-    src.includes("Explore club partnership") ||
     src.includes("Emissions measurement")
   ) {
     failed += 1;

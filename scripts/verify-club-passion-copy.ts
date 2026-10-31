@@ -18,8 +18,10 @@ assert(
     join.includes("local sponsors, fund approved climate projects and demonstrate") &&
     join.includes("measurable progress.") &&
     join.includes("From scoring moments to live fan predictions, S4P creates new") &&
-    join.includes("commercial opportunities around every match."),
-  "Club-director panel uses the new heading and two body paragraphs"
+    join.includes("commercial opportunities around every match.") &&
+    join.includes("Explore club partnership") &&
+    join.includes("CLUB_REGISTER_PATH"),
+  "Club-director panel uses the new heading, two body paragraphs, and Explore club partnership CTA"
 );
 
 assert(
@@ -29,11 +31,9 @@ assert(
     !join.includes("Global fan engagement") &&
     !join.includes("Four funding channels") &&
     !join.includes("Transparent project reporting") &&
-    !join.includes("Explore club partnership") &&
     !join.includes("CLUB_POINTS") &&
-    !join.includes("ClubPointIcon") &&
-    !join.includes("CLUB_REGISTER_PATH"),
-  "Old club-director bullets, CTA and heading are gone"
+    !join.includes("ClubPointIcon"),
+  "Old club-director bullets and heading are gone"
 );
 
 assert(
