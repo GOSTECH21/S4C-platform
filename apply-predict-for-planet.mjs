@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-slot-wipe-18f9";
-const BUST = "p4p-slot-wipe-1";
+const BRANCH = "cursor/p4p-confirm-selection-18f9";
+const BUST = "p4p-confirm-selection-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",

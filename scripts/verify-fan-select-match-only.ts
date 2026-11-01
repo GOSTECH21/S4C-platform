@@ -47,10 +47,9 @@ assert(
 assert(
   select.includes("order-2 lg:order-1") &&
     select.includes("order-1 min-w-0 flex-1 lg:order-2") &&
-    select.includes('data-confirm-club-selection="confirm-club-selection-v1"') &&
-    select.includes("Confirm your Selection") &&
-    select.includes("confirmClub(pendingClub)"),
-  "On a phone, Choose your club sits above the contained 10-match list, and Confirm your Selection honours the club"
+    !select.includes("Confirm your Selection") &&
+    !select.includes("data-confirm-club-selection"),
+  "On a phone, Choose your club sits above the contained 10-match list"
 );
 
 assert(

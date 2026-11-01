@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/confirm-club-selection-18f9";
-const BUST = "confirm-club-selection-1";
+const BRANCH = "cursor/p4p-confirm-selection-18f9";
+const BUST = "p4p-confirm-selection-1";
 const FILES = [
   "app/components/fan/FanMyTeamsPanel.tsx",
   "app/components/home/SelectMatchFixtures.tsx",

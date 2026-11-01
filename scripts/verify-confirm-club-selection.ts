@@ -31,11 +31,10 @@ assert(
 );
 
 assert(
-  select.includes('data-confirm-club-selection="confirm-club-selection-v1"') &&
-    select.includes("Confirm your Selection") &&
-    select.includes("<ConfirmClubSelection />") &&
-    select.includes("confirmClub(pendingClub)"),
-  "Confirm your Selection sits at the bottom of Select Match and honours the chosen club"
+  !select.includes("Confirm your Selection") &&
+    !select.includes("ConfirmClubSelection") &&
+    !select.includes("data-confirm-club-selection"),
+  "Confirm your Selection is no longer on Select Match"
 );
 
 if (failures.length > 0) {

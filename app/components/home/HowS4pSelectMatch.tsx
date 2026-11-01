@@ -4,7 +4,6 @@ import { PHONE_COLUMN_CLASS } from "@/app/components/home/PhoneFrame";
 import SelectMatchFixtures, {
   SelectMatchPhone,
   SelectMatchProvider,
-  useSelectMatch,
   type SelectMatchMode,
 } from "@/app/components/home/SelectMatchFixtures";
 import {
@@ -82,31 +81,7 @@ export default function HowS4pSelectMatch({
             <SelectMatchFixtures />
           </div>
         </div>
-        <ConfirmClubSelection />
       </section>
     </SelectMatchProvider>
-  );
-}
-
-function ConfirmClubSelection() {
-  const { confirmClub, pendingClub, club } = useSelectMatch();
-  const pending = pendingClub.trim();
-  const honoured = Boolean(pending) && pending === club.trim();
-  return (
-    <div className="mt-8 flex flex-col items-center">
-      <button
-        type="button"
-        data-confirm-club-selection="confirm-club-selection-v1"
-        onClick={() => confirmClub(pendingClub)}
-        className="inline-flex items-center rounded-full bg-s4p-mark px-8 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
-      >
-        Confirm your Selection
-      </button>
-      {pending && !honoured ? (
-        <p className="mt-3 text-center text-sm font-semibold">
-          Confirm your Selection to show {pending}&apos;s next 10 matches.
-        </p>
-      ) : null}
-    </div>
   );
 }

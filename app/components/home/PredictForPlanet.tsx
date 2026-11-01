@@ -2,6 +2,7 @@
 /* s4p-predict-for-planet-v7 */
 /* p4p-slot-timer-v1 */
 /* p4p-slot-wipe-v1 */
+/* p4p-confirm-selection-v1 */
 
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -108,6 +109,7 @@ export function PredictForPlanetPhone({
       };
   const picked = board.picked;
   const earnedGbp = board.walletGbp;
+  const alreadyBanked = board.bankedWindowIndex === board.windowIndex;
   const sponsorLogo =
     loadBrandLogo(DEMO_BRAND) || sponsorLogoSrc(DEMO_BRAND, null);
 
@@ -130,19 +132,31 @@ export function PredictForPlanetPhone({
 
   function toggle(id: P4pCategoryId) {
     setBoard((current) => {
+      if (current.bankedWindowIndex === current.windowIndex) return current;
       let pickedNext = current.picked;
       if (pickedNext.includes(id)) {
         setNotice(null);
         pickedNext = pickedNext.filter((row) => row !== id);
       } else if (pickedNext.length < P4P_PREDICTIONS_PER_WINDOW) {
         pickedNext = [...pickedNext, id];
-        if (pickedNext.length === P4P_PREDICTIONS_PER_WINDOW) {
-          setNotice(
-            `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
-          );
-        }
       }
-      return p4pBankSlotIfComplete({ ...current, picked: pickedNext });
+      return { ...current, picked: pickedNext };
+    });
+  }
+
+  function confirmPicks() {
+    setBoard((current) => {
+      if (current.picked.length !== P4P_PREDICTIONS_PER_WINDOW) {
+        setNotice(
+          `Choose ${P4P_PREDICTIONS_PER_WINDOW} of 7 events, then Confirm your Selection.`
+        );
+        return current;
+      }
+      const next = p4pBankSlotIfComplete(current);
+      setNotice(
+        `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
+      );
+      return next;
     });
   }
 
@@ -238,7 +252,7 @@ export function PredictForPlanetPhone({
                 <button
                   key={category.id}
                   type="button"
-                  disabled={full && !selected}
+                  disabled={alreadyBanked || (full && !selected)}
                   onPointerDown={stopCarouselSwipe}
                   onClick={() => toggle(category.id)}
                   className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-[0.4rem] text-left text-[13px] font-black leading-tight [touch-action:manipulation] ${
@@ -257,6 +271,16 @@ export function PredictForPlanetPhone({
               );
             })}
           </div>
+          <button
+            type="button"
+            data-p4p-confirm-selection="p4p-confirm-selection-v1"
+            onPointerDown={stopCarouselSwipe}
+            onClick={confirmPicks}
+            disabled={alreadyBanked}
+            className="mt-1.5 inline-flex w-full shrink-0 items-center justify-center rounded-full bg-s4p-mark px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.12em] text-black hover:brightness-110 disabled:opacity-60"
+          >
+            {alreadyBanked ? "Selection confirmed" : "Confirm your Selection"}
+          </button>
       </div>
     </PhoneFrame>
   );

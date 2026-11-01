@@ -621,6 +621,9 @@ assert(
     phone.includes("Participating earns") &&
     phone.includes("font-black leading-4 text-black") &&
     phone.includes('data-p4p-participating="p4p-participating-v1"') &&
+    phone.includes('data-p4p-confirm-selection="p4p-confirm-selection-v1"') &&
+    phone.includes("Confirm your Selection") &&
+    phone.includes("confirmPicks") &&
     phone.includes("PhoneFrame") &&
     !phone.includes("#0b1f14"),
   "The P4P phone overlay is ivory with a 5-minute slot timer, club logos, and the sponsor under Predict what happens next"
@@ -728,14 +731,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-slot-wipe-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-confirm-selection-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("p4p-slot-wipe-1") &&
+    applyP4p.includes("p4p-confirm-selection-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -755,7 +758,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("p4p-slot-wipe-1") &&
+    applyP4pPs1.includes("p4p-confirm-selection-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

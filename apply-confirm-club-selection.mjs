@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/confirm-club-selection-18f9";
-const BUST = "confirm-club-selection-1";
+const BRANCH = "cursor/p4p-confirm-selection-18f9";
+const BUST = "p4p-confirm-selection-1";
 const FILES = [
   "app/components/home/SelectMatchFixtures.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",
@@ -36,7 +36,7 @@ if (existsSync(fixtures) && existsSync(select)) {
   const fixturesSrc = readFileSync(fixtures, "utf8");
   const selectSrc = readFileSync(select, "utf8");
   if (
-    !selectSrc.includes("confirm-club-selection-v1") ||
+    selectSrc.includes("data-confirm-club-selection") ||
     !fixturesSrc.includes("confirmClub") ||
     !fixturesSrc.includes("appliedInitialClub") ||
     !fixturesSrc.includes("pickerRef") ||
@@ -44,7 +44,7 @@ if (existsSync(fixtures) && existsSync(select)) {
   ) {
     failed += 1;
     console.error(
-      "Select Match still honours the dropdown immediately or snaps back to the first club. Pull the files above, then hard-refresh."
+      "Select Match still honours the dropdown immediately, or Confirm your Selection is still on that section. Pull the files above, then hard-refresh."
     );
   }
 } else {
@@ -54,5 +54,5 @@ if (existsSync(fixtures) && existsSync(select)) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Confirm your Selection honours the chosen club, and See upcoming matches loads that club's next 10 fixtures. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: See upcoming matches loads the chosen club's next 10 fixtures. Confirm your Selection now sits on Predict-For Planet. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
 );
