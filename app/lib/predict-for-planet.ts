@@ -2,6 +2,7 @@
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
+import { SUPPORTER_PROJECTS_PATH } from "./routes";
 import { matchSponsorshipTopUp } from "./sponsor-wallet";
 import { namesMatch } from "./upcoming-matches";
 
@@ -31,6 +32,8 @@ export const P4P_FALLBACK_PROJECTS = [
   "Edinburgh Building Retrofit Collective",
   "Porty Community Energy",
 ];
+export const P4P_DONATE_FUNDING_MESSAGE =
+  "Here are Climate Projects to donate your funding";
 
 /** Each Game-Time Sponsor buys one 30-minute slot of fan engagement. */
 export const GAME_TIME_SLOT_MINUTES = 30;
@@ -169,6 +172,7 @@ export type P4pLiveSlotBoard = {
   picked: P4pCategoryId[];
   walletGbp: number;
   bankedWindowIndex: number | null;
+  fullTime: boolean;
 };
 
 export function p4pEmptySlotBoard(
@@ -179,6 +183,7 @@ export function p4pEmptySlotBoard(
     picked: [],
     walletGbp: 0,
     bankedWindowIndex: null,
+    fullTime: false,
   };
 }
 
@@ -200,17 +205,43 @@ export function p4pAdvanceSlotBoard(
   board: P4pLiveSlotBoard,
   nextWindowIndex: number
 ): P4pLiveSlotBoard {
+  if (board.fullTime) return board;
   if (board.windowIndex === nextWindowIndex) return board;
   if (board.windowIndex < 0) {
-    return { ...board, windowIndex: nextWindowIndex };
+    return { ...board, windowIndex: nextWindowIndex, fullTime: false };
   }
   const banked = p4pBankSlotIfComplete(board);
+  const lastWindow = p4pWindows().length - 1;
+  if (board.windowIndex === lastWindow && nextWindowIndex === 0) {
+    return {
+      windowIndex: board.windowIndex,
+      picked: banked.picked,
+      walletGbp: banked.walletGbp,
+      bankedWindowIndex: banked.bankedWindowIndex,
+      fullTime: true,
+    };
+  }
   return {
     windowIndex: nextWindowIndex,
     picked: [],
     walletGbp: banked.walletGbp,
     bankedWindowIndex: banked.bankedWindowIndex,
+    fullTime: false,
   };
+}
+
+export function p4pMatchIsFullTime(
+  kickoffAt: Date | string,
+  now: Date | string = new Date()
+): boolean {
+  return elapsedGameMinutes(kickoffAt, now) >= GAME_TIME_DURATION_MINUTES;
+}
+
+export function p4pDonateProjectsPath(walletGbp = 0): string {
+  const params = new URLSearchParams({ p4pDonate: "1" });
+  const amount = roundP4pGbp(walletGbp);
+  if (amount > 0) params.set("wallet", String(amount));
+  return `${SUPPORTER_PROJECTS_PATH}?${params.toString()}`;
 }
 
 export function p4pCyclingWindowClock(

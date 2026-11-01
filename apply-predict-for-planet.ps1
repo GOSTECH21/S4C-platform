@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/p4p-confirm-selection-18f9"
-$bust = "p4p-confirm-selection-1"
+$branch = "cursor/p4p-wallet-full-time-18f9"
+$bust = "p4p-wallet-full-time-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",

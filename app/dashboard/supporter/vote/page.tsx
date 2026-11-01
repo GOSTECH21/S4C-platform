@@ -16,6 +16,10 @@ import {
   SUPPORTER_CAMPAIGN_PATH,
   SUPPORTER_CLIMATE_SPONSORS_HASH,
 } from "@/app/lib/routes";
+import {
+  P4P_FALLBACK_PROJECTS,
+  formatP4pGbp,
+} from "@/app/lib/predict-for-planet";
 import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
 import { getSupportedTeams } from "@/app/services/teams.service";
@@ -55,6 +59,8 @@ export default function VotePage() {
   const [campaigns, setCampaigns] = useState<S4PCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [donateFunding, setDonateFunding] = useState(false);
+  const [donateWallet, setDonateWallet] = useState(0);
 
   async function reload(current: Supporter) {
     const [supported, posted] = await Promise.all([
@@ -63,6 +69,13 @@ export default function VotePage() {
     ]);
     setCampaigns(filterCampaignsForFan(posted, supported));
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDonateFunding(params.get("p4pDonate") === "1");
+    const wallet = Number(params.get("wallet") || 0);
+    setDonateWallet(Number.isFinite(wallet) ? wallet : 0);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -112,9 +125,21 @@ export default function VotePage() {
               Climate Projects
             </p>
             <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
+            {donateFunding ? (
+              <p
+                data-p4p-donate-funding="p4p-donate-funding-v1"
+                className="mt-3 max-w-2xl text-base font-black text-green-300"
+              >
+                Here are Climate Projects to donate your funding
+                {donateWallet > 0
+                  ? ` · Game-Time Wallet ${formatP4pGbp(donateWallet)}`
+                  : ""}
+              </p>
+            ) : (
             <p className="mt-3 max-w-2xl text-slate-300">
               {climateProjectsReceivedCopy()}
             </p>
+            )}
             <p className="mt-2 max-w-2xl text-sm text-emerald-300">
               Put FUND-IT onto Climate Projects within 20 miles of your club
               stadium postcode when those local projects are on the Match Day
@@ -142,6 +167,23 @@ export default function VotePage() {
         {loading ? (
           <p className="mt-10 text-slate-400">Loading climate projects...</p>
         ) : campaigns.length === 0 ? (
+          donateFunding ? (
+            <ol
+              data-p4p-donate-project-list="p4p-donate-project-list-v1"
+              className="mt-10 space-y-3"
+            >
+              {P4P_FALLBACK_PROJECTS.map((name, index) => (
+                <li
+                  key={name}
+                  className="rounded-2xl border border-green-500/40 bg-slate-900 p-5"
+                >
+                  <p className="text-lg font-black text-green-300">
+                    {index + 1}. {name}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          ) : (
           <div className="mt-10 rounded-2xl border border-dashed border-slate-700 bg-slate-900 p-8">
             <p className="text-slate-300">
               No Match Day climate projects are posted yet. When your club
@@ -149,6 +191,7 @@ export default function VotePage() {
               Received totals appear here for 5 days.
             </p>
           </div>
+          )
         ) : (
           campaigns.map((campaign) => (
             <CampaignClimateBoard

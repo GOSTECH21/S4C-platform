@@ -18,12 +18,18 @@ export default function HowS4pPredictForPlanet({
   initialClub,
   clubOptions = null,
   fixtureName,
+  donateOnFullTime = false,
+  forceFullTime = false,
+  initialWalletGbp = 0,
   children,
   className = "",
 }: {
   initialClub?: string;
   clubOptions?: string[] | null;
   fixtureName?: string;
+  donateOnFullTime?: boolean;
+  forceFullTime?: boolean;
+  initialWalletGbp?: number;
   children?: ReactNode;
   className?: string;
 }) {
@@ -49,6 +55,9 @@ export default function HowS4pPredictForPlanet({
               src={HOW_S4P_P4P.src}
               alt={HOW_S4P_P4P.alt}
               fixtureName={fixtureName}
+              donateOnFullTime={donateOnFullTime}
+              forceFullTime={forceFullTime}
+              initialWalletGbp={initialWalletGbp}
             />
           </div>
         </div>

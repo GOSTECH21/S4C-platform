@@ -24,6 +24,8 @@ import {
   P4P_TAGLINE,
   alreadyPredictedWindow,
   fanCarbonWalletFromPredictions,
+  p4pDonateProjectsPath,
+  p4pMatchIsFullTime,
   firstFundedWindowIndex,
   formatP4pGbp,
   gameTimeFixtureMatches,
@@ -156,6 +158,9 @@ export function PredictForPlanetPlay({
   );
   const slotEvents = hydrated ? listP4pSlotEvents() : [];
   const fanWallet = fanCarbonWalletFromPredictions(predictions, fanId);
+  const fullTime = Boolean(
+    wallet && p4pMatchIsFullTime(wallet.kickoffAt, now)
+  );
   const alreadyInWindow = alreadyPredictedWindow(
     predictions,
     fanId,
@@ -199,6 +204,16 @@ export function PredictForPlanetPlay({
   }, [slotIndex, windowIndex]);
 
   useEffect(() => {
+    if (!fullTime) return;
+    const href = p4pDonateProjectsPath(fanWallet.totalGbp);
+    const id = window.setTimeout(() => {
+      window.location.assign(href);
+    }, 1200);
+    return () => window.clearTimeout(id);
+  }, [fanWallet.totalGbp, fullTime]);
+
+  useEffect(() => {
+    if (fullTime) return;
     const slotOver =
       countdown?.state === "ended" || countdown?.remainingSeconds === 0;
     if (!slotOver) return;
@@ -211,7 +226,13 @@ export function PredictForPlanetPlay({
       (row) => row.index === currentIndex + 1
     );
     if (next) setWindowIndex(next.index);
-  }, [countdown?.state, countdown?.remainingSeconds, playWindow?.index, slotIndex]);
+  }, [
+    countdown?.remainingSeconds,
+    countdown?.state,
+    fullTime,
+    playWindow?.index,
+    slotIndex,
+  ]);
 
   function predict() {
     setNotice(null);
@@ -320,6 +341,14 @@ export function PredictForPlanetPlay({
               <p className="mt-1 text-sm text-slate-600">
                 Game-Time Sponsor · {gameTimeSlotShortLabel(slot)}
               </p>
+              {fullTime ? (
+                <p
+                  data-p4p-donate-funding="p4p-donate-funding-v1"
+                  className="mt-3 text-base font-black text-emerald-800"
+                >
+                  Here are Climate Projects to donate your funding
+                </p>
+              ) : null}
             </div>
             {shouldSeed ? (
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">

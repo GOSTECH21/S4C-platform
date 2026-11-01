@@ -3,6 +3,7 @@
 /* p4p-slot-timer-v1 */
 /* p4p-slot-wipe-v1 */
 /* p4p-confirm-selection-v1 */
+/* p4p-wallet-full-time-v1 */
 
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -11,22 +12,23 @@ import { useOptionalSelectMatch } from "@/app/components/home/SelectMatchFixture
 import { clubInitials, clubLogoSrc } from "@/app/lib/club-logos";
 import { fixtureSides } from "@/app/lib/club-fixtures";
 import {
+  GAME_TIME_DURATION_MINUTES,
   P4P_ACCURACY_GBP,
   P4P_CATEGORIES,
+  P4P_DONATE_FUNDING_MESSAGE,
   P4P_ENGAGEMENT_GBP,
+  P4P_FALLBACK_PROJECTS,
   P4P_LABEL,
   P4P_POWERED_BY_LABEL,
   P4P_PREDICT_NEXT_LABEL,
   P4P_PREDICTIONS_PER_WINDOW,
   P4P_SHORT,
-  P4P_WINDOW_MINUTES,
-  formatP4pClock,
   formatP4pGbp,
   p4pAdvanceSlotBoard,
   p4pBankSlotIfComplete,
   p4pCyclingWindowClock,
+  p4pDonateProjectsPath,
   p4pEmptySlotBoard,
-  p4pWindows,
   type P4pCategoryId,
 } from "@/app/lib/predict-for-planet";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
@@ -79,10 +81,16 @@ export function PredictForPlanetPhone({
   src,
   alt,
   fixtureName,
+  donateOnFullTime = false,
+  forceFullTime = false,
+  initialWalletGbp = 0,
 }: {
   src: string;
   alt: string;
   fixtureName?: string;
+  donateOnFullTime?: boolean;
+  forceFullTime?: boolean;
+  initialWalletGbp?: number;
 }) {
   const selectedMatch = useOptionalSelectMatch()?.selectedMatch ?? null;
   const fixture =
@@ -96,17 +104,14 @@ export function PredictForPlanetPhone({
     (selectedMatch ? [selectedMatch.homeName, selectedMatch.awayName] : null);
   const homeName = sides?.[0] ?? "";
   const awayName = sides?.[1] ?? "";
-  const fallbackWindow = p4pWindows()[3];
-  const [board, setBoard] = useState(() => p4pEmptySlotBoard());
+  const [board, setBoard] = useState(() => ({
+    ...p4pEmptySlotBoard(),
+    walletGbp: initialWalletGbp,
+    fullTime: forceFullTime,
+  }));
   const [notice, setNotice] = useState<string | null>(null);
-  const [now, setNow] = useState<Date | null>(null);
-  const clock = now
-    ? p4pCyclingWindowClock(now)
-    : {
-        window: fallbackWindow,
-        remainingSeconds: P4P_WINDOW_MINUTES * 60,
-        label: formatP4pClock(P4P_WINDOW_MINUTES * 60),
-      };
+  const [now, setNow] = useState(() => new Date());
+  const clock = p4pCyclingWindowClock(now);
   const picked = board.picked;
   const earnedGbp = board.walletGbp;
   const alreadyBanked = board.bankedWindowIndex === board.windowIndex;
@@ -123,12 +128,26 @@ export function PredictForPlanetPhone({
     const nextIndex = clock.window.index;
     setBoard((current) => {
       const next = p4pAdvanceSlotBoard(current, nextIndex);
-      if (current.windowIndex >= 0 && current.windowIndex !== next.windowIndex) {
+      if (next.fullTime && !current.fullTime) {
+        setNotice(P4P_DONATE_FUNDING_MESSAGE);
+      } else if (
+        current.windowIndex >= 0 &&
+        current.windowIndex !== next.windowIndex
+      ) {
         setNotice(null);
       }
       return next;
     });
   }, [clock.window.index]);
+
+  useEffect(() => {
+    if (!board.fullTime || !donateOnFullTime) return;
+    const href = p4pDonateProjectsPath(earnedGbp);
+    const id = window.setTimeout(() => {
+      window.location.assign(href);
+    }, 1200);
+    return () => window.clearTimeout(id);
+  }, [board.fullTime, donateOnFullTime, earnedGbp]);
 
   function toggle(id: P4pCategoryId) {
     setBoard((current) => {
@@ -195,24 +214,27 @@ export function PredictForPlanetPhone({
           </div>
           <div
             data-p4p-slot-timer="p4p-slot-timer-v1"
-            data-p4p-window-label={clock.window.label}
-            data-p4p-remaining={String(clock.remainingSeconds)}
+            data-p4p-window-label={
+              board.fullTime ? `${GAME_TIME_DURATION_MINUTES} min` : clock.window.label
+            }
+            data-p4p-remaining={board.fullTime ? "0" : String(clock.remainingSeconds)}
             aria-live="polite"
             className="mt-1.5 flex items-center justify-between gap-2 rounded-xl border-2 border-emerald-700 bg-white px-2 py-1"
           >
             <p className="min-w-0 text-[8px] font-black uppercase leading-3 tracking-[0.08em] text-emerald-800">
-              {clock.window.label}
+              {board.fullTime ? `${GAME_TIME_DURATION_MINUTES} min` : clock.window.label}
               <span className="mt-0.5 block font-semibold normal-case tracking-normal text-slate-700">
-                3 of 7 this slot
+                {board.fullTime ? "Full time" : "3 of 7 this slot"}
               </span>
             </p>
             <p className="shrink-0 text-[20px] font-black tabular-nums leading-none text-emerald-900">
-              {clock.label}
+              {board.fullTime ? "0:00" : clock.label}
             </p>
           </div>
           <div
             data-p4p-slot-wipe="p4p-slot-wipe-v1"
             data-p4p-wallet={formatP4pGbp(earnedGbp)}
+            data-p4p-wallet-held="p4p-wallet-held-v1"
             className="mt-1.5 rounded-xl px-2 py-1.5 text-center text-[10px] font-black text-black"
             style={{ backgroundColor: MARK_GREEN }}
           >
@@ -240,9 +262,34 @@ export function PredictForPlanetPhone({
             data-p4p-participating="p4p-participating-v1"
             className="mt-1.5 shrink-0 text-[12px] font-black leading-4 text-black"
           >
-            {notice ||
-              `Participating earns ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. The right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`}
+            {board.fullTime
+              ? "Here are Climate Projects to donate your funding"
+              : notice ||
+                `Participating earns ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. The right event earns another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`}
           </p>
+          {board.fullTime ? (
+            <div
+              data-p4p-donate-funding="p4p-donate-funding-v1"
+              className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain [touch-action:pan-y]"
+            >
+              <ol className="space-y-1">
+                {P4P_FALLBACK_PROJECTS.map((name, index) => (
+                  <li key={name}>
+                    <a
+                      href={p4pDonateProjectsPath(earnedGbp)}
+                      onPointerDown={stopCarouselSwipe}
+                      className="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-2.5 py-[0.4rem] text-left text-[12px] font-black leading-tight text-slate-950"
+                    >
+                      <span>
+                        {index + 1}. {name}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : (
+            <>
           <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain [touch-action:pan-y]">
             {P4P_CATEGORIES.map((category) => {
               const selectedIndex = picked.indexOf(category.id);
@@ -281,6 +328,8 @@ export function PredictForPlanetPhone({
           >
             {alreadyBanked ? "Selection confirmed" : "Confirm your Selection"}
           </button>
+            </>
+          )}
       </div>
     </PhoneFrame>
   );
