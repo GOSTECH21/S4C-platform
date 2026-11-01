@@ -765,8 +765,11 @@ assert(
     selectMatchFixtures.includes("clubOptions.includes(club)") &&
     selectMatchFixtures.includes("showSelectedClub") &&
     selectMatchFixtures.includes("data-select-match-picker") &&
-    selectMatchFixtures.includes("defaultValue={club}") &&
+    selectMatchFixtures.includes("value={pendingClub}") &&
+    selectMatchFixtures.includes("confirmClub") &&
+    selectMatchFixtures.includes("appliedInitialClub") &&
     !selectMatchFixtures.includes("value={club}") &&
+    !selectMatchFixtures.includes("defaultValue={club}") &&
     selectMatchFixtures.includes(".slice(0, 10)") &&
     !selectMatchFixtures.includes("Tap a match to choose it for Match Day"),
   "Select Match auto-loads the next 10 matches; sponsor rows lock in, fan/club rows select on the phone"

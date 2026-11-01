@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from "react";
 import { PhoneFrame } from "@/app/components/home/PhoneFrame";
 import { sportingCalendarClubGroups } from "@/app/lib/calendar-clubs";
@@ -42,7 +43,10 @@ export type SelectMatchMode = "view" | "sponsor" | "club";
 type SelectMatchState = {
   groups: ReturnType<typeof sportingCalendarClubGroups>;
   club: string;
+  pendingClub: string;
+  setPendingClub: (club: string) => void;
   setClub: (club: string) => void;
+  confirmClub: (nextClub?: string) => void;
   matches: HomeUpcomingMatch[] | null;
   selectedMatch: HomeUpcomingMatch | null;
   setSelectedMatch: (match: HomeUpcomingMatch) => void;
@@ -53,6 +57,7 @@ type SelectMatchState = {
   mode: SelectMatchMode;
   clubLocked: boolean;
   clubOptions: string[] | null;
+  pickerRef: RefObject<HTMLSelectElement | null>;
 };
 
 const SelectMatchContext = createContext<SelectMatchState | null>(null);
@@ -113,6 +118,7 @@ export function SelectMatchProvider({
     []
   );
   const [club, setClub] = useState(initialClub?.trim() || "Arsenal");
+  const [pendingClub, setPendingClub] = useState(initialClub?.trim() || "Arsenal");
   const [matches, setMatches] = useState<HomeUpcomingMatch[] | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<HomeUpcomingMatch | null>(
     null
@@ -121,6 +127,8 @@ export function SelectMatchProvider({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  const appliedInitialClub = useRef<string | null>(null);
+  const pickerRef = useRef<HTMLSelectElement | null>(null);
 
   const load = useCallback(async (nextClub: string) => {
     const name = nextClub.trim();
@@ -163,6 +171,21 @@ export function SelectMatchProvider({
     }
   }, []);
 
+  const confirmClub = useCallback(
+    (nextClub?: string) => {
+      const name =
+        nextClub?.trim() ||
+        pickerRef.current?.value.trim() ||
+        pendingClub.trim() ||
+        club.trim();
+      if (!name) return;
+      setPendingClub(name);
+      setClub(name);
+      void load(name);
+    },
+    [pendingClub, club, load]
+  );
+
   useEffect(() => {
     if (!active) return;
     if (matches !== null) return;
@@ -171,24 +194,31 @@ export function SelectMatchProvider({
 
   useEffect(() => {
     const next = initialClub?.trim();
-    if (!next || next === club) return;
+    if (!next) return;
+    if (appliedInitialClub.current === next) return;
+    appliedInitialClub.current = next;
+    setPendingClub(next);
     setClub(next);
     void load(next);
-  }, [initialClub, club, load]);
+  }, [initialClub, load]);
 
   useEffect(() => {
     if (!clubOptions || clubOptions.length === 0) return;
-    if (clubOptions.includes(club)) return;
+    if (clubOptions.includes(club) && clubOptions.includes(pendingClub)) return;
     const next = clubOptions[0];
+    setPendingClub(next);
     setClub(next);
     void load(next);
-  }, [clubOptions, club, load]);
+  }, [clubOptions, club, pendingClub, load]);
 
   const value = useMemo(
     () => ({
       groups,
       club,
+      pendingClub,
+      setPendingClub,
       setClub,
+      confirmClub,
       matches,
       selectedMatch,
       setSelectedMatch,
@@ -199,10 +229,13 @@ export function SelectMatchProvider({
       mode,
       clubLocked,
       clubOptions,
+      pickerRef,
     }),
     [
       groups,
       club,
+      pendingClub,
+      confirmClub,
       matches,
       selectedMatch,
       resolvedClub,
@@ -445,15 +478,17 @@ export default function SelectMatchFixtures() {
   const {
     groups,
     club,
-    setClub,
+    pendingClub,
+    setPendingClub,
+    confirmClub,
     matches,
     resolvedClub,
     loading,
     error,
-    load,
     mode,
     clubLocked,
     clubOptions,
+    pickerRef,
   } = useSelectMatch();
   const shown = resolvedClub || club;
   const names =
@@ -462,9 +497,7 @@ export default function SelectMatchFixtures() {
       : groups.flatMap((group) => group.clubs);
 
   function showSelectedClub(selectEl?: HTMLSelectElement | null) {
-    const next = selectEl?.value.trim() || club;
-    setClub(next);
-    void load(next);
+    confirmClub(selectEl?.value.trim() || pendingClub);
   }
 
   return (
@@ -475,13 +508,10 @@ export default function SelectMatchFixtures() {
       <label className="block text-xs font-black uppercase tracking-[0.18em]">
         Choose your club
         <select
+          ref={pickerRef}
           aria-label="Choose your club"
-          defaultValue={club}
-          onChange={(event) => {
-            const next = event.target.value;
-            setClub(next);
-            void load(next);
-          }}
+          value={pendingClub}
+          onChange={(event) => setPendingClub(event.target.value)}
           className="mt-2 w-full rounded-xl border border-emerald-400/40 bg-s4p-paper px-3 py-3 text-sm font-semibold"
         >
           {clubOptions && clubOptions.length > 0 ? (

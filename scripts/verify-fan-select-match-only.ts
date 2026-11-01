@@ -34,6 +34,9 @@ assert(
     fixtures.includes(".slice(0, 10)") &&
     fixtures.includes("clubOptions.includes(club)") &&
     fixtures.includes("showSelectedClub") &&
+    fixtures.includes("confirmClub") &&
+    fixtures.includes("appliedInitialClub") &&
+    fixtures.includes("value={pendingClub}") &&
     fixtures.includes("data-see-upcoming-matches") &&
     fixtures.includes("data-select-match-picker") &&
     fixtures.includes("match.homeName.toLowerCase().includes(name)") &&
@@ -43,13 +46,16 @@ assert(
 
 assert(
   select.includes("order-2 lg:order-1") &&
-    select.includes("order-1 min-w-0 flex-1 lg:order-2"),
-  "On a phone, Choose your club sits above the contained 10-match list"
+    select.includes("order-1 min-w-0 flex-1 lg:order-2") &&
+    select.includes('data-confirm-club-selection="confirm-club-selection-v1"') &&
+    select.includes("Confirm your Selection") &&
+    select.includes("confirmClub(pendingClub)"),
+  "On a phone, Choose your club sits above the contained 10-match list, and Confirm your Selection honours the club"
 );
 
 assert(
   preview.includes("HowS4pSelectMatch") &&
-    preview.includes('clubOptions={["Arsenal", "Liverpool"]}') &&
+    preview.includes('clubOptions={["Real Madrid", "Everton"]}') &&
     !preview.includes("MyTeamsList"),
   "My Teams preview uses Select Match with one club at a time, not a fixture dump"
 );

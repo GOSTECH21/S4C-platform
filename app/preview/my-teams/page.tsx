@@ -8,8 +8,8 @@ export default function MyTeamsPreviewPage() {
         <FanNav />
         <HowS4pSelectMatch
           audience="fan"
-          initialClub="Arsenal"
-          clubOptions={["Arsenal", "Liverpool"]}
+          initialClub="Real Madrid"
+          clubOptions={["Real Madrid", "Everton"]}
         />
       </div>
     </main>
