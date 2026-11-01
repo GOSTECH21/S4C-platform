@@ -46,8 +46,9 @@ assert(
     join.includes("Support your team. Help fund climate action") &&
     join.includes("Predict-4-Planet (P4P)") &&
     join.includes("Join free") &&
+    join.includes("Play P4P") &&
     join.includes("FAN_REGISTER_PATH"),
-  "Fan join panel uses Predict-4-Planet copy"
+  "Fan join panel uses Predict-4-Planet copy with Join free and Play P4P tabs"
 );
 
 if (failures.length > 0) {

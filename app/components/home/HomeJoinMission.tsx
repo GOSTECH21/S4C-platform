@@ -8,7 +8,11 @@ import {
 
 const MINT = "#0c5c2c";
 
-export default function HomeJoinMission() {
+export default function HomeJoinMission({
+  onPlayP4P,
+}: {
+  onPlayP4P: () => void;
+}) {
   return (
     <section
       id="join-s4p-community"
@@ -53,7 +57,7 @@ export default function HomeJoinMission() {
 
         <article
           aria-labelledby="fan-join-heading"
-          data-fan-join-copy="fan-p4p-copy-v1"
+          data-fan-join-copy="fan-p4p-tabs-v1"
           className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9"
         >
           <p
@@ -69,17 +73,33 @@ export default function HomeJoinMission() {
             Support your team. Help fund climate action.
           </h2>
           <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-            At the stadium or following from anywhere, join S4P for free. Play{" "}
+            Over 50% of a Match Day carbon emissions is from fans travelling to
+            a Stadium to watch their team play. Help them address Match Day
+            emissions; join S4P for free. Play{" "}
             <span className="whitespace-nowrap">Predict-4-Planet (P4P)</span>{" "}
-            Match Day entertainment that generates sponsored-funding for Climate Projects.
+            in-game entertainment to generate sponsored-funding for Climate Projects.
           </p>
-          <a
-            href={FAN_REGISTER_PATH}
-            onClick={(event) => hardNavigateOnClick(FAN_REGISTER_PATH, event)}
-            className="mt-8 inline-flex w-full max-w-md cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black hover:brightness-110 sm:text-base"
+          <div
+            data-fan-join-tabs="fan-p4p-tabs-v1"
+            className="mt-8 grid grid-cols-2 gap-2"
           >
-            Join free <span aria-hidden> →</span>
-          </a>
+            <a
+              href={FAN_REGISTER_PATH}
+              data-fan-join-tab="join-free"
+              onClick={(event) => hardNavigateOnClick(FAN_REGISTER_PATH, event)}
+              className="flex w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-full bg-s4p-mark px-3 py-3.5 text-[0.72rem] font-black uppercase tracking-[0.06em] text-black hover:brightness-110 sm:px-4 sm:text-sm sm:tracking-[0.12em]"
+            >
+              Join free
+            </a>
+            <button
+              type="button"
+              data-fan-join-tab="play-p4p"
+              onClick={onPlayP4P}
+              className="flex w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-full bg-s4p-mark px-3 py-3.5 text-[0.72rem] font-black uppercase tracking-[0.06em] text-black hover:brightness-110 sm:px-4 sm:text-sm sm:tracking-[0.12em]"
+            >
+              Play P4P
+            </button>
+          </div>
         </article>
       </div>
     </section>

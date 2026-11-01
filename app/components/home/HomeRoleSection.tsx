@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   HOME_STAKEHOLDERS,
@@ -156,13 +156,19 @@ function RoleCard({
 export default function HomeRoleSection({
   joinIntent,
   onJoin,
+  roleFocus,
 }: {
   joinIntent: "login" | "register";
   onJoin: (intent: "login" | "register") => void;
+  roleFocus?: { title: string; nonce: number } | null;
 }) {
   const [selectedTitle, setSelectedTitle] = useState(
     HOME_STAKEHOLDERS[0].title
   );
+  useEffect(() => {
+    if (!roleFocus?.title) return;
+    setSelectedTitle(roleFocus.title);
+  }, [roleFocus]);
   const selected =
     HOME_STAKEHOLDERS.find((card) => card.title === selectedTitle) ??
     HOME_STAKEHOLDERS[0];

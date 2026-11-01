@@ -413,8 +413,14 @@ assert(
 assert(
   front.includes("HomeJoinMission") &&
     front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
-    front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission"),
-  "Club and fan join panels sit above How S4P Works"
+    front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission") &&
+    front.includes("showFanP4P") &&
+    front.includes("onPlayP4P") &&
+    front.includes('title: "Fans"') &&
+    front.includes("roleFocus") &&
+    roles.includes("roleFocus") &&
+    roles.includes("setSelectedTitle(roleFocus.title)"),
+  "Club and fan join panels sit above How S4P Works, and Play P4P opens the Fans card"
 );
 assert(
   front.includes("onCreateAccount") &&
@@ -510,10 +516,17 @@ assert(
     joinMission.includes("CLUB_REGISTER_PATH") &&
     joinMission.includes("Every fan counts") &&
     joinMission.includes("Support your team. Help fund climate action") &&
-    joinMission.includes('data-fan-join-copy="fan-p4p-copy-v1"') &&
-    joinMission.includes("join S4P for free. Play") &&
+    joinMission.includes('data-fan-join-copy="fan-p4p-tabs-v1"') &&
+    joinMission.includes("Over 50% of a Match Day carbon emissions") &&
+    joinMission.includes("Help them address Match Day") &&
+    joinMission.includes("emissions; join S4P for free") &&
     joinMission.includes("Predict-4-Planet (P4P)") &&
-    joinMission.includes("sponsored-funding for Climate Projects") &&
+    joinMission.includes("in-game entertainment to generate sponsored-funding for Climate Projects") &&
+    joinMission.includes('data-fan-join-tabs="fan-p4p-tabs-v1"') &&
+    joinMission.includes('data-fan-join-tab="join-free"') &&
+    joinMission.includes('data-fan-join-tab="play-p4p"') &&
+    joinMission.includes("Play P4P") &&
+    !joinMission.includes("At the stadium or following from anywhere") &&
     !joinMission.includes("take part in match-day activities") &&
     !joinMission.includes("eligible sponsor-funded") &&
     joinMission.includes("Join free") &&
