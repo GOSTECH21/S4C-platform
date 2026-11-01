@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/p4p-drop-repeat-18f9"
-$bust = "p4p-drop-repeat-1"
+$branch = "cursor/p4p-slot-timer-18f9"
+$bust = "p4p-slot-timer-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -148,13 +148,13 @@ foreach ($root in $roots) {
   if (
     $playText -match "s4p-predict-for-planet-v7" -and
     $playText -match "p4p-powered-by" -and
-    $playText -match "What happens next" -and
+    $playText -match "P4P_PREDICT_NEXT_LABEL" -and
     $playText -match "if \(!hydrated \|\| !sponsored\)" -and
     $playText -match "P4P_FANS_ENGAGEMENT_LABEL" -and
     $playText -match "FAN_CARBON_WALLET_LABEL" -and
     $playText -notmatch "bg-\[#10262c\]"
   ) {
-    Write-Host "Ivory live board and sponsor mark beside What happens next: $play"
+    Write-Host "Ivory live board with Predict what happens next: $play"
     $updated++
   } else {
     Write-Host "Still old dark P4P live board: $play"

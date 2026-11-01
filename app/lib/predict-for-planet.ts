@@ -14,6 +14,7 @@ export const MATCH_SPONSOR_PRODUCT_LABEL = "Match-Sponsor";
 export const GAME_TIME_PRODUCT_LABEL = "Game-Time Sponsor";
 export const SPONSORED_BY_LABEL = "Sponsored by";
 export const P4P_POWERED_BY_LABEL = "This Climate Challenge is powered by";
+export const P4P_PREDICT_NEXT_LABEL = "Predict what happens next?";
 export const P4P_LIVE_CHALLENGE_LABEL = "P4P Live Climate Challenge";
 export const P4P_TAGLINE = "Predict. Participate. Power Climate Action";
 export const P4P_MAKE_PREDICTION_LABEL = "Make your prediction";
@@ -162,6 +163,29 @@ export type P4pWindowCountdown = {
   remainingSeconds: number;
   label: string;
 };
+
+export function p4pCyclingWindowClock(
+  now: Date | string = new Date()
+): {
+  window: P4pWindow;
+  remainingSeconds: number;
+  label: string;
+} {
+  const windows = p4pWindows();
+  const windowMs = P4P_WINDOW_MINUTES * 60 * 1000;
+  const matchMs = GAME_TIME_DURATION_MINUTES * 60 * 1000;
+  const elapsed = ((toDate(now).getTime() % matchMs) + matchMs) % matchMs;
+  const index = Math.min(windows.length - 1, Math.floor(elapsed / windowMs));
+  const into = elapsed % windowMs;
+  const remainingMs = into === 0 ? windowMs : windowMs - into;
+  const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const window = windows[index]!;
+  return {
+    window,
+    remainingSeconds,
+    label: formatP4pClock(remainingSeconds),
+  };
+}
 
 export function p4pWindowCountdown(
   kickoffAt: Date | string,

@@ -37,7 +37,9 @@ import {
   windowsForGameTimeSlot,
   isWindowInGameTimeSlot,
   p4pLiveChallenge,
+  p4pCyclingWindowClock,
   p4pWindowCountdown,
+  P4P_PREDICT_NEXT_LABEL,
 } from "../app/lib/predict-for-planet";
 import {
   GAME_TIME_SPONSORSHIP_RANGE_LABEL,
@@ -470,6 +472,20 @@ assert(
   endedClock.state === "ended",
   "A 20–25 minute window has ended once the Game is in the 30–60 slot"
 );
+const fifteenClock = p4pCyclingWindowClock(new Date(15 * 60 * 1000));
+const twentyClock = p4pCyclingWindowClock(new Date(20 * 60 * 1000));
+assert(
+  fifteenClock.window.label === "15–20 min" &&
+    fifteenClock.remainingSeconds === 300 &&
+    twentyClock.window.label === "20–25 min" &&
+    twentyClock.remainingSeconds === 300 &&
+    twentyClock.label === "5:00",
+  "The 5-minute slot timer resets to 5:00 when the next window starts"
+);
+assert(
+  P4P_PREDICT_NEXT_LABEL === "Predict what happens next?",
+  "P4P asks fans to predict what happens next"
+);
 
 const takeFromSponsor = recordP4pEngagement({
   fanId: "fan-hearts",
@@ -570,13 +586,22 @@ assert(
     phone.includes("earnedGbp") &&
     !phone.includes("12.4") &&
     !phone.includes("Seven {P4P_SHORT} prediction categories") &&
-    phone.includes("Global Brands buy a 30-minute Game-Time slot") &&
+    !phone.includes("Global Brands buy a 30-minute Game-Time slot") &&
     phone.includes("3 of 7 this slot") &&
     phone.includes("#fffdf8") &&
     phone.includes("P4P_POWERED_BY_LABEL") &&
+    phone.includes("P4P_PREDICT_NEXT_LABEL") &&
+    phone.includes('data-p4p-slot-timer="p4p-slot-timer-v1"') &&
+    phone.includes("p4pCyclingWindowClock") &&
+    phone.includes("P4pClubCrest") &&
+    phone.includes("text-[20px] font-black tabular-nums") &&
+    phone.includes("text-[13px] font-black") &&
+    phone.includes("Participating earns") &&
+    phone.includes("font-black leading-4 text-black") &&
+    phone.includes('data-p4p-participating="p4p-participating-v1"') &&
     phone.includes("PhoneFrame") &&
     !phone.includes("#0b1f14"),
-  "The Step 04 phone overlay is ivory with a sponsor mark beside What happens next"
+  "The P4P phone overlay is ivory with a 5-minute slot timer, club logos, and the sponsor under Predict what happens next"
 );
 assert(
   register.includes("GAME_TIME_PRODUCT_LABEL") &&
@@ -604,7 +629,9 @@ assert(
     play.includes("BrandMark") &&
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
-    play.includes("What happens next?") &&
+    play.includes("P4P_PREDICT_NEXT_LABEL") &&
+    play.includes('countdown?.state !== "ended"') &&
+    play.includes("currentIndex + 1") &&
     play.includes("s4p-predict-for-planet-v7") &&
     play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
     play.includes("awardP4pSlotEvent") &&
@@ -642,7 +669,7 @@ const gameTimePreview = readFileSync(
 );
 assert(
   gameTimePreview.includes("What fans see on Predict-For Planet") &&
-    gameTimePreview.includes("What happens next?") &&
+    gameTimePreview.includes("P4P_PREDICT_NEXT_LABEL") &&
     gameTimePreview.includes('data-testid="p4p-powered-by"') &&
     gameTimePreview.includes("P4P_LIVE_CHALLENGE_LABEL") &&
     gameTimePreview.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
@@ -677,14 +704,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-drop-repeat-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-slot-timer-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("p4p-drop-repeat-1") &&
+    applyP4p.includes("p4p-slot-timer-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -704,7 +731,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("p4p-drop-repeat-1") &&
+    applyP4pPs1.includes("p4p-slot-timer-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

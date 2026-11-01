@@ -19,6 +19,7 @@ import {
   P4P_MATCH_DAY_IMPACT_LABEL,
   P4P_PARTICIPATION_GBP,
   P4P_POWERED_BY_LABEL,
+  P4P_PREDICT_NEXT_LABEL,
   P4P_PREDICTIONS_PER_WINDOW,
   P4P_TAGLINE,
   alreadyPredictedWindow,
@@ -196,6 +197,18 @@ export function PredictForPlanetPlay({
       if (fallback !== undefined) setWindowIndex(fallback);
     }
   }, [slotIndex, windowIndex]);
+
+  useEffect(() => {
+    if (!wallet || countdown?.state !== "ended") return;
+    const currentIndex = playWindow?.index;
+    if (currentIndex === undefined) return;
+    const next = windowsForGameTimeSlot(slotIndex).find(
+      (row) => row.index === currentIndex + 1
+    );
+    if (!next) return;
+    setWindowIndex(next.index);
+    setCategoryIds([]);
+  }, [countdown?.state, playWindow?.index, slotIndex, wallet]);
 
   function predict() {
     setNotice(null);
@@ -413,62 +426,58 @@ export function PredictForPlanetPlay({
             </p>
           ) : null}
         </div>
-        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-              What happens next? · {categoryIds.length}/{P4P_PREDICTIONS_PER_WINDOW} of 7
-            </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {P4P_CATEGORIES.map((category) => {
-                const selectedIndex = categoryIds.indexOf(category.id);
-                const selected = selectedIndex >= 0;
-                const full = categoryIds.length >= P4P_PREDICTIONS_PER_WINDOW;
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    disabled={alreadyInWindow || (full && !selected)}
-                    onClick={() =>
-                      setCategoryIds((current) => {
-                        if (current.includes(category.id)) {
-                          return current.filter((id) => id !== category.id);
-                        }
-                        if (current.length >= P4P_PREDICTIONS_PER_WINDOW) {
-                          return current;
-                        }
-                        return [...current, category.id];
-                      })
-                    }
-                    className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
-                      selected
-                        ? "border-s4p-mark bg-s4p-mark text-black"
-                        : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
-                    } disabled:opacity-50`}
-                  >
-                    {category.label}
-                    {selected ? ` · ${selectedIndex + 1}/${P4P_PREDICTIONS_PER_WINDOW}` : ""}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        <div className="mt-3">
+          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+            {P4P_PREDICT_NEXT_LABEL} · {categoryIds.length}/{P4P_PREDICTIONS_PER_WINDOW} of 7
+          </p>
           <aside
             data-testid="p4p-powered-by"
-            className="w-full shrink-0 sm:w-44"
+            className="mt-3 rounded-2xl border border-slate-300 bg-white p-5 text-center"
           >
             <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
               {P4P_POWERED_BY_LABEL}
             </p>
-            <div className="mt-3 rounded-2xl border border-slate-300 bg-white p-4 text-center">
-              <BrandMark
-                name={sponsorBrand}
-                logoUrl={sponsorLogo}
-                large
-                className="mx-auto h-20 w-20 text-xl"
-              />
-              <p className="mt-3 text-sm font-black text-slate-950">{sponsorBrand}</p>
-            </div>
+            <BrandMark
+              name={sponsorBrand}
+              logoUrl={sponsorLogo}
+              large
+              className="mx-auto mt-3 h-28 w-28 text-3xl"
+            />
+            <p className="mt-3 text-xl font-black text-slate-950">{sponsorBrand}</p>
           </aside>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {P4P_CATEGORIES.map((category) => {
+              const selectedIndex = categoryIds.indexOf(category.id);
+              const selected = selectedIndex >= 0;
+              const full = categoryIds.length >= P4P_PREDICTIONS_PER_WINDOW;
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  disabled={alreadyInWindow || (full && !selected)}
+                  onClick={() =>
+                    setCategoryIds((current) => {
+                      if (current.includes(category.id)) {
+                        return current.filter((id) => id !== category.id);
+                      }
+                      if (current.length >= P4P_PREDICTIONS_PER_WINDOW) {
+                        return current;
+                      }
+                      return [...current, category.id];
+                    })
+                  }
+                  className={`rounded-xl border px-4 py-4 text-left text-base font-black ${
+                    selected
+                      ? "border-s4p-mark bg-s4p-mark text-black"
+                      : "border-slate-300 bg-white text-slate-950 hover:border-s4p-mark"
+                  } disabled:opacity-50`}
+                >
+                  {category.label}
+                  {selected ? ` · ${selectedIndex + 1}/${P4P_PREDICTIONS_PER_WINDOW}` : ""}
+                </button>
+              );
+            })}
+          </div>
         </div>
         {countdown && countdown.state !== "upcoming" ? (
           <div className="mt-5">

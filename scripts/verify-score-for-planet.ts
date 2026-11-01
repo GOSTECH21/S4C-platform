@@ -119,7 +119,7 @@ assert(
     climate.includes("S4P_THIRD_UNLOCK_COPY") &&
     !climate.includes("via Stripe") &&
     !climate.includes("Sponsorship Manager logs in") &&
-    readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
+    !readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
       "Global Brands buy a 30-minute Game-Time slot"
     ) &&
     !readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(

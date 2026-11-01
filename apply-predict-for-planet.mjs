@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-drop-repeat-18f9";
-const BUST = "p4p-drop-repeat-1";
+const BRANCH = "cursor/p4p-slot-timer-18f9";
+const BUST = "p4p-slot-timer-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -209,7 +209,7 @@ for (const root of roots) {
   if (
     !playText.includes("s4p-predict-for-planet-v7") ||
     !playText.includes('data-testid="p4p-powered-by"') ||
-    !playText.includes("What happens next?") ||
+    !playText.includes("P4P_PREDICT_NEXT_LABEL") ||
     !playText.includes("if (!hydrated || !sponsored)") ||
     !playText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
     !playText.includes("FAN_CARBON_WALLET_LABEL") ||
@@ -220,7 +220,7 @@ for (const root of roots) {
     failed += 1;
     console.error("Still old dark P4P live board:", play);
   } else {
-    console.log("Ivory live board and sponsor mark beside What happens next:", play);
+    console.log("Ivory live board with Predict what happens next:", play);
   }
   if (
     !phoneText.includes("s4p-predict-for-planet-v7") ||

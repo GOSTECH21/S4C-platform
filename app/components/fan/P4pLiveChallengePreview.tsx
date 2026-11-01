@@ -9,6 +9,7 @@ import {
   P4P_LIVE_CHALLENGE_FOOTER,
   P4P_LIVE_CHALLENGE_LABEL,
   P4P_POWERED_BY_LABEL,
+  P4P_PREDICT_NEXT_LABEL,
   P4P_TAGLINE,
   formatP4pGbp,
 } from "@/app/lib/predict-for-planet";
@@ -125,39 +126,35 @@ export function P4pLiveChallengePreview({
         <p className="mt-5 text-sm text-slate-600">{P4P_LIVE_CHALLENGE_FOOTER}</p>
       </article>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-            What happens next?
-          </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {P4P_CATEGORIES.map((category) => (
-              <p
-                key={category.id}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950"
-              >
-                {category.label}
-              </p>
-            ))}
-          </div>
-        </div>
+      <div>
+        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+          {P4P_PREDICT_NEXT_LABEL}
+        </p>
         <aside
           data-testid="p4p-powered-by"
-          className="w-full shrink-0 sm:w-44"
+          className="mt-3 rounded-2xl border border-slate-300 bg-white p-5 text-center"
         >
           <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
             {P4P_POWERED_BY_LABEL}
           </p>
-          <div className="mt-3 rounded-2xl border border-slate-300 bg-white p-4 text-center">
-            <BrandMark
-              name={brandName}
-              logoUrl={sponsorLogo}
-              large
-              className="mx-auto h-20 w-20 text-xl"
-            />
-            <p className="mt-3 text-sm font-black text-slate-950">{brandName}</p>
-          </div>
+          <BrandMark
+            name={brandName}
+            logoUrl={sponsorLogo}
+            large
+            className="mx-auto mt-3 h-28 w-28 text-3xl"
+          />
+          <p className="mt-3 text-xl font-black text-slate-950">{brandName}</p>
         </aside>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {P4P_CATEGORIES.map((category) => (
+            <p
+              key={category.id}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-4 text-base font-black text-slate-950"
+            >
+              {category.label}
+            </p>
+          ))}
+        </div>
       </div>
     </div>
   );
