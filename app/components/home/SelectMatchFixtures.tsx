@@ -144,7 +144,7 @@ export function SelectMatchProvider({
       };
       if (id !== requestId.current) return;
       setResolvedClub(payload.club || name);
-      const nextMatches = payload.matches ?? [];
+      const nextMatches = (payload.matches ?? []).slice(0, 10);
       setMatches(nextMatches);
       setSelectedMatch((current) => {
         if (current && nextMatches.some((row) => row.id === current.id)) {
@@ -175,6 +175,14 @@ export function SelectMatchProvider({
     setClub(next);
     void load(next);
   }, [initialClub, club, load]);
+
+  useEffect(() => {
+    if (!clubOptions || clubOptions.length === 0) return;
+    if (clubOptions.includes(club)) return;
+    const next = clubOptions[0];
+    setClub(next);
+    void load(next);
+  }, [clubOptions, club, load]);
 
   const value = useMemo(
     () => ({
@@ -232,6 +240,16 @@ export function SelectMatchPhone({
     mode,
   } = useSelectMatch();
   const shown = resolvedClub || club;
+  const shownMatches = (matches ?? [])
+    .filter((match) => {
+      const name = shown.toLowerCase();
+      return (
+        match.homeName.toLowerCase().includes(name) ||
+        match.awayName.toLowerCase().includes(name) ||
+        match.fixtureName.toLowerCase().includes(name)
+      );
+    })
+    .slice(0, 10);
 
   return (
     <PhoneFrame
@@ -239,7 +257,7 @@ export function SelectMatchPhone({
       alt={alt}
       width={247}
       height={589}
-      screenClassName="[pointer-events:auto] max-md:min-h-[28rem] md:rounded-[0_0_1.35rem_1.35rem]"
+      screenClassName="[pointer-events:auto] max-md:h-[28rem] max-md:max-h-[28rem] md:rounded-[0_0_1.35rem_1.35rem]"
       screenStyle={{
         top: "14.9%",
         left: "6.2%",
@@ -249,12 +267,13 @@ export function SelectMatchPhone({
       }}
     >
       <div
+        data-select-match-contained="select-match-contained-v1"
         className="flex h-full flex-col px-3 pt-2.5"
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
         aria-live="polite"
         aria-label={`${clubPossessive(shown)} next ${
-          matches?.length ?? 10
+          shownMatches.length || 10
         } league and cup matches`}
       >
           <p
@@ -298,13 +317,13 @@ export function SelectMatchPhone({
               <p className="text-xs font-semibold">{error}</p>
             ) : null}
             {matches && !loading ? (
-              matches.length === 0 ? (
+              shownMatches.length === 0 ? (
                 <p className="text-xs font-semibold">
                   No upcoming matches found for this club yet.
                 </p>
               ) : (
                 <ol className="space-y-2">
-                  {matches.map((match) => {
+                  {shownMatches.map((match) => {
                     const pending = {
                       club: shown,
                       fixtureName: match.fixtureName,
@@ -442,8 +461,14 @@ export default function SelectMatchFixtures() {
       ? clubOptions
       : groups.flatMap((group) => group.clubs);
 
+  function showSelectedClub(selectEl?: HTMLSelectElement | null) {
+    const next = selectEl?.value.trim() || club;
+    setClub(next);
+    void load(next);
+  }
+
   return (
-    <div className="mt-6 max-w-xl">
+    <div className="mt-6 max-w-xl" data-select-match-picker>
       {clubLocked ? (
         <p className="text-xs font-black uppercase tracking-[0.18em]">{shown}</p>
       ) : (
@@ -451,7 +476,7 @@ export default function SelectMatchFixtures() {
         Choose your club
         <select
           aria-label="Choose your club"
-          value={club}
+          defaultValue={club}
           onChange={(event) => {
             const next = event.target.value;
             setClub(next);
@@ -481,7 +506,14 @@ export default function SelectMatchFixtures() {
       )}
       <button
         type="button"
-        onClick={() => void load(club)}
+        data-see-upcoming-matches
+        onClick={(event) =>
+          showSelectedClub(
+            event.currentTarget
+              .closest("[data-select-match-picker]")
+              ?.querySelector("select")
+          )
+        }
         className="mt-3 inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
       >
         See upcoming matches <span aria-hidden> →</span>
@@ -494,8 +526,8 @@ export default function SelectMatchFixtures() {
       ) : null}
       {matches && !loading ? (
         <p className="mt-4 text-sm font-semibold leading-6">
-          {clubPossessive(shown)} next {matches.length} league and cup matches
-          are on the phone.
+          {clubPossessive(shown)} next {Math.min(matches.length, 10)} league and
+          cup matches are on the phone.
           {mode === "sponsor"
             ? " Tap a match to lock it in, complete your sponsorship and sign it off."
             : mode === "club"

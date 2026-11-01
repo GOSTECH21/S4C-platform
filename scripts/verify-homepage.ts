@@ -759,6 +759,15 @@ assert(
     selectMatchFixtures.includes("Tap a match to lock it in") &&
     selectMatchFixtures.includes("Sponsor · Sign off") &&
     selectMatchFixtures.includes("Select this Match") &&
+    selectMatchFixtures.includes("select-match-contained-v1") &&
+    selectMatchFixtures.includes("max-md:h-[28rem]") &&
+    selectMatchFixtures.includes("shownMatches") &&
+    selectMatchFixtures.includes("clubOptions.includes(club)") &&
+    selectMatchFixtures.includes("showSelectedClub") &&
+    selectMatchFixtures.includes("data-select-match-picker") &&
+    selectMatchFixtures.includes("defaultValue={club}") &&
+    !selectMatchFixtures.includes("value={club}") &&
+    selectMatchFixtures.includes(".slice(0, 10)") &&
     !selectMatchFixtures.includes("Tap a match to choose it for Match Day"),
   "Select Match auto-loads the next 10 matches; sponsor rows lock in, fan/club rows select on the phone"
 );
@@ -782,6 +791,12 @@ assert(
     howS4pWorksLib.includes("HOW_S4P_SELECT_MATCH_CLUB") &&
     readFileSync("app/components/fan/FanMyTeamsPanel.tsx", "utf8").includes(
       'audience="fan"'
+    ) &&
+    !readFileSync("app/components/fan/FanMyTeamsPanel.tsx", "utf8").includes(
+      "UpcomingMatches"
+    ) &&
+    !readFileSync("app/components/fan/FanMyTeamsPanel.tsx", "utf8").includes(
+      "MyTeamsList"
     ) &&
     readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(
       'audience="sponsor"'

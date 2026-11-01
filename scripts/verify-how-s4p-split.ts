@@ -76,6 +76,8 @@ assert(
 assert(
   fan.includes('audience="fan"') &&
     fan.includes("clubOptions={selected.map((team) => team.name)}") &&
+    !fan.includes("UpcomingMatches") &&
+    !fan.includes("MyTeamsList") &&
     lead.includes('audience="sponsor"') &&
     localRegister.includes('audience="sponsor"') &&
     wallet.includes('audience="sponsor"') &&
