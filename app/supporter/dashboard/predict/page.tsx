@@ -62,11 +62,15 @@ export default function PredictForPlanetPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-16">
+    <main
+      className="mx-auto max-w-6xl px-6 pb-16"
+      data-p4p-fan-drop-overlay="p4p-fan-drop-overlay-v1"
+    >
       <HowS4pPredictForPlanet
         initialClub={preferredClubNames[0]}
         clubOptions={preferredClubNames}
         donateOnFullTime
+        showPhone={false}
       >
         <PredictForPlanetPlay
           fanId={fanId}

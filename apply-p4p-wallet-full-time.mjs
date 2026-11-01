@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-wallet-full-time-18f9";
-const BUST = "p4p-wallet-full-time-1";
+const BRANCH = "cursor/fan-p4p-drop-overlay-18f9";
+const BUST = "fan-p4p-drop-overlay-1";
 const FILES = [
   "app/lib/predict-for-planet.ts",
   "app/components/home/PredictForPlanet.tsx",
@@ -35,13 +35,16 @@ for (const rel of FILES) {
 
 const phone = "app/components/home/PredictForPlanet.tsx";
 const vote = "app/dashboard/supporter/vote/page.tsx";
-if (existsSync(phone) && existsSync(vote)) {
+const fan = "app/supporter/dashboard/predict/page.tsx";
+if (existsSync(phone) && existsSync(vote) && existsSync(fan)) {
   const phoneSrc = readFileSync(phone, "utf8");
   const voteSrc = readFileSync(vote, "utf8");
+  const fanSrc = readFileSync(fan, "utf8");
   if (
     !phoneSrc.includes("p4p-wallet-held-v1") ||
     !phoneSrc.includes("p4p-donate-funding-v1") ||
-    !voteSrc.includes("Here are Climate Projects to donate your funding")
+    !voteSrc.includes("Here are Climate Projects to donate your funding") ||
+    !fanSrc.includes("showPhone={false}")
   ) {
     failed += 1;
     console.error(

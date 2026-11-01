@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-wallet-full-time-18f9";
-const BUST = "p4p-wallet-full-time-1";
+const BRANCH = "cursor/fan-p4p-drop-overlay-18f9";
+const BUST = "fan-p4p-drop-overlay-1";
 const FILES = [
   "app/components/home/PredictForPlanet.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",

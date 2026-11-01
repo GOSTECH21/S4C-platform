@@ -1,4 +1,5 @@
 "use client";
+/* p4p-fan-drop-overlay-v1 */
 
 import type { ReactNode } from "react";
 import { PHONE_COLUMN_CLASS } from "@/app/components/home/PhoneFrame";
@@ -21,6 +22,7 @@ export default function HowS4pPredictForPlanet({
   donateOnFullTime = false,
   forceFullTime = false,
   initialWalletGbp = 0,
+  showPhone = true,
   children,
   className = "",
 }: {
@@ -30,6 +32,7 @@ export default function HowS4pPredictForPlanet({
   donateOnFullTime?: boolean;
   forceFullTime?: boolean;
   initialWalletGbp?: number;
+  showPhone?: boolean;
   children?: ReactNode;
   className?: string;
 }) {
@@ -50,16 +53,21 @@ export default function HowS4pPredictForPlanet({
             caption={p4pHowItWorksCaption()}
             points={p4pHowItWorksPoints()}
           />
-          <div className={PHONE_COLUMN_CLASS}>
-            <PredictForPlanetPhone
-              src={HOW_S4P_P4P.src}
-              alt={HOW_S4P_P4P.alt}
-              fixtureName={fixtureName}
-              donateOnFullTime={donateOnFullTime}
-              forceFullTime={forceFullTime}
-              initialWalletGbp={initialWalletGbp}
-            />
-          </div>
+          {showPhone ? (
+            <div
+              className={PHONE_COLUMN_CLASS}
+              data-p4p-demo-phone="p4p-demo-phone-v1"
+            >
+              <PredictForPlanetPhone
+                src={HOW_S4P_P4P.src}
+                alt={HOW_S4P_P4P.alt}
+                fixtureName={fixtureName}
+                donateOnFullTime={donateOnFullTime}
+                forceFullTime={forceFullTime}
+                initialWalletGbp={initialWalletGbp}
+              />
+            </div>
+          ) : null}
         </div>
         {children ? <div className="mt-10">{children}</div> : null}
       </section>

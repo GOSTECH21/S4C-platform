@@ -88,9 +88,12 @@ assert(
 assert(
   fanP4p.includes("HowS4pPredictForPlanet") &&
     fanP4p.includes("PredictForPlanetPlay") &&
+    fanP4p.includes("showPhone={false}") &&
     p4pSection.includes("data-how-s4p-p4p") &&
     p4pSection.includes("PredictForPlanetPhone") &&
     p4pSection.includes("PredictForPlanetPanel") &&
+    p4pSection.includes("showPhone") &&
+    p4pSection.includes("p4p-fan-drop-overlay-v1") &&
     p4pSection.indexOf("PredictForPlanetPanel") <
       p4pSection.indexOf("PredictForPlanetPhone") &&
     p4pSection.includes("HOW_S4P_P4P") &&

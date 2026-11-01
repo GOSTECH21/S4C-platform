@@ -106,6 +106,7 @@ assert(
     play.includes("p4pDonateProjectsPath") &&
     play.includes("Here are Climate Projects to donate your funding") &&
     predictPage.includes("donateOnFullTime") &&
+    predictPage.includes("showPhone={false}") &&
     donatePreview.includes("Here are Climate Projects to donate your funding") &&
     donatePreview.includes("forceFullTime") &&
     donatePreview.includes("initialWalletGbp={0.2}"),

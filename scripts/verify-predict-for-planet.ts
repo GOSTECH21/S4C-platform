@@ -674,11 +674,23 @@ const fanPredictPage = readFileSync(
   "utf8"
 );
 assert(
-  fanPredictPage.includes("preferredClubNames") &&
+    fanPredictPage.includes("preferredClubNames") &&
     fanPredictPage.includes("HowS4pPredictForPlanet") &&
     fanPredictPage.includes("PredictForPlanetPlay") &&
+    fanPredictPage.includes("showPhone={false}") &&
+    fanPredictPage.includes("p4p-fan-drop-overlay-v1") &&
+    !fanPredictPage.includes("PredictForPlanetPhone") &&
     !fanPredictPage.includes("vs Chelsea"),
-  "Fan P4P shows Image P4P and the live board, and does not invent a vs Chelsea Match"
+  "Fan P4P keeps the intro and live board, without the duplicate demo phone overlay"
+);
+const fanP4pPreview = readFileSync("app/preview/fan-p4p/page.tsx", "utf8");
+assert(
+  fanP4pPreview.includes("showPhone={false}") &&
+    fanP4pPreview.includes("PredictForPlanetPlay") &&
+    fanP4pPreview.includes("p4p-fan-drop-overlay-v1") &&
+    fanP4pPreview.includes("seedWallet") &&
+    !fanP4pPreview.includes("PredictForPlanetPhone"),
+  "Fan P4P preview matches the logged-in tab: intro and live board only"
 );
 const gameTimePage = readFileSync("app/sponsor/game-time/page.tsx", "utf8");
 assert(
@@ -733,14 +745,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-wallet-full-time-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/fan-p4p-drop-overlay-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("p4p-wallet-full-time-1") &&
+    applyP4p.includes("fan-p4p-drop-overlay-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -760,7 +772,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("p4p-wallet-full-time-1") &&
+    applyP4pPs1.includes("fan-p4p-drop-overlay-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&
