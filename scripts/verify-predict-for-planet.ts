@@ -37,7 +37,10 @@ import {
   windowsForGameTimeSlot,
   isWindowInGameTimeSlot,
   p4pLiveChallenge,
+  p4pAdvanceSlotBoard,
+  p4pBankSlotIfComplete,
   p4pCyclingWindowClock,
+  p4pEmptySlotBoard,
   p4pWindowCountdown,
   P4P_PREDICT_NEXT_LABEL,
 } from "../app/lib/predict-for-planet";
@@ -486,6 +489,22 @@ assert(
   P4P_PREDICT_NEXT_LABEL === "Predict what happens next?",
   "P4P asks fans to predict what happens next"
 );
+let slotBoard = p4pEmptySlotBoard(3);
+slotBoard = p4pBankSlotIfComplete({
+  ...slotBoard,
+  picked: ["handball", "foul", "var"],
+});
+slotBoard = p4pAdvanceSlotBoard(slotBoard, 4);
+slotBoard = p4pBankSlotIfComplete({
+  ...slotBoard,
+  picked: ["corner", "penalty", "red-card"],
+});
+assert(
+  slotBoard.picked.length === 3 &&
+    slotBoard.walletGbp === P4P_PARTICIPATION_GBP * 2 &&
+    p4pAdvanceSlotBoard(slotBoard, 4).picked.length === 3,
+  "Winnings stack across 5-minute slots and picks only wipe when the window changes"
+);
 
 const takeFromSponsor = recordP4pEngagement({
   fanId: "fan-hearts",
@@ -592,6 +611,9 @@ assert(
     phone.includes("P4P_POWERED_BY_LABEL") &&
     phone.includes("P4P_PREDICT_NEXT_LABEL") &&
     phone.includes('data-p4p-slot-timer="p4p-slot-timer-v1"') &&
+    phone.includes('data-p4p-slot-wipe="p4p-slot-wipe-v1"') &&
+    phone.includes("p4pAdvanceSlotBoard") &&
+    phone.includes("board.walletGbp") &&
     phone.includes("p4pCyclingWindowClock") &&
     phone.includes("P4pClubCrest") &&
     phone.includes("text-[20px] font-black tabular-nums") &&
@@ -630,7 +652,9 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("P4P_PREDICT_NEXT_LABEL") &&
-    play.includes('countdown?.state !== "ended"') &&
+    play.includes('countdown?.state === "ended"') &&
+    play.includes("countdown?.remainingSeconds === 0") &&
+    play.includes("fanCarbonWalletFromPredictions") &&
     play.includes("currentIndex + 1") &&
     play.includes("s4p-predict-for-planet-v7") &&
     play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
@@ -704,14 +728,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-slot-timer-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-slot-wipe-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("p4p-slot-timer-1") &&
+    applyP4p.includes("p4p-slot-wipe-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -731,7 +755,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("p4p-slot-timer-1") &&
+    applyP4pPs1.includes("p4p-slot-wipe-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

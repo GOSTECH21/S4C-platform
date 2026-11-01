@@ -1,6 +1,7 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
 /* p4p-slot-timer-v1 */
+/* p4p-slot-wipe-v1 */
 
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -13,7 +14,6 @@ import {
   P4P_CATEGORIES,
   P4P_ENGAGEMENT_GBP,
   P4P_LABEL,
-  P4P_PARTICIPATION_GBP,
   P4P_POWERED_BY_LABEL,
   P4P_PREDICT_NEXT_LABEL,
   P4P_PREDICTIONS_PER_WINDOW,
@@ -21,7 +21,10 @@ import {
   P4P_WINDOW_MINUTES,
   formatP4pClock,
   formatP4pGbp,
+  p4pAdvanceSlotBoard,
+  p4pBankSlotIfComplete,
   p4pCyclingWindowClock,
+  p4pEmptySlotBoard,
   p4pWindows,
   type P4pCategoryId,
 } from "@/app/lib/predict-for-planet";
@@ -93,11 +96,9 @@ export function PredictForPlanetPhone({
   const homeName = sides?.[0] ?? "";
   const awayName = sides?.[1] ?? "";
   const fallbackWindow = p4pWindows()[3];
-  const [picked, setPicked] = useState<P4pCategoryId[]>([]);
+  const [board, setBoard] = useState(() => p4pEmptySlotBoard());
   const [notice, setNotice] = useState<string | null>(null);
   const [now, setNow] = useState<Date | null>(null);
-  const earnedGbp =
-    picked.length === P4P_PREDICTIONS_PER_WINDOW ? P4P_PARTICIPATION_GBP : 0;
   const clock = now
     ? p4pCyclingWindowClock(now)
     : {
@@ -105,6 +106,8 @@ export function PredictForPlanetPhone({
         remainingSeconds: P4P_WINDOW_MINUTES * 60,
         label: formatP4pClock(P4P_WINDOW_MINUTES * 60),
       };
+  const picked = board.picked;
+  const earnedGbp = board.walletGbp;
   const sponsorLogo =
     loadBrandLogo(DEMO_BRAND) || sponsorLogoSrc(DEMO_BRAND, null);
 
@@ -114,20 +117,32 @@ export function PredictForPlanetPhone({
     return () => window.clearInterval(id);
   }, []);
 
-  function toggle(id: P4pCategoryId) {
-    setPicked((current) => {
-      if (current.includes(id)) {
+  useEffect(() => {
+    const nextIndex = clock.window.index;
+    setBoard((current) => {
+      const next = p4pAdvanceSlotBoard(current, nextIndex);
+      if (current.windowIndex >= 0 && current.windowIndex !== next.windowIndex) {
         setNotice(null);
-        return current.filter((row) => row !== id);
-      }
-      if (current.length >= P4P_PREDICTIONS_PER_WINDOW) return current;
-      const next = [...current, id];
-      if (next.length === P4P_PREDICTIONS_PER_WINDOW) {
-        setNotice(
-          `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
-        );
       }
       return next;
+    });
+  }, [clock.window.index]);
+
+  function toggle(id: P4pCategoryId) {
+    setBoard((current) => {
+      let pickedNext = current.picked;
+      if (pickedNext.includes(id)) {
+        setNotice(null);
+        pickedNext = pickedNext.filter((row) => row !== id);
+      } else if (pickedNext.length < P4P_PREDICTIONS_PER_WINDOW) {
+        pickedNext = [...pickedNext, id];
+        if (pickedNext.length === P4P_PREDICTIONS_PER_WINDOW) {
+          setNotice(
+            `Participation ${formatP4pGbp(P4P_ENGAGEMENT_GBP)}. Right event +${formatP4pGbp(P4P_ACCURACY_GBP)}.`
+          );
+        }
+      }
+      return p4pBankSlotIfComplete({ ...current, picked: pickedNext });
     });
   }
 
@@ -182,6 +197,8 @@ export function PredictForPlanetPhone({
             </p>
           </div>
           <div
+            data-p4p-slot-wipe="p4p-slot-wipe-v1"
+            data-p4p-wallet={formatP4pGbp(earnedGbp)}
             className="mt-1.5 rounded-xl px-2 py-1.5 text-center text-[10px] font-black text-black"
             style={{ backgroundColor: MARK_GREEN }}
           >

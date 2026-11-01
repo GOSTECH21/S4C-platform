@@ -199,16 +199,19 @@ export function PredictForPlanetPlay({
   }, [slotIndex, windowIndex]);
 
   useEffect(() => {
-    if (!wallet || countdown?.state !== "ended") return;
+    const slotOver =
+      countdown?.state === "ended" || countdown?.remainingSeconds === 0;
+    if (!slotOver) return;
+    setCategoryIds((current) => (current.length === 0 ? current : []));
+    setNotice(null);
+    setError(null);
     const currentIndex = playWindow?.index;
     if (currentIndex === undefined) return;
     const next = windowsForGameTimeSlot(slotIndex).find(
       (row) => row.index === currentIndex + 1
     );
-    if (!next) return;
-    setWindowIndex(next.index);
-    setCategoryIds([]);
-  }, [countdown?.state, playWindow?.index, slotIndex, wallet]);
+    if (next) setWindowIndex(next.index);
+  }, [countdown?.state, countdown?.remainingSeconds, playWindow?.index, slotIndex]);
 
   function predict() {
     setNotice(null);

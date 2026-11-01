@@ -164,6 +164,55 @@ export type P4pWindowCountdown = {
   label: string;
 };
 
+export type P4pLiveSlotBoard = {
+  windowIndex: number;
+  picked: P4pCategoryId[];
+  walletGbp: number;
+  bankedWindowIndex: number | null;
+};
+
+export function p4pEmptySlotBoard(
+  windowIndex = -1
+): P4pLiveSlotBoard {
+  return {
+    windowIndex,
+    picked: [],
+    walletGbp: 0,
+    bankedWindowIndex: null,
+  };
+}
+
+/** Bank participation once per 5-minute slot when 3 events are chosen. */
+export function p4pBankSlotIfComplete(
+  board: P4pLiveSlotBoard
+): P4pLiveSlotBoard {
+  if (board.picked.length !== P4P_PREDICTIONS_PER_WINDOW) return board;
+  if (board.bankedWindowIndex === board.windowIndex) return board;
+  return {
+    ...board,
+    walletGbp: roundP4pGbp(board.walletGbp + P4P_PARTICIPATION_GBP),
+    bankedWindowIndex: board.windowIndex,
+  };
+}
+
+/** At 0:00, wipe the previous slot's picks and keep the running wallet total. */
+export function p4pAdvanceSlotBoard(
+  board: P4pLiveSlotBoard,
+  nextWindowIndex: number
+): P4pLiveSlotBoard {
+  if (board.windowIndex === nextWindowIndex) return board;
+  if (board.windowIndex < 0) {
+    return { ...board, windowIndex: nextWindowIndex };
+  }
+  const banked = p4pBankSlotIfComplete(board);
+  return {
+    windowIndex: nextWindowIndex,
+    picked: [],
+    walletGbp: banked.walletGbp,
+    bankedWindowIndex: banked.bankedWindowIndex,
+  };
+}
+
 export function p4pCyclingWindowClock(
   now: Date | string = new Date()
 ): {
