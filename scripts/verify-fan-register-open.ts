@@ -76,8 +76,13 @@ const picker = readFileSync("app/components/fan/TeamPicker.tsx", "utf8");
 assert(
   picker.includes("showScorePrice") &&
     picker.includes("openCompetitions") &&
-    picker.includes("suppressHydrationWarning"),
-  "Team picker can hide the Goal scored price on Fan registration"
+    picker.includes("suppressHydrationWarning") &&
+    picker.includes('data-sport-accordion="sport-accordion-v1"') &&
+    picker.includes("data-sport-name={group.sport}") &&
+    picker.includes("<details") &&
+    picker.includes("<summary") &&
+    picker.includes("{group.sport}"),
+  "Team picker can hide the Goal scored price on Fan registration, and each sport is an accordion"
 );
 
 if (failures.length > 0) {

@@ -77,24 +77,31 @@ export default function TeamPicker({
       <div className="mt-6 space-y-6">
         {filtered.map((group) => {
           const category = sportCategory(group.sport);
+          const leagueCount = group.competitions.length;
           return (
-            <section
-              key={group.sport}
+            <details
+              key={`${group.sport}:${query.trim() ? "search" : "browse"}`}
+              data-sport-accordion="sport-accordion-v1"
+              data-sport-name={group.sport}
+              open={query.trim() ? true : undefined}
               className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
             >
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <h2 className="text-2xl font-bold text-green-400">
                   {category?.icon ? `${category.icon} ` : ""}
                   {group.sport}
                 </h2>
-                {category && showScorePrice && (
-                  <p className="text-sm font-semibold text-slate-300">
-                    {category.scoreEvent} · {category.exampleS2PS}
-                  </p>
-                )}
-              </div>
+                <span className="shrink-0 text-sm font-normal text-slate-400">
+                  {leagueCount} {leagueCount === 1 ? "league" : "leagues"}
+                </span>
+              </summary>
+              {category && showScorePrice && (
+                <p className="mt-3 text-sm font-semibold text-slate-300">
+                  {category.scoreEvent} · {category.exampleS2PS}
+                </p>
+              )}
               {category && (
-                <p className="mt-2 max-w-3xl text-sm text-slate-400">
+                <p className="mt-3 max-w-3xl text-sm text-slate-400">
                   {category.summary}
                 </p>
               )}
@@ -134,7 +141,7 @@ export default function TeamPicker({
                   </details>
                 ))}
               </div>
-            </section>
+            </details>
           );
         })}
       </div>
