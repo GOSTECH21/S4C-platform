@@ -6,7 +6,6 @@ import {
   CLIMATE_IMPACT_LEAGUE_PATH,
   CLIMATE_SPONSORSHIP_PATH,
   GLOBAL_SCHOOLS_SOLAR_PATH,
-  HOME_PATH,
 } from "@/app/lib/routes";
 
 const SOLUTION_LINKS = [
@@ -31,20 +30,6 @@ export function SolutionPage({
 }) {
   return (
     <main className="min-h-screen text-white">
-      <header className="border-b border-slate-800">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <Link href={HOME_PATH} className="text-2xl font-black text-green-400">
-            S4P
-          </Link>
-          <Link
-            href={HOME_PATH}
-            className="text-sm font-semibold text-slate-300 hover:text-white"
-          >
-            ← Home
-          </Link>
-        </div>
-      </header>
-
       <section className="mx-auto max-w-6xl px-6 py-16">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           {kicker}

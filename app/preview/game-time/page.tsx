@@ -82,10 +82,7 @@ export default function GameTimeBuyPreviewPage() {
       data-game-time-buy-first="game-time-buy-first-v1"
       data-game-time-sponsored-by="game-time-sponsored-by-v1"
     >
-      <p
-        data-testid="s4p-sponsor-mark"
-        className="whitespace-nowrap text-2xl font-black text-green-700"
-      >
+      <p className="sr-only" data-testid="s4p-sponsor-mark">
         {S4P_SPONSOR_MARK}
       </p>
       <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">

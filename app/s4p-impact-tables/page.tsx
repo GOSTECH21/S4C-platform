@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { HOME_PATH } from "@/app/lib/routes";
 import {
   CILT_SCOPES,
   IMPACT_TABLE_FULL_LIMIT,
@@ -215,17 +214,6 @@ export default async function S4pImpactTablesPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen text-white">
-      <header className="border-b border-slate-800">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <Link href={HOME_PATH} className="text-2xl font-black text-green-400">
-            S4P
-          </Link>
-          <Link href={HOME_PATH} className="text-sm font-semibold text-slate-300 hover:text-white">
-            ← Back to home
-          </Link>
-        </div>
-      </header>
-
       <section className="mx-auto max-w-5xl px-6 py-12">
         <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-s4p-mark">
           S4P Impact Tables

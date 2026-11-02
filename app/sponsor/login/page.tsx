@@ -5,6 +5,7 @@ import Link from "next/link";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
+  HOME_PATH,
   LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_REGISTER_PATH,
   localSponsorLoginPath,
@@ -135,6 +136,15 @@ export default function SponsorLoginPage() {
         {" or "}
         <Link href={registerLocalHref} className="font-semibold text-green-400">
           a Local Business Climate Sponsor
+        </Link>
+      </p>
+      <p className="mt-4 text-center">
+        <Link
+          href={HOME_PATH}
+          data-testid="back-to-home-inline"
+          className="inline-flex items-center justify-center rounded-lg border border-s4p-mark bg-s4p-mark px-4 py-2 text-sm font-bold text-slate-950 hover:brightness-110"
+        >
+          ← Back to home
         </Link>
       </p>
     </div>

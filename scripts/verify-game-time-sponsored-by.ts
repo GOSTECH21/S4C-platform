@@ -56,8 +56,9 @@ assert(
 assert(
   layout.includes("S4P_SPONSOR_MARK") &&
     layout.includes('data-testid="s4p-sponsor-mark"') &&
+    layout.includes("s4p-logo-back-home-v1") &&
     navPreview.includes("S4P_SPONSOR_MARK"),
-  "The sponsor header mark is S4P SPONSOR"
+  "The sponsor header keeps the S4P SPONSOR mark for assistive text"
 );
 
 assert(

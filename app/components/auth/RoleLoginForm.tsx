@@ -61,10 +61,7 @@ export default function RoleLoginForm({
   return (
     <main className="flex min-h-screen items-center justify-center px-4 text-white">
       <div className="w-full max-w-md rounded-xl border border-emerald-400/25 bg-slate-900 p-8 shadow-xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          S4P
-        </p>
-        <h1 className="mt-3 text-3xl font-bold">{title}</h1>
+        <h1 className="text-3xl font-bold">{title}</h1>
         <p className="mt-2 text-slate-400">{subtitle}</p>
 
         {error && (
@@ -120,7 +117,11 @@ export default function RoleLoginForm({
         </p>
 
         <p className="mt-3 text-center text-sm text-slate-500">
-          <Link href={HOME_PATH} className="hover:text-slate-300">
+          <Link
+            href={HOME_PATH}
+            data-testid="back-to-home-inline"
+            className="font-semibold text-green-400 hover:text-green-300"
+          >
             ← Back to home
           </Link>
         </p>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
-import { destinationForRole, FAN_REGISTER_PATH } from "@/app/lib/routes";
+import { destinationForRole, FAN_REGISTER_PATH, HOME_PATH } from "@/app/lib/routes";
 import { roleLoginAccount } from "@/app/lib/role-login";
 
 export default function LoginPage() {
@@ -79,6 +79,15 @@ export default function LoginPage() {
             className="font-semibold text-green-400 hover:underline"
           >
             Register here
+          </Link>
+        </p>
+        <p className="mt-3 text-center">
+          <Link
+            href={HOME_PATH}
+            data-testid="back-to-home-inline"
+            className="font-semibold text-green-400 hover:text-green-300"
+          >
+            ← Back to home
           </Link>
         </p>
       </div>

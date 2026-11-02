@@ -2,6 +2,7 @@
 /* sponsor-tabs-visible-v1 */
 /* sponsor-drop-calendar-v1 */
 /* sponsor-nav-pc-fix-v1 */
+/* s4p-logo-back-home-v1 */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -10,7 +11,9 @@ import { supabase } from "@/app/lib/supabase";
 import { logoutSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
+  HOME_PATH,
   LOCAL_SPONSOR_HOME_PATH,
+  LOCAL_SPONSOR_REGISTER_PATH,
   SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_GAME_TIME_PATH,
@@ -159,11 +162,12 @@ export function SponsorNav() {
   }, []);
 
   async function logout() {
+    const wasLoggedIn = loggedIn;
     await logoutSponsor();
     setLoggedIn(false);
     setHomePath(SPONSOR_DASHBOARD_PATH);
     setInviteCount(0);
-    router.push(SPONSOR_LOGIN_PATH);
+    router.push(wasLoggedIn ? SPONSOR_LOGIN_PATH : HOME_PATH);
   }
 
   const onInvitations = (pathname ?? "").startsWith(SPONSOR_INVITATIONS_PATH);
@@ -190,14 +194,37 @@ export function SponsorNav() {
     );
   }
 
+  const onLogin = (pathname ?? "").startsWith(SPONSOR_LOGIN_PATH);
+  const onRegister =
+    (pathname ?? "").startsWith(SPONSOR_REGISTER_PATH) ||
+    (pathname ?? "").startsWith(LOCAL_SPONSOR_REGISTER_PATH);
+
   return (
-    <>
-      <Link href={SPONSOR_REGISTER_PATH} className="hover:text-white">
+    <div
+      data-testid="sponsor-tab-bar"
+      data-sponsor-tabs="3"
+      data-sponsor-logged-out="s4p-logo-back-home-v1"
+      className="grid w-full grid-cols-3 gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2"
+    >
+      <Link
+        href={SPONSOR_REGISTER_PATH}
+        className={`${tabClass} ${s4pTabClass(onRegister)}`}
+      >
         Register as Sponsor
       </Link>
-      <Link href={SPONSOR_LOGIN_PATH} className="hover:text-white">
+      <Link
+        href={SPONSOR_LOGIN_PATH}
+        className={`${tabClass} ${s4pTabClass(onLogin)}`}
+      >
         Login
       </Link>
-    </>
+      <button
+        type="button"
+        onClick={() => void logout()}
+        className={`${tabClass} bg-red-500 text-white hover:bg-red-600`}
+      >
+        Logout
+      </button>
+    </div>
   );
 }

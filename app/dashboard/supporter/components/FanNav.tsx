@@ -70,15 +70,10 @@ export default function FanNav() {
   }
 
   return (
-    <header className="sticky top-0 z-30 mb-10 flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-1 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+    <header className="sticky top-[4.75rem] z-30 mb-10 flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-1 py-4 backdrop-blur sm:top-[5.25rem] sm:flex-row sm:items-center sm:justify-between">
       <Link href={SUPPORTER_CAMPAIGN_PATH} className="flex flex-col">
-        <span className="flex items-center gap-2">
-          <span className="text-2xl font-black tracking-tight text-green-400">
-            S4P
-          </span>
-          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-            Supporter
-          </span>
+        <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+          Supporter
         </span>
         {welcome && (
           <span className="mt-1 text-sm font-medium text-slate-300">

@@ -26,6 +26,8 @@ assert(
     nav.includes("Game-Time") &&
     nav.includes("sponsorInvitationsNavLabel") &&
     nav.includes("Logout") &&
+    nav.includes("s4p-logo-back-home-v1") &&
+    nav.includes("grid-cols-3") &&
     !nav.includes("href={SPONSOR_CALENDAR_PATH}") &&
     !nav.includes("s4pTabClass(onCalendar)") &&
     !nav.includes("overflow-x-auto"),
@@ -39,9 +41,10 @@ assert(
     layout.includes("SponsorNav") &&
     layout.includes("S4P_SPONSOR_MARK") &&
     layout.includes('data-testid="s4p-sponsor-mark"') &&
+    layout.includes("s4p-logo-back-home-v1") &&
     !layout.includes("overflow-x-auto") &&
     !layout.includes("justify-end"),
-  "The sponsor header stacks S4P SPONSOR above a full-width tab row on a phone"
+  "The sponsor header keeps a full-width tab row on a phone under the lockup"
 );
 
 assert(

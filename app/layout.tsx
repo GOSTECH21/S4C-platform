@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeBootScript } from "@/app/components/ThemeBootScript";
 import ThemeTrialBanner from "@/app/components/ThemeTrialBanner";
+import { GlobalSiteBar } from "@/app/components/GlobalSiteBar";
 import { DEFAULT_S4P_THEME } from "@/app/lib/s4p-themes";
 import "./globals.css";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
         <ThemeBootScript />
       </head>
       <body className="min-h-full flex flex-col">
+        <GlobalSiteBar />
         {children}
         <ThemeTrialBanner />
       </body>
