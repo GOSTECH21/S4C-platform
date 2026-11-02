@@ -105,8 +105,9 @@ assert(
     vote.includes("P4P_FALLBACK_PROJECTS") &&
     play.includes("p4pMatchIsFullTime") &&
     play.includes("p4p-stay-on-tab-v1") &&
+    play.includes("p4p-public-board-v1") &&
     !play.includes("location.assign") &&
-    play.includes("Here are Climate Projects to donate your funding") &&
+    !play.includes("Here are Climate Projects to donate your funding") &&
     predictPage.includes("showPhone={false}") &&
     !predictPage.includes("donateOnFullTime") &&
     donatePreview.includes("Here are Climate Projects to donate your funding") &&

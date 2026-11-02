@@ -641,15 +641,18 @@ assert(
 );
 assert(
   play.includes("submitP4pPrediction") &&
-    play.includes("Climate Project") &&
+    play.includes("P4P_CHOOSE_PROJECT_LABEL") &&
     play.includes("Predict 3 events ·") &&
     play.includes("pickSponsoredGameTimeMatch") &&
     play.includes("if (!hydrated || !sponsored)") &&
     !play.includes("No Game-Time Sponsor has funded a Match yet") &&
     play.includes("P4P_POWERED_BY_LABEL") &&
-    play.includes("P4P_LIVE_CHALLENGE_LABEL") &&
     play.includes("P4P_TAGLINE") &&
     play.includes("P4P_MATCH_DAY_IMPACT_LABEL") &&
+    play.includes("P4P_ELIGIBLE_PREDICTIONS_LABEL") &&
+    play.includes("P4P_FAN_WALLET_SHORT_COPY") &&
+    play.includes("p4p-sponsored-game") &&
+    play.includes("p4p-make-prediction") &&
     play.includes("windowsForGameTimeSlot") &&
     play.includes("alreadyPredictedWindow") &&
     play.includes("p4p-slot-countdown") &&
@@ -663,13 +666,28 @@ assert(
     play.includes("currentIndex + 1") &&
     play.includes("s4p-predict-for-planet-v7") &&
     play.includes("p4p-stay-on-tab-v1") &&
-    play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
-    play.includes("awardP4pSlotEvent") &&
+    play.includes("p4p-public-board-v1") &&
     play.includes("FAN_CARBON_WALLET_LABEL") &&
+    play.indexOf('data-testid="p4p-make-prediction"') <
+      play.indexOf('data-testid="p4p-match-day-impact"') &&
+    play.indexOf("Predict 3 events ·") <
+      play.indexOf('data-testid="p4p-match-day-impact"') &&
+    play.indexOf('data-testid="p4p-match-day-impact"') <
+      play.indexOf('data-testid="p4p-eligible-predictions"') &&
+    play.indexOf('data-testid="p4p-eligible-predictions"') <
+      play.indexOf("{P4P_FAN_WALLET_SHORT_COPY}") &&
+    play.indexOf("{P4P_FAN_WALLET_SHORT_COPY}") <
+      play.indexOf("{P4P_CHOOSE_PROJECT_LABEL}") &&
+    !play.includes("P4P_LIVE_CHALLENGE_LABEL") &&
+    !play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
+    !play.includes("awardP4pSlotEvent") &&
+    !play.includes("If one of the 3 chosen events is awarded") &&
+    !play.includes("Unique fans participating") &&
+    !play.includes("Climate funding unlocked") &&
     !play.includes("location.assign") &&
     !play.includes("bg-[#10262c]") &&
     !play.includes("text-[#f4f1e6]"),
-  "Fans submit 3 P4P events into a chosen Climate Project on the sponsored Match"
+  "Fans submit 3 P4P events on the sponsored Match, then see wallets and a Climate Project picker"
 );
 const fanPredictPage = readFileSync(
   "app/supporter/dashboard/predict/page.tsx",
@@ -748,14 +766,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/fan-default-p4p-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-public-board-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("fan-default-p4p-1") &&
+    applyP4p.includes("p4p-public-board-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -775,7 +793,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("fan-default-p4p-1") &&
+    applyP4pPs1.includes("p4p-public-board-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

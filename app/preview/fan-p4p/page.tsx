@@ -18,7 +18,7 @@ export default function FanP4pPreviewPage() {
         Fan P4P
       </p>
       <p className="mt-2 text-sm text-slate-700">
-        Logged-in Predict-For Planet: intro copy and the live challenge only.
+        Logged-in Predict-For Planet: intro, Make your prediction, and Match Day Impact.
       </p>
       <div className="mt-8">
         <HowS4pPredictForPlanet

@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/fan-default-p4p-18f9"
-$bust = "fan-default-p4p-1"
+$branch = "cursor/p4p-public-board-18f9"
+$bust = "p4p-public-board-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -76,6 +76,7 @@ $files = @(
   "app/supporter/login/page.tsx",
   "app/register/page.tsx",
   "scripts/verify-fan-default-p4p.ts",
+  "scripts/verify-p4p-public-board.ts",
   "app/lib/sponsor-listings.ts",
   "app/lib/sports.ts",
   "apply-match-sponsorship.mjs",

@@ -24,6 +24,10 @@ export const P4P_MATCH_DAY_IMPACT_LABEL = "Your Match Day Impact";
 export const P4P_LIVE_CHALLENGE_FOOTER =
   "Choose 3 of 7 events. Participating earns £0.10 for your Climate Project, right or wrong. If one of those events is awarded, you earn another £0.30.";
 export const P4P_FANS_ENGAGEMENT_LABEL = "Fans engagement with this challenge";
+export const P4P_ELIGIBLE_PREDICTIONS_LABEL =
+  "Total eligible predictions submitted";
+export const P4P_FAN_WALLET_SHORT_COPY =
+  "These amounts go to your chosen Climate Projects";
 export const FAN_CARBON_WALLET_LABEL = "Fan Carbon Wallet";
 export const P4P_FALLBACK_PROJECTS = [
   "Local Global Schools Solar",
