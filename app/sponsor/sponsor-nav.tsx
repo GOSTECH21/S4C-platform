@@ -1,4 +1,5 @@
 "use client";
+/* sponsor-tabs-visible-v1 */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -25,7 +26,76 @@ import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.serv
 import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 
-const tabClass = "rounded-lg px-3 py-2 text-xs font-bold sm:px-5 sm:text-sm";
+const tabClass =
+  "min-w-0 w-full overflow-hidden whitespace-normal rounded-lg px-1 py-2 text-center text-[11px] font-bold leading-tight sm:w-auto sm:px-5 sm:text-sm";
+
+export function SponsorTabBar({
+  homePath,
+  inviteCount,
+  onDashboard,
+  onCalendar,
+  onGameTime,
+  onInvitations,
+  onLogout,
+}: {
+  homePath: string;
+  inviteCount: number;
+  onDashboard: boolean;
+  onCalendar: boolean;
+  onGameTime: boolean;
+  onInvitations: boolean;
+  onLogout: () => void;
+}) {
+  const showMatchTabs = homePath === SPONSOR_DASHBOARD_PATH;
+  const tabCount = showMatchTabs ? 5 : 3;
+
+  return (
+    <div
+      data-testid="sponsor-tab-bar"
+      data-sponsor-tabs={String(tabCount)}
+      data-sponsor-tabs-visible="sponsor-tabs-visible-v1"
+      className={`grid w-full gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2 ${
+        showMatchTabs ? "grid-cols-5" : "grid-cols-3"
+      }`}
+    >
+      <Link
+        href={homePath || LOCAL_SPONSOR_HOME_PATH}
+        className={`${tabClass} ${s4pTabClass(onDashboard)}`}
+      >
+        Dashboard
+      </Link>
+      {showMatchTabs ? (
+        <>
+          <Link
+            href={SPONSOR_CALENDAR_PATH}
+            className={`${tabClass} ${s4pTabClass(onCalendar)}`}
+          >
+            Calendar
+          </Link>
+          <Link
+            href={SPONSOR_GAME_TIME_PATH}
+            className={`${tabClass} ${s4pTabClass(onGameTime)}`}
+          >
+            Game-Time
+          </Link>
+        </>
+      ) : null}
+      <Link
+        href={SPONSOR_INVITATIONS_PATH}
+        className={`${tabClass} ${s4pTabClass(onInvitations)}`}
+      >
+        {sponsorInvitationsNavLabel(inviteCount)}
+      </Link>
+      <button
+        type="button"
+        onClick={onLogout}
+        className={`${tabClass} bg-red-500 text-white hover:bg-red-600`}
+      >
+        Logout
+      </button>
+    </div>
+  );
+}
 
 export function SponsorNav() {
   const router = useRouter();
@@ -121,43 +191,15 @@ export function SponsorNav() {
 
   if (loggedIn) {
     return (
-      <div className="flex items-center gap-2">
-        <Link
-          href={homePath || LOCAL_SPONSOR_HOME_PATH}
-          className={`${tabClass} ${s4pTabClass(onDashboard)}`}
-        >
-          Dashboard
-        </Link>
-        {homePath === SPONSOR_DASHBOARD_PATH ? (
-          <>
-            <Link
-              href={SPONSOR_CALENDAR_PATH}
-              className={`${tabClass} ${s4pTabClass(onCalendar)}`}
-            >
-              Calendar
-            </Link>
-            <Link
-              href={SPONSOR_GAME_TIME_PATH}
-              className={`${tabClass} ${s4pTabClass(onGameTime)}`}
-            >
-              Game-Time
-            </Link>
-          </>
-        ) : null}
-        <Link
-          href={SPONSOR_INVITATIONS_PATH}
-          className={`${tabClass} ${s4pTabClass(onInvitations)}`}
-        >
-          {sponsorInvitationsNavLabel(inviteCount)}
-        </Link>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className={`${tabClass} bg-red-500 text-white hover:bg-red-600`}
-        >
-          Logout
-        </button>
-      </div>
+      <SponsorTabBar
+        homePath={homePath}
+        inviteCount={inviteCount}
+        onDashboard={onDashboard}
+        onCalendar={onCalendar}
+        onGameTime={onGameTime}
+        onInvitations={onInvitations}
+        onLogout={() => void logout()}
+      />
     );
   }
 

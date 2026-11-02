@@ -61,6 +61,7 @@ assert(
 assert(
   sponsorLayout.includes("px-4 py-6 sm:px-6 sm:py-10") &&
     sponsorLayout.includes("flex-wrap") &&
+    sponsorLayout.includes("overflow-x-hidden") &&
     appLayout.includes("p-4 text-white sm:p-8") &&
     fanLayout.includes("px-4 pt-6 sm:px-6"),
   "Sponsor, fan, and staff shells use phone padding"

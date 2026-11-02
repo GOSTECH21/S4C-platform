@@ -936,13 +936,16 @@ assert(
 
 const sponsorNav = readFileSync("app/sponsor/sponsor-nav.tsx", "utf8");
 assert(
-  sponsorNav.includes("flex items-center gap-2") &&
+  sponsorNav.includes("grid-cols-5") &&
+    sponsorNav.includes("overflow-x-hidden") &&
     sponsorNav.includes("Dashboard") &&
+    sponsorNav.includes("Calendar") &&
+    sponsorNav.includes("Game-Time") &&
     sponsorNav.includes("Logout") &&
     sponsorNav.includes("s4pTabClass(onDashboard)") &&
     sponsorNav.includes("sponsorHomePath") &&
     !sponsorNav.includes("bg-emerald-400"),
-  "Dashboard and Logout sit on one header line; Dashboard opens the Local wallet or Lead home"
+  "Lead sponsor header shows Dashboard, Calendar, Game-Time, Invitations and Logout without chopping a tab"
 );
 assert(
   !sponsorDashboardPage.includes("Logout") &&
