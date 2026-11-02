@@ -3,6 +3,7 @@
 /* game-time-buy-first-v1 */
 /* game-time-slot-heading-v1 */
 /* game-time-sponsored-by-v1 */
+/* sponsored-by-first-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -139,10 +140,6 @@ export default function GameTimeSponsorshipPage() {
   function continueToPayment() {
     setError(null);
     const sponsorshipGbp = Math.max(0, Number(amount) || 0);
-    if (!logoUrl) {
-      setError("Add your logo next to Sponsored By.");
-      return;
-    }
     if (!clubName.trim()) {
       setError("Select a club.");
       return;
@@ -273,16 +270,10 @@ export default function GameTimeSponsorshipPage() {
         </div>
       ) : (
         <div
-          className={`space-y-5 ${logoUrl ? "" : "pointer-events-none opacity-40"}`}
+          className="space-y-5"
           data-testid="p4p-game-time-form"
-          data-logo-ready={logoUrl ? "yes" : "no"}
+          data-logo-ready={logoUrl ? "yes" : "optional"}
         >
-        {logoUrl ? null : (
-          <p className="text-sm font-semibold text-slate-600">
-            Add your logo next to Sponsored By, then fill in Club, Match and
-            payment.
-          </p>
-        )}
         <ClubLeagueMenu
           value={clubName}
           allPlatformClubs

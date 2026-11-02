@@ -2,6 +2,7 @@
 /* game-time-buy-first-v1 */
 /* game-time-slot-heading-v1 */
 /* game-time-sponsored-by-v1 */
+/* sponsored-by-first-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -107,16 +108,10 @@ export default function GameTimeBuyPreviewPage() {
           onLogoChange={setLogoUrl}
         />
         <div
-          className={`space-y-5 ${logoUrl ? "" : "pointer-events-none opacity-40"}`}
+          className="space-y-5"
           data-testid="p4p-game-time-form"
-          data-logo-ready={logoUrl ? "yes" : "no"}
+          data-logo-ready={logoUrl ? "yes" : "optional"}
         >
-        {logoUrl ? null : (
-          <p className="text-sm font-semibold text-slate-600">
-            Add your logo next to Sponsored By, then fill in Club, Match and
-            payment.
-          </p>
-        )}
           <ClubLeagueMenu
             value={clubName}
             allPlatformClubs

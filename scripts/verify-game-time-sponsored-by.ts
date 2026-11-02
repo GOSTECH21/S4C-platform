@@ -31,26 +31,36 @@ assert(
 
 assert(
   board.includes("game-time-sponsored-by-v1") &&
+    board.includes("sponsored-by-first-v1") &&
     board.includes("P4P_GAME_TIME_PREDICT_LABEL") &&
     board.includes("Predict what") &&
     board.includes("happens next") &&
     board.includes('data-testid="p4p-sponsored-by"') &&
     board.includes('accept="image/*"') &&
     board.includes("saveBrandLogo") &&
+    board.indexOf("{P4P_GAME_TIME_SPONSORED_BY_LABEL}") <
+      board.indexOf("Add logo") &&
+    !board.includes("hidden text-sm font-semibold text-slate-700 sm:block") &&
+    !board.includes("text-sm font-semibold text-slate-700 sm:hidden") &&
     !board.includes("P4P_POWERED_BY_LABEL") &&
     !board.includes("P4P_SPONSOR_PREDICT_LABEL") &&
     !board.includes("What Fans will predict on"),
-  "The Game-Time board has a two-line Predict heading and a Sponsored By logo slot"
+  "Sponsored By sits before the optional logo slot on phone and PC"
 );
 
 assert(
   page.includes("game-time-sponsored-by-v1") &&
+    page.includes("sponsored-by-first-v1") &&
     page.includes("onLogoChange={setLogoUrl}") &&
-    page.includes("Add your logo next to Sponsored By.") &&
     page.includes('data-testid="p4p-game-time-form"') &&
+    page.includes('data-logo-ready={logoUrl ? "yes" : "optional"}') &&
+    !page.includes("pointer-events-none opacity-40") &&
+    !page.includes("Add your logo next to Sponsored By.") &&
     demo.includes("onLogoChange={setLogoUrl}") &&
+    demo.includes('data-logo-ready={logoUrl ? "yes" : "optional"}') &&
+    !demo.includes("pointer-events-none opacity-40") &&
     demo.includes("S4P_SPONSOR_MARK"),
-  "The buy form waits for a logo, then Club, Match and Continue to payment"
+  "The buy form can be completed without a logo"
 );
 
 assert(

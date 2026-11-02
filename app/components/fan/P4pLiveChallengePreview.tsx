@@ -3,6 +3,7 @@
 /* game-time-buy-first-v1 */
 /* game-time-slot-heading-v1 */
 /* game-time-sponsored-by-v1 */
+/* sponsored-by-first-v1 */
 
 import { useState } from "react";
 import {
@@ -65,8 +66,8 @@ export function P4pPredictNextBoard({
           data-testid="p4p-sponsored-by"
           className="flex shrink-0 items-center gap-2"
         >
-          <p className="hidden text-sm font-semibold text-slate-700 sm:block">
-            {P4P_GAME_TIME_SPONSORED_BY_LABEL}:
+          <p className="text-sm font-semibold text-slate-700">
+            {P4P_GAME_TIME_SPONSORED_BY_LABEL}
           </p>
           <label className="flex h-14 w-14 cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-400 bg-white sm:h-16 sm:w-16">
             {logoUrl ? (
@@ -93,9 +94,6 @@ export function P4pPredictNextBoard({
               }}
             />
           </label>
-          <p className="text-sm font-semibold text-slate-700 sm:hidden">
-            {P4P_GAME_TIME_SPONSORED_BY_LABEL}
-          </p>
         </div>
       </div>
       {logoError ? (
