@@ -1,9 +1,13 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
+/* game-time-buy-first-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { P4pLiveChallengePreview } from "@/app/components/fan/P4pLiveChallengePreview";
+import {
+  P4pLiveChallengePreview,
+  P4pPredictNextBoard,
+} from "@/app/components/fan/P4pLiveChallengePreview";
 import {
   ClubLeagueMenu,
   MatchFixtureMenu,
@@ -183,7 +187,7 @@ export default function GameTimeSponsorshipPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl py-10 text-slate-950">
+    <main className="mx-auto max-w-5xl py-10 text-slate-950">
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
         {brand}
       </p>
@@ -205,20 +209,10 @@ export default function GameTimeSponsorshipPage() {
       </p>
 
       {brand ? (
-        <div className="mt-8">
-          <P4pLiveChallengePreview
-            fixtureName={previewFixture}
-            brandName={brand}
-            slotLabel={gameTimeSlotShortLabel(previewSlot)}
-            sponsorshipGbp={previewAmount}
-            allocatedGbp={previewAllocated}
-            badge={paidWallet ? "Live" : "Preview"}
-          />
-        </div>
-      ) : null}
-
+        <div className="mt-8 space-y-8" data-testid="p4p-game-time-buy">
+          <P4pPredictNextBoard brandName={brand} />
       {paidWallet ? (
-        <div className="mt-8 rounded-3xl border border-emerald-700/40 bg-emerald-50 p-8">
+        <div className="rounded-3xl border border-emerald-700/40 bg-emerald-50 p-8">
           <p className="text-lg font-semibold text-emerald-900">
             {formatP4pGbp(paidWallet.sponsorshipGbp)} is now in the{" "}
             {GAME_TIME_CARBON_WALLET_LABEL} for {paidWallet.fixtureName} ·{" "}
@@ -238,7 +232,7 @@ export default function GameTimeSponsorshipPage() {
           </button>
         </div>
       ) : checkout ? (
-        <div className="mt-8">
+        <div>
           <p className="text-sm text-slate-600">
             Stripe takes {formatP4pGbp(topUp.paidGbp)} (
             {formatP4pGbp(topUp.sponsorshipGbp)} on the{" "}
@@ -265,7 +259,7 @@ export default function GameTimeSponsorshipPage() {
           </button>
         </div>
       ) : (
-        <div className="mt-8 space-y-5">
+        <div className="space-y-5">
         <ClubLeagueMenu
           value={clubName}
           allPlatformClubs
@@ -334,6 +328,21 @@ export default function GameTimeSponsorshipPage() {
         ) : null}
       </div>
       )}
+        </div>
+      ) : null}
+
+      {brand ? (
+        <div className="mt-10" data-testid="p4p-game-time-live">
+          <P4pLiveChallengePreview
+            fixtureName={previewFixture}
+            brandName={brand}
+            slotLabel={gameTimeSlotShortLabel(previewSlot)}
+            sponsorshipGbp={previewAmount}
+            allocatedGbp={previewAllocated}
+            badge={paidWallet ? "Live" : "Preview"}
+          />
+        </div>
+      ) : null}
 
       {wallets.length > 0 ? (
         <div className="mt-10">

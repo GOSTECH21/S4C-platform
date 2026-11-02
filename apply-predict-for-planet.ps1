@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/p4p-fund-project-18f9"
-$bust = "p4p-fund-project-1"
+$branch = "cursor/game-time-buy-first-18f9"
+$bust = "game-time-buy-first-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -59,6 +59,9 @@ $files = @(
   "app/preview/fan-p4p/page.tsx",
   "scripts/verify-fan-p4p-drop-overlay.ts",
   "app/sponsor/game-time/page.tsx",
+  "app/preview/game-time/page.tsx",
+  "scripts/verify-game-time-buy-first.ts",
+  "apply-game-time-buy-first.mjs",
   "app/sponsor/local/register/page.tsx",
   "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
@@ -184,7 +187,9 @@ foreach ($root in $roots) {
   }
   if (
     $gameTimeText -match "P4pLiveChallengePreview" -and
-    $previewText -match "What fans see on Predict-For Planet" -and
+    $gameTimeText -match "P4pPredictNextBoard" -and
+    $previewText -match "P4P_TAGLINE" -and
+    $previewText -notmatch "What fans see on Predict-For Planet" -and
     $previewText -match "p4p-powered-by" -and
     $previewText -match "P4P_FANS_ENGAGEMENT_LABEL"
   ) {

@@ -1,5 +1,6 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
+/* game-time-buy-first-v1 */
 
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
@@ -16,9 +17,51 @@ import {
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 
+export function P4pPredictNextBoard({ brandName }: { brandName: string }) {
+  const sponsorLogo =
+    loadBrandLogo(brandName) || sponsorLogoSrc(brandName, null);
+
+  return (
+    <div
+      data-testid="p4p-predict-next-board"
+      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start"
+    >
+      <div>
+        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+          {P4P_PREDICT_NEXT_LABEL}
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {P4P_CATEGORIES.map((category) => (
+            <p
+              key={category.id}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-4 text-base font-black text-slate-950"
+            >
+              {category.label}
+            </p>
+          ))}
+        </div>
+      </div>
+      <aside
+        data-testid="p4p-powered-by"
+        className="rounded-2xl border border-slate-300 bg-white p-5 text-center"
+      >
+        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
+          {P4P_POWERED_BY_LABEL}
+        </p>
+        <BrandMark
+          name={brandName}
+          logoUrl={sponsorLogo}
+          large
+          className="mx-auto mt-3 h-28 w-28 text-3xl"
+        />
+        <p className="mt-3 text-xl font-black text-slate-950">{brandName}</p>
+      </aside>
+    </div>
+  );
+}
+
 export function P4pLiveChallengePreview({
   fixtureName,
-  brandName,
   slotLabel,
   sponsorshipGbp,
   allocatedGbp = 0,
@@ -35,8 +78,6 @@ export function P4pLiveChallengePreview({
   eligiblePredictions?: number;
   badge?: string;
 }) {
-  const sponsorLogo =
-    loadBrandLogo(brandName) || sponsorLogoSrc(brandName, null);
   const engagementTarget = Math.max(
     1,
     Math.round(Math.max(0, sponsorshipGbp) / P4P_ENGAGEMENT_GBP)
@@ -50,12 +91,12 @@ export function P4pLiveChallengePreview({
 
   return (
     <div data-testid="p4p-game-time-preview" className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <h2 className="text-xl font-black">What fans see on Predict-For Planet</h2>
-        <p className="text-sm font-black uppercase tracking-[0.12em] text-emerald-800">
-          {P4P_TAGLINE}
-        </p>
-      </div>
+      <h2
+        data-testid="p4p-tagline"
+        className="text-4xl font-black leading-tight text-emerald-800 sm:text-5xl"
+      >
+        {P4P_TAGLINE}
+      </h2>
 
       <article
         data-testid="p4p-live-challenge"
@@ -125,37 +166,6 @@ export function P4pLiveChallengePreview({
         </dl>
         <p className="mt-5 text-sm text-slate-600">{P4P_LIVE_CHALLENGE_FOOTER}</p>
       </article>
-
-      <div>
-        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-          {P4P_PREDICT_NEXT_LABEL}
-        </p>
-        <aside
-          data-testid="p4p-powered-by"
-          className="mt-3 rounded-2xl border border-slate-300 bg-white p-5 text-center"
-        >
-          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-            {P4P_POWERED_BY_LABEL}
-          </p>
-          <BrandMark
-            name={brandName}
-            logoUrl={sponsorLogo}
-            large
-            className="mx-auto mt-3 h-28 w-28 text-3xl"
-          />
-          <p className="mt-3 text-xl font-black text-slate-950">{brandName}</p>
-        </aside>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {P4P_CATEGORIES.map((category) => (
-            <p
-              key={category.id}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-4 text-base font-black text-slate-950"
-            >
-              {category.label}
-            </p>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

@@ -747,21 +747,31 @@ assert(
     gameTimePage.includes("StripeCardPayment") &&
     gameTimePage.includes("confirmGameTimeCardPayment") &&
     gameTimePage.includes("resolveGameTimeSponsorBrand") &&
-    gameTimePage.includes("P4pLiveChallengePreview"),
-  "Game-Time lists every platform club, continues to Stripe payment, and shows the ivory P4P preview"
+    gameTimePage.includes("P4pPredictNextBoard") &&
+    gameTimePage.includes("P4pLiveChallengePreview") &&
+    gameTimePage.includes('data-testid="p4p-game-time-buy"') &&
+    gameTimePage.indexOf("<P4pPredictNextBoard") >
+      gameTimePage.indexOf("Buy a {GAME_TIME_SLOT_MINUTES}-minute slot") &&
+    gameTimePage.indexOf("<ClubLeagueMenu") >
+      gameTimePage.indexOf("<P4pPredictNextBoard") &&
+    gameTimePage.indexOf("<P4pLiveChallengePreview") >
+      gameTimePage.indexOf("<ClubLeagueMenu"),
+  "Game-Time lists every platform club, continues to Stripe payment, and shows What happens next then the ivory P4P preview"
 );
 const gameTimePreview = readFileSync(
   "app/components/fan/P4pLiveChallengePreview.tsx",
   "utf8"
 );
 assert(
-  gameTimePreview.includes("What fans see on Predict-For Planet") &&
+  gameTimePreview.includes("{P4P_TAGLINE}") &&
+    gameTimePreview.includes("P4pPredictNextBoard") &&
     gameTimePreview.includes("P4P_PREDICT_NEXT_LABEL") &&
     gameTimePreview.includes('data-testid="p4p-powered-by"') &&
     gameTimePreview.includes("P4P_LIVE_CHALLENGE_LABEL") &&
     gameTimePreview.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
+    !gameTimePreview.includes("What fans see on Predict-For Planet") &&
     !gameTimePreview.includes("bg-[#10262c]"),
-  "Game-Time P4P preview is ivory with the sponsor mark beside What happens next"
+  "Game-Time P4P preview uses the tagline heading and keeps the sponsor mark beside What happens next"
 );
 assert(
   gameTimePage.includes("PAY_WITH_CARD_LABEL") &&
@@ -791,14 +801,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-fund-project-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/game-time-buy-first-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("p4p-fund-project-1") &&
+    applyP4p.includes("game-time-buy-first-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -818,7 +828,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("p4p-fund-project-1") &&
+    applyP4pPs1.includes("game-time-buy-first-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&
