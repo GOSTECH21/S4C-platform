@@ -14,6 +14,8 @@ const leadLib = readFileSync("app/lib/lead-sponsor-home.ts", "utf8");
 assert(
   nav.includes("sponsor-tabs-visible-v1") &&
     nav.includes("sponsor-drop-calendar-v1") &&
+    nav.includes("sponsor-nav-pc-fix-v1") &&
+    !nav.includes("local-sponsor.service") &&
     nav.includes("SponsorTabBar") &&
     nav.includes('data-testid="sponsor-tab-bar"') &&
     nav.includes("grid-cols-4") &&

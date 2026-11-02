@@ -1,6 +1,7 @@
 "use client";
 /* sponsor-tabs-visible-v1 */
 /* sponsor-drop-calendar-v1 */
+/* sponsor-nav-pc-fix-v1 */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,7 +25,6 @@ import {
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
 import { sponsorInvitationsNavLabel } from "@/app/lib/sponsor-listings";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
-import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 
 const tabClass =
@@ -102,10 +102,6 @@ export function SponsorNav() {
       try {
         const sponsor = await getCurrentSponsor();
         const brandName = String(sponsor.name ?? "");
-        await hydrateLocalSponsorRecords({
-          brandName,
-          sponsor,
-        });
         rememberLocalSponsorSession(sponsor);
         if (!mounted) return;
         setHomePath(
