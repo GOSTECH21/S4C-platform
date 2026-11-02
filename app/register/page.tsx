@@ -10,7 +10,7 @@ import {
   type TeamGroup,
   type TeamOption,
 } from "@/app/services/teams.service";
-import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
+import { FAN_LOGIN_PATH, SUPPORTER_HOME_PATH } from "@/app/lib/routes";
 import { storedFullName } from "@/app/lib/s4p-admin";
 import {
   FAN_REGISTER_INTRO,
@@ -178,7 +178,7 @@ export default function RegisterPage() {
     }
 
     if (data.session) {
-      window.location.href = SUPPORTER_CAMPAIGN_PATH;
+      window.location.href = SUPPORTER_HOME_PATH;
       return;
     }
 

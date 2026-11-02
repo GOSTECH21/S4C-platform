@@ -3,7 +3,7 @@
 import RoleLoginForm from "@/app/components/auth/RoleLoginForm";
 import {
   FAN_REGISTER_PATH,
-  SUPPORTER_CAMPAIGN_PATH,
+  SUPPORTER_HOME_PATH,
 } from "@/app/lib/routes";
 import {
   destinationForSignedInKind,
@@ -18,7 +18,7 @@ export default function SupporterLoginPage() {
       role="fan"
       title="Fan Login"
       subtitle="Sign in to My S4P to FUND up to 5 Projects shown to you."
-      destination={SUPPORTER_CAMPAIGN_PATH}
+      destination={SUPPORTER_HOME_PATH}
       registerHref={FAN_REGISTER_PATH}
       afterSignIn={async () => {
         const kind = (await identifySignedInKind()) ?? "unknown";

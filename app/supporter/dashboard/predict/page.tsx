@@ -69,7 +69,6 @@ export default function PredictForPlanetPage() {
       <HowS4pPredictForPlanet
         initialClub={preferredClubNames[0]}
         clubOptions={preferredClubNames}
-        donateOnFullTime
         showPhone={false}
       >
         <PredictForPlanetPlay

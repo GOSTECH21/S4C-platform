@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/fan-p4p-drop-overlay-18f9";
-const BUST = "fan-p4p-drop-overlay-1";
+const BRANCH = "cursor/fan-default-p4p-18f9";
+const BUST = "fan-default-p4p-1";
 const FILES = [
   "app/lib/predict-for-planet.ts",
   "app/components/home/PredictForPlanet.tsx",
@@ -36,15 +36,23 @@ for (const rel of FILES) {
 const phone = "app/components/home/PredictForPlanet.tsx";
 const vote = "app/dashboard/supporter/vote/page.tsx";
 const fan = "app/supporter/dashboard/predict/page.tsx";
-if (existsSync(phone) && existsSync(vote) && existsSync(fan)) {
+const play = "app/components/fan/PredictForPlanetPlay.tsx";
+if (
+  existsSync(phone) &&
+  existsSync(vote) &&
+  existsSync(fan) &&
+  existsSync(play)
+) {
   const phoneSrc = readFileSync(phone, "utf8");
   const voteSrc = readFileSync(vote, "utf8");
   const fanSrc = readFileSync(fan, "utf8");
+  const playSrc = readFileSync(play, "utf8");
   if (
     !phoneSrc.includes("p4p-wallet-held-v1") ||
     !phoneSrc.includes("p4p-donate-funding-v1") ||
     !voteSrc.includes("Here are Climate Projects to donate your funding") ||
-    !fanSrc.includes("showPhone={false}")
+    !fanSrc.includes("showPhone={false}") ||
+    playSrc.includes("location.assign")
   ) {
     failed += 1;
     console.error(

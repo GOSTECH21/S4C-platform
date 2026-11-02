@@ -4,6 +4,7 @@
 /* p4p-slot-wipe-v1 */
 /* p4p-confirm-selection-v1 */
 /* p4p-wallet-full-time-v1 */
+/* p4p-stay-on-tab-v1 */
 
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -81,14 +82,12 @@ export function PredictForPlanetPhone({
   src,
   alt,
   fixtureName,
-  donateOnFullTime = false,
   forceFullTime = false,
   initialWalletGbp = 0,
 }: {
   src: string;
   alt: string;
   fixtureName?: string;
-  donateOnFullTime?: boolean;
   forceFullTime?: boolean;
   initialWalletGbp?: number;
 }) {
@@ -139,15 +138,6 @@ export function PredictForPlanetPhone({
       return next;
     });
   }, [clock.window.index]);
-
-  useEffect(() => {
-    if (!board.fullTime || !donateOnFullTime) return;
-    const href = p4pDonateProjectsPath(earnedGbp);
-    const id = window.setTimeout(() => {
-      window.location.assign(href);
-    }, 1200);
-    return () => window.clearTimeout(id);
-  }, [board.fullTime, donateOnFullTime, earnedGbp]);
 
   function toggle(id: P4pCategoryId) {
     setBoard((current) => {

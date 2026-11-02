@@ -1,4 +1,5 @@
 /** Paths used by homepage role cards and post-login destinations. */
+/* fan-default-p4p-v1 */
 
 import {
   SPONSOR_OFFER_SIGN_SECTION_ID,
@@ -42,7 +43,7 @@ export function fanLoginPath(next?: string | null): string {
   return `${FAN_LOGIN_PATH}?next=${encodeURIComponent(returnTo)}`;
 }
 
-/** The URL fans actually land on after login (matches localhost bookmarks). */
+/** My S4P tab. Fans still open this from the tab bar; login lands on P4P. */
 export const SUPPORTER_CAMPAIGN_PATH = "/supporter/dashboard";
 export const SUPPORTER_PROJECTS_PATH = "/dashboard/supporter/vote";
 export const SUPPORTER_TEAMS_PATH = "/dashboard/supporter/preferences";
@@ -87,6 +88,8 @@ export const SPONSOR_GAME_TIME_PATH = "/sponsor/game-time";
 export const SPONSOR_GAME_TIME_PAY_PATH = "/sponsor/game-time";
 export const SPONSOR_PAY_PATH = "/sponsor/pay";
 export const SUPPORTER_PREDICT_PATH = "/supporter/dashboard/predict";
+/** Fans and supporters land here after login. */
+export const SUPPORTER_HOME_PATH = SUPPORTER_PREDICT_PATH;
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 
 export function sponsorWalletPath(clubName?: string | null): string {
@@ -199,7 +202,9 @@ export function destinationForRole(role: string | null | undefined): string {
       return "/sponsor/dashboard";
     case "partner":
       return PARTNER_DASHBOARD_PATH;
+    case "supporter":
+    case "fan":
     default:
-      return SUPPORTER_CAMPAIGN_PATH;
+      return SUPPORTER_HOME_PATH;
   }
 }

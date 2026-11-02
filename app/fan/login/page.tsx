@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import RoleLoginForm from "@/app/components/auth/RoleLoginForm";
 import {
   FAN_REGISTER_PATH,
-  SUPPORTER_CAMPAIGN_PATH,
+  SUPPORTER_HOME_PATH,
   safeFanReturnPath,
 } from "@/app/lib/routes";
 import { captureClimateInviteFromSearch } from "@/app/lib/climate-funding";
@@ -16,7 +16,7 @@ import {
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 
 export default function FanLoginPage() {
-  const [destination, setDestination] = useState(SUPPORTER_CAMPAIGN_PATH);
+  const [destination, setDestination] = useState(SUPPORTER_HOME_PATH);
   useEffect(() => {
     captureClimateInviteFromSearch();
     const next = safeFanReturnPath(

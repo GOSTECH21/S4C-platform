@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/fan-p4p-drop-overlay-18f9"
-$bust = "fan-p4p-drop-overlay-1"
+$branch = "cursor/fan-default-p4p-18f9"
+$bust = "fan-default-p4p-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -71,6 +71,11 @@ $files = @(
   "app/components/club/ClubSponsorsListings.tsx",
   "app/lib/home-stakeholders.ts",
   "app/lib/routes.ts",
+  "app/lib/signed-in-role.ts",
+  "app/fan/login/page.tsx",
+  "app/supporter/login/page.tsx",
+  "app/register/page.tsx",
+  "scripts/verify-fan-default-p4p.ts",
   "app/lib/sponsor-listings.ts",
   "app/lib/sports.ts",
   "apply-match-sponsorship.mjs",

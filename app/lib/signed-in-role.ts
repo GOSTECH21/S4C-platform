@@ -7,6 +7,7 @@ import {
   PARTNER_DASHBOARD_PATH,
   SPONSOR_DASHBOARD_PATH,
   SUPPORTER_CAMPAIGN_PATH,
+  SUPPORTER_HOME_PATH,
 } from "./routes";
 
 export type SignedInKind =
@@ -40,7 +41,7 @@ export function destinationForSignedInKind(
   if (kind === "sponsor") return SPONSOR_DASHBOARD_PATH;
   if (kind === "partner") return PARTNER_DASHBOARD_PATH;
   if (kind === "admin") return ADMIN_PATH;
-  if (kind === "fan") return SUPPORTER_CAMPAIGN_PATH;
+  if (kind === "fan") return SUPPORTER_HOME_PATH;
   return null;
 }
 

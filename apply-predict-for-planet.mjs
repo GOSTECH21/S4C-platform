@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/fan-p4p-drop-overlay-18f9";
-const BUST = "fan-p4p-drop-overlay-1";
+const BRANCH = "cursor/fan-default-p4p-18f9";
+const BUST = "fan-default-p4p-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -69,6 +69,11 @@ const FILES = [
   "app/components/club/ClubSponsorsListings.tsx",
   "app/lib/home-stakeholders.ts",
   "app/lib/routes.ts",
+  "app/lib/signed-in-role.ts",
+  "app/fan/login/page.tsx",
+  "app/supporter/login/page.tsx",
+  "app/register/page.tsx",
+  "scripts/verify-fan-default-p4p.ts",
   "app/lib/sponsor-listings.ts",
   "app/lib/sports.ts",
   "apply-match-sponsorship.mjs",

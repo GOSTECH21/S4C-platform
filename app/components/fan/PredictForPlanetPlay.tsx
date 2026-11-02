@@ -1,5 +1,6 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
+/* p4p-stay-on-tab-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -24,7 +25,6 @@ import {
   P4P_TAGLINE,
   alreadyPredictedWindow,
   fanCarbonWalletFromPredictions,
-  p4pDonateProjectsPath,
   p4pMatchIsFullTime,
   firstFundedWindowIndex,
   formatP4pGbp,
@@ -202,15 +202,6 @@ export function PredictForPlanetPlay({
       if (fallback !== undefined) setWindowIndex(fallback);
     }
   }, [slotIndex, windowIndex]);
-
-  useEffect(() => {
-    if (!fullTime) return;
-    const href = p4pDonateProjectsPath(fanWallet.totalGbp);
-    const id = window.setTimeout(() => {
-      window.location.assign(href);
-    }, 1200);
-    return () => window.clearTimeout(id);
-  }, [fanWallet.totalGbp, fullTime]);
 
   useEffect(() => {
     if (fullTime) return;

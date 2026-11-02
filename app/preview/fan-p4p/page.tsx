@@ -24,7 +24,6 @@ export default function FanP4pPreviewPage() {
         <HowS4pPredictForPlanet
           initialClub={CLUB}
           clubOptions={[CLUB]}
-          donateOnFullTime
           showPhone={false}
         >
           <PredictForPlanetPlay

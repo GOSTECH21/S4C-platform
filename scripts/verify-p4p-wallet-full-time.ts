@@ -73,7 +73,7 @@ assert(
   p4pDonateProjectsPath(0.2).startsWith(`${SUPPORTER_PROJECTS_PATH}?`) &&
     p4pDonateProjectsPath(0.2).includes("p4pDonate=1") &&
     p4pDonateProjectsPath(0.2).includes("wallet=0.2"),
-  "Full time defaults fans onto the Climate Projects list"
+  "Climate Projects can still open with the donate-funding query when a fan chooses that tab"
 );
 
 const phone = readFileSync("app/components/home/PredictForPlanet.tsx", "utf8");
@@ -97,16 +97,18 @@ assert(
     phone.includes("Here are Climate Projects to donate your funding") &&
     phone.includes("P4P_FALLBACK_PROJECTS") &&
     phone.includes("p4pDonateProjectsPath") &&
-    phone.includes("donateOnFullTime") &&
+    phone.includes("p4p-stay-on-tab-v1") &&
+    !phone.includes("location.assign") &&
     phone.includes("board.fullTime") &&
     vote.includes('data-p4p-donate-funding="p4p-donate-funding-v1"') &&
     vote.includes("Here are Climate Projects to donate your funding") &&
     vote.includes("P4P_FALLBACK_PROJECTS") &&
     play.includes("p4pMatchIsFullTime") &&
-    play.includes("p4pDonateProjectsPath") &&
+    play.includes("p4p-stay-on-tab-v1") &&
+    !play.includes("location.assign") &&
     play.includes("Here are Climate Projects to donate your funding") &&
-    predictPage.includes("donateOnFullTime") &&
     predictPage.includes("showPhone={false}") &&
+    !predictPage.includes("donateOnFullTime") &&
     donatePreview.includes("Here are Climate Projects to donate your funding") &&
     donatePreview.includes("forceFullTime") &&
     donatePreview.includes("initialWalletGbp={0.2}"),
