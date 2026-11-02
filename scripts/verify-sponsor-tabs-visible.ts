@@ -37,9 +37,11 @@ assert(
     layout.includes("flex-col gap-3") &&
     layout.includes("overflow-x-hidden") &&
     layout.includes("SponsorNav") &&
+    layout.includes("S4P_SPONSOR_MARK") &&
+    layout.includes('data-testid="s4p-sponsor-mark"') &&
     !layout.includes("overflow-x-auto") &&
     !layout.includes("justify-end"),
-  "The sponsor header stacks the S4P mark above a full-width tab row on a phone"
+  "The sponsor header stacks S4P SPONSOR above a full-width tab row on a phone"
 );
 
 assert(
@@ -47,6 +49,7 @@ assert(
     preview.includes("inviteCount={1}") &&
     preview.includes("SPONSOR_DASHBOARD_PATH") &&
     preview.includes("LeadSponsorHome") &&
+    preview.includes("S4P_SPONSOR_MARK") &&
     preview.includes("pending={[]}"),
   "Sponsor nav preview shows Dashboard, Game-Time, Invitations and Logout"
 );

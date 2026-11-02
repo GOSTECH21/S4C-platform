@@ -1,6 +1,7 @@
 /* s4p-predict-for-planet-v7 */
 /* p4p-fund-project-v1 */
 /* game-time-slot-heading-v1 */
+/* game-time-sponsored-by-v1 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
@@ -18,7 +19,8 @@ export const GAME_TIME_PRODUCT_LABEL = "Game-Time Sponsor";
 export const SPONSORED_BY_LABEL = "Sponsored by";
 export const P4P_POWERED_BY_LABEL = "This Climate Challenge is powered by";
 export const P4P_PREDICT_NEXT_LABEL = "Predict what happens next?";
-export const P4P_SPONSOR_PREDICT_LABEL = "What Fans will predict on";
+export const P4P_GAME_TIME_PREDICT_LABEL = "Predict what happens next";
+export const P4P_GAME_TIME_SPONSORED_BY_LABEL = "Sponsored By";
 export const P4P_LIVE_CHALLENGE_LABEL = "P4P Live Climate Challenge";
 export const P4P_TAGLINE = "Predict. Participate. Power Climate Action";
 export const P4P_MAKE_PREDICTION_LABEL = "Make your prediction";

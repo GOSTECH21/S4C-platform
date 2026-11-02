@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/game-time-slot-heading-18f9"
-$bust = "game-time-slot-heading-1"
+$branch = "cursor/game-time-sponsored-by-18f9"
+$bust = "game-time-sponsored-by-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -62,8 +62,12 @@ $files = @(
   "app/preview/game-time/page.tsx",
   "scripts/verify-game-time-buy-first.ts",
   "scripts/verify-game-time-slot-heading.ts",
+  "scripts/verify-game-time-sponsored-by.ts",
   "apply-game-time-buy-first.mjs",
   "apply-game-time-slot-heading.mjs",
+  "apply-game-time-sponsored-by.mjs",
+  "app/sponsor/layout.tsx",
+  "app/lib/s4p-tabs.ts",
   "app/sponsor/local/register/page.tsx",
   "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
@@ -191,9 +195,9 @@ foreach ($root in $roots) {
     $gameTimeText -match "P4pLiveChallengePreview" -and
     $gameTimeText -match "P4pPredictNextBoard" -and
     $previewText -match "P4P_TAGLINE" -and
-    $previewText -match "P4P_SPONSOR_PREDICT_LABEL" -and
+    $previewText -match "P4P_GAME_TIME_PREDICT_LABEL" -and
     $previewText -notmatch "What fans see on Predict-For Planet" -and
-    $previewText -match "p4p-powered-by" -and
+    $previewText -match "p4p-sponsored-by" -and
     $previewText -match "P4P_FANS_ENGAGEMENT_LABEL"
   ) {
     Write-Host "Game-Time shows ivory live board and sponsor mark: $gameTime"

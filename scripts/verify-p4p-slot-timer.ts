@@ -95,8 +95,8 @@ assert(
     play.includes("currentIndex + 1") &&
     play.includes("h-28 w-28") &&
     play.includes("text-base font-black") &&
-    preview.includes("P4P_SPONSOR_PREDICT_LABEL") &&
-    preview.includes("h-28 w-28") &&
+    preview.includes("P4P_GAME_TIME_PREDICT_LABEL") &&
+    preview.includes('data-testid="p4p-sponsored-by"') &&
     !play.includes("What happens next?") &&
     !preview.includes("What happens next?"),
   "Play uses Predict what happens next; the Game-Time board uses What Fans will predict on"

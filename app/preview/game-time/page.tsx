@@ -1,6 +1,7 @@
 "use client";
 /* game-time-buy-first-v1 */
 /* game-time-slot-heading-v1 */
+/* game-time-sponsored-by-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -25,7 +26,9 @@ import {
   gameTimeSlots,
   gameTimeSponsorshipTopUp,
 } from "@/app/lib/predict-for-planet";
+import { S4P_SPONSOR_MARK } from "@/app/lib/s4p-tabs";
 import { PLATFORM_FEE_LABEL } from "@/app/lib/sponsor-wallet";
+import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 
 const PREVIEW_BRAND = "Budweiser Europe";
@@ -39,11 +42,16 @@ export default function GameTimeBuyPreviewPage() {
   const [fixturesLoading, setFixturesLoading] = useState(false);
   const [slotIndex, setSlotIndex] = useState(0);
   const [amount, setAmount] = useState("500");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const topUp = useMemo(
     () => gameTimeSponsorshipTopUp(Number(amount) || 0),
     [amount]
   );
   const previewSlot = slots[slotIndex] ?? slots[0];
+
+  useEffect(() => {
+    setLogoUrl(loadBrandLogo(PREVIEW_BRAND));
+  }, []);
 
   useEffect(() => {
     if (!clubName) {
@@ -72,8 +80,15 @@ export default function GameTimeBuyPreviewPage() {
     <main
       className="mx-auto max-w-5xl px-6 py-10 text-slate-950"
       data-game-time-buy-first="game-time-buy-first-v1"
+      data-game-time-sponsored-by="game-time-sponsored-by-v1"
     >
-      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
+      <p
+        data-testid="s4p-sponsor-mark"
+        className="whitespace-nowrap text-2xl font-black text-green-700"
+      >
+        {S4P_SPONSOR_MARK}
+      </p>
+      <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-emerald-800">
         {PREVIEW_BRAND}
       </p>
       <h1 className="mt-3 text-4xl font-black">{GAME_TIME_SPONSORSHIP_LABEL}</h1>
@@ -89,8 +104,22 @@ export default function GameTimeBuyPreviewPage() {
       </p>
 
       <div className="mt-8 space-y-8" data-testid="p4p-game-time-buy">
-        <P4pPredictNextBoard brandName={PREVIEW_BRAND} />
-        <div className="space-y-5">
+        <P4pPredictNextBoard
+          brandName={PREVIEW_BRAND}
+          logoUrl={logoUrl}
+          onLogoChange={setLogoUrl}
+        />
+        <div
+          className={`space-y-5 ${logoUrl ? "" : "pointer-events-none opacity-40"}`}
+          data-testid="p4p-game-time-form"
+          data-logo-ready={logoUrl ? "yes" : "no"}
+        >
+        {logoUrl ? null : (
+          <p className="text-sm font-semibold text-slate-600">
+            Add your logo next to Sponsored By, then fill in Club, Match and
+            payment.
+          </p>
+        )}
           <ClubLeagueMenu
             value={clubName}
             allPlatformClubs

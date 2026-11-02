@@ -1,5 +1,8 @@
 /** Lime tab chips — selected is solid mark green, idle is a green outline, never black. */
 
+export const S4P_SPONSOR_MARK = "S4P SPONSOR";
+
+
 export function s4pTabClass(active: boolean): string {
   return active
     ? "border border-s4p-mark bg-s4p-mark text-slate-950 hover:brightness-110"

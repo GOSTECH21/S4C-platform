@@ -2,6 +2,7 @@
 /* s4p-predict-for-planet-v7 */
 /* game-time-buy-first-v1 */
 /* game-time-slot-heading-v1 */
+/* game-time-sponsored-by-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -37,6 +38,7 @@ import { PLATFORM_FEE_LABEL } from "@/app/lib/sponsor-wallet";
 import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import {
   confirmGameTimeCardPayment,
   listGameTimeWallets,
@@ -60,6 +62,7 @@ export default function GameTimeSponsorshipPage() {
   const [checkout, setCheckout] = useState<GameTimeCheckout | null>(null);
   const [paidWallet, setPaidWallet] = useState<GameTimeWallet | null>(null);
   const [busy, setBusy] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const topUp = useMemo(
     () =>
       gameTimeSponsorshipTopUp(
@@ -101,6 +104,7 @@ export default function GameTimeSponsorshipPage() {
           return;
         }
         setBrand(brandName);
+        setLogoUrl(loadBrandLogo(brandName));
       } finally {
         setLoading(false);
         setWallets(listGameTimeWallets());
@@ -135,6 +139,10 @@ export default function GameTimeSponsorshipPage() {
   function continueToPayment() {
     setError(null);
     const sponsorshipGbp = Math.max(0, Number(amount) || 0);
+    if (!logoUrl) {
+      setError("Add your logo next to Sponsored By.");
+      return;
+    }
     if (!clubName.trim()) {
       setError("Select a club.");
       return;
@@ -211,7 +219,11 @@ export default function GameTimeSponsorshipPage() {
 
       {brand ? (
         <div className="mt-8 space-y-8" data-testid="p4p-game-time-buy">
-          <P4pPredictNextBoard brandName={brand} />
+          <P4pPredictNextBoard
+            brandName={brand}
+            logoUrl={logoUrl}
+            onLogoChange={setLogoUrl}
+          />
       {paidWallet ? (
         <div className="rounded-3xl border border-emerald-700/40 bg-emerald-50 p-8">
           <p className="text-lg font-semibold text-emerald-900">
@@ -260,7 +272,17 @@ export default function GameTimeSponsorshipPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div
+          className={`space-y-5 ${logoUrl ? "" : "pointer-events-none opacity-40"}`}
+          data-testid="p4p-game-time-form"
+          data-logo-ready={logoUrl ? "yes" : "no"}
+        >
+        {logoUrl ? null : (
+          <p className="text-sm font-semibold text-slate-600">
+            Add your logo next to Sponsored By, then fill in Club, Match and
+            payment.
+          </p>
+        )}
         <ClubLeagueMenu
           value={clubName}
           allPlatformClubs

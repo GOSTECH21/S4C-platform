@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { LeadSponsorHome } from "@/app/components/sponsor/LeadSponsorHome";
 import { SponsorTabBar } from "@/app/sponsor/sponsor-nav";
 import { SPONSOR_DASHBOARD_PATH } from "@/app/lib/routes";
+import { S4P_SPONSOR_MARK } from "@/app/lib/s4p-tabs";
 
 export default function SponsorNavPreviewPage() {
   useEffect(() => {
@@ -24,7 +25,12 @@ export default function SponsorNavPreviewPage() {
         className="border-b border-slate-800 bg-slate-950"
       >
         <div className="mx-auto flex max-w-7xl min-w-0 flex-col gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-6">
-          <p className="text-2xl font-black text-green-400">S4P</p>
+          <p
+            data-testid="s4p-sponsor-mark"
+            className="whitespace-nowrap text-2xl font-black text-green-400"
+          >
+            {S4P_SPONSOR_MARK}
+          </p>
           <nav className="w-full min-w-0 overflow-x-hidden text-sm font-semibold text-slate-300 sm:w-auto sm:max-w-full">
             <SponsorTabBar
               homePath={SPONSOR_DASHBOARD_PATH}

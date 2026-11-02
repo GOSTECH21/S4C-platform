@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { HOME_PATH } from "@/app/lib/routes";
+import { S4P_SPONSOR_MARK } from "@/app/lib/s4p-tabs";
 import { SponsorNav } from "./sponsor-nav";
 
 export default function SponsorLayout({
@@ -15,8 +16,12 @@ export default function SponsorLayout({
         className="border-b border-slate-800 bg-slate-950"
       >
         <div className="mx-auto flex max-w-7xl min-w-0 flex-col gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-6">
-          <Link href={HOME_PATH} className="text-2xl font-black text-green-400">
-            S4P
+          <Link
+            href={HOME_PATH}
+            data-testid="s4p-sponsor-mark"
+            className="whitespace-nowrap text-2xl font-black text-green-400"
+          >
+            {S4P_SPONSOR_MARK}
           </Link>
           <nav className="w-full min-w-0 overflow-x-hidden text-sm font-semibold text-slate-300 sm:w-auto sm:max-w-full">
             <SponsorNav />
