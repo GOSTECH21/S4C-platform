@@ -936,16 +936,17 @@ assert(
 
 const sponsorNav = readFileSync("app/sponsor/sponsor-nav.tsx", "utf8");
 assert(
-  sponsorNav.includes("grid-cols-5") &&
+  sponsorNav.includes("grid-cols-4") &&
     sponsorNav.includes("overflow-x-hidden") &&
     sponsorNav.includes("Dashboard") &&
-    sponsorNav.includes("Calendar") &&
     sponsorNav.includes("Game-Time") &&
     sponsorNav.includes("Logout") &&
     sponsorNav.includes("s4pTabClass(onDashboard)") &&
     sponsorNav.includes("sponsorHomePath") &&
+    !sponsorNav.includes("s4pTabClass(onCalendar)") &&
+    !sponsorNav.includes("href={SPONSOR_CALENDAR_PATH}") &&
     !sponsorNav.includes("bg-emerald-400"),
-  "Lead sponsor header shows Dashboard, Calendar, Game-Time, Invitations and Logout without chopping a tab"
+  "Lead sponsor header shows Dashboard, Game-Time, Invitations and Logout, with no Calendar tab"
 );
 assert(
   !sponsorDashboardPage.includes("Logout") &&

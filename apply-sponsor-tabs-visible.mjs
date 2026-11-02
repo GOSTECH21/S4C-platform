@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/sponsor-tabs-visible-18f9";
-const BUST = "sponsor-tabs-visible-1";
+const BRANCH = "cursor/sponsor-drop-calendar-18f9";
+const BUST = "sponsor-drop-calendar-1";
 const FILES = [
   "app/sponsor/sponsor-nav.tsx",
   "app/sponsor/layout.tsx",
@@ -39,7 +39,8 @@ if (existsSync(nav) && existsSync(layout)) {
   const layoutSrc = readFileSync(layout, "utf8");
   if (
     !navSrc.includes("sponsor-tabs-visible-v1") ||
-    !navSrc.includes("grid-cols-5") ||
+    !navSrc.includes("grid-cols-4") ||
+    navSrc.includes("href={SPONSOR_CALENDAR_PATH}") ||
     !layoutSrc.includes("overflow-x-hidden") ||
     layoutSrc.includes("overflow-x-auto")
   ) {

@@ -1,5 +1,6 @@
 "use client";
 /* sponsor-tabs-visible-v1 */
+/* sponsor-drop-calendar-v1 */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -33,7 +34,6 @@ export function SponsorTabBar({
   homePath,
   inviteCount,
   onDashboard,
-  onCalendar,
   onGameTime,
   onInvitations,
   onLogout,
@@ -41,21 +41,21 @@ export function SponsorTabBar({
   homePath: string;
   inviteCount: number;
   onDashboard: boolean;
-  onCalendar: boolean;
   onGameTime: boolean;
   onInvitations: boolean;
   onLogout: () => void;
 }) {
-  const showMatchTabs = homePath === SPONSOR_DASHBOARD_PATH;
-  const tabCount = showMatchTabs ? 5 : 3;
+  const showGameTime = homePath === SPONSOR_DASHBOARD_PATH;
+  const tabCount = showGameTime ? 4 : 3;
 
   return (
     <div
       data-testid="sponsor-tab-bar"
       data-sponsor-tabs={String(tabCount)}
       data-sponsor-tabs-visible="sponsor-tabs-visible-v1"
+      data-sponsor-drop-calendar="sponsor-drop-calendar-v1"
       className={`grid w-full gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2 ${
-        showMatchTabs ? "grid-cols-5" : "grid-cols-3"
+        showGameTime ? "grid-cols-4" : "grid-cols-3"
       }`}
     >
       <Link
@@ -64,21 +64,13 @@ export function SponsorTabBar({
       >
         Dashboard
       </Link>
-      {showMatchTabs ? (
-        <>
-          <Link
-            href={SPONSOR_CALENDAR_PATH}
-            className={`${tabClass} ${s4pTabClass(onCalendar)}`}
-          >
-            Calendar
-          </Link>
-          <Link
-            href={SPONSOR_GAME_TIME_PATH}
-            className={`${tabClass} ${s4pTabClass(onGameTime)}`}
-          >
-            Game-Time
-          </Link>
-        </>
+      {showGameTime ? (
+        <Link
+          href={SPONSOR_GAME_TIME_PATH}
+          className={`${tabClass} ${s4pTabClass(onGameTime)}`}
+        >
+          Game-Time
+        </Link>
       ) : null}
       <Link
         href={SPONSOR_INVITATIONS_PATH}
@@ -195,7 +187,6 @@ export function SponsorNav() {
         homePath={homePath}
         inviteCount={inviteCount}
         onDashboard={onDashboard}
-        onCalendar={onCalendar}
         onGameTime={onGameTime}
         onInvitations={onInvitations}
         onLogout={() => void logout()}

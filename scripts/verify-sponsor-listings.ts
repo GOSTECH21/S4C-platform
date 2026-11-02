@@ -296,7 +296,7 @@ assert(
 assert(
   sponsorNav.includes("s4pTabClass(onInvitations)") &&
     sponsorNav.includes("s4pTabClass(onDashboard)") &&
-    sponsorNav.includes("s4pTabClass(onCalendar)") &&
+    !sponsorNav.includes("s4pTabClass(onCalendar)") &&
     sponsorNav.includes("sponsorInvitationsNavLabel") &&
     inbox.includes("s4p-match-sponsorship-inbox-v2") &&
     inbox.includes("MATCH_SPONSORSHIP_LABEL") &&

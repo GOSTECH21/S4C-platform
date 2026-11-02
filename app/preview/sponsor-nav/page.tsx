@@ -30,7 +30,6 @@ export default function SponsorNavPreviewPage() {
               homePath={SPONSOR_DASHBOARD_PATH}
               inviteCount={1}
               onDashboard
-              onCalendar={false}
               onGameTime={false}
               onInvitations={false}
               onLogout={() => {}}

@@ -13,19 +13,21 @@ const leadLib = readFileSync("app/lib/lead-sponsor-home.ts", "utf8");
 
 assert(
   nav.includes("sponsor-tabs-visible-v1") &&
+    nav.includes("sponsor-drop-calendar-v1") &&
     nav.includes("SponsorTabBar") &&
     nav.includes('data-testid="sponsor-tab-bar"') &&
-    nav.includes("grid-cols-5") &&
+    nav.includes("grid-cols-4") &&
     nav.includes("grid-cols-3") &&
     nav.includes("overflow-x-hidden") &&
     nav.includes("whitespace-normal") &&
     nav.includes("Dashboard") &&
-    nav.includes("Calendar") &&
     nav.includes("Game-Time") &&
     nav.includes("sponsorInvitationsNavLabel") &&
     nav.includes("Logout") &&
+    !nav.includes("href={SPONSOR_CALENDAR_PATH}") &&
+    !nav.includes("s4pTabClass(onCalendar)") &&
     !nav.includes("overflow-x-auto"),
-  "Sponsor tabs are a full-width phone grid so Dashboard through Logout all stay on screen"
+  "Sponsor tabs are Dashboard, Game-Time, Invitations and Logout, with no Calendar tab"
 );
 
 assert(
@@ -44,7 +46,7 @@ assert(
     preview.includes("SPONSOR_DASHBOARD_PATH") &&
     preview.includes("LeadSponsorHome") &&
     preview.includes("pending={[]}"),
-  "Sponsor nav preview shows the five Lead tabs including Invitations (1)"
+  "Sponsor nav preview shows Dashboard, Game-Time, Invitations and Logout"
 );
 
 assert(
