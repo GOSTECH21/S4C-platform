@@ -1,4 +1,5 @@
 "use client";
+/* lead-awaiting-no-empty-v1 */
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -11,7 +12,6 @@ import {
   LEAD_APPROVED_INTRO,
   LEAD_APPROVED_SECTION_ID,
   LEAD_APPROVED_TITLE,
-  LEAD_AWAITING_EMPTY,
   LEAD_AWAITING_INTRO,
   LEAD_AWAITING_SECTION_ID,
   LEAD_AWAITING_TITLE,
@@ -172,7 +172,6 @@ export function LeadSponsorHome({
         letter="a"
         title={LEAD_AWAITING_TITLE}
         intro={LEAD_AWAITING_INTRO}
-        empty={LEAD_AWAITING_EMPTY}
         groups={sections.awaiting}
       />
       <ProjectSection
@@ -216,7 +215,7 @@ function ProjectSection({
   letter: "a" | "b" | "c";
   title: string;
   intro: string;
-  empty: string;
+  empty?: string;
   groups: LeadSponsorMatchGroup[];
   onPay?: (group: LeadSponsorMatchGroup) => void;
 }) {
@@ -231,7 +230,7 @@ function ProjectSection({
       <h2 className="mt-2 text-3xl font-black">{title}</h2>
       <p className="mt-3 max-w-3xl text-slate-300">{intro}</p>
       {groups.length === 0 ? (
-        <p className="mt-6 text-slate-500">{empty}</p>
+        empty ? <p className="mt-6 text-slate-500">{empty}</p> : null
       ) : (
         <div className="mt-8 space-y-4">
           {groups.map((group) => (

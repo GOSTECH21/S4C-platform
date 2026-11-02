@@ -41,8 +41,6 @@ export const LEAD_APPROVED_INTRO =
   "Climate Projects you have accepted and approved. They leave the waiting list above. Pay from your Climate Sponsorship Wallet to move them into your paid history.";
 export const LEAD_PAID_INTRO =
   "Master folder: a history of every Climate Project you have backed and paid for. Paid lists stay here and do not return to awaiting or approved.";
-export const LEAD_AWAITING_EMPTY =
-  "No Climate Projects are waiting. When a Club Sustainability Director uploads Match Day Climate Projects, they appear here for your acceptance and approval.";
 export const LEAD_APPROVED_EMPTY =
   "You have not approved any Climate Projects yet. Accept and approve a Match Day list in the section above.";
 export const LEAD_PAID_EMPTY =

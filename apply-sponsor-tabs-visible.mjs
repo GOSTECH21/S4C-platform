@@ -7,8 +7,11 @@ const FILES = [
   "app/sponsor/sponsor-nav.tsx",
   "app/sponsor/layout.tsx",
   "app/preview/sponsor-nav/page.tsx",
+  "app/components/sponsor/LeadSponsorHome.tsx",
+  "app/lib/lead-sponsor-home.ts",
   "scripts/verify-sponsor-tabs-visible.ts",
   "scripts/verify-sponsor-dashboard.ts",
+  "scripts/verify-lead-sponsor-home.ts",
 ];
 
 let failed = 0;

@@ -315,10 +315,13 @@ assert(
     home.includes('letter="a"') &&
     home.includes('letter="b"') &&
     home.includes('letter="c"') &&
+    home.includes("lead-awaiting-no-empty-v1") &&
+    !home.includes("LEAD_AWAITING_EMPTY") &&
+    !home.includes("No Climate Projects are waiting") &&
     !home.includes("SportingCalendarBoard") &&
     !home.includes("FundedClimateProjectsList") &&
     !home.includes("MatchDayLockIn"),
-  "Lead home shows only awaiting, approved, paid, and CIST"
+  "Lead home shows only awaiting, approved, paid, and CIST, without the empty waiting copy"
 );
 
 assert(

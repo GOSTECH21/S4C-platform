@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { LeadSponsorHome } from "@/app/components/sponsor/LeadSponsorHome";
 import { SponsorTabBar } from "@/app/sponsor/sponsor-nav";
 import { SPONSOR_DASHBOARD_PATH } from "@/app/lib/routes";
 
@@ -37,9 +38,15 @@ export default function SponsorNavPreviewPage() {
           </nav>
         </div>
       </header>
-      <p className="px-4 py-6 text-sm font-semibold text-slate-300">
-        All sponsor tabs stay on screen. None are chopped off.
-      </p>
+      <div className="mx-auto w-full min-w-0 max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+        <LeadSponsorHome
+          brand="Budweiser Europe"
+          logoUrl="/sponsors/budweiser.svg"
+          pending={[]}
+          signed={[]}
+          committedGbp={0}
+        />
+      </div>
     </main>
   );
 }
