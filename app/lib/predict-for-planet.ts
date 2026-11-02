@@ -1,4 +1,5 @@
 /* s4p-predict-for-planet-v7 */
+/* p4p-fund-project-v1 */
 /** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
@@ -20,6 +21,7 @@ export const P4P_LIVE_CHALLENGE_LABEL = "P4P Live Climate Challenge";
 export const P4P_TAGLINE = "Predict. Participate. Power Climate Action";
 export const P4P_MAKE_PREDICTION_LABEL = "Make your prediction";
 export const P4P_CHOOSE_PROJECT_LABEL = "Choose your climate project";
+export const P4P_FUND_PROJECT_LABEL = "Fund your Project";
 export const P4P_MATCH_DAY_IMPACT_LABEL = "Your Match Day Impact";
 export const P4P_LIVE_CHALLENGE_FOOTER =
   "Choose 3 of 7 events. Participating earns £0.10 for your Climate Project, right or wrong. If one of those events is awarded, you earn another £0.30.";
@@ -827,19 +829,118 @@ export function awardP4pAccuracy({
   return { ok: true, prediction: nextPrediction, wallet: nextWallet, takenGbp };
 }
 
+export type P4pProjectAllocation = {
+  id: string;
+  fanId: string;
+  clubName: string;
+  fixtureName: string;
+  projectName: string;
+  amountGbp: number;
+  at: string;
+};
+
+export type P4pFundProjectSuccess = {
+  ok: true;
+  allocation: P4pProjectAllocation;
+  remainingGbp: number;
+};
+
+export type P4pFundProjectFailure = {
+  ok: false;
+  error: string;
+};
+
+export type P4pFundProjectResult = P4pFundProjectSuccess | P4pFundProjectFailure;
+
+export function p4pFundedGbp(
+  allocations: P4pProjectAllocation[],
+  fanId: string,
+  fixtureName?: string
+): number {
+  const fan = normalizeP4pKey(fanId);
+  return roundP4pGbp(
+    allocations
+      .filter(
+        (row) =>
+          normalizeP4pKey(row.fanId) === fan &&
+          (!fixtureName || gameTimeFixtureMatches(row.fixtureName, fixtureName))
+      )
+      .reduce((sum, row) => sum + roundP4pGbp(row.amountGbp), 0)
+  );
+}
+
 export function fanCarbonWalletFromPredictions(
   predictions: P4pPrediction[],
-  fanId: string
+  fanId: string,
+  allocations: P4pProjectAllocation[] = []
 ): { totalGbp: number; byProject: { projectName: string; amountGbp: number }[] } {
   const mine = predictions.filter(
     (row) => normalizeP4pKey(row.fanId) === normalizeP4pKey(fanId)
   );
+  const earned = roundP4pGbp(
+    mine.reduce((sum, row) => sum + p4pPredictionAmounts(row).totalGbp, 0)
+  );
+  const funded = p4pFundedGbp(allocations, fanId);
   return {
-    totalGbp: roundP4pGbp(
-      mine.reduce((sum, row) => sum + p4pPredictionAmounts(row).totalGbp, 0)
-    ),
+    totalGbp: roundP4pGbp(Math.max(0, earned - funded)),
     byProject: p4pCreditsByProject(mine),
   };
+}
+
+export function fundFanCarbonWalletToProject({
+  fanId,
+  clubName,
+  fixtureName,
+  projectName,
+  predictions,
+  allocations,
+  now = new Date(),
+}: {
+  fanId: string;
+  clubName: string;
+  fixtureName: string;
+  projectName?: string;
+  predictions: P4pPrediction[];
+  allocations: P4pProjectAllocation[];
+  now?: Date | string;
+}): P4pFundProjectResult {
+  const chosenProject = String(projectName ?? "").trim();
+  if (!chosenProject) {
+    return { ok: false, error: "Choose a Climate Project to fund." };
+  }
+  const fan = normalizeP4pKey(fanId);
+  const matchPredictions = predictions.filter(
+    (row) =>
+      normalizeP4pKey(row.fanId) === fan &&
+      gameTimeFixtureMatches(row.fixtureName, fixtureName)
+  );
+  const matchAllocations = allocations.filter(
+    (row) =>
+      normalizeP4pKey(row.fanId) === fan &&
+      gameTimeFixtureMatches(row.fixtureName, fixtureName)
+  );
+  const remainingGbp = fanCarbonWalletFromPredictions(
+    matchPredictions,
+    fanId,
+    matchAllocations
+  ).totalGbp;
+  if (remainingGbp <= 0) {
+    return {
+      ok: false,
+      error: `Your ${FAN_CARBON_WALLET_LABEL} is ${formatP4pGbp(0)}.`,
+    };
+  }
+  const at = asIso(now);
+  const allocation: P4pProjectAllocation = {
+    id: `${fan}:${normalizeP4pKey(fixtureName)}:${at}`,
+    fanId,
+    clubName: String(clubName ?? "").trim(),
+    fixtureName: String(fixtureName ?? "").trim(),
+    projectName: chosenProject,
+    amountGbp: remainingGbp,
+    at,
+  };
+  return { ok: true, allocation, remainingGbp: 0 };
 }
 
 export function p4pPlayIntroCopy(): string {

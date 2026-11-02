@@ -1,15 +1,18 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-public-board-18f9";
-const BUST = "p4p-public-board-1";
+const BRANCH = "cursor/p4p-fund-project-18f9";
+const BUST = "p4p-fund-project-1";
 const FILES = [
   "app/lib/predict-for-planet.ts",
+  "app/services/predict-for-planet.service.ts",
   "app/components/fan/PredictForPlanetPlay.tsx",
   "app/components/home/HowS4pPredictForPlanet.tsx",
   "app/supporter/dashboard/predict/page.tsx",
   "app/preview/fan-p4p/page.tsx",
   "scripts/verify-p4p-public-board.ts",
+  "scripts/verify-p4p-fund-project.ts",
+  "apply-p4p-fund-project.mjs",
   "scripts/verify-fan-p4p-drop-overlay.ts",
   "scripts/verify-predict-for-planet.ts",
   "scripts/verify-p4p-wallet-full-time.ts",
@@ -39,6 +42,8 @@ if (existsSync(play)) {
   if (
     !playSrc.includes("p4p-public-board-v1") ||
     !playSrc.includes("p4p-sponsored-game") ||
+    !playSrc.includes("p4p-fund-project-v1") ||
+    !playSrc.includes("P4P_FUND_PROJECT_LABEL") ||
     playSrc.includes("P4P_LIVE_CHALLENGE_LABEL") ||
     playSrc.includes("If one of the 3 chosen events is awarded")
   ) {

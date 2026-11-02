@@ -12,6 +12,7 @@ import {
   P4P_PARTICIPATION_GBP,
   awardP4pAccuracy,
   fanCarbonWalletFromPredictions,
+  fundFanCarbonWalletToProject,
   p4pPlayIntroCopy,
   p4pPredictionAmounts,
   P4P_PREDICTIONS_PER_WINDOW,
@@ -156,6 +157,26 @@ assert(
 assert(
   fanCarbonWalletFromPredictions([accurate.prediction], "fan-1").totalGbp === 0.4,
   "The Fan Carbon Wallet records the £0.40 for the chosen Climate Project"
+);
+const fundedProject = fundFanCarbonWalletToProject({
+  fanId: "fan-1",
+  clubName: "Arsenal",
+  fixtureName: "Arsenal vs Chelsea",
+  projectName: "Edinburgh Building Retrofit Collective",
+  predictions: [accurate.prediction],
+  allocations: [],
+});
+assert(
+  fundedProject.ok === true &&
+    fundedProject.allocation.amountGbp === 0.4 &&
+    fundedProject.allocation.projectName ===
+      "Edinburgh Building Retrofit Collective" &&
+    fanCarbonWalletFromPredictions(
+      [accurate.prediction],
+      "fan-1",
+      [fundedProject.allocation]
+    ).totalGbp === 0,
+  "Fund your Project moves the Fan Carbon Wallet onto the chosen Climate Project"
 );
 const miss = awardP4pAccuracy({
   prediction: first.ok ? first.prediction : ({} as never),
@@ -678,6 +699,10 @@ assert(
       play.indexOf("{P4P_FAN_WALLET_SHORT_COPY}") &&
     play.indexOf("{P4P_FAN_WALLET_SHORT_COPY}") <
       play.indexOf("{P4P_CHOOSE_PROJECT_LABEL}") &&
+    play.indexOf("{P4P_CHOOSE_PROJECT_LABEL}") <
+      play.indexOf('data-testid="p4p-fund-project"') &&
+    play.includes("P4P_FUND_PROJECT_LABEL") &&
+    play.includes("p4p-fund-project-v1") &&
     !play.includes("P4P_LIVE_CHALLENGE_LABEL") &&
     !play.includes("P4P_FANS_ENGAGEMENT_LABEL") &&
     !play.includes("awardP4pSlotEvent") &&
@@ -687,7 +712,7 @@ assert(
     !play.includes("location.assign") &&
     !play.includes("bg-[#10262c]") &&
     !play.includes("text-[#f4f1e6]"),
-  "Fans submit 3 P4P events on the sponsored Match, then see wallets and a Climate Project picker"
+  "Fans submit 3 P4P events on the sponsored Match, then see wallets, a Climate Project picker, and Fund your Project"
 );
 const fanPredictPage = readFileSync(
   "app/supporter/dashboard/predict/page.tsx",
@@ -766,14 +791,14 @@ assert(
 const applyP4p = readFileSync("apply-predict-for-planet.mjs", "utf8");
 const applyP4pPs1 = readFileSync("apply-predict-for-planet.ps1", "utf8");
 assert(
-  applyP4p.includes('BRANCH = "cursor/p4p-public-board-18f9"') &&
+  applyP4p.includes('BRANCH = "cursor/p4p-fund-project-18f9"') &&
     applyP4p.includes("app/components/home/PredictForPlanet.tsx") &&
     applyP4p.includes("HowS4pPredictForPlanet") &&
     applyP4p.includes("Do not re-run the listings overlay") &&
     applyP4p.includes("pickSponsoredGameTimeMatch") &&
     applyP4p.includes("app/sponsor/game-time/page.tsx") &&
     applyP4p.includes("s4p-predict-for-planet-v7") &&
-    applyP4p.includes("p4p-public-board-1") &&
+    applyP4p.includes("p4p-fund-project-1") &&
     applyP4p.includes("score-for-planet.ts") &&
     applyP4p.includes("fan-register-copy.ts") &&
     applyP4p.includes("sponsored-goal.service.ts") &&
@@ -793,7 +818,7 @@ assert(
     applyP4pPs1.includes("ClubMatchMenus") &&
     applyP4pPs1.includes("calendar-clubs") &&
     applyP4pPs1.includes("s4p-predict-for-planet-v7") &&
-    applyP4pPs1.includes("p4p-public-board-1") &&
+    applyP4pPs1.includes("p4p-fund-project-1") &&
     applyP4pPs1.includes("score-for-planet.ts") &&
     applyP4pPs1.includes("sponsored-goal.service.ts") &&
     applyP4pPs1.includes("sponsor-wallet.service.ts") &&

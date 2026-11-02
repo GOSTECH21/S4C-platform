@@ -1,8 +1,10 @@
 /* s4p-predict-for-planet-v7 */
+/* p4p-fund-project-v1 */
 import {
   P4P_WINDOWS_PER_SLOT,
   awardP4pAccuracy,
   createGameTimeWallet,
+  fundFanCarbonWalletToProject,
   gameTimeFixtureMatches,
   gameTimeWalletId,
   gameTimeWalletMatchesMatch,
@@ -16,13 +18,16 @@ import {
   type GameTimeWallet,
   type P4pCategoryId,
   type P4pEngagementResult,
+  type P4pFundProjectResult,
   type P4pPrediction,
+  type P4pProjectAllocation,
   type P4pSlotEvent,
   type SponsoredGameTimeMatch,
 } from "@/app/lib/predict-for-planet";
 
 export const GAME_TIME_WALLETS_STORAGE = "s4p.game-time.wallets";
 export const P4P_PREDICTIONS_STORAGE = "s4p.p4p.predictions";
+export const P4P_PROJECT_FUNDS_STORAGE = "s4p.p4p.project-funds";
 export const P4P_SLOT_EVENTS_STORAGE = "s4p.p4p.slot-events";
 export const GAME_TIME_CHECKOUT_STORAGE = "s4p.game-time.checkout";
 export const GAME_TIME_PAYMENTS_STORAGE = "s4p.game-time.payments";
@@ -195,6 +200,28 @@ export function sponsoredP4pMatchForFan(
 
 export function listP4pPredictions(): P4pPrediction[] {
   return readJson<P4pPrediction>(P4P_PREDICTIONS_STORAGE);
+}
+
+export function listP4pProjectAllocations(): P4pProjectAllocation[] {
+  return readJson<P4pProjectAllocation>(P4P_PROJECT_FUNDS_STORAGE);
+}
+
+export function fundP4pProject(input: {
+  fanId: string;
+  clubName: string;
+  fixtureName: string;
+  projectName: string;
+}): P4pFundProjectResult {
+  const predictions = listP4pPredictions();
+  const allocations = listP4pProjectAllocations();
+  const result = fundFanCarbonWalletToProject({
+    ...input,
+    predictions,
+    allocations,
+  });
+  if (!result.ok) return result;
+  writeJson(P4P_PROJECT_FUNDS_STORAGE, [...allocations, result.allocation]);
+  return result;
 }
 
 export function submitP4pPrediction(input: {

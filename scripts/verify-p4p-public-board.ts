@@ -79,9 +79,12 @@ assert(
       play.indexOf("{P4P_FAN_WALLET_SHORT_COPY}") &&
     play.indexOf("{P4P_FAN_WALLET_SHORT_COPY}") <
       play.indexOf("{P4P_CHOOSE_PROJECT_LABEL}") &&
+    play.indexOf("{P4P_CHOOSE_PROJECT_LABEL}") <
+      play.indexOf('data-testid="p4p-fund-project"') &&
+    play.includes("P4P_FUND_PROJECT_LABEL") &&
     play.lastIndexOf("Predict 3 events ·") <
       play.indexOf('data-testid="p4p-match-day-impact"'),
-  "Match Day Impact is Game-Time Wallet, eligible predictions, Fan Carbon Wallet, then the Climate Project list, with no green predict tab"
+  "Match Day Impact is Game-Time Wallet, eligible predictions, Fan Carbon Wallet, the Climate Project list, then Fund your Project, with no green predict tab"
 );
 
 if (failures.length > 0) {

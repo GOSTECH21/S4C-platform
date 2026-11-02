@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-public-board-18f9";
-const BUST = "p4p-public-board-1";
+const BRANCH = "cursor/p4p-fund-project-18f9";
+const BUST = "p4p-fund-project-1";
 const FILES = [
   "app/lib/predict-for-planet.ts",
   "app/components/home/PredictForPlanet.tsx",

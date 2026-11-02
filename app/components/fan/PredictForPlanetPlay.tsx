@@ -2,6 +2,7 @@
 /* s4p-predict-for-planet-v7 */
 /* p4p-stay-on-tab-v1 */
 /* p4p-public-board-v1 */
+/* p4p-fund-project-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
@@ -16,6 +17,7 @@ import {
   P4P_ELIGIBLE_PREDICTIONS_LABEL,
   P4P_FALLBACK_PROJECTS,
   P4P_FAN_WALLET_SHORT_COPY,
+  P4P_FUND_PROJECT_LABEL,
   P4P_MAKE_PREDICTION_LABEL,
   P4P_MATCH_DAY_IMPACT_LABEL,
   P4P_PARTICIPATION_GBP,
@@ -43,9 +45,11 @@ import {
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import {
   depositGameTimeSponsorship,
+  fundP4pProject,
   gameTimeWalletForSlot,
   listGameTimeWallets,
   listP4pPredictions,
+  listP4pProjectAllocations,
   listP4pSlotEvents,
   slotEventAwarded,
   submitP4pPrediction,
@@ -73,6 +77,8 @@ export function PredictForPlanetPlay({
   const [projectName, setProjectName] = useState(projects[0] ?? "");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fundNotice, setFundNotice] = useState<string | null>(null);
+  const [fundError, setFundError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -153,8 +159,20 @@ export function PredictForPlanetPlay({
   const predictions = allPredictions.filter(
     (row) => row.fanId.toLowerCase() === fanId.toLowerCase()
   );
+  const allocations = hydrated
+    ? listP4pProjectAllocations().filter(
+        (row) =>
+          row.fanId.toLowerCase() === fanId.toLowerCase() &&
+          liveFixture &&
+          gameTimeFixtureMatches(row.fixtureName, liveFixture)
+      )
+    : [];
   const slotEvents = hydrated ? listP4pSlotEvents() : [];
-  const fanWallet = fanCarbonWalletFromPredictions(predictions, fanId);
+  const fanWallet = fanCarbonWalletFromPredictions(
+    predictions,
+    fanId,
+    allocations
+  );
   const fullTime = Boolean(
     wallet && p4pMatchIsFullTime(wallet.kickoffAt, now)
   );
@@ -173,6 +191,7 @@ export function PredictForPlanetPlay({
       windowAllowed &&
       !alreadyInWindow
   );
+  const canFundProject = Boolean(projectName) && fanWallet.totalGbp > 0;
   const challenge = wallet
     ? p4pLiveChallenge(wallet, allPredictions)
     : null;
@@ -267,6 +286,31 @@ export function PredictForPlanetPlay({
         `Participation. ${formatP4pGbp(amounts.participationGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName}. If one of those events is awarded in this slot, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} (total ${formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Game-Time wallet now ${left}.`
       );
     }
+    setTick((value) => value + 1);
+  }
+
+  function fundProject() {
+    setFundNotice(null);
+    setFundError(null);
+    if (!liveClub || !liveFixture) {
+      setFundError(
+        "P4P is played on the Match a Game-Time Sponsor has put money into their Carbon Wallet for."
+      );
+      return;
+    }
+    const result = fundP4pProject({
+      fanId,
+      clubName: liveClub,
+      fixtureName: liveFixture,
+      projectName,
+    });
+    if (!result.ok) {
+      setFundError(result.error);
+      return;
+    }
+    setFundNotice(
+      `${formatP4pGbp(result.allocation.amountGbp)} from your ${FAN_CARBON_WALLET_LABEL} is now funding ${projectName}. ${FAN_CARBON_WALLET_LABEL} now ${formatP4pGbp(0)}.`
+    );
     setTick((value) => value + 1);
   }
 
@@ -495,6 +539,34 @@ export function PredictForPlanetPlay({
             ))}
           </select>
         </label>
+        <button
+          type="button"
+          data-testid="p4p-fund-project"
+          onClick={fundProject}
+          disabled={!canFundProject}
+          className="mt-5 w-full rounded-xl border border-transparent bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:border-slate-400 disabled:bg-slate-200 disabled:text-slate-800"
+        >
+          {canFundProject
+            ? `${P4P_FUND_PROJECT_LABEL} · ${formatP4pGbp(fanWallet.totalGbp)}`
+            : P4P_FUND_PROJECT_LABEL}
+        </button>
+        {fundError ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-xl border border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-800"
+          >
+            {fundError}
+          </p>
+        ) : null}
+        {fundNotice ? (
+          <p
+            role="status"
+            data-testid="p4p-fund-project-status"
+            className="mt-3 rounded-xl border border-emerald-700 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900"
+          >
+            {fundNotice}
+          </p>
+        ) : null}
       </div>
     </section>
   );

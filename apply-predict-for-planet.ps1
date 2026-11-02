@@ -10,8 +10,8 @@ if (-not $markers) {
   exit 1
 }
 
-$branch = "cursor/p4p-public-board-18f9"
-$bust = "p4p-public-board-1"
+$branch = "cursor/p4p-fund-project-18f9"
+$bust = "p4p-fund-project-1"
 $files = @(
   "app/lib/predict-for-planet.ts",
   "app/lib/score-for-planet.ts",
@@ -77,6 +77,8 @@ $files = @(
   "app/register/page.tsx",
   "scripts/verify-fan-default-p4p.ts",
   "scripts/verify-p4p-public-board.ts",
+  "scripts/verify-p4p-fund-project.ts",
+  "apply-p4p-fund-project.mjs",
   "app/lib/sponsor-listings.ts",
   "app/lib/sports.ts",
   "apply-match-sponsorship.mjs",
@@ -158,7 +160,7 @@ foreach ($root in $roots) {
     $playText -match "p4p-powered-by" -and
     $playText -match "P4P_PREDICT_NEXT_LABEL" -and
     $playText -match "if \(!hydrated \|\| !sponsored\)" -and
-    $playText -match "P4P_FANS_ENGAGEMENT_LABEL" -and
+    $playText -match "P4P_FUND_PROJECT_LABEL" -and
     $playText -match "FAN_CARBON_WALLET_LABEL" -and
     $playText -notmatch "bg-\[#10262c\]"
   ) {

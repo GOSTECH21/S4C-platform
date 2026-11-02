@@ -55,10 +55,12 @@ assert(
 assert(
   play.includes("P4P_MAKE_PREDICTION_LABEL") &&
     play.includes("P4P_CHOOSE_PROJECT_LABEL") &&
+    play.includes("P4P_FUND_PROJECT_LABEL") &&
     play.includes("FAN_CARBON_WALLET_LABEL") &&
     play.includes("p4p-public-board-v1") &&
+    play.includes("p4p-fund-project-v1") &&
     !play.includes("P4P_LIVE_CHALLENGE_LABEL"),
-  "Fan P4P keeps the prediction board, climate project and fan wallet, without the live-challenge card"
+  "Fan P4P keeps the prediction board, climate project, Fund your Project and fan wallet, without the live-challenge card"
 );
 
 if (failures.length > 0) {

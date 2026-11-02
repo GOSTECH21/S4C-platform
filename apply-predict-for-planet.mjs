@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/p4p-public-board-18f9";
-const BUST = "p4p-public-board-1";
+const BRANCH = "cursor/p4p-fund-project-18f9";
+const BUST = "p4p-fund-project-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -75,6 +75,8 @@ const FILES = [
   "app/register/page.tsx",
   "scripts/verify-fan-default-p4p.ts",
   "scripts/verify-p4p-public-board.ts",
+  "scripts/verify-p4p-fund-project.ts",
+  "apply-p4p-fund-project.mjs",
   "app/lib/sponsor-listings.ts",
   "app/lib/sports.ts",
   "apply-match-sponsorship.mjs",
@@ -219,9 +221,9 @@ for (const root of roots) {
     !playText.includes('data-testid="p4p-powered-by"') ||
     !playText.includes("P4P_PREDICT_NEXT_LABEL") ||
     !playText.includes("if (!hydrated || !sponsored)") ||
-    !playText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||
+    !playText.includes("P4P_FUND_PROJECT_LABEL") ||
     !playText.includes("FAN_CARBON_WALLET_LABEL") ||
-    !playText.includes("awardP4pSlotEvent") ||
+    !playText.includes('data-testid="p4p-fund-project"') ||
     playText.includes("bg-[#10262c]") ||
     playText.includes("text-[#f4f1e6]")
   ) {
