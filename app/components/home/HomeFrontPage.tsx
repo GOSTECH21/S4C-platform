@@ -21,23 +21,9 @@ function joinIntentFromLocation(): JoinIntent | null {
 
 export default function HomeFrontPage() {
   const [joinIntent, setJoinIntent] = useState<JoinIntent>("register");
-  const [roleFocus, setRoleFocus] = useState<{
-    title: string;
-    nonce: number;
-  } | null>(null);
 
   function showJoin(intent: JoinIntent) {
     setJoinIntent(intent);
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById(JOIN_SECTION_ID)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
-
-  function showFanP4P() {
-    setJoinIntent("register");
-    setRoleFocus({ title: "Fans", nonce: Date.now() });
     window.requestAnimationFrame(() => {
       document
         .getElementById(JOIN_SECTION_ID)
@@ -65,7 +51,7 @@ export default function HomeFrontPage() {
         onJoinCommunity={() => showJoin("register")}
       />
       <div className="relative flex flex-col">
-        <HomeJoinMission onPlayP4P={showFanP4P} />
+        <HomeJoinMission />
 
         <div className="hidden md:block" data-how-s4p-desktop="true">
           <HowItWorks
@@ -74,11 +60,7 @@ export default function HomeFrontPage() {
           />
         </div>
 
-        <HomeRoleSection
-          joinIntent={joinIntent}
-          onJoin={showJoin}
-          roleFocus={roleFocus}
-        />
+        <HomeRoleSection joinIntent={joinIntent} onJoin={showJoin} />
       </div>
     </div>
   );

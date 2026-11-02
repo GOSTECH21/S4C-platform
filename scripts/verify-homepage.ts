@@ -411,16 +411,13 @@ assert(
   "How S4P Works sits above the role cards on desktop and is hidden on mobile"
 );
 assert(
-  front.includes("HomeJoinMission") &&
+    front.includes("HomeJoinMission") &&
     front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
     front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission") &&
-    front.includes("showFanP4P") &&
-    front.includes("onPlayP4P") &&
-    front.includes('title: "Fans"') &&
-    front.includes("roleFocus") &&
-    roles.includes("roleFocus") &&
-    roles.includes("setSelectedTitle(roleFocus.title)"),
-  "Club and fan join panels sit above How S4P Works, and Play P4P opens the Fans card"
+    front.includes("<HomeJoinMission />") &&
+    !front.includes("showFanP4P") &&
+    !front.includes("onPlayP4P"),
+  "Club and fan join panels sit above How S4P Works, and Play P4P opens Fan Login"
 );
 assert(
   front.includes("onCreateAccount") &&
@@ -526,6 +523,9 @@ assert(
     joinMission.includes('data-fan-join-tab="join-free"') &&
     joinMission.includes('data-fan-join-tab="play-p4p"') &&
     joinMission.includes("Play P4P") &&
+    joinMission.includes("FAN_LOGIN_PATH") &&
+    joinMission.includes("play-p4p-fan-login-v1") &&
+    joinMission.includes("hardNavigateOnClick(FAN_LOGIN_PATH") &&
     !joinMission.includes("At the stadium or following from anywhere") &&
     !joinMission.includes("take part in match-day activities") &&
     !joinMission.includes("eligible sponsor-funded") &&

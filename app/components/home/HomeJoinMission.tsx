@@ -3,16 +3,13 @@
 import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 import {
   CLUB_REGISTER_PATH,
+  FAN_LOGIN_PATH,
   FAN_REGISTER_PATH,
 } from "@/app/lib/routes";
 
 const MINT = "#0c5c2c";
 
-export default function HomeJoinMission({
-  onPlayP4P,
-}: {
-  onPlayP4P: () => void;
-}) {
+export default function HomeJoinMission() {
   return (
     <section
       id="join-s4p-community"
@@ -58,6 +55,7 @@ export default function HomeJoinMission({
         <article
           aria-labelledby="fan-join-heading"
           data-fan-join-copy="fan-p4p-tabs-v1"
+          data-play-p4p-fan-login="play-p4p-fan-login-v1"
           className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9"
         >
           <p
@@ -91,14 +89,14 @@ export default function HomeJoinMission({
             >
               Join free
             </a>
-            <button
-              type="button"
+            <a
+              href={FAN_LOGIN_PATH}
               data-fan-join-tab="play-p4p"
-              onClick={onPlayP4P}
+              onClick={(event) => hardNavigateOnClick(FAN_LOGIN_PATH, event)}
               className="flex w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-full bg-s4p-mark px-3 py-3.5 text-[0.72rem] font-black uppercase tracking-[0.06em] text-black hover:brightness-110 sm:px-4 sm:text-sm sm:tracking-[0.12em]"
             >
               Play P4P
-            </button>
+            </a>
           </div>
         </article>
       </div>

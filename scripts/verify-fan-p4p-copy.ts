@@ -35,20 +35,19 @@ assert(
     join.includes("Join free") &&
     join.includes("Play P4P") &&
     join.includes("FAN_REGISTER_PATH") &&
-    join.includes("onPlayP4P") &&
+    join.includes("FAN_LOGIN_PATH") &&
+    join.includes("play-p4p-fan-login-v1") &&
     join.includes("grid-cols-2"),
   "Fan join panel has Join free and Play P4P tabs"
 );
 
 assert(
-  front.includes("showFanP4P") &&
-    front.includes('title: "Fans"') &&
-    front.includes("roleFocus") &&
-    front.includes("onPlayP4P={showFanP4P}") &&
-    roles.includes("roleFocus") &&
-    roles.includes("setSelectedTitle(roleFocus.title)") &&
+  !front.includes("showFanP4P") &&
+    !front.includes("onPlayP4P") &&
+    front.includes("<HomeJoinMission />") &&
+    join.includes("FAN_LOGIN_PATH") &&
     roles.includes('data-role-tab={card.title}'),
-  "Play P4P scrolls to the Fans registration and login card"
+  "Play P4P opens Fan Login, which still offers Register here"
 );
 
 if (failures.length > 0) {
