@@ -89,17 +89,17 @@ assert(
 );
 
 assert(
-  play.includes("P4P_PREDICT_NEXT_LABEL") &&
+    play.includes("P4P_PREDICT_NEXT_LABEL") &&
     play.includes('countdown?.state === "ended"') &&
     play.includes("countdown?.remainingSeconds === 0") &&
     play.includes("currentIndex + 1") &&
     play.includes("h-28 w-28") &&
     play.includes("text-base font-black") &&
-    preview.includes("P4P_PREDICT_NEXT_LABEL") &&
+    preview.includes("P4P_SPONSOR_PREDICT_LABEL") &&
     preview.includes("h-28 w-28") &&
     !play.includes("What happens next?") &&
     !preview.includes("What happens next?"),
-  "Play and preview use Predict what happens next, auto-advance the slot, and promote the brand under the heading"
+  "Play uses Predict what happens next; the Game-Time board uses What Fans will predict on"
 );
 
 if (failures.length > 0) {

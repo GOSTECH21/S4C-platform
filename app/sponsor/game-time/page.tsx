@@ -1,6 +1,7 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
 /* game-time-buy-first-v1 */
+/* game-time-slot-heading-v1 */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -275,26 +276,30 @@ export default function GameTimeSponsorshipPage() {
           loading={fixturesLoading}
           onChange={setFixture}
         />
-        <fieldset className="rounded-xl border border-slate-300 bg-white p-4">
-          <legend className="px-1 text-sm font-semibold text-slate-700">
-            30-minute Game-Time slot
-          </legend>
-          {slots.map((slot) => (
-            <label
-              key={slot.index}
-              className="mt-2 flex cursor-pointer items-center gap-3 text-sm text-slate-950"
-            >
-              <input
-                type="radio"
-                name="game-time-slot"
-                className="accent-green-500"
-                checked={slotIndex === slot.index}
-                onChange={() => setSlotIndex(slot.index)}
-              />
-              {slot.label}
-            </label>
-          ))}
-        </fieldset>
+        <div>
+          <p className="text-sm font-semibold text-slate-700">
+            {GAME_TIME_SLOT_MINUTES}-minute Game-Time slot
+          </p>
+          <fieldset className="mt-2 rounded-xl border border-slate-300 bg-white p-4">
+            <div className="space-y-2">
+              {slots.map((slot) => (
+                <label
+                  key={slot.index}
+                  className="flex cursor-pointer items-center gap-3 text-sm text-slate-950"
+                >
+                  <input
+                    type="radio"
+                    name="game-time-slot"
+                    className="accent-green-500"
+                    checked={slotIndex === slot.index}
+                    onChange={() => setSlotIndex(slot.index)}
+                  />
+                  {slot.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
         <label className="block text-sm font-semibold text-slate-700">
           Amount on the {GAME_TIME_CARBON_WALLET_LABEL} (£)
           <input

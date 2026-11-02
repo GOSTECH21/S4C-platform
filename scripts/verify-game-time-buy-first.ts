@@ -60,19 +60,19 @@ assert(
 );
 
 assert(
-  apply.includes('BRANCH = "cursor/game-time-buy-first-18f9"') &&
-    apply.includes("game-time-buy-first-1") &&
+  apply.includes('BRANCH = "cursor/game-time-slot-heading-18f9"') &&
+    apply.includes("game-time-slot-heading-1") &&
     apply.includes("app/sponsor/game-time/page.tsx") &&
     apply.includes("app/components/fan/P4pLiveChallengePreview.tsx") &&
-    applyP4p.includes('BRANCH = "cursor/game-time-buy-first-18f9"') &&
-    applyP4p.includes("game-time-buy-first-1") &&
+    applyP4p.includes('BRANCH = "cursor/game-time-slot-heading-18f9"') &&
+    applyP4p.includes("game-time-slot-heading-1") &&
     applyP4p.includes("{P4P_TAGLINE}") &&
     applyP4p.includes('previewText.includes("What fans see on Predict-For Planet")') &&
-    applyP4pPs1.includes("cursor/game-time-buy-first-18f9") &&
-    applyP4pPs1.includes("game-time-buy-first-1") &&
+    applyP4pPs1.includes("cursor/game-time-slot-heading-18f9") &&
+    applyP4pPs1.includes("game-time-slot-heading-1") &&
     applyP4pPs1.includes("P4P_TAGLINE") &&
-    applySlot.includes('BRANCH = "cursor/game-time-buy-first-18f9"') &&
-    applySlot.includes("game-time-buy-first-1"),
+    applySlot.includes('BRANCH = "cursor/game-time-slot-heading-18f9"') &&
+    applySlot.includes("game-time-slot-heading-1"),
   "PC overlays pull Game-Time buy-first from this branch"
 );
 

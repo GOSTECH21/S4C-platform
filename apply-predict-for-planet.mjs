@@ -7,8 +7,8 @@ import {
 } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/game-time-buy-first-18f9";
-const BUST = "game-time-buy-first-1";
+const BRANCH = "cursor/game-time-slot-heading-18f9";
+const BUST = "game-time-slot-heading-1";
 const MARKERS = new Set(["HowItWorks.tsx"]);
 const FILES = [
   "app/lib/predict-for-planet.ts",
@@ -59,7 +59,9 @@ const FILES = [
   "app/sponsor/game-time/page.tsx",
   "app/preview/game-time/page.tsx",
   "scripts/verify-game-time-buy-first.ts",
+  "scripts/verify-game-time-slot-heading.ts",
   "apply-game-time-buy-first.mjs",
+  "apply-game-time-slot-heading.mjs",
   "app/sponsor/local/register/page.tsx",
   "app/sponsor/wallet/page.tsx",
   "app/components/sponsor/ClubMatchMenus.tsx",
@@ -253,6 +255,7 @@ for (const root of roots) {
     !gameTimeText.includes("P4pLiveChallengePreview") ||
     !gameTimeText.includes("P4pPredictNextBoard") ||
     !previewText.includes("{P4P_TAGLINE}") ||
+    !previewText.includes("P4P_SPONSOR_PREDICT_LABEL") ||
     previewText.includes("What fans see on Predict-For Planet") ||
     !previewText.includes('data-testid="p4p-powered-by"') ||
     !previewText.includes("P4P_FANS_ENGAGEMENT_LABEL") ||

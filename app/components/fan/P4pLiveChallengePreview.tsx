@@ -1,6 +1,7 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
 /* game-time-buy-first-v1 */
+/* game-time-slot-heading-v1 */
 
 import { BrandMark } from "@/app/components/club/BrandMark";
 import {
@@ -10,7 +11,7 @@ import {
   P4P_LIVE_CHALLENGE_FOOTER,
   P4P_LIVE_CHALLENGE_LABEL,
   P4P_POWERED_BY_LABEL,
-  P4P_PREDICT_NEXT_LABEL,
+  P4P_SPONSOR_PREDICT_LABEL,
   P4P_TAGLINE,
   formatP4pGbp,
 } from "@/app/lib/predict-for-planet";
@@ -27,8 +28,8 @@ export function P4pPredictNextBoard({ brandName }: { brandName: string }) {
       className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start"
     >
       <div>
-        <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
-          {P4P_PREDICT_NEXT_LABEL}
+        <p className="text-sm font-black text-slate-700">
+          {P4P_SPONSOR_PREDICT_LABEL}
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {P4P_CATEGORIES.map((category) => (
