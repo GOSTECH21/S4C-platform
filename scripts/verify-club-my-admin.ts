@@ -188,8 +188,11 @@ assert(
   overlay.includes("app/services/local-sponsor.service.ts") &&
     overlay.includes("app/lib/local-sponsor.ts") &&
     overlay.includes("app/components/club/ClubAdminLookbackAndCilt.tsx") &&
+    overlay.includes('BUST = "club-my-admin-pc-5"') &&
+    overlay.includes("S4P_OVERLAY_SELF") &&
+    overlay.includes("dashboardSrc.includes") &&
     localService.includes("export async function hydrateLocalSponsorRecords"),
-  "PC overlay pulls local-sponsor.service and the My Admin lookback/CILT sections"
+  "PC overlay refreshes itself and pulls lookback/CILT onto My Admin"
 );
 assert(
   picker.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&

@@ -1,8 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
+import { spawnSync } from "child_process";
 
 const REFS = ["main", "cursor/club-my-admin-18f9"];
-const BUST = "club-my-admin-pc-4";
+const BUST = "club-my-admin-pc-5";
+const SELF = "apply-club-my-admin.mjs";
 const FILES = [
   "app/lib/club-selected-match.ts",
   "app/lib/club-address-book.ts",
@@ -34,6 +36,35 @@ const FILES = [
   "scripts/verify-sponsor-leaderboard.ts",
   "scripts/verify-clear-club-data.ts",
 ];
+
+if (process.env.S4P_OVERLAY_SELF !== "1") {
+  let refreshed = false;
+  for (const ref of REFS) {
+    const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${ref}/${SELF}?v=${BUST}`;
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) continue;
+      const buf = Buffer.from(await response.arrayBuffer());
+      const current = existsSync(SELF) ? readFileSync(SELF) : Buffer.alloc(0);
+      if (current.equals(buf)) {
+        refreshed = true;
+        break;
+      }
+      writeFileSync(SELF, buf);
+      console.log("Updated", SELF, "from", ref);
+      const rerun = spawnSync(process.execPath, [SELF], {
+        stdio: "inherit",
+        env: { ...process.env, S4P_OVERLAY_SELF: "1" },
+      });
+      process.exit(rerun.status ?? 1);
+    } catch {
+      // try the next ref
+    }
+  }
+  if (!refreshed) {
+    console.log("Could not refresh", SELF, "from GitHub; using the local copy.");
+  }
+}
 
 async function pull(rel) {
   let lastError = "not found";
@@ -68,6 +99,7 @@ for (const rel of FILES) {
 const nav = "app/components/club/ClubNav.tsx";
 const picker = "app/club/projects/select/page.tsx";
 const admin = "app/club/admin/page.tsx";
+const dashboard = "app/club/dashboard/page.tsx";
 const fixtures = "app/components/home/SelectMatchFixtures.tsx";
 const localService = "app/services/local-sponsor.service.ts";
 const lookback = "app/components/club/ClubAdminLookbackAndCilt.tsx";
@@ -75,6 +107,7 @@ if (
   existsSync(nav) &&
   existsSync(picker) &&
   existsSync(admin) &&
+  existsSync(dashboard) &&
   existsSync(fixtures) &&
   existsSync(localService) &&
   existsSync(lookback)
@@ -82,6 +115,7 @@ if (
   const navSrc = readFileSync(nav, "utf8");
   const pickerSrc = readFileSync(picker, "utf8");
   const adminSrc = readFileSync(admin, "utf8");
+  const dashboardSrc = readFileSync(dashboard, "utf8");
   const fixturesSrc = readFileSync(fixtures, "utf8");
   const localServiceSrc = readFileSync(localService, "utf8");
   const lookbackSrc = readFileSync(lookback, "utf8");
@@ -95,11 +129,13 @@ if (
     !fixturesSrc.includes("rememberClubSelectedMatch") ||
     !localServiceSrc.includes("hydrateLocalSponsorRecords") ||
     !lookbackSrc.includes("Match Day File Record") ||
-    !lookbackSrc.includes("S4P Climate Impact League Table")
+    !lookbackSrc.includes("S4P Climate Impact League Table") ||
+    dashboardSrc.includes("Selected and Funded Projects, kept for lookback") ||
+    dashboardSrc.includes("S4P Climate Impact League Table")
   ) {
     failed += 1;
     console.error(
-      "Club My Admin or Select Match is still in the old place. Pull the files above, then hard-refresh."
+      "Lookback and CILT are still on Select Match, or My Admin is missing them. Stay in the S4C-platform folder, re-download apply-club-my-admin.mjs, then hard-refresh."
     );
   }
 } else {
@@ -109,5 +145,5 @@ if (
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Select Match is bigger and registered, Choose Projects opens Select Climate Projects, and My Admin holds club details, lookback, CILT, plus two Address Books. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: Lookback and CILT are on My Admin, not Select Match. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5). Then open My Admin."
 );
