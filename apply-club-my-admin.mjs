@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-const BRANCH = "cursor/club-my-admin-18f9";
-const BUST = "club-my-admin-1";
+const REFS = ["main", "cursor/club-my-admin-18f9"];
+const BUST = "club-my-admin-pc-2";
 const FILES = [
   "app/lib/club-selected-match.ts",
   "app/lib/club-address-book.ts",
@@ -31,22 +31,34 @@ const FILES = [
   "scripts/verify-clear-club-data.ts",
 ];
 
+async function pull(rel) {
+  let lastError = "not found";
+  for (const ref of REFS) {
+    const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${ref}/${rel}?v=${BUST}`;
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) {
+        lastError = `HTTP ${response.status}`;
+        continue;
+      }
+      mkdirSync(dirname(join(rel)), { recursive: true });
+      writeFileSync(rel, Buffer.from(await response.arrayBuffer()));
+      console.log("Pulled", rel);
+      return true;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
+  }
+  console.error(
+    `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
+    lastError
+  );
+  return false;
+}
+
 let failed = 0;
 for (const rel of FILES) {
-  const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${BRANCH}/${rel}?v=${BUST}`;
-  try {
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    mkdirSync(dirname(join(rel)), { recursive: true });
-    writeFileSync(rel, Buffer.from(await response.arrayBuffer()));
-    console.log("Pulled", rel);
-  } catch (err) {
-    failed += 1;
-    console.error(
-      `Could not pull ${rel}. Stay in the S4C-platform folder and check the network.`,
-      err instanceof Error ? err.message : err
-    );
-  }
+  if (!(await pull(rel))) failed += 1;
 }
 
 const nav = "app/components/club/ClubNav.tsx";
