@@ -7,11 +7,9 @@ import { supabase } from "../../lib/supabase";
 import {
   loadClubSession,
   loadClubProjectBoard,
-  fileRecordDownloadName,
   readStoredMatchDay,
   matchDayWindowCopy,
   type ClubAccount,
-  type ClubFileRecord,
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import {
@@ -23,35 +21,17 @@ import type { ClimateProject } from "@/app/services/votes.service";
 import { chosenFeaturedProject } from "@/app/lib/featured-gss";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import { climateProjectCountryLabel } from "@/app/lib/featured-climate-country";
-import {
-  ciltLeagueForClub,
-  ciltPositionLabel,
-  climateImpactLeagueTable,
-} from "@/app/lib/cilt";
-import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import {
   MATCH_DAY_APPROVED_LABEL,
-  MATCH_DAY_FULLY_FUNDED_LABEL,
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
   clubDashboardClimateProjectsIntroCopy,
   clubDashboardLeadTabCount,
-  clubDashboardLookbackCopy,
   matchDayProjectApprovalLabel,
   SELECT_CLIMATE_PROJECTS_LABEL,
 } from "@/app/lib/partner-projects";
 import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
-import {
-  lookbackProjectFunding,
-  matchDayProjectFundingLine,
-  readProjectFunding,
-} from "@/app/lib/climate-funding";
-import { formatMoney } from "@/app/lib/sponsorship-auction";
-import {
-  dedupeLookbackRecords,
-  lookbackSponsorForRecord,
-} from "@/app/lib/sponsor-dashboard";
 import {
   leadClimateSponsorsForClub,
   loadClubSponsorRoster,
@@ -64,11 +44,9 @@ import {
   type ClubSponsorRoster,
   type LeadClubSponsorRow,
 } from "@/app/lib/climate-sponsors";
-import { BrandMark } from "@/app/components/club/BrandMark";
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
 import { type LocalSponsorRecord } from "@/app/lib/local-sponsor";
 import { splitClubClimateSponsorsForTabs } from "@/app/lib/match-day-branding";
-import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
@@ -89,17 +67,7 @@ export default function ClubDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [club, setClub] = useState<ClubProfile | null>(null);
   const [account, setAccount] = useState<ClubAccount | null>(null);
-  const [voted, setVoted] = useState<ClimateProject[]>([]);
-  const [funded, setFunded] = useState<ClimateProject[]>([]);
   const [selected, setSelected] = useState<ClimateProject[]>([]);
-  const [minAmount, setMinAmount] = useState<number | null>(null);
-  const [gbpPerGoal, setGbpPerGoal] = useState<number | null>(null);
-  const [maxAmount, setMaxAmount] = useState<number | null>(null);
-  const [gbpPerVote, setGbpPerVote] = useState<number | null>(null);
-  const [records, setRecords] = useState<ClubFileRecord[]>([]);
-  const [fanFunding, setFanFunding] = useState<
-    ReturnType<typeof readProjectFunding>
-  >([]);
   const [unlinked, setUnlinked] = useState(false);
   const [signedInKind, setSignedInKind] = useState<SignedInKind>("unknown");
   const [postedAt, setPostedAt] = useState<string | null>(null);
@@ -137,12 +105,7 @@ export default function ClubDashboardPage() {
       }
 
       const board = await loadClubProjectBoard(session.club.id, session.club.name);
-      setVoted(board.voted);
-      setFunded(board.funded);
       setSelected(board.selected);
-      setMinAmount(board.minAmount);
-      setRecords(board.records);
-      setFanFunding(readProjectFunding(session.club.id));
       const stored = readStoredMatchDay(session.club.id);
       setPostedAt(stored?.postedAt ?? null);
       setFeaturedId(
@@ -150,14 +113,6 @@ export default function ClubDashboardPage() {
           chosenFeaturedProject(board.selected, stored?.featuredProjectId)?.id ??
           null
       );
-      const storedMin =
-        stored?.minAmount && stored.minAmount > 0 ? stored.minAmount : null;
-      const boardMin =
-        board.minAmount && board.minAmount > 0 ? board.minAmount : null;
-      setMinAmount(storedMin ?? boardMin);
-      setGbpPerGoal(stored?.gbpPerGoal && stored.gbpPerGoal > 0 ? stored.gbpPerGoal : null);
-      setMaxAmount(stored?.maxAmount && stored.maxAmount > 0 ? stored.maxAmount : null);
-      setGbpPerVote(stored?.gbpPerVote ?? null);
       await hydrateClubSponsorsFromSigned(session.club.id, session.club.name);
       await hydrateLocalSponsorRecords();
       setSignedCopies(
@@ -200,8 +155,6 @@ export default function ClubDashboardPage() {
       try {
         const board = await loadClubProjectBoard(club.id, club.name);
         setSelected(board.selected);
-        setRecords(board.records);
-        setFanFunding(readProjectFunding(club.id));
       } catch {
         // Signed copies still refresh even if the project board cannot.
       }
@@ -217,20 +170,6 @@ export default function ClubDashboardPage() {
     };
   }, [club]);
 
-  const extraTonnes = useMemo(
-    () =>
-      [...funded, ...voted].reduce(
-        (sum, project) => sum + qualifyingCivTonnes(project),
-        0
-      ),
-    [funded, voted]
-  );
-  const ciltLeague = club ? ciltLeagueForClub(club.name) : null;
-  const cilt =
-    club && ciltLeague
-      ? climateImpactLeagueTable(ciltLeague, club.name, extraTonnes)
-      : [];
-  const clubRow = cilt.find((row) => row.isClub);
   const orderedSelected = useMemo(() => {
     const others = selected.filter(
       (project) => !isFeaturedClimateProject(project)
@@ -240,10 +179,6 @@ export default function ClubDashboardPage() {
   }, [selected, featuredId]);
   const matchDayReady =
     Boolean(featuredId) && orderedSelected.length >= MATCH_DAY_PROJECT_COUNT;
-  const lookbackRecords = useMemo(
-    () => dedupeLookbackRecords(records),
-    [records]
-  );
   const approvedIds = useMemo(() => {
     const ids = new Set<string>();
     for (const copy of signedCopies) {
@@ -276,34 +211,6 @@ export default function ClubDashboardPage() {
       lockFor: (brand) => loadMatchDayLock(brand),
     });
   }, [roster]);
-
-  function downloadFileRecord() {
-    if (!club) return;
-    const payload = {
-      club: club.name,
-      country: club.country,
-      savedAt: new Date().toISOString(),
-      thisMatchDay: {
-        minAmount,
-        gbpPerGoal,
-        maxAmount,
-        gbpPerVote,
-        selected,
-        voted,
-        funded,
-      },
-      records: lookbackRecords,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileRecordDownloadName(club.name);
-    link.click();
-    URL.revokeObjectURL(url);
-  }
 
   async function logout() {
     const href = clubGateCopy(signedInKind).logoutHref;
@@ -428,177 +335,6 @@ export default function ClubDashboardPage() {
           leadTabCount={clubDashboardLeadTabCount(orderedSelected.length > 0)}
           initialTab="lead"
         />
-
-        <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
-                Match Day File Record
-              </p>
-              <h2 className="mt-2 text-3xl font-black">
-                Selected and Funded Projects, kept for lookback
-              </h2>
-              <p className="mt-2 max-w-2xl text-slate-400">
-                {clubDashboardLookbackCopy()}
-              </p>
-            </div>
-            <button
-              onClick={downloadFileRecord}
-              className="rounded-xl border border-green-500 px-5 py-3 font-semibold text-green-400"
-            >
-              Download file record
-            </button>
-          </div>
-
-          {lookbackRecords.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-slate-400">
-              No file records yet. Confirm {MATCH_DAY_PROJECT_COUNT} Match Day
-              projects to create the first record.
-            </div>
-          ) : (
-            <div className="mt-6 space-y-4">
-              {lookbackRecords.map((record) => {
-                const sponsor = lookbackSponsorForRecord(
-                  record,
-                  signedCopies,
-                  (name) => sponsorLogoSrc(name, null)
-                );
-                return (
-                <div
-                  key={record.id}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div className="flex items-start gap-3">
-                      {sponsor && (
-                        <BrandMark
-                          name={sponsor.name}
-                          logoUrl={sponsor.logoUrl}
-                        />
-                      )}
-                      <div>
-                        <h3 className="text-xl font-bold">{record.matchLabel}</h3>
-                        {sponsor && (
-                          <p className="mt-1 text-sm font-semibold text-amber-300">
-                            Sponsored by {sponsor.name}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-400">
-                      {new Date(record.savedAt).toLocaleString("en-GB")}
-                    </p>
-                  </div>
-                  {record.minAmount != null && (
-                    <p className="mt-2 text-sm text-green-300">
-                      Match-Sponsorship: {formatMoney(record.minAmount)}
-                    </p>
-                  )}
-                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    Selected
-                  </p>
-                  <ul className="mt-2 space-y-2 text-slate-300">
-                    {record.selected.map((project) => {
-                      const approved =
-                        approvedIds.has(project.id) || Boolean(sponsor);
-                      const funding = lookbackProjectFunding({
-                        project,
-                        fanFunding,
-                        catalog: selected,
-                      });
-                      return (
-                        <li
-                          key={project.id}
-                          className="flex flex-wrap items-center gap-2"
-                        >
-                          <span>• {project.name}</span>
-                          {approved ? (
-                            <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
-                              {MATCH_DAY_APPROVED_LABEL}
-                            </span>
-                          ) : null}
-                          {funding.fullyFunded ? (
-                            <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
-                              {MATCH_DAY_FULLY_FUNDED_LABEL}
-                            </span>
-                          ) : null}
-                          {approved &&
-                          (funding.soughtGbp > 0 || funding.receivedGbp > 0) ? (
-                            <span className="text-sm text-green-300">
-                              {matchDayProjectFundingLine(
-                                funding.receivedGbp,
-                                funding.soughtGbp
-                              )}
-                            </span>
-                          ) : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
-                S4P Climate Impact League Table
-              </p>
-              <h2 className="mt-2 text-3xl font-black">
-                CILT · {ciltLeague ?? "League"}
-              </h2>
-              <p className="mt-2 max-w-2xl text-slate-400">
-                {ciltLeague
-                  ? `${ciltLeague} clubs ranked by tonnes of carbon avoided, reduced or offset from Goals scored and fan votes.`
-                  : "Clubs ranked by tonnes of carbon avoided, reduced or offset from sponsorship funded by Goals scored."}
-              </p>
-            </div>
-            {clubRow && (
-              <div className="rounded-2xl bg-green-500 px-6 py-4 text-slate-950">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                  {club.name} position
-                </p>
-                <p className="text-3xl font-black">
-                  {ciltPositionLabel(clubRow)}
-                </p>
-                <p className="text-sm font-semibold">
-                  {clubRow.tonnes.toLocaleString("en-GB")} t CO₂
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-800">
-            <div className="grid grid-cols-12 bg-slate-950 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <span className="col-span-2">Pos</span>
-              <span className="col-span-7">Club</span>
-              <span className="col-span-3 text-right">t CO₂</span>
-            </div>
-            {cilt.map((row) => (
-              <div
-                key={row.club}
-                className={`grid grid-cols-12 border-t border-slate-800 px-5 py-4 ${
-                  row.isClub ? "bg-green-500 text-slate-950" : "bg-slate-950/40"
-                }`}
-              >
-                <strong className="col-span-2">{row.position}</strong>
-                <span className="col-span-7 font-semibold">{row.club}</span>
-                <span className="col-span-3 text-right font-black">
-                  {row.tonnes.toLocaleString("en-GB")}
-                </span>
-              </div>
-            ))}
-            {cilt.length === 0 && (
-              <div className="border-t border-slate-800 px-5 py-6 text-slate-400">
-                This club is not yet ranked in a CILT league table.
-              </div>
-            )}
-          </div>
-        </section>
       </div>
     </main>
   );

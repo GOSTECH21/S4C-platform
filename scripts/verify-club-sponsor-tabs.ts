@@ -952,10 +952,20 @@ assert(
     dashboard.includes("approvedBrandNames") &&
     dashboard.includes("clubDashboardLeadTabCount") &&
     dashboard.includes("leadTabCount") &&
-    dashboard.includes("clubDashboardLookbackCopy") &&
-    dashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
-    dashboard.includes("lookbackProjectFunding"),
+    !dashboard.includes("clubDashboardLookbackCopy") &&
+    !dashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
+    !dashboard.includes("lookbackProjectFunding"),
   "Club dashboard splits inbound brands so local businesses never stay on the Lead tab, and refreshes that Lead list after sign-off"
+);
+const adminLookback = readFileSync(
+  "app/components/club/ClubAdminLookbackAndCilt.tsx",
+  "utf8"
+);
+assert(
+  adminLookback.includes("clubDashboardLookbackCopy") &&
+    adminLookback.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
+    adminLookback.includes("lookbackProjectFunding"),
+  "My Admin keeps the lookback file record and Fully-Funded labels"
 );
 const preview = readFileSync("app/preview/club-sponsors/page.tsx", "utf8");
 assert(

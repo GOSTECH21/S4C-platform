@@ -478,10 +478,16 @@ assert(
 );
 
 const clubDashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
+const clubAdminLookback = readFileSync(
+  "app/components/club/ClubAdminLookbackAndCilt.tsx",
+  "utf8"
+);
 assert(
-  clubDashboard.includes("dedupeLookbackRecords") &&
-    clubDashboard.includes("lookbackRecords"),
-  "The club dashboard renders one collapsed lookback list"
+  !clubDashboard.includes("dedupeLookbackRecords") &&
+    !clubDashboard.includes("lookbackRecords") &&
+    clubAdminLookback.includes("dedupeLookbackRecords") &&
+    clubAdminLookback.includes("lookbackRecords"),
+  "My Admin renders one collapsed lookback list"
 );
 
 assert(

@@ -681,11 +681,21 @@ assert(
 assert(
   clubPage.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
     clubPage.includes("MATCH_DAY_APPROVED_LABEL") &&
-    clubPage.includes("Selected and Funded Projects, kept for lookback") &&
-    clubPage.includes("clubDashboardLookbackCopy") &&
-    clubPage.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
+    !clubPage.includes("Selected and Funded Projects, kept for lookback") &&
+    !clubPage.includes("clubDashboardLookbackCopy") &&
+    !clubPage.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
     !clubPage.includes("No projects have been funded from Goals yet"),
-  "The club dashboard lists chosen projects as pending approval or Approved, with lookback and no Funded Projects block"
+  "The club dashboard lists chosen projects as pending approval or Approved, with no lookback or Funded Projects block"
+);
+const clubAdminLookback = readFileSync(
+  "app/components/club/ClubAdminLookbackAndCilt.tsx",
+  "utf8"
+);
+assert(
+  clubAdminLookback.includes("Selected and Funded Projects, kept for lookback") &&
+    clubAdminLookback.includes("clubDashboardLookbackCopy") &&
+    clubAdminLookback.includes("MATCH_DAY_FULLY_FUNDED_LABEL"),
+  "My Admin keeps the lookback file record"
 );
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(

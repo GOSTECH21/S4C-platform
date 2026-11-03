@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ClubNav from "@/app/components/club/ClubNav";
 import ClubAddressBookPanel from "@/app/components/club/ClubAddressBookPanel";
+import ClubAdminLookbackAndCilt from "@/app/components/club/ClubAdminLookbackAndCilt";
 import { CLUB_LOGIN_PATH } from "@/app/lib/routes";
 import {
   loadClubAddressBooks,
@@ -122,6 +123,8 @@ export default function ClubAdminPage() {
             <Info label="Phone">{account.phone}</Info>
           </div>
         </div>
+
+        <ClubAdminLookbackAndCilt club={club} />
 
         <div className="mt-10 grid gap-8 xl:grid-cols-2">
           <ClubAddressBookPanel

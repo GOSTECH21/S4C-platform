@@ -166,8 +166,17 @@ assert(
     dashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
     dashboard.includes("hydrateLocalSponsorRecords") &&
     !dashboard.includes("Club Representative") &&
-    !dashboard.includes("Start this club afresh"),
-  "Select Match stays on login landing; Images 3 and 4 leave the dashboard"
+    !dashboard.includes("Start this club afresh") &&
+    !dashboard.includes("Selected and Funded Projects, kept for lookback") &&
+    !dashboard.includes("S4P Climate Impact League Table"),
+  "Select Match stays on login landing; Images 3 and 4, lookback and CILT leave the dashboard"
+);
+
+const preview = readFileSync("app/preview/club-admin/page.tsx", "utf8");
+assert(
+  preview.includes("ClubAdminLookbackAndCilt") &&
+    preview.includes("Match Day File Record") === false,
+  "My Admin preview renders the shared lookback and CILT component"
 );
 
 const overlay = readFileSync("apply-club-my-admin.mjs", "utf8");
@@ -178,8 +187,9 @@ const localService = readFileSync(
 assert(
   overlay.includes("app/services/local-sponsor.service.ts") &&
     overlay.includes("app/lib/local-sponsor.ts") &&
+    overlay.includes("app/components/club/ClubAdminLookbackAndCilt.tsx") &&
     localService.includes("export async function hydrateLocalSponsorRecords"),
-  "PC overlay pulls local-sponsor.service so Club Select Match compiles"
+  "PC overlay pulls local-sponsor.service and the My Admin lookback/CILT sections"
 );
 assert(
   picker.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
@@ -195,8 +205,23 @@ assert(
     admin.includes("Start this club afresh") &&
     admin.includes('kind="lead"') &&
     admin.includes('kind="local"') &&
-    admin.includes("ClubAddressBookPanel"),
-  "My Admin combines club stats, the representative, and two address books"
+    admin.includes("ClubAddressBookPanel") &&
+    admin.includes("ClubAdminLookbackAndCilt"),
+  "My Admin combines club stats, the representative, lookback, CILT, and two address books"
+);
+
+const lookback = readFileSync(
+  "app/components/club/ClubAdminLookbackAndCilt.tsx",
+  "utf8"
+);
+assert(
+  lookback.includes("Match Day File Record") &&
+    lookback.includes("Selected and Funded Projects, kept for lookback") &&
+    lookback.includes("clubDashboardLookbackCopy") &&
+    lookback.includes("S4P Climate Impact League Table") &&
+    lookback.includes("climateImpactLeagueTable") &&
+    lookback.includes("Download file record"),
+  "My Admin holds the Match Day File Record and CILT sections"
 );
 assert(
   sponsors.includes("resolveClubSelectedMatch") &&

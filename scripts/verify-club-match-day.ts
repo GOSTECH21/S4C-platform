@@ -666,11 +666,11 @@ assert(
     !clubDashboard.includes("MatchDayFolderPanel") &&
     !clubDashboard.includes("Signed copy of the sponsorship") &&
     !clubDashboard.includes("Voted-For Projects") &&
-    clubDashboard.includes("Selected and Funded Projects, kept for lookback") &&
-    clubDashboard.includes("clubDashboardLookbackCopy") &&
+    !clubDashboard.includes("Selected and Funded Projects, kept for lookback") &&
+    !clubDashboard.includes("clubDashboardLookbackCopy") &&
     !clubDashboard.includes("Incomplete or unstamped copies") &&
-    clubDashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
-    clubDashboard.includes("lookbackProjectFunding") &&
+    !clubDashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
+    !clubDashboard.includes("lookbackProjectFunding") &&
     clubDashboard.includes("clubDashboardLeadTabCount") &&
     clubDashboard.includes("leadTabCount") &&
     clubDashboard.includes("orderedSelected") &&
