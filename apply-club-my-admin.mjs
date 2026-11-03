@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
 const REFS = ["main", "cursor/club-my-admin-18f9"];
-const BUST = "club-my-admin-pc-2";
+const BUST = "club-my-admin-pc-3";
 const FILES = [
   "app/lib/club-selected-match.ts",
   "app/lib/club-address-book.ts",
@@ -10,8 +10,10 @@ const FILES = [
   "app/lib/partner-projects.ts",
   "app/lib/sponsor-listings.ts",
   "app/lib/how-s4p-works.ts",
+  "app/lib/local-sponsor.ts",
   "app/services/club-match-day.service.ts",
   "app/services/sponsor-listings.service.ts",
+  "app/services/local-sponsor.service.ts",
   "app/components/club/ClubNav.tsx",
   "app/components/club/ClubSelectedMatchBanner.tsx",
   "app/components/club/ClubChooseProjectsCopy.tsx",
@@ -65,23 +67,27 @@ const nav = "app/components/club/ClubNav.tsx";
 const picker = "app/club/projects/select/page.tsx";
 const admin = "app/club/admin/page.tsx";
 const fixtures = "app/components/home/SelectMatchFixtures.tsx";
+const localService = "app/services/local-sponsor.service.ts";
 if (
   existsSync(nav) &&
   existsSync(picker) &&
   existsSync(admin) &&
-  existsSync(fixtures)
+  existsSync(fixtures) &&
+  existsSync(localService)
 ) {
   const navSrc = readFileSync(nav, "utf8");
   const pickerSrc = readFileSync(picker, "utf8");
   const adminSrc = readFileSync(admin, "utf8");
   const fixturesSrc = readFileSync(fixtures, "utf8");
+  const localServiceSrc = readFileSync(localService, "utf8");
   if (
     !navSrc.includes('label: "Select Match"') ||
     !navSrc.includes('label: "Choose Projects"') ||
     !navSrc.includes('label: "My Admin"') ||
     !pickerSrc.includes("SELECT_CLIMATE_PROJECTS_LABEL") ||
     !adminSrc.includes("ClubAddressBookPanel") ||
-    !fixturesSrc.includes("rememberClubSelectedMatch")
+    !fixturesSrc.includes("rememberClubSelectedMatch") ||
+    !localServiceSrc.includes("hydrateLocalSponsorRecords")
   ) {
     failed += 1;
     console.error(

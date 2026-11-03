@@ -164,9 +164,22 @@ assert(
   dashboard.includes("HowS4pSelectMatch") &&
     dashboard.includes("ClubChooseProjectsCopy") &&
     dashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
+    dashboard.includes("hydrateLocalSponsorRecords") &&
     !dashboard.includes("Club Representative") &&
     !dashboard.includes("Start this club afresh"),
   "Select Match stays on login landing; Images 3 and 4 leave the dashboard"
+);
+
+const overlay = readFileSync("apply-club-my-admin.mjs", "utf8");
+const localService = readFileSync(
+  "app/services/local-sponsor.service.ts",
+  "utf8"
+);
+assert(
+  overlay.includes("app/services/local-sponsor.service.ts") &&
+    overlay.includes("app/lib/local-sponsor.ts") &&
+    localService.includes("export async function hydrateLocalSponsorRecords"),
+  "PC overlay pulls local-sponsor.service so Club Select Match compiles"
 );
 assert(
   picker.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
