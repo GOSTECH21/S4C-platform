@@ -20,7 +20,7 @@ import { FAN_REGISTER_TEAMS_COPY } from "@/app/lib/fan-register-copy";
 export default function FanMyTeamsPanel() {
   const [catalog, setCatalog] = useState<TeamGroup[]>([]);
   const [selected, setSelected] = useState<TeamOption[]>([]);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(true);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +39,6 @@ export default function FanMyTeamsPanel() {
         ]);
         setCatalog(groups);
         setSelected(teams);
-        setEditing(teams.length === 0);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load teams.");
       } finally {

@@ -26,7 +26,7 @@ export default function TeamPicker({
   catalogAccordion?: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const [browseOpen, setBrowseOpen] = useState(selected.length === 0);
+  const [browseOpen, setBrowseOpen] = useState(false);
   const selectedIds = new Set(selected.map((team) => team.id));
 
   const filtered = useMemo(() => {

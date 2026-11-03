@@ -3,11 +3,12 @@ import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
 const REFS = ["main", "cursor/my-s4p-teams-accordion-18f9"];
-const BUST = "my-s4p-teams-accordion-1";
+const BUST = "my-s4p-teams-accordion-2";
 const SELF = "apply-my-s4p-teams-accordion.mjs";
 const FILES = [
   "app/components/fan/TeamPicker.tsx",
   "app/components/fan/FanMyTeamsPanel.tsx",
+  "app/supporter/dashboard/page.tsx",
   "app/preview/my-s4p-teams/page.tsx",
   "scripts/verify-my-s4p-teams-accordion.ts",
   "scripts/verify-sport-category-accordion.ts",
@@ -80,7 +81,9 @@ if (existsSync(picker) && existsSync(panel)) {
   if (
     !pickerSrc.includes("my-s4p-teams-accordion-v1") ||
     !pickerSrc.includes("Choose a team") ||
-    !panelSrc.includes("catalogAccordion")
+    !panelSrc.includes("catalogAccordion") ||
+    !panelSrc.includes("useState(true)") ||
+    panelSrc.includes("setEditing(teams.length === 0)")
   ) {
     failed += 1;
     console.error(

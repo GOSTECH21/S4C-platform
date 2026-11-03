@@ -1,11 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import FanMyTeamsPanel from "@/app/components/fan/FanMyTeamsPanel";
 
-const FanMyTeamsPanel = dynamic(
-  () => import("@/app/components/fan/FanMyTeamsPanel"),
-  { ssr: false }
-);
 const FanCampaignWorkspace = dynamic(
   () =>
     import("@/app/components/fan/FanCampaignWorkspace").then(
