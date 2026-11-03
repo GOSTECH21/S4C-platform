@@ -36,12 +36,27 @@ export function isMatchDayProjectFullyFunded(
   return sought > 0 && received >= sought;
 }
 
+export const SELECT_CLIMATE_PROJECTS_LABEL = "Select Climate Projects";
+
+export const CLUB_CHOOSE_PROJECTS_STEPS = [
+  "Select 1 Global Schools Solar & 4 other Climate Projects from the List for each Match Day",
+  "Choose Global Brands you wish to invite as Lead Climate Sponsors (from your Address Book)",
+  "Choose Local Business you wish to invite as Local Business Sponsors (from your Address Book)",
+  'Press "Send Invitations"',
+] as const;
+
+export const CLUB_CHOOSE_PROJECTS_NOTE =
+  "Note: Only 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors are eligible.";
+
 export function clubDashboardClimateProjectsIntroCopy(): string {
-  return `Press the blue S4P Climate Projects button to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner Projects from List provided`;
+  return `Press the blue ${SELECT_CLIMATE_PROJECTS_LABEL} button to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner Projects from List provided`;
 }
 
 export function clubDashboardChosenProjectsCopy(): string {
-  return `These ${MATCH_DAY_PROJECT_COUNT} chosen Projects are tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL}. Open Sponsors, tick 5 Global Brands, and send an Invitation to Sponsor. Only one Global Brand is accepted — the highest sponsorship received within 8 hours. Once that Sponsorship is locked in, the Projects change to ${MATCH_DAY_APPROVED_LABEL} and are published to your fans. Also tick 10 Local Business Climate Sponsors for a simple Invitation to Sponsor.`;
+  const steps = CLUB_CHOOSE_PROJECTS_STEPS.map(
+    (step, index) => `${index + 1}. ${step}`
+  ).join("; ");
+  return `${steps}\n${CLUB_CHOOSE_PROJECTS_NOTE}`;
 }
 
 export function matchDayProjectApprovalLabel(isApproved: boolean): string {

@@ -651,16 +651,18 @@ assert(
 );
 assert(
   clubDashboardClimateProjectsIntroCopy() ===
-    "Press the blue S4P Climate Projects button to choose only one Featured Global Schools Solar project and 4 Climate Partner Projects from List provided" &&
+    "Press the blue Select Climate Projects button to choose only one Featured Global Schools Solar project and 4 Climate Partner Projects from List provided" &&
     !clubDashboardClimateProjectsIntroCopy().startsWith(
       "Open S4P Climate Projects"
     ),
-  "Club dashboard intro starts with the blue S4P Climate Projects button"
+  "Club dashboard intro starts with the blue Select Climate Projects button"
 );
 assert(
   clubDashboard.indexOf("Approved Projects") <
     clubDashboard.indexOf("<ClubClimateSponsorTabs") &&
     clubDashboard.includes("clubDashboardClimateProjectsIntroCopy") &&
+    clubDashboard.includes("ClubChooseProjectsCopy") &&
+    clubDashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
     !clubDashboard.includes("MatchDayFolderPanel") &&
     !clubDashboard.includes("Signed copy of the sponsorship") &&
     !clubDashboard.includes("Voted-For Projects") &&
@@ -678,13 +680,15 @@ assert(
   "Club dashboard puts S4P Climate Projects above Our Climate Sponsors and drops the folder, signed copy, Voted-For and Funded blocks"
 );
 assert(
-  clubDashboardChosenProjectsCopy().includes(MATCH_DAY_PENDING_APPROVAL_LABEL) &&
-    clubDashboardChosenProjectsCopy().includes(MATCH_DAY_APPROVED_LABEL) &&
-    clubDashboardChosenProjectsCopy().includes("published to your fans") &&
-    clubDashboard.includes("clubDashboardChosenProjectsCopy") &&
+  clubDashboardChosenProjectsCopy().includes("Select 1 Global Schools Solar") &&
+    clubDashboardChosenProjectsCopy().includes("Address Book") &&
+    clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
+    clubDashboardChosenProjectsCopy().includes(
+      "Only 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors are eligible"
+    ) &&
     matchDayProjectApprovalLabel(false) === MATCH_DAY_PENDING_APPROVAL_LABEL &&
     matchDayProjectApprovalLabel(true) === MATCH_DAY_APPROVED_LABEL,
-  "Chosen Match Day projects stay pending approval until sponsor sign-off, then publish to fans"
+  "Choose Projects copy is the numbered Address Book and Send Invitations steps"
 );
 assert(
   clubDashboardLookbackCopy() ===

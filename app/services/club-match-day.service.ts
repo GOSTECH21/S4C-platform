@@ -1,5 +1,11 @@
 import { supabase } from "../lib/supabase";
 import {
+  clubMatchDayLabel,
+  resolveClubSelectedMatch,
+  saveClubSelectedMatch,
+  type ClubSelectedMatch,
+} from "../lib/club-selected-match";
+import {
   MATCH_DAY_PROJECT_COUNT,
   MATCH_DAY_CHOICE_COUNT,
   listsWithUploadsFirst,
@@ -100,6 +106,12 @@ export type MatchDaySelection = {
   savedAt: string;
   campaignId: string | null;
   postedAt?: string | null;
+  matchId?: string | null;
+  fixtureName?: string | null;
+  matchDate?: string | null;
+  kickoff?: string | null;
+  venue?: string | null;
+  league?: string | null;
 };
 
 export type ClubFileProject = {
@@ -1070,7 +1082,13 @@ export async function persistFileRecord({
     clubId,
     campaignId: campaignId ?? current?.campaignId ?? null,
     savedAt: current?.savedAt ?? savedAt ?? new Date().toISOString(),
-    matchLabel: current?.matchLabel ?? `${clubName} Match Day`,
+    matchLabel:
+      current?.matchLabel && !/match day$/i.test(current.matchLabel)
+        ? current.matchLabel
+        : clubMatchDayLabel(
+            fixtureFromSelection(clubId, clubName, readStoredMatchDay(clubId)),
+            clubName
+          ),
     minAmount: minAmount ?? current?.minAmount ?? null,
     selected: preferFullerLookbackSelected(current?.selected, selectedSnap),
     voted: mergeVotedProjects(current?.voted, votedSnap),
@@ -1193,7 +1211,92 @@ function withAuctionDefaults(
     savedAt: parsed.savedAt ?? new Date().toISOString(),
     campaignId: parsed.campaignId ?? null,
     postedAt: parsed.postedAt,
+    matchId: parsed.matchId ?? null,
+    fixtureName: parsed.fixtureName ?? null,
+    matchDate: parsed.matchDate ?? null,
+    kickoff: parsed.kickoff ?? null,
+    venue: parsed.venue ?? null,
+    league: parsed.league ?? null,
   };
+}
+
+function fixtureFromSelection(
+  clubId: string,
+  clubName: string,
+  selection?: Partial<MatchDaySelection> | null
+): ClubSelectedMatch | null {
+  const stored = resolveClubSelectedMatch(clubId, clubName);
+  const fixtureName = String(
+    selection?.fixtureName ?? stored?.fixtureName ?? ""
+  ).trim();
+  const matchId = String(selection?.matchId ?? stored?.matchId ?? "").trim();
+  if (!fixtureName || !matchId) return stored;
+  return {
+    club: clubName,
+    clubId,
+    matchId,
+    fixtureName,
+    league: String(selection?.league ?? stored?.league ?? ""),
+    date: String(selection?.matchDate ?? stored?.date ?? ""),
+    kickoff: String(selection?.kickoff ?? stored?.kickoff ?? ""),
+    venue: String(selection?.venue ?? stored?.venue ?? ""),
+    savedAt: stored?.savedAt ?? new Date().toISOString(),
+  };
+}
+
+function withSelectedMatch(
+  clubId: string,
+  clubName: string,
+  selection: MatchDaySelection
+): MatchDaySelection {
+  const fixture = fixtureFromSelection(clubId, clubName, selection);
+  if (!fixture) return selection;
+  return {
+    ...selection,
+    matchId: fixture.matchId,
+    fixtureName: fixture.fixtureName,
+    matchDate: fixture.date,
+    kickoff: fixture.kickoff,
+    venue: fixture.venue,
+    league: fixture.league,
+  };
+}
+
+export function rememberClubSelectedMatch(
+  clubId: string,
+  clubName: string,
+  match: Omit<ClubSelectedMatch, "savedAt" | "club" | "clubId"> & {
+    club?: string;
+    clubId?: string;
+  }
+): ClubSelectedMatch {
+  const saved = saveClubSelectedMatch({
+    club: clubName,
+    clubId,
+    matchId: match.matchId,
+    fixtureName: match.fixtureName,
+    league: match.league,
+    date: match.date,
+    kickoff: match.kickoff,
+    venue: match.venue,
+    savedAt: new Date().toISOString(),
+  });
+  const stored = readStoredMatchDay(clubId);
+  if (stored) {
+    writeStoredMatchDay(
+      clubId,
+      withSelectedMatch(clubId, clubName, {
+        ...stored,
+        matchId: saved.matchId,
+        fixtureName: saved.fixtureName,
+        matchDate: saved.date,
+        kickoff: saved.kickoff,
+        venue: saved.venue,
+        league: saved.league,
+      })
+    );
+  }
+  return saved;
 }
 
 function writeStoredMatchDay(clubId: string, selection: MatchDaySelection) {
@@ -1263,19 +1366,29 @@ export async function saveMatchDaySelection({
   const portfolioIds = [featured.id, ...chosen];
   const stored = readStoredMatchDay(clubId);
   const campaign = await findOpenClubCampaign(clubId, clubName);
-  const auction = withAuctionDefaults({
-    projectIds: portfolioIds,
-    featuredProjectId: featured.id,
-    minAmount: Math.max(0, Math.round(Number(minAmount) || 0)),
-    gbpPerGoal,
-    maxAmount,
-    projectedVotes,
-    gbpPerVote,
-    expectedSponsorship,
-    savedAt: new Date().toISOString(),
-    campaignId: campaign?.id ?? stored?.campaignId ?? null,
-    postedAt: stored?.postedAt ?? null,
-  });
+  const auction = withSelectedMatch(
+    clubId,
+    clubName,
+    withAuctionDefaults({
+      projectIds: portfolioIds,
+      featuredProjectId: featured.id,
+      minAmount: Math.max(0, Math.round(Number(minAmount) || 0)),
+      gbpPerGoal,
+      maxAmount,
+      projectedVotes,
+      gbpPerVote,
+      expectedSponsorship,
+      savedAt: new Date().toISOString(),
+      campaignId: campaign?.id ?? stored?.campaignId ?? null,
+      postedAt: stored?.postedAt ?? null,
+      matchId: stored?.matchId,
+      fixtureName: stored?.fixtureName,
+      matchDate: stored?.matchDate,
+      kickoff: stored?.kickoff,
+      venue: stored?.venue,
+      league: stored?.league,
+    })
+  );
 
   if (campaign && campaignBelongsToClub(campaign, clubId, clubName)) {
     await supabase

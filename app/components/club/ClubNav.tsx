@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import {
+  CLUB_ADMIN_PATH,
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_ALIASES,
@@ -19,18 +20,23 @@ import { s4pTabClass } from "@/app/lib/s4p-tabs";
 const LINKS = [
   {
     href: CLUB_DASHBOARD_PATH,
-    label: "Dashboard",
-    match: "dashboard" as const,
+    label: "Select Match",
+    match: "select-match" as const,
   },
   {
     href: CLUB_SELECT_PROJECTS_PATH,
-    label: "Climate Projects",
+    label: "Choose Projects",
     match: "projects" as const,
   },
   {
     href: CLUB_SPONSORS_PATH,
     label: "Sponsors",
     match: "sponsors" as const,
+  },
+  {
+    href: CLUB_ADMIN_PATH,
+    label: "My Admin",
+    match: "admin" as const,
   },
 ];
 
@@ -79,18 +85,23 @@ export default function ClubNav() {
       <nav className="flex flex-wrap items-center gap-2">
         {LINKS.map((link) => {
           const active =
-            link.match === "dashboard"
+            link.match === "select-match"
               ? pathname === CLUB_DASHBOARD_PATH
               : link.match === "projects"
                 ? CLUB_SELECT_PROJECTS_ALIASES.includes(pathname ?? "")
-                : pathname === CLUB_SPONSORS_PATH ||
-                  pathname === CLUB_SPONSOR_LEADERBOARD_PATH;
+                : link.match === "admin"
+                  ? pathname === CLUB_ADMIN_PATH
+                  : pathname === CLUB_SPONSORS_PATH ||
+                    pathname === CLUB_SPONSOR_LEADERBOARD_PATH;
+          const bigger = link.match === "select-match";
 
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${s4pTabClass(active)}`}
+              className={`rounded-lg px-4 py-2 font-semibold transition ${
+                bigger ? "px-5 py-2.5 text-base sm:text-lg" : "text-sm"
+              } ${s4pTabClass(active)}`}
             >
               {link.label}
             </Link>

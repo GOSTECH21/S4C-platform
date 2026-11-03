@@ -71,6 +71,7 @@ export const CLUB_SELECT_PROJECTS_ALIASES = [
   "/club/dashboard/s4p-climate-projects",
 ];
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
+export const CLUB_ADMIN_PATH = "/club/admin";
 export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
 export const SPONSOR_INVITATIONS_PATH = "/sponsor/invitations";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";

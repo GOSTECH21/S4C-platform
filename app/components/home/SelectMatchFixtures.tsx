@@ -19,9 +19,17 @@ import {
   sponsorFromMatchPath,
 } from "@/app/lib/pending-sponsor-match";
 import {
+  matchesClubSelectedMatch,
+  resolveClubSelectedMatch,
+} from "@/app/lib/club-selected-match";
+import {
   formatKickoff,
   formatMatchDate,
 } from "@/app/lib/upcoming-matches";
+import {
+  loadClubSession,
+  rememberClubSelectedMatch,
+} from "@/app/services/club-match-day.service";
 
 const MARK_GREEN = "#5bc662";
 const MINT = "#0c5c2c";
@@ -83,6 +91,24 @@ function clubInitials(name: string) {
   if (parts.length === 0) return "FC";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
+function persistClubMatch(club: string, match: HomeUpcomingMatch) {
+  void loadClubSession().then((session) => {
+    const payload = {
+      matchId: match.id,
+      fixtureName: match.fixtureName,
+      league: match.league,
+      date: match.date,
+      kickoff: match.kickoff,
+      venue: match.venue,
+    };
+    rememberClubSelectedMatch(
+      session?.club.id ?? club,
+      session?.club.name ?? club,
+      payload
+    );
+  });
 }
 
 export function useOptionalSelectMatch() {
@@ -154,10 +180,18 @@ export function SelectMatchProvider({
       setResolvedClub(payload.club || name);
       const nextMatches = (payload.matches ?? []).slice(0, 10);
       setMatches(nextMatches);
+      const stored = resolveClubSelectedMatch(undefined, payload.club || name);
       setSelectedMatch((current) => {
+        if (stored) {
+          const registered = nextMatches.find((row) =>
+            matchesClubSelectedMatch(row, stored)
+          );
+          if (registered) return registered;
+        }
         if (current && nextMatches.some((row) => row.id === current.id)) {
           return current;
         }
+        if (mode === "club") return null;
         return nextMatches[0] ?? null;
       });
       setError(payload.error ?? null);
@@ -169,7 +203,7 @@ export function SelectMatchProvider({
     } finally {
       if (id === requestId.current) setLoading(false);
     }
-  }, []);
+  }, [mode]);
 
   const confirmClub = useCallback(
     (nextClub?: string) => {
@@ -410,7 +444,7 @@ export function SelectMatchPhone({
                           ) : null}
                           {mode === "club" ? (
                             <span
-                              className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-black"
+                              className="mt-1.5 inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-black"
                               style={{ backgroundColor: MARK_GREEN }}
                             >
                               {selected ? "Selected Match Day" : "Select this Match"}
@@ -456,6 +490,7 @@ export function SelectMatchPhone({
                           onClick={(event) => {
                             event.stopPropagation();
                             setSelectedMatch(match);
+                            if (mode === "club") persistClubMatch(shown, match);
                           }}
                           className={`${rowClass} w-full text-left`}
                           style={{ backgroundColor: "#f3f5f8" }}
@@ -503,7 +538,9 @@ export default function SelectMatchFixtures() {
   return (
     <div className="mt-6 max-w-xl" data-select-match-picker>
       {clubLocked ? (
-        <p className="text-xs font-black uppercase tracking-[0.18em]">{shown}</p>
+        <p className="text-sm font-black uppercase tracking-[0.18em] sm:text-base">
+          {shown}
+        </p>
       ) : (
       <label className="block text-xs font-black uppercase tracking-[0.18em]">
         Choose your club
@@ -544,7 +581,11 @@ export default function SelectMatchFixtures() {
               ?.querySelector("select")
           )
         }
-        className="mt-3 inline-flex items-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
+        className={`mt-3 inline-flex items-center rounded-full bg-s4p-mark font-black uppercase tracking-[0.14em] text-black hover:brightness-110 ${
+          mode === "club"
+            ? "px-7 py-3.5 text-base sm:text-lg"
+            : "px-6 py-3 text-sm"
+        }`}
       >
         See upcoming matches <span aria-hidden> →</span>
       </button>
@@ -555,13 +596,17 @@ export default function SelectMatchFixtures() {
         <p className="mt-4 text-sm font-semibold">{error}</p>
       ) : null}
       {matches && !loading ? (
-        <p className="mt-4 text-sm font-semibold leading-6">
+        <p
+          className={`mt-4 font-semibold leading-6 ${
+            mode === "club" ? "text-base sm:text-lg" : "text-sm"
+          }`}
+        >
           {clubPossessive(shown)} next {Math.min(matches.length, 10)} league and
           cup matches are on the phone.
           {mode === "sponsor"
             ? " Tap a match to lock it in, complete your sponsorship and sign it off."
             : mode === "club"
-              ? " Tap a match to select it for this Club's Match Day sponsorship."
+              ? " Tap a match to register it as this Club's selected Match Day for the rest of the process."
               : ""}
         </p>
       ) : null}

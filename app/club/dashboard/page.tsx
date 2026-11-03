@@ -35,12 +35,13 @@ import {
   MATCH_DAY_FULLY_FUNDED_LABEL,
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
-  clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
   clubDashboardLeadTabCount,
   clubDashboardLookbackCopy,
   matchDayProjectApprovalLabel,
+  SELECT_CLIMATE_PROJECTS_LABEL,
 } from "@/app/lib/partner-projects";
+import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
 import {
   lookbackProjectFunding,
   matchDayProjectFundingLine,
@@ -108,7 +109,6 @@ export default function ClubDashboardPage() {
   const [leadSponsors, setLeadSponsors] = useState<LeadClubSponsorRow[]>([]);
   const [localSponsors, setLocalSponsors] = useState<LocalSponsorRecord[]>([]);
   const [featuredId, setFeaturedId] = useState<string | null>(null);
-  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -311,25 +311,6 @@ export default function ClubDashboardPage() {
     router.push(href);
   }
 
-  async function startClubAfresh() {
-    if (!club) return;
-    const ok = window.confirm(
-      `Remove every Climate Project and every sponsor attached to ${club.name}? Shared catalog projects stay in the library. This lets you start ${club.name} Match Day from a blank slate.`
-    );
-    if (!ok) return;
-    setClearing(true);
-    setPostError(null);
-    try {
-      await clearClubProjectsAndSponsors(club.name);
-      window.location.reload();
-    } catch (err) {
-      setPostError(
-        err instanceof Error ? err.message : "Could not clear this club's projects and sponsors."
-      );
-      setClearing(false);
-    }
-  }
-
   if (unlinked) {
     const gate = clubGateCopy(signedInKind);
     return (
@@ -380,64 +361,29 @@ export default function ClubDashboardPage() {
           </p>
         )}
 
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-black">{club.name}</h1>
-            <p className="mt-2 text-slate-400">
-              Welcome to your Score-4-Our-Planet Club Dashboard
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => void startClubAfresh()}
-            disabled={clearing}
-            className="rounded-xl border border-amber-400/50 px-5 py-3 font-semibold text-amber-200 disabled:opacity-50"
-          >
-            {clearing ? "Clearing…" : "Start this club afresh"}
-          </button>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <DashboardCard title="Status" value={account.status} />
-          <DashboardCard title="Supporters" value={account.supporter_base} />
-          <DashboardCard title="Attendance" value={account.average_attendance} />
-          <DashboardCard title="Country" value={club.country} />
-        </div>
-
-        <div className="mt-10 rounded-2xl bg-slate-900 p-8">
-          <h2 className="mb-6 text-2xl font-bold">Club Representative</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Info label="Name">
-              {account.first_name} {account.last_name}
-            </Info>
-            <Info label="Role">{account.job_title}</Info>
-            <Info label="Email">{account.email}</Info>
-            <Info label="Phone">{account.phone}</Info>
-          </div>
-        </div>
-
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-              S4P Climate Projects
+              Choose Projects
             </p>
             <h2 className="mt-3 text-4xl font-black md:text-5xl">
-              {matchDayReady
-                ? `Here's your ${MATCH_DAY_PROJECT_COUNT} chosen Projects for this Match Day`
-                : "S4P Climate Projects"}
+              {SELECT_CLIMATE_PROJECTS_LABEL}
             </h2>
-            <p className="mx-auto mt-4 max-w-3xl text-xl text-slate-300">
-              {matchDayReady
-                ? clubDashboardChosenProjectsCopy()
-                : clubDashboardClimateProjectsIntroCopy()}
-            </p>
+            <div className="mx-auto mt-6 max-w-3xl text-left">
+              <ClubChooseProjectsCopy />
+            </div>
+            {!matchDayReady ? (
+              <p className="mx-auto mt-4 max-w-3xl text-lg text-slate-300">
+                {clubDashboardClimateProjectsIntroCopy()}
+              </p>
+            ) : null}
           </div>
 
           <Link
             href={CLUB_SELECT_PROJECTS_PATH}
             className="mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
           >
-            S4P Climate Projects
+            {SELECT_CLIMATE_PROJECTS_LABEL}
           </Link>
           {matchDayReady && (
             <Link
@@ -740,32 +686,3 @@ function ProjectGrid({
   );
 }
 
-function DashboardCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string | number | null | undefined;
-}) {
-  return (
-    <div className="rounded-2xl bg-slate-900 p-6">
-      <p className="text-sm text-slate-400">{title}</p>
-      <p className="mt-3 text-3xl font-black text-green-400">{value ?? "—"}</p>
-    </div>
-  );
-}
-
-function Info({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="text-sm text-slate-400">{label}</p>
-      <p className="mt-1 text-lg">{children}</p>
-    </div>
-  );
-}

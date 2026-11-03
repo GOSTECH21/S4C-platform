@@ -9,7 +9,10 @@ import {
   matchDayProjectApprovalLabel,
 } from "@/app/lib/partner-projects";
 import {
+  GLOBAL_BRAND_INVITE_COUNT,
   INVITE_LOCKED_NEXT_COPY,
+  LOCAL_BUSINESS_INVITE_COUNT,
+  SEND_INVITATIONS_LABEL,
   localInvitesSentCopy,
   commitGlobalSponsorship,
   createInviteRound,
@@ -36,10 +39,10 @@ export default function SponsorListingsPreviewPage() {
   const globals = listingsOfKind(listings, "global");
   const locals = listingsOfKind(listings, "local");
   const [selectedGlobalIds, setSelectedGlobalIds] = useState<string[]>(
-    globals.slice(0, 5).map((row) => row.id)
+    globals.slice(0, GLOBAL_BRAND_INVITE_COUNT).map((row) => row.id)
   );
   const [selectedLocalIds, setSelectedLocalIds] = useState<string[]>(
-    locals.slice(0, 10).map((row) => row.id)
+    locals.slice(0, LOCAL_BUSINESS_INVITE_COUNT).map((row) => row.id)
   );
   const [round, setRound] = useState<SponsorInviteRound | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -117,9 +120,8 @@ export default function SponsorListingsPreviewPage() {
       setNotice(
         demo === "local-sent"
           ? localInvitesSentCopy(selectedLocalIds.length)
-          : "Invitation to Sponsor sent to 5 Global Brands. Only one will be accepted — highest amount within 8 hours."
+          : `${SEND_INVITATIONS_LABEL} sent to ${selectedGlobalIds.length} Lead Climate Sponsor. Only one is eligible — highest amount within 8 hours.`
       );
-      return;
     }
     const first = commitGlobalSponsorship(
       drafted,
@@ -163,7 +165,11 @@ export default function SponsorListingsPreviewPage() {
 
   function invite(kind: SponsorListingKind) {
     const selected = kind === "global" ? selectedGlobalIds : selectedLocalIds;
-    const countError = requireExactInviteCount(selected, kind === "global" ? 5 : 10, kind);
+    const countError = requireExactInviteCount(
+      selected,
+      kind === "global" ? GLOBAL_BRAND_INVITE_COUNT : LOCAL_BUSINESS_INVITE_COUNT,
+      kind
+    );
     if (countError) {
       setError(countError);
       setNotice(null);

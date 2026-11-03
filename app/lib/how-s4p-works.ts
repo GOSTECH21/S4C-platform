@@ -44,6 +44,7 @@ export const HOW_S4P_SELECT_MATCH_SPONSOR = {
 } as const;
 
 export const HOW_S4P_SELECT_MATCH_CLUB = {
+  title: "Select the Match",
   caption:
     "Select the Match you want to get sponsorship for. Your Club's next league and cup fixtures are on this phone.",
   points: [
@@ -64,7 +65,11 @@ export const HOW_S4P_P4P = {
 export type HowS4pSelectMatchAudience = "fan" | "sponsor" | "club";
 
 export function howS4pSelectMatchCopy(audience: HowS4pSelectMatchAudience) {
-  if (audience === "fan") return HOW_S4P_SELECT_MATCH_FAN;
-  if (audience === "club") return HOW_S4P_SELECT_MATCH_CLUB;
-  return HOW_S4P_SELECT_MATCH_SPONSOR;
+  if (audience === "fan") {
+    return { title: HOW_S4P_SELECT_MATCH.title, ...HOW_S4P_SELECT_MATCH_FAN };
+  }
+  if (audience === "club") {
+    return HOW_S4P_SELECT_MATCH_CLUB;
+  }
+  return { title: HOW_S4P_SELECT_MATCH.title, ...HOW_S4P_SELECT_MATCH_SPONSOR };
 }

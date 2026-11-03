@@ -102,10 +102,10 @@ assert(
 );
 
 assert(
-  requireExactInviteCount(globals.slice(0, 4).map((row) => row.id), 5, "global") &&
-    requireExactInviteCount(globals.slice(0, 5).map((row) => row.id), 5, "global") === null &&
-    requireExactInviteCount(locals.slice(0, 10).map((row) => row.id), 10, "local") === null,
-  "SD must tick exactly 5 Global Brands and 10 Local Businesses"
+  requireExactInviteCount(globals.slice(0, 0).map((row) => row.id), 1, "global") &&
+    requireExactInviteCount(globals.slice(0, 1).map((row) => row.id), 1, "global") === null &&
+    requireExactInviteCount(locals.slice(0, 4).map((row) => row.id), 4, "local") === null,
+  "SD must choose 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors"
 );
 
 const sentAt = "2026-10-26T09:00:00.000Z";
@@ -247,12 +247,14 @@ assert(
 );
 
 assert(
-  clubDashboardChosenProjectsCopy().includes("Invitation to Sponsor") &&
-    clubDashboardChosenProjectsCopy().includes(MATCH_DAY_PENDING_APPROVAL_LABEL) &&
-    clubDashboardChosenProjectsCopy().includes(MATCH_DAY_APPROVED_LABEL) &&
-    clubDashboardChosenProjectsCopy().includes("published to your fans") &&
-    sponsorsSectionIntroCopy().includes("listed only here"),
-  "Club copy sends the SD from chosen projects to Sponsors listings, then lock-in publishes to fans"
+  clubDashboardChosenProjectsCopy().includes("Address Book") &&
+    clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
+    clubDashboardChosenProjectsCopy().includes(
+      "Only 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors are eligible"
+    ) &&
+    sponsorsSectionIntroCopy().includes("Address Book 1") &&
+    sponsorsSectionIntroCopy().includes("Send Invitations"),
+  "Club copy sends the SD from chosen projects to Address Books and Send Invitations"
 );
 
 const nav = readFileSync("app/components/club/ClubNav.tsx", "utf8");
@@ -358,14 +360,14 @@ const localRound = createInviteRound({
 });
 const localReceipts = inviteReceiptsForKind(localRound, listings, "local");
 assert(
-  localInvitesSentCopy(10).includes("10 Local Business Climate Sponsors") &&
+  localInvitesSentCopy(4).includes("4 Local Business Climate Sponsors") &&
     localInvitesDeliveredCopy(10).includes("Invitations inbox") &&
     localReceipts.length === LOCAL_BUSINESS_INVITE_COUNT &&
     localReceipts.every((row) => row.status.includes("Invitations inbox")) &&
     Boolean(localRound.localInvitedAt) &&
     listingsUi.includes("inviteReceiptsForKind") &&
     listingsUi.includes("receipts.map"),
-  "Local Business send lists each of the 10 invitees as delivered to their Invitations inbox"
+  "Local Business send lists each of the 4 invitees as delivered to their Invitations inbox"
 );
 assert(
   localSponsorLoginPath(2) === SPONSOR_INVITATIONS_PATH &&

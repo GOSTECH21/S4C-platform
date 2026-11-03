@@ -412,7 +412,7 @@ assert(
     readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
       "<ClubNav"
     ),
-  "Club Dashboard and Climate Projects keep the Sponsor tab in reach while choosing projects"
+  "Club Select Match and Choose Projects keep the Sponsor tab in reach while choosing projects"
 );
 
 assert(

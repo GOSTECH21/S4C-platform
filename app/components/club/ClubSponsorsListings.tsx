@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
 import {
+  CLUB_ADMIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
   CLUB_SPONSOR_LEADERBOARD_PATH,
 } from "@/app/lib/routes";
@@ -20,6 +21,7 @@ import {
   LOCAL_BUSINESS_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
   LOCAL_SPONSORSHIP_AMOUNT_RANGES,
+  SEND_INVITATIONS_LABEL,
   SPONSORS_SECTION_TITLE,
   formatRangeLabel,
   globalInviteCountCopy,
@@ -54,6 +56,7 @@ export type ClubSponsorsListingsProps = {
   selectedLocalIds: string[];
   onToggle: (listing: SponsorListing) => void;
   onInvite: (kind: SponsorListingKind) => void;
+  onInviteAll?: () => void;
   initialTab?: SponsorListingKind;
 };
 
@@ -74,6 +77,7 @@ export function ClubSponsorsListings({
   selectedLocalIds,
   onToggle,
   onInvite,
+  onInviteAll,
   initialTab = "global",
 }: ClubSponsorsListingsProps) {
   const [tab, setTab] = useState<DirectoryTab>(initialTab);
@@ -108,7 +112,13 @@ export function ClubSponsorsListings({
           href={CLUB_SELECT_PROJECTS_PATH}
           className="rounded-xl border border-blue-400/40 px-4 py-2 text-sm font-semibold text-blue-200 hover:bg-blue-500/10"
         >
-          Choose Climate Projects
+          Choose Projects
+        </Link>
+        <Link
+          href={CLUB_ADMIN_PATH}
+          className="rounded-xl border border-emerald-400/40 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10"
+        >
+          My Admin Address Books
         </Link>
         <Link
           href={CLUB_SPONSOR_LEADERBOARD_PATH}
@@ -165,7 +175,7 @@ export function ClubSponsorsListings({
           expected={GLOBAL_BRAND_INVITE_COUNT}
           ready={ready}
           sending={sending}
-          inviteLabel={`Send ${GLOBAL_INVITE_SUBJECT}`}
+          inviteLabel={SEND_INVITATIONS_LABEL}
           notice={noticeKind === "local" ? null : notice}
           error={noticeKind === "local" ? null : error}
           onToggle={onToggle}
@@ -182,7 +192,7 @@ export function ClubSponsorsListings({
           expected={LOCAL_BUSINESS_INVITE_COUNT}
           ready={ready}
           sending={sending}
-          inviteLabel={`Send ${LOCAL_INVITE_SUBJECT}`}
+          inviteLabel={SEND_INVITATIONS_LABEL}
           notice={noticeKind === "global" ? null : notice}
           error={noticeKind === "global" ? null : error}
           receipts={inviteReceiptsForKind(round, listings, "local")}
@@ -203,6 +213,16 @@ export function ClubSponsorsListings({
         />
       )}
 
+      {onInviteAll ? (
+        <button
+          type="button"
+          disabled={!ready || sending}
+          onClick={onInviteAll}
+          className="mt-8 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 hover:bg-green-400 disabled:opacity-50"
+        >
+          {sending ? "Sending..." : SEND_INVITATIONS_LABEL}
+        </button>
+      ) : null}
       {round && (round.globalInviteeIds.length > 0 || round.localInviteeIds.length > 0) && (
         <InviteMailFallback round={round} listings={listings} />
       )}

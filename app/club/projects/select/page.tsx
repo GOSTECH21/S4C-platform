@@ -16,7 +16,10 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   clubClimateProjectsIntroCopy,
   isPartnerUpload,
+  SELECT_CLIMATE_PROJECTS_LABEL,
 } from "@/app/lib/partner-projects";
+import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
+import ClubSelectedMatchBanner from "@/app/components/club/ClubSelectedMatchBanner";
 import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
 import {
   localCatalogCountryForClub,
@@ -210,11 +213,29 @@ export default function SelectMatchDayProjectsPage() {
     <main className="min-h-screen p-10 text-white">
       <div className="mx-auto max-w-6xl">
         <ClubNav />
+        <ClubSelectedMatchBanner clubId={clubId} clubName={clubName} />
 
-        <h1 className="mt-6 text-4xl font-black">S4P Climate Projects</h1>
-        <p className="mt-3 max-w-3xl text-slate-300">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+          Choose Projects
+        </p>
+        <h1
+          id="select-climate-projects"
+          className="mt-3 text-4xl font-black text-blue-300 md:text-5xl"
+        >
+          {SELECT_CLIMATE_PROJECTS_LABEL}
+        </h1>
+        <div className="mt-6 max-w-3xl">
+          <ClubChooseProjectsCopy />
+        </div>
+        <p className="mt-4 max-w-3xl text-slate-300">
           {clubClimateProjectsIntroCopy()}
         </p>
+        <a
+          href="#select-climate-projects-list"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
+        >
+          {SELECT_CLIMATE_PROJECTS_LABEL}
+        </a>
         <p className="mt-3 max-w-3xl text-sm text-emerald-300">
           {nearbyProjectsCopy(clubName)}{" "}
           {localCountry === "England"
@@ -223,7 +244,7 @@ export default function SelectMatchDayProjectsPage() {
         </p>
 
         {featured.length > 0 && (
-          <div className="mt-8">
+          <div id="select-climate-projects-list" className="mt-8">
             <FeaturedGssPicker
               options={featured}
               chosenId={featuredId}

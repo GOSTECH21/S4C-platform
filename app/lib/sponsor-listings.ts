@@ -10,8 +10,8 @@ import type { GlobalSponsorProduct } from "./predict-for-planet";
 
 export type { GlobalSponsorProduct } from "./predict-for-planet";
 
-export const GLOBAL_BRAND_INVITE_COUNT = 5;
-export const LOCAL_BUSINESS_INVITE_COUNT = 10;
+export const GLOBAL_BRAND_INVITE_COUNT = 1;
+export const LOCAL_BUSINESS_INVITE_COUNT = 4;
 export const GLOBAL_SPONSORS_ACCEPTED_PER_MATCH = 1;
 export const GLOBAL_INVITE_WINDOW_HOURS = 8;
 export const GLOBAL_INVITE_WINDOW_MS = GLOBAL_INVITE_WINDOW_HOURS * 60 * 60 * 1000;
@@ -248,8 +248,10 @@ export const LOCAL_BUSINESS_TAB_LABEL = "Local Business Sponsors";
 export const GLOBAL_INVITE_SUBJECT = "Invitation to Sponsor";
 export const LOCAL_INVITE_SUBJECT = "Invitation to Sponsor";
 
+export const SEND_INVITATIONS_LABEL = "Send Invitations";
+
 export function sponsorsSectionIntroCopy(): string {
-  return `Registered Global Brands and Local Business Sponsors are listed only here. Tick ${GLOBAL_BRAND_INVITE_COUNT} Global Brands and send an ${GLOBAL_INVITE_SUBJECT} — only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Sponsor is accepted, based on (i) sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours and (ii) the highest committed amount. Once that Global Brand is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans. Also tick ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors for a simple ${LOCAL_INVITE_SUBJECT}.`;
+  return `Choose Lead Climate Sponsors from Address Book 1 and Local Business Climate Sponsors from Address Book 2, then press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted, based on (i) sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours and (ii) the highest committed amount. Only ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors are eligible. Once that Lead Sponsorship is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans.`;
 }
 
 export function globalInviteMustChooseProjectsCopy(): string {
@@ -257,11 +259,11 @@ export function globalInviteMustChooseProjectsCopy(): string {
 }
 
 export function globalInviteCountCopy(): string {
-  return `Tick exactly ${GLOBAL_BRAND_INVITE_COUNT} Global Brands, then send ${GLOBAL_INVITE_SUBJECT}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Sponsor will be accepted.`;
+  return `Choose ${GLOBAL_BRAND_INVITE_COUNT} Lead Climate Sponsor from Address Book 1, then press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is eligible.`;
 }
 
 export function localInviteCountCopy(): string {
-  return `Tick exactly ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors, then send a simple ${LOCAL_INVITE_SUBJECT}.`;
+  return `Choose ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors from Address Book 2, then press ${SEND_INVITATIONS_LABEL}.`;
 }
 
 export const LOCAL_INVITE_RECEIVED_STATUS =
@@ -504,9 +506,9 @@ export function requireExactInviteCount(
 ): string | null {
   if (selectedIds.length === expected) return null;
   if (kind === "global") {
-    return `Tick exactly ${GLOBAL_BRAND_INVITE_COUNT} Global Brands Sponsors. You have ${selectedIds.length} selected.`;
+    return `Choose ${GLOBAL_BRAND_INVITE_COUNT} Lead Climate Sponsor from Address Book 1. You have ${selectedIds.length} selected.`;
   }
-  return `Tick exactly ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors. You have ${selectedIds.length} selected.`;
+  return `Choose ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors from Address Book 2. You have ${selectedIds.length} selected.`;
 }
 
 export function inviteWindowOpen(

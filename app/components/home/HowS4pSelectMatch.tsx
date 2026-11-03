@@ -56,23 +56,43 @@ export default function HowS4pSelectMatch({
             />
           </div>
           <div className="order-1 min-w-0 flex-1 lg:order-2">
-            <h3 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
-              {HOW_S4P_SELECT_MATCH.title}
+            <h3
+              className={
+                audience === "club"
+                  ? "text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl md:text-6xl"
+                  : "text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl"
+              }
+            >
+              {copy.title}
             </h3>
-            <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
+            <p
+              className={
+                audience === "club"
+                  ? "mt-5 max-w-xl text-lg font-semibold leading-8 sm:text-xl sm:leading-9"
+                  : "mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8"
+              }
+            >
               {copy.caption}
             </p>
-            <ul className="mt-5 space-y-3">
+            <ul className={audience === "club" ? "mt-6 space-y-4" : "mt-5 space-y-3"}>
               {copy.points.map((point) => (
                 <li key={point} className="flex items-start gap-3">
                   <span
-                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-sm font-black text-black"
+                    className={`mt-0.5 flex shrink-0 items-center justify-center rounded-full font-black text-black ${
+                      audience === "club" ? "h-6 w-6 text-base" : "h-5 w-5 text-sm"
+                    }`}
                     style={{ backgroundColor: MARK_GREEN }}
                     aria-hidden
                   >
                     ✓
                   </span>
-                  <span className="text-sm font-semibold leading-6 sm:text-base">
+                  <span
+                    className={
+                      audience === "club"
+                        ? "text-base font-semibold leading-7 sm:text-lg"
+                        : "text-sm font-semibold leading-6 sm:text-base"
+                    }
+                  >
                     {point}
                   </span>
                 </li>

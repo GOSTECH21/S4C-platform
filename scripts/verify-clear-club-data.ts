@@ -170,11 +170,13 @@ assert(
 );
 
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
+const admin = readFileSync("app/club/admin/page.tsx", "utf8");
 assert(
-  dashboard.includes("Start this club afresh") &&
+  admin.includes("Start this club afresh") &&
+    admin.includes("clearClubProjectsAndSponsors") &&
     dashboard.includes("clearClubProjectsAndSponsors") &&
-  dashboard.includes("clubShouldStartBlank"),
-  "The club dashboard starts Arsenal from a blank Match Day"
+    dashboard.includes("clubShouldStartBlank"),
+  "My Admin starts Arsenal from a blank Match Day"
 );
 const preview = readFileSync("app/preview/clear-arsenal/page.tsx", "utf8");
 assert(

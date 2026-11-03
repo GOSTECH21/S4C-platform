@@ -129,13 +129,28 @@ export function recordSponsorInvites({
   projectNames: string[];
   globalInviteeIds?: string[];
   localInviteeIds?: string[];
-  kind: SponsorListingKind;
+  kind: SponsorListingKind | "all";
   sentAt?: Date | string;
 }): { round: SponsorInviteRound; error: string | null } {
-  const selected =
-    kind === "global" ? globalInviteeIds : localInviteeIds;
-  const expected = kind === "global" ? GLOBAL_BRAND_INVITE_COUNT : LOCAL_BUSINESS_INVITE_COUNT;
-  const expectedError = requireExactInviteCount(selected, expected, kind);
+  const expectedError =
+    kind === "all"
+      ? requireExactInviteCount(
+          globalInviteeIds,
+          GLOBAL_BRAND_INVITE_COUNT,
+          "global"
+        ) ||
+        requireExactInviteCount(
+          localInviteeIds,
+          LOCAL_BUSINESS_INVITE_COUNT,
+          "local"
+        )
+      : requireExactInviteCount(
+          kind === "global" ? globalInviteeIds : localInviteeIds,
+          kind === "global"
+            ? GLOBAL_BRAND_INVITE_COUNT
+            : LOCAL_BUSINESS_INVITE_COUNT,
+          kind
+        );
   if (expectedError) {
     return {
       round: createInviteRound({
@@ -177,14 +192,16 @@ export function recordSponsorInvites({
     matchLabel,
     projectIds,
     projectNames,
-    globalInviteeIds: kind === "global" ? globalInviteeIds : [],
-    localInviteeIds: kind === "local" ? localInviteeIds : [],
+    globalInviteeIds:
+      kind === "local" ? [] : globalInviteeIds,
+    localInviteeIds:
+      kind === "global" ? [] : localInviteeIds,
     sentAt,
   });
   const existing = loadClubInviteRound(clubId);
   let round = drafted;
   if (existing) {
-    if (kind === "global" && !existing.lockedListingId) {
+    if ((kind === "global" || kind === "all") && !existing.lockedListingId) {
       round = {
         ...existing,
         matchLabel: drafted.matchLabel,
@@ -192,6 +209,12 @@ export function recordSponsorInvites({
         projectNames: drafted.projectNames,
         directorName: drafted.directorName,
         globalInviteeIds: drafted.globalInviteeIds,
+        localInviteeIds:
+          kind === "all" ? drafted.localInviteeIds : existing.localInviteeIds,
+        localInvitedAt:
+          kind === "all"
+            ? drafted.localInvitedAt ?? drafted.sentAt
+            : existing.localInvitedAt,
         sentAt: drafted.sentAt,
         expiresAt: drafted.expiresAt,
         commitments: [],
@@ -201,7 +224,7 @@ export function recordSponsorInvites({
         lockedAt: null,
         approvedProjectIds: [],
       };
-    } else if (kind === "global") {
+    } else if (kind === "global" || kind === "all") {
       round = mergeInviteRound(existing, {
         ...drafted,
         id: existing.id,
