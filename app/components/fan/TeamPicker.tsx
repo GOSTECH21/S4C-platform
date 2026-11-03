@@ -16,14 +16,17 @@ export default function TeamPicker({
   onChange,
   showScorePrice = true,
   openCompetitions = DEFAULT_OPEN,
+  catalogAccordion = false,
 }: {
   catalog: TeamGroup[];
   selected: TeamOption[];
   onChange: (teams: TeamOption[]) => void;
   showScorePrice?: boolean;
   openCompetitions?: Set<string>;
+  catalogAccordion?: boolean;
 }) {
   const [query, setQuery] = useState("");
+  const [browseOpen, setBrowseOpen] = useState(selected.length === 0);
   const selectedIds = new Set(selected.map((team) => team.id));
 
   const filtered = useMemo(() => {
@@ -54,6 +57,76 @@ export default function TeamPicker({
     onChange([...selected, team]);
   }
 
+  const sportGroups = filtered.map((group) => {
+    const category = sportCategory(group.sport);
+    const leagueCount = group.competitions.length;
+    return (
+      <details
+        key={`${group.sport}:${query.trim() ? "search" : "browse"}`}
+        data-sport-accordion="sport-accordion-v1"
+        data-sport-name={group.sport}
+        open={query.trim() ? true : undefined}
+        className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+          <h2 className="text-2xl font-bold text-green-400">
+            {category?.icon ? `${category.icon} ` : ""}
+            {group.sport}
+          </h2>
+          <span className="shrink-0 text-sm font-normal text-slate-400">
+            {leagueCount} {leagueCount === 1 ? "league" : "leagues"}
+          </span>
+        </summary>
+        {category && showScorePrice && (
+          <p className="mt-3 text-sm font-semibold text-slate-300">
+            {category.scoreEvent} · {category.exampleS2PS}
+          </p>
+        )}
+        {category && (
+          <p className="mt-3 max-w-3xl text-sm text-slate-400">
+            {category.summary}
+          </p>
+        )}
+        <div className="mt-5 space-y-5">
+          {group.competitions.map((competition) => (
+            <details
+              key={competition.name}
+              open={openCompetitions.has(competition.name) || Boolean(query)}
+              className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+            >
+              <summary className="cursor-pointer list-none font-semibold text-white">
+                {competition.name}
+                <span className="ml-2 text-sm font-normal text-slate-400">
+                  {CURRENT_SEASON} · {competition.teams.length} teams
+                </span>
+              </summary>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {competition.teams.map((team, index) => {
+                  const active = selectedIds.has(team.id);
+                  return (
+                    <button
+                      key={`${team.id}:${team.displayName}:${index}`}
+                      type="button"
+                      onClick={() => toggle(team)}
+                      className={`rounded-xl border p-4 text-left font-semibold ${
+                        active
+                          ? "border-s4p-mark bg-s4p-mark text-slate-950"
+                          : "border-slate-700 bg-slate-900 text-white"
+                      }`}
+                    >
+                      {active ? "✓ " : ""}
+                      {team.displayName}
+                    </button>
+                  );
+                })}
+              </div>
+            </details>
+          ))}
+        </div>
+      </details>
+    );
+  });
+
   return (
     <div>
       <input
@@ -74,77 +147,29 @@ export default function TeamPicker({
         </p>
       )}
 
-      <div className="mt-6 space-y-6">
-        {filtered.map((group) => {
-          const category = sportCategory(group.sport);
-          const leagueCount = group.competitions.length;
-          return (
-            <details
-              key={`${group.sport}:${query.trim() ? "search" : "browse"}`}
-              data-sport-accordion="sport-accordion-v1"
-              data-sport-name={group.sport}
-              open={query.trim() ? true : undefined}
-              className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-                <h2 className="text-2xl font-bold text-green-400">
-                  {category?.icon ? `${category.icon} ` : ""}
-                  {group.sport}
-                </h2>
-                <span className="shrink-0 text-sm font-normal text-slate-400">
-                  {leagueCount} {leagueCount === 1 ? "league" : "leagues"}
-                </span>
-              </summary>
-              {category && showScorePrice && (
-                <p className="mt-3 text-sm font-semibold text-slate-300">
-                  {category.scoreEvent} · {category.exampleS2PS}
-                </p>
-              )}
-              {category && (
-                <p className="mt-3 max-w-3xl text-sm text-slate-400">
-                  {category.summary}
-                </p>
-              )}
-              <div className="mt-5 space-y-5">
-                {group.competitions.map((competition) => (
-                  <details
-                    key={competition.name}
-                    open={openCompetitions.has(competition.name) || Boolean(query)}
-                    className="rounded-xl border border-slate-800 bg-slate-950 p-4"
-                  >
-                    <summary className="cursor-pointer list-none font-semibold text-white">
-                      {competition.name}
-                      <span className="ml-2 text-sm font-normal text-slate-400">
-                        {CURRENT_SEASON} · {competition.teams.length} teams
-                      </span>
-                    </summary>
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                      {competition.teams.map((team, index) => {
-                        const active = selectedIds.has(team.id);
-                        return (
-                          <button
-                            key={`${team.id}:${team.displayName}:${index}`}
-                            type="button"
-                            onClick={() => toggle(team)}
-                            className={`rounded-xl border p-4 text-left font-semibold ${
-                              active
-                                ? "border-s4p-mark bg-s4p-mark text-slate-950"
-                                : "border-slate-700 bg-slate-900 text-white"
-                            }`}
-                          >
-                            {active ? "✓ " : ""}
-                            {team.displayName}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </details>
-                ))}
-              </div>
-            </details>
-          );
-        })}
-      </div>
+      {catalogAccordion ? (
+        <details
+          data-catalog-accordion="my-s4p-teams-accordion-v1"
+          className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6"
+          open={query.trim() ? true : browseOpen}
+          onToggle={(event) => {
+            if (query.trim()) return;
+            setBrowseOpen((event.currentTarget as HTMLDetailsElement).open);
+          }}
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <h2 className="text-xl font-bold text-green-400 sm:text-2xl">
+              Choose a team
+            </h2>
+            <span className="shrink-0 text-sm font-normal text-slate-400">
+              Football, Rugby, NFL, NBA, Cricket
+            </span>
+          </summary>
+          <div className="mt-6 space-y-6">{sportGroups}</div>
+        </details>
+      ) : (
+        <div className="mt-6 space-y-6">{sportGroups}</div>
+      )}
     </div>
   );
 }

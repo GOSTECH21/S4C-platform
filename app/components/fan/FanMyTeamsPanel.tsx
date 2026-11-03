@@ -131,6 +131,7 @@ export default function FanMyTeamsPanel() {
                 }}
                 showScorePrice={false}
                 openCompetitions={new Set()}
+                catalogAccordion
               />
             ) : (
               <HowS4pSelectMatch
