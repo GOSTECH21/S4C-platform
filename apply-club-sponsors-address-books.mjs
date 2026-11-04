@@ -10,7 +10,7 @@ import { spawnSync } from "child_process";
 
 const PIN = "4b10da5";
 const REFS = ["cursor/club-sponsors-address-books-18f9", "main", PIN];
-const BUST = "club-sponsors-address-books-pc-2";
+const BUST = "club-sponsors-address-books-pc-3";
 const STAMP = "club-sponsors-address-books-v1";
 const SELF = "apply-club-sponsors-address-books.mjs";
 const FILES = [
@@ -21,6 +21,7 @@ const FILES = [
   "app/components/club/ClubAddressBookPanel.tsx",
   "app/components/club/ClubSponsorsAddressBooks.tsx",
   "app/components/club/ClubSponsorsListings.tsx",
+  "app/components/club/SendInvitationToSponsorsLink.tsx",
   "app/club/sponsors/page.tsx",
   "app/club/admin/page.tsx",
   "app/club/dashboard/page.tsx",
@@ -28,6 +29,7 @@ const FILES = [
   "app/preview/club-admin/page.tsx",
   "app/preview/club-choose-projects/page.tsx",
   "app/preview/club-sponsors-address-books/page.tsx",
+  "app/preview/club-pending-invite/page.tsx",
   "apply-club-sponsors-address-books.ps1",
   "scripts/verify-club-sponsors-address-books.ts",
   "scripts/verify-club-choose-projects.ts",
@@ -37,7 +39,7 @@ const FILES = [
 
 console.log("Working folder:", process.cwd());
 console.log(
-  "LIVE page: https://s4-c-platform.vercel.app/preview/club-sponsors-address-books"
+  "LIVE page: https://s4-c-platform.vercel.app/preview/club-pending-invite"
 );
 if (!existsSync("app/club/dashboard/page.tsx")) {
   console.error(
@@ -52,30 +54,26 @@ function rawUrl(ref, rel) {
 
 function gitCheckoutFromMain() {
   if (!existsSync(".git")) return false;
-  const fetch = spawnSync("git", ["fetch", "origin", "main"], {
-    encoding: "utf8",
-  });
-  if (fetch.status !== 0) {
-    console.log(
-      "git fetch origin main failed; downloading files from GitHub instead.",
-      (fetch.stderr || fetch.stdout || "").trim()
+  const refs = ["cursor/club-sponsors-address-books-18f9", "main"];
+  for (const branch of refs) {
+    const fetch = spawnSync("git", ["fetch", "origin", branch], {
+      encoding: "utf8",
+    });
+    if (fetch.status !== 0) continue;
+    const checkout = spawnSync(
+      "git",
+      ["checkout", `origin/${branch}`, "--", ...FILES],
+      { encoding: "utf8" }
     );
-    return false;
+    if (checkout.status === 0) {
+      console.log("Checked out Sponsors Address Book files from origin/" + branch + ".");
+      return true;
+    }
   }
-  const checkout = spawnSync(
-    "git",
-    ["checkout", "origin/main", "--", ...FILES],
-    { encoding: "utf8" }
+  console.log(
+    "git checkout failed; downloading files from GitHub instead."
   );
-  if (checkout.status !== 0) {
-    console.log(
-      "git checkout origin/main failed; downloading files from GitHub instead.",
-      (checkout.stderr || checkout.stdout || "").trim()
-    );
-    return false;
-  }
-  console.log("Checked out Sponsors Address Book files from origin/main.");
-  return true;
+  return false;
 }
 
 if (process.env.S4P_OVERLAY_SELF !== "1") {
@@ -192,8 +190,8 @@ if (
     listingsSrc.includes("onInviteAll") ||
     !listingsSrc.includes("meetsInviteMinimum") ||
     adminSrc.includes("ClubAddressBookPanel") ||
-    !dashboardSrc.includes("SEND_INVITATION_LABEL") ||
-    !dashboardSrc.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH")
+    !dashboardSrc.includes("SendInvitationToSponsorsLink") ||
+    !existsSync("app/components/club/SendInvitationToSponsorsLink.tsx")
   ) {
     failed += 1;
     console.error(

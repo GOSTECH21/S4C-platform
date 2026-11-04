@@ -68,9 +68,16 @@ assert(
   "My Admin no longer shows Address Books"
 );
 assert(
-  dashboard.includes("SEND_INVITATION_LABEL") &&
-    dashboard.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH") &&
-    dashboard.includes("data-send-invitation-to-sponsors") &&
+  dashboard.includes("SendInvitationToSponsorsLink") &&
+    dashboard.includes("club-pending-invite") === false &&
+    readFileSync(
+      "app/components/club/SendInvitationToSponsorsLink.tsx",
+      "utf8"
+    ).includes("club-pending-invite-v1") &&
+    readFileSync(
+      "app/components/club/SendInvitationToSponsorsLink.tsx",
+      "utf8"
+    ).includes("sticky bottom-0") &&
     picker.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH") &&
     picker.includes("SEND_INVITATION_LABEL") &&
     picker.includes("in Sponsors") &&
@@ -80,6 +87,9 @@ assert(
 assert(
   preview.includes("ClubSponsorsAddressBooks") &&
     preview.includes("ClubSponsorsListings") &&
+    readFileSync("app/preview/club-pending-invite/page.tsx", "utf8").includes(
+      "SendInvitationToSponsorsLink"
+    ) &&
     overlay.includes('STAMP = "club-sponsors-address-books-v1"') &&
     overlay.includes("git fetch") &&
     overlay.includes("Working folder:") &&
