@@ -8,8 +8,8 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
-const REFS = ["cursor/club-pc-no-phone-frame-18f9", "main", PIN];
+const PIN = "5005f3b";
+const REFS = ["cursor/club-pc-no-phone-frame-18f9", PIN, "main"];
 const BUST = "club-pc-no-phone-pc-1";
 const SELF = "apply-club-pc-no-phone.mjs";
 const FILES = [
@@ -75,7 +75,6 @@ if (process.env.S4P_OVERLAY_SELF !== "1") {
   } else {
     let refreshed = false;
     for (const ref of REFS) {
-      if (ref === "pending") continue;
       const url = rawUrl(ref, SELF);
       try {
         const response = await fetch(url, { cache: "no-store" });
@@ -110,7 +109,6 @@ if (process.env.S4P_OVERLAY_SELF !== "1") {
 async function pull(rel) {
   let lastError = "not found";
   for (const ref of REFS) {
-    if (ref === "pending") continue;
     const url = rawUrl(ref, rel);
     try {
       const response = await fetch(url, { cache: "no-store" });
