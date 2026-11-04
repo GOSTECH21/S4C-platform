@@ -1,4 +1,5 @@
 /* s4p-predict-for-planet-v7 */
+/* p4p-timer-complete-v1 */
 /* p4p-fund-project-v1 */
 /* game-time-slot-heading-v1 */
 /* game-time-sponsored-by-v1 */
@@ -24,6 +25,9 @@ export const P4P_GAME_TIME_SPONSORED_BY_LABEL = "Sponsored By";
 export const P4P_LIVE_CHALLENGE_LABEL = "P4P Live Climate Challenge";
 export const P4P_TAGLINE = "Predict. Participate. Power Climate Action";
 export const P4P_MAKE_PREDICTION_LABEL = "Make your prediction";
+export const P4P_WINDOW_TIMER_LABEL = "5-minute timer";
+export const P4P_SLOT_COMPLETE_LABEL = "COMPLETE";
+export const P4P_AWAITING_NEW_SPONSORED_LABEL = "Awaiting New Sponsored P4P";
 export const P4P_CHOOSE_PROJECT_LABEL = "Choose your climate project";
 export const P4P_FUND_PROJECT_LABEL = "Fund your Project";
 export const P4P_MATCH_DAY_IMPACT_LABEL = "Your Match Day Impact";
@@ -308,6 +312,35 @@ export function p4pWindowCountdown(
   };
 }
 
+/** Local calendar day of a kickoff or login, e.g. 2026-11-07. */
+export function p4pCalendarDayKey(value: Date | string): string {
+  const date = toDate(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+/** True when the fan opens P4P on a calendar day after Match Day. */
+export function p4pIsAfterMatchDay(
+  kickoffAt: Date | string,
+  now: Date | string = new Date()
+): boolean {
+  return p4pCalendarDayKey(now) > p4pCalendarDayKey(kickoffAt);
+}
+
+/** A 30-minute Game-Time slot is fully played once all six 5-minute windows have ended. */
+export function gameTimeSlotWindowsEnded(
+  kickoffAt: Date | string,
+  slotIndex: number,
+  now: Date | string = new Date()
+): boolean {
+  const windows = windowsForGameTimeSlot(slotIndex);
+  return (
+    windows.length === P4P_WINDOWS_PER_SLOT &&
+    windows.every(
+      (row) => p4pWindowCountdown(kickoffAt, row, now).state === "ended"
+    )
+  );
+}
+
 export function windowForMinute(minute: number): P4pWindow | null {
   const windows = p4pWindows();
   const clamped = Math.max(0, Math.min(GAME_TIME_DURATION_MINUTES - 0.001, Number(minute) || 0));
@@ -510,9 +543,12 @@ function rankSponsoredWallets(
 /** The Match P4P is played on: a Game-Time Sponsor deposited into its Carbon Wallet. */
 export function pickSponsoredGameTimeMatch(
   wallets: GameTimeWallet[],
-  preferredClubNames: string[] = []
+  preferredClubNames: string[] = [],
+  now: Date | string = new Date()
 ): SponsoredGameTimeMatch | null {
-  const deposited = depositedGameTimeWallets(wallets);
+  const deposited = depositedGameTimeWallets(wallets).filter(
+    (row) => !p4pIsAfterMatchDay(row.kickoffAt, now)
+  );
   if (deposited.length === 0) return null;
   const withCash = deposited.filter((row) => remainingGameTimeGbp(row) > 0);
   const pool = withCash.length > 0 ? withCash : deposited;
@@ -520,7 +556,7 @@ export function pickSponsoredGameTimeMatch(
     isPreferredSponsoredMatch(row, preferredClubNames)
   );
   const ranked = [...(preferred.length > 0 ? preferred : pool)].sort((left, right) =>
-    rankSponsoredWallets(left, right, preferredClubNames)
+    rankSponsoredWallets(left, right, preferredClubNames, now)
   );
   return ranked[0] ? toSponsoredGameTimeMatch(ranked[0]) : null;
 }
@@ -667,6 +703,49 @@ export function alreadyPredictedWindow(
       normalizeP4pKey(row.fanId) === fan &&
       gameTimeFixtureMatches(row.fixtureName, fixtureName) &&
       row.windowIndex === windowIndex
+  );
+}
+
+/** True when this fan has submitted a prediction in every 5-minute window of the slot. */
+export function gameTimeSlotPredictionsPlayed(
+  predictions: P4pPrediction[],
+  fanId: string,
+  fixtureName: string,
+  slotIndex: number
+): boolean {
+  const windows = windowsForGameTimeSlot(slotIndex);
+  return (
+    windows.length === P4P_WINDOWS_PER_SLOT &&
+    windows.every((row) =>
+      alreadyPredictedWindow(predictions, fanId, fixtureName, row.index)
+    )
+  );
+}
+
+/** Mark a Game-Time slot COMPLETE once all six 5-minute intervals have been played. */
+export function gameTimeSlotIsComplete(input: {
+  kickoffAt: Date | string;
+  slotIndex: number;
+  now?: Date | string;
+  predictions?: P4pPrediction[];
+  fanId?: string;
+  fixtureName?: string;
+}): boolean {
+  if (
+    gameTimeSlotWindowsEnded(
+      input.kickoffAt,
+      input.slotIndex,
+      input.now ?? new Date()
+    )
+  ) {
+    return true;
+  }
+  if (!input.predictions || !input.fanId || !input.fixtureName) return false;
+  return gameTimeSlotPredictionsPlayed(
+    input.predictions,
+    input.fanId,
+    input.fixtureName,
+    input.slotIndex
   );
 }
 

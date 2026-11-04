@@ -3,6 +3,8 @@ import {
   P4P_PARTICIPATION_GBP,
   P4P_PREDICT_NEXT_LABEL,
   P4P_WINDOW_MINUTES,
+  P4P_WINDOW_TIMER_LABEL,
+  formatP4pClock,
   p4pAdvanceSlotBoard,
   p4pBankSlotIfComplete,
   p4pCyclingWindowClock,
@@ -90,16 +92,20 @@ assert(
 
 assert(
     play.includes("P4P_PREDICT_NEXT_LABEL") &&
-    play.includes('countdown?.state === "ended"') &&
-    play.includes("countdown?.remainingSeconds === 0") &&
+    play.includes('countdown?.state !== "ended"') &&
     play.includes("currentIndex + 1") &&
     play.includes("h-28 w-28") &&
     play.includes("text-base font-black") &&
+    play.includes('data-testid="p4p-slot-timer"') &&
+    play.includes("P4P_WINDOW_TIMER_LABEL") &&
+    play.includes("formatP4pClock") &&
+    P4P_WINDOW_TIMER_LABEL === "5-minute timer" &&
+    formatP4pClock(210) === "3:30" &&
     preview.includes("P4P_GAME_TIME_PREDICT_LABEL") &&
     preview.includes('data-testid="p4p-sponsored-by"') &&
     !play.includes("What happens next?") &&
     !preview.includes("What happens next?"),
-  "Play uses Predict what happens next; the Game-Time board uses What Fans will predict on"
+  "Play uses Predict what happens next and a 5-minute countdown timer"
 );
 
 if (failures.length > 0) {

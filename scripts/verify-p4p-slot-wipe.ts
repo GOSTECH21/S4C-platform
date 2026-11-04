@@ -40,7 +40,7 @@ assert(
     phone.includes("p4pAdvanceSlotBoard") &&
     phone.includes("p4pBankSlotIfComplete") &&
     phone.includes("board.walletGbp") &&
-    play.includes("countdown?.remainingSeconds === 0") &&
+    play.includes('countdown?.state !== "ended"') &&
     play.includes("fanCarbonWalletFromPredictions"),
   "The live board wipes picks at the end of a 5-minute slot and keeps cumulative winnings"
 );

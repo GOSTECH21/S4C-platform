@@ -1,5 +1,6 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
+/* p4p-timer-complete-v1 */
 /* p4p-stay-on-tab-v1 */
 /* p4p-public-board-v1 */
 /* p4p-fund-project-v1 */
@@ -9,6 +10,7 @@ import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_SLOT_COUNT,
+  P4P_AWAITING_NEW_SPONSORED_LABEL,
   P4P_CATEGORIES,
   P4P_CHOOSE_PROJECT_LABEL,
   FAN_CARBON_WALLET_LABEL,
@@ -24,16 +26,22 @@ import {
   P4P_POWERED_BY_LABEL,
   P4P_PREDICT_NEXT_LABEL,
   P4P_PREDICTIONS_PER_WINDOW,
+  P4P_SLOT_COMPLETE_LABEL,
   P4P_TAGLINE,
+  P4P_WINDOW_TIMER_LABEL,
   alreadyPredictedWindow,
   fanCarbonWalletFromPredictions,
+  formatP4pClock,
   p4pMatchIsFullTime,
   firstFundedWindowIndex,
   formatP4pGbp,
   gameTimeFixtureMatches,
+  gameTimeSlotIsComplete,
   gameTimeSlotShortLabel,
   gameTimeSlots,
+  gameTimeWalletMatchesMatch,
   isWindowInGameTimeSlot,
+  p4pIsAfterMatchDay,
   p4pLiveChallenge,
   p4pPredictionAmounts,
   p4pWindowCountdown,
@@ -63,13 +71,20 @@ export function PredictForPlanetPlay({
   preferredClubNames = [],
   projects = P4P_FALLBACK_PROJECTS,
   seedWallet,
+  forceAwaiting = false,
 }: {
   fanId: string;
   clubName?: string;
   fixtureName?: string;
   preferredClubNames?: string[];
   projects?: string[];
-  seedWallet?: { brandName: string; amountGbp: number };
+  seedWallet?: {
+    brandName: string;
+    amountGbp: number;
+    kickoffAt?: string;
+    slotIndex?: number;
+  };
+  forceAwaiting?: boolean;
 }) {
   const slots = useMemo(() => gameTimeSlots(), []);
   const [windowIndex, setWindowIndex] = useState(0);
@@ -95,11 +110,18 @@ export function PredictForPlanetPlay({
     return () => window.clearInterval(id);
   }, []);
 
+  const seedKickoff = seedWallet?.kickoffAt;
+  const seedSlotIndex = seedWallet?.slotIndex;
+
   useEffect(() => {
     if (!hydrated || !shouldSeed || !seedBrand || !clubName || !fixtureName) return;
-    const kickoffAt = new Date().toISOString();
+    const kickoffAt = seedKickoff || new Date().toISOString();
+    const slots =
+      seedSlotIndex === undefined
+        ? Array.from({ length: GAME_TIME_SLOT_COUNT }, (_, index) => index)
+        : [seedSlotIndex];
     let seeded = false;
-    for (let slotIndex = 0; slotIndex < GAME_TIME_SLOT_COUNT; slotIndex += 1) {
+    for (const slotIndex of slots) {
       const existing = gameTimeWalletForSlot({
         clubName,
         fixtureName,
@@ -116,21 +138,54 @@ export function PredictForPlanetPlay({
       });
       seeded = true;
     }
-    if (seeded) setTick((value) => value + 1);
-  }, [clubName, fixtureName, hydrated, seedAmount, seedBrand, shouldSeed]);
+    if (seeded) {
+      setNow(new Date());
+      setTick((value) => value + 1);
+    }
+  }, [
+    clubName,
+    fixtureName,
+    hydrated,
+    seedAmount,
+    seedBrand,
+    seedKickoff,
+    seedSlotIndex,
+    shouldSeed,
+  ]);
 
   const wallets = hydrated ? listGameTimeWallets() : [];
-  const sponsored =
-    pickSponsoredGameTimeMatch(wallets, preferredClubNames) ??
-    (hydrated && shouldSeed && clubName && fixtureName
-      ? {
-          clubName,
-          fixtureName,
-          brandName: seedBrand,
-          remainingGbp: seedAmount,
-          slotIndex: 0,
-        }
-      : null);
+  const seededWallets =
+    shouldSeed && clubName && fixtureName
+      ? wallets.filter((row) =>
+          gameTimeWalletMatchesMatch(row, clubName, fixtureName)
+        )
+      : [];
+  const sponsoredFromSeed =
+    shouldSeed && clubName && fixtureName
+      ? pickSponsoredGameTimeMatch(
+          seededWallets,
+          preferredClubNames.length > 0 ? preferredClubNames : [clubName],
+          now
+        )
+      : null;
+  const seedStillMatchDay =
+    shouldSeed &&
+    clubName &&
+    fixtureName &&
+    !p4pIsAfterMatchDay(seedKickoff || new Date(), now);
+  const sponsored = forceAwaiting
+    ? null
+    : sponsoredFromSeed ??
+      pickSponsoredGameTimeMatch(wallets, preferredClubNames, now) ??
+      (hydrated && seedStillMatchDay
+        ? {
+            clubName,
+            fixtureName,
+            brandName: seedBrand,
+            remainingGbp: seedAmount,
+            slotIndex: seedSlotIndex ?? 0,
+          }
+        : null);
   const liveClub = sponsored?.clubName ?? "";
   const liveFixture = sponsored?.fixtureName ?? "";
   const slotIndex = sponsored?.slotIndex ?? 0;
@@ -176,6 +231,17 @@ export function PredictForPlanetPlay({
   const fullTime = Boolean(
     wallet && p4pMatchIsFullTime(wallet.kickoffAt, now)
   );
+  const slotComplete = Boolean(
+    wallet &&
+      gameTimeSlotIsComplete({
+        kickoffAt: wallet.kickoffAt,
+        slotIndex,
+        now,
+        predictions,
+        fanId,
+        fixtureName: liveFixture,
+      })
+  );
   const alreadyInWindow = alreadyPredictedWindow(
     predictions,
     fanId,
@@ -183,20 +249,22 @@ export function PredictForPlanetPlay({
     playWindow?.index ?? 0
   );
   const windowAllowed = isWindowInGameTimeSlot(playWindow?.index ?? -1, slotIndex);
+  const countdown = wallet && playWindow
+    ? p4pWindowCountdown(wallet.kickoffAt, playWindow, now)
+    : null;
   const canPredict = Boolean(
     wallet &&
       remaining > 0 &&
       categoryIds.length === P4P_PREDICTIONS_PER_WINDOW &&
       projectName &&
       windowAllowed &&
-      !alreadyInWindow
+      !alreadyInWindow &&
+      !slotComplete &&
+      countdown?.state !== "ended"
   );
   const canFundProject = Boolean(projectName) && fanWallet.totalGbp > 0;
   const challenge = wallet
     ? p4pLiveChallenge(wallet, allPredictions)
-    : null;
-  const countdown = wallet && playWindow
-    ? p4pWindowCountdown(wallet.kickoffAt, playWindow, now)
     : null;
   void tick;
 
@@ -220,9 +288,7 @@ export function PredictForPlanetPlay({
 
   useEffect(() => {
     if (fullTime) return;
-    const slotOver =
-      countdown?.state === "ended" || countdown?.remainingSeconds === 0;
-    if (!slotOver) return;
+    if (countdown?.state !== "ended") return;
     setCategoryIds((current) => (current.length === 0 ? current : []));
     setNotice(null);
     setError(null);
@@ -323,8 +389,20 @@ export function PredictForPlanetPlay({
     )
   );
 
-  if (!hydrated || !sponsored) {
+  if (!hydrated) {
     return null;
+  }
+
+  if (!sponsored) {
+    return (
+      <section
+        data-testid="p4p-awaiting-sponsored"
+        data-p4p-awaiting="p4p-timer-complete-v1"
+        className="rounded-2xl border border-emerald-700/30 bg-white p-6 text-center text-slate-950"
+      >
+        <h2 className="text-3xl font-black">{P4P_AWAITING_NEW_SPONSORED_LABEL}</h2>
+      </section>
+    );
   }
 
   return (
@@ -344,6 +422,14 @@ export function PredictForPlanetPlay({
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               Game-Time Sponsor · {gameTimeSlotShortLabel(slot)}
+              {slotComplete ? (
+                <span
+                  data-testid="p4p-slot-complete"
+                  className="ml-2 inline-flex items-center rounded-full bg-s4p-mark px-2 py-0.5 text-xs font-black tracking-[0.12em] text-black"
+                >
+                  {P4P_SLOT_COMPLETE_LABEL}
+                </span>
+              ) : null}
             </p>
           </div>
         ) : null}
@@ -353,9 +439,47 @@ export function PredictForPlanetPlay({
             {P4P_TAGLINE}
           </p>
         </div>
+        {countdown ? (
+          <div
+            data-p4p-slot-timer="p4p-timer-complete-v1"
+            data-testid="p4p-slot-timer"
+            data-p4p-timer-state={countdown.state}
+            data-p4p-remaining={String(countdown.remainingSeconds)}
+            aria-live="polite"
+            className={`mt-4 rounded-2xl border-2 px-4 py-4 ${
+              countdown.state === "live"
+                ? "border-emerald-700 bg-emerald-50"
+                : countdown.state === "upcoming"
+                  ? "border-slate-300 bg-white"
+                  : "border-slate-300 bg-slate-100"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-800">
+                  {P4P_WINDOW_TIMER_LABEL}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">
+                  {playWindow?.label}
+                  {slotComplete ? ` · ${P4P_SLOT_COMPLETE_LABEL}` : ""}
+                </p>
+              </div>
+              <p className="shrink-0 text-5xl font-black tabular-nums leading-none text-emerald-900">
+                {formatP4pClock(countdown.remainingSeconds)}
+              </p>
+            </div>
+            <p
+              data-testid="p4p-slot-countdown"
+              className="mt-3 text-sm font-black text-slate-800"
+            >
+              {slotComplete ? P4P_SLOT_COMPLETE_LABEL : countdown.label}
+            </p>
+          </div>
+        ) : null}
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="block min-w-0 flex-1 text-sm font-semibold text-slate-700">
             5-minute slot
+            {slotComplete ? ` · ${P4P_SLOT_COMPLETE_LABEL}` : ""}
             <select
               value={playWindow?.index ?? 0}
               onChange={(event) => setWindowIndex(Number(event.target.value))}
@@ -372,25 +496,12 @@ export function PredictForPlanetPlay({
                   <option key={row.index} value={row.index}>
                     {row.label} · Game-Time {slot?.label}
                     {predicted ? " · predicted" : ""}
+                    {slotComplete ? ` · ${P4P_SLOT_COMPLETE_LABEL}` : ""}
                   </option>
                 );
               })}
             </select>
           </label>
-          {countdown ? (
-            <p
-              data-testid="p4p-slot-countdown"
-              className={`rounded-2xl border px-4 py-3 text-center text-sm font-black tabular-nums ${
-                countdown.state === "live"
-                  ? "border-emerald-700 bg-emerald-50 text-emerald-900"
-                  : countdown.state === "upcoming"
-                    ? "border-slate-300 bg-white text-slate-800"
-                    : "border-slate-300 bg-slate-100 text-slate-600"
-              }`}
-            >
-              {countdown.label}
-            </p>
-          ) : null}
         </div>
         <div className="mt-3">
           <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">
@@ -451,9 +562,11 @@ export function PredictForPlanetPlay({
           disabled={!canPredict}
           className="mt-5 w-full rounded-xl border border-transparent bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:border-slate-400 disabled:bg-slate-200 disabled:text-slate-800"
         >
-          {alreadyInWindow
-            ? "Already chosen 3 events this 5-minute slot"
-            : `Predict 3 events · ${formatP4pGbp(P4P_PARTICIPATION_GBP)} participation`}
+          {slotComplete
+            ? `This Game-Time slot is ${P4P_SLOT_COMPLETE_LABEL}`
+            : alreadyInWindow
+              ? "Already chosen 3 events this 5-minute slot"
+              : `Predict 3 events · ${formatP4pGbp(P4P_PARTICIPATION_GBP)} participation`}
         </button>
         {error ? (
           <p role="alert" className="mt-3 rounded-xl border border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-800">

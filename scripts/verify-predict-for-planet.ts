@@ -43,8 +43,13 @@ import {
   p4pCyclingWindowClock,
   p4pEmptySlotBoard,
   p4pWindowCountdown,
+  p4pIsAfterMatchDay,
+  gameTimeSlotIsComplete,
+  gameTimeSlotWindowsEnded,
   P4P_PREDICT_NEXT_LABEL,
   P4P_GAME_TIME_PREDICT_LABEL,
+  P4P_AWAITING_NEW_SPONSORED_LABEL,
+  P4P_SLOT_COMPLETE_LABEL,
 } from "../app/lib/predict-for-planet";
 import {
   GAME_TIME_SPONSORSHIP_RANGE_LABEL,
@@ -497,6 +502,33 @@ assert(
   endedClock.state === "ended",
   "A 20–25 minute window has ended once the Game is in the 30–60 slot"
 );
+const matchDay = new Date("2026-11-07T15:00:00");
+const nextLogin = new Date("2026-11-08T09:00:00");
+assert(
+  P4P_AWAITING_NEW_SPONSORED_LABEL === "Awaiting New Sponsored P4P" &&
+    P4P_SLOT_COMPLETE_LABEL === "COMPLETE" &&
+    !p4pIsAfterMatchDay(matchDay, new Date("2026-11-07T22:00:00")) &&
+    p4pIsAfterMatchDay(matchDay, nextLogin),
+  "The day after Match Day P4P awaits a new sponsored slot"
+);
+assert(
+  gameTimeSlotWindowsEnded(
+    kickoff,
+    1,
+    new Date("2026-08-15T16:00:00.000Z")
+  ) &&
+    gameTimeSlotIsComplete({
+      kickoffAt: kickoff,
+      slotIndex: 1,
+      now: new Date("2026-08-15T16:00:00.000Z"),
+    }) &&
+    !gameTimeSlotWindowsEnded(
+      kickoff,
+      1,
+      new Date("2026-08-15T15:32:00.000Z")
+    ),
+  "A 30–60 Game-Time slot is COMPLETE after its six 5-minute intervals have been played"
+);
 const fifteenClock = p4pCyclingWindowClock(new Date(15 * 60 * 1000));
 const twentyClock = p4pCyclingWindowClock(new Date(20 * 60 * 1000));
 assert(
@@ -670,7 +702,12 @@ assert(
     play.includes("P4P_CHOOSE_PROJECT_LABEL") &&
     play.includes("Predict 3 events ·") &&
     play.includes("pickSponsoredGameTimeMatch") &&
-    play.includes("if (!hydrated || !sponsored)") &&
+    play.includes('data-testid="p4p-awaiting-sponsored"') &&
+    play.includes("P4P_AWAITING_NEW_SPONSORED_LABEL") &&
+    play.includes("p4p-timer-complete-v1") &&
+    play.includes('data-testid="p4p-slot-timer"') &&
+    play.includes("P4P_SLOT_COMPLETE_LABEL") &&
+    play.includes("formatP4pClock") &&
     !play.includes("No Game-Time Sponsor has funded a Match yet") &&
     play.includes("P4P_POWERED_BY_LABEL") &&
     play.includes("P4P_TAGLINE") &&
@@ -686,8 +723,7 @@ assert(
     play.includes("hydrated") &&
     play.includes('data-testid="p4p-powered-by"') &&
     play.includes("P4P_PREDICT_NEXT_LABEL") &&
-    play.includes('countdown?.state === "ended"') &&
-    play.includes("countdown?.remainingSeconds === 0") &&
+    play.includes('countdown?.state !== "ended"') &&
     play.includes("fanCarbonWalletFromPredictions") &&
     play.includes("currentIndex + 1") &&
     play.includes("s4p-predict-for-planet-v7") &&
