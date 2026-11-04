@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "7e7d67a";
 const REFS = ["cursor/p4p-rename-game-time-18f9", "main", PIN];
 const BUST = "p4p-rename-game-time-1";
 const STAMP = "p4p-rename-game-time-v1";
