@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "483307b";
 const REFS = ["cursor/how-s4p-mobile-pc-18f9", "main", PIN];
 const BUST = "how-s4p-mobile-pc-1";
 const STAMP = "how-s4p-mobile-pc-v1";
