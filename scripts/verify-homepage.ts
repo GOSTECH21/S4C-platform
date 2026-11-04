@@ -406,9 +406,10 @@ assert(
 assert(
   front.includes("<HowItWorks") &&
     front.indexOf("<HowItWorks") < front.indexOf("<HomeRoleSection") &&
-    front.includes("hidden md:block") &&
-    front.includes('data-how-s4p-desktop="true"'),
-  "How S4P Works sits above the role cards on desktop and is hidden on mobile"
+    front.includes('data-how-s4p-mobile-pc="how-s4p-mobile-pc-v1"') &&
+    !front.includes("hidden md:block") &&
+    !front.includes('data-how-s4p-desktop="true"'),
+  "How S4P Works sits above the role cards on mobile and PC"
 );
 assert(
     front.includes("HomeJoinMission") &&
@@ -688,7 +689,9 @@ assert(
     howItWorks.includes('"Scan QR to join"') &&
     howItWorks.includes("unoptimized") &&
     howItWorks.includes("{HOW_S4P_ACCESS_JOIN.title}") &&
-    howItWorks.includes("hidden md:block") &&
+    howItWorks.includes("how-s4p-mobile-pc-v1") &&
+    !howItWorks.includes("hidden md:block") &&
+    howItWorks.includes("order-2 mx-auto max-w-[18rem] lg:order-1") &&
     howItWorks.includes("data-phone-frame") &&
     howItWorks.includes("PHONE_COLUMN_CLASS") &&
     !howItWorks.includes("1. {") &&

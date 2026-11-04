@@ -1,4 +1,5 @@
 "use client";
+/* how-s4p-mobile-pc-v1 */
 /* how-s4p-split-steps-v1 */
 
 import Image from "next/image";
@@ -62,7 +63,7 @@ export default function HowItWorks({
     <section id="how-s4p-works" className="overflow-x-hidden pb-8 md:pb-12">
       <div className="border-y border-emerald-400/20">
         <div className="mx-auto max-w-[1600px] px-5 py-5 md:px-10 xl:py-5">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto max-w-3xl text-center text-slate-950">
             <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl xl:text-[2.4rem]">
               How S<span style={{ color: MARK_GREEN }}>4</span>P Works
             </h2>
@@ -85,11 +86,12 @@ export default function HowItWorks({
       >
         <div
           data-how-s4p-access-join
-          className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 sm:px-6 sm:py-8 md:px-8"
+          data-how-s4p-mobile-pc="how-s4p-mobile-pc-v1"
+          className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8"
         >
           <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
             <div
-              className={`${PHONE_COLUMN_CLASS} hidden md:block`}
+              className={`${PHONE_COLUMN_CLASS} order-2 mx-auto max-w-[18rem] lg:order-1`}
               data-phone-column
             >
               <Image
@@ -97,7 +99,7 @@ export default function HowItWorks({
                 alt={HOW_S4P_ACCESS_JOIN.alt}
                 width={HOW_S4P_ACCESS_JOIN.width}
                 height={HOW_S4P_ACCESS_JOIN.height}
-                className="pointer-events-none hidden h-auto w-full md:block"
+                className="pointer-events-none h-auto w-full"
                 unoptimized
                 priority
                 data-phone-frame
@@ -114,7 +116,7 @@ export default function HowItWorks({
                 />
               ))}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="order-1 min-w-0 flex-1 lg:order-2">
               <h3 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
                 {HOW_S4P_ACCESS_JOIN.title}
               </h3>
