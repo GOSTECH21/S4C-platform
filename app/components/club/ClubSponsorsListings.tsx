@@ -1,14 +1,9 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
-import {
-  CLUB_EXISTING_SPONSORS_ID,
-  CLUB_SELECT_PROJECTS_PATH,
-  CLUB_SPONSOR_LEADERBOARD_PATH,
-} from "@/app/lib/routes";
+import { CLUB_EXISTING_SPONSORS_ID } from "@/app/lib/routes";
 import {
   GLOBAL_BRANDS_TAB_LABEL,
   inviteSelectionCountCopy,
@@ -63,8 +58,6 @@ type DirectoryTab = SponsorListingKind;
 
 export function ClubSponsorsListings({
   clubName,
-  matchLabel,
-  projectNames,
   projectCount,
   listings,
   round,
@@ -98,34 +91,6 @@ export function ClubSponsorsListings({
       </p>
       <h1 className="mt-2 text-4xl font-black">{SPONSORS_SECTION_TITLE}</h1>
       <p className="mt-3 max-w-3xl text-slate-300">{sponsorsSectionIntroCopy()}</p>
-      <p className="mt-3 text-sm text-slate-400">
-        Match Day: {matchLabel}.{" "}
-        {ready
-          ? `${projectCount} Climate Projects chosen${
-              projectNames.length ? ` — ${projectNames.join(", ")}` : ""
-            }.`
-          : `Choose ${MATCH_DAY_PROJECT_COUNT} Climate Projects first.`}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <Link
-          href={CLUB_SELECT_PROJECTS_PATH}
-          className="rounded-xl border border-blue-400/40 px-4 py-2 text-sm font-semibold text-blue-200 hover:bg-blue-500/10"
-        >
-          Choose Projects
-        </Link>
-        <a
-          href={`#${CLUB_EXISTING_SPONSORS_ID}`}
-          className="rounded-xl border border-emerald-400/40 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10"
-        >
-          {EXISTING_SPONSORS_HEADING}
-        </a>
-        <Link
-          href={CLUB_SPONSOR_LEADERBOARD_PATH}
-          className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:border-green-400"
-        >
-          Sponsor Leaderboard
-        </Link>
-      </div>
 
       {round?.lockedBrandName && (
         <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-200">

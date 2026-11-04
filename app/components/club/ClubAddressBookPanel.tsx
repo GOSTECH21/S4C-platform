@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import {
+  clubAddressBookPrompt,
   clubAddressBookSubtitle,
   clubAddressBookTitle,
   deleteClubAddressBookContact,
@@ -32,6 +33,7 @@ export default function ClubAddressBookPanel({
   const [error, setError] = useState<string | null>(null);
   const title = useMemo(() => clubAddressBookTitle(kind), [kind]);
   const subtitle = useMemo(() => clubAddressBookSubtitle(kind), [kind]);
+  const prompt = useMemo(() => clubAddressBookPrompt(kind), [kind]);
 
   function update<K extends keyof typeof EMPTY_FORM>(
     field: K,
@@ -67,21 +69,9 @@ export default function ClubAddressBookPanel({
         {title}
       </p>
       <h2 className="mt-2 text-2xl font-black">{subtitle}</h2>
-      <p className="mt-2 text-sm text-slate-400">
-        Name, email, business name and telephone for the Sustainability
-        Director&apos;s preferred{" "}
-        {kind === "lead"
-          ? "Lead Climate Sponsors"
-          : "Local Business Climate Sponsors"}
-        .
-      </p>
+      <p className="mt-2 text-sm text-slate-400">{prompt}</p>
 
-      {contacts.length === 0 ? (
-        <p className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-5 text-slate-400">
-          No contacts yet. Add the people you want to invite from this Address
-          Book.
-        </p>
-      ) : (
+      {contacts.length === 0 ? null : (
         <ul className="mt-6 space-y-3">
           {contacts.map((contact) => (
             <li

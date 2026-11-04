@@ -267,7 +267,9 @@ assert(
       "Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
     ) &&
     sponsorsSectionIntroCopy().includes("Address Book 1") &&
-    sponsorsSectionIntroCopy().includes("Send Invitations"),
+    sponsorsSectionIntroCopy().includes("Send Invitations") &&
+    !sponsorsSectionIntroCopy().includes("based on (i)") &&
+    !sponsorsSectionIntroCopy().includes("committed amount"),
   "Club copy sends the SD from chosen projects to Address Books and Send Invitations"
 );
 

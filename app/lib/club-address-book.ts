@@ -32,6 +32,12 @@ export function clubAddressBookSubtitle(kind: ClubAddressBookKind): string {
     : CLUB_ADDRESS_BOOK_2_SUBTITLE;
 }
 
+export function clubAddressBookPrompt(kind: ClubAddressBookKind): string {
+  return kind === "lead"
+    ? "Enter details of New Lead Climate Sponsors"
+    : "Enter details of New Local Business Climate Sponsors";
+}
+
 function clean(value: string | null | undefined): string {
   return String(value ?? "").trim();
 }

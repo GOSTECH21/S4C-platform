@@ -58,7 +58,19 @@ assert(
     books.includes("club-sponsors-address-books-v1") &&
     books.includes('kind="lead"') &&
     books.includes('kind="local"') &&
-    books.includes("Go to"),
+    books.includes("Register New Sponsors") &&
+    books.includes("Go to") &&
+    !books.includes("Address Books") &&
+    !listings.includes("Choose Projects") &&
+    !listings.includes("Sponsor Leaderboard") &&
+    !listings.includes("Match Day:") &&
+    readFileSync(
+      "app/components/club/ClubAddressBookPanel.tsx",
+      "utf8"
+    ).includes("clubAddressBookPrompt") &&
+    readFileSync("app/lib/club-address-book.ts", "utf8").includes(
+      "Enter details of New Lead Climate Sponsors"
+    ),
   "Sponsors holds Address Book registration and Existing Sponsors for Lead and Local"
 );
 assert(

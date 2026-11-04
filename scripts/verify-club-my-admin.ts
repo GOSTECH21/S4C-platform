@@ -13,6 +13,7 @@ import {
 } from "../app/lib/partner-projects";
 import {
   clubAddressBookListingId,
+  clubAddressBookPrompt,
   clubAddressBookSubtitle,
   clubAddressBookTitle,
   normalizeContact,
@@ -121,6 +122,10 @@ assert(
     clubAddressBookTitle("lead") === "Address Book 1" &&
     clubAddressBookTitle("local") === "Address Book 2" &&
     clubAddressBookSubtitle("lead").includes("Lead Climate Sponsors") &&
+    clubAddressBookPrompt("lead") ===
+      "Enter details of New Lead Climate Sponsors" &&
+    clubAddressBookPrompt("local") ===
+      "Enter details of New Local Business Climate Sponsors" &&
     clubAddressBookSubtitle("local").includes("Local Business") &&
     sponsorListingFromAddressBookContact(contact!, "lead").kind === "global" &&
     sponsorListingFromAddressBookContact(contact!, "local").kind === "local" &&
