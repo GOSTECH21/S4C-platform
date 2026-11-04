@@ -63,12 +63,18 @@ assert(
 );
 assert(
   overlay.includes("club-pc-no-phone-frame-v1") &&
+    overlay.includes('BUST = "club-pc-no-phone-pc-2"') &&
     overlay.includes("git fetch") &&
     overlay.includes("Working folder:") &&
     overlay.includes('rmSync(".next"') &&
+    overlay.includes("apply-club-pc-no-phone.ps1") &&
+    overlay.includes("s4-c-platform.vercel.app/preview/club-select-match") &&
     overlay.includes("app/components/home/PhoneFrame.tsx") &&
     overlay.includes("app/components/home/SelectMatchFixtures.tsx") &&
-    overlay.includes("app/components/home/HowS4pSelectMatch.tsx"),
+    overlay.includes("app/components/home/HowS4pSelectMatch.tsx") &&
+    readFileSync("apply-club-pc-no-phone.ps1", "utf8").includes(
+      "git checkout origin/main"
+    ),
   "PC overlay pulls the unframed Club fixture list and clears Next.js cache"
 );
 

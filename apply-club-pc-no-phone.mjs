@@ -8,9 +8,9 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "5005f3b";
-const REFS = ["cursor/club-pc-no-phone-frame-18f9", PIN, "main"];
-const BUST = "club-pc-no-phone-pc-1";
+const PIN = "67245e2";
+const REFS = ["main", "cursor/club-pc-no-phone-frame-18f9", PIN];
+const BUST = "club-pc-no-phone-pc-2";
 const SELF = "apply-club-pc-no-phone.mjs";
 const FILES = [
   "app/components/home/PhoneFrame.tsx",
@@ -18,6 +18,7 @@ const FILES = [
   "app/components/home/HowS4pSelectMatch.tsx",
   "app/lib/how-s4p-works.ts",
   "app/preview/club-select-match/page.tsx",
+  "apply-club-pc-no-phone.ps1",
   "scripts/verify-club-pc-no-phone.ts",
   "scripts/verify-how-s4p-split.ts",
   "scripts/verify-club-my-admin.ts",
@@ -25,6 +26,9 @@ const FILES = [
 ];
 
 console.log("Working folder:", process.cwd());
+console.log(
+  "LIVE page (no local files needed): https://s4-c-platform.vercel.app/preview/club-select-match"
+);
 if (!existsSync("app/club/dashboard/page.tsx")) {
   console.error(
     "This is not the S4C-platform folder. cd into the folder that contains app/club/dashboard/page.tsx, then run this script again."
@@ -186,11 +190,13 @@ if (existsSync(frame) && existsSync(fixtures) && existsSync(select)) {
 
 if (failed) process.exit(1);
 console.log(
-  "OK: Club Select Match on PC is a fixture list without the phone bezel, and Select this Match is larger."
+  "OK: this folder now has the fixture list without the phone bezel."
 );
+console.log("If you still see a phone, this is not the folder npm run dev is using.");
 console.log("1. Stop npm run dev (Ctrl+C)");
 console.log("2. Run npm run dev again");
-console.log("3. Hard-refresh (Ctrl+F5)");
+console.log("3. Hard-refresh the Club dashboard (Ctrl+F5)");
 console.log(
-  "4. Or open https://s4-c-platform.vercel.app/preview/club-select-match on this PC to see the live page without local files"
+  "Or skip local files and open https://s4-c-platform.vercel.app/preview/club-select-match"
 );
+console.log("Club login: https://s4-c-platform.vercel.app/club/login");
