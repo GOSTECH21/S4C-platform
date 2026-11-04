@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "b1dd5b5";
 const REFS = ["cursor/p4p-timer-complete-18f9", "main", PIN];
 const BUST = "p4p-timer-complete-1";
 const STAMP = "p4p-timer-complete-v1";
