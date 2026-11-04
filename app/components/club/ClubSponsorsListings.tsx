@@ -11,13 +11,11 @@ import {
 } from "@/app/lib/routes";
 import {
   GLOBAL_BRANDS_TAB_LABEL,
-  GLOBAL_BRAND_INVITE_COUNT,
+  inviteSelectionCountCopy,
+  meetsInviteMinimum,
   GLOBAL_INVITE_SUBJECT,
-  GLOBAL_INVITE_WINDOW_HOURS,
   GLOBAL_MATCH_SPONSORSHIP_RANGES,
-  GLOBAL_SPONSORS_ACCEPTED_PER_MATCH,
   MATCH_SPONSORSHIP_RANGE_LABEL,
-  LOCAL_BUSINESS_INVITE_COUNT,
   LOCAL_BUSINESS_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
   LOCAL_SPONSORSHIP_AMOUNT_RANGES,
@@ -57,7 +55,6 @@ export type ClubSponsorsListingsProps = {
   selectedLocalIds: string[];
   onToggle: (listing: SponsorListing) => void;
   onInvite: (kind: SponsorListingKind) => void;
-  onInviteAll?: () => void;
   initialTab?: SponsorListingKind;
   children?: ReactNode;
 };
@@ -79,7 +76,6 @@ export function ClubSponsorsListings({
   selectedLocalIds,
   onToggle,
   onInvite,
-  onInviteAll,
   initialTab = "global",
   children,
 }: ClubSponsorsListingsProps) {
@@ -189,7 +185,6 @@ export function ClubSponsorsListings({
           copy={globalInviteCountCopy()}
           rows={globals}
           selectedIds={selectedGlobalIds}
-          expected={GLOBAL_BRAND_INVITE_COUNT}
           ready={ready}
           sending={sending}
           inviteLabel={SEND_INVITATIONS_LABEL}
@@ -197,7 +192,6 @@ export function ClubSponsorsListings({
           error={noticeKind === "local" ? null : error}
           onToggle={onToggle}
           onInvite={() => onInvite("global")}
-          extra={`Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Sponsor is accepted within ${GLOBAL_INVITE_WINDOW_HOURS} hours, at the highest committed amount.`}
         />
       ) : (
         <DirectoryPanel
@@ -206,7 +200,6 @@ export function ClubSponsorsListings({
           copy={localInviteCountCopy()}
           rows={locals}
           selectedIds={selectedLocalIds}
-          expected={LOCAL_BUSINESS_INVITE_COUNT}
           ready={ready}
           sending={sending}
           inviteLabel={SEND_INVITATIONS_LABEL}
@@ -230,16 +223,6 @@ export function ClubSponsorsListings({
         />
       )}
 
-      {onInviteAll ? (
-        <button
-          type="button"
-          disabled={!ready || sending}
-          onClick={onInviteAll}
-          className="mt-8 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 hover:bg-green-400 disabled:opacity-50"
-        >
-          {sending ? "Sending..." : SEND_INVITATIONS_LABEL}
-        </button>
-      ) : null}
       {round && (round.globalInviteeIds.length > 0 || round.localInviteeIds.length > 0) && (
         <InviteMailFallback round={round} listings={listings} />
       )}
@@ -254,7 +237,6 @@ function DirectoryPanel({
   extra,
   rows,
   selectedIds,
-  expected,
   ready,
   sending,
   inviteLabel,
@@ -272,7 +254,6 @@ function DirectoryPanel({
   extra?: string;
   rows: SponsorListing[];
   selectedIds: string[];
-  expected: number;
   ready: boolean;
   sending?: boolean;
   inviteLabel: string;
@@ -290,7 +271,7 @@ function DirectoryPanel({
       <p className="mt-2 text-slate-400">{copy}</p>
       {extra && <p className="mt-1 text-sm text-slate-500">{extra}</p>}
       <p className="mt-2 text-sm font-semibold text-green-300">
-        {selectedIds.length} of {expected} selected
+        {inviteSelectionCountCopy(selectedIds.length, kind)}
       </p>
       <div className="mt-6 space-y-3">
         {rows.map((listing) => {
@@ -339,7 +320,8 @@ function DirectoryPanel({
       </div>
       <button
         type="button"
-        disabled={!ready || sending}
+        data-send-invitations="club-sponsors-invite-counts-v1"
+        disabled={!ready || sending || !meetsInviteMinimum(selectedIds, kind)}
         onClick={onInvite}
         className="mt-8 w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-50"
       >
@@ -384,6 +366,11 @@ function DirectoryPanel({
         >
           {error}
         </div>
+      )}
+      {ready && !meetsInviteMinimum(selectedIds, kind) && (
+        <p className="mt-3 text-center text-sm text-amber-200">
+          {inviteSelectionCountCopy(selectedIds.length, kind)}
+        </p>
       )}
       {!ready && (
         <p className="mt-3 text-center text-sm text-amber-200">

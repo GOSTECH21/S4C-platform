@@ -25,7 +25,6 @@ import {
   MATCH_DAY_PROJECT_COUNT,
 } from "@/app/lib/partner-projects";
 import {
-  LOCAL_BUSINESS_INVITE_COUNT,
   SEND_INVITATIONS_LABEL,
   localInvitesSentCopy,
   type SponsorInviteRound,
@@ -143,13 +142,9 @@ export default function ClubSponsorsPage() {
 
   function toggle(listing: SponsorListing) {
     if (listing.kind === "global") {
-      setSelectedGlobalIds((current) =>
-        current.includes(listing.id) ? [] : [listing.id]
-      );
+      setSelectedGlobalIds((current) => toggleId(current, listing.id));
     } else {
-      setSelectedLocalIds((current) =>
-        toggleCapped(current, listing.id, LOCAL_BUSINESS_INVITE_COUNT)
-      );
+      setSelectedLocalIds((current) => toggleId(current, listing.id));
     }
   }
 
@@ -237,7 +232,6 @@ export default function ClubSponsorsPage() {
             selectedLocalIds={selectedLocalIds}
             onToggle={toggle}
             onInvite={invite}
-            onInviteAll={() => invite("all")}
           >
             <ClubSponsorsAddressBooks
               clubId={clubId}
@@ -259,10 +253,8 @@ export default function ClubSponsorsPage() {
   );
 }
 
-function toggleCapped(ids: string[], id: string, max: number): string[] {
-  if (ids.includes(id)) return ids.filter((row) => row !== id);
-  if (ids.length >= max) return ids;
-  return [...ids, id];
+function toggleId(ids: string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((row) => row !== id) : [...ids, id];
 }
 
 function mergeSponsorListings(

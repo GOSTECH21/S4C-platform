@@ -52,6 +52,9 @@ assert(
     listings.includes("EXISTING_SPONSORS_HEADING") &&
     listings.includes("CLUB_EXISTING_SPONSORS_ID") &&
     !listings.includes("My Admin Address Books") &&
+    !listings.includes("onInviteAll") &&
+    listings.includes("club-sponsors-invite-counts-v1") &&
+    listings.includes("meetsInviteMinimum") &&
     books.includes("club-sponsors-address-books-v1") &&
     books.includes('kind="lead"') &&
     books.includes('kind="local"') &&

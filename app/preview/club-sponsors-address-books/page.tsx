@@ -11,8 +11,8 @@ import {
 import type { ClubAddressBookContact } from "@/app/lib/club-address-book";
 import {
   EXISTING_SPONSORS_HEADING,
-  GLOBAL_BRAND_INVITE_COUNT,
-  LOCAL_BUSINESS_INVITE_COUNT,
+  MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE,
+  MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE,
   listingsOfKind,
   seededSponsorListings,
   type SponsorListingKind,
@@ -29,10 +29,10 @@ export default function ClubSponsorsAddressBooksPreviewPage() {
     []
   );
   const [selectedGlobalIds, setSelectedGlobalIds] = useState<string[]>(
-    globals.slice(0, GLOBAL_BRAND_INVITE_COUNT).map((row) => row.id)
+    globals.slice(0, MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE + 1).map((row) => row.id)
   );
   const [selectedLocalIds, setSelectedLocalIds] = useState<string[]>(
-    locals.slice(0, LOCAL_BUSINESS_INVITE_COUNT).map((row) => row.id)
+    locals.slice(0, MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE + 1).map((row) => row.id)
   );
 
   useEffect(() => {
@@ -50,16 +50,16 @@ export default function ClubSponsorsAddressBooksPreviewPage() {
   function toggle(listing: { id: string; kind: SponsorListingKind }) {
     if (listing.kind === "global") {
       setSelectedGlobalIds((current) =>
-        current.includes(listing.id) ? [] : [listing.id]
+        current.includes(listing.id)
+          ? current.filter((id) => id !== listing.id)
+          : [...current, listing.id]
       );
       return;
     }
     setSelectedLocalIds((current) =>
       current.includes(listing.id)
         ? current.filter((id) => id !== listing.id)
-        : current.length >= LOCAL_BUSINESS_INVITE_COUNT
-          ? current
-          : [...current, listing.id]
+        : [...current, listing.id]
     );
   }
 

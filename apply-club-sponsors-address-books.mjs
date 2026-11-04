@@ -10,13 +10,14 @@ import { spawnSync } from "child_process";
 
 const PIN = "d3ce562";
 const REFS = ["cursor/club-sponsors-address-books-18f9", "main", PIN];
-const BUST = "club-sponsors-address-books-pc-1";
+const BUST = "club-sponsors-address-books-pc-2";
 const STAMP = "club-sponsors-address-books-v1";
 const SELF = "apply-club-sponsors-address-books.mjs";
 const FILES = [
   "app/lib/routes.ts",
   "app/lib/partner-projects.ts",
   "app/lib/sponsor-listings.ts",
+  "app/services/sponsor-listings.service.ts",
   "app/components/club/ClubAddressBookPanel.tsx",
   "app/components/club/ClubSponsorsAddressBooks.tsx",
   "app/components/club/ClubSponsorsListings.tsx",
@@ -188,6 +189,8 @@ if (
     !sponsorsSrc.includes("ClubSponsorsAddressBooks") ||
     !listingsSrc.includes("EXISTING_SPONSORS_HEADING") ||
     !listingsSrc.includes(STAMP) ||
+    listingsSrc.includes("onInviteAll") ||
+    !listingsSrc.includes("meetsInviteMinimum") ||
     adminSrc.includes("ClubAddressBookPanel") ||
     !dashboardSrc.includes("SEND_INVITATION_LABEL") ||
     !dashboardSrc.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH")

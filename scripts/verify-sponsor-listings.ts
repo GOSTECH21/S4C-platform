@@ -44,7 +44,9 @@ import {
   listingsOfKind,
   localInvitationEmailBody,
   mergeSeededSponsorListings,
-  requireExactInviteCount,
+  requireMinInviteCount,
+  MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE,
+  MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE,
   resolveInviteRound,
   seededSponsorListings,
   sponsorsSectionIntroCopy,
@@ -102,10 +104,22 @@ assert(
 );
 
 assert(
-  requireExactInviteCount(globals.slice(0, 0).map((row) => row.id), 1, "global") &&
-    requireExactInviteCount(globals.slice(0, 1).map((row) => row.id), 1, "global") === null &&
-    requireExactInviteCount(locals.slice(0, 4).map((row) => row.id), 4, "local") === null,
-  "SD must choose 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors"
+  MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE === 1 &&
+    MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE === 5 &&
+    Boolean(
+      requireMinInviteCount(globals.slice(0, 0).map((row) => row.id), "global")
+    ) &&
+    Boolean(
+      requireMinInviteCount(globals.slice(0, 1).map((row) => row.id), "global")
+    ) &&
+    requireMinInviteCount(globals.slice(0, 2).map((row) => row.id), "global") ===
+      null &&
+    Boolean(
+      requireMinInviteCount(locals.slice(0, 5).map((row) => row.id), "local")
+    ) &&
+    requireMinInviteCount(locals.slice(0, 6).map((row) => row.id), "local") ===
+      null,
+  "SD invites more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
 );
 
 const sentAt = "2026-10-26T09:00:00.000Z";
@@ -250,7 +264,7 @@ assert(
   clubDashboardChosenProjectsCopy().includes("Address Book") &&
     clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
     clubDashboardChosenProjectsCopy().includes(
-      "Only 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors are eligible"
+      "Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
     ) &&
     sponsorsSectionIntroCopy().includes("Address Book 1") &&
     sponsorsSectionIntroCopy().includes("Send Invitations"),

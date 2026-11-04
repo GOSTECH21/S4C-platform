@@ -1,8 +1,6 @@
 import { notifySignedSponsorship } from "../lib/sponsor-completion-flow";
 import { MATCH_DAY_PROJECT_COUNT } from "../lib/partner-projects";
 import {
-  GLOBAL_BRAND_INVITE_COUNT,
-  LOCAL_BUSINESS_INVITE_COUNT,
   SPONSOR_DIRECTORY_STORAGE,
   SPONSOR_INVITE_ROUNDS_STORAGE,
   approvedProjectIdsFromInvite,
@@ -17,7 +15,7 @@ import {
   mergeInviteRound,
   mergeSeededSponsorListings,
   pendingInvitesForBrand,
-  requireExactInviteCount,
+  requireMinInviteCount,
   resolveInviteRound,
   seededSponsorListings,
   upsertInviteRound,
@@ -134,21 +132,10 @@ export function recordSponsorInvites({
 }): { round: SponsorInviteRound; error: string | null } {
   const expectedError =
     kind === "all"
-      ? requireExactInviteCount(
-          globalInviteeIds,
-          GLOBAL_BRAND_INVITE_COUNT,
-          "global"
-        ) ||
-        requireExactInviteCount(
-          localInviteeIds,
-          LOCAL_BUSINESS_INVITE_COUNT,
-          "local"
-        )
-      : requireExactInviteCount(
+      ? requireMinInviteCount(globalInviteeIds, "global") ||
+        requireMinInviteCount(localInviteeIds, "local")
+      : requireMinInviteCount(
           kind === "global" ? globalInviteeIds : localInviteeIds,
-          kind === "global"
-            ? GLOBAL_BRAND_INVITE_COUNT
-            : LOCAL_BUSINESS_INVITE_COUNT,
           kind
         );
   if (expectedError) {

@@ -26,6 +26,8 @@ import {
 import {
   GLOBAL_BRAND_INVITE_COUNT,
   LOCAL_BUSINESS_INVITE_COUNT,
+  MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE,
+  MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE,
   SEND_INVITATIONS_LABEL,
 } from "../app/lib/sponsor-listings";
 import { howS4pSelectMatchCopy } from "../app/lib/how-s4p-works";
@@ -50,13 +52,16 @@ assert(
     clubDashboardChosenProjectsCopy().includes(CLUB_CHOOSE_PROJECTS_STEPS[0]) &&
     clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
     clubDashboardChosenProjectsCopy().includes(CLUB_CHOOSE_PROJECTS_NOTE) &&
-    CLUB_CHOOSE_PROJECTS_NOTE.includes("1 Lead Climate Sponsor") &&
-    CLUB_CHOOSE_PROJECTS_NOTE.includes("4 Local Business Climate Sponsors"),
+    CLUB_CHOOSE_PROJECTS_NOTE.includes("more than 1 Lead Climate Sponsor") &&
+    CLUB_CHOOSE_PROJECTS_NOTE.includes("more than 5 Local Business Climate Sponsors"),
   "Address Book and Send Invitations copy still exists for My Admin"
 );
 assert(
-  GLOBAL_BRAND_INVITE_COUNT === 1 && LOCAL_BUSINESS_INVITE_COUNT === 4,
-  "Only 1 Lead Climate Sponsor and 4 Local Business Climate Sponsors are eligible"
+  GLOBAL_BRAND_INVITE_COUNT === 1 &&
+    LOCAL_BUSINESS_INVITE_COUNT === 4 &&
+    MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE === 1 &&
+    MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE === 5,
+  "Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
 );
 assert(
   SEND_INVITATIONS_LABEL === "Send Invitations",
@@ -244,11 +249,12 @@ assert(
     sponsors.includes("resolveClubSelectedMatch") &&
     sponsors.includes("sponsorListingsFromAddressBooks") &&
     sponsors.includes("ClubSponsorsAddressBooks") &&
-    sponsors.includes('invite("all")') &&
+    !sponsors.includes('invite("all")') &&
     listings.includes("SEND_INVITATIONS_LABEL") &&
     listings.includes("EXISTING_SPONSORS_HEADING") &&
-    listings.includes("onInviteAll"),
-  "Sponsors use the registered Match, Address Books, Existing Sponsors and Send Invitations"
+    !listings.includes("onInviteAll") &&
+    listings.includes("club-sponsors-invite-counts-v1"),
+  "Sponsors use the registered Match, Address Books, Existing Sponsors and one Send Invitations button"
 );
 assert(
   CLUB_DASHBOARD_PATH === "/club/dashboard" &&

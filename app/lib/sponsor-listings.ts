@@ -12,6 +12,10 @@ export type { GlobalSponsorProduct } from "./predict-for-planet";
 
 export const GLOBAL_BRAND_INVITE_COUNT = 1;
 export const LOCAL_BUSINESS_INVITE_COUNT = 4;
+/** Invite more than this many Lead Climate Sponsors before sending. */
+export const MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE = 1;
+/** Invite more than this many Local Business Climate Sponsors before sending. */
+export const MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE = 5;
 export const GLOBAL_SPONSORS_ACCEPTED_PER_MATCH = 1;
 export const GLOBAL_INVITE_WINDOW_HOURS = 8;
 export const GLOBAL_INVITE_WINDOW_MS = GLOBAL_INVITE_WINDOW_HOURS * 60 * 60 * 1000;
@@ -252,7 +256,7 @@ export const LOCAL_INVITE_SUBJECT = "Invitation to Sponsor";
 export const SEND_INVITATIONS_LABEL = "Send Invitations";
 
 export function sponsorsSectionIntroCopy(): string {
-  return `Register new Lead Climate Sponsors in Address Book 1 and Local Business Climate Sponsors in Address Book 2, then choose ${EXISTING_SPONSORS_HEADING} and press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted, based on (i) sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours and (ii) the highest committed amount. Only ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors are eligible. Once that Lead Sponsorship is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans.`;
+  return `Register new Lead Climate Sponsors in Address Book 1 and Local Business Climate Sponsors in Address Book 2, then choose ${EXISTING_SPONSORS_HEADING} and press ${SEND_INVITATIONS_LABEL}. Invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor and more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} Local Business Climate Sponsors. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted, based on (i) sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours and (ii) the highest committed amount. Once that Lead Sponsorship is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans.`;
 }
 
 export function globalInviteMustChooseProjectsCopy(): string {
@@ -260,11 +264,32 @@ export function globalInviteMustChooseProjectsCopy(): string {
 }
 
 export function globalInviteCountCopy(): string {
-  return `Choose ${GLOBAL_BRAND_INVITE_COUNT} Lead Climate Sponsor from Address Book 1, then press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is eligible.`;
+  return `Invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor from Address Book 1, then press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted within ${GLOBAL_INVITE_WINDOW_HOURS} hours, at the highest committed amount.`;
 }
 
 export function localInviteCountCopy(): string {
-  return `Choose ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors from Address Book 2, then press ${SEND_INVITATIONS_LABEL}.`;
+  return `Invite more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} Local Business Climate Sponsors from Address Book 2, then press ${SEND_INVITATIONS_LABEL}.`;
+}
+
+export function inviteSelectionCountCopy(
+  selectedCount: number,
+  kind: SponsorListingKind
+): string {
+  const n = Math.max(0, Math.round(Number(selectedCount) || 0));
+  if (kind === "global") {
+    return `${n} selected — invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} to continue`;
+  }
+  return `${n} selected — invite more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} to continue`;
+}
+
+export function meetsInviteMinimum(
+  selectedIds: string[],
+  kind: SponsorListingKind
+): boolean {
+  const n = Array.isArray(selectedIds) ? selectedIds.length : 0;
+  return kind === "global"
+    ? n > MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE
+    : n > MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE;
 }
 
 export const LOCAL_INVITE_RECEIVED_STATUS =
@@ -500,16 +525,24 @@ export function mergeSeededSponsorListings(
   return next;
 }
 
-export function requireExactInviteCount(
+export function requireMinInviteCount(
   selectedIds: string[],
-  expected: number,
   kind: SponsorListingKind
 ): string | null {
-  if (selectedIds.length === expected) return null;
+  if (meetsInviteMinimum(selectedIds, kind)) return null;
   if (kind === "global") {
-    return `Choose ${GLOBAL_BRAND_INVITE_COUNT} Lead Climate Sponsor from Address Book 1. You have ${selectedIds.length} selected.`;
+    return `Invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor from Address Book 1. You have ${selectedIds.length} selected.`;
   }
-  return `Choose ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors from Address Book 2. You have ${selectedIds.length} selected.`;
+  return `Invite more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} Local Business Climate Sponsors from Address Book 2. You have ${selectedIds.length} selected.`;
+}
+
+/** @deprecated Use requireMinInviteCount. Kept so older callers still gate on the new minima. */
+export function requireExactInviteCount(
+  selectedIds: string[],
+  _expected: number,
+  kind: SponsorListingKind
+): string | null {
+  return requireMinInviteCount(selectedIds, kind);
 }
 
 export function inviteWindowOpen(
