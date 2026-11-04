@@ -269,9 +269,9 @@ assert(
     !dashboard.includes("Open Sponsors listings") &&
     dashboard.includes("approvedIdsForClubMatch") &&
     readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
-      "CLUB_ADMIN_ADDRESS_BOOKS_PATH"
+      "CLUB_SPONSORS_ADDRESS_BOOKS_PATH"
     ),
-  "Club nav Sponsors still opens listings; after choosing projects the SD lands on My Admin Address Books"
+  "Club nav Sponsors still opens listings; after choosing projects the SD lands on Sponsors Address Books"
 );
 assert(
   globalRegister.includes("MATCH_SPONSORSHIP_RANGE_LABEL") &&

@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
 import {
-  CLUB_ADMIN_PATH,
+  CLUB_EXISTING_SPONSORS_ID,
   CLUB_SELECT_PROJECTS_PATH,
   CLUB_SPONSOR_LEADERBOARD_PATH,
 } from "@/app/lib/routes";
@@ -22,6 +22,7 @@ import {
   LOCAL_INVITE_SUBJECT,
   LOCAL_SPONSORSHIP_AMOUNT_RANGES,
   SEND_INVITATIONS_LABEL,
+  EXISTING_SPONSORS_HEADING,
   SPONSORS_SECTION_TITLE,
   formatRangeLabel,
   globalInviteCountCopy,
@@ -58,6 +59,7 @@ export type ClubSponsorsListingsProps = {
   onInvite: (kind: SponsorListingKind) => void;
   onInviteAll?: () => void;
   initialTab?: SponsorListingKind;
+  children?: ReactNode;
 };
 
 type DirectoryTab = SponsorListingKind;
@@ -79,6 +81,7 @@ export function ClubSponsorsListings({
   onInvite,
   onInviteAll,
   initialTab = "global",
+  children,
 }: ClubSponsorsListingsProps) {
   const [tab, setTab] = useState<DirectoryTab>(initialTab);
   const globals = useMemo(
@@ -114,12 +117,12 @@ export function ClubSponsorsListings({
         >
           Choose Projects
         </Link>
-        <Link
-          href={CLUB_ADMIN_PATH}
+        <a
+          href={`#${CLUB_EXISTING_SPONSORS_ID}`}
           className="rounded-xl border border-emerald-400/40 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10"
         >
-          My Admin Address Books
-        </Link>
+          {EXISTING_SPONSORS_HEADING}
+        </a>
         <Link
           href={CLUB_SPONSOR_LEADERBOARD_PATH}
           className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:border-green-400"
@@ -143,6 +146,20 @@ export function ClubSponsorsListings({
           {inviteDeadlineLabel(round.expiresAt)}. Highest committed amount wins.
         </p>
       )}
+
+      {children}
+
+      <div
+        id={CLUB_EXISTING_SPONSORS_ID}
+        className="mt-10 scroll-mt-24"
+        data-existing-sponsors="club-sponsors-address-books-v1"
+      >
+        <h2 className="text-3xl font-black">{EXISTING_SPONSORS_HEADING}</h2>
+        <p className="mt-2 max-w-3xl text-slate-400">
+          Select Lead Climate Sponsors and Local Business Climate Sponsors already
+          in your Address Books or the directory, then press {SEND_INVITATIONS_LABEL}.
+        </p>
+      </div>
 
       <div className="mt-8 flex flex-wrap gap-2" role="tablist">
         <button

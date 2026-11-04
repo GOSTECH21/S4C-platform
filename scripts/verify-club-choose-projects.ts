@@ -1,9 +1,10 @@
 import { readFileSync } from "fs";
 import {
-  CLUB_ADMIN_ADDRESS_BOOKS_ID,
+  CLUB_ADDRESS_BOOKS_ID,
   CLUB_ADMIN_ADDRESS_BOOKS_PATH,
-  CLUB_ADMIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
+  CLUB_SPONSORS_ADDRESS_BOOKS_PATH,
+  CLUB_SPONSORS_PATH,
 } from "../app/lib/routes";
 import {
   SELECT_CLIMATE_PROJECTS_LABEL,
@@ -35,8 +36,8 @@ assert(
 );
 assert(
   SELECT_CLIMATE_PROJECTS_LABEL === "Select Climate Projects" &&
-    SEND_INVITATION_LABEL === "Send Invitation",
-  "Blue tab stays Select Climate Projects; after picks the button is Send Invitation"
+    SEND_INVITATION_LABEL === "Send Invitation to Sponsors",
+  "Blue tab stays Select Climate Projects; after picks the button is Send Invitation to Sponsors"
 );
 assert(
   CLIMATE_PROJECT_SCOPES.join(",") === "local,national,international" &&
@@ -76,10 +77,11 @@ assert(
   "Everton Local Climate Projects use Hill Dickinson Stadium so the list is not empty"
 );
 assert(
-  CLUB_ADMIN_ADDRESS_BOOKS_ID === "address-books" &&
-    CLUB_ADMIN_ADDRESS_BOOKS_PATH === `${CLUB_ADMIN_PATH}#address-books` &&
+  CLUB_ADDRESS_BOOKS_ID === "address-books" &&
+    CLUB_SPONSORS_ADDRESS_BOOKS_PATH === `${CLUB_SPONSORS_PATH}#address-books` &&
+    CLUB_ADMIN_ADDRESS_BOOKS_PATH === CLUB_SPONSORS_ADDRESS_BOOKS_PATH &&
     CLUB_SELECT_PROJECTS_PATH === "/club/s4p-climate-projects",
-  "Send Invitation opens My Admin Address Books"
+  "Send Invitation to Sponsors opens Sponsors Address Books"
 );
 
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
@@ -116,16 +118,15 @@ assert(
     picker.includes("ClubClimateProjectScopeChooser") &&
     picker.includes("ClubClimateProjectScopeTabs") &&
     picker.includes("SEND_INVITATION_LABEL") &&
-    picker.includes("CLUB_ADMIN_ADDRESS_BOOKS_PATH") &&
+    picker.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH") &&
     picker.includes("club-choose-projects-scopes-v1") &&
     scopes.includes("CLIMATE_PROJECT_SCOPE_PROMPT") &&
     scopes.includes("otherClimateProjectScopes") &&
-    admin.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID") &&
-    admin.includes("scrollIntoView") &&
+    !admin.includes("ClubAddressBookPanel") &&
     preview.includes("ClubClimateProjectScopeChooser") &&
     preview.includes("SEND_INVITATION_LABEL") &&
-    preview.includes("preview/club-admin#"),
-  "Blue tab asks Local/National/International, other lists sit at the end, Send Invitation lands on Address Books"
+    preview.includes("preview/club-sponsors-address-books#"),
+  "Blue tab asks Local/National/International, other lists sit at the end, Send Invitation lands on Sponsors Address Books"
 );
 assert(
   overlay.includes("app/club/projects/select/page.tsx") &&
@@ -146,5 +147,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Choose Projects is the blue Select Climate Projects prompt, grouped Local/National/International, then Send Invitation to My Admin Address Books."
+  "Choose Projects is the blue Select Climate Projects prompt, grouped Local/National/International, then Send Invitation to Sponsors Address Books."
 );

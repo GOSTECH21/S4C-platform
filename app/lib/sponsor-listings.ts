@@ -242,6 +242,7 @@ export type SponsorInviteRound = {
 };
 
 export const SPONSORS_SECTION_TITLE = "Sponsors";
+export const EXISTING_SPONSORS_HEADING = "Existing Sponsors";
 export const GLOBAL_BRANDS_TAB_LABEL = "Global Brands";
 export const LOCAL_BUSINESS_TAB_LABEL = "Local Business Sponsors";
 
@@ -251,7 +252,7 @@ export const LOCAL_INVITE_SUBJECT = "Invitation to Sponsor";
 export const SEND_INVITATIONS_LABEL = "Send Invitations";
 
 export function sponsorsSectionIntroCopy(): string {
-  return `Choose Lead Climate Sponsors from Address Book 1 and Local Business Climate Sponsors from Address Book 2, then press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted, based on (i) sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours and (ii) the highest committed amount. Only ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors are eligible. Once that Lead Sponsorship is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans.`;
+  return `Register new Lead Climate Sponsors in Address Book 1 and Local Business Climate Sponsors in Address Book 2, then choose ${EXISTING_SPONSORS_HEADING} and press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted, based on (i) sponsorships received within ${GLOBAL_INVITE_WINDOW_HOURS} hours and (ii) the highest committed amount. Only ${LOCAL_BUSINESS_INVITE_COUNT} Local Business Climate Sponsors are eligible. Once that Lead Sponsorship is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans.`;
 }
 
 export function globalInviteMustChooseProjectsCopy(): string {

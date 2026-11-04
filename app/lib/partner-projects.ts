@@ -37,7 +37,7 @@ export function isMatchDayProjectFullyFunded(
 }
 
 export const SELECT_CLIMATE_PROJECTS_LABEL = "Select Climate Projects";
-export const SEND_INVITATION_LABEL = "Send Invitation";
+export const SEND_INVITATION_LABEL = "Send Invitation to Sponsors";
 
 export const CLUB_CHOOSE_PROJECTS_STEPS = [
   "Select 1 Global Schools Solar & 4 other Climate Projects from the List for each Match Day",

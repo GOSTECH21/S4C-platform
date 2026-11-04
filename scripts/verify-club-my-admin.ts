@@ -120,7 +120,7 @@ assert(
     sponsorListingFromAddressBookContact(contact!, "lead").kind === "global" &&
     sponsorListingFromAddressBookContact(contact!, "local").kind === "local" &&
     clubAddressBookListingId("lead", contact!.id).startsWith("ab:lead:"),
-  "My Admin keeps Address Book 1 for Lead Climate Sponsors and Address Book 2 for Local Businesses"
+  "Address Book 1 is Lead Climate Sponsors and Address Book 2 is Local Businesses"
 );
 
 const nav = readFileSync("app/components/club/ClubNav.tsx", "utf8");
@@ -181,10 +181,9 @@ assert(
 const preview = readFileSync("app/preview/club-admin/page.tsx", "utf8");
 assert(
   preview.includes("ClubAdminLookbackAndCilt") &&
-    preview.includes("ClubAddressBookPanel") &&
-    preview.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID") &&
+    !preview.includes("ClubAddressBookPanel") &&
     preview.includes("Match Day File Record") === false,
-  "My Admin preview renders the shared lookback, CILT, and Address Books"
+  "My Admin preview renders lookback and CILT without Address Books"
 );
 
 const overlay = readFileSync("apply-club-my-admin.mjs", "utf8");
@@ -213,22 +212,19 @@ assert(
   picker.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
     picker.includes("ClubClimateProjectScopeChooser") &&
     picker.includes("SEND_INVITATION_LABEL") &&
-    picker.includes("CLUB_ADMIN_ADDRESS_BOOKS_PATH") &&
+    picker.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH") &&
     picker.includes("ClubSelectedMatchBanner") &&
     chooser.includes("bg-blue-600") &&
     chooser.includes("climateProjectScopeButtonLabel"),
-  "Choose Projects opens Local, National and International lists, then Send Invitation to My Admin"
+  "Choose Projects opens Local, National and International lists, then Send Invitation to Sponsors"
 );
 assert(
-  admin.includes("My Admin") &&
+    admin.includes("My Admin") &&
     admin.includes("Club Representative") &&
     admin.includes("Start this club afresh") &&
-    admin.includes('kind="lead"') &&
-    admin.includes('kind="local"') &&
-    admin.includes("ClubAddressBookPanel") &&
-    admin.includes("ClubAdminLookbackAndCilt") &&
-    admin.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID"),
-  "My Admin combines club stats, the representative, lookback, CILT, and two address books"
+    !admin.includes("ClubAddressBookPanel") &&
+    admin.includes("ClubAdminLookbackAndCilt"),
+  "My Admin combines club stats, the representative, lookback and CILT"
 );
 
 const lookback = readFileSync(
@@ -245,13 +241,14 @@ assert(
   "My Admin holds the Match Day File Record and CILT sections"
 );
 assert(
-  sponsors.includes("resolveClubSelectedMatch") &&
+    sponsors.includes("resolveClubSelectedMatch") &&
     sponsors.includes("sponsorListingsFromAddressBooks") &&
+    sponsors.includes("ClubSponsorsAddressBooks") &&
     sponsors.includes('invite("all")') &&
     listings.includes("SEND_INVITATIONS_LABEL") &&
-    listings.includes("CLUB_ADMIN_PATH") &&
+    listings.includes("EXISTING_SPONSORS_HEADING") &&
     listings.includes("onInviteAll"),
-  "Sponsors use the registered Match, Address Books, and Send Invitations"
+  "Sponsors use the registered Match, Address Books, Existing Sponsors and Send Invitations"
 );
 assert(
   CLUB_DASHBOARD_PATH === "/club/dashboard" &&

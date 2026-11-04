@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import ClubNav from "@/app/components/club/ClubNav";
 import ClubAdminLookbackAndCilt from "@/app/components/club/ClubAdminLookbackAndCilt";
-import ClubAddressBookPanel from "@/app/components/club/ClubAddressBookPanel";
-import { CLUB_ADMIN_ADDRESS_BOOKS_ID } from "@/app/lib/routes";
-import type { ClubAddressBookContact } from "@/app/lib/club-address-book";
 
 const PREVIEW_CLUB = {
   id: "preview-hearts",
@@ -32,10 +29,6 @@ const PREVIEW_RECORD = {
 
 export default function ClubAdminPreviewPage() {
   const [ready, setReady] = useState(false);
-  const [leadContacts, setLeadContacts] = useState<ClubAddressBookContact[]>([]);
-  const [localContacts, setLocalContacts] = useState<ClubAddressBookContact[]>(
-    []
-  );
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -43,13 +36,6 @@ export default function ClubAdminPreviewPage() {
       JSON.stringify([PREVIEW_RECORD])
     );
     setReady(true);
-    if (window.location.hash === `#${CLUB_ADMIN_ADDRESS_BOOKS_ID}`) {
-      window.setTimeout(() => {
-        document
-          .getElementById(CLUB_ADMIN_ADDRESS_BOOKS_ID)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
-    }
   }, []);
 
   if (!ready) {
@@ -69,23 +55,6 @@ export default function ClubAdminPreviewPage() {
         </p>
         <h1 className="mb-8 text-4xl font-black">{PREVIEW_CLUB.name}</h1>
         <ClubAdminLookbackAndCilt club={PREVIEW_CLUB} />
-        <div
-          id={CLUB_ADMIN_ADDRESS_BOOKS_ID}
-          className="mt-10 scroll-mt-24 grid gap-8 xl:grid-cols-2"
-        >
-          <ClubAddressBookPanel
-            clubId={PREVIEW_CLUB.id}
-            kind="lead"
-            contacts={leadContacts}
-            onChange={setLeadContacts}
-          />
-          <ClubAddressBookPanel
-            clubId={PREVIEW_CLUB.id}
-            kind="local"
-            contacts={localContacts}
-            onChange={setLocalContacts}
-          />
-        </div>
       </div>
     </main>
   );

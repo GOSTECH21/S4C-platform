@@ -9,7 +9,7 @@ import {
   ClubClimateProjectScopeTabs,
 } from "@/app/components/club/ClubClimateProjectScopeChooser";
 import {
-  CLUB_ADMIN_ADDRESS_BOOKS_ID,
+  CLUB_ADDRESS_BOOKS_ID,
   CLUB_SELECT_PROJECTS_PATH,
 } from "@/app/lib/routes";
 import {
@@ -94,7 +94,7 @@ export default function ClubChooseProjectsPreviewPage() {
             </div>
             <ClubClimateProjectScopeTabs current={scope} onChoose={setScope} />
             <Link
-              href={`/preview/club-admin#${CLUB_ADMIN_ADDRESS_BOOKS_ID}`}
+              href={`/preview/club-sponsors-address-books#${CLUB_ADDRESS_BOOKS_ID}`}
               className="mt-10 block w-full rounded-xl bg-green-500 py-4 text-center text-lg font-bold text-slate-950"
             >
               {SEND_INVITATION_LABEL}

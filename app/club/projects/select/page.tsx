@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
@@ -27,8 +28,8 @@ import {
 } from "@/app/lib/sponsor-wallet";
 import { leadWalletMatchFunding } from "@/app/services/sponsor-wallet.service";
 import {
-  CLUB_ADMIN_ADDRESS_BOOKS_PATH,
   CLUB_LOGIN_PATH,
+  CLUB_SPONSORS_ADDRESS_BOOKS_PATH,
 } from "@/app/lib/routes";
 import ClubNav from "@/app/components/club/ClubNav";
 import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
@@ -196,7 +197,7 @@ export default function SelectMatchDayProjectsPage() {
         gbpPerVote: rate,
         expectedSponsorship: rate,
       });
-      router.push(CLUB_ADMIN_ADDRESS_BOOKS_PATH);
+      router.push(CLUB_SPONSORS_ADDRESS_BOOKS_PATH);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your match-day selection."
@@ -229,8 +230,9 @@ export default function SelectMatchDayProjectsPage() {
         </h1>
         <p className="mt-4 max-w-3xl text-slate-300">
           {nearbyProjectsCopy(clubName)} Choose Local, National or International
-          Climate Projects, then press {SEND_INVITATION_LABEL} to add Lead Climate
-          Sponsors and Local Business Climate Sponsors in My Admin.
+          Climate Projects, then press {SEND_INVITATION_LABEL} to open the Address
+          Books in Sponsors and invite Lead Climate Sponsors and Local Business
+          Climate Sponsors.
         </p>
 
         {error && scope === null ? (
@@ -240,7 +242,16 @@ export default function SelectMatchDayProjectsPage() {
         ) : null}
 
         {scope === null ? (
-          <ClubClimateProjectScopeChooser onChoose={setScope} />
+          <>
+            <ClubClimateProjectScopeChooser onChoose={setScope} />
+            <Link
+              href={CLUB_SPONSORS_ADDRESS_BOOKS_PATH}
+              data-send-invitation-to-sponsors="club-sponsors-address-books-v1"
+              className="mt-10 block w-full rounded-xl bg-green-500 py-4 text-center text-lg font-bold text-slate-950 hover:bg-green-400"
+            >
+              {SEND_INVITATION_LABEL}
+            </Link>
+          </>
         ) : (
           <>
             {featured.length > 0 && (
@@ -339,11 +350,12 @@ export default function SelectMatchDayProjectsPage() {
               </p>
               <p className="mt-2 max-w-3xl text-sm text-slate-400">
                 Press {SEND_INVITATION_LABEL} to open Address Book 1 and Address
-                Book 2 in My Admin and add Lead Climate Sponsors and Local
-                Business Climate Sponsors.
+                Book 2 in Sponsors, then choose Existing Sponsors to invite for
+                this Match.
               </p>
               <button
                 onClick={sendInvitation}
+                data-send-invitation-to-sponsors="club-sponsors-address-books-v1"
                 disabled={
                   saving || !featuredId || selected.size !== MATCH_DAY_CHOICE_COUNT
                 }

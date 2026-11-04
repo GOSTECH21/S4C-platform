@@ -28,6 +28,7 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   matchDayProjectApprovalLabel,
   SELECT_CLIMATE_PROJECTS_LABEL,
+  SEND_INVITATION_LABEL,
 } from "@/app/lib/partner-projects";
 import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
 import {
@@ -42,6 +43,7 @@ import {
 import {
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
+  CLUB_SPONSORS_ADDRESS_BOOKS_PATH,
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
@@ -275,6 +277,17 @@ export default function ClubDashboardPage() {
               clubName={club.name}
               clubCountry={club.country}
             />
+            <Link
+              href={CLUB_SPONSORS_ADDRESS_BOOKS_PATH}
+              data-send-invitation-to-sponsors="club-sponsors-address-books-v1"
+              className="mt-8 block w-full rounded-xl bg-green-500 py-4 text-center text-lg font-bold text-slate-950 hover:bg-green-400"
+            >
+              {SEND_INVITATION_LABEL}
+            </Link>
+            <p className="mt-3 text-center text-sm text-slate-400">
+              Pending Approval projects stay tagged until you send invitations
+              from the Address Book in Sponsors.
+            </p>
           </div>
         </section>
       </div>

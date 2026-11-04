@@ -199,8 +199,7 @@ if (
     !pickerSrc.includes("club-choose-projects-scopes-v1") ||
     !pickerSrc.includes("SEND_INVITATION_LABEL") ||
     !pickerSrc.includes("ClubClimateProjectScopeChooser") ||
-    !chooserSrc.includes("CLIMATE_PROJECT_SCOPE_PROMPT") ||
-    !adminSrc.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID")
+    !chooserSrc.includes("CLIMATE_PROJECT_SCOPE_PROMPT")
   ) {
     failed += 1;
     console.error(

@@ -72,8 +72,12 @@ export const CLUB_SELECT_PROJECTS_ALIASES = [
 ];
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
 export const CLUB_ADMIN_PATH = "/club/admin";
-export const CLUB_ADMIN_ADDRESS_BOOKS_ID = "address-books";
-export const CLUB_ADMIN_ADDRESS_BOOKS_PATH = `${CLUB_ADMIN_PATH}#${CLUB_ADMIN_ADDRESS_BOOKS_ID}`;
+export const CLUB_ADDRESS_BOOKS_ID = "address-books";
+export const CLUB_EXISTING_SPONSORS_ID = "existing-sponsors";
+export const CLUB_SPONSORS_ADDRESS_BOOKS_PATH = `${CLUB_SPONSORS_PATH}#${CLUB_ADDRESS_BOOKS_ID}`;
+/** @deprecated Address Books now live on Sponsors. Kept so old links still land there. */
+export const CLUB_ADMIN_ADDRESS_BOOKS_ID = CLUB_ADDRESS_BOOKS_ID;
+export const CLUB_ADMIN_ADDRESS_BOOKS_PATH = CLUB_SPONSORS_ADDRESS_BOOKS_PATH;
 export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
 export const SPONSOR_INVITATIONS_PATH = "/sponsor/invitations";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";

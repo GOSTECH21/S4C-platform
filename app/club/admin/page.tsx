@@ -3,16 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ClubNav from "@/app/components/club/ClubNav";
-import ClubAddressBookPanel from "@/app/components/club/ClubAddressBookPanel";
 import ClubAdminLookbackAndCilt from "@/app/components/club/ClubAdminLookbackAndCilt";
-import {
-  CLUB_ADMIN_ADDRESS_BOOKS_ID,
-  CLUB_LOGIN_PATH,
-} from "@/app/lib/routes";
-import {
-  loadClubAddressBooks,
-  type ClubAddressBookContact,
-} from "@/app/lib/club-address-book";
+import { CLUB_LOGIN_PATH } from "@/app/lib/routes";
 import {
   loadClubSession,
   type ClubAccount,
@@ -25,10 +17,6 @@ export default function ClubAdminPage() {
   const [loading, setLoading] = useState(true);
   const [club, setClub] = useState<ClubProfile | null>(null);
   const [account, setAccount] = useState<ClubAccount | null>(null);
-  const [leadContacts, setLeadContacts] = useState<ClubAddressBookContact[]>([]);
-  const [localContacts, setLocalContacts] = useState<ClubAddressBookContact[]>(
-    []
-  );
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,22 +29,10 @@ export default function ClubAdminPage() {
       }
       setClub(session.club);
       setAccount(session.account);
-      const books = loadClubAddressBooks(session.club.id);
-      setLeadContacts(books.lead);
-      setLocalContacts(books.local);
       setLoading(false);
     }
     void load();
   }, [router]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (typeof window === "undefined") return;
-    if (window.location.hash !== `#${CLUB_ADMIN_ADDRESS_BOOKS_ID}`) return;
-    document
-      .getElementById(CLUB_ADMIN_ADDRESS_BOOKS_ID)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [loading]);
 
   async function startClubAfresh() {
     if (!club) return;
@@ -137,24 +113,6 @@ export default function ClubAdminPage() {
         </div>
 
         <ClubAdminLookbackAndCilt club={club} />
-
-        <div
-          id={CLUB_ADMIN_ADDRESS_BOOKS_ID}
-          className="mt-10 scroll-mt-24 grid gap-8 xl:grid-cols-2"
-        >
-          <ClubAddressBookPanel
-            clubId={club.id}
-            kind="lead"
-            contacts={leadContacts}
-            onChange={setLeadContacts}
-          />
-          <ClubAddressBookPanel
-            clubId={club.id}
-            kind="local"
-            contacts={localContacts}
-            onChange={setLocalContacts}
-          />
-        </div>
       </div>
     </main>
   );

@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ClubNav from "@/app/components/club/ClubNav";
 import { ClubSponsorsListings } from "@/app/components/club/ClubSponsorsListings";
+import ClubSponsorsAddressBooks from "@/app/components/club/ClubSponsorsAddressBooks";
 import ClubSelectedMatchBanner from "@/app/components/club/ClubSelectedMatchBanner";
-import { CLUB_LOGIN_PATH } from "@/app/lib/routes";
+import {
+  CLUB_ADDRESS_BOOKS_ID,
+  CLUB_EXISTING_SPONSORS_ID,
+  CLUB_LOGIN_PATH,
+} from "@/app/lib/routes";
 import {
   clubMatchDayLabel,
   resolveClubSelectedMatch,
@@ -14,6 +19,7 @@ import {
   isClubAddressBookListingId,
   loadClubAddressBooks,
   sponsorListingsFromAddressBooks,
+  type ClubAddressBookContact,
 } from "@/app/lib/club-address-book";
 import {
   MATCH_DAY_PROJECT_COUNT,
@@ -56,6 +62,12 @@ export default function ClubSponsorsPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [leadContacts, setLeadContacts] = useState<ClubAddressBookContact[]>(
+    []
+  );
+  const [localContacts, setLocalContacts] = useState<ClubAddressBookContact[]>(
+    []
+  );
 
   useEffect(() => {
     async function load() {
@@ -92,9 +104,9 @@ export default function ClubSponsorsPage() {
       );
       setMatchLabel(clubMatchDayLabel(selectedMatch, session.club.name));
       const books = loadClubAddressBooks(session.club.id);
-      const fromBooks = sponsorListingsFromAddressBooks(books);
-      const directory = loadSponsorDirectory();
-      setListings(fromBooks.length ? [...fromBooks, ...directory] : directory);
+      setLeadContacts(books.lead);
+      setLocalContacts(books.local);
+      setListings(mergeSponsorListings(books.lead, books.local));
       const live = await closeInviteWindowIfExpired(session.club.id);
       const current = live ?? loadClubInviteRound(session.club.id);
       setRound(current);
@@ -106,6 +118,28 @@ export default function ClubSponsorsPage() {
     }
     void load();
   }, [router]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (typeof window === "undefined") return;
+    const id = window.location.hash.replace(/^#/, "");
+    if (
+      id !== CLUB_ADDRESS_BOOKS_ID &&
+      id !== CLUB_EXISTING_SPONSORS_ID
+    ) {
+      return;
+    }
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [loading]);
+
+  function refreshListings(
+    lead: ClubAddressBookContact[],
+    local: ClubAddressBookContact[]
+  ) {
+    setListings(mergeSponsorListings(lead, local));
+  }
 
   function toggle(listing: SponsorListing) {
     if (listing.kind === "global") {
@@ -183,23 +217,43 @@ export default function ClubSponsorsPage() {
       <div className="mx-auto max-w-6xl">
         <ClubNav />
         <ClubSelectedMatchBanner clubId={clubId} clubName={clubName} />
-        <ClubSponsorsListings
-          clubName={clubName}
-          matchLabel={matchLabel}
-          projectNames={projectNames}
-          projectCount={projectIds.length >= MATCH_DAY_PROJECT_COUNT ? projectIds.length : projectNames.length}
-          listings={listings}
-          round={round}
-          notice={notice}
-          error={error}
-          noticeKind={noticeKind}
-          sending={sending}
-          selectedGlobalIds={selectedGlobalIds}
-          selectedLocalIds={selectedLocalIds}
-          onToggle={toggle}
-          onInvite={invite}
-          onInviteAll={() => invite("all")}
-        />
+        {clubId ? (
+          <ClubSponsorsListings
+            clubName={clubName}
+            matchLabel={matchLabel}
+            projectNames={projectNames}
+            projectCount={
+              projectIds.length >= MATCH_DAY_PROJECT_COUNT
+                ? projectIds.length
+                : projectNames.length
+            }
+            listings={listings}
+            round={round}
+            notice={notice}
+            error={error}
+            noticeKind={noticeKind}
+            sending={sending}
+            selectedGlobalIds={selectedGlobalIds}
+            selectedLocalIds={selectedLocalIds}
+            onToggle={toggle}
+            onInvite={invite}
+            onInviteAll={() => invite("all")}
+          >
+            <ClubSponsorsAddressBooks
+              clubId={clubId}
+              leadContacts={leadContacts}
+              localContacts={localContacts}
+              onLeadChange={(next) => {
+                setLeadContacts(next);
+                refreshListings(next, localContacts);
+              }}
+              onLocalChange={(next) => {
+                setLocalContacts(next);
+                refreshListings(leadContacts, next);
+              }}
+            />
+          </ClubSponsorsListings>
+        ) : null}
       </div>
     </main>
   );
@@ -209,4 +263,13 @@ function toggleCapped(ids: string[], id: string, max: number): string[] {
   if (ids.includes(id)) return ids.filter((row) => row !== id);
   if (ids.length >= max) return ids;
   return [...ids, id];
+}
+
+function mergeSponsorListings(
+  lead: ClubAddressBookContact[],
+  local: ClubAddressBookContact[]
+): SponsorListing[] {
+  const fromBooks = sponsorListingsFromAddressBooks({ lead, local });
+  const directory = loadSponsorDirectory();
+  return fromBooks.length ? [...fromBooks, ...directory] : directory;
 }
