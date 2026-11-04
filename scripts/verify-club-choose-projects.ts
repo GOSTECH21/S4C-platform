@@ -131,8 +131,9 @@ assert(
   overlay.includes("app/club/projects/select/page.tsx") &&
     overlay.includes("app/components/club/ClubClimateProjectScopeChooser.tsx") &&
     overlay.includes("club-choose-projects-scopes-v1") &&
-    overlay.includes('BUST = "club-choose-projects-pc-2"') &&
-    overlay.includes('PIN = "ce77eee"') &&
+    overlay.includes('BUST = "club-choose-projects-pc-3"') &&
+    overlay.includes("git fetch") &&
+    overlay.includes("Working folder:") &&
     overlay.includes('rmSync(".next"') &&
     overlay.includes("S4P_OVERLAY_SELF") &&
     dashboard.includes("club-choose-projects-scopes-v1"),
