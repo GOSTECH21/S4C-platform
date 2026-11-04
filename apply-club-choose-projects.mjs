@@ -1,19 +1,27 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "fs";
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
 const REFS = ["main", "cursor/club-projects-local-national-18f9"];
-const BUST = "club-choose-projects-pc-1";
+const BUST = "club-choose-projects-pc-2";
 const SELF = "apply-club-choose-projects.mjs";
 const FILES = [
   "app/lib/routes.ts",
   "app/lib/partner-projects.ts",
   "app/lib/s4p-climate-projects.ts",
   "app/lib/project-site.ts",
+  "app/lib/stadium-nearby-projects.ts",
   "app/components/club/ClubChooseProjectsCopy.tsx",
   "app/components/club/ClubClimateProjectScopeChooser.tsx",
   "app/club/dashboard/page.tsx",
   "app/club/projects/select/page.tsx",
+  "app/club/s4p-climate-projects/page.tsx",
   "app/club/admin/page.tsx",
   "app/preview/club-choose-projects/page.tsx",
   "app/preview/club-admin/page.tsx",
@@ -27,10 +35,14 @@ const FILES = [
   "scripts/verify-sponsor-listings.ts",
 ];
 
+function rawUrl(ref, rel) {
+  return `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${ref}/${rel}?v=${BUST}&t=${Date.now()}`;
+}
+
 if (process.env.S4P_OVERLAY_SELF !== "1") {
   let refreshed = false;
   for (const ref of REFS) {
-    const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${ref}/${SELF}?v=${BUST}`;
+    const url = rawUrl(ref, SELF);
     try {
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) continue;
@@ -59,7 +71,7 @@ if (process.env.S4P_OVERLAY_SELF !== "1") {
 async function pull(rel) {
   let lastError = "not found";
   for (const ref of REFS) {
-    const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${ref}/${rel}?v=${BUST}`;
+    const url = rawUrl(ref, rel);
     try {
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) {
@@ -86,6 +98,13 @@ for (const rel of FILES) {
   if (!(await pull(rel))) failed += 1;
 }
 
+try {
+  rmSync(".next", { recursive: true, force: true });
+  console.log("Cleared .next so Next.js cannot keep the old Choose Projects page.");
+} catch {
+  console.log("Could not clear .next; stop npm run dev, delete the .next folder, then start it again.");
+}
+
 const dashboard = "app/club/dashboard/page.tsx";
 const picker = "app/club/projects/select/page.tsx";
 const chooser = "app/components/club/ClubClimateProjectScopeChooser.tsx";
@@ -107,9 +126,11 @@ if (
     dashboardSrc.includes("<ClubClimateSponsorTabs") ||
     dashboardSrc.includes("CLUB_CHOOSE_PROJECTS_STEPS") ||
     copySrc.includes("CLUB_CHOOSE_PROJECTS_STEPS") ||
+    !dashboardSrc.includes("club-choose-projects-scopes-v1") ||
     !copySrc.includes("clubDashboardClimateProjectsIntroCopy") ||
     !pickerSrc.includes("club-choose-projects-scopes-v1") ||
     !pickerSrc.includes("SEND_INVITATION_LABEL") ||
+    !pickerSrc.includes("ClubClimateProjectScopeChooser") ||
     !chooserSrc.includes("CLIMATE_PROJECT_SCOPE_PROMPT") ||
     !adminSrc.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID")
   ) {

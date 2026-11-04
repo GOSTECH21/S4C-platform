@@ -131,8 +131,11 @@ assert(
   overlay.includes("app/club/projects/select/page.tsx") &&
     overlay.includes("app/components/club/ClubClimateProjectScopeChooser.tsx") &&
     overlay.includes("club-choose-projects-scopes-v1") &&
-    overlay.includes("S4P_OVERLAY_SELF"),
-  "PC overlay pulls the shortened Choose Projects flow"
+    overlay.includes('BUST = "club-choose-projects-pc-2"') &&
+    overlay.includes('rmSync(".next"') &&
+    overlay.includes("S4P_OVERLAY_SELF") &&
+    dashboard.includes("club-choose-projects-scopes-v1"),
+  "PC overlay pulls the shortened Choose Projects flow and clears the Next.js cache"
 );
 
 if (failures.length > 0) {

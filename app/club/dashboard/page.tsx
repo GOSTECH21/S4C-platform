@@ -236,6 +236,7 @@ export default function ClubDashboardPage() {
         )}
 
         <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
+          {/* club-choose-projects-scopes-v1 */}
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
               Choose Projects

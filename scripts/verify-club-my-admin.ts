@@ -191,7 +191,8 @@ assert(
   overlay.includes("app/services/local-sponsor.service.ts") &&
     overlay.includes("app/lib/local-sponsor.ts") &&
     overlay.includes("app/components/club/ClubAdminLookbackAndCilt.tsx") &&
-    overlay.includes('BUST = "club-my-admin-pc-5"') &&
+    overlay.includes("app/components/club/ClubClimateProjectScopeChooser.tsx") &&
+    overlay.includes('BUST = "club-my-admin-pc-6"') &&
     overlay.includes("S4P_OVERLAY_SELF") &&
     overlay.includes("dashboardSrc.includes") &&
     localService.includes("export async function hydrateLocalSponsorRecords"),
