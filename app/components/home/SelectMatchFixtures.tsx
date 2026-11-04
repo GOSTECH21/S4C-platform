@@ -307,6 +307,7 @@ export function SelectMatchPhone({
     mode,
   } = useSelectMatch();
   const shown = resolvedClub || club;
+  const clubList = mode === "club";
   const shownMatches = (matches ?? [])
     .filter((match) => {
       const name = shown.toLowerCase();
@@ -324,7 +325,12 @@ export function SelectMatchPhone({
       alt={alt}
       width={247}
       height={589}
-      screenClassName="[pointer-events:auto] max-md:h-[28rem] max-md:max-h-[28rem] md:rounded-[0_0_1.35rem_1.35rem]"
+      framed={mode !== "club"}
+      screenClassName={
+        clubList
+          ? "[pointer-events:auto] h-[32rem] max-h-[32rem] sm:h-[38rem] sm:max-h-[38rem]"
+          : "[pointer-events:auto] max-md:h-[28rem] max-md:max-h-[28rem] md:rounded-[0_0_1.35rem_1.35rem]"
+      }
       screenStyle={{
         top: "14.9%",
         left: "6.2%",
@@ -335,7 +341,10 @@ export function SelectMatchPhone({
     >
       <div
         data-select-match-contained="select-match-contained-v1"
-        className="flex h-full flex-col px-3 pt-2.5"
+        data-club-pc-no-phone-frame={
+          clubList ? "club-pc-no-phone-frame-v1" : undefined
+        }
+        className={`flex h-full flex-col ${clubList ? "px-4 pt-4" : "px-3 pt-2.5"}`}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
         aria-live="polite"
@@ -344,12 +353,14 @@ export function SelectMatchPhone({
         } league and cup matches`}
       >
           <p
-            className="flex items-center gap-1.5 text-[11px] font-black"
+            className={`flex items-center gap-1.5 font-black ${
+              clubList ? "text-sm" : "text-[11px]"
+            }`}
             style={{ color: MINT }}
           >
             <svg
               viewBox="0 0 24 24"
-              className="h-3.5 w-3.5"
+              className={clubList ? "h-4 w-4" : "h-3.5 w-3.5"}
               fill={MINT}
               aria-hidden
             >
@@ -359,15 +370,29 @@ export function SelectMatchPhone({
           </p>
           <div className="mt-2 flex items-center gap-2">
             <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-black"
+              className={`flex shrink-0 items-center justify-center rounded-full font-black text-black ${
+                clubList
+                  ? "h-10 w-10 text-xs"
+                  : "h-8 w-8 text-[10px]"
+              }`}
               style={{ backgroundColor: MARK_GREEN }}
               aria-hidden
             >
               {clubInitials(shown)}
             </span>
-            <p className="text-lg font-black leading-none">{shown}</p>
+            <p
+              className={`font-black leading-none ${
+                clubList ? "text-xl sm:text-2xl" : "text-lg"
+              }`}
+            >
+              {shown}
+            </p>
           </div>
-          <div className="mt-3 flex gap-4 border-b border-emerald-400/30 text-[10px] font-black uppercase tracking-[0.16em]">
+          <div
+            className={`mt-3 flex gap-4 border-b border-emerald-400/30 font-black uppercase tracking-[0.16em] ${
+              clubList ? "text-xs sm:text-sm" : "text-[10px]"
+            }`}
+          >
             <span
               className="border-b-2 pb-1.5"
               style={{ borderColor: MARK_GREEN, color: MARK_GREEN }}
@@ -389,7 +414,7 @@ export function SelectMatchPhone({
                   No upcoming matches found for this club yet.
                 </p>
               ) : (
-                <ol className="space-y-2">
+                <ol className={clubList ? "space-y-3" : "space-y-2"}>
                   {shownMatches.map((match) => {
                     const pending = {
                       club: shown,
@@ -403,33 +428,61 @@ export function SelectMatchPhone({
                     const href = sponsorFromMatchPath(pending);
                     const label = match.fixtureName.replace(" v ", " vs ");
                     const selected = selectedMatch?.id === match.id;
-                    const rowClass = `block rounded-2xl px-2.5 py-2 ${
-                      selected ? "ring-2 ring-[#5bc662]" : ""
-                    } ${mode === "view" ? "" : "cursor-pointer hover:brightness-[0.98]"}`;
+                    const rowClass = `block rounded-2xl ${
+                      clubList ? "px-3.5 py-3" : "px-2.5 py-2"
+                    } ${selected ? "ring-2 ring-[#5bc662]" : ""} ${
+                      mode === "view" ? "" : "cursor-pointer hover:brightness-[0.98]"
+                    }`;
                     const body = (
                       <>
-                          <p className="flex flex-wrap items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em]">
+                          <p
+                            className={`flex flex-wrap items-center gap-1.5 font-black uppercase tracking-[0.12em] ${
+                              clubList ? "text-xs sm:text-sm" : "text-[9px]"
+                            }`}
+                          >
                             <span>
                               {formatMatchDateYear(match.date)} ·{" "}
                               {formatKickoff(match.kickoff)}
                             </span>
                             {match.cup ? (
                               <span
-                                className="rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em] text-black"
+                                className={`rounded-full font-black tracking-[0.12em] text-black ${
+                                  clubList
+                                    ? "px-2 py-0.5 text-[10px] sm:text-xs"
+                                    : "px-1.5 py-0.5 text-[8px]"
+                                }`}
                                 style={{ backgroundColor: MARK_GREEN }}
                               >
                                 Cup
                               </span>
                             ) : (
-                              <span className="rounded-full border border-emerald-400/50 px-1.5 py-0.5 text-[8px] font-black tracking-[0.12em]">
+                              <span
+                                className={`rounded-full border border-emerald-400/50 font-black tracking-[0.12em] ${
+                                  clubList
+                                    ? "px-2 py-0.5 text-[10px] sm:text-xs"
+                                    : "px-1.5 py-0.5 text-[8px]"
+                                }`}
+                              >
                                 League
                               </span>
                             )}
                           </p>
-                          <p className="mt-0.5 text-[11px] font-black leading-snug">
+                          <p
+                            className={`font-black leading-snug ${
+                              clubList
+                                ? "mt-1 text-sm sm:text-base"
+                                : "mt-0.5 text-[11px]"
+                            }`}
+                          >
                             {label}
                           </p>
-                          <p className="mt-0.5 text-[9px] font-semibold leading-4">
+                          <p
+                            className={`font-semibold ${
+                              clubList
+                                ? "mt-1 text-xs leading-5 sm:text-sm"
+                                : "mt-0.5 text-[9px] leading-4"
+                            }`}
+                          >
                             {[match.venue, match.league]
                               .filter(Boolean)
                               .join(" · ")}
@@ -444,7 +497,8 @@ export function SelectMatchPhone({
                           ) : null}
                           {mode === "club" ? (
                             <span
-                              className="mt-1.5 inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-black"
+                              data-select-this-match
+                              className="mt-2 inline-flex rounded-full px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-black sm:px-5 sm:py-2.5 sm:text-base md:text-lg"
                               style={{ backgroundColor: MARK_GREEN }}
                             >
                               {selected ? "Selected Match Day" : "Select this Match"}
@@ -602,7 +656,7 @@ export default function SelectMatchFixtures() {
           }`}
         >
           {clubPossessive(shown)} next {Math.min(matches.length, 10)} league and
-          cup matches are on the phone.
+          cup matches {mode === "club" ? "are in this list." : "are on the phone."}
           {mode === "sponsor"
             ? " Tap a match to lock it in, complete your sponsorship and sign it off."
             : mode === "club"

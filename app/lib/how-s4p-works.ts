@@ -46,9 +46,9 @@ export const HOW_S4P_SELECT_MATCH_SPONSOR = {
 export const HOW_S4P_SELECT_MATCH_CLUB = {
   title: "Select the Match",
   caption:
-    "Select the Match you want to get sponsorship for. Your Club's next league and cup fixtures are on this phone.",
+    "Select the Match you want to get sponsorship for. Your Club's next league and cup fixtures are in this list.",
   points: [
-    "This Club's next Matches are on the phone",
+    "This Club's next Matches are listed here",
     "Pick the Match Day you want sponsored",
     "Then choose Climate Projects and send invitations",
   ],

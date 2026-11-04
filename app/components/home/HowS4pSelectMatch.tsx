@@ -1,6 +1,9 @@
 "use client";
 
-import { PHONE_COLUMN_CLASS } from "@/app/components/home/PhoneFrame";
+import {
+  CLUB_FIXTURE_COLUMN_CLASS,
+  PHONE_COLUMN_CLASS,
+} from "@/app/components/home/PhoneFrame";
 import SelectMatchFixtures, {
   SelectMatchPhone,
   SelectMatchProvider,
@@ -46,10 +49,19 @@ export default function HowS4pSelectMatch({
     >
       <section
         data-how-s4p-select-match={audience}
+        data-club-pc-no-phone-frame={
+          audience === "club" ? "club-pc-no-phone-frame-v1" : undefined
+        }
         className={`s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8 ${className}`}
       >
         <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
-          <div className={`${PHONE_COLUMN_CLASS} order-2 lg:order-1`}>
+          <div
+            className={`${
+              audience === "club"
+                ? CLUB_FIXTURE_COLUMN_CLASS
+                : PHONE_COLUMN_CLASS
+            } order-2 lg:order-1`}
+          >
             <SelectMatchPhone
               src={HOW_S4P_SELECT_MATCH.src}
               alt={HOW_S4P_SELECT_MATCH.alt}

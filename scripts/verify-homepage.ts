@@ -710,6 +710,10 @@ assert(
       "app/components/home/SelectMatchFixtures.tsx",
       "utf8"
     ).includes("PhoneFrame") &&
+    readFileSync(
+      "app/components/home/SelectMatchFixtures.tsx",
+      "utf8"
+    ).includes('framed={mode !== "club"}') &&
     readFileSync("app/components/home/PredictForPlanet.tsx", "utf8").includes(
       "PhoneFrame"
     ) &&

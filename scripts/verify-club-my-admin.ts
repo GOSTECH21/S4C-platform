@@ -66,7 +66,9 @@ assert(
 const clubCopy = howS4pSelectMatchCopy("club");
 assert(
   clubCopy.title === "Select the Match" &&
-    clubCopy.caption.includes("Select the Match you want to get sponsorship for"),
+    clubCopy.caption.includes("Select the Match you want to get sponsorship for") &&
+    clubCopy.caption.includes("fixtures are in this list") &&
+    !clubCopy.caption.includes("on this phone"),
   "Club Select Match heading is Select the Match"
 );
 
@@ -148,7 +150,10 @@ assert(
     fixtures.includes("persistClubMatch") &&
     fixtures.includes('if (mode === "club") return null') &&
     fixtures.includes("text-[10px]") &&
-    fixtures.includes("text-base sm:text-lg"),
+    fixtures.includes("text-base sm:text-lg") &&
+    fixtures.includes('framed={mode !== "club"}') &&
+    fixtures.includes("data-select-this-match") &&
+    fixtures.includes("sm:text-base md:text-lg"),
   "Select the Match type is larger and a club tap registers the fixture"
 );
 

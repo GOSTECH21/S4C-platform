@@ -132,10 +132,14 @@ assert(
     select.includes("PHONE_COLUMN_CLASS") &&
     p4pSection.includes("PHONE_COLUMN_CLASS") &&
     fixtures.includes("PhoneFrame") &&
+    fixtures.includes('framed={mode !== "club"}') &&
+    fixtures.includes("club-pc-no-phone-frame-v1") &&
+    select.includes("CLUB_FIXTURE_COLUMN_CLASS") &&
+    frame.includes("framed = true") &&
     p4pPhone.includes("PhoneFrame") &&
     supporting.includes("PhoneFrame") &&
     supporting.includes("max-md:static"),
-  "Phone bezels hide below md; Access & Join, Select Match, P4P, and How You're Supporting are handset-native"
+  "Phone bezels hide below md; Club Select Match drops the handset on PC; fan/sponsor stay handset-native"
 );
 
 if (failures.length > 0) {
