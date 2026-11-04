@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const REFS = ["main", "cursor/club-projects-local-national-18f9", "cursor/club-my-admin-18f9"];
+const REFS = ["ce77eee", "cursor/club-projects-local-national-18f9", "main", "cursor/club-my-admin-18f9"];
 const BUST = "club-my-admin-pc-6";
 const SELF = "apply-club-my-admin.mjs";
 const FILES = [

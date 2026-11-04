@@ -8,7 +8,8 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const REFS = ["main", "cursor/club-projects-local-national-18f9"];
+const PIN = "ce77eee";
+const REFS = [PIN, "cursor/club-projects-local-national-18f9"];
 const BUST = "club-choose-projects-pc-2";
 const SELF = "apply-club-choose-projects.mjs";
 const FILES = [
@@ -40,6 +41,14 @@ function rawUrl(ref, rel) {
 }
 
 if (process.env.S4P_OVERLAY_SELF !== "1") {
+  const localSelf = existsSync(SELF) ? readFileSync(SELF, "utf8") : "";
+  if (
+    localSelf.includes(`BUST = "${BUST}"`) &&
+    localSelf.includes(`PIN = "${PIN}"`) &&
+    localSelf.includes("rmSync")
+  ) {
+    // Already the cache-clearing overlay; do not replace it with a cached main copy.
+  } else {
   let refreshed = false;
   for (const ref of REFS) {
     const url = rawUrl(ref, SELF);
@@ -65,6 +74,7 @@ if (process.env.S4P_OVERLAY_SELF !== "1") {
   }
   if (!refreshed) {
     console.log("Could not refresh", SELF, "from GitHub; using the local copy.");
+  }
   }
 }
 

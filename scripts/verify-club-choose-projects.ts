@@ -132,6 +132,7 @@ assert(
     overlay.includes("app/components/club/ClubClimateProjectScopeChooser.tsx") &&
     overlay.includes("club-choose-projects-scopes-v1") &&
     overlay.includes('BUST = "club-choose-projects-pc-2"') &&
+    overlay.includes('PIN = "ce77eee"') &&
     overlay.includes('rmSync(".next"') &&
     overlay.includes("S4P_OVERLAY_SELF") &&
     dashboard.includes("club-choose-projects-scopes-v1"),
