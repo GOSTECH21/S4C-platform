@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import ClubNav from "@/app/components/club/ClubNav";
 import ClubAddressBookPanel from "@/app/components/club/ClubAddressBookPanel";
 import ClubAdminLookbackAndCilt from "@/app/components/club/ClubAdminLookbackAndCilt";
-import { CLUB_LOGIN_PATH } from "@/app/lib/routes";
+import {
+  CLUB_ADMIN_ADDRESS_BOOKS_ID,
+  CLUB_LOGIN_PATH,
+} from "@/app/lib/routes";
 import {
   loadClubAddressBooks,
   type ClubAddressBookContact,
@@ -45,6 +48,15 @@ export default function ClubAdminPage() {
     }
     void load();
   }, [router]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== `#${CLUB_ADMIN_ADDRESS_BOOKS_ID}`) return;
+    document
+      .getElementById(CLUB_ADMIN_ADDRESS_BOOKS_ID)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [loading]);
 
   async function startClubAfresh() {
     if (!club) return;
@@ -126,7 +138,10 @@ export default function ClubAdminPage() {
 
         <ClubAdminLookbackAndCilt club={club} />
 
-        <div className="mt-10 grid gap-8 xl:grid-cols-2">
+        <div
+          id={CLUB_ADMIN_ADDRESS_BOOKS_ID}
+          className="mt-10 scroll-mt-24 grid gap-8 xl:grid-cols-2"
+        >
           <ClubAddressBookPanel
             clubId={club.id}
             kind="lead"

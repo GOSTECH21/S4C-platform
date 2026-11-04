@@ -321,9 +321,9 @@ const selectPage = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
   selectPage.includes("ProjectSiteLine") &&
     selectPage.includes("nearbyProjectsCopy") &&
-    selectPage.includes("climateProjectListLabel(3") &&
-    selectPage.includes("Climate Projects near my Stadium"),
-  "Club Climate Projects list shows implementation sites and the 20-mile nearby list"
+    selectPage.includes("climateProjectsForScope") &&
+    selectPage.includes('scope === "local"'),
+  "Club Climate Projects list shows implementation sites and Local, National and International lists"
 );
 
 if (failures.length > 0) {

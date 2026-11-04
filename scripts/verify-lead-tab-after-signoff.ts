@@ -138,11 +138,11 @@ async function main() {
     dashboard.indexOf("refreshSignedLive")
   );
   assert(
-    liveRefresh.includes("leadClimateSponsorsForClub") &&
-      liveRefresh.includes("setLeadSponsors") &&
-      liveRefresh.includes("hydrateClubSponsorsFromSigned") &&
-      dashboard.includes('initialTab="lead"'),
-    "The club dashboard refreshes and activates Our Lead Climate Sponsor as soon as a brand signs off"
+    liveRefresh.includes("hydrateClubSponsorsFromSigned") &&
+      liveRefresh.includes("hydrateLocalSponsorRecords") &&
+      !dashboard.includes('initialTab="lead"') &&
+      !dashboard.includes("ClubClimateSponsorTabs"),
+    "The club dashboard still refreshes signed sponsors, but Our Climate Sponsors lives in My Admin Address Books"
   );
 
   const offers = readFileSync("app/services/sponsor-offers.service.ts", "utf8");

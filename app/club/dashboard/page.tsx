@@ -26,31 +26,22 @@ import {
   MATCH_DAY_APPROVED_LABEL,
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
-  clubDashboardClimateProjectsIntroCopy,
-  clubDashboardLeadTabCount,
   matchDayProjectApprovalLabel,
   SELECT_CLIMATE_PROJECTS_LABEL,
 } from "@/app/lib/partner-projects";
 import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
 import {
-  leadClimateSponsorsForClub,
   loadClubSponsorRoster,
   loadGoalNetwork,
   loadMatchDayLock,
-  localBusinessClimateSponsorsForClub,
 } from "@/app/services/climate-sponsors.service";
 import {
   selectedBrandsReadyToReceive,
   type ClubSponsorRoster,
-  type LeadClubSponsorRow,
 } from "@/app/lib/climate-sponsors";
-import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
-import { type LocalSponsorRecord } from "@/app/lib/local-sponsor";
-import { splitClubClimateSponsorsForTabs } from "@/app/lib/match-day-branding";
 import {
   CLUB_LOGIN_PATH,
   CLUB_SELECT_PROJECTS_PATH,
-  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import { clubGateCopy, type SignedInKind } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
@@ -74,8 +65,6 @@ export default function ClubDashboardPage() {
   const [postError, setPostError] = useState<string | null>(null);
   const [signedCopies, setSignedCopies] = useState<SignedSponsorship[]>([]);
   const [roster, setRoster] = useState<ClubSponsorRoster | null>(null);
-  const [leadSponsors, setLeadSponsors] = useState<LeadClubSponsorRow[]>([]);
-  const [localSponsors, setLocalSponsors] = useState<LocalSponsorRecord[]>([]);
   const [featuredId, setFeaturedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -119,13 +108,6 @@ export default function ClubDashboardPage() {
         await listClubSignedSponsorships(session.club.id, session.club.name)
       );
       setRoster(loadClubSponsorRoster(session.club.id, session.club.name));
-      const inbound = splitClubClimateSponsorsForTabs({
-        clubName: session.club.name,
-        leadSponsors: leadClimateSponsorsForClub(session.club.name),
-        localSponsors: localBusinessClimateSponsorsForClub(session.club.name),
-      });
-      setLeadSponsors(inbound.leads);
-      setLocalSponsors(inbound.locals);
       setLoading(false);
     }
 
@@ -142,13 +124,6 @@ export default function ClubDashboardPage() {
         await listClubSignedSponsorships(club.id, club.name)
       );
       setRoster(loadClubSponsorRoster(club.id, club.name));
-      const inbound = splitClubClimateSponsorsForTabs({
-        clubName: club.name,
-        leadSponsors: leadClimateSponsorsForClub(club.name),
-        localSponsors: localBusinessClimateSponsorsForClub(club.name),
-      });
-      setLeadSponsors(inbound.leads);
-      setLocalSponsors(inbound.locals);
       const stored = readStoredMatchDay(club.id);
       setPostedAt(stored?.postedAt ?? null);
       setFeaturedId(stored?.featuredProjectId ?? null);
@@ -190,14 +165,6 @@ export default function ClubDashboardPage() {
     return ids;
   }, [signedCopies, club]);
   const hasApproved = approvedIds.size > 0;
-  const approvedBrandNames = useMemo(() => {
-    const names = new Set<string>();
-    for (const copy of signedCopies) {
-      const name = copy.signature.brandName?.trim();
-      if (name) names.add(name);
-    }
-    return [...names];
-  }, [signedCopies]);
 
   const readySponsorBrands = useMemo(() => {
     if (!roster) return [];
@@ -273,17 +240,9 @@ export default function ClubDashboardPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
               Choose Projects
             </p>
-            <h2 className="mt-3 text-4xl font-black md:text-5xl">
-              {SELECT_CLIMATE_PROJECTS_LABEL}
-            </h2>
             <div className="mx-auto mt-6 max-w-3xl text-left">
               <ClubChooseProjectsCopy />
             </div>
-            {!matchDayReady ? (
-              <p className="mx-auto mt-4 max-w-3xl text-lg text-slate-300">
-                {clubDashboardClimateProjectsIntroCopy()}
-              </p>
-            ) : null}
           </div>
 
           <Link
@@ -292,14 +251,6 @@ export default function ClubDashboardPage() {
           >
             {SELECT_CLIMATE_PROJECTS_LABEL}
           </Link>
-          {matchDayReady && (
-            <Link
-              href={CLUB_SPONSORS_PATH}
-              className="mt-4 block w-full rounded-xl border border-green-400 bg-green-500/15 py-4 text-center text-lg font-bold text-green-200 hover:bg-green-500/25"
-            >
-              Open Sponsors listings
-            </Link>
-          )}
           {hasApproved && postedAt && !postError && (
             <p className="mt-4 text-center text-sm font-semibold text-green-300">
               Approved Projects published to your fans on My S4P
@@ -325,16 +276,6 @@ export default function ClubDashboardPage() {
             />
           </div>
         </section>
-
-        <ClubClimateSponsorTabs
-          key={`${club.name}:${leadSponsors[0]?.brandKey ?? "none"}`}
-          clubName={club.name}
-          leadSponsors={leadSponsors}
-          localSponsors={localSponsors}
-          approvedBrandNames={approvedBrandNames}
-          leadTabCount={clubDashboardLeadTabCount(orderedSelected.length > 0)}
-          initialTab="lead"
-        />
       </div>
     </main>
   );

@@ -52,7 +52,7 @@ assert(
     clubDashboardChosenProjectsCopy().includes(CLUB_CHOOSE_PROJECTS_NOTE) &&
     CLUB_CHOOSE_PROJECTS_NOTE.includes("1 Lead Climate Sponsor") &&
     CLUB_CHOOSE_PROJECTS_NOTE.includes("4 Local Business Climate Sponsors"),
-  "Choose Projects copy is the numbered Address Book / Send Invitations steps"
+  "Address Book and Send Invitations copy still exists for My Admin"
 );
 assert(
   GLOBAL_BRAND_INVITE_COUNT === 1 && LOCAL_BUSINESS_INVITE_COUNT === 4,
@@ -168,15 +168,18 @@ assert(
     !dashboard.includes("Club Representative") &&
     !dashboard.includes("Start this club afresh") &&
     !dashboard.includes("Selected and Funded Projects, kept for lookback") &&
-    !dashboard.includes("S4P Climate Impact League Table"),
-  "Select Match stays on login landing; Images 3 and 4, lookback and CILT leave the dashboard"
+    !dashboard.includes("S4P Climate Impact League Table") &&
+    !dashboard.includes("<ClubClimateSponsorTabs"),
+  "Select Match stays on login landing; lookback, CILT and Brands Our Climate Sponsors leave the dashboard"
 );
 
 const preview = readFileSync("app/preview/club-admin/page.tsx", "utf8");
 assert(
   preview.includes("ClubAdminLookbackAndCilt") &&
+    preview.includes("ClubAddressBookPanel") &&
+    preview.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID") &&
     preview.includes("Match Day File Record") === false,
-  "My Admin preview renders the shared lookback and CILT component"
+  "My Admin preview renders the shared lookback, CILT, and Address Books"
 );
 
 const overlay = readFileSync("apply-club-my-admin.mjs", "utf8");
@@ -194,13 +197,19 @@ assert(
     localService.includes("export async function hydrateLocalSponsorRecords"),
   "PC overlay refreshes itself and pulls lookback/CILT onto My Admin"
 );
+const chooser = readFileSync(
+  "app/components/club/ClubClimateProjectScopeChooser.tsx",
+  "utf8"
+);
 assert(
   picker.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
-    picker.includes("id=\"select-climate-projects\"") &&
-    picker.includes("ClubChooseProjectsCopy") &&
+    picker.includes("ClubClimateProjectScopeChooser") &&
+    picker.includes("SEND_INVITATION_LABEL") &&
+    picker.includes("CLUB_ADMIN_ADDRESS_BOOKS_PATH") &&
     picker.includes("ClubSelectedMatchBanner") &&
-    picker.includes("bg-blue-600"),
-  "Choose Projects opens on the blue Select Climate Projects picker"
+    chooser.includes("bg-blue-600") &&
+    chooser.includes("climateProjectScopeButtonLabel"),
+  "Choose Projects opens Local, National and International lists, then Send Invitation to My Admin"
 );
 assert(
   admin.includes("My Admin") &&
@@ -209,7 +218,8 @@ assert(
     admin.includes('kind="lead"') &&
     admin.includes('kind="local"') &&
     admin.includes("ClubAddressBookPanel") &&
-    admin.includes("ClubAdminLookbackAndCilt"),
+    admin.includes("ClubAdminLookbackAndCilt") &&
+    admin.includes("CLUB_ADMIN_ADDRESS_BOOKS_ID"),
   "My Admin combines club stats, the representative, lookback, CILT, and two address books"
 );
 

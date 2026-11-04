@@ -13,12 +13,10 @@ import {
 } from "@/app/services/club-match-day.service";
 import {
   MATCH_DAY_CHOICE_COUNT,
-  MATCH_DAY_PROJECT_COUNT,
-  clubClimateProjectsIntroCopy,
   isPartnerUpload,
   SELECT_CLIMATE_PROJECTS_LABEL,
+  SEND_INVITATION_LABEL,
 } from "@/app/lib/partner-projects";
-import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
 import ClubSelectedMatchBanner from "@/app/components/club/ClubSelectedMatchBanner";
 import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
 import {
@@ -26,13 +24,11 @@ import {
 } from "@/app/lib/featured-climate-country";
 import {
   DEFAULT_WALLET_VOTE_GBP,
-  FUND_IT_LABEL,
-  formatWalletGbp,
 } from "@/app/lib/sponsor-wallet";
 import { leadWalletMatchFunding } from "@/app/services/sponsor-wallet.service";
 import {
+  CLUB_ADMIN_ADDRESS_BOOKS_PATH,
   CLUB_LOGIN_PATH,
-  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
 import ClubNav from "@/app/components/club/ClubNav";
 import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
@@ -44,8 +40,16 @@ import { identifySignedInKind } from "@/app/services/signed-in-role.service";
 import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
-import { s4pActionBarClass, s4pTabClass } from "@/app/lib/s4p-tabs";
-import { climateProjectListLabel } from "@/app/lib/s4p-climate-projects";
+import { s4pActionBarClass } from "@/app/lib/s4p-tabs";
+import {
+  climateProjectsForScope,
+  climateProjectScopeHeading,
+  type ClimateProjectScope,
+} from "@/app/lib/s4p-climate-projects";
+import {
+  ClubClimateProjectScopeChooser,
+  ClubClimateProjectScopeTabs,
+} from "@/app/components/club/ClubClimateProjectScopeChooser";
 
 export default function SelectMatchDayProjectsPage() {
   const router = useRouter();
@@ -60,7 +64,7 @@ export default function SelectMatchDayProjectsPage() {
   const [featured, setFeatured] = useState<ClimateProject[]>([]);
   const [featuredId, setFeaturedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [page, setPage] = useState(0);
+  const [scope, setScope] = useState<ClimateProjectScope | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -139,12 +143,13 @@ export default function SelectMatchDayProjectsPage() {
     clubName,
     country: clubCountry,
   });
-  const visible =
-    page === 0
-      ? localProjects
-      : page === 1
-        ? internationalProjects
-        : nearbyProjects;
+  const visible = scope
+    ? climateProjectsForScope(scope, {
+        local: localProjects,
+        international: internationalProjects,
+        nearby: nearbyProjects,
+      })
+    : [];
 
   function toggle(projectId: string) {
     setError(null);
@@ -159,7 +164,7 @@ export default function SelectMatchDayProjectsPage() {
     });
   }
 
-  async function confirm() {
+  async function sendInvitation() {
     if (!clubId) return;
     if (!featuredId) {
       setError(
@@ -191,7 +196,7 @@ export default function SelectMatchDayProjectsPage() {
         gbpPerVote: rate,
         expectedSponsorship: rate,
       });
-      router.push(CLUB_SPONSORS_PATH);
+      router.push(CLUB_ADMIN_ADDRESS_BOOKS_PATH);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save your match-day selection."
@@ -210,193 +215,145 @@ export default function SelectMatchDayProjectsPage() {
   }
 
   return (
-    <main className="min-h-screen p-10 text-white">
+    <main className="min-h-screen p-4 text-white sm:p-10">
       <div className="mx-auto max-w-6xl">
+        {/* club-choose-projects-scopes-v1 */}
         <ClubNav />
         <ClubSelectedMatchBanner clubId={clubId} clubName={clubName} />
 
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
           Choose Projects
         </p>
-        <h1
-          id="select-climate-projects"
-          className="mt-3 text-4xl font-black text-blue-300 md:text-5xl"
-        >
+        <h1 className="mt-3 text-2xl font-bold text-blue-300">
           {SELECT_CLIMATE_PROJECTS_LABEL}
         </h1>
-        <div className="mt-6 max-w-3xl">
-          <ClubChooseProjectsCopy />
-        </div>
         <p className="mt-4 max-w-3xl text-slate-300">
-          {clubClimateProjectsIntroCopy()}
-        </p>
-        <a
-          href="#select-climate-projects-list"
-          className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
-        >
-          {SELECT_CLIMATE_PROJECTS_LABEL}
-        </a>
-        <p className="mt-3 max-w-3xl text-sm text-emerald-300">
-          {nearbyProjectsCopy(clubName)}{" "}
-          {localCountry === "England"
-            ? "List 1 shows 20 Climate Projects from across England."
-            : `List 1 shows Climate Partner Projects from across ${localCountry}.`}
+          {nearbyProjectsCopy(clubName)} Choose Local, National or International
+          Climate Projects, then press {SEND_INVITATION_LABEL} to add Lead Climate
+          Sponsors and Local Business Climate Sponsors in My Admin.
         </p>
 
-        {featured.length > 0 && (
-          <div id="select-climate-projects-list" className="mt-8">
-            <FeaturedGssPicker
-              options={featured}
-              chosenId={featuredId}
-              onChoose={setFeaturedId}
-              clubName={clubName}
-              clubCountry={clubCountry}
-            />
-          </div>
-        )}
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900 px-5 py-4">
-          <p className="font-bold">
-            {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setPage(0)}
-              className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 0)}`}
-            >
-              {climateProjectListLabel(1, localCountry)}
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage(1)}
-              className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 1)}`}
-            >
-              {climateProjectListLabel(2, localCountry)}
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage(2)}
-              className={`rounded-lg px-4 py-2 text-sm font-bold ${s4pTabClass(page === 2)}`}
-            >
-              {climateProjectListLabel(3, localCountry)}
-            </button>
-          </div>
-        </div>
-
-        {error && (
+        {error && scope === null ? (
           <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
             {error}
           </div>
-        )}
-
-        {page === 2 && nearbyProjects.length === 0 ? (
-          <p className="mt-8 max-w-3xl text-slate-300">
-            {stadiumSiteForClub(clubName)
-              ? "No Climate Projects are listed within 20 miles of this stadium yet."
-              : "We do not have a stadium location for this club yet, so Climate Projects near my Stadium is empty."}
-          </p>
         ) : null}
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {visible.map((project) => {
-            const isOn = selected.has(project.id);
-            const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
-            const region =
-              page === 2
-                ? "Near the stadium"
-                : isLocalCatalogName(project.name, localCountry)
-                  ? `${localCountry} Climate Partner`
-                  : isInternationalCatalogName(project.name)
-                    ? "International Climate Partner"
-                    : "Climate Project Partner";
-            return (
-              <div
-                key={project.id}
-                className={`flex flex-col rounded-2xl border p-6 ${
-                  isOn
-                    ? "border-green-500 bg-slate-800"
-                    : "border-slate-700 bg-slate-900"
-                }`}
-              >
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  {region}
-                </p>
-                {isPartnerUpload(project) && (
-                    <p className="mt-1 text-xs font-semibold text-green-400">
-                      Uploaded climate project
-                    </p>
-                  )}
-                <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
-                <p className="mt-3 flex-1 text-slate-300">{project.description}</p>
-                <div className="mt-4 space-y-1 text-sm text-slate-400">
-                  {project.category && <p>{project.category}</p>}
-                  {project.country && <p>{project.country}</p>}
-                  <ProjectSiteLine project={project} clubName={clubName} />
-                </div>
-                <ClimateProjectCivBlock project={project} compact={false} />
-                <button
-                  onClick={() => toggle(project.id)}
-                  disabled={full}
-                  className={`mt-6 rounded-xl py-3 font-bold ${s4pActionBarClass(full)}`}
-                >
-                  {isOn ? "✓ Selected" : full ? "Limit reached" : "Select project"}
-                </button>
+        {scope === null ? (
+          <ClubClimateProjectScopeChooser onChoose={setScope} />
+        ) : (
+          <>
+            {featured.length > 0 && (
+              <div id="select-climate-projects-list" className="mt-8">
+                <FeaturedGssPicker
+                  options={featured}
+                  chosenId={featuredId}
+                  onChoose={setFeaturedId}
+                  clubName={clubName}
+                  clubCountry={clubCountry}
+                />
               </div>
-            );
-          })}
-        </div>
+            )}
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-          <button
-            onClick={() => setPage(0)}
-            disabled={page === 0}
-            className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 0)}`}
-          >
-            {climateProjectListLabel(1, localCountry)}
-          </button>
-          <button
-            onClick={() => setPage(1)}
-            disabled={page === 1}
-            className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 1)}`}
-          >
-            {climateProjectListLabel(2, localCountry)}
-          </button>
-          <button
-            onClick={() => setPage(2)}
-            disabled={page === 2}
-            className={`rounded-xl px-5 py-3 font-bold disabled:cursor-not-allowed ${s4pTabClass(page === 2)}`}
-          >
-            {climateProjectListLabel(3, localCountry)}
-          </button>
-        </div>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900 px-5 py-4">
+              <p className="font-bold">
+                {climateProjectScopeHeading(scope)}
+              </p>
+              <p className="font-bold">
+                {selected.size} of {MATCH_DAY_CHOICE_COUNT} partner projects selected
+              </p>
+            </div>
 
-        <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8">
-          <p className="text-sm text-slate-400">{FUND_IT_LABEL}</p>
-          <p className="mt-2 text-lg font-bold text-white">
-            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)}
-          </p>
-          <p className="mt-2 max-w-3xl text-sm text-slate-400">
-            Fans press {FUND_IT_LABEL} up to 5 times and take{" "}
-            {formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon
-            Wallet. Lead Climate Sponsor wallets fund Global Schools Solar
-            (75%) and local Climate Projects (25%). Local Business Climate
-            Sponsor wallets fund local Climate Projects only. The Lead Climate
-            Sponsor's Match-Sponsorship is already in the Climate Sponsorship
-            Wallet.
-          </p>
-          <button
-            onClick={confirm}
-            disabled={
-              saving || !featuredId || selected.size !== MATCH_DAY_CHOICE_COUNT
-            }
-            className="mt-6 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-          >
-            {saving
-              ? "Saving..."
-              : `Confirm ${MATCH_DAY_PROJECT_COUNT} Climate Projects`}
-          </button>
-        </div>
+            {error && (
+              <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
+                {error}
+              </div>
+            )}
+
+            {scope === "local" && nearbyProjects.length === 0 ? (
+              <p className="mt-8 max-w-3xl text-slate-300">
+                {stadiumSiteForClub(clubName)
+                  ? "No Climate Projects are listed within 20 miles of this stadium yet."
+                  : "We do not have a stadium location for this club yet, so Local Climate Projects is empty."}
+              </p>
+            ) : null}
+
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              {visible.map((project) => {
+                const isOn = selected.has(project.id);
+                const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
+                const region =
+                  scope === "local"
+                    ? "Local Climate Partner"
+                    : scope === "national"
+                      ? isLocalCatalogName(project.name, localCountry)
+                        ? `${localCountry} Climate Partner`
+                        : "National Climate Partner"
+                      : isInternationalCatalogName(project.name)
+                        ? "International Climate Partner"
+                        : "Climate Project Partner";
+                return (
+                  <div
+                    key={project.id}
+                    className={`flex flex-col rounded-2xl border p-6 ${
+                      isOn
+                        ? "border-green-500 bg-slate-800"
+                        : "border-slate-700 bg-slate-900"
+                    }`}
+                  >
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                      {region}
+                    </p>
+                    {isPartnerUpload(project) && (
+                      <p className="mt-1 text-xs font-semibold text-green-400">
+                        Uploaded climate project
+                      </p>
+                    )}
+                    <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
+                    <p className="mt-3 flex-1 text-slate-300">{project.description}</p>
+                    <div className="mt-4 space-y-1 text-sm text-slate-400">
+                      {project.category && <p>{project.category}</p>}
+                      {project.country && <p>{project.country}</p>}
+                      <ProjectSiteLine project={project} clubName={clubName} />
+                    </div>
+                    <ClimateProjectCivBlock project={project} compact={false} />
+                    <button
+                      onClick={() => toggle(project.id)}
+                      disabled={full}
+                      className={`mt-6 rounded-xl py-3 font-bold ${s4pActionBarClass(full)}`}
+                    >
+                      {isOn ? "✓ Selected" : full ? "Limit reached" : "Select project"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <ClubClimateProjectScopeTabs current={scope} onChoose={setScope} />
+
+            <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-8">
+              <p className="text-lg font-bold text-white">
+                {selected.size} of {MATCH_DAY_CHOICE_COUNT} Climate Partner
+                projects selected
+                {featuredId ? ", plus one Featured Global Schools Solar project" : ""}
+              </p>
+              <p className="mt-2 max-w-3xl text-sm text-slate-400">
+                Press {SEND_INVITATION_LABEL} to open Address Book 1 and Address
+                Book 2 in My Admin and add Lead Climate Sponsors and Local
+                Business Climate Sponsors.
+              </p>
+              <button
+                onClick={sendInvitation}
+                disabled={
+                  saving || !featuredId || selected.size !== MATCH_DAY_CHOICE_COUNT
+                }
+                className="mt-6 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+              >
+                {saving ? "Saving..." : SEND_INVITATION_LABEL}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );

@@ -943,19 +943,15 @@ assert(
 
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
-  dashboard.includes("splitClubClimateSponsorsForTabs") &&
-    dashboard.includes("leadClimateSponsorsForClub") &&
-    dashboard.includes("localBusinessClimateSponsorsForClub") &&
-    dashboard.slice(dashboard.indexOf("refreshSignedLive")).includes(
-      "leadClimateSponsorsForClub"
-    ) &&
-    dashboard.includes("approvedBrandNames") &&
-    dashboard.includes("clubDashboardLeadTabCount") &&
-    dashboard.includes("leadTabCount") &&
+  !dashboard.includes("splitClubClimateSponsorsForTabs") &&
+    !dashboard.includes("leadClimateSponsorsForClub") &&
+    !dashboard.includes("ClubClimateSponsorTabs") &&
+    !dashboard.includes("clubDashboardLeadTabCount") &&
+    !dashboard.includes("leadTabCount") &&
     !dashboard.includes("clubDashboardLookbackCopy") &&
     !dashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
     !dashboard.includes("lookbackProjectFunding"),
-  "Club dashboard splits inbound brands so local businesses never stay on the Lead tab, and refreshes that Lead list after sign-off"
+  "Club dashboard drops Our Climate Sponsors; lookback stays on My Admin"
 );
 const adminLookback = readFileSync(
   "app/components/club/ClubAdminLookbackAndCilt.tsx",

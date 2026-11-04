@@ -130,6 +130,14 @@ export const CLUB_STADIUM_SITES: StadiumSite[] = [
     country: "England",
   },
   {
+    name: "Everton",
+    address: "Hill Dickinson Stadium, Bramley-Moore Dock, Liverpool",
+    postcode: "L3 0BT",
+    point: { lat: 53.4253, lng: -2.9994 },
+    place: "Vauxhall",
+    country: "England",
+  },
+  {
     name: "Manchester City",
     address: "Etihad Stadium, Ashton New Road, Manchester",
     postcode: "M11 3FF",

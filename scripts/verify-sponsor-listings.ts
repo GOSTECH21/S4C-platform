@@ -266,12 +266,12 @@ assert(
   nav.includes('label: "Sponsors"') &&
     nav.includes("CLUB_SPONSORS_PATH") &&
     sponsorsPage.includes("ClubSponsorsListings") &&
-    dashboard.includes("Open Sponsors listings") &&
+    !dashboard.includes("Open Sponsors listings") &&
     dashboard.includes("approvedIdsForClubMatch") &&
     readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
-      "CLUB_SPONSORS_PATH"
+      "CLUB_ADMIN_ADDRESS_BOOKS_PATH"
     ),
-  "Club nav Sponsors opens the listings; after choosing 5 projects the SD lands on invitations"
+  "Club nav Sponsors still opens listings; after choosing projects the SD lands on My Admin Address Books"
 );
 assert(
   globalRegister.includes("MATCH_SPONSORSHIP_RANGE_LABEL") &&

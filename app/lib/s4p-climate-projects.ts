@@ -5,6 +5,48 @@ export const S4P_CLIMATE_PROJECTS_LABEL = "S4P Climate Projects";
 export const CLIMATE_PROJECTS_NEAR_STADIUM_LABEL =
   "Climate Projects near my Stadium";
 
+export type ClimateProjectScope = "local" | "national" | "international";
+
+export const CLIMATE_PROJECT_SCOPES: readonly ClimateProjectScope[] = [
+  "local",
+  "national",
+  "international",
+] as const;
+
+export const CLIMATE_PROJECT_SCOPE_PROMPT =
+  "Which Climate Projects do you need to see?";
+
+export function climateProjectScopeLabel(scope: ClimateProjectScope): string {
+  if (scope === "local") return "Local";
+  if (scope === "national") return "National";
+  return "International";
+}
+
+export function climateProjectScopeButtonLabel(
+  scope: ClimateProjectScope
+): string {
+  return `${climateProjectScopeLabel(scope)} Projects`;
+}
+
+export function climateProjectScopeHeading(scope: ClimateProjectScope): string {
+  return `${climateProjectScopeLabel(scope)} Climate Projects`;
+}
+
+export function otherClimateProjectScopes(
+  scope: ClimateProjectScope
+): ClimateProjectScope[] {
+  return CLIMATE_PROJECT_SCOPES.filter((item) => item !== scope);
+}
+
+export function climateProjectsForScope<T>(
+  scope: ClimateProjectScope,
+  lists: { local: T[]; international: T[]; nearby: T[] }
+): T[] {
+  if (scope === "local") return lists.nearby;
+  if (scope === "national") return lists.local;
+  return lists.international;
+}
+
 export function climateProjectListLabel(
   list: 1 | 2 | 3,
   localCountry: string

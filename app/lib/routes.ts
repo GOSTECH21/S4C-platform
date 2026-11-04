@@ -72,6 +72,8 @@ export const CLUB_SELECT_PROJECTS_ALIASES = [
 ];
 export const CLUB_SPONSORS_PATH = "/club/sponsors";
 export const CLUB_ADMIN_PATH = "/club/admin";
+export const CLUB_ADMIN_ADDRESS_BOOKS_ID = "address-books";
+export const CLUB_ADMIN_ADDRESS_BOOKS_PATH = `${CLUB_ADMIN_PATH}#${CLUB_ADMIN_ADDRESS_BOOKS_ID}`;
 export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
 export const SPONSOR_INVITATIONS_PATH = "/sponsor/invitations";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";

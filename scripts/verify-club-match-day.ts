@@ -658,9 +658,8 @@ assert(
   "Club dashboard intro starts with the blue Select Climate Projects button"
 );
 assert(
-  clubDashboard.indexOf("Approved Projects") <
-    clubDashboard.indexOf("<ClubClimateSponsorTabs") &&
-    clubDashboard.includes("clubDashboardClimateProjectsIntroCopy") &&
+  !clubDashboard.includes("<ClubClimateSponsorTabs") &&
+    !clubDashboard.includes("Our Climate Sponsors") &&
     clubDashboard.includes("ClubChooseProjectsCopy") &&
     clubDashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
     !clubDashboard.includes("MatchDayFolderPanel") &&
@@ -671,13 +670,14 @@ assert(
     !clubDashboard.includes("Incomplete or unstamped copies") &&
     !clubDashboard.includes("MATCH_DAY_FULLY_FUNDED_LABEL") &&
     !clubDashboard.includes("lookbackProjectFunding") &&
-    clubDashboard.includes("clubDashboardLeadTabCount") &&
-    clubDashboard.includes("leadTabCount") &&
+    !clubDashboard.includes("clubDashboardLeadTabCount") &&
+    !clubDashboard.includes("leadTabCount") &&
     clubDashboard.includes("orderedSelected") &&
     clubDashboard.includes("matchDayProjectApprovalLabel") &&
     clubDashboard.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
-    clubDashboard.includes("MATCH_DAY_APPROVED_LABEL"),
-  "Club dashboard puts S4P Climate Projects above Our Climate Sponsors and drops the folder, signed copy, Voted-For and Funded blocks"
+    clubDashboard.includes("MATCH_DAY_APPROVED_LABEL") &&
+    clubDashboard.includes("matchDayWindowCopy"),
+  "Club dashboard keeps Choose Projects and the Chosen Climate Projects statement, without Brands Our Climate Sponsors"
 );
 assert(
   clubDashboardChosenProjectsCopy().includes("Select 1 Global Schools Solar") &&
@@ -688,7 +688,7 @@ assert(
     ) &&
     matchDayProjectApprovalLabel(false) === MATCH_DAY_PENDING_APPROVAL_LABEL &&
     matchDayProjectApprovalLabel(true) === MATCH_DAY_APPROVED_LABEL,
-  "Choose Projects copy is the numbered Address Book and Send Invitations steps"
+  "Address Book and Send Invitations copy still exists for My Admin"
 );
 assert(
   clubDashboardLookbackCopy() ===
@@ -763,14 +763,13 @@ assert(
   "Shared tab helper uses lime mark green, not dark slate fills"
 );
 assert(
-  clubSelect.includes("s4pTabClass") &&
-    !clubSelect.includes("border border-slate-700 text-slate-300") &&
+  !clubSelect.includes("border border-slate-700 text-slate-300") &&
     clubNav.includes("s4pTabClass") &&
     !clubNav.includes("bg-slate-800 text-slate-200") &&
-    clubSelect.includes("climateProjectListLabel(3") &&
+    clubSelect.includes("ClubClimateProjectScopeChooser") &&
     clubSelect.includes("setNearbyProjects") &&
     !clubSelect.includes("List 1 shows those local projects"),
-  "Club Climate Projects List tabs include Climate Projects near my Stadium"
+  "Club Climate Projects lists are Local, National and International"
 );
 assert(
   tabHelper.includes("s4pActionBarClass") &&

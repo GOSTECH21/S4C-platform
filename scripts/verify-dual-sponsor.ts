@@ -513,8 +513,8 @@ assert(
 const club = readFileSync("app/club/dashboard/page.tsx", "utf8");
 assert(
   !club.includes("MatchDayLocalSponsorBoard") &&
-    club.includes("ClubClimateSponsorTabs"),
-  "Club dashboard shows locals once under Our Climate Sponsors, not on an attach-logos board"
+    !club.includes("ClubClimateSponsorTabs"),
+  "Club dashboard no longer shows Our Climate Sponsors; Address Books cover Lead and Local sponsors"
 );
 assert(
   !readFileSync("app/components/club/MatchDayLocalSponsorBoard.tsx", "utf8").includes(
