@@ -15,7 +15,7 @@ export default function SendInvitationToSponsorsLink({
     <div
       data-send-invitation-to-sponsors="club-sponsors-address-books-v1"
       data-pending-invite-bar="club-pending-invite-v1"
-      className={`sticky bottom-0 z-30 mt-6 bg-gradient-to-t from-slate-950 from-55% to-transparent pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 ${className}`}
+      className={`sticky bottom-0 z-30 mt-6 bg-[color:var(--background)]/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur ${className}`}
     >
       <Link
         href={href}
