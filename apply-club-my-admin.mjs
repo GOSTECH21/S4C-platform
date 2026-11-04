@@ -8,10 +8,11 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const REFS = ["ce77eee", "cursor/club-projects-local-national-18f9", "main", "cursor/club-my-admin-18f9"];
-const BUST = "club-my-admin-pc-6";
+const REFS = ["main", "cursor/club-pc-no-phone-frame-18f9", "ce77eee", "cursor/club-projects-local-national-18f9", "cursor/club-my-admin-18f9"];
+const BUST = "club-my-admin-pc-7";
 const SELF = "apply-club-my-admin.mjs";
 const FILES = [
+  "app/components/home/PhoneFrame.tsx",
   "app/lib/club-selected-match.ts",
   "app/lib/club-address-book.ts",
   "app/lib/routes.ts",
@@ -49,6 +50,10 @@ const FILES = [
 ];
 
 if (process.env.S4P_OVERLAY_SELF !== "1") {
+  const localSelf = existsSync(SELF) ? readFileSync(SELF, "utf8") : "";
+  if (localSelf.includes(`BUST = "${BUST}"`)) {
+    // Already the current overlay; do not replace it with an older GitHub copy.
+  } else {
   let refreshed = false;
   for (const ref of REFS) {
     const url = `https://raw.githubusercontent.com/GOSTECH21/S4C-platform/${ref}/${SELF}?v=${BUST}&t=${Date.now()}`;
@@ -74,6 +79,7 @@ if (process.env.S4P_OVERLAY_SELF !== "1") {
   }
   if (!refreshed) {
     console.log("Could not refresh", SELF, "from GitHub; using the local copy.");
+  }
   }
 }
 
@@ -152,6 +158,7 @@ if (
     !adminSrc.includes("ClubAddressBookPanel") ||
     !adminSrc.includes("ClubAdminLookbackAndCilt") ||
     !fixturesSrc.includes("rememberClubSelectedMatch") ||
+    !fixturesSrc.includes('framed={mode !== "club"}') ||
     !localServiceSrc.includes("hydrateLocalSponsorRecords") ||
     !lookbackSrc.includes("Match Day File Record") ||
     !lookbackSrc.includes("S4P Climate Impact League Table") ||
