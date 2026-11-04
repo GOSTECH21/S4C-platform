@@ -7,9 +7,12 @@ import {
 } from "@/app/lib/routes";
 import {
   FAN_CARBON_WALLET_LABEL,
+  GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_DURATION_MINUTES,
   GAME_TIME_SLOT_MINUTES,
+  GAME_TIME_SPONSORSHIP_LABEL,
   P4P_ACCURACY_GBP,
+  P4P_SHORT,
   P4P_CORRECT_TOTAL_GBP,
   P4P_ENGAGEMENT_GBP,
   P4P_WINDOW_MINUTES,
@@ -82,10 +85,10 @@ export default function ClimateSponsorshipPage() {
       </div>
 
       <div className="mt-12 rounded-3xl border border-green-500/30 bg-slate-900 p-10">
-        <h2 className="text-3xl font-black">How Game-Time Sponsorship works</h2>
+        <h2 className="text-3xl font-black">How {GAME_TIME_SPONSORSHIP_LABEL} works</h2>
         <p className="mt-4 text-lg text-slate-300">
           A Global Brand buys fan engagement, not a 5-day Match-Sponsorship.
-          They put an amount on a Game-Time Carbon Wallet for one{" "}
+          They put an amount on a {GAME_TIME_CARBON_WALLET_LABEL} for one{" "}
           {GAME_TIME_SLOT_MINUTES}-minute slot. The Game lasts{" "}
           {GAME_TIME_DURATION_MINUTES} minutes.
         </p>
@@ -106,14 +109,14 @@ export default function ClimateSponsorshipPage() {
             3. If one of those events is awarded in the slot, the fan earns
             another {formatP4pGbp(P4P_ACCURACY_GBP)} (total{" "}
             {formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Both amounts leave the
-            Game-Time Carbon Wallet until it reads {formatP4pGbp(0)}.
+            {GAME_TIME_CARBON_WALLET_LABEL} until it reads {formatP4pGbp(0)}.
           </li>
         </ol>
         <Link
           href={SPONSOR_GAME_TIME_PATH}
           className="mt-8 inline-flex rounded-xl bg-green-500 px-6 py-3 font-bold text-slate-950"
         >
-          Buy a Game-Time slot
+          Buy a {P4P_SHORT} slot
         </Link>
       </div>
     </SolutionPage>

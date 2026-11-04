@@ -1,4 +1,5 @@
 "use client";
+/* p4p-rename-game-time-v1 */
 /* sponsor-tabs-visible-v1 */
 /* sponsor-drop-calendar-v1 */
 /* sponsor-nav-pc-fix-v1 */
@@ -29,6 +30,7 @@ import { s4pTabClass } from "@/app/lib/s4p-tabs";
 import { sponsorInvitationsNavLabel } from "@/app/lib/sponsor-listings";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
+import { GAME_TIME_NAV_LABEL } from "@/app/lib/predict-for-planet";
 
 const tabClass =
   "min-w-0 w-full overflow-hidden whitespace-normal rounded-lg px-1 py-2 text-center text-[11px] font-bold leading-tight sm:w-auto sm:px-5 sm:text-sm";
@@ -72,7 +74,7 @@ export function SponsorTabBar({
           href={SPONSOR_GAME_TIME_PATH}
           className={`${tabClass} ${s4pTabClass(onGameTime)}`}
         >
-          Game-Time
+          {GAME_TIME_NAV_LABEL}
         </Link>
       ) : null}
       <Link

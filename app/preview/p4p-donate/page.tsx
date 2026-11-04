@@ -22,7 +22,7 @@ export default function P4pDonatePreviewPage() {
             data-p4p-donate-funding="p4p-donate-funding-v1"
             className="mt-3 max-w-2xl text-base font-black text-emerald-800"
           >
-            Here are Climate Projects to donate your funding · Game-Time Wallet{" "}
+            Here are Climate Projects to donate your funding · P4P Wallet{" "}
             {formatP4pGbp(0.2)}
           </p>
         </div>

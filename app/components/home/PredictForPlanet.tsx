@@ -97,7 +97,7 @@ export function PredictForPlanetPhone({
     (selectedMatch
       ? `${selectedMatch.homeName} vs ${selectedMatch.awayName}`
       : null) ||
-    "Game-Time Match";
+    "P4P Match";
   const sides =
     fixtureSides(fixture) ??
     (selectedMatch ? [selectedMatch.homeName, selectedMatch.awayName] : null);
@@ -228,7 +228,7 @@ export function PredictForPlanetPhone({
             className="mt-1.5 rounded-xl px-2 py-1.5 text-center text-[10px] font-black text-black"
             style={{ backgroundColor: MARK_GREEN }}
           >
-            Game-Time Wallet {formatP4pGbp(earnedGbp)}
+            P4P Wallet {formatP4pGbp(earnedGbp)}
           </div>
           <p className="mt-1.5 text-[11px] font-black uppercase leading-4 tracking-[0.08em] text-black">
             {P4P_PREDICT_NEXT_LABEL}

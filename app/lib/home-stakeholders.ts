@@ -91,7 +91,7 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     title: "Global Brands",
     kicker: "Turn your brand purpose into real impact.",
     description:
-      "Reach passionate audiences, fund measurable climate action as a Match-Sponsor or Game-Time Sponsor, and gain recognition on S4P and project provider websites.",
+      "Reach passionate audiences, fund measurable climate action as a Match-Sponsor or P4P Sponsor, and gain recognition on S4P and project provider websites.",
     shortDescription:
       "Fund measurable climate action and reach passionate audiences.",
     tabHeading: "Turn your brand purpose into real impact.",

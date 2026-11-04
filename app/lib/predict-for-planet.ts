@@ -1,9 +1,10 @@
 /* s4p-predict-for-planet-v7 */
+/* p4p-rename-game-time-v1 */
 /* p4p-timer-complete-v1 */
 /* p4p-fund-project-v1 */
 /* game-time-slot-heading-v1 */
 /* game-time-sponsored-by-v1 */
-/** Predict-For Planet (P4P): in-game fan engagement funded by Game-Time Sponsorship. */
+/** Predict-For Planet (P4P): in-game fan engagement funded by P4P Sponsorship. */
 
 import { sameNamedFixture, fixtureSides } from "./club-fixtures";
 import { SUPPORTER_PROJECTS_PATH } from "./routes";
@@ -12,11 +13,13 @@ import { namesMatch } from "./upcoming-matches";
 
 export const P4P_LABEL = "Predict-For Planet";
 export const P4P_SHORT = "P4P";
-export const GAME_TIME_SPONSORSHIP_LABEL = "Game-Time Sponsorship";
-export const GAME_TIME_SPONSOR_LABEL = "Game-Time Sponsor";
-export const GAME_TIME_CARBON_WALLET_LABEL = "Game-Time Carbon Wallet";
+export const GAME_TIME_NAV_LABEL = P4P_SHORT;
+export const GAME_TIME_SPONSORSHIP_LABEL = "P4P Sponsorship";
+export const GAME_TIME_SPONSOR_LABEL = "P4P Sponsor";
+export const GAME_TIME_CARBON_WALLET_LABEL = "P4P Carbon Wallet";
+export const GAME_TIME_WALLET_LABEL = "P4P Wallet";
 export const MATCH_SPONSOR_PRODUCT_LABEL = "Match-Sponsor";
-export const GAME_TIME_PRODUCT_LABEL = "Game-Time Sponsor";
+export const GAME_TIME_PRODUCT_LABEL = "P4P Sponsor";
 export const SPONSORED_BY_LABEL = "Sponsored by";
 export const P4P_POWERED_BY_LABEL = "This Climate Challenge is powered by";
 export const P4P_PREDICT_NEXT_LABEL = "Predict what happens next?";
@@ -799,21 +802,21 @@ export function recordP4pEngagement({
   if (!wallet || !isPaidGameTimeWallet(wallet)) {
     return {
       ok: false,
-      error: "No Game-Time Sponsor has put money on this Match yet.",
+      error: `No ${GAME_TIME_SPONSOR_LABEL} has put money on this Match yet.`,
     };
   }
   if (wallet.slotIndex !== window.slotIndex) {
     const slot = gameTimeSlots()[wallet.slotIndex];
     return {
       ok: false,
-      error: `That 5-minute slot is not in this Game-Time Sponsorship. The Game-Time Sponsor bought ${slot?.label ?? "a different 30-minute slot"}.`,
+      error: `That 5-minute slot is not in this ${GAME_TIME_SPONSORSHIP_LABEL}. The ${GAME_TIME_SPONSOR_LABEL} bought ${slot?.label ?? "a different 30-minute slot"}.`,
     };
   }
   const remaining = remainingGameTimeGbp(wallet);
   if (remaining <= 0) {
     return {
       ok: false,
-      error: `The ${GAME_TIME_CARBON_WALLET_LABEL} is ${formatP4pGbp(0)}. A Game-Time Sponsor must put money in before fans can Predict.`,
+      error: `The ${GAME_TIME_CARBON_WALLET_LABEL} is ${formatP4pGbp(0)}. A ${GAME_TIME_SPONSOR_LABEL} must put money in before fans can Predict.`,
     };
   }
   const at = asIso(now);
@@ -1027,7 +1030,7 @@ export function fundFanCarbonWalletToProject({
 }
 
 export function p4pPlayIntroCopy(): string {
-  return `Choose 3 likely events that could happen (out of 7) in the next ${P4P_WINDOW_MINUTES}-minute slot of this Game-Time Sponsorship. Participating earns you ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Carbon Wallet of the Game-Time Sponsor for your chosen Climate Project. If one of those events is awarded, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`;
+  return `Choose 3 likely events that could happen (out of 7) in the next ${P4P_WINDOW_MINUTES}-minute slot of this ${GAME_TIME_SPONSORSHIP_LABEL}. Participating earns you ${formatP4pGbp(P4P_PARTICIPATION_GBP)} from the Carbon Wallet of the ${GAME_TIME_SPONSOR_LABEL} for your chosen Climate Project. If one of those events is awarded, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)}.`;
 }
 
 export function slotEventKey(
@@ -1119,14 +1122,14 @@ export function gameTimeIsLive(wallet: GameTimeWallet, now: Date | string = new 
 }
 
 export function p4pHowItWorksCaption(): string {
-  return "Predict-For Planet is played on the Match a Game-Time Sponsor has put money into their Wallet for.";
+  return `Predict-For Planet is played on the Match a ${GAME_TIME_SPONSOR_LABEL} has put money into their Wallet for.`;
 }
 
 export function p4pHowItWorksPoints(): string[] {
   return [
     `Choose 3 of 7 events in each ${P4P_WINDOW_MINUTES}-minute slot`,
     `Participating earns ${formatP4pGbp(P4P_PARTICIPATION_GBP)}; if one of those events is awarded you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} into your ${FAN_CARBON_WALLET_LABEL}`,
-    `A Game-Time Sponsor buys a ${GAME_TIME_SLOT_MINUTES}-minute slot; the Game lasts ${GAME_TIME_DURATION_MINUTES} minutes`,
+    `A ${GAME_TIME_SPONSOR_LABEL} buys a ${GAME_TIME_SLOT_MINUTES}-minute slot; the Game lasts ${GAME_TIME_DURATION_MINUTES} minutes`,
     "Goal scored is exclusive to Score-For-Planet, not Predict-For Planet",
   ];
 }

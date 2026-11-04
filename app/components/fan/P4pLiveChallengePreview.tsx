@@ -15,6 +15,7 @@ import {
   P4P_LIVE_CHALLENGE_FOOTER,
   P4P_LIVE_CHALLENGE_LABEL,
   P4P_TAGLINE,
+  GAME_TIME_SPONSOR_LABEL,
   formatP4pGbp,
 } from "@/app/lib/predict-for-planet";
 import {
@@ -164,7 +165,7 @@ export function P4pLiveChallengePreview({
             </p>
             <h3 className="mt-2 text-3xl font-black">{fixtureName}</h3>
             <p className="mt-1 text-sm text-slate-600">
-              Game-Time Sponsor · {slotLabel}
+              {GAME_TIME_SPONSOR_LABEL} · {slotLabel}
             </p>
           </div>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">

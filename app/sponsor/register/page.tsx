@@ -134,9 +134,9 @@ export default function SponsorRegisterPage() {
       <h1 className="mt-3 text-4xl font-black">Register as Sponsor</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Create your Global Brand account and choose Match-Sponsor (
-            {MATCH_SPONSORSHIP_DAYS} days) or Game-Time Sponsor (
+            {MATCH_SPONSORSHIP_DAYS} days) or {GAME_TIME_PRODUCT_LABEL} (
             {GAME_TIME_DURATION_MINUTES} minutes). Match-Sponsors are listed on
-            the club Sponsors section — nowhere else. Game-Time Sponsors buy a{" "}
+            the club Sponsors section — nowhere else. {GAME_TIME_PRODUCT_LABEL}s buy a{" "}
             {GAME_TIME_SLOT_MINUTES}-minute slot of fan engagement.
           </p>
 

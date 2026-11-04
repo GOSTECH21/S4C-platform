@@ -86,7 +86,7 @@ export const MATCH_SPONSORSHIP_RANGE_LABEL = "Match-Sponsorship Range";
 export const MATCH_SPONSORSHIP_HINT =
   "One amount for this Match Day. The highest Match-Sponsorship within 8 hours is accepted.";
 export const MATCH_SPONSORSHIP_COMMIT_LABEL = "Commit Match-Sponsorship";
-export const GAME_TIME_SPONSORSHIP_RANGE_LABEL = "Game-Time Sponsorship Amount";
+export const GAME_TIME_SPONSORSHIP_RANGE_LABEL = "P4P Sponsorship Amount";
 export const GAME_TIME_SPONSORSHIP_RANGES = GLOBAL_MATCH_SPONSORSHIP_RANGES;
 
 export function isGameTimeSponsorListing(row: SponsorListing): boolean {

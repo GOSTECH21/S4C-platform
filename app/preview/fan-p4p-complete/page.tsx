@@ -19,7 +19,7 @@ export default function FanP4pCompletePreviewPage() {
         Fan P4P · COMPLETE slot
       </p>
       <p className="mt-2 text-sm text-slate-700">
-        After all six 5-minute predictions in a 30-minute Game-Time slot have
+        After all six 5-minute predictions in a 30-minute P4P slot have
         been played, that slot is marked COMPLETE.
       </p>
       <div className="mt-8">

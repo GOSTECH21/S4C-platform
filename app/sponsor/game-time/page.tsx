@@ -1,5 +1,6 @@
 "use client";
 /* s4p-predict-for-planet-v7 */
+/* p4p-rename-game-time-v1 */
 /* game-time-buy-first-v1 */
 /* game-time-slot-heading-v1 */
 /* game-time-sponsored-by-v1 */
@@ -21,10 +22,13 @@ import {
   FAN_CARBON_WALLET_LABEL,
   GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_DURATION_MINUTES,
+  GAME_TIME_NAV_LABEL,
   GAME_TIME_SLOT_MINUTES,
   GAME_TIME_SPONSORSHIP_LABEL,
+  GAME_TIME_WALLET_LABEL,
   P4P_ACCURACY_GBP,
   P4P_ENGAGEMENT_GBP,
+  P4P_SHORT,
   formatP4pGbp,
   gameTimeSlotShortLabel,
   gameTimeSlots,
@@ -146,11 +150,11 @@ export default function GameTimeSponsorshipPage() {
     }
     const fixtureName = fixture?.fixtureName?.trim() ?? "";
     if (!fixtureName) {
-      setError("Select the Match you are buying Game-Time for.");
+      setError(`Select the Match you are buying ${P4P_SHORT} for.`);
       return;
     }
     if (sponsorshipGbp <= 0) {
-      setError("Enter how much you are putting on the Game-Time Carbon Wallet.");
+      setError(`Enter how much you are putting on the ${GAME_TIME_CARBON_WALLET_LABEL}.`);
       return;
     }
     const pending = saveGameTimeCheckout({
@@ -168,7 +172,7 @@ export default function GameTimeSponsorshipPage() {
   async function pay() {
     const pending = checkout;
     if (!pending) {
-      setError("Choose the Match and Game-Time amount first.");
+      setError(`Choose the Match and ${P4P_SHORT} amount first.`);
       return;
     }
     setBusy(true);
@@ -187,7 +191,7 @@ export default function GameTimeSponsorshipPage() {
   if (loading) {
     return (
       <main className="mx-auto max-w-3xl py-10">
-        Loading Game-Time Sponsorship...
+        Loading {GAME_TIME_SPONSORSHIP_LABEL}...
       </main>
     );
   }
@@ -206,7 +210,7 @@ export default function GameTimeSponsorshipPage() {
       </h1>
       <p className="mt-3 max-w-3xl text-slate-700">
         Buy a {GAME_TIME_SLOT_MINUTES}-minute slot of fan engagement for this
-        Game. Pay this Game-Time amount plus a 5% Platform Fee via Stripe.
+        Game. Pay this {P4P_SHORT} amount plus a 5% Platform Fee via Stripe.
         Participating takes {formatP4pGbp(P4P_ENGAGEMENT_GBP)} from this{" "}
         {GAME_TIME_CARBON_WALLET_LABEL}; the right event takes another{" "}
         {formatP4pGbp(P4P_ACCURACY_GBP)}. That money is recorded in the fan&apos;s{" "}
@@ -238,7 +242,7 @@ export default function GameTimeSponsorshipPage() {
             }}
             className="mt-5 inline-flex rounded-xl bg-s4p-mark px-5 py-3 font-bold text-slate-950"
           >
-            Buy another Game-Time slot
+            Buy another {P4P_SHORT} slot
           </button>
         </div>
       ) : checkout ? (
@@ -265,7 +269,7 @@ export default function GameTimeSponsorshipPage() {
             onClick={() => setCheckout(null)}
             className="mt-5 inline-flex rounded-xl border border-slate-300 px-5 py-3 font-semibold"
           >
-            Back to Game-Time
+            Back to {GAME_TIME_NAV_LABEL}
           </button>
         </div>
       ) : (
@@ -291,7 +295,7 @@ export default function GameTimeSponsorshipPage() {
         />
         <div>
           <p className="text-sm font-semibold text-slate-700">
-            {GAME_TIME_SLOT_MINUTES}-minute Game-Time slot
+            {GAME_TIME_SLOT_MINUTES}-minute {P4P_SHORT} slot
           </p>
           <fieldset className="mt-2 rounded-xl border border-slate-300 bg-white p-4">
             <div className="space-y-2">
@@ -327,7 +331,7 @@ export default function GameTimeSponsorshipPage() {
         <p className="text-sm text-slate-600">
           A {PLATFORM_FEE_LABEL} is added on top. You pay{" "}
           {formatP4pGbp(topUp.paidGbp)} ({formatP4pGbp(topUp.sponsorshipGbp)}{" "}
-          Game-Time + {formatP4pGbp(topUp.platformFeeGbp)} fee).
+          {P4P_SHORT} + {formatP4pGbp(topUp.platformFeeGbp)} fee).
         </p>
         <button
           type="button"
@@ -364,7 +368,7 @@ export default function GameTimeSponsorshipPage() {
 
       {wallets.length > 0 ? (
         <div className="mt-10">
-          <h2 className="text-2xl font-black">Your Game-Time wallets</h2>
+          <h2 className="text-2xl font-black">Your {GAME_TIME_WALLET_LABEL}s</h2>
           <ul className="mt-4 space-y-3">
             {wallets
               .filter((row) => row.brandName.toLowerCase() === brand.toLowerCase())
@@ -379,7 +383,7 @@ export default function GameTimeSponsorshipPage() {
                   <p className="mt-1 text-sm text-slate-600">
                     {isPaidGameTimeWallet(row)
                       ? `Remaining ${formatP4pGbp(remainingGameTimeGbp(row))} of ${formatP4pGbp(row.sponsorshipGbp)}`
-                      : "Awaiting payment. Fans cannot take £0.10 until Stripe confirms this Game-Time Sponsorship."}
+                      : `Awaiting payment. Fans cannot take £0.10 until Stripe confirms this ${GAME_TIME_SPONSORSHIP_LABEL}.`}
                   </p>
                 </li>
               ))}

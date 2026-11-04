@@ -945,7 +945,7 @@ assert(
   sponsorNav.includes("grid-cols-4") &&
     sponsorNav.includes("overflow-x-hidden") &&
     sponsorNav.includes("Dashboard") &&
-    sponsorNav.includes("Game-Time") &&
+    sponsorNav.includes("GAME_TIME_NAV_LABEL") &&
     sponsorNav.includes("Logout") &&
     sponsorNav.includes("s4pTabClass(onDashboard)") &&
     sponsorNav.includes("sponsorHomePath") &&

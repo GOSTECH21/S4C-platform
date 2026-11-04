@@ -10,6 +10,10 @@ import { BrandMark } from "@/app/components/club/BrandMark";
 import {
   GAME_TIME_CARBON_WALLET_LABEL,
   GAME_TIME_SLOT_COUNT,
+  GAME_TIME_SPONSOR_LABEL,
+  GAME_TIME_SPONSORSHIP_LABEL,
+  GAME_TIME_WALLET_LABEL,
+  P4P_SHORT,
   P4P_AWAITING_NEW_SPONSORED_LABEL,
   P4P_CATEGORIES,
   P4P_CHOOSE_PROJECT_LABEL,
@@ -310,12 +314,12 @@ export function PredictForPlanetPlay({
     setNotice(null);
     setError(null);
     if (!liveClub || !liveFixture) {
-      setError("P4P is played on the Match a Game-Time Sponsor has put money into their Carbon Wallet for.");
+      setError(`P4P is played on the Match a ${GAME_TIME_SPONSOR_LABEL} has put money into their Carbon Wallet for.`);
       return;
     }
     if (!windowAllowed) {
       setError(
-        `That 5-minute slot is not in this Game-Time Sponsorship. The Game-Time Sponsor bought ${slot?.label ?? "a different 30-minute slot"}.`
+        `That 5-minute slot is not in this ${GAME_TIME_SPONSORSHIP_LABEL}. The ${GAME_TIME_SPONSOR_LABEL} bought ${slot?.label ?? "a different 30-minute slot"}.`
       );
       return;
     }
@@ -345,11 +349,11 @@ export function PredictForPlanetPlay({
       : formatP4pGbp(0);
     if (amounts.correct) {
       setNotice(
-        `Accurate prediction. ${formatP4pGbp(amounts.totalGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName} (${formatP4pGbp(amounts.participationGbp)} participation + ${formatP4pGbp(amounts.accuracyGbp)} accuracy). Game-Time wallet now ${left}.`
+        `Accurate prediction. ${formatP4pGbp(amounts.totalGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName} (${formatP4pGbp(amounts.participationGbp)} participation + ${formatP4pGbp(amounts.accuracyGbp)} accuracy). ${GAME_TIME_WALLET_LABEL} now ${left}.`
       );
     } else {
       setNotice(
-        `Participation. ${formatP4pGbp(amounts.participationGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName}. If one of those events is awarded in this slot, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} (total ${formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). Game-Time wallet now ${left}.`
+        `Participation. ${formatP4pGbp(amounts.participationGbp)} is in your ${FAN_CARBON_WALLET_LABEL} for ${projectName}. If one of those events is awarded in this slot, you earn another ${formatP4pGbp(P4P_ACCURACY_GBP)} (total ${formatP4pGbp(P4P_CORRECT_TOTAL_GBP)}). ${GAME_TIME_WALLET_LABEL} now ${left}.`
       );
     }
     setTick((value) => value + 1);
@@ -360,7 +364,7 @@ export function PredictForPlanetPlay({
     setFundError(null);
     if (!liveClub || !liveFixture) {
       setFundError(
-        "P4P is played on the Match a Game-Time Sponsor has put money into their Carbon Wallet for."
+        `P4P is played on the Match a ${GAME_TIME_SPONSOR_LABEL} has put money into their Carbon Wallet for.`
       );
       return;
     }
@@ -421,7 +425,7 @@ export function PredictForPlanetPlay({
               {liveFixture}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Game-Time Sponsor · {gameTimeSlotShortLabel(slot)}
+              {GAME_TIME_SPONSOR_LABEL} · {gameTimeSlotShortLabel(slot)}
               {slotComplete ? (
                 <span
                   data-testid="p4p-slot-complete"
@@ -494,7 +498,7 @@ export function PredictForPlanetPlay({
                 );
                 return (
                   <option key={row.index} value={row.index}>
-                    {row.label} · Game-Time {slot?.label}
+                    {row.label} · {P4P_SHORT} {slot?.label}
                     {predicted ? " · predicted" : ""}
                     {slotComplete ? ` · ${P4P_SLOT_COMPLETE_LABEL}` : ""}
                   </option>
@@ -563,7 +567,7 @@ export function PredictForPlanetPlay({
           className="mt-5 w-full rounded-xl border border-transparent bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:cursor-not-allowed disabled:border-slate-400 disabled:bg-slate-200 disabled:text-slate-800"
         >
           {slotComplete
-            ? `This Game-Time slot is ${P4P_SLOT_COMPLETE_LABEL}`
+            ? `This ${P4P_SHORT} slot is ${P4P_SLOT_COMPLETE_LABEL}`
             : alreadyInWindow
               ? "Already chosen 3 events this 5-minute slot"
               : `Predict 3 events · ${formatP4pGbp(P4P_PARTICIPATION_GBP)} participation`}
@@ -610,7 +614,7 @@ export function PredictForPlanetPlay({
           <p className="mt-1 text-sm text-slate-600">
             {wallet
               ? `${wallet.brandName} bought the ${slot?.label} slot.`
-              : `No Game-Time Sponsor has bought the ${slot?.label} slot yet.`}
+              : `No ${GAME_TIME_SPONSOR_LABEL} has bought the ${slot?.label} slot yet.`}
           </p>
         </div>
 

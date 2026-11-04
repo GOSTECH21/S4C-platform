@@ -21,7 +21,7 @@ export const SPORT_CATEGORIES: SportCategory[] = [
     exampleS2PS: "£10,000 Match-Sponsorship",
     icon: "⚽",
     summary:
-      `A Lead Climate Sponsor pays one Match-Sponsorship amount for a Match, plus a 5% Platform Fee. ${FAN_POOL_SENTENCE} 20% is the Score Impact Pool, unlocked by Goals scored by the sponsored team. ${THIRD_UNLOCK} Extra Goals after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities. A Global Brand can also be a Game-Time Sponsor: buy a 30-minute slot of Predict-For Planet fan engagement — P4P does not include Goal scored.`,
+      `A Lead Climate Sponsor pays one Match-Sponsorship amount for a Match, plus a 5% Platform Fee. ${FAN_POOL_SENTENCE} 20% is the Score Impact Pool, unlocked by Goals scored by the sponsored team. ${THIRD_UNLOCK} Extra Goals after that pool is unlocked still count in S4P statistics but do not add sponsor liabilities. A Global Brand can also be a P4P Sponsor: buy a 30-minute slot of Predict-For Planet fan engagement — P4P does not include Goal scored.`,
   },
   {
     name: "Rugby",

@@ -50,6 +50,13 @@ import {
   P4P_GAME_TIME_PREDICT_LABEL,
   P4P_AWAITING_NEW_SPONSORED_LABEL,
   P4P_SLOT_COMPLETE_LABEL,
+  P4P_SHORT,
+  GAME_TIME_NAV_LABEL,
+  GAME_TIME_SPONSOR_LABEL,
+  GAME_TIME_SPONSORSHIP_LABEL,
+  GAME_TIME_CARBON_WALLET_LABEL,
+  GAME_TIME_WALLET_LABEL,
+  GAME_TIME_PRODUCT_LABEL,
 } from "../app/lib/predict-for-planet";
 import {
   GAME_TIME_SPONSORSHIP_RANGE_LABEL,
@@ -82,6 +89,16 @@ assert(
     ].join("|") &&
     !P4P_CATEGORIES.some((row) => row.id === "goal" || row.label === "Goal scored"),
   "The seven P4P events exclude Goal scored, which is exclusive to S4P"
+);
+assert(
+  GAME_TIME_NAV_LABEL === P4P_SHORT &&
+    GAME_TIME_SPONSORSHIP_LABEL === "P4P Sponsorship" &&
+    GAME_TIME_SPONSOR_LABEL === "P4P Sponsor" &&
+    GAME_TIME_CARBON_WALLET_LABEL === "P4P Carbon Wallet" &&
+    GAME_TIME_WALLET_LABEL === "P4P Wallet" &&
+    GAME_TIME_PRODUCT_LABEL === "P4P Sponsor" &&
+    GAME_TIME_SPONSORSHIP_RANGE_LABEL === "P4P Sponsorship Amount",
+  "User-facing Game-Time copy is labelled P4P"
 );
 assert(GAME_TIME_SLOT_MINUTES === 30, "Each Game-Time slot is 30 minutes");
 assert(GAME_TIME_DURATION_MINUTES === 90, "A Game lasts 90 minutes");
@@ -601,7 +618,7 @@ assert(
 
 assert(
   p4pHowItWorksCaption().includes(
-    "Predict-For Planet is played on the Match a Game-Time Sponsor has put money into their Wallet for."
+    `Predict-For Planet is played on the Match a ${GAME_TIME_SPONSOR_LABEL} has put money into their Wallet for.`
   ) && !p4pHowItWorksCaption().includes("Choose 3 likely events"),
   "P4P caption is the Game-Time Sponsor match, not the 3-of-7 paragraph"
 );
@@ -659,7 +676,7 @@ assert(
 );
 assert(
   phone.includes("P4P_CATEGORIES") &&
-    phone.includes("Game-Time Wallet") &&
+    phone.includes("P4P Wallet") &&
     phone.includes("earnedGbp") &&
     !phone.includes("12.4") &&
     !phone.includes("Seven {P4P_SHORT} prediction categories") &&
@@ -781,7 +798,7 @@ assert(
 );
 const gameTimePage = readFileSync("app/sponsor/game-time/page.tsx", "utf8");
 assert(
-    gameTimePage.includes("Select the Match you are buying Game-Time for.") &&
+    gameTimePage.includes("Select the Match you are buying ${P4P_SHORT} for.") &&
     !gameTimePage.includes("vs Chelsea") &&
     gameTimePage.includes("allPlatformClubs") &&
     gameTimePage.includes("Continue to payment") &&
@@ -829,13 +846,14 @@ assert(
 );
 assert(
   sponsorNav.includes("SPONSOR_GAME_TIME_PATH") &&
-    sponsorNav.includes("Game-Time") &&
+    sponsorNav.includes("GAME_TIME_NAV_LABEL") &&
+    GAME_TIME_NAV_LABEL === "P4P" &&
     SPONSOR_GAME_TIME_PATH === "/sponsor/game-time",
-  "Global Brand nav has a Game-Time tab"
+  "Global Brand nav has a P4P tab"
 );
 assert(
-  climatePage.includes("How Game-Time Sponsorship works") &&
-    climatePage.includes("Game-Time Carbon Wallet") &&
+  climatePage.includes("How {GAME_TIME_SPONSORSHIP_LABEL} works") &&
+    climatePage.includes("GAME_TIME_CARBON_WALLET_LABEL") &&
     climatePage.includes("Goal scored is exclusive to") &&
     climatePage.includes("Score Impact Pool") &&
     climatePage.includes("Fan Participation Pool"),

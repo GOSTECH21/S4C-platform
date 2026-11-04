@@ -11,11 +11,11 @@ const apply = readFileSync("apply-game-time-slot-heading.mjs", "utf8");
 
 assert(
   page.includes("game-time-slot-heading-v1") &&
-    page.includes("{GAME_TIME_SLOT_MINUTES}-minute Game-Time slot") &&
+    page.includes("{GAME_TIME_SLOT_MINUTES}-minute {P4P_SHORT} slot") &&
     page.includes("mt-2 rounded-xl border") &&
     !page.includes("<legend") &&
     demo.includes("game-time-slot-heading-v1") &&
-    demo.includes("{GAME_TIME_SLOT_MINUTES}-minute Game-Time slot") &&
+    demo.includes("{GAME_TIME_SLOT_MINUTES}-minute {P4P_SHORT} slot") &&
     demo.includes("mt-2 rounded-xl border") &&
     !demo.includes("<legend"),
   "The 30-minute Game-Time slot label sits above the radio box, not on the border"

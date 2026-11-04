@@ -139,7 +139,7 @@ assert(
   "Climate Credits intro, donation copy and thirds unlock are in place"
 );
 assert(
-  readFileSync("app/lib/sports.ts", "utf8").includes("can also be a Game-Time") &&
+  readFileSync("app/lib/sports.ts", "utf8").includes("can also be a P4P Sponsor") &&
     readFileSync("app/lib/sports.ts", "utf8").includes(
       "80% is the Fan Participation Pool for the Campaign"
     ),

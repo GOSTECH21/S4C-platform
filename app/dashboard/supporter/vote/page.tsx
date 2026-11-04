@@ -132,7 +132,7 @@ export default function VotePage() {
               >
                 Here are Climate Projects to donate your funding
                 {donateWallet > 0
-                  ? ` · Game-Time Wallet ${formatP4pGbp(donateWallet)}`
+                  ? ` · P4P Wallet ${formatP4pGbp(donateWallet)}`
                   : ""}
               </p>
             ) : (

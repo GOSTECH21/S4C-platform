@@ -23,7 +23,7 @@ assert(
     nav.includes("overflow-x-hidden") &&
     nav.includes("whitespace-normal") &&
     nav.includes("Dashboard") &&
-    nav.includes("Game-Time") &&
+    nav.includes("GAME_TIME_NAV_LABEL") &&
     nav.includes("sponsorInvitationsNavLabel") &&
     nav.includes("Logout") &&
     nav.includes("s4p-logo-back-home-v1") &&
