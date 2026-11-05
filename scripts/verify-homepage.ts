@@ -414,9 +414,9 @@ assert(
     front.includes("HomeJoinMission") &&
     front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
     front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission") &&
-    front.includes("<HomeJoinMission") &&
-    front.includes("FanJoinPanel") &&
-    front.includes("fanOnMobile={false}") &&
+    front.includes("<HomeJoinMission />") &&
+    !front.includes("mobileFanCard") &&
+    !front.includes("fanOnMobile") &&
     front.includes('data-matchrav-home="matchrav-fan-tabs-v1"') &&
     !front.includes("showFanP4P") &&
     !front.includes("onPlayP4P"),

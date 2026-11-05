@@ -51,25 +51,25 @@ assert(
 
 assert(
   front.includes('data-matchrav-home="matchrav-fan-tabs-v1"') &&
-    front.includes("mobileFanCard={<FanJoinPanel compact />}") &&
-    front.includes("fanOnMobile={false}") &&
-    banner.includes("MATCHRAV_MOBILE_STAMP") &&
-    banner.includes("mobileFanCard") &&
-    matchrav.includes('MATCHRAV_MOBILE_STAMP = "matchrav-mobile-first-v1"') &&
+    front.includes("<HomeJoinMission />") &&
+    !front.includes("mobileFanCard") &&
+    !front.includes("fanOnMobile") &&
+    !banner.includes("mobileFanCard") &&
+    !banner.includes("MATCHRAV_MOBILE_STAMP") &&
+    join.includes('data-matchrav-below-club="matchrav-below-club-v1"') &&
+    join.indexOf("club-director-heading") < join.indexOf("<FanJoinPanel") &&
+    !join.includes("hidden md:block") &&
     preview.includes('data-matchrav-preview="matchrav-fan-tabs-v1"') &&
     preview.includes("<HomeJoinMission />") &&
     matchrav.includes('MATCHRAV_PREVIEW_PATH = "/preview/matchrav"'),
-  "Mobile homepage shows the Matchrav fan card under the logo, before the sports intro"
+  "Matchrav fan card sits below the club-director panel on mobile and PC"
 );
 
 assert(
-  apply.includes('PIN = "c7580dc"') &&
-    apply.includes("matchrav-fan-tabs-3") &&
+  apply.includes("cursor/matchrav-below-club-18f9") &&
     apply.includes("git fetch") &&
     apply.includes("app/lib/matchrav.ts") &&
-    apply.includes("app/components/home/HomeJoinMission.tsx") &&
-    apply.includes("app/components/home/HomeTopBanner.tsx") &&
-    apply.includes("app/preview/matchrav/page.tsx"),
+    apply.includes("app/components/home/HomeJoinMission.tsx"),
   "PC overlay pulls the Matchrav fan tabs"
 );
 

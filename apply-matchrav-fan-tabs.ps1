@@ -7,9 +7,9 @@ if (-not (Test-Path "app\components\home\HomeJoinMission.tsx")) {
   exit 1
 }
 
-git fetch origin cursor/matchrav-fan-tabs-18f9
-if ($LASTEXITCODE -ne 0) { throw "git fetch origin cursor/matchrav-fan-tabs-18f9 failed" }
-git checkout origin/cursor/matchrav-fan-tabs-18f9 -- `
+git fetch origin cursor/matchrav-below-club-18f9
+if ($LASTEXITCODE -ne 0) { throw "git fetch origin cursor/matchrav-below-club-18f9 failed" }
+git checkout origin/cursor/matchrav-below-club-18f9 -- `
   app/lib/matchrav.ts `
   app/components/home/HomeJoinMission.tsx `
   app/components/home/HomeFrontPage.tsx `
@@ -19,7 +19,7 @@ git checkout origin/cursor/matchrav-fan-tabs-18f9 -- `
   scripts/verify-fan-p4p-copy.ts `
   scripts/verify-club-passion-copy.ts `
   scripts/verify-homepage.ts
-if ($LASTEXITCODE -ne 0) { throw "git checkout origin/cursor/matchrav-fan-tabs-18f9 failed" }
+if ($LASTEXITCODE -ne 0) { throw "git checkout origin/cursor/matchrav-below-club-18f9 failed" }
 
 if (Test-Path ".next") { Remove-Item -Recurse -Force ".next" }
 

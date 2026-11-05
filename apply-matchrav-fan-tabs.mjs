@@ -8,9 +8,9 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "c7580dc";
-const REFS = ["cursor/matchrav-fan-tabs-18f9", "main", PIN];
-const BUST = "matchrav-fan-tabs-3";
+const PIN = "pending";
+const REFS = ["cursor/matchrav-below-club-18f9", "main", PIN];
+const BUST = "matchrav-below-club-1";
 const STAMP = "matchrav-fan-tabs-v1";
 const SELF = "apply-matchrav-fan-tabs.mjs";
 const FILES = [
@@ -43,7 +43,7 @@ function rawUrl(ref, rel) {
 
 function gitCheckoutFromMain() {
   if (!existsSync(".git")) return false;
-  const refs = ["cursor/matchrav-fan-tabs-18f9", "main"];
+  const refs = ["cursor/matchrav-below-club-18f9", "main"];
   for (const branch of refs) {
     const fetch = spawnSync("git", ["fetch", "origin", branch], {
       encoding: "utf8",
@@ -161,6 +161,8 @@ if (existsSync(join) && existsSync(matchrav)) {
     matchravSrc.includes("Matrav") ||
     !joinSrc.includes("grid-cols-3") ||
     !joinSrc.includes("JOIN_S4P_FREE_LABEL") ||
+    !joinSrc.includes("matchrav-below-club-v1") ||
+    joinSrc.indexOf("club-director-heading") > joinSrc.indexOf("<FanJoinPanel") ||
     joinSrc.includes("Over 50% of a Match Day carbon emissions")
   ) {
     failed += 1;

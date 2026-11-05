@@ -177,14 +177,11 @@ export function FanJoinPanel({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export default function HomeJoinMission({
-  fanOnMobile = true,
-}: {
-  fanOnMobile?: boolean;
-}) {
+export default function HomeJoinMission() {
   return (
     <section
       id="join-s4p-community"
+      data-matchrav-below-club="matchrav-below-club-v1"
       className="scroll-mt-24 px-4 pb-2 pt-4 md:px-8"
     >
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
@@ -224,9 +221,7 @@ export default function HomeJoinMission({
           </a>
         </article>
 
-        <div className={fanOnMobile ? undefined : "hidden md:block"}>
-          <FanJoinPanel />
-        </div>
+        <FanJoinPanel />
       </div>
     </section>
   );

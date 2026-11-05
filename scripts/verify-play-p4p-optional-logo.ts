@@ -21,7 +21,7 @@ assert(
     join.includes('data-fan-join-tab="play-p4p"') &&
     join.includes("hardNavigateOnClick(FAN_LOGIN_PATH") &&
     !join.includes("onPlayP4P") &&
-    front.includes("<HomeJoinMission") &&
+    front.includes("<HomeJoinMission />") &&
     !front.includes("showFanP4P") &&
     login.includes("Register here") &&
     login.includes("Don&apos;t have an account?"),

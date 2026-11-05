@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,7 +14,6 @@ import {
   S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
 import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
-import { MATCHRAV_MOBILE_STAMP } from "@/app/lib/matchrav";
 import { SPORT_CATEGORIES } from "@/app/lib/sports";
 
 const MARK_GREEN = "#5bc662";
@@ -260,13 +259,11 @@ export default function HomeTopBanner({
   onLogin,
   onJoinFree,
   onJoinCommunity,
-  mobileFanCard,
 }: {
   joinIntent: "login" | "register";
   onLogin: () => void;
   onJoinFree: () => void;
   onJoinCommunity: () => void;
-  mobileFanCard?: ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -379,14 +376,6 @@ export default function HomeTopBanner({
               </Link>
             ))}
           </nav>
-        ) : null}
-        {mobileFanCard ? (
-          <div
-            data-matchrav-mobile={MATCHRAV_MOBILE_STAMP}
-            className="mt-4"
-          >
-            {mobileFanCard}
-          </div>
         ) : null}
         <h1 className="mt-5 text-[1.65rem] font-black uppercase leading-[1.05] tracking-tight">
           EVERY SCORE COUNTS.{" "}
