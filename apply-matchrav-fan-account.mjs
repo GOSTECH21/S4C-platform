@@ -8,7 +8,7 @@ import {
 import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
-const PIN = "5750df1";
+const PIN = "9a84d6c";
 const REFS = ["cursor/matchrav-fan-tab-18f9", "main", PIN];
 const BUST = "matchrav-fan-account-1";
 const STAMP = "matchrav-fan-account-v1";
