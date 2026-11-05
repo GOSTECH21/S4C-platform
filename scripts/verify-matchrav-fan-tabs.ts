@@ -67,6 +67,7 @@ assert(
 
 assert(
   apply.includes("cursor/matchrav-below-club-18f9") &&
+    apply.includes('PIN = "8e592ad"') &&
     apply.includes("git fetch") &&
     apply.includes("app/lib/matchrav.ts") &&
     apply.includes("app/components/home/HomeJoinMission.tsx"),
