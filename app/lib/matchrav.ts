@@ -4,6 +4,7 @@ import { FAN_REGISTER_PATH } from "./routes";
 
 export const MATCHRAV_STAMP = "matchrav-fan-tabs-v1";
 export const MATCHRAV_NAME = "Matchrav";
+export const MATCHRAV_PREVIEW_PATH = "/preview/matchrav";
 
 export const FAN_JOIN_KICKER = "Every fan counts";
 export const FAN_JOIN_HEADING = "Support your team. Help fund climate action.";

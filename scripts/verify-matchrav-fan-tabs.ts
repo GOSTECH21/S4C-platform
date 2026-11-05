@@ -7,6 +7,8 @@ function assert(condition: boolean, message: string) {
 
 const join = readFileSync("app/components/home/HomeJoinMission.tsx", "utf8");
 const matchrav = readFileSync("app/lib/matchrav.ts", "utf8");
+const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
+const preview = readFileSync("app/preview/matchrav/page.tsx", "utf8");
 const apply = readFileSync("apply-matchrav-fan-tabs.mjs", "utf8");
 
 assert(
@@ -47,10 +49,20 @@ assert(
 );
 
 assert(
-  apply.includes('BRANCH = "cursor/matchrav-fan-tabs-18f9"') &&
-    apply.includes("matchrav-fan-tabs-1") &&
+  front.includes('data-matchrav-home="matchrav-fan-tabs-v1"') &&
+    preview.includes('data-matchrav-preview="matchrav-fan-tabs-v1"') &&
+    preview.includes("<HomeJoinMission />") &&
+    matchrav.includes('MATCHRAV_PREVIEW_PATH = "/preview/matchrav"'),
+  "Homepage and /preview/matchrav both render the Matchrav fan card"
+);
+
+assert(
+  apply.includes('PIN = "03791ec"') &&
+    apply.includes("matchrav-fan-tabs-2") &&
+    apply.includes("git fetch") &&
     apply.includes("app/lib/matchrav.ts") &&
-    apply.includes("app/components/home/HomeJoinMission.tsx"),
+    apply.includes("app/components/home/HomeJoinMission.tsx") &&
+    apply.includes("app/preview/matchrav/page.tsx"),
   "PC overlay pulls the Matchrav fan tabs"
 );
 

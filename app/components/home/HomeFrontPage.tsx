@@ -50,7 +50,7 @@ export default function HomeFrontPage() {
         onJoinFree={() => showJoin("register")}
         onJoinCommunity={() => showJoin("register")}
       />
-      <div className="relative flex flex-col">
+      <div className="relative flex flex-col" data-matchrav-home="matchrav-fan-tabs-v1">
         <HomeJoinMission />
 
         <div className="hidden md:block" data-how-s4p-desktop="true">

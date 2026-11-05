@@ -415,6 +415,7 @@ assert(
     front.indexOf("HomeJoinMission") < front.indexOf("<HowItWorks") &&
     front.indexOf("HomeTopBanner") < front.indexOf("HomeJoinMission") &&
     front.includes("<HomeJoinMission />") &&
+    front.includes('data-matchrav-home="matchrav-fan-tabs-v1"') &&
     !front.includes("showFanP4P") &&
     !front.includes("onPlayP4P"),
   "Club and fan join panels sit above How S4P Works, and Play P4P opens Fan Login"
