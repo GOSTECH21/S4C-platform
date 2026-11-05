@@ -12,6 +12,7 @@ const PIN = "37be6a4";
 const REFS = ["cursor/matchrav-fan-tab-18f9", "main", PIN];
 const BUST = "matchrav-fan-account-1";
 const STAMP = "matchrav-fan-account-v1";
+const PLANNER = "matchrav-planner-mobile-pc-v1";
 const SELF = "apply-matchrav-fan-account.mjs";
 const FILES = [
   "app/lib/matchrav.ts",
@@ -154,12 +155,20 @@ try {
 const tabs = "app/dashboard/supporter/components/FanTabBar.tsx";
 const matchrav = "app/lib/matchrav.ts";
 const login = "app/fan/login/page.tsx";
-if (existsSync(tabs) && existsSync(matchrav) && existsSync(login)) {
+const panel = "app/components/fan/FanMatchravPanel.tsx";
+if (
+  existsSync(tabs) &&
+  existsSync(matchrav) &&
+  existsSync(login) &&
+  existsSync(panel)
+) {
   const tabsSrc = readFileSync(tabs, "utf8");
   const matchravSrc = readFileSync(matchrav, "utf8");
   const loginSrc = readFileSync(login, "utf8");
+  const panelSrc = readFileSync(panel, "utf8");
   console.log("Check Matchrav tab:", tabsSrc.includes('label: "Matchrav"'));
   console.log("Check Explore Matchrav login:", matchravSrc.includes("fanLoginPath"));
+  console.log("Check planner:", panelSrc.includes(PLANNER));
   if (
     !matchravSrc.includes(STAMP) ||
     !matchravSrc.includes("fanLoginPath(SUPPORTER_MATCHRAV_PATH)") ||
@@ -167,7 +176,10 @@ if (existsSync(tabs) && existsSync(matchrav) && existsSync(login)) {
     !tabsSrc.includes('label: "Matchrav"') ||
     !tabsSrc.includes('data-fan-tabs="6"') ||
     !loginSrc.includes("fanRegisterPath(destination)") ||
-    !loginSrc.includes("useSearchParams")
+    !loginSrc.includes("useSearchParams") ||
+    !panelSrc.includes(PLANNER) ||
+    !panelSrc.includes("lg:grid-cols-2") ||
+    panelSrc.includes("PhoneFrame")
   ) {
     failed += 1;
     console.error(

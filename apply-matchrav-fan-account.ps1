@@ -29,10 +29,13 @@ if (Test-Path ".next") { Remove-Item -Recurse -Force ".next" }
 
 $tabs = Get-Content -Raw "app\dashboard\supporter\components\FanTabBar.tsx"
 $matchrav = Get-Content -Raw "app\lib\matchrav.ts"
+$panel = Get-Content -Raw "app\components\fan\FanMatchravPanel.tsx"
 if (
   $matchrav -notmatch "fanLoginPath" -or
   $tabs -notmatch "Matchrav" -or
-  $tabs -notmatch 'data-fan-tabs="6"'
+  $tabs -notmatch 'data-fan-tabs="6"' -or
+  $panel -notmatch "matchrav-planner-mobile-pc-v1" -or
+  $panel -match "PhoneFrame"
 ) {
   Write-Host "The Matchrav fan tab did not land. Wrong folder: $(Get-Location)"
   exit 1

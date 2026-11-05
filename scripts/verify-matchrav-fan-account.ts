@@ -68,9 +68,17 @@ assert(
     alias.includes("redirect(SUPPORTER_MATCHRAV_PATH)") &&
     panel.includes("MATCHRAV_ACCOUNT_STAMP") &&
     panel.includes("MATCHRAV_ACCOUNT_INTRO") &&
-    panel.includes("MATCHRAV_ACCOUNT_STEPS") &&
-    matchrav.includes('MATCHRAV_ACCOUNT_STAMP = "matchrav-fan-account-v1"'),
-  "The Matchrav tab shows the first Matchrav account panel"
+    panel.includes("MATCHRAV_PLANNER_STAMP") &&
+    panel.includes("data-matchrav-planner={MATCHRAV_PLANNER_STAMP}") &&
+    panel.includes("data-matchrav-plan") &&
+    panel.includes("data-matchrav-compare") &&
+    panel.includes("lg:grid-cols-2") &&
+    panel.includes("estimateTravelKgCo2e") &&
+    panel.includes("Save this journey") &&
+    !panel.includes("PhoneFrame") &&
+    matchrav.includes('MATCHRAV_ACCOUNT_STAMP = "matchrav-fan-account-v1"') &&
+    matchrav.includes('MATCHRAV_PLANNER_STAMP = "matchrav-planner-mobile-pc-v1"'),
+  "The Matchrav tab is a travel planner on mobile and PC, with no phone frame"
 );
 
 assert(
