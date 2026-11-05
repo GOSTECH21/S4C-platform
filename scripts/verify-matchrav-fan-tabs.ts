@@ -57,7 +57,7 @@ assert(
 );
 
 assert(
-  apply.includes('PIN = "03791ec"') &&
+  apply.includes('PIN = "a442e59"') &&
     apply.includes("matchrav-fan-tabs-2") &&
     apply.includes("git fetch") &&
     apply.includes("app/lib/matchrav.ts") &&
