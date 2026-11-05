@@ -75,6 +75,7 @@ assert(
 
 assert(
   apply.includes("cursor/matchrav-fan-tab-18f9") &&
+    apply.includes('PIN = "37be6a4"') &&
     apply.includes("git fetch") &&
     apply.includes("app/components/fan/FanMatchravPanel.tsx") &&
     apply.includes("app/dashboard/supporter/components/FanTabBar.tsx"),
