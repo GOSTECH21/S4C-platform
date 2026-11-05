@@ -364,11 +364,13 @@ assert(
     !nav.includes('label: "Climate Sponsors"') &&
     !nav.includes('label: "My Teams"') &&
     nav.includes("SUPPORTER_PREDICT_PATH") &&
+    nav.includes("SUPPORTER_MATCHRAV_PATH") &&
+    nav.includes('label: "Matchrav"') &&
     nav.includes('label: "P4P"') &&
     nav.includes('label: "CIFT"') &&
-    nav.includes("grid-cols-5") &&
-    nav.includes('data-fan-tabs="5"'),
-  "Fan navigation is five non-scrolling tabs: My S4P, P4P, Climate Projects, CIFT, Logout"
+    nav.includes("grid-cols-6") &&
+    nav.includes('data-fan-tabs="6"'),
+  "Fan navigation is six non-scrolling tabs: My S4P, Matchrav, P4P, Climate Projects, CIFT, Logout"
 );
 assert(
   readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(

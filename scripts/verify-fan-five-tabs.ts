@@ -27,17 +27,19 @@ const ciftPage = readFileSync("app/supporter/dashboard/cift/page.tsx", "utf8");
 const cift = readFileSync("app/components/fan/FanCiftTable.tsx", "utf8");
 
 assert(
-  nav.includes('data-fan-tabs="5"') &&
-    nav.includes("grid-cols-5") &&
+  nav.includes('data-fan-tabs="6"') &&
+    nav.includes("grid-cols-6") &&
     nav.includes("overflow-x-hidden") &&
     nav.includes('label: "My S4P"') &&
+    nav.includes('label: "Matchrav"') &&
+    nav.includes("SUPPORTER_MATCHRAV_PATH") &&
     nav.includes('label: "P4P"') &&
     nav.includes('label: "Climate Projects"') &&
     nav.includes('label: "CIFT"') &&
     nav.includes("Logout") &&
     !nav.includes('label: "My Teams"') &&
     !nav.includes('label: "Climate Sponsors"'),
-  "Fan nav is five non-scrolling tabs with My Teams and Climate Sponsors off the bar"
+  "Fan nav is six non-scrolling tabs with Matchrav after My S4P"
 );
 assert(
   routes.includes('SUPPORTER_CIFT_PATH = "/supporter/dashboard/cift"') &&
@@ -82,5 +84,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Fan tabs: My S4P (with My Teams), P4P, Climate Projects (with Climate Sponsors), CIFT, Logout."
+  "Fan tabs: My S4P (with My Teams), Matchrav, P4P, Climate Projects (with Climate Sponsors), CIFT, Logout."
 );

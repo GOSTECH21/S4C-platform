@@ -5,6 +5,7 @@ import {
   SUPPORTER_CAMPAIGN_PATH,
   SUPPORTER_CIFT_PATH,
   SUPPORTER_CLIMATE_SPONSORS_PATH,
+  SUPPORTER_MATCHRAV_PATH,
   SUPPORTER_PREDICT_PATH,
   SUPPORTER_PROJECTS_PATH,
   SUPPORTER_TEAMS_PATH,
@@ -13,6 +14,11 @@ import {
 
 export const FAN_TAB_LINKS = [
   { href: SUPPORTER_CAMPAIGN_PATH, label: "My S4P", match: "campaign" as const },
+  {
+    href: SUPPORTER_MATCHRAV_PATH,
+    label: "Matchrav",
+    match: "matchrav" as const,
+  },
   {
     href: SUPPORTER_PREDICT_PATH,
     label: "P4P",
@@ -27,11 +33,17 @@ export const FAN_TAB_LINKS = [
 ];
 
 const TAB_CLASS =
-  "min-w-0 w-full overflow-hidden whitespace-normal rounded-lg px-1 py-2 text-center text-[11px] font-semibold leading-tight sm:px-4 sm:text-sm";
+  "min-w-0 w-full overflow-hidden whitespace-normal rounded-lg px-0.5 py-2 text-center text-[10px] font-semibold leading-tight sm:px-4 sm:text-sm";
 
 function isActive(match: (typeof FAN_TAB_LINKS)[number]["match"], pathname: string) {
   if (match === "campaign") {
     return isMyS4PPath(pathname) || pathname === SUPPORTER_TEAMS_PATH;
+  }
+  if (match === "matchrav") {
+    return (
+      pathname === SUPPORTER_MATCHRAV_PATH ||
+      pathname === "/dashboard/supporter/matchrav"
+    );
   }
   if (match === "predict") {
     return (
@@ -60,8 +72,8 @@ export function FanTabBar({
   return (
     <nav
       aria-label="Supporter"
-      data-fan-tabs="5"
-      className="grid w-full grid-cols-5 gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2"
+      data-fan-tabs="6"
+      className="grid w-full grid-cols-6 gap-0.5 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2"
     >
       {FAN_TAB_LINKS.map((link) => {
         const active = isActive(link.match, pathname);

@@ -6,7 +6,7 @@ import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 
 export default function FanTabsPreviewPage() {
   useEffect(() => {
-    const nav = document.querySelector<HTMLElement>('[data-fan-tabs="5"]');
+    const nav = document.querySelector<HTMLElement>('[data-fan-tabs="6"]');
     if (!nav) return;
     nav.dataset.scrollWidth = String(nav.scrollWidth);
     nav.dataset.clientWidth = String(nav.clientWidth);
@@ -23,7 +23,7 @@ export default function FanTabsPreviewPage() {
           </p>
           <FanTabBar pathname={SUPPORTER_CAMPAIGN_PATH} onLogout={() => {}} />
         </header>
-        <p className="text-sm font-semibold">Five fan tabs, no horizontal scroll.</p>
+        <p className="text-sm font-semibold">Six fan tabs, no horizontal scroll.</p>
       </div>
     </main>
   );

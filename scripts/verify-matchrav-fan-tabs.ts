@@ -66,6 +66,13 @@ assert(
 );
 
 assert(
+  matchrav.includes("fanLoginPath(SUPPORTER_MATCHRAV_PATH)") &&
+    matchrav.includes("MATCHRAV_EXPLORE_HREF") &&
+    !matchrav.includes("FAN_REGISTER_PATH"),
+  "Explore Matchrav opens Fan Login with a return path to the Matchrav tab"
+);
+
+assert(
   apply.includes("cursor/matchrav-below-club-18f9") &&
     apply.includes('PIN = "8e592ad"') &&
     apply.includes("git fetch") &&

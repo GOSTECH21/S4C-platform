@@ -95,8 +95,17 @@ export const SPONSOR_GAME_TIME_PATH = "/sponsor/game-time";
 export const SPONSOR_GAME_TIME_PAY_PATH = "/sponsor/game-time";
 export const SPONSOR_PAY_PATH = "/sponsor/pay";
 export const SUPPORTER_PREDICT_PATH = "/supporter/dashboard/predict";
+/** Matchrav tab — supporter travel planning. */
+export const SUPPORTER_MATCHRAV_PATH = "/supporter/dashboard/matchrav";
 /** Fans and supporters land here after login. */
 export const SUPPORTER_HOME_PATH = SUPPORTER_PREDICT_PATH;
+
+export function fanRegisterPath(next?: string | null): string {
+  const returnTo = safeFanReturnPath(next);
+  if (!returnTo || returnTo === SUPPORTER_HOME_PATH) return FAN_REGISTER_PATH;
+  return `${FAN_REGISTER_PATH}?next=${encodeURIComponent(returnTo)}`;
+}
+
 export const SPONSOR_OFFERS_PATH = "/sponsor/offers";
 
 export function sponsorWalletPath(clubName?: string | null): string {

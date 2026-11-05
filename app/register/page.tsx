@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type InputHTMLAttributes } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase";
 import TeamPicker from "@/app/components/fan/TeamPicker";
 import {
@@ -10,7 +11,12 @@ import {
   type TeamGroup,
   type TeamOption,
 } from "@/app/services/teams.service";
-import { FAN_LOGIN_PATH, SUPPORTER_HOME_PATH } from "@/app/lib/routes";
+import {
+  FAN_LOGIN_PATH,
+  SUPPORTER_HOME_PATH,
+  fanLoginPath,
+  safeFanReturnPath,
+} from "@/app/lib/routes";
 import { storedFullName } from "@/app/lib/s4p-admin";
 import {
   FAN_REGISTER_INTRO,
@@ -35,6 +41,10 @@ function FanRegisterField(props: InputHTMLAttributes<HTMLInputElement>) {
 
 export default function RegisterPage() {
   const account = roleRegisterAccount("fan");
+  const searchParams = useSearchParams();
+  const nextPath = safeFanReturnPath(searchParams.get("next"));
+  const afterAuthPath = nextPath ?? SUPPORTER_HOME_PATH;
+  const loginHref = nextPath ? fanLoginPath(nextPath) : FAN_LOGIN_PATH;
   const [formReady, setFormReady] = useState(false);
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -178,11 +188,11 @@ export default function RegisterPage() {
     }
 
     if (data.session) {
-      window.location.href = SUPPORTER_HOME_PATH;
+      window.location.href = afterAuthPath;
       return;
     }
 
-    window.location.href = FAN_LOGIN_PATH;
+    window.location.href = loginHref;
   }
 
   return (
@@ -299,7 +309,7 @@ export default function RegisterPage() {
 
         <p className="mt-4 text-center text-sm text-slate-400">
           Already have an account?{" "}
-          <Link href={FAN_LOGIN_PATH} className="font-semibold text-green-400 hover:underline">
+          <Link href={loginHref} className="font-semibold text-green-400 hover:underline">
             Login here
           </Link>
         </p>

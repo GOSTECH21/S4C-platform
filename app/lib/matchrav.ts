@@ -1,9 +1,10 @@
 /** Matchrav — intelligent supporter travel planning. Full product surface comes later. */
 
-import { FAN_REGISTER_PATH } from "./routes";
+import { fanLoginPath, SUPPORTER_MATCHRAV_PATH } from "./routes";
 
 export const MATCHRAV_STAMP = "matchrav-fan-tabs-v1";
 export const MATCHRAV_BELOW_CLUB_STAMP = "matchrav-below-club-v1";
+export const MATCHRAV_ACCOUNT_STAMP = "matchrav-fan-account-v1";
 export const MATCHRAV_NAME = "Matchrav";
 export const MATCHRAV_PREVIEW_PATH = "/preview/matchrav";
 
@@ -20,8 +21,26 @@ export const JOIN_S4P_FREE_LABEL = "Join S4P free";
 export const EXPLORE_MATCHRAV_LABEL = "Explore Matchrav";
 export const PLAY_P4P_LABEL = "Play P4P";
 
-/** Join S4P to use Matchrav until the dedicated travel surface ships. */
-export const MATCHRAV_EXPLORE_HREF = FAN_REGISTER_PATH;
+/** Explore Matchrav opens Fan Login; Register here remains on that page. */
+export const MATCHRAV_EXPLORE_HREF = fanLoginPath(SUPPORTER_MATCHRAV_PATH);
+
+export const MATCHRAV_ACCOUNT_INTRO =
+  "Matchrav helps supporters plan smarter, lower-emission journeys to matches. Compare travel options, reduce estimated carbon, and connect that travel to sponsor-funded climate action through S4P.";
+
+export const MATCHRAV_ACCOUNT_STEPS = [
+  {
+    title: "Plan your journey",
+    body: "Work out an efficient route to the match before you travel, and after you leave.",
+  },
+  {
+    title: "Compare options",
+    body: "See how different ways of getting there change the estimated carbon of the trip.",
+  },
+  {
+    title: "Fund climate action",
+    body: "Use Matchrav with S4P so sponsor-funded contributions follow the journey you take.",
+  },
+] as const;
 
 export const FAN_PRODUCT_TABS = [
   {
