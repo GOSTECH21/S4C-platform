@@ -511,25 +511,27 @@ assert(
     joinMission.includes("whitespace-nowrap") &&
     joinMission.includes("text-[0.72rem]") &&
     joinMission.includes("CLUB_REGISTER_PATH") &&
-    joinMission.includes("Every fan counts") &&
-    joinMission.includes("Support your team. Help fund climate action") &&
-    joinMission.includes('data-fan-join-copy="fan-p4p-tabs-v1"') &&
-    joinMission.includes("Over 50% of a Match Day carbon emissions") &&
-    joinMission.includes("Help them address Match Day") &&
-    joinMission.includes("emissions; join S4P for free") &&
-    joinMission.includes("Predict-4-Planet (P4P)") &&
-    joinMission.includes("in-game entertainment to generate sponsored-funding for Climate Projects") &&
-    joinMission.includes('data-fan-join-tabs="fan-p4p-tabs-v1"') &&
-    joinMission.includes('data-fan-join-tab="join-free"') &&
+    joinMission.includes("FAN_JOIN_KICKER") &&
+    joinMission.includes("FAN_JOIN_HEADING") &&
+    joinMission.includes("FAN_JOIN_BODY") &&
+    joinMission.includes("data-fan-join-copy={MATCHRAV_STAMP}") &&
+    joinMission.includes("data-fan-join-tabs={MATCHRAV_STAMP}") &&
+    joinMission.includes("grid-cols-3") &&
+    joinMission.includes('data-fan-join-cta="join-s4p-free"') &&
+    joinMission.includes('data-fan-join-cta="explore-matchrav"') &&
     joinMission.includes('data-fan-join-tab="play-p4p"') &&
-    joinMission.includes("Play P4P") &&
+    joinMission.includes("JOIN_S4P_FREE_LABEL") &&
+    joinMission.includes("EXPLORE_MATCHRAV_LABEL") &&
+    joinMission.includes("PLAY_P4P_LABEL") &&
     joinMission.includes("FAN_LOGIN_PATH") &&
     joinMission.includes("play-p4p-fan-login-v1") &&
     joinMission.includes("hardNavigateOnClick(FAN_LOGIN_PATH") &&
     !joinMission.includes("At the stadium or following from anywhere") &&
     !joinMission.includes("take part in match-day activities") &&
     !joinMission.includes("eligible sponsor-funded") &&
-    joinMission.includes("Join free") &&
+    !joinMission.includes("Over 50% of a Match Day carbon emissions") &&
+    !joinMission.includes("Predict-4-Planet (P4P)") &&
+    !joinMission.includes("Matrav") &&
     joinMission.includes("FAN_REGISTER_PATH") &&
     joinMission.includes("s4p-navy-panel") &&
     joinMission.includes("bg-s4p-mark") &&
@@ -550,6 +552,21 @@ assert(
     joinMission.includes("hardNavigateOnClick") &&
     !joinMission.includes('from "next/link"'),
   "Home join is a paper club-director panel plus a fan panel without See How It Works"
+);
+
+const matchrav = readFileSync("app/lib/matchrav.ts", "utf8");
+assert(
+  matchrav.includes('MATCHRAV_NAME = "Matchrav"') &&
+    matchrav.includes("matchrav-fan-tabs-v1") &&
+    matchrav.includes("Match-day travel is an important part of a club's carbon footprint") &&
+    matchrav.includes("Before & after the match") &&
+    matchrav.includes("During the match") &&
+    matchrav.includes("When your team scores") &&
+    matchrav.includes('id: "matchrav"') &&
+    matchrav.includes('id: "p4p"') &&
+    matchrav.includes('id: "s4p"') &&
+    !matchrav.includes("Matrav"),
+  "Matchrav fan tabs use Matchrav spelling, travel copy, and three product tabs"
 );
 
 assert(

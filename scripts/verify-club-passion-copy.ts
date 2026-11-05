@@ -42,14 +42,18 @@ assert(
 );
 
 assert(
-  join.includes("Every fan counts") &&
-    join.includes("Support your team. Help fund climate action") &&
-    join.includes("Predict-4-Planet (P4P)") &&
-    join.includes("Join free") &&
-    join.includes("Play P4P") &&
+  join.includes("FAN_JOIN_KICKER") &&
+    join.includes("FAN_JOIN_HEADING") &&
+    join.includes("FAN_JOIN_BODY") &&
+    join.includes("MATCHRAV_NAME") &&
+    join.includes("JOIN_S4P_FREE_LABEL") &&
+    join.includes("EXPLORE_MATCHRAV_LABEL") &&
+    join.includes("PLAY_P4P_LABEL") &&
     join.includes("FAN_REGISTER_PATH") &&
-    join.includes("FAN_LOGIN_PATH"),
-  "Fan join panel uses Predict-4-Planet copy with Join free and Play P4P tabs"
+    join.includes("FAN_LOGIN_PATH") &&
+    !join.includes("Predict-4-Planet (P4P)") &&
+    !join.includes("Over 50% of a Match Day carbon emissions"),
+  "Fan join panel uses Matchrav copy with Join S4P free, Explore Matchrav and Play P4P"
 );
 
 if (failures.length > 0) {
