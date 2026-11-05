@@ -8,6 +8,7 @@ function assert(condition: boolean, message: string) {
 const join = readFileSync("app/components/home/HomeJoinMission.tsx", "utf8");
 const matchrav = readFileSync("app/lib/matchrav.ts", "utf8");
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
+const banner = readFileSync("app/components/home/HomeTopBanner.tsx", "utf8");
 const preview = readFileSync("app/preview/matchrav/page.tsx", "utf8");
 const apply = readFileSync("apply-matchrav-fan-tabs.mjs", "utf8");
 
@@ -50,18 +51,24 @@ assert(
 
 assert(
   front.includes('data-matchrav-home="matchrav-fan-tabs-v1"') &&
+    front.includes("mobileFanCard={<FanJoinPanel compact />}") &&
+    front.includes("fanOnMobile={false}") &&
+    banner.includes("MATCHRAV_MOBILE_STAMP") &&
+    banner.includes("mobileFanCard") &&
+    matchrav.includes('MATCHRAV_MOBILE_STAMP = "matchrav-mobile-first-v1"') &&
     preview.includes('data-matchrav-preview="matchrav-fan-tabs-v1"') &&
     preview.includes("<HomeJoinMission />") &&
     matchrav.includes('MATCHRAV_PREVIEW_PATH = "/preview/matchrav"'),
-  "Homepage and /preview/matchrav both render the Matchrav fan card"
+  "Mobile homepage shows the Matchrav fan card under the logo, before the sports intro"
 );
 
 assert(
   apply.includes('PIN = "a442e59"') &&
-    apply.includes("matchrav-fan-tabs-2") &&
+    apply.includes("matchrav-fan-tabs-3") &&
     apply.includes("git fetch") &&
     apply.includes("app/lib/matchrav.ts") &&
     apply.includes("app/components/home/HomeJoinMission.tsx") &&
+    apply.includes("app/components/home/HomeTopBanner.tsx") &&
     apply.includes("app/preview/matchrav/page.tsx"),
   "PC overlay pulls the Matchrav fan tabs"
 );

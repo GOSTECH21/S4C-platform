@@ -13,6 +13,7 @@ git checkout origin/cursor/matchrav-fan-tabs-18f9 -- `
   app/lib/matchrav.ts `
   app/components/home/HomeJoinMission.tsx `
   app/components/home/HomeFrontPage.tsx `
+  app/components/home/HomeTopBanner.tsx `
   app/preview/matchrav/page.tsx `
   scripts/verify-matchrav-fan-tabs.ts `
   scripts/verify-fan-p4p-copy.ts `

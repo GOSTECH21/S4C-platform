@@ -60,7 +60,8 @@ assert(
 assert(
   !front.includes("showFanP4P") &&
     !front.includes("onPlayP4P") &&
-    front.includes("<HomeJoinMission />") &&
+    front.includes("<HomeJoinMission") &&
+    front.includes("FanJoinPanel") &&
     front.includes('data-matchrav-home="matchrav-fan-tabs-v1"') &&
     join.includes("FAN_LOGIN_PATH") &&
     roles.includes("data-role-tab={card.title}"),

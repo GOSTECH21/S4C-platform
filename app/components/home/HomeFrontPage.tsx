@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import HomeTopBanner from "@/app/components/home/HomeTopBanner";
-import HomeJoinMission from "@/app/components/home/HomeJoinMission";
+import HomeJoinMission, {
+  FanJoinPanel,
+} from "@/app/components/home/HomeJoinMission";
 import HowItWorks from "@/app/components/home/HowItWorks";
 import HomeRoleSection from "@/app/components/home/HomeRoleSection";
 
@@ -49,9 +51,10 @@ export default function HomeFrontPage() {
         onLogin={() => showJoin("login")}
         onJoinFree={() => showJoin("register")}
         onJoinCommunity={() => showJoin("register")}
+        mobileFanCard={<FanJoinPanel compact />}
       />
       <div className="relative flex flex-col" data-matchrav-home="matchrav-fan-tabs-v1">
-        <HomeJoinMission />
+        <HomeJoinMission fanOnMobile={false} />
 
         <div className="hidden md:block" data-how-s4p-desktop="true">
           <HowItWorks

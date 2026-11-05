@@ -10,19 +10,21 @@ import { spawnSync } from "child_process";
 
 const PIN = "a442e59";
 const REFS = ["cursor/matchrav-fan-tabs-18f9", "main", PIN];
-const BUST = "matchrav-fan-tabs-2";
+const BUST = "matchrav-fan-tabs-3";
 const STAMP = "matchrav-fan-tabs-v1";
 const SELF = "apply-matchrav-fan-tabs.mjs";
 const FILES = [
   "app/lib/matchrav.ts",
   "app/components/home/HomeJoinMission.tsx",
   "app/components/home/HomeFrontPage.tsx",
+  "app/components/home/HomeTopBanner.tsx",
   "app/preview/matchrav/page.tsx",
   "apply-matchrav-fan-tabs.ps1",
   "scripts/verify-matchrav-fan-tabs.ts",
   "scripts/verify-fan-p4p-copy.ts",
   "scripts/verify-club-passion-copy.ts",
   "scripts/verify-homepage.ts",
+  "scripts/verify-play-p4p-optional-logo.ts",
 ];
 
 console.log("Working folder:", process.cwd());

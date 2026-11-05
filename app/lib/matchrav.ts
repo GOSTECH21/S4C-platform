@@ -3,6 +3,7 @@
 import { FAN_REGISTER_PATH } from "./routes";
 
 export const MATCHRAV_STAMP = "matchrav-fan-tabs-v1";
+export const MATCHRAV_MOBILE_STAMP = "matchrav-mobile-first-v1";
 export const MATCHRAV_NAME = "Matchrav";
 export const MATCHRAV_PREVIEW_PATH = "/preview/matchrav";
 
