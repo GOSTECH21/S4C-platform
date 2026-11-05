@@ -48,6 +48,7 @@ assert(
     login.includes("fanRegisterPath(destination)") &&
     login.includes("useSearchParams") &&
     register.includes("useSearchParams") &&
+    register.includes("<Suspense") &&
     register.includes("fanLoginPath(nextPath)") &&
     register.includes("afterAuthPath"),
   "Fan Login Register here and Fan registration keep the Matchrav return path"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type InputHTMLAttributes } from "react";
+import { Suspense, useEffect, useState, type InputHTMLAttributes } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase";
@@ -39,7 +39,7 @@ function FanRegisterField(props: InputHTMLAttributes<HTMLInputElement>) {
   );
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const account = roleRegisterAccount("fan");
   const searchParams = useSearchParams();
   const nextPath = safeFanReturnPath(searchParams.get("next"));
@@ -325,4 +325,27 @@ function uuidOrNull(value?: string | null): string | null {
   )
     ? value
     : null;
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen px-4 py-10 text-white">
+          <div className="mx-auto max-w-5xl rounded-xl bg-slate-900 p-8 shadow-lg">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+              S4P
+            </p>
+            <h1 className="mt-3 text-3xl font-bold">Fan registration</h1>
+            <div
+              className="mt-8 min-h-[32rem] rounded-xl border border-slate-800 bg-slate-800/40"
+              aria-hidden
+            />
+          </div>
+        </main>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
+  );
 }
