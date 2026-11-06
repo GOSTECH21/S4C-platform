@@ -29,11 +29,13 @@ import {
   brandsMatch,
   numberClimateProjects,
   remainingGbp,
+  roundGbp,
   walletVoteAmount,
   type ClimateWallet,
   type NumberedClimateProject,
   type WalletVoteResult,
 } from "../lib/sponsor-wallet";
+import { FAN_PARTICIPATION_POOL_RATE } from "../lib/score-for-planet";
 import { clubsMatch } from "../lib/sponsor-dashboard";
 import { isLeadWalletLabel } from "../lib/dual-sponsor";
 import { FEATURED_PROJECT_NAME } from "../lib/sccan-catalog";
@@ -44,6 +46,7 @@ import {
   ensureLocalWallet,
   healLocalWalletsForClub,
   findClimateWallet,
+  listClimateWallets,
   listClimateWalletsForClub,
   writeClimateWallet,
 } from "./sponsor-wallet.service";
@@ -353,6 +356,11 @@ export function applyFanWalletVote({
   amount,
   supporterId,
   projects: fallbackProjects = [],
+  minAmount,
+  gbpPerGoal,
+  displayedRemaining,
+  fixtureName,
+  createLeadIfMissing = false,
 }: {
   clubId: string;
   clubName: string;
@@ -362,6 +370,11 @@ export function applyFanWalletVote({
   amount?: number;
   supporterId?: string | null;
   projects?: NumberedClimateProject[];
+  minAmount?: number | null;
+  gbpPerGoal?: number | null;
+  displayedRemaining?: number | null;
+  fixtureName?: string | null;
+  createLeadIfMissing?: boolean;
 }): WalletVoteResult & { folder?: MatchDayFolder } {
   const folder = visibleMatchDayFolderForClub({ clubId, clubName });
   const projects = numberedFeaturedGss(
@@ -383,8 +396,21 @@ export function applyFanWalletVote({
   const wallets = identifyClubSponsorWallets({
     clubId,
     clubName: resolvedClub,
+    minAmount,
+    gbpPerGoal,
+    fixtureName,
   });
-  const wallet = resolveFanVoteWallet(resolvedClub, brandName, wallets);
+  const wallet =
+    resolveFanVoteWallet(resolvedClub, brandName, wallets) ??
+    (createLeadIfMissing || isLeadWalletLabel(brandName)
+      ? ensureFanLeadWallet({
+          clubName: resolvedClub,
+          brandName,
+          minAmount,
+          gbpPerGoal,
+          displayedRemaining,
+        })
+      : null);
   if (!wallet) {
     return { ok: false, error: `No Carbon Wallet found for ${brandName}.` };
   }
@@ -479,17 +505,51 @@ function resolveFanVoteWallet(
   wallets: ClimateWallet[]
 ): ClimateWallet | null {
   const stored = listClimateWalletsForClub(clubName);
+  const clubLeads = listClimateWallets().filter(
+    (row) => row.kind === "lead" && clubsMatch(row.clubName, clubName)
+  );
   const direct =
     findClimateWallet(clubName, brandName) ??
     wallets.find((row) => brandsMatch(row.brandName, brandName)) ??
     stored.find((row) => brandsMatch(row.brandName, brandName)) ??
+    clubLeads.find((row) => brandsMatch(row.brandName, brandName)) ??
     null;
   const clubLead =
     wallets.find((row) => row.kind === "lead") ??
     stored.find((row) => row.kind === "lead") ??
+    clubLeads.sort(
+      (left, right) => remainingGbp(right) - remainingGbp(left)
+    )[0] ??
     null;
   if (isLeadWalletLabel(brandName)) return clubLead ?? direct;
-  return direct ?? clubLead;
+  return direct;
+}
+
+function ensureFanLeadWallet({
+  clubName,
+  brandName,
+  minAmount,
+  gbpPerGoal,
+  displayedRemaining,
+}: {
+  clubName: string;
+  brandName: string;
+  minAmount?: number | null;
+  gbpPerGoal?: number | null;
+  displayedRemaining?: number | null;
+}): ClimateWallet | null {
+  const shown = roundGbp(Math.max(0, Number(displayedRemaining) || 0));
+  const min = roundGbp(Math.max(0, Number(minAmount) || 0));
+  const fromPool =
+    shown > 0 ? roundGbp(shown / FAN_PARTICIPATION_POOL_RATE) : 0;
+  const commitment = Math.max(fromPool, min);
+  if (!(commitment > 0) && !(shown > 0)) return null;
+  return ensureLeadWallet({
+    clubName,
+    brandName: brandName.trim() || "Lead Climate Sponsor",
+    commitmentFeeGbp: commitment > 0 ? commitment : 1000,
+    gbpPerGoal: Number(gbpPerGoal) || 0,
+  });
 }
 
 function numberedFeaturedGss(

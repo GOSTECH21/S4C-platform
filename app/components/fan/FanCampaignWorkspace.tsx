@@ -39,6 +39,7 @@ import {
 } from "@/app/services/match-day-folder.service";
 import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import {
+  brandsMatch,
   formatWalletGbp,
   normalizeBrandKey,
   remainingGbp,
@@ -445,28 +446,36 @@ function CampaignPanel({
     brandName: string;
     projectNumber?: string;
     split?: boolean;
-  }) {
-    if (!supporterId) return;
+  }): Promise<boolean> {
+    const fanId = supporterId || "fan-local";
     if (!fundingOpen) {
       setError("Voting is not open for this match yet, or it has already closed.");
-      return;
+      return false;
     }
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
+      const leadTake =
+        isLeadWalletLabel(brandName) ||
+        Boolean(leadSponsor && brandsMatch(leadSponsor.brandName, brandName));
       const result = applyFanWalletVote({
         clubId,
         clubName: campaign.clubName,
         brandName,
         projectNumber,
         split,
-        supporterId,
+        supporterId: fanId,
         projects,
+        minAmount: campaign.minimumAmount,
+        gbpPerGoal: campaign.gbpPerGoal,
+        displayedRemaining: leadTake ? leadSponsor?.remainingGbp : undefined,
+        fixtureName: campaign.matchTitle,
+        createLeadIfMissing: leadTake,
       });
       if (!result.ok) {
         setError(result.error);
-        return;
+        return false;
       }
       setFolder(result.folder ?? folder);
       setProjects(result.projects);
@@ -482,21 +491,25 @@ function CampaignPanel({
       );
       const votedNow = [result.project.id];
       try {
-        await submitCampaignVotes(
-          supporterId,
-          [...new Set([...votedIds, ...votedNow])],
-          voteable.map((project) => project.id),
-          campaign.campaignId,
-          clubId
-        );
-        await onVotesChanged();
+        if (supporterId) {
+          await submitCampaignVotes(
+            supporterId,
+            [...new Set([...votedIds, ...votedNow])],
+            voteable.map((project) => project.id),
+            campaign.campaignId,
+            clubId
+          );
+          await onVotesChanged();
+        }
       } catch {
         // Wallet cash has already moved even if the campaign vote row cannot be stored.
       }
       setNotice(walletVoteNotice(result));
+      return true;
     } catch (err) {
       console.error("Failed to submit vote:", describeDataError(err));
       setError(describeDataError(err, "Failed to submit your vote."));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -599,8 +612,10 @@ function CampaignPanel({
               usedSponsorNames={usedSponsors}
               clubId={clubId}
               clubName={campaign.clubName}
+              voteError={error}
+              voteNotice={notice}
               onVote={({ brandName, projectNumber, split }) =>
-                void voteFromWallet({
+                voteFromWallet({
                   brandName,
                   projectNumber,
                   split,

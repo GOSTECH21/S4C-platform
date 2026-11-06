@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { LEAD_CLIMATE_SPONSOR_LABEL } from "@/app/lib/dual-sponsor";
 import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
@@ -53,12 +53,14 @@ export function ClimateProjectSponsors({
   clubId,
   clubName,
   showInvite = true,
+  voteError = null,
+  voteNotice = null,
 }: {
   lead: CarbonWalletSponsor | null;
   locals: CarbonWalletSponsor[];
   projects?: Array<{ number: number; name: string }>;
   projectCount?: number;
-  onVote?: (input: WalletVoteInput) => void;
+  onVote?: (input: WalletVoteInput) => void | boolean | Promise<boolean | void>;
   onLeadVote?: (input: { projectNumber?: string; split?: boolean }) => void;
   onLocalVote?: (brandName: string, projectNumber: string, split?: boolean) => void;
   busy?: boolean;
@@ -67,6 +69,8 @@ export function ClimateProjectSponsors({
   clubId?: string | null;
   clubName?: string | null;
   showInvite?: boolean;
+  voteError?: string | null;
+  voteNotice?: string | null;
 }) {
   const [leadNumber, setLeadNumber] = useState("");
   const [localNumbers, setLocalNumbers] = useState<Record<string, string>>({});
@@ -111,15 +115,23 @@ export function ClimateProjectSponsors({
   const inviteHref = fanInviteRegisterPath(clubId, clubName);
 
   function fundLead() {
-    if (!lead) return;
-    onVote?.({
-      brandName: lead.brandName,
-      projectNumber: leadNumber,
-      split: false,
-    });
+    if (!lead || !leadNumber) return;
     onLeadVote?.({ projectNumber: leadNumber, split: false });
-    setLeadNumber("");
+    void Promise.resolve(
+      onVote?.({
+        brandName: lead.brandName,
+        projectNumber: leadNumber,
+        split: false,
+      })
+    ).then((ok) => {
+      if (ok === false) return;
+      setLeadNumber("");
+    });
   }
+
+  useEffect(() => {
+    if (voteNotice) setLeadNumber("");
+  }, [voteNotice]);
 
   function fundLocal(row: CarbonWalletSponsor) {
     const projectNumber = localNumbers[row.brandName] ?? "";
@@ -153,7 +165,9 @@ export function ClimateProjectSponsors({
 
       {lead ? (
         <div
+          id="lead-fund-it"
           data-lead-fund-it="lead-fund-it-v1"
+          data-fund-it-native="lead-fund-it-take-v1"
           className="rounded-2xl border border-white/10 bg-slate-950/70"
         >
           <p className="px-4 pt-3 text-center text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-emerald-300">
@@ -193,6 +207,22 @@ export function ClimateProjectSponsors({
                 onClick={fundLead}
                 testId="lead-vote"
               />
+              {voteError ? (
+                <p
+                  data-fund-it-error="lead-fund-it-error"
+                  className="rounded-xl border-2 border-red-700 bg-red-50 px-3 py-2 text-center text-sm font-bold text-red-800"
+                >
+                  {voteError}
+                </p>
+              ) : null}
+              {voteNotice && !voteError ? (
+                <p
+                  data-fund-it-notice="lead-fund-it-notice"
+                  className="rounded-xl border-2 border-green-700 bg-green-50 px-3 py-2 text-center text-sm font-bold text-green-900"
+                >
+                  {voteNotice}
+                </p>
+              ) : null}
               {lead && !leadUsed && leadBlocked && !leadNumber ? (
                 <p className="text-center text-xs font-semibold text-amber-800">
                   Choose a Climate Project above, then press {FUND_IT_LABEL}.
@@ -422,20 +452,40 @@ function FundItButton({
   onClick: () => void;
   testId: string;
 }) {
+  const lock = useRef(0);
+  function take(event?: { preventDefault?: () => void }) {
+    event?.preventDefault?.();
+    if (disabled || used) return;
+    const now = Date.now();
+    if (now - lock.current < 700) return;
+    lock.current = now;
+    onClick();
+  }
+  const className = `block rounded-xl px-6 py-3 text-center text-sm font-bold no-underline ${
+    disabled || used
+      ? "cursor-not-allowed border-2 border-stone-400 bg-transparent text-stone-500"
+      : "bg-green-500 text-slate-950 hover:bg-green-400"
+  }`;
+  if (used) {
+    return (
+      <p className={className} data-testid={testId}>
+        Already used
+      </p>
+    );
+  }
   return (
-    <button
-      type="button"
+    <a
+      href="#lead-fund-it"
       data-testid={testId}
-      disabled={disabled}
-      onClick={onClick}
-      className={`rounded-xl px-6 py-3 text-sm font-bold ${
-        disabled
-          ? "cursor-not-allowed border-2 border-stone-400 bg-transparent text-stone-500"
-          : "bg-green-500 text-slate-950 hover:bg-green-400"
-      }`}
+      data-fund-it-native="lead-fund-it-take-v1"
+      role="button"
+      aria-disabled={disabled}
+      className={className}
+      onClick={take}
+      onPointerUp={take}
     >
-      {used ? "Already used" : FUND_IT_LABEL}
-    </button>
+      {FUND_IT_LABEL}
+    </a>
   );
 }
 

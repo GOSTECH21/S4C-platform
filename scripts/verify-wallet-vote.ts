@@ -790,6 +790,8 @@ assert(
     sponsorsUi.includes("projects={projectChoices}") &&
     sponsorsUi.includes("localFromList") &&
     sponsorsUi.includes('data-lead-fund-it="lead-fund-it-v1"') &&
+    sponsorsUi.includes('data-fund-it-native="lead-fund-it-take-v1"') &&
+    sponsorsUi.includes('href="#lead-fund-it"') &&
     sponsorsUi.includes("Tap a Climate Project") &&
     sponsorsUi.includes('role="listbox"') &&
     !sponsorsUi.includes("featuredFromList") &&
@@ -841,7 +843,10 @@ assert(
 
 assert(
   fanPage.includes("fanFundingIsOpen") &&
-    !votePage.includes("fanFundingIsOpen"),
+    !votePage.includes("fanFundingIsOpen") &&
+    fanPage.includes("fan-local") &&
+    fanPage.includes("voteError") &&
+    fanPage.includes("displayedRemaining"),
   "My S4P enables FUND-IT; Climate Projects only shows Received totals"
 );
 assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
@@ -1136,6 +1141,27 @@ async function verifyStoredLocalRemaining() {
       rangersTake.project.name === FEATURED_PROJECT_NAME &&
         rangersTake.project.fundedGbp === 0.2,
       "The £0.20 from the Rangers Lead wallet lands on Global Schools Solar"
+    );
+  }
+
+  const createdTake = applyFanWalletVote({
+    clubId: "killie-fund",
+    clubName: "Kilmarnock",
+    brandName: LEAD_CLIMATE_SPONSOR_LABEL,
+    projectNumber: 1,
+    supporterId: "lewis-killie",
+    projects,
+    minAmount: 1650,
+    displayedRemaining: 1320,
+  });
+  assert(
+    createdTake.ok,
+    "FUND-IT still takes £0.20 when the Lead wallet was missing and has to be created"
+  );
+  if (createdTake.ok) {
+    assert(
+      remainingGbp(createdTake.wallet) === 1319.8,
+      "A newly created Kilmarnock Lead wallet starts at £1,320 and then shows £1,319.80"
     );
   }
 }
