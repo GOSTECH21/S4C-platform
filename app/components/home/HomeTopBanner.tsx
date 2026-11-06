@@ -159,7 +159,10 @@ function SportClusterImage({
   blend?: boolean;
 }) {
   return (
-    <div className={`relative min-w-0 ${className ?? ""}`}>
+    <div
+      className={`relative min-w-0 ${className ?? ""}`}
+      data-banner-cluster="banner-drop-sport-icons-v1"
+    >
       <Image
         src="/images/home/global-sports-cluster.png"
         alt="Football, rugby, NFL, basketball and cricket athletes looking toward Earth. Five major sports. A cleaner, greener planet."
