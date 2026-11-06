@@ -399,9 +399,9 @@ export function nextFanMatchForClub(options: {
   )
     .toISOString()
     .slice(0, 10);
-  const nextPublished = nextPublishedFixture(options.published ?? [], today);
-  if (nextPublished) return nextPublished;
-  return nextSignedOffFixtureForClub(options);
+  const funded = nextSignedOffFixtureForClub(options);
+  if (funded) return funded;
+  return nextPublishedFixture(options.published ?? [], today);
 }
 
 function nextPublishedFixture(

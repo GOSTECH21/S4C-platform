@@ -667,8 +667,8 @@ assert(
     signedOff: chosenMatchesForClub(pumaDatedLock, "Arsenal"),
     published: publishedArsenal,
     now: "2026-10-02T09:00:00.000Z",
-  })?.fixtureName === "Arsenal v Leeds United",
-  "Fans see Arsenal's next published fixture, not a stale Arsenal v Chelsea campaign"
+  })?.fixtureName === "Bournemouth v Arsenal",
+  "Fans see the funded Arsenal match, not the next unfunded published fixture"
 );
 assert(
   nextFanMatchForClub({
@@ -686,6 +686,39 @@ assert(
     now: "2026-10-02T09:00:00.000Z",
   })?.fixtureName === "Arsenal v Leeds United",
   "When Leeds United is Arsenal's next fixture and a Lead Climate Sponsor signs it off, that is the My S4P headline"
+);
+assert(
+  nextFanMatchForClub({
+    clubName: "Rangers",
+    signedOff: [
+      {
+        clubName: "Rangers",
+        fixtureName: "Rangers v Aberdeen",
+        fixtureDate: "2026-11-24",
+        kickoff: "20:00",
+        lockedAt: now,
+      },
+    ],
+    published: [
+      {
+        fixtureName: "St Mirren v Rangers",
+        date: "2026-11-07",
+        kickoff: "20:00",
+      },
+      {
+        fixtureName: "Rangers v Aberdeen",
+        date: "2026-11-24",
+        kickoff: "20:00",
+      },
+    ],
+    now: "2026-11-06T21:00:00.000Z",
+  })?.fixtureName === "Rangers v Aberdeen",
+  "Rangers fans see Rangers v Aberdeen when that Match Day is funded, not St Mirren v Rangers"
+);
+assert(
+  campaignHeadline("Rangers v Aberdeen") ===
+    "Rangers v Aberdeen Climate Campaign",
+  "The Climate Campaign headline is Rangers v Aberdeen"
 );
 
 const pumaLeedsLock: MatchDayClubLock = {
@@ -1030,7 +1063,7 @@ const votesService = readFileSync("app/services/votes.service.ts", "utf8");
 assert(
   votesService.includes("nextFanMatchForClub") &&
     votesService.includes("applyNextFanMatchHeadline"),
-  "My S4P replaces a stale campaign title with the next signed-off fixture"
+  "My S4P replaces a stale campaign title with the funded signed-off fixture"
 );
 assert(
   readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
