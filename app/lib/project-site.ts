@@ -225,6 +225,14 @@ export const CLUB_STADIUM_SITES: StadiumSite[] = [
     place: "Leckwith",
     country: "Wales",
   },
+  {
+    name: "Real Madrid",
+    address: "Santiago Bernabeu, Avenida de Concha Espina, Madrid",
+    postcode: "28036",
+    point: { lat: 40.45305, lng: -3.68835 },
+    place: "Madrid",
+    country: "Spain",
+  },
 ];
 
 /**

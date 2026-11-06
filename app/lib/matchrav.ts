@@ -6,6 +6,7 @@ export const MATCHRAV_STAMP = "matchrav-fan-tabs-v1";
 export const MATCHRAV_BELOW_CLUB_STAMP = "matchrav-below-club-v1";
 export const MATCHRAV_ACCOUNT_STAMP = "matchrav-fan-account-v1";
 export const MATCHRAV_PLANNER_STAMP = "matchrav-planner-mobile-pc-v1";
+export const MATCHRAV_JOURNEY_STAMP = "matchrav-journey-ops-v1";
 export const MATCHRAV_NAME = "Matchrav";
 export const MATCHRAV_PREVIEW_PATH = "/preview/matchrav";
 
