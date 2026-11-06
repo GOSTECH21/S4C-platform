@@ -16,9 +16,13 @@ git checkout origin/cursor/gss-one-global-18f9 -- `
   app/lib/partner-projects.ts `
   app/lib/voting-window.ts `
   app/lib/predict-for-planet.ts `
+  app/lib/fan-votes.ts `
   app/components/club/FeaturedGssPicker.tsx `
+  app/components/fan/FanCampaignWorkspace.tsx `
   app/club/projects/select/page.tsx `
   app/global-schools-solar/page.tsx `
+  app/services/club-match-day.service.ts `
+  app/sponsor/campaigns/select/page.tsx `
   scripts/verify-gss-one-global.ts
 if ($LASTEXITCODE -ne 0) { throw "git checkout origin/cursor/gss-one-global-18f9 failed" }
 

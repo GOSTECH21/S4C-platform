@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "b165ba0";
 const BRANCH = "cursor/gss-one-global-18f9";
 const FILES = [
   "app/lib/featured-gss.ts",
@@ -10,9 +10,13 @@ const FILES = [
   "app/lib/partner-projects.ts",
   "app/lib/voting-window.ts",
   "app/lib/predict-for-planet.ts",
+  "app/lib/fan-votes.ts",
   "app/components/club/FeaturedGssPicker.tsx",
+  "app/components/fan/FanCampaignWorkspace.tsx",
   "app/club/projects/select/page.tsx",
   "app/global-schools-solar/page.tsx",
+  "app/services/club-match-day.service.ts",
+  "app/sponsor/campaigns/select/page.tsx",
   "apply-gss-one-global.ps1",
   "scripts/verify-gss-one-global.ts",
 ];
