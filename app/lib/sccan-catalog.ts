@@ -28,6 +28,7 @@ export type PartnerCatalogProject = {
   address?: string;
 };
 
+/** Legacy names still match as Global Schools Solar. */
 export const FEATURED_GSS_LOCAL_NAME = "Local Global Schools Solar";
 export const FEATURED_GSS_WORLD_NAME = "International Global Schools Solar";
 
@@ -36,33 +37,19 @@ export const FEATURED_GLOBAL_SCHOOLS_SOLAR: PartnerCatalogProject = {
   description:
     "Install rooftop solar systems in schools around the world so classrooms can run on clean energy.",
   category: "Solar Energy",
-  country: "International",
-  location: "Featured · S4P",
+  country: "Global",
+  location: "Featured · Global",
   estimated_co2: 9600,
   funding_goal: 150000,
   featured: true,
   source: "S4P Featured Climate Project",
 };
 
-export const FEATURED_GSS_LOCAL: PartnerCatalogProject = {
-  ...FEATURED_GLOBAL_SCHOOLS_SOLAR,
-  name: FEATURED_GSS_LOCAL_NAME,
-  description:
-    "Install rooftop solar at a school near this club's stadium so local classrooms run on clean energy.",
-  location: "Featured · Local school near the stadium",
-};
-
-export const FEATURED_GSS_WORLD: PartnerCatalogProject = {
-  ...FEATURED_GLOBAL_SCHOOLS_SOLAR,
-  name: FEATURED_GSS_WORLD_NAME,
-  description:
-    "Install rooftop solar at a school anywhere else in the world so classrooms can run on clean energy.",
-  location: "Featured · School anywhere in the world",
-};
+export const FEATURED_GSS_LOCAL: PartnerCatalogProject = FEATURED_GLOBAL_SCHOOLS_SOLAR;
+export const FEATURED_GSS_WORLD: PartnerCatalogProject = FEATURED_GLOBAL_SCHOOLS_SOLAR;
 
 export const FEATURED_GSS_VERSIONS: PartnerCatalogProject[] = [
-  FEATURED_GSS_LOCAL,
-  FEATURED_GSS_WORLD,
+  FEATURED_GLOBAL_SCHOOLS_SOLAR,
 ];
 
 /** Chosen from SCCAN current projects, Spaces and Member of the Month stories. */
@@ -1216,7 +1203,7 @@ export function selectableCatalogForCountry(
 export const SELECTABLE_MATCH_DAY_CATALOG: PartnerCatalogProject[] =
   selectableCatalogForCountry("Scotland");
 
-/** Published catalog: two Global Schools Solar versions plus every local and international project. */
+/** Published catalog: one Featured Global Schools Solar plus every local and international project. */
 export const PARTNER_MATCH_DAY_CATALOG: PartnerCatalogProject[] = [
   ...FEATURED_GSS_VERSIONS,
   ...ALL_LOCAL_CLIMATE_PROJECTS,

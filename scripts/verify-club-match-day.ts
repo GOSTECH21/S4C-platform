@@ -55,10 +55,7 @@ import {
   withChosenFeaturedProject,
   withFanGssChoices,
 } from "../app/lib/featured-gss";
-import {
-  FEATURED_GSS_LOCAL_NAME,
-  FEATURED_GSS_WORLD_NAME,
-} from "../app/lib/sccan-catalog";
+import { FEATURED_PROJECT_NAME } from "../app/lib/sccan-catalog";
 import { sponsorOfferHeadline } from "../app/lib/s4p-climate-projects";
 import {
   hostedClimateProjectId,
@@ -89,26 +86,27 @@ assert(MATCH_DAY_PROJECT_COUNT === 5, "Match Day portfolio is 5 projects: one Fe
 assert(MATCH_DAY_CHOICE_COUNT === 4, "SD chooses 4 partner projects after choosing one Featured GSS");
 const gssPair = expandFeaturedGssVersions([
   { id: "gss", name: "Global Schools Solar" },
+  { id: "gss::gss-world", name: "International Global Schools Solar" },
 ]);
 assert(
-  gssPair.length === 2 &&
-    chosenFeaturedProject(gssPair) === null &&
+  gssPair.length === 1 &&
+    gssPair[0].name === FEATURED_PROJECT_NAME &&
+    chosenFeaturedProject(gssPair)?.id === gssPair[0].id &&
     chosenFeaturedProject(gssPair, gssPair[0].id)?.id === gssPair[0].id &&
     withChosenFeaturedProject(
       [...gssPair, { id: "southwark", name: "Southwark Community Solar" }],
-      gssPair[1].id
-    ).map((row) => row.id).join(",") === `${gssPair[1].id},southwark`,
-  "A Match Day list keeps one chosen Featured GSS and never both"
+      gssPair[0].id
+    ).map((row) => row.id).join(",") === `${gssPair[0].id},southwark`,
+  "A Match Day list keeps one Featured Global Schools Solar"
 );
 assert(
-  gssPair[0].name === FEATURED_GSS_LOCAL_NAME &&
-    gssPair[1].name === FEATURED_GSS_WORLD_NAME &&
-    withFanGssChoices([
-      { id: "gss", name: "Global Schools Solar" },
-      { id: "wee", name: "Wee Spoke Hub" },
-    ]).map((row) => row.name).join(",") ===
-      `${FEATURED_GSS_LOCAL_NAME},${FEATURED_GSS_WORLD_NAME},Wee Spoke Hub`,
-  "Fans are offered Local and International Global Schools Solar even when the club posted one GSS"
+  withFanGssChoices([
+    { id: "gss", name: "Global Schools Solar" },
+    { id: "gss-world", name: "International Global Schools Solar" },
+    { id: "wee", name: "Wee Spoke Hub" },
+  ]).map((row) => row.name).join(",") ===
+    `${FEATURED_PROJECT_NAME},Wee Spoke Hub`,
+  "Fans see one Global Schools Solar even when a club posted a legacy local/international pair"
 );
 assert(
   partnerProjectPage(SELECTABLE_MATCH_DAY_CATALOG, 0).every((project) =>
@@ -214,29 +212,27 @@ assert(
 
 assert(
   featuredClimateProjectCountryLabel({ clubName: "Hearts of Midlothian FC" }) ===
-    "UK and International",
-  "Hearts sees Global Schools Solar as UK and International"
+    "Global",
+  "Hearts sees Global Schools Solar as Global"
 );
 assert(
   featuredClimateProjectCountryLabel({
     clubName: "Arsenal",
     country: "England",
-  }) === "UK and International",
-  "Arsenal sees Global Schools Solar as UK and International"
+  }) === "Global",
+  "Arsenal sees Global Schools Solar as Global"
 );
 assert(
-  featuredClimateProjectCountryLabel({ clubName: "AC Milan" }) ===
-    "UK and International",
-  "Only Global Schools Solar is classified as UK and International"
+  featuredClimateProjectCountryLabel({ clubName: "AC Milan" }) === "Global",
+  "Only Global Schools Solar is classified as Global"
 );
 assert(
-  featuredClimateProjectCountryLabel({ clubName: "Real Madrid" }) ===
-    "UK and International",
-  "A La Liga club still sees Global Schools Solar as UK and International"
+  featuredClimateProjectCountryLabel({ clubName: "Real Madrid" }) === "Global",
+  "A La Liga club still sees Global Schools Solar as Global"
 );
 assert(
-  featuredClimateProjectCountryLabel() === "UK and International",
-  "Global Schools Solar stays UK and International without a club"
+  featuredClimateProjectCountryLabel() === "Global",
+  "Global Schools Solar stays Global without a club"
 );
 assert(
   climateProjectCountryLabel(
@@ -249,8 +245,8 @@ assert(
   featuredClimateProjectCountryLabelForClubs([
     { clubName: "Arsenal" },
     { clubName: "AC Milan" },
-  ]) === "UK and International",
-  "Fans see Global Schools Solar as UK and International"
+  ]) === "Global",
+  "Fans see Global Schools Solar as Global"
 );
 
 const unitedFan = {
@@ -630,7 +626,7 @@ assert(
 );
 assert(
   clubClimateProjectsIntroCopy().includes(
-    "There can never be two Featured projects"
+    "one programme that applies in every country"
   ) &&
     clubClimateProjectsIntroCopy().includes(
       "Climate Partner Projects executable in Your Country"

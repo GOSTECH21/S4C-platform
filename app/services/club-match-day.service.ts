@@ -1350,7 +1350,7 @@ export async function saveMatchDaySelection({
   );
   if (!featured) {
     throw new Error(
-      "Choose one Featured Climate Project: a local school near the stadium, or a school anywhere in the world. There can never be two Featured projects."
+      "Choose Global Schools Solar as the Featured Climate Project, then 4 Climate Partner Projects from the Local and National lists."
     );
   }
   const chosen = [

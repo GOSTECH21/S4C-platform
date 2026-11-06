@@ -17,10 +17,7 @@ import {
   ensureLocalWallet,
   writeClimateWallet,
 } from "@/app/services/sponsor-wallet.service";
-import {
-  FEATURED_GSS_LOCAL_NAME,
-  FEATURED_GSS_WORLD_NAME,
-} from "@/app/lib/sccan-catalog";
+import { FEATURED_PROJECT_NAME } from "@/app/lib/sccan-catalog";
 
 const FOUNTAIN: LocalSponsorRecord = {
   brandName: "The Fountain",
@@ -36,8 +33,7 @@ const FOUNTAIN: LocalSponsorRecord = {
 };
 
 const PROJECTS = [
-  { id: "gss-local", name: FEATURED_GSS_LOCAL_NAME, description: "", category: "Solar Energy" },
-  { id: "gss-world", name: FEATURED_GSS_WORLD_NAME, description: "", category: "Solar Energy" },
+  { id: "gss", name: FEATURED_PROJECT_NAME, description: "", category: "Solar Energy" },
   { id: "lcr", name: "London Community Retrofit", description: "", category: "Renewable Energy" },
   { id: "icas", name: "Islington Clean Air Schools", description: "", category: "Clean Air" },
   { id: "scs", name: "Southwark Community Solar", description: "", category: "Solar Energy" },

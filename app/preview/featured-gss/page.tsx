@@ -3,33 +3,18 @@
 import { useState } from "react";
 import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
 import { ClubClimateSponsorTabs } from "@/app/components/club/ClubClimateSponsorTabs";
-import {
-  FEATURED_GSS_LOCAL,
-  FEATURED_GSS_WORLD,
-} from "@/app/lib/sccan-catalog";
+import { FEATURED_GLOBAL_SCHOOLS_SOLAR } from "@/app/lib/sccan-catalog";
 import type { ClimateProject } from "@/app/services/votes.service";
 
 const options: ClimateProject[] = [
   {
-    id: "gss-local",
-    name: FEATURED_GSS_LOCAL.name,
-    description: FEATURED_GSS_LOCAL.description,
-    category: FEATURED_GSS_LOCAL.category,
-    country: FEATURED_GSS_LOCAL.country,
-    estimated_co2: FEATURED_GSS_LOCAL.estimated_co2,
-    funding_goal: FEATURED_GSS_LOCAL.funding_goal,
-    image_url: null,
-    status: "active",
-    featured: true,
-  },
-  {
-    id: "gss-world",
-    name: FEATURED_GSS_WORLD.name,
-    description: FEATURED_GSS_WORLD.description,
-    category: FEATURED_GSS_WORLD.category,
-    country: FEATURED_GSS_WORLD.country,
-    estimated_co2: FEATURED_GSS_WORLD.estimated_co2,
-    funding_goal: FEATURED_GSS_WORLD.funding_goal,
+    id: "gss",
+    name: FEATURED_GLOBAL_SCHOOLS_SOLAR.name,
+    description: FEATURED_GLOBAL_SCHOOLS_SOLAR.description,
+    category: FEATURED_GLOBAL_SCHOOLS_SOLAR.category,
+    country: FEATURED_GLOBAL_SCHOOLS_SOLAR.country,
+    estimated_co2: FEATURED_GLOBAL_SCHOOLS_SOLAR.estimated_co2,
+    funding_goal: FEATURED_GLOBAL_SCHOOLS_SOLAR.funding_goal,
     image_url: null,
     status: "active",
     featured: true,
@@ -37,7 +22,7 @@ const options: ClimateProject[] = [
 ];
 
 export default function FeaturedGssPreview() {
-  const [featuredId, setFeaturedId] = useState<string | null>(null);
+  const [featuredId, setFeaturedId] = useState<string | null>(options[0].id);
   return (
     <div className="min-h-screen p-8 text-white">
       <ClubClimateSponsorTabs

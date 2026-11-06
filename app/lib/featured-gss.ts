@@ -1,8 +1,4 @@
-import {
-  FEATURED_GSS_LOCAL_NAME,
-  FEATURED_GSS_WORLD_NAME,
-  FEATURED_PROJECT_NAME,
-} from "./sccan-catalog";
+import { FEATURED_PROJECT_NAME } from "./sccan-catalog";
 
 /** Share of each Lead FUND-IT that must reach Global Schools Solar / featured. */
 export const LEAD_FEATURED_SHARE = 0.75;
@@ -29,23 +25,30 @@ export function isFeaturedGssWorldName(name: string | null | undefined): boolean
   );
 }
 
+export function canonicalFeaturedGssName(
+  name: string | null | undefined
+): string {
+  return isFeaturedGssName(name) ? FEATURED_PROJECT_NAME : String(name ?? "").trim();
+}
+
+export function canonicalFeaturedGssId(id: string | null | undefined): string {
+  return String(id ?? "").replace(/::gss-(local|world)$/i, "");
+}
+
+/** One Global Schools Solar card — legacy local/international versions collapse here. */
 export function expandFeaturedGssVersions<T extends { id: string; name: string }>(
   featured: T[]
 ): T[] {
-  if (featured.length === 0) return [];
-  const local = featured.find((project) => isFeaturedGssLocalName(project.name));
-  const world = featured.find((project) => isFeaturedGssWorldName(project.name));
-  const base = featured[0];
+  const rows = featured.filter((project) => isFeaturedGssName(project.name));
+  if (rows.length === 0) return featured.slice(0, 1);
+  const preferred =
+    rows.find((project) => project.name.trim() === FEATURED_PROJECT_NAME) ??
+    rows[0];
   return [
-    local ?? {
-      ...base,
-      ...(world ? { id: `${base.id}::gss-local` } : {}),
-      name: FEATURED_GSS_LOCAL_NAME,
-    },
-    world ?? {
-      ...base,
-      id: `${base.id}::gss-world`,
-      name: FEATURED_GSS_WORLD_NAME,
+    {
+      ...preferred,
+      id: canonicalFeaturedGssId(preferred.id) || preferred.id,
+      name: FEATURED_PROJECT_NAME,
     },
   ];
 }
@@ -54,12 +57,17 @@ export function chosenFeaturedProject<T extends { id: string; name: string }>(
   projects: T[],
   chosenId?: string | null
 ): T | null {
-  const featured = featuredFromList(projects);
+  const featured = expandFeaturedGssVersions(featuredFromList(projects));
+  if (featured.length === 0) return null;
   if (chosenId) {
-    const match = featured.find((project) => project.id === chosenId);
+    const wanted = canonicalFeaturedGssId(chosenId);
+    const match = featured.find(
+      (project) =>
+        project.id === chosenId || canonicalFeaturedGssId(project.id) === wanted
+    );
     if (match) return match;
   }
-  return featured.length === 1 ? featured[0] : null;
+  return featured[0] ?? null;
 }
 
 export function withChosenFeaturedProject<T extends { id: string; name: string }>(
@@ -74,17 +82,17 @@ export function withChosenFeaturedProject<T extends { id: string; name: string }
 export function withFeaturedGssVersions<T extends { id: string; name: string }>(
   projects: T[]
 ): T[] {
-  return [...featuredFromList(projects), ...localFromList(projects)];
-}
-
-/** Fan FUND-IT lists both GSS versions even when the club posted only one. */
-export function withFanGssChoices<T extends { id: string; name: string }>(
-  projects: T[]
-): T[] {
   return [
     ...expandFeaturedGssVersions(featuredFromList(projects)),
     ...localFromList(projects),
   ];
+}
+
+/** Fan FUND-IT lists the one Featured GSS plus the club's partner projects. */
+export function withFanGssChoices<T extends { id: string; name: string }>(
+  projects: T[]
+): T[] {
+  return withFeaturedGssVersions(projects);
 }
 
 export function featuredFromList<T extends { name: string }>(projects: T[]): T[] {

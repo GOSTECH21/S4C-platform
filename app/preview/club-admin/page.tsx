@@ -18,7 +18,7 @@ const PREVIEW_RECORD = {
   matchLabel: "Dundee vs Hearts",
   minAmount: 1000,
   selected: [
-    { id: "gss-local", name: "Local Global Schools Solar" },
+    { id: "gss", name: "Global Schools Solar" },
     { id: "retrofit", name: "Edinburgh Building Retrofit Collective" },
     { id: "clean-heat", name: "Clean Heat Edinburgh" },
     { id: "gorgie-solar", name: "Gorgie Community Rooftop Solar" },

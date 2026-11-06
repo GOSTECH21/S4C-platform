@@ -517,10 +517,9 @@ function CampaignPanel({
           <section className="mt-10">
             <h2 className="text-3xl font-black">Climate Projects List</h2>
             <p className="mt-2 text-sm text-slate-400">
-              The Featured Climate Project sits at the top: the Global Schools
-              Solar version your club chose — a local school near the stadium,
-              or a school anywhere in the world. There is never a second Featured
-              project. Open a project to read the details. To put £0.20 into a
+              The Featured Climate Project sits at the top: Global Schools
+              Solar, one programme that applies in every country. Open a
+              project to read the details. To put £0.20 into a
               listed Climate Project, open Climate Project Sponsors, select that
               project from the drop-down next to a Carbon Wallet, then press
               FUND-IT. Local Business wallets fund local Climate Projects only.

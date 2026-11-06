@@ -1,9 +1,9 @@
 /** Climate Project Partner catalog shown to club Sustainability Directors. */
 
 export const PARTNER_PAGE_SIZE = 10;
-/** One Featured Global Schools Solar version — local or international, never both. */
+/** One Featured Global Schools Solar project on every Match Day. */
 export const MATCH_DAY_FEATURED_COUNT = 1;
-/** Projects the Sustainability Director actually chooses; one GSS version is the Featured project. */
+/** Projects the Sustainability Director actually chooses; Global Schools Solar is the Featured project. */
 export const MATCH_DAY_CHOICE_COUNT = 4;
 /** Total Match Day portfolio: one Featured GSS plus the SD's partner choices. */
 export const MATCH_DAY_PROJECT_COUNT =
@@ -67,7 +67,7 @@ export function matchDayProjectApprovalLabel(isApproved: boolean): string {
 }
 
 export function clubClimateProjectsIntroCopy(): string {
-  return `Choose one Featured Climate Project: Global Schools Solar for a local school near the stadium, or Global Schools Solar for a school anywhere in the world. There can never be two Featured projects. Then choose ${MATCH_DAY_CHOICE_COUNT} more from three lists: List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World; Climate Projects near my Stadium shows 20 projects within 20 miles of the club stadium. In the future, ONLY submitted Projects from signed-up Climate Project Partners will be listed. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
+  return `Choose Global Schools Solar as the Featured Climate Project — one programme that applies in every country. Then choose ${MATCH_DAY_CHOICE_COUNT} more from the Local and National Climate Project lists (List 1 is Climate Partner Projects executable in Your Country; List 2 are International Projects executable in other parts of the World; Climate Projects near my Stadium shows 20 projects within 20 miles of the club stadium). In the future, ONLY submitted Projects from signed-up Climate Project Partners will be listed. Projects MUST be uploaded at least ${MATCH_DAY_LEAD_DAYS} Days before Match Kick-Off`;
 }
 
 export function partnerProjectPage<T>(projects: T[], page: number): T[] {

@@ -141,7 +141,7 @@ const first = recordP4pEngagement({
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
   categoryIds: SLOT_PICKS,
-  projectName: "Local Global Schools Solar",
+  projectName: "Global Schools Solar",
   wallet,
   predictions: [],
 });
@@ -156,7 +156,7 @@ assert(
   "£0.10 leaves the Game-Time Carbon Wallet"
 );
 assert(
-  first.ok && first.prediction.projectName === "Local Global Schools Solar",
+  first.ok && first.prediction.projectName === "Global Schools Solar",
   "The Engagement names the fan's chosen Climate Project"
 );
 assert(
@@ -229,7 +229,7 @@ const rejectedGoal = recordP4pEngagement({
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
   categoryId: "goal",
-  projectName: "Local Global Schools Solar",
+  projectName: "Global Schools Solar",
   wallet,
   predictions: [],
 });
@@ -256,7 +256,7 @@ const onePick = recordP4pEngagement({
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
   categoryId: "corner",
-  projectName: "Local Global Schools Solar",
+  projectName: "Global Schools Solar",
   wallet,
   predictions: [],
 });
@@ -272,7 +272,7 @@ const second = recordP4pEngagement({
   fixtureName: "Arsenal vs Chelsea",
   windowIndex: 0,
   categoryIds: ["yellow-card", "red-card", "penalty"],
-  projectName: "Local Global Schools Solar",
+  projectName: "Global Schools Solar",
   wallet: first.ok ? first.wallet : wallet,
   predictions: first.ok ? [first.prediction] : [],
 });
@@ -600,7 +600,7 @@ assert(
 
 const credits = p4pCreditsByProject(first.ok ? [first.prediction] : []);
 assert(
-  credits[0]?.projectName === "Local Global Schools Solar" &&
+  credits[0]?.projectName === "Global Schools Solar" &&
     credits[0]?.amountGbp === 0.1,
   "Taken cash is grouped onto the chosen Climate Project"
 );

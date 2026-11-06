@@ -1010,7 +1010,10 @@ assert(
     "FeaturedGssPicker"
   ) &&
     readFileSync("app/components/club/FeaturedGssPicker.tsx", "utf8").includes(
-      "There can never be two Featured projects"
+      "data-gss-one-global"
+    ) &&
+    readFileSync("app/components/club/FeaturedGssPicker.tsx", "utf8").includes(
+      "Local and National lists"
     ) &&
     readFileSync("app/preview/featured-gss/page.tsx", "utf8").includes(
       "FeaturedGssPicker"

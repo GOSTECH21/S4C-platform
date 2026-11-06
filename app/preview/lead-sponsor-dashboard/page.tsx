@@ -68,7 +68,7 @@ const approved: SignedSponsorship[] = [
         { id: "spoke", name: "Wee Spoke Hub", country: "Scotland" },
         { id: "cargo", name: "Cargo Bike Movement", country: "Scotland" },
         { id: "remakery", name: "Edinburgh Remakery", country: "Scotland" },
-        { id: "gss-hearts", name: "Global Schools Solar", country: "International" },
+        { id: "gss-hearts", name: "Global Schools Solar", country: "Global" },
       ],
       postedAt: "2026-10-12T12:00:00.000Z",
       sponsorshipAmountGbp: 2300,

@@ -106,6 +106,7 @@ export default function SelectMatchDayProjectsPage() {
         setFeatured(featuredProjects);
         const validIds = new Set(catalog.map((project) => project.id));
         const featuredIds = new Set(featuredProjects.map((project) => project.id));
+        const onlyFeatured = featuredProjects[0]?.id ?? null;
         if (clubShouldStartBlank(session.club.id, session.club.name)) {
           try {
             await clearClubProjectsAndSponsors(session.club.name);
@@ -119,16 +120,12 @@ export default function SelectMatchDayProjectsPage() {
             (id) => !featuredIds.has(id) && validIds.has(id)
           );
           setSelected(new Set(chosen.slice(0, MATCH_DAY_CHOICE_COUNT)));
-          const storedFeatured =
-            stored.featuredProjectId && featuredIds.has(stored.featuredProjectId)
-              ? stored.featuredProjectId
-              : chosenFeaturedProject(
-                  featuredProjects.filter((project) =>
-                    stored.projectIds.includes(project.id)
-                  )
-                )?.id ?? null;
-          setFeaturedId(storedFeatured);
         }
+        setFeaturedId(
+          onlyFeatured ??
+            chosenFeaturedProject(featuredProjects)?.id ??
+            null
+        );
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Could not load partner projects."
@@ -169,7 +166,7 @@ export default function SelectMatchDayProjectsPage() {
     if (!clubId) return;
     if (!featuredId) {
       setError(
-        "Choose one Featured Climate Project. There can never be two Featured projects."
+        "Choose Global Schools Solar as the Featured Climate Project, then 4 Climate Partner Projects from the Local and National lists."
       );
       return;
     }

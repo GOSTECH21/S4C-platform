@@ -14,6 +14,7 @@ import {
 
 export const UK_CLIMATE_REGION = "UK";
 export const INTERNATIONAL_CLIMATE_REGION = "International";
+export const GLOBAL_CLIMATE_REGION = "Global";
 
 export type ClimateCountryContext = {
   clubName?: string | null;
@@ -88,7 +89,7 @@ export function canonicalLocalClimateRegion(
 }
 
 /**
- * Home region for Global Schools Solar: UK clubs share one UK label;
+ * Home region for local Climate Partner lists: UK clubs share one UK label;
  * Serie A clubs such as AC Milan use Italy; other leagues use their country.
  */
 export function localClimateRegionForClub(
@@ -158,7 +159,7 @@ export function selectableCatalogForClub(context: ClimateCountryContext) {
 export function featuredClimateProjectCountryLabel(
   _context: ClimateCountryContext = {}
 ): string {
-  return `${UK_CLIMATE_REGION} and ${INTERNATIONAL_CLIMATE_REGION}`;
+  return GLOBAL_CLIMATE_REGION;
 }
 
 export function featuredClimateProjectCountryLabelForClubs(

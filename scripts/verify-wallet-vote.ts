@@ -55,8 +55,7 @@ import {
 import { mergePlatformStats, formatFundingGbp } from "../app/lib/platform-stats";
 import { withWalletTakes } from "../app/lib/climate-wallet-takes";
 import {
-  FEATURED_GSS_LOCAL_NAME,
-  FEATURED_GSS_WORLD_NAME,
+  FEATURED_PROJECT_NAME,
 } from "../app/lib/sccan-catalog";
 import {
   LEAD_FEATURED_SHARE,
@@ -224,12 +223,11 @@ assert(
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
 const projects = [
-  { id: "gss-local", name: FEATURED_GSS_LOCAL_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
-  { id: "gss-world", name: FEATURED_GSS_WORLD_NAME, number: 2, fundedGbp: 0, votesReceived: 0 },
-  { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 0 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 4, fundedGbp: 0, votesReceived: 0 },
-  { id: "porty", name: "Porty Community Energy", number: 5, fundedGbp: 0, votesReceived: 0 },
-  { id: "craigshill", name: "Growing Together Craigshill", number: 6, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss", name: FEATURED_PROJECT_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
+  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
+  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 0 },
+  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 0 },
+  { id: "craigshill", name: "Growing Together Craigshill", number: 5, fundedGbp: 0, votesReceived: 0 },
 ];
 
 assert(LEAD_FEATURED_SHARE === 0.75 && LEAD_LOCAL_SHARE === 0.25, "Lead wallets split 75/25");
@@ -248,7 +246,7 @@ const gilletteVoted = allocateWalletVote({
   projects,
   projectNumber: 1,
 });
-assert(gilletteVoted.ok, "Selecting a GSS version next to Gillette and pressing FUND-IT succeeds");
+assert(gilletteVoted.ok, "Selecting Global Schools Solar next to Gillette and pressing FUND-IT succeeds");
 if (gilletteVoted.ok) {
   assert(
     remainingGbp(gilletteVoted.wallet) === 799.8,
@@ -281,7 +279,7 @@ if (gilletteVoted.ok) {
 const voted = allocateWalletVote({
   wallet: topCellar,
   projects,
-  projectNumber: 3,
+  projectNumber: 2,
 });
 assert(voted.ok, "Selecting Wee Spoke Hub next to Top Cellar and pressing FUND-IT succeeds");
 if (voted.ok) {
@@ -290,7 +288,7 @@ if (voted.ok) {
     "Top Cellar's wallet then displays £749.80 Remaining"
   );
   assert(
-    voted.project.number === 3 && voted.project.fundedGbp === 0.2,
+    voted.project.number === 2 && voted.project.fundedGbp === 0.2,
     "Wee Spoke Hub displays that it has received £0.20 in Climate funding"
   );
   assert(
@@ -304,7 +302,7 @@ const treeProjects = [
   {
     id: "trees",
     name: "Edinburgh Tree Planting",
-    number: 7,
+    number: 6,
     fundedGbp: 0,
     votesReceived: 0,
   },
@@ -317,7 +315,7 @@ const malmaison = createLocalWallet({
 const malmaisonVoted = allocateWalletVote({
   wallet: malmaison,
   projects: treeProjects,
-  projectNumber: 7,
+  projectNumber: 6,
 });
 assert(malmaisonVoted.ok, "Selecting Edinburgh Tree Planting next to Malmaison and pressing FUND-IT succeeds");
 if (malmaisonVoted.ok) {
@@ -382,7 +380,7 @@ assert(!localOnGss.ok, "Local Business wallets cannot fund Global Schools Solar"
 const leadOnLocal = allocateWalletVote({
   wallet: amex,
   projects,
-  projectNumber: 3,
+  projectNumber: 2,
 });
 assert(
   leadOnLocal.ok &&
@@ -393,29 +391,29 @@ assert(
 
 const expandedFromOne = withFanGssChoices([
   { id: "gss", name: "Global Schools Solar", number: 1, fundedGbp: 0, votesReceived: 0 },
-  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss-world", name: "International Global Schools Solar", number: 2, fundedGbp: 0, votesReceived: 0 },
+  { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 0 },
 ]).map((project, index) => ({ ...project, number: index + 1 }));
 assert(
-  expandedFromOne.length === 3 &&
-    expandedFromOne[0].name === FEATURED_GSS_LOCAL_NAME &&
-    expandedFromOne[1].name === FEATURED_GSS_WORLD_NAME &&
-    expandedFromOne[2].name === "Wee Spoke Hub",
-  "A single posted Global Schools Solar expands to Local and International for fans"
+  expandedFromOne.length === 2 &&
+    expandedFromOne[0].name === FEATURED_PROJECT_NAME &&
+    expandedFromOne[1].name === "Wee Spoke Hub",
+  "A posted Global Schools Solar stays one Featured project for fans"
 );
-const internationalVote = allocateWalletVote({
+const featuredVote = allocateWalletVote({
   wallet: createLeadWallet({
     clubName: "Hibernian",
     brandName: "Gillette UK",
     commitmentFeeGbp: 2000,
   }),
   projects: expandedFromOne,
-  projectNumber: 2,
+  projectNumber: 1,
 });
 assert(
-  internationalVote.ok &&
-    internationalVote.project.name === FEATURED_GSS_WORLD_NAME &&
-    internationalVote.project.fundedGbp === 0.2,
-  "Lead FUND-IT on International Global Schools Solar credits that listed project £0.20"
+  featuredVote.ok &&
+    featuredVote.project.name === FEATURED_PROJECT_NAME &&
+    featuredVote.project.fundedGbp === 0.2,
+  "Lead FUND-IT on Global Schools Solar credits that listed project £0.20"
 );
 
 const leadVoted = allocateWalletVote({
@@ -423,7 +421,7 @@ const leadVoted = allocateWalletVote({
   projects,
   projectNumber: 1,
 });
-assert(leadVoted.ok, "Selecting a GSS version next to the Lead wallet and pressing FUND-IT succeeds");
+assert(leadVoted.ok, "Selecting Global Schools Solar next to the Lead wallet and pressing FUND-IT succeeds");
 if (leadVoted.ok) {
   assert(
     remainingGbp(leadVoted.wallet) === 2399.8,
@@ -702,8 +700,7 @@ assert(
   !clubSelect.includes("Goal-scored funding for this Match") &&
     !clubSelect.includes("Goal-scored funding is already") &&
     clubSelect.includes("DEFAULT_WALLET_VOTE_GBP") &&
-    clubSelect.includes("leadWalletMatchFunding") &&
-    clubSelect.includes("Match-Sponsorship is already"),
+    clubSelect.includes("leadWalletMatchFunding"),
   "Club Climate Projects does not set Goal-scored funding; FUND-IT stays £0.20"
 );
 
@@ -725,7 +722,7 @@ assert(
     fanPage.includes("space-y-2") &&
     fanPage.includes("listed Climate Project") &&
     fanPage.includes("drop-down next to a Carbon Wallet") &&
-    fanPage.includes("There is never a second") &&
+    fanPage.includes("one programme that applies in every country") &&
     fanPage.includes("withFeaturedGssVersions"),
   "My S4P uses the Climate Projects List heading as a stacked accordion with one Featured GSS"
 );
@@ -1038,7 +1035,7 @@ async function verifyStoredLocalRemaining() {
   );
   const treeNumber = fanVisibleSponsors(posted).length
     ? treeProjects.find((row) => row.name === "Edinburgh Tree Planting")?.number
-    : 7;
+    : 6;
   const result = applyFanWalletVote({
     clubId: "hibs-malmaison",
     clubName: "Hibernian",

@@ -16,10 +16,7 @@ import {
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
-import {
-  FEATURED_GSS_LOCAL_NAME,
-  FEATURED_GSS_WORLD_NAME,
-} from "@/app/lib/sccan-catalog";
+import { FEATURED_PROJECT_NAME } from "@/app/lib/sccan-catalog";
 import {
   applyRemainingToSponsorsFile,
   buildProjectsFile,
@@ -36,12 +33,11 @@ import {
 const MATCH_DATE = "2026-10-10";
 
 const INITIAL_PROJECTS: NumberedClimateProject[] = [
-  { id: "gss-local", name: FEATURED_GSS_LOCAL_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
-  { id: "gss-world", name: FEATURED_GSS_WORLD_NAME, number: 2, fundedGbp: 0, votesReceived: 0 },
-  { id: "wee", name: "Wee Spoke Hub", number: 3, fundedGbp: 0, votesReceived: 0 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 4, fundedGbp: 0, votesReceived: 0 },
-  { id: "porty", name: "Porty Community Energy", number: 5, fundedGbp: 0, votesReceived: 0 },
-  { id: "trees", name: "Edinburgh Tree Planting", number: 6, fundedGbp: 0, votesReceived: 0 },
+  { id: "gss", name: FEATURED_PROJECT_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
+  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
+  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 0 },
+  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 0 },
+  { id: "trees", name: "Edinburgh Tree Planting", number: 5, fundedGbp: 0, votesReceived: 0 },
 ];
 
 function seedWallets(): ClimateWallet[] {

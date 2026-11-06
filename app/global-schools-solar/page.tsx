@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SolutionPage } from "@/app/components/home/SolutionPage";
 import { FEATURED_GLOBAL_SCHOOLS_SOLAR } from "@/app/lib/sccan-catalog";
-import { UK_CLIMATE_REGION, INTERNATIONAL_CLIMATE_REGION } from "@/app/lib/featured-climate-country";
+import { GLOBAL_CLIMATE_REGION } from "@/app/lib/featured-climate-country";
 import {
   GLOBAL_SCHOOLS_SOLAR_PATH,
   PARTNER_REGISTER_PATH,
@@ -15,7 +15,7 @@ export default function GlobalSchoolsSolarPage() {
     <SolutionPage
       kicker="Solutions"
       title="Global Schools Solar"
-      intro={`${project.description} Fans choose a local school near the stadium or a school anywhere in the world. Funding comes from Lead Climate Sponsor Carbon Wallets (75% to GSS, 25% to local Climate Projects) and is classified as ${UK_CLIMATE_REGION} and ${INTERNATIONAL_CLIMATE_REGION}.`}
+      intro={`${project.description} Global Schools Solar is the Featured Climate Project on every Match Day, in every country. Funding comes from Lead Climate Sponsor Carbon Wallets (75% to GSS, 25% to local Climate Projects) and is classified as ${GLOBAL_CLIMATE_REGION}.`}
       currentPath={GLOBAL_SCHOOLS_SOLAR_PATH}
     >
       <div className="grid gap-6 md:grid-cols-3">
@@ -23,24 +23,22 @@ export default function GlobalSchoolsSolarPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-green-400">
             Featured on every Match Day
           </p>
-          <h2 className="mt-4 text-2xl font-black">Choose one Featured project</h2>
+          <h2 className="mt-4 text-2xl font-black">One Featured project</h2>
           <p className="mt-4 text-slate-300">
-            Sustainability Directors choose one Featured Climate Project: a
-            local school near the stadium, or a school anywhere in the world.
-            There can never be two Featured projects. They then choose four
-            Climate Partner projects. Fans fund the chosen school from Lead
+            Sustainability Directors choose Global Schools Solar as the Featured
+            Climate Project, then four Climate Partner projects from the Local
+            and National lists. Fans fund the school-solar programme from Lead
             Climate Sponsor wallets.
           </p>
         </div>
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-green-400">
-            {UK_CLIMATE_REGION} and {INTERNATIONAL_CLIMATE_REGION}
+            {GLOBAL_CLIMATE_REGION}
           </p>
-          <h2 className="mt-4 text-2xl font-black">One programme, two labels</h2>
+          <h2 className="mt-4 text-2xl font-black">One programme, every country</h2>
           <p className="mt-4 text-slate-300">
-            GSS is not a local-country project. It sits as {UK_CLIMATE_REGION}{" "}
-            and {INTERNATIONAL_CLIMATE_REGION} so English, Scottish, Spanish and
-            Italian clubs all present the same featured school-solar programme.
+            GSS is not split by country. English, Scottish, Spanish and Italian
+            clubs all present the same featured school-solar programme.
           </p>
         </div>
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8">
@@ -69,9 +67,9 @@ export default function GlobalSchoolsSolarPage() {
         <p className="mt-2 text-slate-400">Edinburgh, Scotland</p>
         <p className="mt-6 max-w-3xl text-lg text-slate-300">
           Hearts supporters have already shown how Match Day votes send Climate
-          Credits to rooftop solar at a local school. The same GSS card appears
-          for every other club, alongside List 1 (local), List 2
-          ({INTERNATIONAL_CLIMATE_REGION}) and Climate Projects near my Stadium.
+          Credits to rooftop solar at a school. The same GSS card appears for
+          every other club, alongside Local, National and International Climate
+          Partner lists.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-4">
           {[

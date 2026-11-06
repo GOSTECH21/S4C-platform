@@ -1,8 +1,7 @@
 import {
   ENGLAND_CLIMATE_PROJECTS,
   FEATURED_GLOBAL_SCHOOLS_SOLAR,
-  FEATURED_GSS_LOCAL_NAME,
-  FEATURED_GSS_WORLD_NAME,
+  FEATURED_PROJECT_NAME,
   INTERNATIONAL_CLIMATE_PROJECTS,
   ITALY_CLIMATE_PROJECTS,
   LOCAL_CLIMATE_PROJECTS_BY_COUNTRY,
@@ -92,17 +91,19 @@ assert(
   "Default selectable catalog is 10 local + 10 international"
 );
 assert(
-  PARTNER_MATCH_DAY_CATALOG[0].name === FEATURED_GSS_LOCAL_NAME &&
-    PARTNER_MATCH_DAY_CATALOG[1].name === FEATURED_GSS_WORLD_NAME,
-  "Two Global Schools Solar versions lead the published catalog"
+  PARTNER_MATCH_DAY_CATALOG[0].name === FEATURED_PROJECT_NAME &&
+    PARTNER_MATCH_DAY_CATALOG.filter((project) =>
+      /global\s+schools\s+solar/i.test(project.name)
+    ).length === 1,
+  "One Global Schools Solar project leads the published catalog"
 );
 assert(
   FEATURED_GLOBAL_SCHOOLS_SOLAR.featured === true,
   "Global Schools Solar is the featured project"
 );
 assert(
-  FEATURED_GLOBAL_SCHOOLS_SOLAR.country === "International",
-  "Global Schools Solar is generic and not Kenyan"
+  FEATURED_GLOBAL_SCHOOLS_SOLAR.country === "Global",
+  "Global Schools Solar applies in every country"
 );
 assert(
   !/kenya/i.test(FEATURED_GLOBAL_SCHOOLS_SOLAR.description),

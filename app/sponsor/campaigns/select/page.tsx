@@ -184,7 +184,7 @@ export default function SponsorCreateCampaignPage() {
               className="rounded-2xl border border-green-500/40 bg-green-500/10 p-6"
             >
               <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-green-400">
-                Included · UK and International
+                Included · Global
               </p>
               <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
               <p className="mt-2 text-slate-300">{project.description}</p>

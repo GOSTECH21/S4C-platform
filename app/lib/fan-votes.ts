@@ -83,7 +83,7 @@ export function isMissingColumnError(
   return true;
 }
 
-/** Featured GSS picker may suffix a published id with ::gss-local / ::gss-world. */
+/** Legacy Featured GSS ids may still suffix a published id with ::gss-local / ::gss-world. */
 export function hostedClimateProjectId(
   projectId: string | null | undefined
 ): string | null {

@@ -43,11 +43,11 @@ export const P4P_FAN_WALLET_SHORT_COPY =
   "These amounts go to your chosen Climate Projects";
 export const FAN_CARBON_WALLET_LABEL = "Fan Carbon Wallet";
 export const P4P_FALLBACK_PROJECTS = [
-  "Local Global Schools Solar",
-  "International Global Schools Solar",
+  "Global Schools Solar",
   "Wee Spoke Hub",
   "Edinburgh Building Retrofit Collective",
   "Porty Community Energy",
+  "Southwark Community Solar",
 ];
 export const P4P_DONATE_FUNDING_MESSAGE =
   "Here are Climate Projects to donate your funding";

@@ -18,14 +18,15 @@ export function FeaturedGssPicker({
   clubCountry?: string | null;
 }) {
   return (
-    <div>
+    <div data-gss-one-global="gss-one-global-v1">
       <p className="max-w-3xl text-sm font-semibold text-slate-300">
-        Choose one Featured Climate Project. There can never be two Featured projects.
+        Choose Global Schools Solar as the Featured Climate Project. Then
+        choose 4 Climate Partner Projects from the Local and National lists.
       </p>
       <div
         role="radiogroup"
         aria-label="Featured Climate Project"
-        className="mt-4 grid gap-4 md:grid-cols-2"
+        className="mt-4 grid gap-4"
       >
         {options.map((project) => {
           const chosen = project.id === chosenId;
