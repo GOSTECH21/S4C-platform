@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "7d018d4";
 const BRANCH = "cursor/local-invite-pay-18f9";
 const FILES = [
   "app/components/sponsor/SponsorInviteInbox.tsx",
