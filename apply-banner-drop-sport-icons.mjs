@@ -1,11 +1,12 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "ea9d6c0";
 const BRANCH = "cursor/banner-drop-sport-icons-18f9";
 const FILES = [
   "public/images/home/global-sports-cluster.png",
   "app/components/home/HomeTopBanner.tsx",
+  "apply-banner-drop-sport-icons.mjs",
   "apply-banner-drop-sport-icons.ps1",
   "scripts/verify-banner-drop-sport-icons.ts",
 ];

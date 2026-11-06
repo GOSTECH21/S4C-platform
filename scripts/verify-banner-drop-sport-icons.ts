@@ -54,6 +54,7 @@ assert(
 
 assert(
   apply.includes("cursor/banner-drop-sport-icons-18f9") &&
+    apply.includes('PIN = "ea9d6c0"') &&
     apply.includes("public/images/home/global-sports-cluster.png"),
   "PC overlay pulls the cleaned cluster artwork"
 );
