@@ -88,6 +88,9 @@ export function ClimateProjectSponsors({
       (used.has(normalizeKey(lead.brandName)) ||
         used.has(normalizeBrandKey(lead.brandName)))
   );
+  const projectChoices = projects;
+  const localChoices = localFromList(projectChoices);
+  const listedCount = Math.max(projectChoices.length, projectCount, 1);
   const leadBlocked =
     !lead ||
     !canPressFundIt({
@@ -96,7 +99,7 @@ export function ClimateProjectSponsors({
       used: leadUsed,
       remainingGbp: lead.remainingGbp,
       projectNumber: leadNumber,
-      projectCount,
+      projectCount: listedCount,
     });
   const localRows = locals.filter(
     (row) => row.kind !== "lead" && !isLeadClimateBrand(row.brandName)
@@ -106,14 +109,6 @@ export function ClimateProjectSponsors({
       localRows.reduce((sum, row) => sum + row.remainingGbp, 0)
   );
   const inviteHref = fanInviteRegisterPath(clubId, clubName);
-  const projectChoices =
-    projects.length > 0
-      ? projects
-      : Array.from({ length: projectCount }, (_, index) => ({
-          number: index + 1,
-          name: `Climate Project ${index + 1}`,
-        }));
-  const localChoices = localFromList(projectChoices);
 
   function fundLead() {
     if (!lead) return;
@@ -157,7 +152,10 @@ export function ClimateProjectSponsors({
       </div>
 
       {lead ? (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70">
+        <div
+          data-lead-fund-it="lead-fund-it-v1"
+          className="rounded-2xl border border-white/10 bg-slate-950/70"
+        >
           <p className="px-4 pt-3 text-center text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-emerald-300">
             Lead Climate Project Sponsor
           </p>
@@ -171,7 +169,7 @@ export function ClimateProjectSponsors({
                 <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
                   {LEAD_CLIMATE_SPONSOR_LABEL}
                 </p>
-                <p className="truncate text-lg font-black text-slate-950">
+                <p className="text-lg font-black leading-tight text-slate-950">
                   {lead.brandName}
                 </p>
               </div>
@@ -188,12 +186,24 @@ export function ClimateProjectSponsors({
               emptyLabel="Select a Climate Project"
               ariaLabel={`Select a Climate Project to receive funding from ${lead.brandName}`}
             />
-            <FundItButton
-              disabled={leadBlocked}
-              used={leadUsed}
-              onClick={fundLead}
-              testId="lead-vote"
-            />
+            <div className="flex flex-col gap-2">
+              <FundItButton
+                disabled={leadBlocked}
+                used={leadUsed}
+                onClick={fundLead}
+                testId="lead-vote"
+              />
+              {lead && !leadUsed && leadBlocked && !leadNumber ? (
+                <p className="text-center text-xs font-semibold text-amber-800">
+                  Choose a Climate Project above, then press {FUND_IT_LABEL}.
+                </p>
+              ) : null}
+              {lead && !leadUsed && leadBlocked && Boolean(leadNumber) && !votingOpen ? (
+                <p className="text-center text-xs font-semibold text-amber-800">
+                  Voting is not open for this Match Day.
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : (
@@ -231,7 +241,7 @@ export function ClimateProjectSponsors({
               used: already,
               remainingGbp: row.remainingGbp,
               projectNumber: value,
-              projectCount,
+              projectCount: listedCount,
             });
             return (
               <div
@@ -347,29 +357,57 @@ function FundProjectSelect({
   emptyLabel?: string;
   ariaLabel?: string;
 }) {
+  const selectId = testIdPrefix === "lead" ? "lead-project-select" : undefined;
+  if (projects.length === 0) {
+    return (
+      <p className="text-sm font-semibold text-amber-800">
+        No Climate Projects are posted for this Match Day yet.
+      </p>
+    );
+  }
   return (
-    <label className="flex min-w-[14rem] flex-1 flex-col gap-1 text-sm text-slate-300">
-      <span className="font-semibold">{label}</span>
-      <select
-        id={testIdPrefix === "lead" ? "lead-project-select" : undefined}
-        value={numberValue}
-        disabled={used}
-        onChange={(event) => onNumber(event.target.value)}
-        className="h-10 w-full rounded-md border-2 border-white/70 bg-slate-950 px-2 text-sm font-bold text-white disabled:opacity-40"
-        data-testid={`${testIdPrefix}-project-select`}
+    <fieldset
+      className="flex min-w-0 flex-1 flex-col gap-2 text-sm"
+      data-testid={`${testIdPrefix}-project-select`}
+    >
+      <legend className="font-black text-stone-900">{label}</legend>
+      <p className="text-xs font-semibold text-stone-700">
+        Tap a Climate Project, then press {FUND_IT_LABEL}.
+      </p>
+      <div
+        id={selectId}
+        role="listbox"
         aria-label={
           ariaLabel ??
           `Select a Climate Project to receive ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}`
         }
+        className="grid gap-2"
       >
-        <option value="">{emptyLabel}</option>
-        {projects.map((project) => (
-          <option key={project.number} value={String(project.number)}>
-            {project.name}
-          </option>
-        ))}
-      </select>
-    </label>
+        {projects.map((project) => {
+          const selected = numberValue === String(project.number);
+          return (
+            <button
+              key={project.number}
+              type="button"
+              role="option"
+              aria-selected={selected}
+              disabled={used}
+              onClick={() =>
+                onNumber(selected ? "" : String(project.number))
+              }
+              className={`rounded-xl border-2 px-3 py-3 text-left text-sm font-bold leading-snug ${
+                selected
+                  ? "border-green-600 bg-green-500 text-slate-950"
+                  : "border-stone-400 bg-[#f7f4e8] text-stone-900"
+              } disabled:opacity-40`}
+            >
+              {project.number}. {project.name}
+            </button>
+          );
+        })}
+      </div>
+      <span className="sr-only">{emptyLabel}</span>
+    </fieldset>
   );
 }
 
@@ -392,7 +430,7 @@ function FundItButton({
       onClick={onClick}
       className={`rounded-xl px-6 py-3 text-sm font-bold ${
         disabled
-          ? "cursor-not-allowed bg-slate-800 text-slate-500"
+          ? "cursor-not-allowed border-2 border-stone-400 bg-transparent text-stone-500"
           : "bg-green-500 text-slate-950 hover:bg-green-400"
       }`}
     >

@@ -32,7 +32,7 @@ import {
 } from "@/app/lib/voting-window";
 import {
   applyFanWalletVote,
-  fanVisibleProjects,
+  fanFundItProjects,
   fanVisibleSponsors,
   identifyClubSponsorWallets,
   visibleMatchDayFolderForClub,
@@ -52,6 +52,7 @@ import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folde
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
+import { isLeadWalletLabel } from "@/app/lib/dual-sponsor";
 
 export function FanCampaignWorkspace({
   section,
@@ -234,7 +235,7 @@ function CampaignPanel({
     visibleMatchDayFolderForClub({ clubId, clubName: campaign.clubName })
   );
   const [projects, setProjects] = useState<NumberedClimateProject[]>(() =>
-    fanVisibleProjects(
+    fanFundItProjects(
       folder,
       clubId,
       voteable.map((project, index) => ({
@@ -252,6 +253,7 @@ function CampaignPanel({
       clubName: campaign.clubName,
       minAmount: campaign.minimumAmount,
       gbpPerGoal: campaign.gbpPerGoal,
+      fixtureName: campaign.matchTitle,
     })
   );
   const [usedSponsors, setUsedSponsors] = useState<string[]>(() =>
@@ -295,13 +297,14 @@ function CampaignPanel({
         clubName: campaign.clubName,
       });
       setFolder(next);
-      setProjects((prev) => fanVisibleProjects(next, clubId, prev));
+      setProjects((prev) => fanFundItProjects(next, clubId, prev));
       setSponsors(
         fanVisibleSponsors(next, {
           clubId,
           clubName: campaign.clubName,
           minAmount: campaign.minimumAmount,
           gbpPerGoal: campaign.gbpPerGoal,
+          fixtureName: campaign.matchTitle,
         })
       );
       setUsedSponsors(fanVotedSponsorNames(supporterId, clubId));
@@ -319,14 +322,29 @@ function CampaignPanel({
   }, [clubId, campaign.clubName, campaign.minimumAmount, campaign.gbpPerGoal, supporterId]);
 
   const leadSponsor = useMemo(() => {
-    const liveLead = identifyClubSponsorWallets({
+    const wallets = identifyClubSponsorWallets({
       clubId,
       clubName: campaign.clubName,
       minAmount: campaign.minimumAmount,
       gbpPerGoal: campaign.gbpPerGoal,
-    }).find((wallet) => wallet.kind === "lead");
+      fixtureName: campaign.matchTitle,
+    });
+    const liveLead =
+      wallets.find(
+        (wallet) => wallet.kind === "lead" && !isLeadWalletLabel(wallet.brandName)
+      ) ?? wallets.find((wallet) => wallet.kind === "lead");
     const fromFile = sponsors.find((row) => row.kind === "lead");
-    const brand = liveLead?.brandName || fromFile?.brandName || leadName;
+    const brand =
+      (liveLead && !isLeadWalletLabel(liveLead.brandName)
+        ? liveLead.brandName
+        : null) ||
+      (fromFile && !isLeadWalletLabel(fromFile.brandName)
+        ? fromFile.brandName
+        : null) ||
+      (isLeadWalletLabel(leadName) ? liveLead?.brandName || fromFile?.brandName : leadName) ||
+      liveLead?.brandName ||
+      fromFile?.brandName ||
+      leadName;
     if (!brand) return null;
     return {
       brandName: brand,
@@ -347,6 +365,7 @@ function CampaignPanel({
     campaign.clubName,
     campaign.minimumAmount,
     campaign.gbpPerGoal,
+    campaign.matchTitle,
   ]);
 
   const localSponsors = useMemo(() => {
@@ -374,6 +393,7 @@ function CampaignPanel({
       clubName: campaign.clubName,
       minAmount: campaign.minimumAmount,
       gbpPerGoal: campaign.gbpPerGoal,
+      fixtureName: campaign.matchTitle,
     }).filter((item) => item.kind === "local")) {
       const key = normalizeBrandKey(wallet.brandName);
       remainingByBrand.set(key, {
@@ -414,6 +434,7 @@ function CampaignPanel({
     campaign.clubName,
     campaign.minimumAmount,
     campaign.gbpPerGoal,
+    campaign.matchTitle,
   ]);
 
   async function voteFromWallet({
@@ -456,6 +477,7 @@ function CampaignPanel({
           clubName: campaign.clubName,
           minAmount: campaign.minimumAmount,
           gbpPerGoal: campaign.gbpPerGoal,
+          fixtureName: campaign.matchTitle,
         })
       );
       const votedNow = [result.project.id];

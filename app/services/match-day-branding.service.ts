@@ -16,6 +16,8 @@ import {
   lockedBrandNameForClub,
   lockedBrandNameForClubAndMatch,
 } from "./climate-sponsors.service";
+import { listClimateWalletsForClub } from "./sponsor-wallet.service";
+import { isLeadWalletLabel } from "../lib/dual-sponsor";
 
 export function liveMatchDayBranding<T extends { id: string }>({
   clubId,
@@ -60,7 +62,11 @@ export function liveMatchDayBranding<T extends { id: string }>({
   });
 }
 
-export function liveLeadAndLocals(clubId: string, clubName: string): {
+export function liveLeadAndLocals(
+  clubId: string,
+  clubName: string,
+  fixtureName?: string | null
+): {
   leadName: string | null;
   leadLogoUrl: string | null;
   locals: ReturnType<typeof uploadedLocalSponsorsForClub>;
@@ -69,13 +75,29 @@ export function liveLeadAndLocals(clubId: string, clubName: string): {
   const roster = loadClubSponsorRoster(clubId, clubName);
   const selected = selectedSponsors(roster);
   const locals = uploadedLocalSponsorsForClub(clubName, roster.sponsors);
-  const leadName = resolveLeadClimateSponsor({
-    clubName,
-    rosterSponsors: roster.sponsors,
-    selected,
-    lockedBrandName: lockedBrandNameForClub(clubName),
-    extraBrandNames: locals.map((row) => row.brandName),
-  });
+  const storedLead = listClimateWalletsForClub(clubName)
+    .filter((row) => row.kind === "lead" && !isLeadWalletLabel(row.brandName))
+    .sort(
+      (left, right) =>
+        Number(right.commitmentFeeGbp) - Number(left.commitmentFeeGbp)
+    )[0];
+  const storedLabelLead = listClimateWalletsForClub(clubName).find(
+    (row) => row.kind === "lead"
+  );
+  const leadName =
+    resolveLeadClimateSponsor({
+      clubName,
+      rosterSponsors: roster.sponsors,
+      selected,
+      lockedBrandName:
+        lockedBrandNameForClubAndMatch(clubName, fixtureName) ||
+        lockedBrandNameForClub(clubName),
+      storedLeadName: storedLead?.brandName,
+      extraBrandNames: locals.map((row) => row.brandName),
+    }) ??
+    storedLead?.brandName ??
+    storedLabelLead?.brandName ??
+    null;
   const lead = roster.sponsors.find(
     (row) => row.brandName.trim().toLowerCase() === (leadName ?? "").toLowerCase()
   );

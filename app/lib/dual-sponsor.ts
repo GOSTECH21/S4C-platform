@@ -5,6 +5,11 @@ export const LOCAL_BUSINESS_SPONSOR_SHARE = 35;
 export const LEAD_CLIMATE_SPONSOR_LABEL = "Lead Climate Sponsor";
 export const LOCAL_BUSINESS_SPONSOR_LABEL = "Local Business Climate Sponsor";
 
+/** True when the fan card is showing the role label instead of a brand name. */
+export function isLeadWalletLabel(name: string | null | undefined): boolean {
+  return /^lead\s+climate\s+sponsors?$/i.test(String(name ?? "").trim());
+}
+
 /** Logo size inside the 35% local slot, relative to the highest local pledge. */
 export function localSlotScale(
   pledgeGbp: number,

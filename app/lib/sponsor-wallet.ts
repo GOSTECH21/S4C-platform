@@ -613,15 +613,15 @@ export function fundItTimesCopy(): string {
 }
 
 export function leadFundItCopy(): string {
-  return `Select a Climate Project from the drop-down next to that wallet. Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to the listed project you choose.`;
+  return `Tap a Climate Project, then press ${FUND_IT_LABEL}. ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from this Carbon Wallet onto the project you choose.`;
 }
 
 export function localFundItCopy(): string {
-  return `Select a Climate Project from the drop-down next to that wallet. Press ${FUND_IT_LABEL}; ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project. Local Business wallets fund local Climate Projects only.`;
+  return `Tap a local Climate Project, then press ${FUND_IT_LABEL}. ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from Wallet to Project. Local Business wallets fund local Climate Projects only.`;
 }
 
 export function fundItCopy(): string {
-  return `1. Look out for a Sponsor; 2. See how much is in their Carbon Wallet; 3. Click on Select a Climate Project to make your choice; 4. Press ${FUND_IT_LABEL}. Each selected Project automatically receives ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from the Carbon Wallet.`;
+  return `1. Look out for a Sponsor; 2. See how much is in their Carbon Wallet; 3. Tap a Climate Project; 4. Press ${FUND_IT_LABEL}. Each selected Project automatically receives ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from the Carbon Wallet.`;
 }
 
 export function walletVoteNotice(result: WalletVoteSuccess): string {

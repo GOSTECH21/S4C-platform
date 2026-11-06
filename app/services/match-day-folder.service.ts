@@ -35,6 +35,8 @@ import {
   type WalletVoteResult,
 } from "../lib/sponsor-wallet";
 import { clubsMatch } from "../lib/sponsor-dashboard";
+import { isLeadWalletLabel } from "../lib/dual-sponsor";
+import { FEATURED_PROJECT_NAME } from "../lib/sccan-catalog";
 import { totalLocalPledge } from "../lib/local-sponsor";
 import { liveLeadAndLocals } from "./match-day-branding.service";
 import {
@@ -161,14 +163,16 @@ export function identifyClubSponsorWallets({
   clubName,
   minAmount = 0,
   gbpPerGoal = 0,
+  fixtureName = null,
 }: {
   clubId: string;
   clubName: string;
   minAmount?: number | null;
   gbpPerGoal?: number | null;
+  fixtureName?: string | null;
 }): ClimateWallet[] {
   healLocalWalletsForClub(clubName);
-  const branding = liveLeadAndLocals(clubId, clubName);
+  const branding = liveLeadAndLocals(clubId, clubName, fixtureName);
   const wallets: ClimateWallet[] = [];
   if (branding.leadName) {
     wallets.push(
@@ -380,19 +384,17 @@ export function applyFanWalletVote({
     clubId,
     clubName: resolvedClub,
   });
-  const wallet =
-    findClimateWallet(resolvedClub, brandName) ??
-    wallets.find((row) => brandsMatch(row.brandName, brandName)) ??
-    listClimateWalletsForClub(resolvedClub).find((row) =>
-      brandsMatch(row.brandName, brandName)
-    ) ??
-    null;
+  const wallet = resolveFanVoteWallet(resolvedClub, brandName, wallets);
   if (!wallet) {
     return { ok: false, error: `No Carbon Wallet found for ${brandName}.` };
   }
   const voteAmount = amount ?? walletVoteAmount(wallet);
   const alreadyTaken = Number(wallet.allocatedGbp) >= voteAmount - 0.001;
-  if (hasFanVotedSponsor(supporterId, clubId, brandName) && alreadyTaken) {
+  if (
+    (hasFanVotedSponsor(supporterId, clubId, brandName) ||
+      hasFanVotedSponsor(supporterId, clubId, wallet.brandName)) &&
+    alreadyTaken
+  ) {
     return {
       ok: false,
       error: `You can only take money once from ${brandName} during this 5-day Vote.`,
@@ -409,7 +411,10 @@ export function applyFanWalletVote({
   if (!result.ok) return result;
   writeClimateWallet(result.wallet);
   writeProjectFunding(clubId, result.projects);
-  recordFanSponsorVote(supporterId, clubId, brandName);
+  recordFanSponsorVote(supporterId, clubId, result.wallet.brandName);
+  if (!brandsMatch(result.wallet.brandName, brandName)) {
+    recordFanSponsorVote(supporterId, clubId, brandName);
+  }
   void persistClimateWalletTake({
     amountGbp: result.amount,
     projectName: split
@@ -449,6 +454,44 @@ export function fanVisibleProjects(
   return clubId ? loadFundedProjects(clubId, expanded) : expanded;
 }
 
+/** FUND-IT always has at least Global Schools Solar to take £0.20 onto. */
+export function fanFundItProjects(
+  folder: MatchDayFolder | null,
+  clubId?: string | null,
+  fallback: NumberedClimateProject[] = []
+): NumberedClimateProject[] {
+  const listed = fanVisibleProjects(folder, clubId, fallback);
+  if (listed.length > 0) return listed;
+  return numberedFeaturedGss([
+    {
+      id: "featured-global-schools-solar",
+      name: FEATURED_PROJECT_NAME,
+      number: 1,
+      fundedGbp: 0,
+      votesReceived: 0,
+    },
+  ]);
+}
+
+function resolveFanVoteWallet(
+  clubName: string,
+  brandName: string,
+  wallets: ClimateWallet[]
+): ClimateWallet | null {
+  const stored = listClimateWalletsForClub(clubName);
+  const direct =
+    findClimateWallet(clubName, brandName) ??
+    wallets.find((row) => brandsMatch(row.brandName, brandName)) ??
+    stored.find((row) => brandsMatch(row.brandName, brandName)) ??
+    null;
+  const clubLead =
+    wallets.find((row) => row.kind === "lead") ??
+    stored.find((row) => row.kind === "lead") ??
+    null;
+  if (isLeadWalletLabel(brandName)) return clubLead ?? direct;
+  return direct ?? clubLead;
+}
+
 function numberedFeaturedGss(
   projects: NumberedClimateProject[]
 ): NumberedClimateProject[] {
@@ -465,6 +508,7 @@ export function fanVisibleSponsors(
     clubName?: string;
     minAmount?: number | null;
     gbpPerGoal?: number | null;
+    fixtureName?: string | null;
   }
 ) {
   const rows = folder?.sponsorsFile?.sponsors ?? [];
@@ -476,6 +520,7 @@ export function fanVisibleSponsors(
       clubName: options.clubName,
       minAmount: options.minAmount,
       gbpPerGoal: options.gbpPerGoal,
+      fixtureName: options.fixtureName,
     });
   }
   return withLiveWalletRemaining(rows, wallets);

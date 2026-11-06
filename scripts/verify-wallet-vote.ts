@@ -53,6 +53,7 @@ import {
   mergeNumberedFunding,
 } from "../app/lib/climate-funding";
 import { mergePlatformStats, formatFundingGbp } from "../app/lib/platform-stats";
+import { isLeadWalletLabel, LEAD_CLIMATE_SPONSOR_LABEL } from "../app/lib/dual-sponsor";
 import { withWalletTakes } from "../app/lib/climate-wallet-takes";
 import {
   FEATURED_PROJECT_NAME,
@@ -77,6 +78,11 @@ assert(
 );
 assert(LOCAL_MANAGEMENT_FEE_RATE === 0.1, "Local wallets add a 10% management fee");
 assert(FUND_IT_LABEL === "FUND-IT", "The action tab is labelled FUND-IT");
+assert(
+  isLeadWalletLabel(LEAD_CLIMATE_SPONSOR_LABEL) &&
+    !isLeadWalletLabel("Gillette"),
+  "Lead Climate Sponsor on the fan card is the role label, not a brand"
+);
 
 const topUp = localWalletTopUp(750);
 assert(topUp.sponsorshipGbp === 750, "£750 stays as spendable cash in the wallet");
@@ -783,6 +789,9 @@ assert(
     sponsorsUi.includes("Select a Climate Project") &&
     sponsorsUi.includes("projects={projectChoices}") &&
     sponsorsUi.includes("localFromList") &&
+    sponsorsUi.includes('data-lead-fund-it="lead-fund-it-v1"') &&
+    sponsorsUi.includes("Tap a Climate Project") &&
+    sponsorsUi.includes('role="listbox"') &&
     !sponsorsUi.includes("featuredFromList") &&
     !sponsorsUi.includes("Select a Global Schools Solar version") &&
     !sponsorsUi.includes(">Checkbox<") &&
@@ -797,7 +806,7 @@ assert(
       "Look out for a Sponsor"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Click on Select a Climate Project to make your choice"
+      "Tap a Climate Project"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
       "Each selected Project automatically receives"
@@ -1066,6 +1075,69 @@ async function verifyStoredLocalRemaining() {
     malmaisonRow?.remainingGbp === 1199.8,
     "Climate Sponsors subtracts £0.20 from Malmaison even when that brand was missing from the Sponsors File"
   );
+
+  const rangersLead = createLeadWallet({
+    clubName: "Rangers",
+    brandName: "Gillette",
+    commitmentFeeGbp: 1650,
+  });
+  writeClimateWallet(rangersLead);
+  const rangersFolder = writeMatchDayFolder(
+    submitMatchDayFolder(
+      saveProjectsIntoFolder(
+        saveSponsorsIntoFolder(
+          emptyMatchDayFolder({
+            clubId: "rangers-lead",
+            clubName: "Rangers",
+            matchDate: "2026-11-08",
+          }),
+          buildSponsorsFile({
+            matchDate: "2026-11-08",
+            sponsors: sponsorRowsFromWallets([rangersLead]),
+            clubName: "Rangers",
+          })
+        ),
+        buildProjectsFile({ matchDate: "2026-11-08", projects })
+      )
+    )
+  );
+  const { fanFundItProjects } = await import(
+    "../app/services/match-day-folder.service"
+  );
+  const rangersProjects = fanFundItProjects(
+    rangersFolder,
+    "rangers-lead",
+    projects
+  );
+  assert(
+    rangersProjects[0]?.name === FEATURED_PROJECT_NAME &&
+      rangersProjects.length >= 1,
+    "Rangers FUND-IT lists Global Schools Solar"
+  );
+  const rangersTake = applyFanWalletVote({
+    clubId: "rangers-lead",
+    clubName: "Rangers",
+    brandName: LEAD_CLIMATE_SPONSOR_LABEL,
+    projectNumber: 1,
+    supporterId: "lewis",
+    projects: rangersProjects,
+  });
+  assert(
+    rangersTake.ok,
+    "FUND-IT on the Rangers Lead Climate Sponsor card takes £0.20 from the real Lead wallet"
+  );
+  if (rangersTake.ok) {
+    assert(
+      rangersTake.wallet.brandName === "Gillette" &&
+        remainingGbp(rangersTake.wallet) === 1319.8,
+      "The Rangers Lead Carbon Wallet drops from £1,320 to £1,319.80"
+    );
+    assert(
+      rangersTake.project.name === FEATURED_PROJECT_NAME &&
+        rangersTake.project.fundedGbp === 0.2,
+      "The £0.20 from the Rangers Lead wallet lands on Global Schools Solar"
+    );
+  }
 }
 
 verifyStoredLocalRemaining()
