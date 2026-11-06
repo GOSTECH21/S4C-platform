@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "cb14b63";
 const BRANCH = "cursor/matchrav-journey-ops-18f9";
 const FILES = [
   "app/lib/matchrav.ts",
@@ -15,6 +15,7 @@ const FILES = [
   "app/preview/matchrav-ops/page.tsx",
   "app/api/fan/matchrav-fixtures/route.ts",
   "app/layout/Sidebar.tsx",
+  "apply-matchrav-journey.mjs",
   "apply-matchrav-journey.ps1",
   "scripts/verify-matchrav-journey.ts",
 ];

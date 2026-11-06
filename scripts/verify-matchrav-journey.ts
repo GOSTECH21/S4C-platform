@@ -100,6 +100,7 @@ assert(
 
 assert(
   apply.includes("cursor/matchrav-journey-ops-18f9") &&
+    apply.includes('PIN = "cb14b63"') &&
     apply.includes("app/components/fan/FanMatchravPanel.tsx") &&
     apply.includes("app/lib/matchrav-journey.ts"),
   "PC overlay pulls the Matchrav journey files"
