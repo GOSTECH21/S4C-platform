@@ -21,7 +21,8 @@ import {
   submitGlobalSponsorshipCommitment,
 } from "@/app/services/sponsor-listings.service";
 import { SafeInput } from "@/app/components/forms/SafeFormField";
-import { sponsorWalletPath } from "@/app/lib/routes";
+import { sponsorPayPath } from "@/app/lib/routes";
+import { ensureLocalWallet } from "@/app/services/sponsor-wallet.service";
 import {
   LOCAL_SIGNOFF_TERMS,
   LOCAL_SPONSOR_MIN_GBP,
@@ -201,7 +202,7 @@ function InviteCard({
       return;
     }
     if (result.paymentPath) {
-      router.push(result.paymentPath);
+      window.location.assign(result.paymentPath);
       return;
     }
     setSaving(false);
@@ -309,15 +310,23 @@ function InviteCard({
                 {(signedLocal?.pledgeGbp ?? 0).toLocaleString("en-GB")}. Proceed
                 to Payment for {round.clubName}.
               </p>
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(sponsorWalletPath(round.clubName))
-                }
-                className="w-full rounded-xl bg-green-500 py-3 font-bold text-slate-950 hover:bg-green-400"
+              <a
+                href={sponsorPayPath(round.clubName)}
+                data-local-invite-pay="local-invite-pay-v1"
+                onClick={() => {
+                  const amount = signedLocal?.pledgeGbp ?? 0;
+                  if (amount > 0) {
+                    ensureLocalWallet({
+                      clubName: round.clubName,
+                      brandName: listing.brandName,
+                      sponsorshipGbp: amount,
+                    });
+                  }
+                }}
+                className="block w-full rounded-xl bg-green-500 py-3 text-center font-bold text-slate-950 hover:bg-green-400"
               >
                 Proceed to Payment
-              </button>
+              </a>
             </>
           ) : (
             <>

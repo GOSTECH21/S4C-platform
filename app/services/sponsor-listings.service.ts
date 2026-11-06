@@ -27,11 +27,12 @@ import {
 } from "../lib/sponsor-listings";
 import { brandsMatch } from "../lib/climate-sponsors";
 import { paidProjectIdsForClub } from "../lib/sponsor-card-payment";
-import { sponsorInviteApprovalPath, sponsorWalletPath } from "../lib/routes";
+import { sponsorInviteApprovalPath, sponsorPayPath } from "../lib/routes";
 import {
   LOCAL_SPONSOR_MIN_GBP,
   writeLocalSponsorRecord,
 } from "../lib/local-sponsor";
+import { ensureLocalWallet } from "./sponsor-wallet.service";
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -458,9 +459,14 @@ export async function acceptLocalInviteSponsorship({
       brandName: listing.brandName,
     });
   } catch {
-    // The signed local record still stands; Payment can open from the wallet.
+    // The signed local record still stands; Payment opens from the card page.
   }
-  return { error: null, paymentPath: sponsorWalletPath(round.clubName) };
+  ensureLocalWallet({
+    clubName: round.clubName,
+    brandName: listing.brandName,
+    sponsorshipGbp: amount,
+  });
+  return { error: null, paymentPath: sponsorPayPath(round.clubName) };
 }
 
 async function publishLockedInviteToFans(round: SponsorInviteRound) {

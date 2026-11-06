@@ -41,3 +41,13 @@ if (authError) {
   }
   return sponsor;
 }
+
+/** Local Business sessions often live in the browser profile if Supabase is slow or signed-out. */
+export async function getCurrentSponsorWithTimeout(ms = 4000) {
+  return Promise.race([
+    getCurrentSponsor(),
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("Sponsor session timed out.")), ms);
+    }),
+  ]);
+}

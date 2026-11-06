@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { SponsorInviteInbox } from "@/app/components/sponsor/SponsorInviteInbox";
 import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
 import type { SponsorInviteRound, SponsorListing } from "@/app/lib/sponsor-listings";
-import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
+import { getCurrentSponsorWithTimeout } from "@/app/services/current-sponsor.service";
 import {
   invitesWaitingForBrand,
   listingForBrand,
@@ -20,7 +20,7 @@ export default function SponsorInvitationsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const sponsor = await getCurrentSponsor();
+        const sponsor = await getCurrentSponsorWithTimeout();
         const brandName = String(sponsor.name ?? "");
         const row = listingForBrand(brandName, String(sponsor.website ?? ""));
         setListing(row);

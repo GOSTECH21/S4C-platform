@@ -302,6 +302,10 @@ assert(
 const invitePage = readFileSync("app/sponsor/invitations/page.tsx", "utf8");
 const sponsorNav = readFileSync("app/sponsor/sponsor-nav.tsx", "utf8");
 const inbox = readFileSync("app/components/sponsor/SponsorInviteInbox.tsx", "utf8");
+const listingsService = readFileSync(
+  "app/services/sponsor-listings.service.ts",
+  "utf8"
+);
 assert(
   invitePage.includes("SponsorInviteInbox") &&
     !invitePage.includes("SponsorNav") &&
@@ -394,6 +398,13 @@ assert(
     inbox.includes("LOCAL_INVITE_SIGN_LABEL") &&
     inbox.includes("LOCAL_SIGNOFF_TERMS") &&
     inbox.includes("acceptLocalInviteSponsorship") &&
+    inbox.includes("sponsorPayPath") &&
+    inbox.includes("data-local-invite-pay") &&
+    inbox.includes("ensureLocalWallet") &&
+    !inbox.includes("sponsorWalletPath") &&
+    listingsService.includes("sponsorPayPath(round.clubName)") &&
+    listingsService.includes("ensureLocalWallet") &&
+    !listingsService.includes("sponsorWalletPath(round.clubName)") &&
     !inbox.includes("when you are ready to pay") &&
     readFileSync("app/sponsor/login/page.tsx", "utf8").includes(
       "localSponsorLoginPath"
