@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "4f8cd96";
+const PIN = "972dee6";
 const BRANCH = "cursor/admin-lookback-accordion-18f9";
 const FILES = [
   "app/lib/cilt.ts",
