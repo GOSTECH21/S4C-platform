@@ -147,6 +147,7 @@ assert(
 const carMilesApply = readFileSync("apply-matchrav-car-miles.mjs", "utf8");
 assert(
   carMilesApply.includes("cursor/matchrav-car-miles-18f9") &&
+    carMilesApply.includes('PIN = "25864c3"') &&
     carMilesApply.includes("milesFromOriginToDestination") &&
     carMilesApply.includes("app/components/fan/FanMatchravPanel.tsx"),
   "PC overlay pulls the Matchrav car miles files"
