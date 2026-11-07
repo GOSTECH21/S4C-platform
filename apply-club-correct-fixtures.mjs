@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "9632594";
 const BRANCH = "cursor/club-correct-fixtures-18f9";
 const FILES = [
   "app/lib/sporting-calendar.ts",
