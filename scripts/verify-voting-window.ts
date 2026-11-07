@@ -123,7 +123,10 @@ assert(
     !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "Lead Climate Sponsor pays"
     ) &&
-    readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
+    readFileSync("app/components/fan/CampaignMatchHeader.tsx", "utf8").includes(
+      "Sponsored By"
+    ) &&
+    !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "fanWalletDrainCopy"
     ) &&
     !readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(

@@ -13,23 +13,22 @@ import {
   type S4PCampaign,
   type Supporter,
 } from "@/app/services/votes.service";
-import { getSupportedTeams, type TeamOption } from "@/app/services/teams.service";
+import {
+  getSupportedTeams,
+  sponsorLogoSrc,
+  type TeamOption,
+} from "@/app/services/teams.service";
+import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import {
   FAN_LOGIN_PATH,
   SUPPORTER_CAMPAIGN_PATH,
-  SUPPORTER_CLIMATE_SPONSORS_HASH,
-  SUPPORTER_PROJECTS_PATH,
 } from "@/app/lib/routes";
-import { campaignHeadline } from "@/app/lib/sponsorship-auction";
+import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
-import {
-  fanVotingWindowCopy,
-  fanWalletDrainCopy,
-  resolveVotingWindow,
-} from "@/app/lib/voting-window";
+import { resolveVotingWindow } from "@/app/lib/voting-window";
 import {
   applyFanWalletVote,
   fanFundItProjects,
@@ -40,7 +39,6 @@ import {
 import { withFeaturedGssVersions } from "@/app/lib/featured-gss";
 import {
   brandsMatch,
-  formatWalletGbp,
   normalizeBrandKey,
   remainingGbp,
   walletVoteNotice,
@@ -271,7 +269,6 @@ function CampaignPanel({
     postedAt: campaign.postedAt,
   });
   const fundingOpen = fanFundingIsOpen({ folder, votingWindow });
-  const headline = campaignHeadline(campaign.matchTitle);
   const schedule = readFanPostSchedule(clubId);
   const branding = liveMatchDayBranding({
     clubId,
@@ -515,6 +512,39 @@ function CampaignPanel({
     }
   }
 
+  const sponsoredByName = (leadSponsor?.brandName || leadName || "").trim();
+  const sponsoredByLogo =
+    leadSponsor?.logoUrl ||
+    leadLogoUrl ||
+    (sponsoredByName ? loadBrandLogo(sponsoredByName) : null) ||
+    (sponsoredByName ? sponsorLogoSrc(sponsoredByName, null) : null);
+
+  const sponsorsPanel = (
+    <ClimateProjectSponsors
+      lead={leadSponsor}
+      locals={localSponsors}
+      projects={projects.map((project) => ({
+        number: project.number,
+        name: project.name,
+      }))}
+      projectCount={projects.length || 5}
+      busy={busy}
+      votingOpen={fundingOpen}
+      usedSponsorNames={usedSponsors}
+      clubId={clubId}
+      clubName={campaign.clubName}
+      voteError={error}
+      voteNotice={notice}
+      onVote={({ brandName, projectNumber, split }) =>
+        voteFromWallet({
+          brandName,
+          projectNumber,
+          split,
+        })
+      }
+    />
+  );
+
   return (
     <main className="pb-8 text-white">
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
@@ -526,15 +556,12 @@ function CampaignPanel({
             sponsorRemainingGbp={leadSponsor?.remainingGbp}
           />
         </div>
-        <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
-            {campaign.clubName}
-          </p>
-          <h1 className="mt-2 text-3xl font-black md:text-5xl">{headline}</h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            {fanVotingWindowCopy()} {fanWalletDrainCopy(formatWalletGbp(0))}
-          </p>
-        </div>
+        <CampaignMatchHeader
+          clubName={campaign.clubName}
+          matchTitle={campaign.matchTitle}
+          sponsorName={sponsoredByName}
+          sponsorLogoUrl={sponsoredByLogo}
+        />
 
         {error && (
           <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
@@ -551,15 +578,6 @@ function CampaignPanel({
         {section === "projects" ? (
           <section className="mt-10">
             <h2 className="text-3xl font-black">Climate Projects List</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              The Featured Climate Project sits at the top: Global Schools
-              Solar, one programme that applies in every country. Open a
-              project to read the details. To put £0.20 into a
-              listed Climate Project, open Climate Project Sponsors, select that
-              project from the drop-down next to a Carbon Wallet, then press
-              FUND-IT. Local Business wallets fund local Climate Projects only.
-              You can FUND-IT up to 5 times — £0.20 once from each Carbon Wallet.
-            </p>
             <div className="mt-6 space-y-2">
               {voteable.map((project, index) => {
                 const funded = projects.find((row) => row.id === project.id);
@@ -576,20 +594,7 @@ function CampaignPanel({
                 );
               })}
             </div>
-            <div className="mt-8 rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6">
-              <h3 className="text-xl font-black">Climate Project Sponsors</h3>
-              <p className="mt-2 max-w-3xl text-sm text-slate-300">
-                The sponsor list and FUND-IT wallets sit on Climate Projects.
-                Choose a sponsor, pick the Climate Project from the drop-down,
-                then press FUND-IT.
-              </p>
-              <Link
-                href={`${SUPPORTER_PROJECTS_PATH}#${SUPPORTER_CLIMATE_SPONSORS_HASH}`}
-                className="mt-4 inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-green-400"
-              >
-                Open Climate Project Sponsors
-              </Link>
-            </div>
+            <div className="mt-10">{sponsorsPanel}</div>
           </section>
         ) : (
           <div className="mt-10">
@@ -599,29 +604,7 @@ function CampaignPanel({
             >
               ← Climate Projects List
             </Link>
-            <ClimateProjectSponsors
-              lead={leadSponsor}
-              locals={localSponsors}
-              projects={projects.map((project) => ({
-                number: project.number,
-                name: project.name,
-              }))}
-              projectCount={projects.length || 5}
-              busy={busy}
-              votingOpen={fundingOpen}
-              usedSponsorNames={usedSponsors}
-              clubId={clubId}
-              clubName={campaign.clubName}
-              voteError={error}
-              voteNotice={notice}
-              onVote={({ brandName, projectNumber, split }) =>
-                voteFromWallet({
-                  brandName,
-                  projectNumber,
-                  split,
-                })
-              }
-            />
+            {sponsorsPanel}
           </div>
         )}
       </div>

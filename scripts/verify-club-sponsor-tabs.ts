@@ -1067,8 +1067,11 @@ assert(
 );
 assert(
   readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
-    "campaignHeadline(campaign.matchTitle)"
-  ),
+    "CampaignMatchHeader"
+  ) &&
+    readFileSync("app/components/fan/CampaignMatchHeader.tsx", "utf8").includes(
+      "campaignHeadline(matchTitle)"
+    ),
   "My S4P prints the resolved fixture as the Climate Campaign headline"
 );
 

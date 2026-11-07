@@ -2,26 +2,21 @@
 
 import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
-import Link from "next/link";
+import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
+import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
-import {
-  SUPPORTER_CLIMATE_SPONSORS_HASH,
-  SUPPORTER_PROJECTS_PATH,
-} from "@/app/lib/routes";
 import { loadFundedProjects } from "@/app/lib/climate-funding";
 import {
   applyLeadCommitment,
   createLeadWallet,
   createLocalWallet,
   formatWalletGbp,
+  remainingGbp,
   type ClimateWallet,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
-import {
-  fanVotingWindowCopy,
-  fanWalletDrainCopy,
-} from "@/app/lib/voting-window";
 import { FEATURED_GLOBAL_SCHOOLS_SOLAR } from "@/app/lib/sccan-catalog";
+import { sponsorLogoSrc } from "@/app/services/teams.service";
 
 const PROJECTS = [
   {
@@ -120,15 +115,14 @@ export default function MyS4PPreviewPage() {
     <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-[90rem]">
         <FanNav />
-        <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
-            Hibernian
-          </p>
-          <h1 className="mt-2 text-4xl font-black">Hibernian Climate Campaign</h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            {fanVotingWindowCopy()} {fanWalletDrainCopy(formatWalletGbp(0))}
-          </p>
-        </div>
+        <CampaignMatchHeader
+          clubName="Hibernian"
+          matchTitle="Hibernian v Hearts"
+          sponsorName={lead?.brandName}
+          sponsorLogoUrl={
+            lead ? sponsorLogoSrc(lead.brandName, null) : null
+          }
+        />
 
         {error && (
           <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
@@ -169,14 +163,6 @@ export default function MyS4PPreviewPage() {
 
         <section className="mt-10">
           <h2 className="text-3xl font-black">Climate Projects List</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Project titles are shown first. Open a project to read the details.
-            To put £0.20 into a listed Climate Project, open Climate Project
-            Sponsors, select that project from the drop-down next to a Carbon
-            Wallet, then press FUND-IT. Local Business wallets fund local
-            Climate Projects only. You can FUND-IT up to 5 times — £0.20 once
-            from each Carbon Wallet.
-          </p>
           <div className="mt-6 space-y-2">
             {PROJECTS.map((project, index) => (
               <MatchDayProjectCard
@@ -194,19 +180,34 @@ export default function MyS4PPreviewPage() {
           </div>
         </section>
 
-        <div className="mt-8 rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6">
-          <h3 className="text-xl font-black">Climate Project Sponsors</h3>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300">
-            The sponsor list and FUND-IT wallets are on a separate page.
-            Choose a sponsor, pick the Climate Project from the drop-down,
-            then press FUND-IT.
-          </p>
-          <Link
-            href={`${SUPPORTER_PROJECTS_PATH}#${SUPPORTER_CLIMATE_SPONSORS_HASH}`}
-            className="mt-4 inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-green-400"
-          >
-            Open Climate Project Sponsors
-          </Link>
+        <div className="mt-10">
+          <ClimateProjectSponsors
+            lead={
+              lead
+                ? {
+                    brandName: lead.brandName,
+                    kind: "lead",
+                    remainingGbp: remainingGbp(lead),
+                    committedGbp: remainingGbp(lead) + lead.allocatedGbp,
+                    logoUrl: sponsorLogoSrc(lead.brandName, null),
+                  }
+                : null
+            }
+            locals={wallets
+              .filter((wallet) => wallet.kind === "local")
+              .map((wallet) => ({
+                brandName: wallet.brandName,
+                kind: "local" as const,
+                remainingGbp: remainingGbp(wallet),
+                committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
+                logoUrl: sponsorLogoSrc(wallet.brandName, null),
+              }))}
+            projects={funded.map((project) => ({
+              number: project.number,
+              name: project.name,
+            }))}
+            projectCount={funded.length || 5}
+          />
         </div>
       </div>
     </main>

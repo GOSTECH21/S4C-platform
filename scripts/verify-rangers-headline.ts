@@ -2,7 +2,10 @@ import {
   nextFanMatchForClub,
   type ChosenMatch,
 } from "../app/lib/climate-sponsors";
-import { campaignHeadline } from "../app/lib/sponsorship-auction";
+import {
+  campaignHeadline,
+  matchSponsorshipHeading,
+} from "../app/lib/sponsorship-auction";
 
 const failures: string[] = [];
 
@@ -38,6 +41,10 @@ assert(
   campaignHeadline("Rangers v Aberdeen") ===
     "Rangers v Aberdeen Climate Campaign",
   "The Climate Campaign headline is Rangers v Aberdeen"
+);
+assert(
+  matchSponsorshipHeading("Everton") === "Everton Match Sponsorship",
+  "The club line is Everton Match Sponsorship"
 );
 assert(
   nextFanMatchForClub({

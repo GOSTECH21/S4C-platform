@@ -162,6 +162,15 @@ export function campaignHeadline(title: string | null | undefined): string {
   return `${formatMatchHeadline(title)} Climate Campaign`;
 }
 
+export function matchSponsorshipHeading(
+  clubName: string | null | undefined
+): string {
+  const name = String(clubName ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return name ? `${name} Match Sponsorship` : "Match Sponsorship";
+}
+
 export function voteProgress({
   votesReceived,
   votesNeeded,

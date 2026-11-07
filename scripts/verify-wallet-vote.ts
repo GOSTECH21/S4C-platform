@@ -718,18 +718,18 @@ const sponsorsPage = readFileSync(
 );
 assert(
   fanPage.includes('section === "projects"') &&
-    fanPage.includes("Open Climate Project Sponsors") &&
+    fanPage.includes("ClimateProjectSponsors") &&
+    fanPage.includes("CampaignMatchHeader") &&
     sponsorsPage.includes('section="sponsors"') &&
     sponsorsPage.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
-  "My S4P guides fans to Climate Sponsors inside Climate Projects"
+  "My S4P shows Climate Sponsors FUND-IT wallets under the Climate Projects List"
 );
 assert(
   fanPage.includes("Climate Projects List") &&
     fanPage.includes("space-y-2") &&
-    fanPage.includes("listed Climate Project") &&
-    fanPage.includes("drop-down next to a Carbon Wallet") &&
-    fanPage.includes("one programme that applies in every country") &&
-    fanPage.includes("withFeaturedGssVersions"),
+    fanPage.includes("withFeaturedGssVersions") &&
+    !fanPage.includes("one programme that applies in every country") &&
+    !fanPage.includes("Open Climate Project Sponsors"),
   "My S4P uses the Climate Projects List heading as a stacked accordion with one Featured GSS"
 );
 assert(
@@ -753,8 +753,10 @@ assert(!fanPage.includes("MatchDayWalletVote"), "My S4P no longer uses the mixed
 assert(!fanPage.includes("TodaysClimateSponsors"), "My S4P does not mix local logos into the Amex bar");
 assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Projects");
 assert(
-  fanPage.includes("FUND-IT up to 5 times"),
-  "My S4P tells fans they can FUND-IT up to 5 times"
+  readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8").includes(
+    "FUND_IT_MAX_TIMES"
+  ),
+  "Climate Project Sponsors still FUND-IT once per wallet, up to 5 wallets"
 );
 
 const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");

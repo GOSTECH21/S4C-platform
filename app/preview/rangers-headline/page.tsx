@@ -1,13 +1,9 @@
 "use client";
 
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
+import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
 import { nextFanMatchForClub } from "@/app/lib/climate-sponsors";
-import { campaignHeadline } from "@/app/lib/sponsorship-auction";
-import {
-  fanVotingWindowCopy,
-  fanWalletDrainCopy,
-} from "@/app/lib/voting-window";
-import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
+import { sponsorLogoSrc } from "@/app/services/teams.service";
 
 const NOW = "2026-11-06T21:00:00.000Z";
 
@@ -37,26 +33,17 @@ export default function RangersHeadlinePreviewPage() {
     ],
     now: NOW,
   });
-  const headline = campaignHeadline(next?.fixtureName);
 
   return (
     <main className="min-h-screen p-8 text-white">
       <div className="mx-auto max-w-6xl">
         <FanNav />
-        <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">
-            Rangers
-          </p>
-          <h1
-            className="mt-2 text-3xl font-black md:text-5xl"
-            data-rangers-headline={next?.fixtureName ?? ""}
-          >
-            {headline}
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-            {fanVotingWindowCopy()} {fanWalletDrainCopy(formatWalletGbp(0))}
-          </p>
-        </div>
+        <CampaignMatchHeader
+          clubName="Rangers"
+          matchTitle={next?.fixtureName ?? "Rangers v Aberdeen"}
+          sponsorName="Diageo"
+          sponsorLogoUrl={sponsorLogoSrc("Diageo", null)}
+        />
       </div>
     </main>
   );

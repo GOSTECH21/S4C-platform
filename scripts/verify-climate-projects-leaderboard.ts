@@ -69,7 +69,7 @@ assert(
     "SUPPORTER_PROJECTS_PATH"
   ) &&
     readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
-      "Open Climate Project Sponsors"
+      "ClimateProjectSponsors"
     ),
   "The old Climate Sponsors URL opens Climate Sponsors on Climate Projects"
 );

@@ -502,7 +502,7 @@ assert(
 );
 assert(
   vote.includes("ClimateProjectSponsors") &&
-    vote.includes("Open Climate Project Sponsors"),
+    vote.includes("CampaignMatchHeader"),
   "Lead and local Carbon Wallets sit on Climate Projects"
 );
 assert(

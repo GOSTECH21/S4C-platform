@@ -3,6 +3,7 @@ import {
   brandExposureValue,
   brandExposuresFromPosts,
   campaignHeadline,
+  matchSponsorshipHeading,
   currentSponsorshipAmount,
   formatBrandExposureLabel,
   formatGbpPerVote,
@@ -45,6 +46,11 @@ assert(
   campaignHeadline("Manchester City versus Manchester United") ===
     "Man City v Man United Climate Campaign",
   "Man City v Man United heading follows the fixture"
+);
+assert(
+  matchSponsorshipHeading("Everton") === "Everton Match Sponsorship" &&
+    matchSponsorshipHeading("Rangers") === "Rangers Match Sponsorship",
+  "The club line is Club Match Sponsorship"
 );
 
 assert(
