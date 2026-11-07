@@ -1,4 +1,5 @@
 "use client";
+/* how-s4p-mobile-pc-v1 */
 /* p4p-fan-drop-overlay-v1 */
 
 import type { ReactNode } from "react";
@@ -43,8 +44,14 @@ export default function HowS4pPredictForPlanet({
     >
       <section
         data-how-s4p-p4p
+        data-how-s4p-mobile-pc="how-s4p-mobile-pc-v1"
         className={`s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8 ${className}`}
       >
+        {children && !showPhone ? (
+          <div data-p4p-board-first="how-s4p-mobile-pc-v1" className="mb-8">
+            {children}
+          </div>
+        ) : null}
         <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
           <PredictForPlanetPanel
             title={P4P_LABEL}
@@ -66,7 +73,7 @@ export default function HowS4pPredictForPlanet({
             </div>
           ) : null}
         </div>
-        {children ? <div className="mt-10">{children}</div> : null}
+        {children && showPhone ? <div className="mt-10">{children}</div> : null}
       </section>
     </SelectMatchProvider>
   );

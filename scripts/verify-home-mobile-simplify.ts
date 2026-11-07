@@ -52,7 +52,7 @@ assert(
     front.includes("onJoinCommunity") &&
     front.includes('showJoin("register")') &&
     front.includes("onLogin") &&
-    front.includes("hidden md:block") &&
+    front.includes('data-how-s4p-mobile-pc="how-s4p-mobile-pc-v1"') &&
     !front.includes(">Register<") &&
     !front.includes("{children}"),
   "The front page passes Login and Join Free into the simplified banner"
