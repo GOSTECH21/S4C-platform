@@ -15,6 +15,8 @@ import {
   cupCalendarHints,
   cupMatchesForClub,
   isUpcomingCalendarDate,
+  calendarMatchesAsUpcoming,
+  canonicalPublishedTeamName,
   matchesForClub,
   nextClubMatches,
   findCalendarMatch,
@@ -27,6 +29,7 @@ import {
   publishedFixtureSource,
   sportingCalendarMatches,
 } from "../app/lib/sporting-calendar";
+import { PREMIER_LEAGUE_TEAMS } from "../app/lib/sporting-calendar-leagues";
 import {
   BUDWEISER_EXAMPLE_FIXTURES,
   GLOBAL_MATCH_DAY_STEPS,
@@ -694,6 +697,56 @@ assert(
 assert(
   currentSeasonTeamCount() === 3,
   "Cup competitions do not add clubs to the three-club demo catalog"
+);
+const evertonFromShot = matchesForClub("Everton", { fromDate: "2026-11-07" });
+const evertonWomenFromShot = matchesForClub("Everton Women", {
+  fromDate: "2026-11-07",
+});
+assert(
+  canonicalPublishedTeamName("Women's Super League", "Everton") ===
+    "Everton Women" &&
+    canonicalPublishedTeamName("Premier League", "Everton") === "Everton" &&
+    evertonFromShot.every(
+      (row) => row.homeName === "Everton" || row.awayName === "Everton"
+    ) &&
+    !evertonFromShot.some((row) => row.league === "Women's Super League") &&
+    evertonFromShot[0]?.fixtureName === "Brentford v Everton" &&
+    !evertonFromShot.some(
+      (row) => row.date === "2026-11-07" && /chelsea/i.test(row.fixtureName)
+    ) &&
+    evertonFromShot.filter((row) => row.date === "2026-12-12").length === 1 &&
+    /brighton/i.test(
+      evertonFromShot.find((row) => row.date === "2026-12-12")?.fixtureName ?? ""
+    ) &&
+    calendarMatchesAsUpcoming("Everton", { fromDate: "2026-11-07" })[0]
+      ?.homeName === "Brentford",
+  "Everton FC lists Premier League fixtures, not the Women's Super League"
+);
+assert(
+  evertonWomenFromShot[0]?.fixtureName === "Chelsea Women v Everton Women" &&
+    evertonWomenFromShot.every(
+      (row) =>
+        row.league === "Women's Super League" &&
+        (row.homeName === "Everton Women" || row.awayName === "Everton Women")
+    ),
+  "Everton Women keep the Women's Super League list"
+);
+assert(
+  PREMIER_LEAGUE_TEAMS.every((team) => {
+    const rows = matchesForClub(team.name, { fromDate: "2026-11-07" });
+    const leagueDates = rows
+      .filter((row) => row.league === "Premier League")
+      .map((row) => row.date);
+    return (
+      rows.length > 0 &&
+      rows.every(
+        (row) => row.homeName === team.name || row.awayName === team.name
+      ) &&
+      !rows.some((row) => row.league === "Women's Super League") &&
+      new Set(leagueDates).size === leagueDates.length
+    );
+  }),
+  "Every Premier League club list is that club only, with one league match per day"
 );
 
 if (failures.length > 0) {

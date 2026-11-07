@@ -102,12 +102,33 @@ function publishedFile(): PublishedFile {
   return publishedFixtures as PublishedFile;
 }
 
+/** Map a published feed name onto this league's roster (Everton → Everton Women in the WSL). */
+export function canonicalPublishedTeamName(
+  leagueName: string,
+  teamName: string
+): string {
+  const trimmed = teamName.trim();
+  if (!trimmed) return trimmed;
+  const league = sportingLeagueByName(leagueName);
+  if (!league || league.teams.length === 0) return trimmed;
+  const exact = league.teams.find((team) =>
+    namesExactlyMatch(team.name, trimmed)
+  );
+  if (exact) return exact.name;
+  const womenName = /women$/i.test(trimmed) ? trimmed : `${trimmed} Women`;
+  const women = league.teams.find((team) =>
+    namesExactlyMatch(team.name, womenName)
+  );
+  return women?.name ?? trimmed;
+}
+
 function calendarMatchFromPublished(row: PublishedRow): CalendarMatch | null {
-  const home = row.homeName?.trim();
-  const away = row.awayName?.trim();
   const date = row.date?.trim();
   const leagueName = row.league?.trim();
-  if (!home || !away || !date || !leagueName) return null;
+  if (!date || !leagueName) return null;
+  const home = canonicalPublishedTeamName(leagueName, row.homeName ?? "");
+  const away = canonicalPublishedTeamName(leagueName, row.awayName ?? "");
+  if (!home || !away) return null;
   const league = sportingLeagueByName(leagueName);
   const sport = league?.sport ?? asCalendarSport(row.sport);
   const country = league?.country || row.country || "";
@@ -252,13 +273,18 @@ export function matchesForClub(
   const needle = clubName.trim();
   if (!needle) return [];
   const from = options?.fromDate ?? new Date();
+  const clubLeague = leagueForSportingCalendarClub(needle);
   return sportingCalendarMatches()
-    .filter(
-      (row) =>
-        isUpcomingCalendarDate(row.date, from) &&
-        (namesExactlyMatch(row.homeName, needle) ||
-          namesExactlyMatch(row.awayName, needle))
-    )
+    .filter((row) => {
+      if (!isUpcomingCalendarDate(row.date, from)) return false;
+      const plays =
+        namesExactlyMatch(row.homeName, needle) ||
+        namesExactlyMatch(row.awayName, needle);
+      if (!plays) return false;
+      if (isCupCompetitionName(row.league)) return true;
+      if (!clubLeague) return true;
+      return row.league === clubLeague;
+    })
     .sort((left, right) =>
       left.date === right.date
         ? left.kickoff.localeCompare(right.kickoff)
@@ -292,14 +318,10 @@ export function nextClubMatches(
   options?: { fromDate?: string | Date; limit?: number }
 ): CalendarMatch[] {
   const limit = options?.limit ?? CLUB_MATCH_CALENDAR_COUNT;
-  const clubLeague = leagueForSportingCalendarClub(clubName);
-  return matchesForClub(clubName, { fromDate: options?.fromDate })
-    .filter((row) => {
-      if (isCupCompetitionName(row.league)) return true;
-      if (!clubLeague) return true;
-      return row.league === clubLeague;
-    })
-    .slice(0, Math.max(0, limit));
+  return matchesForClub(clubName, { fromDate: options?.fromDate }).slice(
+    0,
+    Math.max(0, limit)
+  );
 }
 
 export function clubFixtureFromCalendarMatch(match: CalendarMatch): ClubFixture {

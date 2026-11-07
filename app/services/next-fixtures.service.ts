@@ -2,6 +2,7 @@ import { supabase } from "../lib/supabase";
 import {
   isCupCompetition,
   matchSortKey,
+  namesExactlyMatch,
   namesLooselyMatch,
   namesMatch,
   normalizeClubName,
@@ -603,10 +604,10 @@ export function upcomingFromCalendar(team: TeamRef): UpcomingMatch[] {
 
 function involvesTeam(match: UpcomingMatch, team: TeamRef): boolean {
   return (
-    namesMatch(match.homeName, team.name) ||
-    namesMatch(match.awayName, team.name) ||
-    namesMatch(match.homeName, team.displayName) ||
-    namesMatch(match.awayName, team.displayName)
+    namesExactlyMatch(match.homeName, team.name) ||
+    namesExactlyMatch(match.awayName, team.name) ||
+    namesExactlyMatch(match.homeName, team.displayName) ||
+    namesExactlyMatch(match.awayName, team.displayName)
   );
 }
 
