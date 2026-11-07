@@ -44,18 +44,18 @@ export function FanFootprintAnalytics({
   return (
     <section
       data-fan-footprint={FAN_FOOTPRINT_STAMP}
-      className="mt-12 overflow-hidden rounded-3xl p-5 shadow-xl sm:p-8"
+      className="mt-12 overflow-hidden rounded-3xl border p-5 sm:p-8"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-lg">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-s4p-mark/20 text-lg">
             🍃
           </span>
           <div>
             <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
               {FAN_FOOTPRINT_NAME}
             </h2>
-            <p className="mt-1 inline-flex rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+            <p className="mt-1 inline-flex rounded-full border border-s4p-mark bg-s4p-mark/15 px-3 py-1 text-xs font-semibold">
               {report.clubName} · {report.season} Season
             </p>
           </div>
@@ -64,14 +64,14 @@ export function FanFootprintAnalytics({
           <button
             type="button"
             onClick={exportReport}
-            className="fp-tab-off rounded-full border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10"
+            className="fp-tab-off rounded-lg border px-4 py-2 text-sm font-semibold"
           >
             Export Report
           </button>
           <button
             type="button"
             onClick={() => setShowSettings((open) => !open)}
-            className="fp-settings rounded-full px-4 py-2 text-sm font-semibold"
+            className="fp-settings rounded-lg px-4 py-2 text-sm font-semibold"
           >
             Settings
           </button>
@@ -88,13 +88,13 @@ export function FanFootprintAnalytics({
         </p>
       ) : null}
 
-      <div className="fp-tab mt-6 flex gap-2 overflow-x-auto rounded-full p-1">
+      <div className="fp-tab mt-6 flex flex-wrap gap-2">
         {FAN_FOOTPRINT_TABS.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setTab(item.id)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
+            className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-semibold ${
               tab === item.id ? "fp-tab-on" : "fp-tab-off"
             }`}
           >
@@ -139,20 +139,28 @@ export function FanFootprintAnalytics({
               <h3 className="fp-muted text-sm font-semibold">
                 Travel Emissions per Match (Season Trend)
               </h3>
-              <div className="mt-6 flex h-52 items-end gap-3">
+              <div className="mt-6 flex h-52 items-stretch gap-3">
                 {report.months.map((row) => (
                   <div
                     key={row.month}
-                    className="flex flex-1 flex-col items-center justify-end gap-2"
+                    className="flex min-h-0 flex-1 flex-col items-center"
                   >
                     <span className="fp-muted text-xs font-semibold">
                       {formatFanFootprintTonnes(row.tonnes)}
                     </span>
-                    <div
-                      className="w-full max-w-12 rounded-t-lg bg-gradient-to-t from-rose-700 to-rose-300"
-                      style={{ height: `${(row.tonnes / maxMonth) * 100}%` }}
-                    />
-                    <span className="text-xs font-semibold">{row.month}</span>
+                    <div className="mt-2 flex min-h-0 w-full flex-1 items-end justify-center">
+                      <div
+                        className="w-full max-w-12 rounded-t-lg"
+                        style={{
+                          height: `${Math.max((row.tonnes / maxMonth) * 100, 12)}%`,
+                          background:
+                            "linear-gradient(to top, #be123c, #fb7185)",
+                        }}
+                      />
+                    </div>
+                    <span className="mt-2 text-xs font-semibold">
+                      {row.month}
+                    </span>
                     <span className="fp-muted text-[10px]">
                       {row.matches} matches
                     </span>
@@ -171,7 +179,7 @@ export function FanFootprintAnalytics({
                       <span className="font-semibold">{mode.label}</span>
                       <span className="fp-muted">{mode.share}%</span>
                     </div>
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-800">
+                    <div className="fp-track mt-1 h-2 overflow-hidden rounded-full">
                       <div
                         className="h-full rounded-full"
                         style={{
@@ -202,7 +210,7 @@ export function FanFootprintAnalytics({
           {report.matchesDetail.slice(0, 12).map((row) => (
             <div
               key={`${row.fixture}-${row.date}`}
-              className="grid grid-cols-12 border-t border-white/10 px-4 py-3 text-sm"
+              className="grid grid-cols-12 border-t border-black px-4 py-3 text-sm"
             >
               <span className="col-span-5 font-semibold">{row.fixture}</span>
               <span className="fp-muted col-span-3">{row.date}</span>
@@ -253,7 +261,7 @@ export function FanFootprintAnalytics({
         <div className="fp-card mt-6 rounded-2xl border p-5">
           <p className="text-sm">
             Match-Sponsorship on this club so far:{" "}
-            <strong className="text-white">
+            <strong>
               {formatMoney(report.sponsorshipTotalGbp)}
             </strong>
             . FanFootprint shows where residual travel sits so the

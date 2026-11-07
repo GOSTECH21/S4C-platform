@@ -291,8 +291,14 @@ assert(
     footprintUi.includes("FAN_FOOTPRINT_FUTURE_NOTE") &&
     readFileSync("app/globals.css", "utf8").includes(
       '[data-fan-footprint="fan-footprint-v1"]'
+    ) &&
+    readFileSync("app/globals.css", "utf8").includes(
+      "background: #f7f4e8 !important;"
+    ) &&
+    !readFileSync("app/globals.css", "utf8").includes(
+      "background: #0b1220 !important;"
     ),
-  "FanFootprint Analytics matches the Core Dashboard layout"
+  "FanFootprint Analytics uses the same ivory canvas as Club My Admin"
 );
 assert(
     sponsors.includes("resolveClubSelectedMatch") &&
