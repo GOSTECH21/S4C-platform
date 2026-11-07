@@ -4,12 +4,18 @@ import {
   compareRoutes,
   confirmMatchravTrip,
   destinationForFixture,
+  destinationPoint,
   listMatchravTrips,
   matchravStadiumForClub,
+  milesFromOriginToDestination,
+  originPoint,
   readMatchravAnalytics,
   saveMatchravTrip,
 } from "../app/lib/matchrav-journey";
-import { stadiumSiteForClub } from "../app/lib/project-site";
+import {
+  stadiumSiteForClub,
+  stadiumSiteForVenue,
+} from "../app/lib/project-site";
 import { ADMIN_MATCHRAV_PATH } from "../app/lib/routes";
 import type { UpcomingMatch } from "../app/lib/upcoming-matches";
 
@@ -39,6 +45,9 @@ assert(
     panel.includes("data-matchrav-trips") &&
     panel.includes("data-matchrav-confirm") &&
     panel.includes("data-matchrav-privacy") &&
+    panel.includes("data-matchrav-miles") &&
+    panel.includes("milesFromOriginToDestination") &&
+    !panel.includes("TRAVEL_EXAMPLE.miles / 2") &&
     panel.includes("Return the same way") &&
     panel.includes('type="submit"') &&
     !panel.includes("PhoneFrame") &&
@@ -104,6 +113,43 @@ assert(
     apply.includes("app/components/fan/FanMatchravPanel.tsx") &&
     apply.includes("app/lib/matchrav-journey.ts"),
   "PC overlay pulls the Matchrav journey files"
+);
+
+const everton = matchravStadiumForClub("Everton");
+const brentfordAway: UpcomingMatch = {
+  id: "brentford-everton",
+  date: "2026-11-23",
+  kickoff: "20:00",
+  homeName: "Brentford",
+  awayName: "Everton",
+  venue: "Gtech Community Stadium",
+  competition: "Premier League",
+  source: "s4p",
+  sourceUrl: null,
+};
+const eh11ToGtech = milesFromOriginToDestination(
+  "EH11 2PB",
+  "Gtech Community Stadium",
+  brentfordAway,
+  everton
+);
+assert(
+  Boolean(originPoint("EH11 2PB")) &&
+    stadiumSiteForVenue("Gtech Community Stadium")?.name === "Brentford" &&
+    destinationForFixture("Everton", brentfordAway, everton) ===
+      "Gtech Community Stadium" &&
+    Boolean(destinationPoint("Gtech Community Stadium", brentfordAway, everton)) &&
+    eh11ToGtech > 300 &&
+    eh11ToGtech < 420,
+  "Car outbound miles from EH11 2PB to Gtech Community Stadium are the real road-scale distance, not 15"
+);
+
+const carMilesApply = readFileSync("apply-matchrav-car-miles.mjs", "utf8");
+assert(
+  carMilesApply.includes("cursor/matchrav-car-miles-18f9") &&
+    carMilesApply.includes("milesFromOriginToDestination") &&
+    carMilesApply.includes("app/components/fan/FanMatchravPanel.tsx"),
+  "PC overlay pulls the Matchrav car miles files"
 );
 
 const memory = new Map<string, string>();

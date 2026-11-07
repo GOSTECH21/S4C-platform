@@ -30,7 +30,7 @@ import {
   formatDuration,
   listMatchravTrips,
   matchravStadiumForClub,
-  milesFromOriginToStadium,
+  milesFromOriginToDestination,
   readMatchravConsent,
   saveMatchravTrip,
   stadiumLabel,
@@ -78,8 +78,8 @@ export default function FanMatchravPanel({
   const [outboundMode, setOutboundMode] = useState<TravelMode>(TRAVEL_EXAMPLE.mode);
   const [returnMode, setReturnMode] = useState<TravelMode>(TRAVEL_EXAMPLE.mode);
   const [sameReturn, setSameReturn] = useState(true);
-  const [miles, setMiles] = useState(String(TRAVEL_EXAMPLE.miles / 2));
-  const [returnMiles, setReturnMiles] = useState(String(TRAVEL_EXAMPLE.miles / 2));
+  const [miles, setMiles] = useState("");
+  const [returnMiles, setReturnMiles] = useState("");
   const [occupants, setOccupants] = useState(TRAVEL_EXAMPLE.occupants);
   const [consent, setConsent] = useState<MatchravConsent>(DEFAULT_MATCHRAV_CONSENT);
   const [trips, setTrips] = useState<MatchravTrip[]>([]);
@@ -224,19 +224,17 @@ export default function FanMatchravPanel({
   }, [club, fixture, stadium]);
 
   useEffect(() => {
-    const destIsClubGround =
-      Boolean(stadium) &&
-      (destination === stadiumLabel(stadium) ||
-        destination === stadium?.venue ||
-        destination === stadium?.address);
-    if (!destIsClubGround) return;
-    const computed = milesFromOriginToStadium(origin, stadium);
-    if (computed > 0) {
-      const value = String(computed);
-      setMiles(value);
-      if (sameReturn) setReturnMiles(value);
-    }
-  }, [origin, stadium, destination, sameReturn]);
+    const computed = milesFromOriginToDestination(
+      origin,
+      destination,
+      fixture,
+      stadium
+    );
+    if (computed <= 0) return;
+    const value = String(computed);
+    setMiles(value);
+    if (sameReturn) setReturnMiles(value);
+  }, [origin, destination, fixture, stadium, sameReturn, outboundMode]);
 
   function persistConsent(next: MatchravConsent) {
     setConsent(next);
@@ -460,7 +458,7 @@ export default function FanMatchravPanel({
               />
             </label>
 
-            <label className="mt-5 block text-sm font-bold">
+            <label className="mt-5 block text-sm font-bold" data-matchrav-miles>
               Outbound distance (miles)
               <input
                 type="number"
@@ -475,6 +473,12 @@ export default function FanMatchravPanel({
                 className={FIELD}
               />
             </label>
+            {parseReturnMiles(miles) > 0 && origin.trim() && destination.trim() ? (
+              <p className="mt-1 text-xs font-semibold text-slate-400">
+                Estimated from origin to destination
+                {outboundMode === "car" ? " for Car" : ""}.
+              </p>
+            ) : null}
 
             <label className="mt-4 flex items-center gap-3 text-sm font-bold">
               <input

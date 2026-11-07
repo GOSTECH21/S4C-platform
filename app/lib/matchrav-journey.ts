@@ -5,8 +5,8 @@ import {
   milesBetweenPoints,
   pointForPostcode,
   stadiumSiteForClub,
+  stadiumSiteForVenue,
   type GeoPoint,
-  type StadiumSite,
 } from "./project-site";
 import {
   estimateTravelKgCo2e,
@@ -250,12 +250,46 @@ export function savedVsSoloCarKg(
   return round1(Math.max(0, soloCarKg(miles) - chosen));
 }
 
+export function destinationPoint(
+  destination: string,
+  fixture: UpcomingMatch | null = null,
+  homeStadium: MatchravStadium | null = null
+): GeoPoint | null {
+  const typed = clean(destination);
+  const fromTyped =
+    parseLatLng(typed) ??
+    pointForPostcode(typed) ??
+    stadiumSiteForVenue(typed)?.point ??
+    null;
+  if (fromTyped) return fromTyped;
+  if (fixture) {
+    const homeGround = stadiumSiteForClub(fixture.homeName)?.point ?? null;
+    const awayGround = stadiumSiteForClub(fixture.awayName)?.point ?? null;
+    const supported = clean(homeStadium?.club);
+    if (supported && !clubIsHome(fixture, supported) && homeGround) {
+      return homeGround;
+    }
+    if (homeGround && namesMatch(typed, fixture.homeName)) return homeGround;
+    if (awayGround && namesMatch(typed, fixture.awayName)) return awayGround;
+  }
+  return homeStadium?.point ?? null;
+}
+
 export function milesFromOriginToStadium(
   origin: string,
   stadium: MatchravStadium | null
 ): number {
+  return milesFromOriginToDestination(origin, stadiumLabel(stadium), null, stadium);
+}
+
+export function milesFromOriginToDestination(
+  origin: string,
+  destination: string,
+  fixture: UpcomingMatch | null = null,
+  homeStadium: MatchravStadium | null = null
+): number {
   const from = originPoint(origin);
-  const to = stadium?.point ?? null;
+  const to = destinationPoint(destination, fixture, homeStadium);
   if (!from || !to) return 0;
   return round1(milesBetweenPoints(from, to));
 }

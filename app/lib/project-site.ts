@@ -122,6 +122,46 @@ export const CLUB_STADIUM_SITES: StadiumSite[] = [
     country: "England",
   },
   {
+    name: "Brentford",
+    address: "Gtech Community Stadium, Lionel Road South, Brentford",
+    postcode: "TW8 0AU",
+    point: { lat: 51.4908, lng: -0.2887 },
+    place: "Brentford",
+    country: "England",
+  },
+  {
+    name: "Bournemouth",
+    address: "Vitality Stadium, Dean Court, Bournemouth",
+    postcode: "BH7 7AF",
+    point: { lat: 50.7352, lng: -1.8384 },
+    place: "Bournemouth",
+    country: "England",
+  },
+  {
+    name: "Coventry City",
+    address: "Coventry Building Society Arena, Judds Lane, Coventry",
+    postcode: "CV6 6GE",
+    point: { lat: 52.4481, lng: -1.4956 },
+    place: "Coventry",
+    country: "England",
+  },
+  {
+    name: "Hull City",
+    address: "MKM Stadium, Anlaby Road, Hull",
+    postcode: "HU3 6HU",
+    point: { lat: 53.746, lng: -0.3678 },
+    place: "Hull",
+    country: "England",
+  },
+  {
+    name: "Ipswich Town",
+    address: "Portman Road, Ipswich",
+    postcode: "IP1 2DA",
+    point: { lat: 52.0551, lng: 1.1448 },
+    place: "Ipswich",
+    country: "England",
+  },
+  {
     name: "Liverpool",
     address: "Anfield, Anfield Road, Liverpool",
     postcode: "L4 0TH",
@@ -560,6 +600,23 @@ export function stadiumSiteForClub(
   if (!name) return null;
   return (
     CLUB_STADIUM_SITES.find((row) => clubsMatch(row.name, name)) ?? null
+  );
+}
+
+/** Match a typed stadium / venue label onto a listed club ground. */
+export function stadiumSiteForVenue(
+  label: string | null | undefined
+): StadiumSite | null {
+  const needle = String(label ?? "").trim().toLowerCase();
+  if (!needle) return null;
+  const byClub = stadiumSiteForClub(label);
+  if (byClub) return byClub;
+  return (
+    CLUB_STADIUM_SITES.find((row) => {
+      const venue = row.address.split(",")[0]?.trim().toLowerCase() ?? "";
+      if (!venue) return false;
+      return needle === venue || needle.includes(venue) || venue.includes(needle);
+    }) ?? null
   );
 }
 

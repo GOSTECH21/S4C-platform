@@ -22,6 +22,7 @@ import {
   normalizePostcode,
   parseProjectSite,
   stadiumSiteForClub,
+  stadiumSiteForVenue,
 } from "../app/lib/project-site";
 
 const failures: string[] = [];
@@ -40,6 +41,11 @@ assert(
   "Hearts stadium is Tynecastle EH11 2NL"
 );
 assert(arsenalStadium?.postcode === "N7 7AJ", "Arsenal stadium is Emirates N7 7AJ");
+assert(
+  stadiumSiteForVenue("Gtech Community Stadium")?.name === "Brentford" &&
+    stadiumSiteForClub("Brentford")?.postcode === "TW8 0AU",
+  "Brentford's Gtech Community Stadium is listed for Matchrav destinations"
+);
 
 assert(
   listedSiteForProjectName("Bridgend Farmhouse")?.postcode === "EH16 4TE",
