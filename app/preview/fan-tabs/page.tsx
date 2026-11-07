@@ -23,7 +23,9 @@ export default function FanTabsPreviewPage() {
           </p>
           <FanTabBar pathname={SUPPORTER_CAMPAIGN_PATH} onLogout={() => {}} />
         </header>
-        <p className="text-sm font-semibold">Six fan tabs, no horizontal scroll.</p>
+        <p className="text-sm font-semibold">
+          Six fan tabs wrap like Club Select Match.
+        </p>
       </div>
     </main>
   );

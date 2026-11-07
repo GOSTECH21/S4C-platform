@@ -28,8 +28,10 @@ const cift = readFileSync("app/components/fan/FanCiftTable.tsx", "utf8");
 
 assert(
   nav.includes('data-fan-tabs="6"') &&
-    nav.includes("grid-cols-6") &&
-    nav.includes("overflow-x-hidden") &&
+    nav.includes('data-fan-tabs-style="club-buttons"') &&
+    nav.includes("flex flex-wrap items-center gap-2") &&
+    nav.includes("s4pTabClass") &&
+    !nav.includes("grid-cols-6") &&
     nav.includes('label: "My S4P"') &&
     nav.includes('label: "Matchrav"') &&
     nav.includes("SUPPORTER_MATCHRAV_PATH") &&
@@ -39,7 +41,7 @@ assert(
     nav.includes("Logout") &&
     !nav.includes('label: "My Teams"') &&
     !nav.includes('label: "Climate Sponsors"'),
-  "Fan nav is six non-scrolling tabs with Matchrav after My S4P"
+  "Fan nav is six Club-style wrap buttons with Matchrav after My S4P"
 );
 assert(
   routes.includes('SUPPORTER_CIFT_PATH = "/supporter/dashboard/cift"') &&
@@ -78,11 +80,21 @@ assert(
   "CIFT tab shows the signed-in fan their position on the Climate Impact Fans Table"
 );
 
+assert(
+  readFileSync("apply-fan-tabs-club-buttons.mjs", "utf8").includes(
+    "cursor/fan-tabs-club-buttons-18f9"
+  ) &&
+    readFileSync("app/dashboard/supporter/components/FanTabBar.tsx", "utf8").includes(
+      "s4pTabClass"
+    ),
+  "PC overlay pulls the Club-style supporter tabs"
+);
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
 
 console.log(
-  "Fan tabs: My S4P (with My Teams), Matchrav, P4P, Climate Projects (with Climate Sponsors), CIFT, Logout."
+  "Fan tabs wrap like Club Select Match: My S4P (with My Teams), Matchrav, P4P, Climate Projects (with Climate Sponsors), CIFT, Logout."
 );

@@ -11,6 +11,7 @@ import {
   SUPPORTER_TEAMS_PATH,
   isMyS4PPath,
 } from "@/app/lib/routes";
+import { s4pTabClass } from "@/app/lib/s4p-tabs";
 
 export const FAN_TAB_LINKS = [
   { href: SUPPORTER_CAMPAIGN_PATH, label: "My S4P", match: "campaign" as const },
@@ -31,9 +32,6 @@ export const FAN_TAB_LINKS = [
   },
   { href: SUPPORTER_CIFT_PATH, label: "CIFT", match: "cift" as const },
 ];
-
-const TAB_CLASS =
-  "min-w-0 w-full overflow-hidden whitespace-normal rounded-lg px-0.5 py-2 text-center text-[10px] font-semibold leading-tight sm:px-4 sm:text-sm";
 
 function isActive(match: (typeof FAN_TAB_LINKS)[number]["match"], pathname: string) {
   if (match === "campaign") {
@@ -73,19 +71,20 @@ export function FanTabBar({
     <nav
       aria-label="Supporter"
       data-fan-tabs="6"
-      className="grid w-full grid-cols-6 gap-0.5 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2"
+      data-fan-tabs-style="club-buttons"
+      className="flex flex-wrap items-center gap-2"
     >
       {FAN_TAB_LINKS.map((link) => {
         const active = isActive(link.match, pathname);
+        const bigger = link.match === "campaign";
+
         return (
           <Link
             key={link.href}
             href={link.href}
-            className={`${TAB_CLASS} transition ${
-              active
-                ? "bg-green-500 text-slate-950"
-                : "bg-slate-800 text-slate-200 hover:bg-slate-700"
-            }`}
+            className={`rounded-lg px-4 py-2 font-semibold transition ${
+              bigger ? "px-5 py-2.5 text-base sm:text-lg" : "text-sm"
+            } ${s4pTabClass(active)}`}
           >
             {link.label}
           </Link>
@@ -94,7 +93,7 @@ export function FanTabBar({
       <button
         type="button"
         onClick={onLogout}
-        className={`${TAB_CLASS} bg-slate-800 text-slate-200 hover:bg-red-600 hover:text-white`}
+        className="rounded-lg border border-s4p-mark bg-s4p-mark/15 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-red-600 hover:text-white"
       >
         Logout
       </button>
