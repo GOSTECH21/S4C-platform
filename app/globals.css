@@ -426,11 +426,16 @@ header {
   background: #f7f4e8 !important;
   color: #000000 !important;
   border-color: #000000 !important;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 [data-fan-footprint="fan-footprint-v1"] .fp-card {
   background: #fffdf8 !important;
   color: #000000 !important;
   border-color: #000000 !important;
+  max-width: 100%;
+  min-width: 0;
 }
 [data-fan-footprint="fan-footprint-v1"] .fp-muted {
   color: #0c5c2c !important;

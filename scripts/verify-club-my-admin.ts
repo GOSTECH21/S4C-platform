@@ -285,8 +285,9 @@ const footprintUi = readFileSync(
   "utf8"
 );
 assert(
-  footprintUi.includes("Travel Emissions per Match") &&
+    footprintUi.includes("Travel Emissions per Match") &&
     footprintUi.includes("Transport Mode Split") &&
+    footprintUi.includes("min-w-0 overflow-hidden") &&
     footprintUi.includes("Export Report") &&
     footprintUi.includes("FAN_FOOTPRINT_FUTURE_NOTE") &&
     readFileSync("app/globals.css", "utf8").includes(

@@ -44,7 +44,7 @@ export function FanFootprintAnalytics({
   return (
     <section
       data-fan-footprint={FAN_FOOTPRINT_STAMP}
-      className="mt-12 overflow-hidden rounded-3xl border p-5 sm:p-8"
+      className="mt-12 min-w-0 max-w-full overflow-x-hidden rounded-3xl border p-3 sm:p-8"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3">
@@ -134,21 +134,21 @@ export function FanFootprintAnalytics({
             />
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-5">
-            <div className="fp-card rounded-2xl border p-5 xl:col-span-3">
-              <h3 className="fp-muted text-sm font-semibold">
+          <div className="grid min-w-0 gap-4 xl:grid-cols-5">
+            <div className="fp-card min-w-0 overflow-hidden rounded-2xl border p-3 sm:p-5 xl:col-span-3">
+              <h3 className="fp-muted text-sm font-semibold leading-snug">
                 Travel Emissions per Match (Season Trend)
               </h3>
-              <div className="mt-6 flex h-52 items-stretch gap-3">
+              <div className="mt-4 flex h-52 min-w-0 items-stretch gap-1 sm:mt-6 sm:gap-3">
                 {report.months.map((row) => (
                   <div
                     key={row.month}
-                    className="flex min-h-0 flex-1 flex-col items-center"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col items-center"
                   >
-                    <span className="fp-muted text-xs font-semibold">
+                    <span className="fp-muted text-[10px] font-semibold sm:text-xs">
                       {formatFanFootprintTonnes(row.tonnes)}
                     </span>
-                    <div className="mt-2 flex min-h-0 w-full flex-1 items-end justify-center">
+                    <div className="mt-2 flex min-h-0 w-full min-w-0 flex-1 items-end justify-center">
                       <div
                         className="w-full max-w-12 rounded-t-lg"
                         style={{
@@ -158,18 +158,19 @@ export function FanFootprintAnalytics({
                         }}
                       />
                     </div>
-                    <span className="mt-2 text-xs font-semibold">
+                    <span className="mt-2 text-center text-[10px] font-semibold sm:text-xs">
                       {row.month}
                     </span>
-                    <span className="fp-muted text-[10px]">
-                      {row.matches} matches
+                    <span className="fp-muted w-full min-w-0 text-center text-[9px] leading-tight sm:text-[10px]">
+                      {row.matches}
+                      <span className="hidden sm:inline"> matches</span>
                     </span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="fp-card rounded-2xl border p-5 xl:col-span-2">
-              <h3 className="fp-muted text-sm font-semibold">
+            <div className="fp-card min-w-0 overflow-hidden rounded-2xl border p-3 sm:p-5 xl:col-span-2">
+              <h3 className="fp-muted text-sm font-semibold leading-snug">
                 Transport Mode Split
               </h3>
               <ul className="mt-5 space-y-4">
