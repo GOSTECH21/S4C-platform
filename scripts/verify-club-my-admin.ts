@@ -32,6 +32,13 @@ import {
   SEND_INVITATIONS_LABEL,
 } from "../app/lib/sponsor-listings";
 import { howS4pSelectMatchCopy } from "../app/lib/how-s4p-works";
+import { ciltBaselineStanding } from "../app/lib/cilt";
+import {
+  FAN_FOOTPRINT_NAME,
+  FAN_FOOTPRINT_TABS,
+  fanFootprintReport,
+} from "../app/lib/fan-footprint";
+import { formatMoney } from "../app/lib/sponsorship-auction";
 
 const failures: string[] = [];
 
@@ -40,6 +47,25 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(CLUB_ADMIN_PATH === "/club/admin", "My Admin lives at /club/admin");
+assert(
+  formatMoney(1320) === "£1,320",
+  "Collapsed sponsorships end on Match-Sponsorship: £1,320"
+);
+assert(
+  ciltBaselineStanding("Rangers")?.league === "Scottish Premiership" &&
+    ciltBaselineStanding("Rangers")?.position === 2 &&
+    ciltBaselineStanding("Rangers")?.size === 12,
+  "Rangers FanFootprint league position uses the Scottish Premiership table"
+);
+assert(
+  FAN_FOOTPRINT_NAME === "FanFootprint Analytics" &&
+    FAN_FOOTPRINT_TABS.map((row) => row.label).join(",") ===
+      "Core Dashboard,Match Analysis,Scenario Simulator,Compliance,Commercial" &&
+    fanFootprintReport({ clubName: "Rangers" }).clubName === "Rangers" &&
+    fanFootprintReport({ clubName: "Rangers" }).leagueName ===
+      "Scottish Premiership",
+  "FanFootprint Analytics is the Sustainability Director reference board"
+);
 assert(
   SELECT_CLIMATE_PROJECTS_LABEL === "Select Climate Projects",
   "Choose Projects defaults to the blue Select Climate Projects label"
@@ -247,8 +273,26 @@ assert(
     lookback.includes("clubDashboardLookbackCopy") &&
     lookback.includes("S4P Climate Impact League Table") &&
     lookback.includes("climateImpactLeagueTable") &&
-    lookback.includes("Download file record"),
-  "My Admin holds the Match Day File Record and CILT sections"
+    lookback.includes("Download file record") &&
+    lookback.includes('data-lookback-accordion="lookback-accordion-v1"') &&
+    lookback.includes("aria-expanded") &&
+    lookback.includes("Match-Sponsorship:") &&
+    lookback.includes("FanFootprintAnalytics"),
+  "My Admin holds the Match Day File Record, collapsed sponsorships, FanFootprint and CILT"
+);
+const footprintUi = readFileSync(
+  "app/components/club/FanFootprintAnalytics.tsx",
+  "utf8"
+);
+assert(
+  footprintUi.includes("Travel Emissions per Match") &&
+    footprintUi.includes("Transport Mode Split") &&
+    footprintUi.includes("Export Report") &&
+    footprintUi.includes("FAN_FOOTPRINT_FUTURE_NOTE") &&
+    readFileSync("app/globals.css", "utf8").includes(
+      '[data-fan-footprint="fan-footprint-v1"]'
+    ),
+  "FanFootprint Analytics matches the Core Dashboard layout"
 );
 assert(
     sponsors.includes("resolveClubSelectedMatch") &&

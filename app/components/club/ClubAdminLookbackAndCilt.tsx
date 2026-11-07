@@ -37,6 +37,7 @@ import {
   lookbackSponsorForRecord,
 } from "@/app/lib/sponsor-dashboard";
 import { BrandMark } from "@/app/components/club/BrandMark";
+import { FanFootprintAnalytics } from "@/app/components/club/FanFootprintAnalytics";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { approvedIdsForClubMatch } from "@/app/services/sponsor-listings.service";
@@ -207,85 +208,36 @@ export default function ClubAdminLookbackAndCilt({
                 (name) => sponsorLogoSrc(name, null)
               );
               return (
-                <div
+                <LookbackSponsorshipAccordion
                   key={record.id}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-6"
-                >
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div className="flex items-start gap-3">
-                      {sponsor && (
-                        <BrandMark
-                          name={sponsor.name}
-                          logoUrl={sponsor.logoUrl}
-                        />
-                      )}
-                      <div>
-                        <h3 className="text-xl font-bold">
-                          {record.matchLabel}
-                        </h3>
-                        {sponsor && (
-                          <p className="mt-1 text-sm font-semibold text-amber-300">
-                            Sponsored by {sponsor.name}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-400">
-                      {new Date(record.savedAt).toLocaleString("en-GB")}
-                    </p>
-                  </div>
-                  {record.minAmount != null && (
-                    <p className="mt-2 text-sm text-green-300">
-                      Match-Sponsorship: {formatMoney(record.minAmount)}
-                    </p>
-                  )}
-                  <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    Selected
-                  </p>
-                  <ul className="mt-2 space-y-2 text-slate-300">
-                    {record.selected.map((project) => {
-                      const approved =
-                        approvedIds.has(project.id) || Boolean(sponsor);
-                      const funding = lookbackProjectFunding({
-                        project,
-                        fanFunding,
-                        catalog: selected,
-                      });
-                      return (
-                        <li
-                          key={project.id}
-                          className="flex flex-wrap items-center gap-2"
-                        >
-                          <span>• {project.name}</span>
-                          {approved ? (
-                            <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
-                              {MATCH_DAY_APPROVED_LABEL}
-                            </span>
-                          ) : null}
-                          {funding.fullyFunded ? (
-                            <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
-                              {MATCH_DAY_FULLY_FUNDED_LABEL}
-                            </span>
-                          ) : null}
-                          {approved &&
-                          (funding.soughtGbp > 0 || funding.receivedGbp > 0) ? (
-                            <span className="text-sm text-green-300">
-                              {matchDayProjectFundingLine(
-                                funding.receivedGbp,
-                                funding.soughtGbp
-                              )}
-                            </span>
-                          ) : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                  record={record}
+                  sponsor={sponsor}
+                  approvedIds={approvedIds}
+                  fanFunding={fanFunding}
+                  catalog={selected}
+                />
               );
             })}
           </div>
         )}
       </section>
+
+      <FanFootprintAnalytics
+        clubName={club.name}
+        sponsorships={lookbackRecords.map((record) => {
+          const sponsor = lookbackSponsorForRecord(
+            record,
+            signedCopies,
+            (name) => sponsorLogoSrc(name, null)
+          );
+          return {
+            fixture: record.matchLabel,
+            amountGbp: record.minAmount ?? 0,
+            savedAt: record.savedAt,
+            sponsorName: sponsor?.name ?? record.sponsorName ?? null,
+          };
+        })}
+      />
 
       <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -345,5 +297,105 @@ export default function ClubAdminLookbackAndCilt({
         </div>
       </section>
     </>
+  );
+}
+
+function LookbackSponsorshipAccordion({
+  record,
+  sponsor,
+  approvedIds,
+  fanFunding,
+  catalog,
+}: {
+  record: ClubFileRecord;
+  sponsor: { name: string; logoUrl: string | null } | null;
+  approvedIds: Set<string>;
+  fanFunding: ReturnType<typeof readProjectFunding>;
+  catalog: ClimateProject[];
+}) {
+  const [open, setOpen] = useState(false);
+  const detailsId = `lookback-${record.id}`;
+
+  return (
+    <article
+      data-lookback-accordion="lookback-accordion-v1"
+      className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-950"
+    >
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={detailsId}
+          onClick={() => setOpen((current) => !current)}
+          className="flex w-full items-start gap-3 p-6 text-left"
+        >
+          {sponsor ? (
+            <BrandMark name={sponsor.name} logoUrl={sponsor.logoUrl} />
+          ) : null}
+          <span className="min-w-0 flex-1">
+            <span className="block text-xl font-bold text-white">
+              {record.matchLabel}
+            </span>
+            <span className="mt-1 block text-sm font-semibold text-amber-300">
+              Sponsored by {sponsor?.name ?? "a Climate Sponsor"}
+            </span>
+            <span className="mt-2 block text-sm text-green-300">
+              Match-Sponsorship: {formatMoney(record.minAmount ?? 0)}
+            </span>
+          </span>
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">
+            {open ? "Hide" : "Details"}
+          </span>
+        </button>
+      </h3>
+      {open ? (
+        <div id={detailsId} className="px-6 pb-6">
+          <p className="text-sm text-slate-400">
+            {new Date(record.savedAt).toLocaleString("en-GB")}
+          </p>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Selected
+          </p>
+          <ul className="mt-2 space-y-2 text-slate-300">
+            {record.selected.map((project) => {
+              const approved =
+                approvedIds.has(project.id) || Boolean(sponsor);
+              const funding = lookbackProjectFunding({
+                project,
+                fanFunding,
+                catalog,
+              });
+              return (
+                <li
+                  key={project.id}
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  <span>• {project.name}</span>
+                  {approved ? (
+                    <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
+                      {MATCH_DAY_APPROVED_LABEL}
+                    </span>
+                  ) : null}
+                  {funding.fullyFunded ? (
+                    <span className="rounded-full bg-s4p-mark px-2.5 py-0.5 text-xs font-semibold text-slate-950">
+                      {MATCH_DAY_FULLY_FUNDED_LABEL}
+                    </span>
+                  ) : null}
+                  {approved &&
+                  (funding.soughtGbp > 0 || funding.receivedGbp > 0) ? (
+                    <span className="text-sm text-green-300">
+                      {matchDayProjectFundingLine(
+                        funding.receivedGbp,
+                        funding.soughtGbp
+                      )}
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+    </article>
   );
 }

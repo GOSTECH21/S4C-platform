@@ -150,6 +150,30 @@ export function scottishPremiershipCilt(
   return climateImpactLeagueTable("Scottish Premiership", clubName, extraTonnes);
 }
 
+export function ciltBaselineStanding(clubName: string): {
+  league: string;
+  position: number;
+  size: number;
+  tonnes: number;
+} | null {
+  for (const [league, tonnes] of Object.entries(TONNES_BY_LEAGUE)) {
+    const ranked = Object.entries(tonnes).sort(
+      (left, right) => right[1] - left[1] || left[0].localeCompare(right[0])
+    );
+    const index = ranked.findIndex(([name]) =>
+      seasonNamesMatch(name, clubName)
+    );
+    if (index < 0) continue;
+    return {
+      league,
+      position: index + 1,
+      size: ranked.length,
+      tonnes: ranked[index][1],
+    };
+  }
+  return null;
+}
+
 export function ciltPositionLabel(row: CiltRow | undefined): string {
   if (!row) return "Not ranked";
   const suffix =

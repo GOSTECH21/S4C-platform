@@ -421,3 +421,33 @@ header {
     letter-spacing: 0.06em;
   }
 }
+
+[data-fan-footprint="fan-footprint-v1"] {
+  background: #0b1220 !important;
+  color: #f4f7fb !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-card {
+  background: #151c2c !important;
+  color: #f4f7fb !important;
+  border-color: rgb(255 255 255 / 0.08) !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-muted {
+  color: #9aa8bd !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-tab {
+  background: #151c2c !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-tab-on {
+  background: #f4f7fb !important;
+  color: #0b1220 !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-tab-off {
+  color: #c5d0e0 !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-good {
+  color: #4ade80 !important;
+}
+[data-fan-footprint="fan-footprint-v1"] .fp-settings {
+  background: #22c55e !important;
+  color: #052e16 !important;
+}

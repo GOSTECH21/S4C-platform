@@ -5,18 +5,19 @@ import ClubNav from "@/app/components/club/ClubNav";
 import ClubAdminLookbackAndCilt from "@/app/components/club/ClubAdminLookbackAndCilt";
 
 const PREVIEW_CLUB = {
-  id: "preview-hearts",
-  name: "Hearts",
+  id: "preview-rangers",
+  name: "Rangers",
   country: "Scotland",
 };
 
 const PREVIEW_RECORD = {
-  id: "dundee-hearts",
+  id: "rangers-aberdeen",
   clubId: PREVIEW_CLUB.id,
   campaignId: null,
-  savedAt: "2026-10-26T16:16:43.000Z",
-  matchLabel: "Dundee vs Hearts",
-  minAmount: 1000,
+  savedAt: "2026-11-06T15:48:37.000Z",
+  matchLabel: "Rangers vs Aberdeen",
+  minAmount: 1320,
+  sponsorName: "Scotmid Coop",
   selected: [
     { id: "gss", name: "Global Schools Solar" },
     { id: "retrofit", name: "Edinburgh Building Retrofit Collective" },
@@ -27,14 +28,19 @@ const PREVIEW_RECORD = {
   voted: [],
 };
 
+function seedPreviewRecords() {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    `s4p.sd.fileRecords.${PREVIEW_CLUB.id}`,
+    JSON.stringify([PREVIEW_RECORD])
+  );
+}
+
 export default function ClubAdminPreviewPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      `s4p.sd.fileRecords.${PREVIEW_CLUB.id}`,
-      JSON.stringify([PREVIEW_RECORD])
-    );
+    seedPreviewRecords();
     setReady(true);
   }, []);
 
