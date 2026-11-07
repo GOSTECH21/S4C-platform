@@ -84,6 +84,9 @@ assert(
   readFileSync("apply-fan-tabs-club-buttons.mjs", "utf8").includes(
     "cursor/fan-tabs-club-buttons-18f9"
   ) &&
+    readFileSync("apply-fan-tabs-club-buttons.mjs", "utf8").includes(
+      'PIN = "335732f"'
+    ) &&
     readFileSync("app/dashboard/supporter/components/FanTabBar.tsx", "utf8").includes(
       "s4pTabClass"
     ),

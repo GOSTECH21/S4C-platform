@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "335732f";
 const BRANCH = "cursor/fan-tabs-club-buttons-18f9";
 const FILES = [
   "app/dashboard/supporter/components/FanTabBar.tsx",
