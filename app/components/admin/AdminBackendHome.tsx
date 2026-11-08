@@ -11,7 +11,12 @@ import {
   type AdminSupporterRecord,
 } from "@/app/lib/admin-backend";
 import { setAdminParticipantPresence } from "@/app/services/admin-backend.service";
-import { s4pTabClass } from "@/app/lib/s4p-tabs";
+
+function adminTabClass(active: boolean) {
+  return active
+    ? "border border-lime-400 bg-lime-400 text-slate-950 hover:brightness-110"
+    : "border border-lime-400 bg-lime-400/15 text-slate-950 hover:bg-lime-400/30";
+}
 
 const SEGMENTS = [
   { id: "clubs", label: "Clubs", full: "Clubs" },
@@ -202,7 +207,7 @@ export function AdminBackendHome({
               aria-label={segment.full}
               aria-pressed={active}
               onClick={() => setOpen(segment.id)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold sm:px-4 ${s4pTabClass(active)}`}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold sm:px-4 ${adminTabClass(active)}`}
             >
               {segment.label}
               <span className="ml-1.5 text-xs font-bold">{count}</span>

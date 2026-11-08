@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "f56adab";
+const PIN = "PENDING";
 const BRANCH = "cursor/admin-backend-18f9";
 const FILES = [
   "app/lib/admin-backend.ts",
@@ -77,10 +77,11 @@ if (
   !sidebar.includes("Backend") ||
   sidebar.includes("Registered participants") ||
   !home.includes("data-admin-segment={segment.id}") ||
-  !home.includes("s4pTabClass") ||
+  !home.includes("adminTabClass") ||
   !home.includes("Keep") ||
   !nav.includes("md:hidden") ||
-  !nav.includes("s4pTabClass")
+  !nav.includes("adminTabClass") ||
+  sidebar.includes("S4PLockup")
 ) {
   console.error("The Admin backend did not land. Stay in the s4c-platform folder and run the git fetch / checkout lines again.");
   process.exit(1);

@@ -29,7 +29,8 @@ assert(
     sidebar.includes("hidden") &&
     sidebar.includes("md:block") &&
     !sidebar.includes("Registered participants") &&
-    !sidebar.includes("Sponsor Campaigns"),
+    !sidebar.includes("Sponsor Campaigns") &&
+    !sidebar.includes("S4PLockup"),
   "Admin sidebar stays on PC and is hidden on a phone"
 );
 
@@ -38,7 +39,7 @@ assert(
     layout.includes("overflow-x-hidden") &&
     header.includes("hidden") &&
     header.includes("md:flex") &&
-    nav.includes("s4pTabClass") &&
+    nav.includes("adminTabClass") &&
     nav.includes("md:hidden") &&
     nav.includes("Backend") &&
     nav.includes("Catalogue") &&
@@ -56,7 +57,7 @@ assert(
 
 assert(
   home.includes("data-admin-segment={segment.id}") &&
-    home.includes("s4pTabClass") &&
+    home.includes("adminTabClass") &&
     home.includes("grid-cols-2") &&
     home.includes("flex-wrap") &&
     home.includes("ADMIN_MOBILE_STAMP") &&

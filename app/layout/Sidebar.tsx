@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { S4PLockup } from "@/app/components/S4PLockup";
 import {
   ADMIN_CATALOGUE_PATH,
   ADMIN_PATH,
@@ -15,8 +14,12 @@ export default function Sidebar() {
   return (
     <aside className="hidden min-h-screen w-56 border-r border-emerald-400/20 bg-slate-900/80 p-6 text-white backdrop-blur md:block">
       <div className="mb-4 md:mb-10">
-        <Link href={HOME_PATH} aria-label="S4P SCORE-FOR-PLANET">
-          <S4PLockup className="h-12 w-auto max-w-[11rem] object-contain object-left" />
+        <Link
+          href={HOME_PATH}
+          aria-label="S4P SCORE-FOR-PLANET"
+          className="text-lg font-black tracking-tight text-white"
+        >
+          S4P
         </Link>
         <p className="mt-2 text-sm text-slate-400">Score-For-Planet</p>
       </div>
