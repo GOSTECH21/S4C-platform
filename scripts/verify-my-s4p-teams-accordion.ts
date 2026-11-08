@@ -27,9 +27,11 @@ assert(
     !panel.includes("setEditing(teams.length === 0)") &&
     panel.includes('editing ? "Add or change teams"') &&
     panel.includes("FAN_REGISTER_TEAMS_COPY") &&
+    panel.includes("FAN_REGISTER_TEAMS_INTRO") &&
+    panel.includes('data-saved-teams-accordion="saved-teams-accordion-v1"') &&
     panel.includes("Show my teams") &&
     panel.includes("<TeamPicker"),
-  "My S4P opens on Add or change teams with the sport list accordion-hidden"
+  "My S4P opens on Add or change teams, then accordion-hides the picker after Save My Teams"
 );
 assert(
   myS4p.includes('from "@/app/components/fan/FanMyTeamsPanel"') &&

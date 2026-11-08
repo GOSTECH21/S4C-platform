@@ -89,6 +89,16 @@ function seedWallets(): ClimateWallet[] {
       brandName: "Mash Tun",
       sponsorshipGbp: 500,
     }),
+    createLocalWallet({
+      clubName: "Hibernian",
+      brandName: "Scotmid Coop",
+      sponsorshipGbp: 1149.8,
+    }),
+    createLocalWallet({
+      clubName: "Hibernian",
+      brandName: "Fountain Brewery",
+      sponsorshipGbp: 500,
+    }),
   ];
 }
 

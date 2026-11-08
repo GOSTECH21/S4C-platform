@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
-import { LEAD_CLIMATE_SPONSOR_LABEL } from "@/app/lib/dual-sponsor";
 import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
 import { fanInviteRegisterPath } from "@/app/lib/climate-funding";
 import { FAN_REGISTER_PATH } from "@/app/lib/routes";
@@ -13,7 +18,6 @@ import {
   FUND_IT_MAX_TIMES,
   canPressFundIt,
   formatWalletGbp,
-  fundItCopy,
   leadFundItCopy,
   localFundItCopy,
   normalizeBrandKey,
@@ -22,6 +26,8 @@ import {
 } from "@/app/lib/sponsor-wallet";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
+
+export const LOCAL_SPONSOR_FUND_SLOTS = 4;
 
 export type CarbonWalletSponsor = {
   brandName: string;
@@ -36,8 +42,6 @@ export type WalletVoteInput = {
   projectNumber?: string;
   split?: boolean;
 };
-
-const FUND_IT_COPY = fundItCopy();
 
 export function ClimateProjectSponsors({
   lead,
@@ -108,6 +112,10 @@ export function ClimateProjectSponsors({
   const localRows = locals.filter(
     (row) => row.kind !== "lead" && !isLeadClimateBrand(row.brandName)
   );
+  const localSlots: Array<CarbonWalletSponsor | null> = Array.from(
+    { length: LOCAL_SPONSOR_FUND_SLOTS },
+    (_, index) => localRows[index] ?? null
+  );
   const remainingFunds = roundDisplay(
     (lead ? lead.remainingGbp : 0) +
       localRows.reduce((sum, row) => sum + row.remainingGbp, 0)
@@ -154,108 +162,79 @@ export function ClimateProjectSponsors({
   }
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-8" data-my-s4p-fund-strips="fund-strips-v1">
       <div>
-        <h2 className="text-3xl font-black">Climate Project Sponsor</h2>
-        <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          {FUND_IT_COPY} By the end of Day 5 every Carbon Wallet should show{" "}
-          {formatWalletGbp(0)}.
-        </p>
-      </div>
-
-      {lead ? (
-        <div
-          id="lead-fund-it"
-          data-lead-fund-it="lead-fund-it-v1"
-          data-fund-it-native="lead-fund-it-take-v1"
-          className="rounded-2xl border border-white/10 bg-slate-950/70"
-        >
-          <p className="px-4 pt-3 text-center text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-emerald-300">
-            Lead Climate Project Sponsor
-          </p>
-          <p className="px-4 pt-2 text-center text-sm text-slate-400">
-            {leadFundItCopy()}
-          </p>
-          <div className="mt-3 flex flex-col gap-4 p-4 xl:flex-row xl:items-center">
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-xl bg-white px-4 py-3">
-              <BrandMark name={lead.brandName} logoUrl={leadLogo} large />
-              <div className="min-w-0">
-                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                  {LEAD_CLIMATE_SPONSOR_LABEL}
-                </p>
-                <p className="text-lg font-black leading-tight text-slate-950">
-                  {lead.brandName}
-                </p>
-              </div>
-            </div>
-            <CarbonWalletBox amount={lead.remainingGbp} />
-            <FundProjectSelect
-              brandName={lead.brandName}
+        <p className="max-w-3xl text-sm text-slate-300">{leadFundItCopy()}</p>
+        {lead ? (
+          <div
+            id="lead-fund-it"
+            data-lead-fund-it="lead-fund-it-v1"
+            data-fund-it-native="lead-fund-it-take-v1"
+            className="mt-4"
+          >
+            <SponsorFundStrip
+              kind="lead"
+              sponsor={lead}
+              logoUrl={leadLogo}
               projects={projectChoices}
               numberValue={leadNumber}
               used={leadUsed}
+              blocked={leadBlocked}
               onNumber={setLeadNumber}
+              onFund={fundLead}
               testIdPrefix="lead"
-              label="Climate Project"
+              fundTestId="lead-vote"
               emptyLabel="Select a Climate Project"
               ariaLabel={`Select a Climate Project to receive funding from ${lead.brandName}`}
             />
-            <div className="flex flex-col gap-2">
-              <FundItButton
-                disabled={leadBlocked}
-                used={leadUsed}
-                onClick={fundLead}
-                testId="lead-vote"
-              />
-              {voteError ? (
-                <p
-                  data-fund-it-error="lead-fund-it-error"
-                  className="rounded-xl border-2 border-red-700 bg-red-50 px-3 py-2 text-center text-sm font-bold text-red-800"
-                >
-                  {voteError}
-                </p>
-              ) : null}
-              {voteNotice && !voteError ? (
-                <p
-                  data-fund-it-notice="lead-fund-it-notice"
-                  className="rounded-xl border-2 border-green-700 bg-green-50 px-3 py-2 text-center text-sm font-bold text-green-900"
-                >
-                  {voteNotice}
-                </p>
-              ) : null}
-              {lead && !leadUsed && leadBlocked && !leadNumber ? (
-                <p className="text-center text-xs font-semibold text-amber-800">
-                  Choose a Climate Project above, then press {FUND_IT_LABEL}.
-                </p>
-              ) : null}
-              {lead && !leadUsed && leadBlocked && Boolean(leadNumber) && !votingOpen ? (
-                <p className="text-center text-xs font-semibold text-amber-800">
-                  Voting is not open for this Match Day.
-                </p>
-              ) : null}
-            </div>
+            {voteError ? (
+              <p
+                data-fund-it-error="lead-fund-it-error"
+                className="mt-3 rounded-xl border-2 border-red-700 bg-red-50 px-3 py-2 text-center text-sm font-bold text-red-800"
+              >
+                {voteError}
+              </p>
+            ) : null}
+            {voteNotice && !voteError ? (
+              <p
+                data-fund-it-notice="lead-fund-it-notice"
+                className="mt-3 rounded-xl border-2 border-green-700 bg-green-50 px-3 py-2 text-center text-sm font-bold text-green-900"
+              >
+                {voteNotice}
+              </p>
+            ) : null}
           </div>
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-400">
-          No Lead Climate Sponsor has posted a Carbon Wallet for this Match Day
-          yet.
-        </div>
-      )}
-
-      <div>
-        <h3 className="text-2xl font-black">Local Business Climate Sponsors</h3>
-        <p className="mt-1 text-sm text-slate-400">{localFundItCopy()}</p>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-400">
+            No Lead Climate Sponsor has posted a Carbon Wallet for this Match Day
+            yet.
+          </div>
+        )}
       </div>
 
-      {localRows.length === 0 ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-400">
-          No Local Business Climate Sponsors have a Carbon Wallet for this Match
-          Day yet.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {localRows.map((row) => {
+      <div>
+        <p className="max-w-3xl text-sm text-slate-300">{localFundItCopy()}</p>
+        <div className="mt-4 space-y-3">
+          {localSlots.map((row, index) => {
+            if (!row) {
+              return (
+                <SponsorFundStrip
+                  key={`local-slot-${index + 1}`}
+                  kind="local"
+                  sponsor={null}
+                  logoUrl={null}
+                  projects={localChoices}
+                  numberValue=""
+                  used={false}
+                  blocked
+                  onNumber={() => {}}
+                  onFund={() => {}}
+                  testIdPrefix={`local-slot-${index + 1}`}
+                  fundTestId={`local-slot-${index + 1}`}
+                  emptyLabel="Select a Climate Project"
+                />
+              );
+            }
             const value = localNumbers[row.brandName] ?? "";
             const already =
               walletTakeUsed(row) &&
@@ -274,44 +253,30 @@ export function ClimateProjectSponsors({
               projectCount: listedCount,
             });
             return (
-              <div
+              <SponsorFundStrip
                 key={row.brandName}
-                className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 xl:flex-row xl:items-center"
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <BrandMark name={row.brandName} logoUrl={logo} />
-                  <div className="min-w-0">
-                    <p className="truncate font-black text-white">{row.brandName}</p>
-                    <p className="text-xs text-slate-500">
-                      Local Business Climate Sponsor
-                    </p>
-                  </div>
-                </div>
-                <CarbonWalletBox amount={row.remainingGbp} compact />
-                <FundProjectSelect
-                  brandName={row.brandName}
-                  projects={localChoices}
-                  numberValue={value}
-                  used={already}
-                  onNumber={(next) =>
-                    setLocalNumbers((prev) => ({
-                      ...prev,
-                      [row.brandName]: next,
-                    }))
-                  }
-                  testIdPrefix={`local-${row.brandName}`}
-                />
-                <FundItButton
-                  disabled={blocked}
-                  used={already}
-                  onClick={() => fundLocal(row)}
-                  testId={`local-vote-${row.brandName}`}
-                />
-              </div>
+                kind="local"
+                sponsor={row}
+                logoUrl={logo}
+                projects={localChoices}
+                numberValue={value}
+                used={already}
+                blocked={blocked}
+                onNumber={(next) =>
+                  setLocalNumbers((prev) => ({
+                    ...prev,
+                    [row.brandName]: next,
+                  }))
+                }
+                onFund={() => fundLocal(row)}
+                testIdPrefix={`local-${row.brandName}`}
+                fundTestId={`local-vote-${row.brandName}`}
+                emptyLabel="Select a Climate Project"
+              />
             );
           })}
         </div>
-      )}
+      </div>
 
       {showInvite && remainingFunds > 0 ? (
         <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6">
@@ -343,25 +308,105 @@ export function ClimateProjectSponsors({
   );
 }
 
-function CarbonWalletBox({
-  amount,
-  compact = false,
+function SponsorFundStrip({
+  kind,
+  sponsor,
+  logoUrl,
+  projects,
+  numberValue,
+  used,
+  blocked,
+  onNumber,
+  onFund,
+  testIdPrefix,
+  fundTestId,
+  emptyLabel,
+  ariaLabel,
 }: {
-  amount: number;
-  compact?: boolean;
+  kind: "lead" | "local";
+  sponsor: CarbonWalletSponsor | null;
+  logoUrl: string | null;
+  projects: Array<{ number: number; name: string }>;
+  numberValue: string;
+  used: boolean;
+  blocked: boolean;
+  onNumber: (value: string) => void;
+  onFund: () => void;
+  testIdPrefix: string;
+  fundTestId: string;
+  emptyLabel: string;
+  ariaLabel?: string;
 }) {
   return (
     <div
-      className={`rounded-2xl border border-emerald-400/40 bg-slate-900 text-center ${
-        compact ? "px-4 py-3" : "px-5 py-4"
-      }`}
+      data-sponsor-fund-strip={kind}
+      className="rounded-2xl border border-slate-800 bg-white p-3 text-slate-950"
     >
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-emerald-300">
-        Carbon Wallet
+      <div className="flex flex-wrap items-end gap-2">
+        <LabeledCell label="Logo" width="w-[4.5rem] shrink-0">
+          {sponsor ? (
+            <BrandMark
+              name={sponsor.brandName}
+              logoUrl={logoUrl}
+              className="h-14 w-14 text-sm"
+            />
+          ) : (
+            <div className="h-14 w-14 rounded-lg border-2 border-slate-800 bg-slate-800/80" />
+          )}
+        </LabeledCell>
+        <LabeledCell label="Name" width="min-w-[7rem] flex-1">
+          <div className="flex h-14 items-center rounded-lg border-2 border-slate-800 px-3 text-sm font-black">
+            {sponsor?.brandName ?? ""}
+          </div>
+        </LabeledCell>
+        <LabeledCell label="Carbon Wallet" width="min-w-[7rem] flex-1">
+          <div className="flex h-14 items-center justify-center rounded-lg border-2 border-slate-800 px-3 text-lg font-black text-emerald-800">
+            {sponsor ? formatWalletGbp(sponsor.remainingGbp) : ""}
+          </div>
+        </LabeledCell>
+        <LabeledCell label="Climate Projects" width="min-w-[9rem] flex-[1.2]">
+          <FundProjectSelect
+            brandName={sponsor?.brandName ?? "sponsor"}
+            projects={projects}
+            numberValue={numberValue}
+            used={used || !sponsor}
+            onNumber={onNumber}
+            testIdPrefix={testIdPrefix}
+            emptyLabel={emptyLabel}
+            ariaLabel={ariaLabel}
+          />
+        </LabeledCell>
+        <div className="flex min-w-[6.5rem] shrink-0 flex-col gap-1">
+          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+            {FUND_IT_LABEL}
+          </span>
+          <FundItButton
+            disabled={blocked || !sponsor}
+            used={used}
+            onClick={onFund}
+            testId={fundTestId}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LabeledCell({
+  label,
+  width,
+  children,
+}: {
+  label: string;
+  width: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`${width} min-w-0`}>
+      <p className="mb-1 text-center text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        {label}
       </p>
-      <p className={`font-black text-green-400 ${compact ? "text-2xl" : "mt-1 text-3xl"}`}>
-        {formatWalletGbp(amount)}
-      </p>
+      {children}
     </div>
   );
 }
@@ -373,7 +418,6 @@ function FundProjectSelect({
   used,
   onNumber,
   testIdPrefix,
-  label = "Climate Project",
   emptyLabel = "Select a Climate Project",
   ariaLabel,
 }: {
@@ -383,61 +427,44 @@ function FundProjectSelect({
   used: boolean;
   onNumber: (value: string) => void;
   testIdPrefix: string;
-  label?: string;
   emptyLabel?: string;
   ariaLabel?: string;
 }) {
   const selectId = testIdPrefix === "lead" ? "lead-project-select" : undefined;
   if (projects.length === 0) {
     return (
-      <p className="text-sm font-semibold text-amber-800">
+      <p className="flex h-14 items-center text-xs font-semibold text-amber-800">
         No Climate Projects are posted for this Match Day yet.
       </p>
     );
   }
   return (
-    <fieldset
-      className="flex min-w-0 flex-1 flex-col gap-2 text-sm"
-      data-testid={`${testIdPrefix}-project-select`}
-    >
-      <legend className="font-black text-stone-900">{label}</legend>
-      <p className="text-xs font-semibold text-stone-700">
-        Tap a Climate Project, then press {FUND_IT_LABEL}.
-      </p>
-      <div
+    <div className="relative" data-testid={`${testIdPrefix}-project-select`}>
+      <select
         id={selectId}
-        role="listbox"
+        disabled={used}
+        value={numberValue}
         aria-label={
           ariaLabel ??
           `Select a Climate Project to receive ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}`
         }
-        className="grid gap-2"
+        onChange={(event) => onNumber(event.target.value)}
+        className="h-14 w-full appearance-none rounded-lg border-2 border-slate-800 bg-white px-3 pr-8 text-sm font-bold text-slate-950 disabled:opacity-40"
       >
-        {projects.map((project) => {
-          const selected = numberValue === String(project.number);
-          return (
-            <button
-              key={project.number}
-              type="button"
-              role="option"
-              aria-selected={selected}
-              disabled={used}
-              onClick={() =>
-                onNumber(selected ? "" : String(project.number))
-              }
-              className={`rounded-xl border-2 px-3 py-3 text-left text-sm font-bold leading-snug ${
-                selected
-                  ? "border-green-600 bg-green-500 text-slate-950"
-                  : "border-stone-400 bg-[#f7f4e8] text-stone-900"
-              } disabled:opacity-40`}
-            >
-              {project.number}. {project.name}
-            </button>
-          );
-        })}
-      </div>
-      <span className="sr-only">{emptyLabel}</span>
-    </fieldset>
+        <option value="">{emptyLabel}</option>
+        {projects.map((project) => (
+          <option key={project.number} value={String(project.number)}>
+            {project.number}. {project.name}
+          </option>
+        ))}
+      </select>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-700"
+      >
+        ▼
+      </span>
+    </div>
   );
 }
 
@@ -461,9 +488,9 @@ function FundItButton({
     lock.current = now;
     onClick();
   }
-  const className = `block rounded-xl px-6 py-3 text-center text-sm font-bold no-underline ${
+  const className = `flex h-14 w-full items-center justify-center rounded-lg px-3 text-center text-sm font-bold no-underline ${
     disabled || used
-      ? "cursor-not-allowed border-2 border-stone-400 bg-transparent text-stone-500"
+      ? "cursor-not-allowed border-2 border-slate-400 bg-transparent text-slate-500"
       : "bg-green-500 text-slate-950 hover:bg-green-400"
   }`;
   if (used) {

@@ -794,8 +794,10 @@ assert(
     sponsorsUi.includes('data-lead-fund-it="lead-fund-it-v1"') &&
     sponsorsUi.includes('data-fund-it-native="lead-fund-it-take-v1"') &&
     sponsorsUi.includes('href="#lead-fund-it"') &&
-    sponsorsUi.includes("Tap a Climate Project") &&
-    sponsorsUi.includes('role="listbox"') &&
+    sponsorsUi.includes("leadFundItCopy") &&
+    sponsorsUi.includes("<select") &&
+    sponsorsUi.includes("data-sponsor-fund-strip") &&
+    sponsorsUi.includes("LOCAL_SPONSOR_FUND_SLOTS") &&
     !sponsorsUi.includes("featuredFromList") &&
     !sponsorsUi.includes("Select a Global Schools Solar version") &&
     !sponsorsUi.includes(">Checkbox<") &&
@@ -805,21 +807,18 @@ assert(
   "Lead wallets pick any listed Climate Project; Local Business wallets pick a local Climate Project"
 );
 assert(
-  sponsorsUi.includes("fundItCopy") &&
-    readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Look out for a Sponsor"
-    ) &&
+  sponsorsUi.includes("leadFundItCopy") &&
+    sponsorsUi.includes("localFundItCopy") &&
+    !sponsorsUi.includes("Climate Project Sponsor") &&
+    !sponsorsUi.includes("fundItCopy") &&
+    !sponsorsUi.includes("By the end of Day 5 every Carbon Wallet should show") &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
       "Tap a Climate Project"
     ) &&
     readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Each selected Project automatically receives"
-    ) &&
-    !readFileSync("app/lib/sponsor-wallet.ts", "utf8").includes(
-      "Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet. Lead Climate Sponsor:"
-    ) &&
-    sponsorsUi.includes("By the end of Day 5 every Carbon Wallet should show"),
-  "Climate Project Sponsors tell fans the four FUND-IT steps and that Day 5 wallets show £0"
+      "Tap a local Climate Project"
+    ),
+  "My S4P keeps only the Lead and Local FUND-IT tap lines, not the four-step sponsor essay"
 );
 assert(
   sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
