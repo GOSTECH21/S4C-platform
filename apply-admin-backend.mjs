@@ -31,10 +31,10 @@ const FILES = [
 
 console.log("Working folder:", process.cwd());
 console.log("PIN:", PIN);
-console.log("LIVE page: http://localhost:3000/preview/admin-backend");
-if (!existsSync("app/components/admin/AdminBackendHome.tsx")) {
+console.log("PC page: http://localhost:3000/admin");
+if (!existsSync("app/admin/page.tsx") || !existsSync("package.json")) {
   console.error(
-    "This is not the S4C-platform folder. cd into the folder that contains app/components/admin/AdminBackendHome.tsx, then run this script again."
+    "This is not the S4C-platform folder. cd into C:\\Users\\godwi\\OneDrive\\Desktop\\s4c-platform, then run this script again."
   );
   process.exit(1);
 }
@@ -43,11 +43,20 @@ if (existsSync(".git")) {
   const fetch = spawnSync("git", ["fetch", "origin", BRANCH], {
     encoding: "utf8",
   });
-  if (fetch.status === 0) {
-    spawnSync("git", ["checkout", `origin/${BRANCH}`, "--", ...FILES], {
-      encoding: "utf8",
-    });
+  if (fetch.status !== 0) {
+    console.error(fetch.stderr || fetch.stdout || "git fetch failed");
+    process.exit(1);
   }
+  const checkout = spawnSync(
+    "git",
+    ["checkout", `origin/${BRANCH}`, "--", ...FILES],
+    { encoding: "utf8" }
+  );
+  if (checkout.status !== 0) {
+    console.error(checkout.stderr || checkout.stdout || "git checkout failed");
+    process.exit(1);
+  }
+  console.log("Checked out Admin backend files from", BRANCH);
 }
 
 const sidebar = existsSync("app/layout/Sidebar.tsx")
@@ -59,7 +68,11 @@ const home = existsSync("app/components/admin/AdminBackendHome.tsx")
 const nav = existsSync("app/components/admin/AdminNav.tsx")
   ? readFileSync("app/components/admin/AdminNav.tsx", "utf8")
   : "";
+const admin = existsSync("app/admin/page.tsx")
+  ? readFileSync("app/admin/page.tsx", "utf8")
+  : "";
 if (
+  !admin.includes("AdminBackendHome") ||
   !sidebar.includes("Backend") ||
   sidebar.includes("Registered participants") ||
   !home.includes("data-admin-segment={segment.id}") ||
@@ -68,9 +81,9 @@ if (
   !nav.includes("md:hidden") ||
   !nav.includes("s4pTabClass")
 ) {
-  console.error("The Admin backend did not land on mobile.");
+  console.error("The Admin backend did not land. Stay in the s4c-platform folder and run the git fetch / checkout lines again.");
   process.exit(1);
 }
 console.log(
-  "OK: Admin is the platform backend with four short phone tabs. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: Admin backend is on this PC. Stop npm run dev, start it again, then open http://localhost:3000/admin and hard-refresh (Ctrl+F5)."
 );
