@@ -9,8 +9,15 @@ import {
   loadMatchDayLock,
 } from "@/app/services/climate-sponsors.service";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
-import { loadSponsorFolder } from "@/app/services/sponsor-offers.service";
+import {
+  loadClubChosenClimateProjects,
+  loadSponsorFolder,
+  type SignedSponsorship,
+  type SponsorMatchOffer,
+} from "@/app/services/sponsor-offers.service";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
+import { clubsNeedingChosenProjects, type ChosenProjectInput } from "@/app/lib/lead-sponsor-home";
+import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
 import { allLocalSponsors, readLocalSponsorRecord } from "@/app/lib/local-sponsor";
 import { lobiRowsForArea, inferredPostcodeArea, monthKeyFromDate } from "@/app/lib/lobi";
 import {
@@ -58,6 +65,16 @@ export default function LocalSponsorHomePage() {
     })
   );
   const [area, setArea] = useState("");
+  const [pending, setPending] = useState<SponsorMatchOffer[]>([]);
+  const [signed, setSigned] = useState<SignedSponsorship[]>([]);
+  const [chosenByClub, setChosenByClub] = useState<
+    Record<string, ChosenProjectInput[]>
+  >({});
+  const [votedByClub, setVotedByClub] = useState<
+    Record<string, Array<{ id: string; fundedGbp?: number | null }>>
+  >({});
+  const [lock, setLock] = useState<MatchDayClubLock | null>(null);
+  const [committedGbp, setCommittedGbp] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -94,6 +111,7 @@ export default function LocalSponsorHomePage() {
         ]);
         setClubMatches(localSponsoredClubMatches(records));
         const lock = loadMatchDayLock(brandName);
+        setLock(lock);
         const clubs = [
           ...new Set(records.map((row) => row.clubName).filter(Boolean)),
         ];
@@ -129,6 +147,10 @@ export default function LocalSponsorHomePage() {
           brandName,
           brandEmail: (sponsor.email as string | null) ?? null,
         });
+        setPending(folder.pending);
+        setSigned(folder.signed);
+        const ownFunding = localCommittedGbp(records);
+        setCommittedGbp(ownFunding);
         const clubIds = [
           ...new Set(
             [
@@ -143,11 +165,29 @@ export default function LocalSponsorHomePage() {
             return [clubId, voted] as const;
           })
         );
+        const votedMap = Object.fromEntries(votedEntries);
+        setVotedByClub(votedMap);
+        const clubNames = clubsNeedingChosenProjects({
+          pending: folder.pending,
+          signed: folder.signed,
+          lock,
+        });
+        const chosenEntries = await Promise.all(
+          clubNames.map(async (name) => {
+            try {
+              const chosen = await loadClubChosenClimateProjects(name);
+              return [name, chosen?.projects ?? []] as const;
+            } catch {
+              return [name, []] as const;
+            }
+          })
+        );
+        setChosenByClub(Object.fromEntries(chosenEntries));
         setProjects(
           fundedClimateProjectsForHome(
             folder.signed,
             folder.pending,
-            Object.fromEntries(votedEntries)
+            votedMap
           )
         );
       } catch {
@@ -173,6 +213,12 @@ export default function LocalSponsorHomePage() {
       lobiRows={lobiRows}
       postcodeArea={area}
       onNewSponsorship={() => router.push(localNewSponsorshipPath())}
+      pending={pending}
+      signed={signed}
+      chosenByClub={chosenByClub}
+      votedByClub={votedByClub}
+      lock={lock}
+      committedGbp={committedGbp}
     />
   );
 }

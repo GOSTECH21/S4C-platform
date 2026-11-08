@@ -333,6 +333,7 @@ export default function SponsorWalletPage() {
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <ClubLeagueMenu
                 value={clubName}
+                allPlatformClubs
                 onChange={(club) => applyLocalLock(club, null)}
               />
               <MatchFixtureMenu
@@ -369,9 +370,9 @@ export default function SponsorWalletPage() {
               </p>
             ) : (
               <p className="mt-4 text-sm text-slate-400">
-                Select a club from Premier League or Scottish Premiership, then
-                select the Match you wish to sponsor. You can then See Match
-                details and top up the cash fans will put into Climate Projects.
+                Select any club on the Sporting Calendar, then select the Match
+                you wish to sponsor. You can then See Match details and top up
+                the cash fans will put into Climate Projects.
               </p>
             )}
             <button

@@ -266,13 +266,14 @@ function groupFromOffer({
 function awaitingActionHref(
   offerId: string | null,
   clubName: string,
-  lock?: MatchDayClubLock | null
+  lock?: MatchDayClubLock | null,
+  fallbackHref = SPONSOR_CALENDAR_PATH
 ) {
   if (offerId) return sponsorOfferSignOffPath(offerId);
   if (lock && clubsMatch(lock.clubName, clubName)) {
     return sponsorWalletPath(clubName);
   }
-  return SPONSOR_CALENDAR_PATH;
+  return fallbackHref;
 }
 
 function groupFromFolder(
@@ -318,6 +319,7 @@ export function leadSponsorHomeSections({
   votedByClub = {},
   lock,
   folder = [],
+  awaitingFallbackHref = SPONSOR_CALENDAR_PATH,
 }: {
   pending: FolderOffer[];
   signed: SignedSponsorship[];
@@ -325,6 +327,7 @@ export function leadSponsorHomeSections({
   votedByClub?: Record<string, VotedProjectInput[]>;
   lock?: MatchDayClubLock | null;
   folder?: LeadFolderEntry[];
+  awaitingFallbackHref?: string;
 }): LeadSponsorHomeSections {
   const awaiting: LeadSponsorMatchGroup[] = [];
   const coveredClubs: string[] = [];
@@ -347,7 +350,12 @@ export function leadSponsorHomeSections({
       groupFromOffer({
         offer: titled,
         projects: merged.map(asProject),
-        actionHref: awaitingActionHref(offer.id, offer.clubName, lock),
+        actionHref: awaitingActionHref(
+          offer.id,
+          offer.clubName,
+          lock,
+          awaitingFallbackHref
+        ),
         actionLabel: LEAD_ACCEPT_LABEL,
         key: `awaiting:${offer.id}`,
       })
@@ -387,7 +395,12 @@ export function leadSponsorHomeSections({
           maxAmount: lock?.maximumSponsorshipGbp ?? null,
         },
         projects: uploaded.map(asProject),
-        actionHref: awaitingActionHref(null, clubName, lock),
+        actionHref: awaitingActionHref(
+          null,
+          clubName,
+          lock,
+          awaitingFallbackHref
+        ),
         actionLabel: LEAD_ACCEPT_LABEL,
         key: `awaiting:chosen:${clubName}`,
       })

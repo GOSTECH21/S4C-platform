@@ -220,8 +220,14 @@ assert(
     ) &&
     readFileSync("app/components/sponsor/LocalSignedSponsorHome.tsx", "utf8").includes(
       "Who you are sponsoring"
+    ) &&
+    readFileSync("app/components/sponsor/LocalSignedSponsorHome.tsx", "utf8").includes(
+      "SponsorAbcdSections"
+    ) &&
+    readFileSync("app/components/sponsor/LocalSignedSponsorHome.tsx", "utf8").includes(
+      'data-local-abcd="local-abcd-v1"'
     ),
-  "The Local home shows club/match, calendar, where money went, and LOBI"
+  "The Local home shows club/match, calendar, sections A-D, where money went, and LOBI"
 );
 assert(
   homePage.includes("hydrateLocalSponsorRecords") &&

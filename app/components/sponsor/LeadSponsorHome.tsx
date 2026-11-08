@@ -56,7 +56,7 @@ export function LeadSponsorHome({
   votedByClub,
   committedGbp,
   lock,
-  folder: folderOverride,
+  folder,
   onLogoChange,
 }: {
   brand: string;
@@ -70,15 +70,85 @@ export function LeadSponsorHome({
   folder?: LeadFolderEntry[];
   onLogoChange?: (next: string) => void;
 }) {
-  const router = useRouter();
   const mark = sponsorLogoSrc(brand, logoUrl);
+
+  return (
+    <div className="space-y-10">
+      <div>
+        <div className="flex items-center gap-4">
+          <BrandMark name={brand} logoUrl={mark} large />
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+              Signed in as {brand}
+            </p>
+            <label className="mt-2 inline-flex cursor-pointer items-center rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-green-400">
+              {logoUrl ? "Change brand logo" : "Upload brand logo"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  void readLogoFile(file).then((next) => {
+                    saveBrandLogo(brand, next);
+                    onLogoChange?.(next);
+                  });
+                }}
+                className="sr-only"
+              />
+            </label>
+          </div>
+        </div>
+        <h1 className="mt-3 text-4xl font-black tracking-tight">
+          S4P SPONSORSHIP DASHBOARD
+        </h1>
+      </div>
+
+      <SponsorAbcdSections
+        brand={brand}
+        pending={pending}
+        signed={signed}
+        chosenByClub={chosenByClub}
+        votedByClub={votedByClub}
+        committedGbp={committedGbp}
+        lock={lock}
+        folder={folder}
+      />
+    </div>
+  );
+}
+
+export function SponsorAbcdSections({
+  brand,
+  pending,
+  signed,
+  chosenByClub,
+  votedByClub,
+  committedGbp,
+  lock,
+  folder: folderOverride,
+  awaitingFallbackHref,
+}: {
+  brand: string;
+  pending?: FolderOffer[];
+  signed?: SignedSponsorship[];
+  chosenByClub?: Record<string, ChosenProjectInput[]>;
+  votedByClub?: Record<string, Array<{ id: string; fundedGbp?: number | null }>>;
+  committedGbp?: number;
+  lock?: MatchDayClubLock | null;
+  folder?: LeadFolderEntry[];
+  awaitingFallbackHref?: string;
+}) {
+  const router = useRouter();
+  const pendingRows = pending ?? [];
+  const signedRows = signed ?? [];
   const [folder, setFolder] = useState<LeadFolderEntry[]>(
     () => folderOverride ?? readLeadProjectFolder(brand)
   );
 
   useEffect(() => {
     setFolder(folderOverride ?? readLeadProjectFolder(brand));
-  }, [brand, signed.length, pending.length, folderOverride]);
+  }, [brand, signedRows.length, pendingRows.length, folderOverride]);
 
   useEffect(() => {
     const refresh = () => setFolder(readLeadProjectFolder(brand));
@@ -87,12 +157,13 @@ export function LeadSponsorHome({
   }, [brand]);
 
   const sections = leadSponsorHomeSections({
-    pending,
-    signed,
+    pending: pendingRows,
+    signed: signedRows,
     chosenByClub,
     votedByClub,
     lock,
     folder,
+    awaitingFallbackHref,
   });
 
   function payForGroup(group: LeadSponsorMatchGroup) {
@@ -136,37 +207,7 @@ export function LeadSponsorHome({
   }
 
   return (
-    <div className="space-y-10">
-      <div>
-        <div className="flex items-center gap-4">
-          <BrandMark name={brand} logoUrl={mark} large />
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-              Signed in as {brand}
-            </p>
-            <label className="mt-2 inline-flex cursor-pointer items-center rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-green-400">
-              {logoUrl ? "Change brand logo" : "Upload brand logo"}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  void readLogoFile(file).then((next) => {
-                    saveBrandLogo(brand, next);
-                    onLogoChange?.(next);
-                  });
-                }}
-                className="sr-only"
-              />
-            </label>
-          </div>
-        </div>
-        <h1 className="mt-3 text-4xl font-black tracking-tight">
-          S4P SPONSORSHIP DASHBOARD
-        </h1>
-      </div>
-
+    <div className="space-y-10" data-sponsor-abcd="sponsor-abcd-v1">
       <ProjectSection
         id={LEAD_AWAITING_SECTION_ID}
         letter="a"
@@ -194,7 +235,7 @@ export function LeadSponsorHome({
       <SponsorCistTable
         sectionId={LEAD_CIST_SECTION_ID}
         brandName={brand}
-        ownFundingGbp={committedGbp}
+        ownFundingGbp={committedGbp ?? 0}
         title={LEAD_CIST_TITLE}
         eyebrow="Section (d)"
       />

@@ -350,10 +350,18 @@ assert(
 );
 
 const localHome = readFileSync("app/sponsor/local/page.tsx", "utf8");
+const localSigned = readFileSync(
+  "app/components/sponsor/LocalSignedSponsorHome.tsx",
+  "utf8"
+);
 assert(
   localHome.includes("LocalSignedSponsorHome") &&
-    !localHome.includes("LeadSponsorHome"),
-  "Local Business Climate Sponsors keep the LOBI home"
+    localHome.includes("clubsNeedingChosenProjects") &&
+    localHome.includes("loadClubChosenClimateProjects") &&
+    localSigned.includes("SponsorAbcdSections") &&
+    localSigned.includes('data-local-abcd="local-abcd-v1"') &&
+    !localHome.includes("<LeadSponsorHome"),
+  "Local Business Climate Sponsors keep their home and also show sections A-D"
 );
 
 if (failures.length > 0) {

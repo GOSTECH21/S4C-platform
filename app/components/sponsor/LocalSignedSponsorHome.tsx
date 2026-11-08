@@ -2,12 +2,20 @@
 
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { FundedClimateProjectsList } from "@/app/components/sponsor/FundedClimateProjectsList";
+import { SponsorAbcdSections } from "@/app/components/sponsor/LeadSponsorHome";
 import { SponsorLobiTable } from "@/app/components/sponsor/SponsorLobiTable";
 import { SponsoredMatchCalendar } from "@/app/components/sponsor/SponsoredMatchCalendar";
-import { SPONSOR_NEW_SPONSORSHIP_LABEL } from "@/app/lib/routes";
+import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
+import type { ChosenProjectInput } from "@/app/lib/lead-sponsor-home";
+import type { LeadFolderEntry } from "@/app/lib/lead-project-folder";
 import type { LobiRow } from "@/app/lib/lobi";
 import type { LocalSponsoredClubMatch } from "@/app/lib/local-sponsor-home";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
+import {
+  localNewSponsorshipPath,
+  SPONSOR_NEW_SPONSORSHIP_LABEL,
+} from "@/app/lib/routes";
+import type { FolderOffer, SignedSponsorship } from "@/app/lib/sponsor-dashboard";
 import type { FundedSponsorProject } from "@/app/lib/sponsor-signed-home";
 import type { SponsoredMatchListing } from "@/app/lib/sponsor-signed-home";
 
@@ -20,6 +28,13 @@ export function LocalSignedSponsorHome({
   lobiRows,
   postcodeArea,
   onNewSponsorship,
+  pending,
+  signed,
+  chosenByClub,
+  votedByClub,
+  lock,
+  folder,
+  committedGbp,
 }: {
   brand: string;
   logoUrl: string | null;
@@ -29,6 +44,13 @@ export function LocalSignedSponsorHome({
   lobiRows: LobiRow[];
   postcodeArea: string;
   onNewSponsorship: () => void;
+  pending?: FolderOffer[];
+  signed?: SignedSponsorship[];
+  chosenByClub?: Record<string, ChosenProjectInput[]>;
+  votedByClub?: Record<string, Array<{ id: string; fundedGbp?: number | null }>>;
+  lock?: MatchDayClubLock | null;
+  folder?: LeadFolderEntry[];
+  committedGbp?: number;
 }) {
   const sponsored = clubMatches.length > 0 ? clubMatches : matches.map((row) => ({
     clubName: row.clubName,
@@ -88,6 +110,21 @@ export function LocalSignedSponsorHome({
         matches={matches}
         intro="Spotlighted days are Match Days you have sponsored. Click a highlighted day to see the Match or Matches you sponsored."
       />
+
+      <div data-local-abcd="local-abcd-v1">
+        <SponsorAbcdSections
+          brand={brand}
+          pending={pending}
+          signed={signed}
+          chosenByClub={chosenByClub}
+          votedByClub={votedByClub}
+          lock={lock}
+          folder={folder}
+          committedGbp={committedGbp}
+          awaitingFallbackHref={localNewSponsorshipPath()}
+        />
+      </div>
+
       <FundedClimateProjectsList projects={projects} kind="local" />
       <SponsorLobiTable rows={lobiRows} area={postcodeArea} />
 

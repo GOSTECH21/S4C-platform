@@ -30,8 +30,11 @@ assert(
     walletPage.includes("Unlock") &&
     walletPage.includes("Select a Club") &&
     walletPage.includes("Select the Match") &&
-    walletPage.includes("localLockCopy()"),
-  "Local New Sponsorship selects a Club and Match and can See Match details"
+    walletPage.includes("localLockCopy()") &&
+    walletPage.includes("allPlatformClubs") &&
+    walletPage.includes("Select any club on the Sporting Calendar") &&
+    !walletPage.includes("Select a club from Premier League or Scottish Premiership"),
+  "Local New Sponsorship selects any Sporting Calendar club and Match and can See Match details"
 );
 
 assert(
@@ -77,6 +80,7 @@ assert(
 assert(
     preview.includes("SeeMatchDetails") &&
     preview.includes("ClubLeagueMenu") &&
+    preview.includes("allPlatformClubs") &&
     preview.includes("MatchFixtureMenu") &&
     preview.includes("Unlock") &&
     preview.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&

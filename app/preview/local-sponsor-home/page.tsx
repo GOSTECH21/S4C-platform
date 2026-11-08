@@ -7,6 +7,7 @@ import {
   localSponsoredMatches,
 } from "@/app/lib/local-sponsor-home";
 import type { LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import type { FolderOffer, SignedSponsorship } from "@/app/lib/sponsor-dashboard";
 import type { FundedSponsorProject } from "@/app/lib/sponsor-signed-home";
 
 const mashTun: LocalSponsorRecord = {
@@ -104,6 +105,48 @@ const fixtures = [
   { fixtureName: "Hibernian v Dundee", date: "2026-10-25" },
 ];
 
+const mashAwaiting: FolderOffer = {
+  id: "mash-hibs-upload",
+  clubId: "hibernian-demo",
+  clubName: "Hibernian",
+  headline: "Hibernian v Motherwell Climate Projects",
+  matchTitle: "Hibernian v Motherwell",
+  matchDate: "2026-10-18",
+  projectIds: ["spoke", "gss-hibs"],
+  projects: [
+    { id: "spoke", name: "Wee Spoke Hub", country: "Scotland" },
+    { id: "gss-hibs", name: "Global Schools Solar", country: "Global" },
+  ],
+  postedAt: "2026-10-01T12:00:00.000Z",
+  sponsorshipAmountGbp: 600,
+};
+
+const mashApproved: SignedSponsorship = {
+  offer: {
+    id: "mash-hearts-aberdeen",
+    clubId: "hearts-demo",
+    clubName: "Hearts",
+    headline: "Hearts v Aberdeen Climate Projects",
+    matchTitle: "Hearts v Aberdeen",
+    matchDate: "2026-10-31",
+    projectIds: ["lauriston"],
+    projects: [
+      { id: "lauriston", name: "Lauriston Agroecology Farm", country: "Scotland" },
+    ],
+    postedAt: "2026-10-12T12:00:00.000Z",
+    sponsorshipAmountGbp: 600,
+  },
+  signature: {
+    id: "sig-mash-hearts",
+    offerId: "mash-hearts-aberdeen",
+    sponsorId: "mash-tun",
+    signerName: "Mash Tun",
+    brandName: "Mash Tun",
+    acceptedTerms: true,
+    signedAt: "2026-10-12T18:00:00.000Z",
+  },
+};
+
 const projects: FundedSponsorProject[] = [
   {
     id: "spoke",
@@ -162,6 +205,9 @@ export default function LocalSponsorHomePreview() {
         })}
         postcodeArea="EH"
         onNewSponsorship={() => undefined}
+        pending={[mashAwaiting]}
+        signed={[mashApproved]}
+        committedGbp={1200}
       />
       </div>
       <div className="mt-16">
