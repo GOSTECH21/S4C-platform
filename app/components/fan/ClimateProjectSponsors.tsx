@@ -342,7 +342,8 @@ function SponsorFundStrip({
       data-sponsor-fund-strip={kind}
       className="rounded-2xl border border-slate-800 bg-white p-3 text-slate-950"
     >
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="overflow-x-auto">
+      <div className="flex w-[36rem] max-w-none items-end gap-2 sm:w-full">
         <LabeledCell label="Logo" width="w-[4.5rem] shrink-0">
           {sponsor ? (
             <BrandMark
@@ -387,6 +388,7 @@ function SponsorFundStrip({
             testId={fundTestId}
           />
         </div>
+      </div>
       </div>
     </div>
   );
