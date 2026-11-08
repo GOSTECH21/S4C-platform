@@ -484,6 +484,29 @@ export function uniqueAdminNames(values: Array<string | null | undefined>) {
   return [...seen.values()];
 }
 
+export function mergeAdminProjectLogs(
+  rows: AdminSponsorAccount["projectLog"]
+): AdminSponsorAccount["projectLog"] {
+  const merged = new Map<string, AdminSponsorAccount["projectLog"][number]>();
+  for (const row of rows) {
+    const key = `${compactAdminKey(row.clubName)}:${compactAdminKey(row.matchLabel)}`;
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, {
+        clubName: row.clubName,
+        matchLabel: row.matchLabel,
+        projectNames: uniqueAdminNames(row.projectNames),
+      });
+      continue;
+    }
+    existing.projectNames = uniqueAdminNames([
+      ...existing.projectNames,
+      ...row.projectNames,
+    ]);
+  }
+  return [...merged.values()];
+}
+
 export function previewAdminBackendSnapshot(): AdminBackendSnapshot {
   return {
     clubs: [

@@ -1,5 +1,8 @@
 import { readFileSync } from "fs";
-import { previewAdminBackendSnapshot } from "../app/lib/admin-backend";
+import {
+  mergeAdminProjectLogs,
+  previewAdminBackendSnapshot,
+} from "../app/lib/admin-backend";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -22,6 +25,18 @@ const registerSponsor = readFileSync("app/services/sponsor-auth.service.ts", "ut
 const p4p = readFileSync("app/services/predict-for-planet.service.ts", "utf8");
 const matchrav = readFileSync("app/lib/matchrav-journey.ts", "utf8");
 const snapshot = previewAdminBackendSnapshot();
+const mergedLogs = mergeAdminProjectLogs([
+  {
+    clubName: "Celtic",
+    matchLabel: "Celtic Match Day",
+    projectNames: ["Global Schools Solar"],
+  },
+  {
+    clubName: "Celtic",
+    matchLabel: "Celtic Match Day",
+    projectNames: ["Global Schools Solar", "South Seeds"],
+  },
+]);
 
 assert(
   sidebar.includes("Backend") &&
@@ -74,6 +89,10 @@ assert(
     home.includes("Sponsors who proceeded") &&
     home.includes("P4P interactions") &&
     home.includes("Matchrav") &&
+    home.includes("key={`${index}-${item}`}") &&
+    home.includes("seen.has(key)") &&
+    mergedLogs.length === 1 &&
+    mergedLogs[0].projectNames.includes("South Seeds") &&
     !home.includes("<details"),
   "Backend has four short lime-tab segments with keep/delete and the required records"
 );

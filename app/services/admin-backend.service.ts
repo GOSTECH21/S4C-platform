@@ -9,6 +9,7 @@ import {
   isAdminRemovedEmail,
   isAdminRemovedId,
   keysMatch,
+  mergeAdminProjectLogs,
   readAdminClimateWallets,
   readAdminInviteRounds,
   readAdminLeadFolders,
@@ -464,12 +465,19 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     const existing = sponsorMap.get(key);
     if (existing) {
       existing.teams = uniqueAdminNames([...existing.teams, ...row.teams]);
-      existing.projectLog = [...existing.projectLog, ...row.projectLog];
+      existing.projectLog = mergeAdminProjectLogs([
+        ...existing.projectLog,
+        ...row.projectLog,
+      ]);
       if (!existing.email && row.email) existing.email = row.email;
       if (!existing.contactName && row.contactName) existing.contactName = row.contactName;
       return;
     }
-    const next: AdminSponsorAccount = { ...row, status: "on-platform" };
+    const next: AdminSponsorAccount = {
+      ...row,
+      projectLog: mergeAdminProjectLogs(row.projectLog),
+      status: "on-platform",
+    };
     next.status = markStatus(next);
     sponsorMap.set(key, next);
   }

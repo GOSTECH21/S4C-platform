@@ -84,17 +84,26 @@ function LineList({
   items: string[];
   empty: string;
 }) {
+  const lines: string[] = [];
+  const seen = new Set<string>();
+  for (const item of items) {
+    const trimmed = item.trim();
+    const key = trimmed.toLowerCase();
+    if (!trimmed || seen.has(key)) continue;
+    seen.add(key);
+    lines.push(trimmed);
+  }
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 sm:tracking-[0.18em]">
         {label}
       </p>
-      {items.length === 0 ? (
+      {lines.length === 0 ? (
         <p className="mt-1 text-sm text-slate-500">{empty}</p>
       ) : (
         <ul className="mt-1 space-y-1 break-words text-sm text-slate-200">
-          {items.map((item) => (
-            <li key={item}>{item}</li>
+          {lines.map((item, index) => (
+            <li key={`${index}-${item}`}>{item}</li>
           ))}
         </ul>
       )}
@@ -260,9 +269,9 @@ export function AdminBackendHome({
               No Lead Climate Sponsor accounts yet.
             </p>
           ) : (
-            snapshot.lead.map((row) => (
+            snapshot.lead.map((row, index) => (
               <SponsorCard
-                key={row.id}
+                key={`${row.id}-${index}`}
                 account={row}
                 busy={busyId === row.id}
                 onKeep={() => void setPresence(row, true)}
@@ -276,9 +285,9 @@ export function AdminBackendHome({
               No Local Business Climate Sponsor accounts yet.
             </p>
           ) : (
-            snapshot.local.map((row) => (
+            snapshot.local.map((row, index) => (
               <SponsorCard
-                key={row.id}
+                key={`${row.id}-${index}`}
                 account={row}
                 busy={busyId === row.id}
                 onKeep={() => void setPresence(row, true)}
@@ -339,9 +348,9 @@ function ClubCard({
         </p>
       ) : (
         <div className="mt-5 space-y-4">
-          {club.matches.map((match) => (
+          {club.matches.map((match, index) => (
             <div
-              key={match.matchLabel}
+              key={`${index}-${match.matchLabel}`}
               className="grid min-w-0 gap-4 overflow-x-hidden rounded-xl border border-slate-800 p-3 sm:p-4 md:grid-cols-2"
             >
               <p className="break-words text-base font-bold sm:text-lg md:col-span-2">
