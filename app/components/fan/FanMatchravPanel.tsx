@@ -86,6 +86,7 @@ export default function FanMatchravPanel({
   const [savedKg, setSavedKg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gpsBusy, setGpsBusy] = useState(false);
+  const [fanKey, setFanKey] = useState("");
   const [fixtureStatus, setFixtureStatus] = useState(
     initialFixtures.length
       ? `${initialFixtures.length} upcoming matches`
@@ -140,6 +141,7 @@ export default function FanMatchravPanel({
       try {
         const supporter = await getOrCreateSupporter();
         if (!supporter || cancelled) return;
+        setFanKey(String(supporter.email || supporter.id || "").trim());
         const teams = await getSupportedTeams(supporter);
         if (cancelled) return;
         const names = teams
@@ -276,6 +278,7 @@ export default function FanMatchravPanel({
         outboundMode,
         returnMode: sameReturn ? outboundMode : returnMode,
         occupants,
+        fanKey,
       },
       consent
     );

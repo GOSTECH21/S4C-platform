@@ -3,6 +3,10 @@ import {
   isRemovedSponsorBrand,
   isRemovedSponsorIdentity,
 } from "../lib/climate-sponsors";
+import {
+  adminParticipantId,
+  recordAdminParticipant,
+} from "../lib/admin-backend";
 
 export async function registerSponsor({
   companyName,
@@ -87,6 +91,16 @@ export async function registerSponsor({
       throw fallbackError;
     }
   }
+
+  recordAdminParticipant({
+    id: adminParticipantId(tier === "local" ? "local" : "lead", companyName),
+    role: tier === "local" ? "local" : "lead",
+    displayName: contactName,
+    email,
+    brandName: companyName,
+    clubName: clubName ?? undefined,
+    teams: clubName ? [clubName] : [],
+  });
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(

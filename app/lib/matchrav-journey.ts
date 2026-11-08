@@ -16,6 +16,7 @@ import {
   type TravelMode,
 } from "./match-day-travel";
 import { MATCHRAV_JOURNEY_STAMP } from "./matchrav";
+import { recordAdminMatchrav } from "./admin-backend";
 import { SPORTING_CALENDAR_LEAGUES } from "./sporting-calendar-leagues";
 import {
   clubIsHome,
@@ -81,6 +82,7 @@ export type MatchravTrip = {
   savedVsSoloCarKg: number;
   status: "planned" | "confirmed";
   confirmedMode: TravelMode | null;
+  fanKey?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -384,6 +386,7 @@ export type MatchravTripInput = {
   outboundMode: TravelMode;
   returnMode: TravelMode;
   occupants: number;
+  fanKey?: string | null;
 };
 
 export function buildMatchravTrip(input: MatchravTripInput): MatchravTrip | null {
@@ -427,6 +430,7 @@ export function buildMatchravTrip(input: MatchravTripInput): MatchravTrip | null
     savedVsSoloCarKg: round1(Math.max(0, solo - chosenWeighted)),
     status: "planned",
     confirmedMode: null,
+    fanKey: clean(input.fanKey) || undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -449,11 +453,20 @@ export function saveMatchravTrip(
     trip.createdAt = rows[index].createdAt;
     trip.status = rows[index].status;
     trip.confirmedMode = rows[index].confirmedMode;
+    trip.fanKey = trip.fanKey || rows[index].fanKey;
     rows[index] = trip;
   } else {
     rows.unshift(trip);
   }
   writeJson(MATCHRAV_TRIPS_KEY, rows.slice(0, 40));
+  if (trip.fanKey) {
+    recordAdminMatchrav({
+      supporterKey: trip.fanKey,
+      clubName: trip.club,
+      fixtureName: trip.fixtureName,
+      kg: trip.totalKg,
+    });
+  }
   if (consent.shareAnonymous) {
     writeJson(
       MATCHRAV_ANALYTICS_KEY,

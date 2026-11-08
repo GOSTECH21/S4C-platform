@@ -6,6 +6,7 @@ import {
   recordFanSponsorVote,
   writeProjectFunding,
 } from "../lib/climate-funding";
+import { recordAdminFanFund } from "../lib/admin-backend";
 import {
   applyFundingListToProjectsFile,
   applyRemainingToSponsorsFile,
@@ -440,6 +441,19 @@ export function applyFanWalletVote({
   recordFanSponsorVote(supporterId, clubId, result.wallet.brandName);
   if (!brandsMatch(result.wallet.brandName, brandName)) {
     recordFanSponsorVote(supporterId, clubId, brandName);
+  }
+  if (supporterId) {
+    const funded = result.shares?.length
+      ? result.shares
+      : [{ project: result.project, amount: result.amount }];
+    for (const share of funded) {
+      recordAdminFanFund({
+        supporterKey: supporterId,
+        clubName: resolvedClub,
+        projectName: share.project.name,
+        gbp: share.amount,
+      });
+    }
   }
   void persistClimateWalletTake({
     amountGbp: result.amount,
