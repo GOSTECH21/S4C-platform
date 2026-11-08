@@ -84,6 +84,8 @@ assert(
     !service.includes("match-day-folder") &&
     !service.includes("dual-sponsor") &&
     !service.includes("predict-for-planet") &&
+    service.includes('select("id, name, website, industry, user_id")') &&
+    !service.includes("club_name, sponsor_tier") &&
     service.includes("setAdminParticipantPresence") &&
     lib.includes("ADMIN_REMOVED_STORAGE") &&
     lib.includes("recordAdminParticipant"),

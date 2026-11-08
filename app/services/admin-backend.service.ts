@@ -221,15 +221,30 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     .select("user_id, club");
   const sponsors = await supabase
     .from("sponsors")
-    .select("id, name, website, industry, user_id, club_name, sponsor_tier")
+    .select("id, name, website, industry, user_id")
     .not("user_id", "is", null)
     .order("name");
+  const network = await supabase
+    .from("sponsor_club_network")
+    .select("brand_name, club_name");
 
   snapshot.error =
     directors.error?.message ||
     supporters.error?.message ||
     sponsors.error?.message ||
     null;
+
+  const networkClubs = new Map<string, string[]>();
+  if (!network.error) {
+    for (const row of network.data ?? []) {
+      const brand = String(row.brand_name ?? "").trim();
+      const club = String(row.club_name ?? "").trim();
+      if (!brand || !club) continue;
+      const list = networkClubs.get(compactAdminKey(brand)) ?? [];
+      list.push(club);
+      networkClubs.set(compactAdminKey(brand), list);
+    }
+  }
 
   const prefClubs = new Map<string, string[]>();
   for (const row of prefs.data ?? []) {
@@ -474,7 +489,10 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
       contactName: String(row.website ?? "").trim() || listing?.contactName || "No contact name",
       email: listing?.email || "",
       sponsorId: String(row.id),
-      teams: uniqueAdminNames([String(row.club_name ?? "")]),
+      teams: uniqueAdminNames([
+        ...(networkClubs.get(compactAdminKey(brandName)) ?? []),
+        ...projectLogForBrand(brandName).map((item) => item.clubName),
+      ]),
       projectLog: projectLogForBrand(brandName),
     });
   }
