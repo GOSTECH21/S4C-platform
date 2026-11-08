@@ -44,6 +44,9 @@ assert(
     sponsors.includes("localFundItCopy") &&
     sponsors.includes("Invite friends to use remaining funds") &&
     sponsors.includes("<select") &&
+    sponsors.includes('data-fund-strip-fit="phone-stack-v1"') &&
+    !sponsors.includes("overflow-x-auto") &&
+    !sponsors.includes("w-[36rem]") &&
     !sponsors.includes("Climate Project Sponsor") &&
     !sponsors.includes("fundItCopy") &&
     !sponsors.includes("Lead Climate Project Sponsor"),
@@ -55,6 +58,13 @@ assert(
     overlay.includes("app/components/fan/FanMyTeamsPanel.tsx") &&
     overlay.includes("app/components/fan/ClimateProjectSponsors.tsx"),
   "PC overlay pulls the streamlined My S4P files"
+);
+assert(
+  readFileSync("apply-fund-strip-fit-phone.mjs", "utf8").includes(
+    "cursor/fund-strip-fit-phone-18f9"
+  ) &&
+    sponsors.includes('data-fund-strip-fit="phone-stack-v1"'),
+  "PC overlay pulls the phone-fit FUND-IT strips"
 );
 
 if (failures.length > 0) {

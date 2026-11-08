@@ -340,11 +340,11 @@ function SponsorFundStrip({
   return (
     <div
       data-sponsor-fund-strip={kind}
-      className="rounded-2xl border border-slate-800 bg-white p-3 text-slate-950"
+      data-fund-strip-fit="phone-stack-v1"
+      className="overflow-hidden rounded-2xl border border-slate-800 bg-white p-3 text-slate-950"
     >
-      <div className="overflow-x-auto">
-      <div className="flex w-[36rem] max-w-none items-end gap-2 sm:w-full">
-        <LabeledCell label="Logo" width="w-[4.5rem] shrink-0">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)_auto]">
+        <LabeledCell label="Logo" className="w-[4.5rem] shrink-0">
           {sponsor ? (
             <BrandMark
               name={sponsor.brandName}
@@ -355,17 +355,17 @@ function SponsorFundStrip({
             <div className="h-14 w-14 rounded-lg border-2 border-slate-800 bg-slate-800/80" />
           )}
         </LabeledCell>
-        <LabeledCell label="Name" width="min-w-[7rem] flex-1">
-          <div className="flex h-14 items-center rounded-lg border-2 border-slate-800 px-3 text-sm font-black">
-            {sponsor?.brandName ?? ""}
+        <LabeledCell label="Name">
+          <div className="flex h-14 items-center rounded-lg border-2 border-slate-800 px-2 text-xs font-black leading-tight sm:text-sm">
+            <span className="line-clamp-2 break-words">{sponsor?.brandName ?? ""}</span>
           </div>
         </LabeledCell>
-        <LabeledCell label="Carbon Wallet" width="min-w-[7rem] flex-1">
-          <div className="flex h-14 items-center justify-center rounded-lg border-2 border-slate-800 px-3 text-lg font-black text-emerald-800">
+        <LabeledCell label="Carbon Wallet">
+          <div className="flex h-14 items-center justify-center rounded-lg border-2 border-slate-800 px-1 text-sm font-black text-emerald-800 sm:px-2 sm:text-lg">
             {sponsor ? formatWalletGbp(sponsor.remainingGbp) : ""}
           </div>
         </LabeledCell>
-        <LabeledCell label="Climate Projects" width="min-w-[9rem] flex-[1.2]">
+        <LabeledCell label="Climate Projects" className="col-span-2 md:col-span-1">
           <FundProjectSelect
             brandName={sponsor?.brandName ?? "sponsor"}
             projects={projects}
@@ -377,8 +377,8 @@ function SponsorFundStrip({
             ariaLabel={ariaLabel}
           />
         </LabeledCell>
-        <div className="flex min-w-[6.5rem] shrink-0 flex-col gap-1">
-          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-center text-[0.6rem] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-[0.65rem]">
             {FUND_IT_LABEL}
           </span>
           <FundItButton
@@ -389,23 +389,22 @@ function SponsorFundStrip({
           />
         </div>
       </div>
-      </div>
     </div>
   );
 }
 
 function LabeledCell({
   label,
-  width,
+  className,
   children,
 }: {
   label: string;
-  width: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={`${width} min-w-0`}>
-      <p className="mb-1 text-center text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+    <div className={`min-w-0 ${className ?? ""}`}>
+      <p className="mb-1 px-0.5 text-center text-[0.6rem] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-[0.65rem]">
         {label}
       </p>
       {children}
@@ -441,7 +440,7 @@ function FundProjectSelect({
     );
   }
   return (
-    <div className="relative" data-testid={`${testIdPrefix}-project-select`}>
+    <div className="relative min-w-0 max-w-full overflow-hidden" data-testid={`${testIdPrefix}-project-select`}>
       <select
         id={selectId}
         disabled={used}
@@ -451,7 +450,7 @@ function FundProjectSelect({
           `Select a Climate Project to receive ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}`
         }
         onChange={(event) => onNumber(event.target.value)}
-        className="h-14 w-full appearance-none rounded-lg border-2 border-slate-800 bg-white px-3 pr-8 text-sm font-bold text-slate-950 disabled:opacity-40"
+        className="h-14 w-full min-w-0 max-w-full appearance-none rounded-lg border-2 border-slate-800 bg-white px-2 pr-7 text-xs font-bold text-slate-950 disabled:opacity-40 sm:px-3 sm:pr-8 sm:text-sm"
       >
         <option value="">{emptyLabel}</option>
         {projects.map((project) => (
