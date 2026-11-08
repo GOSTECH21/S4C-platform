@@ -102,7 +102,9 @@ assert(
     p4p.includes("recordAdminP4p") &&
     matchrav.includes("fanKey") &&
     overlay.includes("cursor/admin-backend-18f9") &&
-    overlay.includes("app/components/admin/AdminNav.tsx"),
+    overlay.includes("app/components/admin/AdminNav.tsx") &&
+    overlay.includes("app/lib/project-site.ts") &&
+    !service.includes("matchrav-journey"),
   "New registrations and supporter activity are recorded for Admin, and the overlay pulls these files"
 );
 

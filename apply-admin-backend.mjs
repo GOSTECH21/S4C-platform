@@ -17,6 +17,7 @@ const FILES = [
   "app/lib/climate-sponsors.ts",
   "app/lib/lead-project-folder.ts",
   "app/lib/matchrav-journey.ts",
+  "app/lib/project-site.ts",
   "app/preview/admin-backend/page.tsx",
   "app/services/club-match-day.service.ts",
   "app/services/sponsor-auth.service.ts",

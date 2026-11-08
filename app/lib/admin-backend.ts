@@ -143,6 +143,32 @@ function writeJson(key: string, value: unknown) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+const MATCHRAV_TRIPS_STORAGE = "s4p.matchrav-trips";
+
+/** Admin reads Matchrav rows without importing the journey planner (old PCs lack stadiumSiteForVenue). */
+export function readAdminMatchravTrips(): Array<{
+  fanKey?: string;
+  club: string;
+  fixtureName: string;
+  totalKg: number;
+}> {
+  const rows = readJson<
+    Array<{
+      fanKey?: string;
+      club?: string;
+      fixtureName?: string;
+      totalKg?: number;
+    }>
+  >(MATCHRAV_TRIPS_STORAGE, []);
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => ({
+    fanKey: String(row.fanKey ?? "").trim() || undefined,
+    club: String(row.club ?? "").trim(),
+    fixtureName: String(row.fixtureName ?? "").trim(),
+    totalKg: Number(row.totalKg) || 0,
+  }));
+}
+
 export function readAdminRemoved(): AdminRemovedStore {
   const stored = readJson<Partial<AdminRemovedStore>>(
     ADMIN_REMOVED_STORAGE,

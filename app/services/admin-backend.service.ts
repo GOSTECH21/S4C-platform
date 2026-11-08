@@ -14,6 +14,7 @@ import {
   recordAdminP4p,
   recordAdminParticipant,
   uniqueAdminNames,
+  readAdminMatchravTrips,
   writeAdminRemoved,
   type AdminBackendSnapshot,
   type AdminClubMatch,
@@ -38,7 +39,6 @@ import {
   listP4pPredictions,
   listP4pProjectAllocations,
 } from "./predict-for-planet.service";
-import { listMatchravTrips } from "../lib/matchrav-journey";
 import { readLocalSupportedClubs } from "./teams.service";
 
 function listingName(
@@ -316,7 +316,7 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
 
   const predictions = listP4pPredictions();
   const allocations = listP4pProjectAllocations();
-  const trips = listMatchravTrips();
+  const trips = readAdminMatchravTrips();
 
   const supporterMap = new Map<string, AdminSupporterRecord>();
   for (const row of supporters.data ?? []) {
