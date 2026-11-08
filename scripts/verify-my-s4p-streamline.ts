@@ -51,6 +51,7 @@ assert(
 );
 assert(
   overlay.includes("cursor/my-s4p-streamline-18f9") &&
+    overlay.includes('PIN = "484944e"') &&
     overlay.includes("app/components/fan/FanMyTeamsPanel.tsx") &&
     overlay.includes("app/components/fan/ClimateProjectSponsors.tsx"),
   "PC overlay pulls the streamlined My S4P files"

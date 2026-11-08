@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "484944e";
 const BRANCH = "cursor/my-s4p-streamline-18f9";
 const FILES = [
   "app/lib/fan-register-copy.ts",
