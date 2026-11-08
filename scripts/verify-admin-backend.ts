@@ -85,6 +85,9 @@ assert(
     home.includes("Delete") &&
     home.includes("data-admin-keep") &&
     home.includes("data-admin-delete") &&
+    home.includes("disabled={busy}") &&
+    !home.includes('disabled={busy || status === "on-platform"}') &&
+    !home.includes('disabled={busy || status === "removed"}') &&
     home.includes("Invitations sent") &&
     home.includes("Sponsors who proceeded") &&
     home.includes("P4P interactions") &&

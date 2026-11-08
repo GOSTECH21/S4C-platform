@@ -51,23 +51,34 @@ function KeepDelete({
   onKeep: () => void;
   onDelete: () => void;
 }) {
+  const kept = status === "on-platform";
   return (
     <div className="flex min-w-0 flex-wrap gap-2">
       <button
         type="button"
         data-admin-keep="true"
-        disabled={busy || status === "on-platform"}
+        disabled={busy}
+        aria-pressed={kept}
         onClick={onKeep}
-        className="rounded-full border border-emerald-400/40 px-4 py-2 text-sm font-semibold text-emerald-200 disabled:opacity-40"
+        className={`rounded-full border px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60 ${
+          kept
+            ? "border-lime-400 bg-lime-400"
+            : "border-lime-400 bg-lime-400/20 hover:bg-lime-400/40"
+        }`}
       >
         Keep
       </button>
       <button
         type="button"
         data-admin-delete="true"
-        disabled={busy || status === "removed"}
+        disabled={busy}
+        aria-pressed={!kept}
         onClick={onDelete}
-        className="rounded-full border border-red-400/40 px-4 py-2 text-sm font-semibold text-red-200 disabled:opacity-40"
+        className={`rounded-full border px-4 py-2 text-sm font-semibold disabled:opacity-60 ${
+          kept
+            ? "border-red-600 bg-white text-red-700 hover:bg-red-600 hover:text-white"
+            : "border-red-600 bg-red-600 text-white"
+        }`}
       >
         Delete
       </button>
@@ -147,9 +158,6 @@ export function AdminBackendHome({
     keep: boolean
   ) {
     setBusyId(row.id);
-    if (persist) {
-      await setAdminParticipantPresence({ ...row, keep });
-    }
     const status = keep ? "on-platform" : "removed";
     const next: AdminBackendSnapshot = {
       ...snapshot,
@@ -167,7 +175,13 @@ export function AdminBackendHome({
       ),
     };
     onChange?.(next);
-    setBusyId(null);
+    try {
+      if (persist) {
+        await setAdminParticipantPresence({ ...row, keep });
+      }
+    } finally {
+      setBusyId(null);
+    }
   }
 
   const openSegment =
