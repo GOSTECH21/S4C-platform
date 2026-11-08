@@ -1,6 +1,7 @@
 /** Platform Admin backend: every registered club and participant, keep or delete. */
 
-export const ADMIN_BACKEND_STAMP = "admin-backend-v1";
+export const ADMIN_BACKEND_STAMP = "admin-backend-mobile-v1";
+export const ADMIN_MOBILE_STAMP = "admin-mobile-v1";
 export const ADMIN_REMOVED_STORAGE = "s4p.admin.removed";
 export const ADMIN_LEDGER_STORAGE = "s4p.admin.ledger";
 

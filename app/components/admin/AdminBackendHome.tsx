@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   ADMIN_BACKEND_STAMP,
+  ADMIN_MOBILE_STAMP,
   type AdminBackendSnapshot,
   type AdminClubRecord,
   type AdminRole,
@@ -10,12 +11,13 @@ import {
   type AdminSupporterRecord,
 } from "@/app/lib/admin-backend";
 import { setAdminParticipantPresence } from "@/app/services/admin-backend.service";
+import { s4pTabClass } from "@/app/lib/s4p-tabs";
 
 const SEGMENTS = [
-  { id: "clubs", label: "Clubs" },
-  { id: "supporters", label: "Supporters" },
-  { id: "lead", label: "Lead Climate Sponsors" },
-  { id: "local", label: "Local Business Climate Sponsors" },
+  { id: "clubs", label: "Clubs", full: "Clubs" },
+  { id: "supporters", label: "Supporters", full: "Supporters" },
+  { id: "lead", label: "Lead", full: "Lead Climate Sponsors" },
+  { id: "local", label: "Local", full: "Local Business Climate Sponsors" },
 ] as const;
 
 function StatusBadge({ status }: { status: "on-platform" | "removed" }) {
@@ -45,7 +47,7 @@ function KeepDelete({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex min-w-0 flex-wrap gap-2">
       <button
         type="button"
         data-admin-keep="true"
@@ -79,13 +81,13 @@ function LineList({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 sm:tracking-[0.18em]">
         {label}
       </p>
       {items.length === 0 ? (
         <p className="mt-1 text-sm text-slate-500">{empty}</p>
       ) : (
-        <ul className="mt-1 space-y-1 text-sm text-slate-200">
+        <ul className="mt-1 space-y-1 break-words text-sm text-slate-200">
           {items.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -154,117 +156,145 @@ export function AdminBackendHome({
     setBusyId(null);
   }
 
+  const openSegment =
+    SEGMENTS.find((segment) => segment.id === open) ?? SEGMENTS[0];
+  const openCount =
+    openSegment.id === "clubs"
+      ? snapshot.clubs.length
+      : openSegment.id === "supporters"
+        ? snapshot.supporters.length
+        : openSegment.id === "lead"
+          ? snapshot.lead.length
+          : snapshot.local.length;
+
   return (
-    <div data-admin-backend={ADMIN_BACKEND_STAMP} className="space-y-8">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div
+      data-admin-backend={ADMIN_BACKEND_STAMP}
+      data-admin-mobile={ADMIN_MOBILE_STAMP}
+      className="min-w-0 space-y-5 overflow-x-hidden sm:space-y-8"
+    >
+      <section className="grid grid-cols-2 gap-2 xl:grid-cols-4 xl:gap-3">
         <StatCard label="Clubs" value={counts.clubs} />
         <StatCard label="Supporters" value={counts.supporters} />
-        <StatCard label="Lead Climate Sponsors" value={counts.lead} />
-        <StatCard label="Local Business Climate Sponsors" value={counts.local} />
+        <StatCard label="Lead" value={counts.lead} />
+        <StatCard label="Local" value={counts.local} />
       </section>
 
-      {SEGMENTS.map((segment) => {
-        const count =
-          segment.id === "clubs"
-            ? snapshot.clubs.length
-            : segment.id === "supporters"
-              ? snapshot.supporters.length
-              : segment.id === "lead"
-                ? snapshot.lead.length
-                : snapshot.local.length;
-        const isOpen = open === segment.id;
-        return (
-          <details
-            key={segment.id}
-            data-admin-segment={segment.id}
-            open={isOpen}
-            onToggle={(event) => {
-              if ((event.target as HTMLDetailsElement).open) setOpen(segment.id);
-            }}
-            className="rounded-3xl border border-slate-700 bg-slate-900"
-          >
-            <summary className="cursor-pointer list-none px-5 py-4 text-xl font-black sm:px-8 sm:text-2xl">
+      <nav
+        aria-label="Admin records"
+        className="flex min-w-0 flex-wrap items-center gap-2"
+      >
+        {SEGMENTS.map((segment) => {
+          const count =
+            segment.id === "clubs"
+              ? snapshot.clubs.length
+              : segment.id === "supporters"
+                ? snapshot.supporters.length
+                : segment.id === "lead"
+                  ? snapshot.lead.length
+                  : snapshot.local.length;
+          const active = open === segment.id;
+          return (
+            <button
+              key={segment.id}
+              type="button"
+              data-admin-segment={segment.id}
+              aria-label={segment.full}
+              aria-pressed={active}
+              onClick={() => setOpen(segment.id)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold sm:px-4 ${s4pTabClass(active)}`}
+            >
               {segment.label}
-              <span className="ml-3 text-sm font-semibold uppercase tracking-[0.2em] text-green-400">
-                {count}
-              </span>
-            </summary>
-            <div className="space-y-4 border-t border-slate-800 px-5 py-5 sm:px-8">
-              {segment.id === "clubs" &&
-                (snapshot.clubs.length === 0 ? (
-                  <p className="text-slate-500">No clubs registered yet.</p>
-                ) : (
-                  snapshot.clubs.map((club) => (
-                    <ClubCard
-                      key={club.id}
-                      club={club}
-                      busy={busyId === club.id}
-                      onKeep={() => void setPresence(club, true)}
-                      onDelete={() => void setPresence(club, false)}
-                    />
-                  ))
-                ))}
-              {segment.id === "supporters" &&
-                (snapshot.supporters.length === 0 ? (
-                  <p className="text-slate-500">No supporters registered yet.</p>
-                ) : (
-                  snapshot.supporters.map((fan) => (
-                    <SupporterCard
-                      key={fan.id}
-                      fan={fan}
-                      busy={busyId === fan.id}
-                      onKeep={() => void setPresence(fan, true)}
-                      onDelete={() => void setPresence(fan, false)}
-                    />
-                  ))
-                ))}
-              {segment.id === "lead" &&
-                (snapshot.lead.length === 0 ? (
-                  <p className="text-slate-500">
-                    No Lead Climate Sponsor accounts yet.
-                  </p>
-                ) : (
-                  snapshot.lead.map((row) => (
-                    <SponsorCard
-                      key={row.id}
-                      account={row}
-                      busy={busyId === row.id}
-                      onKeep={() => void setPresence(row, true)}
-                      onDelete={() => void setPresence(row, false)}
-                    />
-                  ))
-                ))}
-              {segment.id === "local" &&
-                (snapshot.local.length === 0 ? (
-                  <p className="text-slate-500">
-                    No Local Business Climate Sponsor accounts yet.
-                  </p>
-                ) : (
-                  snapshot.local.map((row) => (
-                    <SponsorCard
-                      key={row.id}
-                      account={row}
-                      busy={busyId === row.id}
-                      onKeep={() => void setPresence(row, true)}
-                      onDelete={() => void setPresence(row, false)}
-                    />
-                  ))
-                ))}
-            </div>
-          </details>
-        );
-      })}
+              <span className="ml-1.5 text-xs font-bold">{count}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <section
+        data-admin-segment-panel={openSegment.id}
+        className="min-w-0 space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-3 sm:rounded-3xl sm:p-8"
+      >
+        <h2 className="text-xl font-black sm:text-2xl">
+          {openSegment.full}
+          <span className="ml-2 text-sm font-semibold text-green-400">
+            {openCount}
+          </span>
+        </h2>
+        {openSegment.id === "clubs" &&
+          (snapshot.clubs.length === 0 ? (
+            <p className="text-slate-500">No clubs registered yet.</p>
+          ) : (
+            snapshot.clubs.map((club) => (
+              <ClubCard
+                key={club.id}
+                club={club}
+                busy={busyId === club.id}
+                onKeep={() => void setPresence(club, true)}
+                onDelete={() => void setPresence(club, false)}
+              />
+            ))
+          ))}
+        {openSegment.id === "supporters" &&
+          (snapshot.supporters.length === 0 ? (
+            <p className="text-slate-500">No supporters registered yet.</p>
+          ) : (
+            snapshot.supporters.map((fan) => (
+              <SupporterCard
+                key={fan.id}
+                fan={fan}
+                busy={busyId === fan.id}
+                onKeep={() => void setPresence(fan, true)}
+                onDelete={() => void setPresence(fan, false)}
+              />
+            ))
+          ))}
+        {openSegment.id === "lead" &&
+          (snapshot.lead.length === 0 ? (
+            <p className="text-slate-500">
+              No Lead Climate Sponsor accounts yet.
+            </p>
+          ) : (
+            snapshot.lead.map((row) => (
+              <SponsorCard
+                key={row.id}
+                account={row}
+                busy={busyId === row.id}
+                onKeep={() => void setPresence(row, true)}
+                onDelete={() => void setPresence(row, false)}
+              />
+            ))
+          ))}
+        {openSegment.id === "local" &&
+          (snapshot.local.length === 0 ? (
+            <p className="text-slate-500">
+              No Local Business Climate Sponsor accounts yet.
+            </p>
+          ) : (
+            snapshot.local.map((row) => (
+              <SponsorCard
+                key={row.id}
+                account={row}
+                busy={busyId === row.id}
+                onKeep={() => void setPresence(row, true)}
+                onDelete={() => void setPresence(row, false)}
+              />
+            ))
+          ))}
+      </section>
     </div>
   );
 }
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+    <div className="min-w-0 rounded-2xl border border-slate-700 bg-slate-950 p-3 sm:p-5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 sm:text-xs sm:tracking-[0.2em]">
         {label}
       </p>
-      <p className="mt-3 text-3xl font-black text-white">{value}</p>
+      <p className="mt-2 text-2xl font-black text-white sm:mt-3 sm:text-3xl">
+        {value}
+      </p>
     </div>
   );
 }
@@ -281,10 +311,10 @@ function ClubCard({
   onDelete: () => void;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h3 className="text-2xl font-black">{club.clubName}</h3>
+    <article className="min-w-0 overflow-x-hidden rounded-2xl border border-slate-700 bg-slate-950 p-3 sm:p-5">
+      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <h3 className="break-words text-xl font-black sm:text-2xl">{club.clubName}</h3>
           <p className="mt-1 font-semibold">{club.directorName}</p>
           <p className="text-sm text-slate-400">{club.email || "No email"}</p>
         </div>
@@ -307,9 +337,11 @@ function ClubCard({
           {club.matches.map((match) => (
             <div
               key={match.matchLabel}
-              className="grid gap-4 rounded-xl border border-slate-800 p-4 md:grid-cols-2"
+              className="grid min-w-0 gap-4 overflow-x-hidden rounded-xl border border-slate-800 p-3 sm:p-4 md:grid-cols-2"
             >
-              <p className="md:col-span-2 text-lg font-bold">{match.matchLabel}</p>
+              <p className="break-words text-base font-bold sm:text-lg md:col-span-2">
+                {match.matchLabel}
+              </p>
               <LineList
                 label="Climate Projects"
                 items={match.projectNames}
@@ -345,10 +377,10 @@ function SupporterCard({
   onDelete: () => void;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h3 className="text-xl font-black">{fan.fullName}</h3>
+    <article className="min-w-0 overflow-x-hidden rounded-2xl border border-slate-700 bg-slate-950 p-3 sm:p-5">
+      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <h3 className="break-words text-xl font-black">{fan.fullName}</h3>
           <p className="text-sm text-slate-400">{fan.email}</p>
         </div>
         <div className="flex flex-col items-start gap-2 md:items-end">
@@ -361,7 +393,7 @@ function SupporterCard({
           />
         </div>
       </div>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
         <LineList
           label="Team they support"
           items={fan.teams}
@@ -408,10 +440,10 @@ function SponsorCard({
   onDelete: () => void;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h3 className="text-xl font-black">{account.brandName}</h3>
+    <article className="min-w-0 overflow-x-hidden rounded-2xl border border-slate-700 bg-slate-950 p-3 sm:p-5">
+      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <h3 className="break-words text-xl font-black">{account.brandName}</h3>
           <p className="font-semibold">{account.contactName || "No contact name"}</p>
           <p className="text-sm text-slate-400">{account.email || "No email"}</p>
         </div>
@@ -425,7 +457,7 @@ function SponsorCard({
           />
         </div>
       </div>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
         <LineList
           label="Teams"
           items={account.teams}

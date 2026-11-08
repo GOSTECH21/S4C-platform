@@ -7,9 +7,11 @@ const FILES = [
   "app/lib/admin-backend.ts",
   "app/services/admin-backend.service.ts",
   "app/components/admin/AdminBackendHome.tsx",
+  "app/components/admin/AdminNav.tsx",
   "app/admin/page.tsx",
   "app/admin/catalogue/page.tsx",
   "app/layout/Sidebar.tsx",
+  "app/layout/Header.tsx",
   "app/layout/AppLayout.tsx",
   "app/lib/routes.ts",
   "app/lib/climate-sponsors.ts",
@@ -54,15 +56,21 @@ const sidebar = existsSync("app/layout/Sidebar.tsx")
 const home = existsSync("app/components/admin/AdminBackendHome.tsx")
   ? readFileSync("app/components/admin/AdminBackendHome.tsx", "utf8")
   : "";
+const nav = existsSync("app/components/admin/AdminNav.tsx")
+  ? readFileSync("app/components/admin/AdminNav.tsx", "utf8")
+  : "";
 if (
   !sidebar.includes("Backend") ||
   sidebar.includes("Registered participants") ||
   !home.includes("data-admin-segment={segment.id}") ||
-  !home.includes("Keep")
+  !home.includes("s4pTabClass") ||
+  !home.includes("Keep") ||
+  !nav.includes("md:hidden") ||
+  !nav.includes("s4pTabClass")
 ) {
-  console.error("The Admin backend did not land.");
+  console.error("The Admin backend did not land on mobile.");
   process.exit(1);
 }
 console.log(
-  "OK: Admin is the platform backend with four short segments. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
+  "OK: Admin is the platform backend with four short phone tabs. Stop npm run dev, start it again, and hard-refresh (Ctrl+F5)."
 );

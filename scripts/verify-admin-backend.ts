@@ -7,8 +7,11 @@ function assert(condition: boolean, message: string) {
 }
 
 const sidebar = readFileSync("app/layout/Sidebar.tsx", "utf8");
+const layout = readFileSync("app/layout/AppLayout.tsx", "utf8");
+const header = readFileSync("app/layout/Header.tsx", "utf8");
 const admin = readFileSync("app/admin/page.tsx", "utf8");
 const home = readFileSync("app/components/admin/AdminBackendHome.tsx", "utf8");
+const nav = readFileSync("app/components/admin/AdminNav.tsx", "utf8");
 const service = readFileSync("app/services/admin-backend.service.ts", "utf8");
 const lib = readFileSync("app/lib/admin-backend.ts", "utf8");
 const preview = readFileSync("app/preview/admin-backend/page.tsx", "utf8");
@@ -23,9 +26,25 @@ const snapshot = previewAdminBackendSnapshot();
 assert(
   sidebar.includes("Backend") &&
     sidebar.includes("Catalogue") &&
+    sidebar.includes("hidden") &&
+    sidebar.includes("md:block") &&
     !sidebar.includes("Registered participants") &&
     !sidebar.includes("Sponsor Campaigns"),
-  "Admin sidebar is shortened to Backend and Catalogue"
+  "Admin sidebar stays on PC and is hidden on a phone"
+);
+
+assert(
+  layout.includes("AdminNav") &&
+    layout.includes("overflow-x-hidden") &&
+    header.includes("hidden") &&
+    header.includes("md:flex") &&
+    nav.includes("s4pTabClass") &&
+    nav.includes("md:hidden") &&
+    nav.includes("Backend") &&
+    nav.includes("Catalogue") &&
+    nav.includes("flex-wrap") &&
+    lib.includes('ADMIN_MOBILE_STAMP = "admin-mobile-v1"'),
+  "Phone Admin uses lime Backend and Catalogue tabs like Club and Fan"
 );
 
 assert(
@@ -37,12 +56,15 @@ assert(
 
 assert(
   home.includes("data-admin-segment={segment.id}") &&
-    home.includes('{ id: "clubs", label: "Clubs" }') &&
-    home.includes('{ id: "supporters", label: "Supporters" }') &&
-    home.includes('{ id: "lead", label: "Lead Climate Sponsors" }') &&
-    home.includes(
-      '{ id: "local", label: "Local Business Climate Sponsors" }'
-    ) &&
+    home.includes("s4pTabClass") &&
+    home.includes("grid-cols-2") &&
+    home.includes("flex-wrap") &&
+    home.includes("ADMIN_MOBILE_STAMP") &&
+    home.includes("data-admin-mobile") &&
+    home.includes('{ id: "clubs", label: "Clubs"') &&
+    home.includes('{ id: "supporters", label: "Supporters"') &&
+    home.includes('{ id: "lead", label: "Lead"') &&
+    home.includes('{ id: "local", label: "Local"') &&
     home.includes("Keep") &&
     home.includes("Delete") &&
     home.includes("data-admin-keep") &&
@@ -50,8 +72,9 @@ assert(
     home.includes("Invitations sent") &&
     home.includes("Sponsors who proceeded") &&
     home.includes("P4P interactions") &&
-    home.includes("Matchrav"),
-  "Backend has four short segments with keep/delete and the required records"
+    home.includes("Matchrav") &&
+    !home.includes("<details"),
+  "Backend has four short lime-tab segments with keep/delete and the required records"
 );
 
 assert(
@@ -68,8 +91,9 @@ assert(
     snapshot.supporters[0]?.p4p.length > 0 &&
     snapshot.lead[0]?.brandName === "American Express" &&
     snapshot.local[0]?.brandName === "Mash Tun" &&
-    preview.includes("persist={false}"),
-  "Preview shows club, supporter, Lead and Local accounts"
+    preview.includes("persist={false}") &&
+    preview.includes("AppLayout"),
+  "Preview shows the real Admin shell on a phone, with club, supporter, Lead and Local accounts"
 );
 
 assert(
@@ -77,7 +101,8 @@ assert(
     registerSponsor.includes('role: tier === "local" ? "local" : "lead"') &&
     p4p.includes("recordAdminP4p") &&
     matchrav.includes("fanKey") &&
-    overlay.includes("cursor/admin-backend-18f9"),
+    overlay.includes("cursor/admin-backend-18f9") &&
+    overlay.includes("app/components/admin/AdminNav.tsx"),
   "New registrations and supporter activity are recorded for Admin, and the overlay pulls these files"
 );
 
@@ -87,5 +112,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Admin backend has four short segments covering every club and participant, with keep/delete."
+  "Admin backend has four short phone tabs covering every club and participant, with keep/delete."
 );

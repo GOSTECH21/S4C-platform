@@ -36,12 +36,12 @@ const GROUPS = [
 export default function AdminCataloguePage() {
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-6 overflow-x-hidden sm:space-y-8">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-green-400 sm:text-sm sm:tracking-[0.3em]">
             S4P Admin Backend
           </p>
-          <h1 className="mt-2 text-4xl font-black">Catalogue</h1>
+          <h1 className="mt-2 text-3xl font-black sm:text-4xl">Catalogue</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
             Reference lists used by the platform. Participant records live on
             Backend.

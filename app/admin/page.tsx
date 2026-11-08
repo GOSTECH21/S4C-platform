@@ -34,14 +34,16 @@ export default function S4PAdminHomePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-6 overflow-x-hidden sm:space-y-8">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wide text-green-400 sm:text-sm sm:tracking-[0.3em]">
               S4P Admin Backend
             </p>
-            <h1 className="mt-2 text-4xl font-black">Platform records</h1>
-            <p className="mt-3 max-w-3xl text-slate-300">
+            <h1 className="mt-2 text-3xl font-black sm:text-4xl">
+              Platform records
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm text-slate-300 sm:text-base">
               Every registered club, supporter, Lead Climate Sponsor and Local
               Business Climate Sponsor. Keep a participant on the platform or
               delete them from it.
@@ -50,7 +52,7 @@ export default function S4PAdminHomePage() {
           <button
             type="button"
             onClick={() => void logout()}
-            className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
+            className="hidden rounded-xl border border-slate-600 px-5 py-3 font-semibold md:inline-flex"
           >
             Logout
           </button>
