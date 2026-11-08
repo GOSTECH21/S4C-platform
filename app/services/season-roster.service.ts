@@ -4,7 +4,6 @@ import {
   LEAGUE_COUNTRY,
   LEAGUE_SPORT,
   findClubOnRoster,
-  isDemoClubName,
   normalizeSeasonName,
 } from "../lib/current-season";
 import { supabase } from "../lib/supabase";
@@ -113,28 +112,14 @@ async function assignCurrentSeasonClubs(
     }
   }
 
-  const managedIds = new Set(
-    [...byName.values()]
-      .filter((row) => CURRENT_SEASON_LEAGUES[row.name])
-      .map((row) => row.id)
-  );
-
   for (const club of clubRows) {
     const nextCompetitionId = desiredCompetition.get(club.id) ?? null;
-    const inManagedLeague =
-      Boolean(club.competition_id) && managedIds.has(club.competition_id!);
     if (nextCompetitionId && nextCompetitionId !== club.competition_id) {
       await supabase
         .from("clubs")
         .update({ competition_id: nextCompetitionId })
         .eq("id", club.id);
       club.competition_id = nextCompetitionId;
-    } else if (!nextCompetitionId && inManagedLeague) {
-      await supabase
-        .from("clubs")
-        .update({ competition_id: null })
-        .eq("id", club.id);
-      club.competition_id = null;
     }
   }
 }
@@ -191,26 +176,8 @@ function rosterAlreadyCurrent(
 }
 
 async function dropStaleLeagueFixtures(
-  clubs: ClubRow[],
+  _clubs: ClubRow[],
   _competitions: Map<string, CompetitionRow>
 ): Promise<void> {
-  const clubById = new Map(clubs.map((club) => [club.id, club]));
-  const { data: fixtures } = await supabase
-    .from("fixtures")
-    .select("id, competition_id, home_club_id, away_club_id");
-
-  const staleIds: string[] = [];
-  for (const fixture of fixtures ?? []) {
-    const home = clubById.get(fixture.home_club_id as string);
-    const away = clubById.get(fixture.away_club_id as string);
-    if (!home || !away) continue;
-    if (!isDemoClubName(home.name) && !isDemoClubName(away.name)) {
-      staleIds.push(fixture.id as string);
-    }
-  }
-
-  if (staleIds.length === 0) return;
-  for (const id of staleIds) {
-    await supabase.from("fixtures").delete().eq("id", id);
-  }
+  // Keep every stored fixture. The platform is not limited to three clubs.
 }

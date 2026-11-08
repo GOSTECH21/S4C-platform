@@ -9,7 +9,6 @@ import {
 } from "../lib/s4p-admin";
 import { getFanRegistrationsForStaff } from "./supporters.service";
 import { clubsForBrandFromLocalStores } from "./climate-sponsors.service";
-import { isDemoClubName } from "../lib/current-season";
 import {
   isRemovedSponsorBrand,
   isRemovedSponsorIdentity,
@@ -59,8 +58,7 @@ export async function loadStaffParticipantRoster() {
         email: String(row.email ?? "").trim() || "No email",
         clubName: String(club?.name ?? "").trim() || "No club selected",
       };
-    })
-    .filter((row) => isDemoClubName(row.clubName));
+    });
 
   const mappedSponsorsBase = (sponsors.data ?? []).map((row) => ({
     id: String(row.id),
@@ -91,9 +89,7 @@ export async function loadStaffParticipantRoster() {
 
   const mappedSponsors: StaffSponsor[] = mappedSponsorsBase
     .map((row) => {
-      const fromDb = (clubsFromDb.get(compactIdentity(row.brandName)) ?? []).filter(
-        (name) => isDemoClubName(name)
-      );
+      const fromDb = clubsFromDb.get(compactIdentity(row.brandName)) ?? [];
       const fromLocal = clubsForBrandFromLocalStores(row.brandName, row.email);
       return {
         ...row,
@@ -121,9 +117,7 @@ export async function loadStaffParticipantRoster() {
     ].filter((key) => key.length >= 6),
   };
 
-  const fanRoster = staffFanRoster(fans, excluded).filter((fan) =>
-    isDemoClubName(fan.clubName)
-  );
+  const fanRoster = staffFanRoster(fans, excluded);
 
   return {
     fans: fanRoster,

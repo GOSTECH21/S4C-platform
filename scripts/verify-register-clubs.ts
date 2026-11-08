@@ -14,8 +14,8 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(
-  currentSeasonTeamCount() === 3,
-  "Homepage Sports Teams stays the three-club demo"
+  currentSeasonTeamCount() > 3,
+  "Homepage Sports Teams counts every Sporting Calendar club"
 );
 
 const groups = sportingCalendarClubGroups();

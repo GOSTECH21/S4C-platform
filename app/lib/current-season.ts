@@ -1,23 +1,28 @@
-/** Live demo catalog: only the three clubs being demonstrated. */
+/** 2026/27 catalog: every Sporting Calendar league and club, not a three-club demo. */
+
+import {
+  SPORTING_CALENDAR_LEAGUES,
+  isCupCompetitionName,
+} from "./sporting-calendar-leagues";
 
 export const CURRENT_SEASON = "2026/27";
 
 export const DEMO_CLUB_NAMES = ["Arsenal", "Hearts", "Hibernian"] as const;
 
-export const CURRENT_SEASON_LEAGUES: Record<string, string[]> = {
-  "Premier League": ["Arsenal"],
-  "Scottish Premiership": ["Hearts", "Hibernian"],
-};
+export const CURRENT_SEASON_LEAGUES: Record<string, string[]> =
+  Object.fromEntries(
+    SPORTING_CALENDAR_LEAGUES.filter(
+      (league) => !isCupCompetitionName(league.name) && league.teams.length > 0
+    ).map((league) => [league.name, league.teams.map((team) => team.name)])
+  );
 
-export const LEAGUE_SPORT: Record<string, string> = {
-  "Premier League": "Football",
-  "Scottish Premiership": "Football",
-};
+export const LEAGUE_SPORT: Record<string, string> = Object.fromEntries(
+  SPORTING_CALENDAR_LEAGUES.map((league) => [league.name, league.sport])
+);
 
-export const LEAGUE_COUNTRY: Record<string, string> = {
-  "Premier League": "England",
-  "Scottish Premiership": "Scotland",
-};
+export const LEAGUE_COUNTRY: Record<string, string> = Object.fromEntries(
+  SPORTING_CALENDAR_LEAGUES.map((league) => [league.name, league.country])
+);
 
 const LEAGUE_ALIASES: Record<string, string> = {
   "premier league": "Premier League",
@@ -196,12 +201,20 @@ export function currentSeasonTeamCount(): number {
   return names.size;
 }
 
+function clubOnSeasonRoster(name: string | null | undefined): boolean {
+  const raw = String(name ?? "").trim();
+  if (!raw) return false;
+  return Object.values(CURRENT_SEASON_LEAGUES).some((clubs) =>
+    clubs.some((club) => seasonNamesMatch(club, raw))
+  );
+}
+
 export function isCurrentSeasonLeagueFixture(
   _leagueName: string | null | undefined,
   homeName: string,
   awayName: string
 ): boolean {
-  return isDemoClubName(homeName) || isDemoClubName(awayName);
+  return clubOnSeasonRoster(homeName) || clubOnSeasonRoster(awayName);
 }
 
 export function findClubOnRoster<T extends { name: string; competition_id?: string | null }>(

@@ -159,7 +159,7 @@ assert(
 );
 
 const table = premierLeagueCilt("Arsenal FC");
-assert(table.length === 1, "CILT ranks Arsenal as the only Premier League demo club");
+assert(table.length >= 20, "CILT ranks the Premier League, not Arsenal alone");
 assert(table[0].position === 1, "First row is position 1");
 const arsenal = table.find((row) => row.isClub);
 assert(Boolean(arsenal), "Arsenal FC is highlighted on the CILT");
@@ -179,32 +179,33 @@ assert(
 );
 
 const spl = scottishPremiershipCilt("Hearts of Midlothian FC");
-assert(spl.length === 2, "CILT ranks Hearts and Hibernian only");
+assert(spl.length >= 12, "CILT ranks the Scottish Premiership, not Hearts and Hibernian only");
 const hearts = spl.find((row) => row.isClub);
 assert(Boolean(hearts), "Hearts is highlighted on the Scottish Premiership CILT");
-assert(hearts?.position === 1, "Hearts starts first in the two-club Scottish CILT");
 assert(
   spl.some((row) => /hibernian/i.test(row.club)),
   "Hibernian remains on the Scottish Premiership CILT"
 );
 assert(
-  !spl.some((row) => /celtic|rangers/i.test(row.club)),
-  "Celtic and Rangers are not on the Scottish Premiership CILT"
+  spl.some((row) => /celtic/i.test(row.club)) &&
+    spl.some((row) => /rangers/i.test(row.club)),
+  "Celtic and Rangers are on the Scottish Premiership CILT"
 );
 
 const climbedHibs = scottishPremiershipCilt("Hibernian", 2000);
 const climbedHibsRow = climbedHibs.find((row) => row.isClub);
+const baseHibs = spl.find((row) => /hibernian/i.test(row.club));
 assert(
-  climbedHibsRow?.position === 1,
-  "Hibernian can overtake Hearts on the CILT when extra carbon impact is added"
+  (climbedHibsRow?.tonnes ?? 0) > (baseHibs?.tonnes ?? 0),
+  "Hibernian CILT tonnage rises when extra carbon impact is added"
 );
 
 assert(
-  leagueForClubName("Real Madrid") === null,
-  "Real Madrid is outside the three-club demo catalog"
+  leagueForClubName("Real Madrid") === "La Liga",
+  "Real Madrid is a La Liga club on the platform"
 );
 const laLiga = climateImpactLeagueTable("La Liga", "Real Madrid");
-assert(laLiga.length === 0, "La Liga is not ranked in the three-club demo");
+assert(laLiga.length >= 18, "La Liga is ranked on the CILT");
 assert(
   leagueForClubName("Arsenal") === "Premier League",
   "Arsenal remains a Premier League club"

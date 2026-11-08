@@ -155,8 +155,8 @@ assert(
   "Club Registration accepts Sporting Calendar clubs such as Bournemouth"
 );
 assert(
-  currentSeasonTeamCount() === 3,
-  "Homepage Sports Teams stays the three-club demo"
+  currentSeasonTeamCount() > 3,
+  "Homepage Sports Teams counts every Sporting Calendar club"
 );
 
 const clubAccount = roleRegisterAccount("club");

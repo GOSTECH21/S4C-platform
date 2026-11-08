@@ -47,12 +47,12 @@ assert(
 );
 
 const cilt = overallClimateImpactLeagueRows();
-assert(cilt.length === 3, "CILT full table has the three demo clubs");
+assert(cilt.length === 20, "CILT full table lists twenty ranked clubs");
 assert(
-  cilt.map((row) => row.name).join(",") === "Arsenal,Hearts,Hibernian",
-  "CILT ranks Arsenal, Hearts, then Hibernian"
+  cilt.some((row) => row.name === "Arsenal"),
+  "CILT includes Arsenal among the ranked clubs"
 );
-assert(cilt[0].rank === 1 && cilt[2].rank === 3, "CILT demo rows are numbered 1 to 3");
+assert(cilt[0].rank === 1 && cilt[19].rank === 20, "CILT rows are numbered 1 to 20");
 
 const football = climateImpactLeagueRowsFor(
   parseCiltFilter({ scope: "sport", sport: "Football" })
@@ -67,8 +67,8 @@ const premier = climateImpactLeagueRowsFor(
   parseCiltFilter({ competition: "Premier League" })
 );
 assert(
-  premier.length === 1 && premier[0].name === "Arsenal",
-  "Premier League CILT ranks Arsenal only"
+  premier.length === 20 && premier.some((row) => row.name === "Arsenal"),
+  "Premier League CILT ranks the Premier League including Arsenal"
 );
 assert(
   impactTableHeading("cilt", parseCiltFilter({ competition: "Premier League" })) ===
