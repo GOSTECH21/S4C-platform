@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "74cb1d6";
+const PIN = "8504851";
 const BRANCH = "cursor/admin-backend-18f9";
 const FILES = [
   "app/lib/admin-backend.ts",
