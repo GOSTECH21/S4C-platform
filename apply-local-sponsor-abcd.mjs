@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { spawnSync } from "child_process";
 
-const PIN = "pending";
+const PIN = "1893384";
 const BRANCH = "cursor/local-sponsor-abcd-18f9";
 const FILES = [
   "app/lib/lead-sponsor-home.ts",
