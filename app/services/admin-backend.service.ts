@@ -1,20 +1,32 @@
 import { supabase } from "../lib/supabase";
 import {
+  adminNamesMatch,
   adminParticipantId,
+  adminStoredFullName,
   compactAdminKey,
   emptyAdminSnapshot,
   isAdminRemovedBrand,
   isAdminRemovedEmail,
   isAdminRemovedId,
   keysMatch,
+  readAdminClimateWallets,
+  readAdminInviteRounds,
+  readAdminLeadFolders,
   readAdminLedger,
+  readAdminLocalSponsors,
+  readAdminMatchDayFolders,
+  readAdminMatchDayLocks,
+  readAdminMatchravTrips,
+  readAdminP4pAllocations,
+  readAdminP4pPredictions,
   readAdminRemoved,
+  readAdminSponsorDirectory,
+  readAdminSupportedClubs,
   recordAdminFanFund,
   recordAdminMatchrav,
   recordAdminP4p,
   recordAdminParticipant,
   uniqueAdminNames,
-  readAdminMatchravTrips,
   writeAdminRemoved,
   type AdminBackendSnapshot,
   type AdminClubMatch,
@@ -22,27 +34,9 @@ import {
   type AdminSponsorAccount,
   type AdminSupporterRecord,
 } from "../lib/admin-backend";
-import { storedFullName, uniqueClubNames } from "../lib/s4p-admin";
-import { clubsMatch } from "../lib/sponsor-dashboard";
-import { isLeadClimateBrand } from "../lib/match-day-branding";
-import { isKnownLocalBusinessSponsorName } from "../lib/climate-sponsors";
-import { allLocalSponsors } from "../lib/local-sponsor";
-import { listAllMatchDayFolders } from "./match-day-folder.service";
-import {
-  loadInviteRounds,
-  loadSponsorDirectory,
-} from "./sponsor-listings.service";
-import { listMatchDayLocks } from "./climate-sponsors.service";
-import { listClimateWallets } from "./sponsor-wallet.service";
-import { listLeadProjectFolders } from "../lib/lead-project-folder";
-import {
-  listP4pPredictions,
-  listP4pProjectAllocations,
-} from "./predict-for-planet.service";
-import { readLocalSupportedClubs } from "./teams.service";
 
 function listingName(
-  listings: Array<{ id: string; brandName: string }>,
+  listings: Array<{ id?: string; brandName?: string }>,
   id: string
 ) {
   return listings.find((row) => row.id === id)?.brandName ?? "";
@@ -68,12 +62,12 @@ function sponsorRole(input: {
   jobTitle?: string | null;
   listingKind?: string | null;
 }): "lead" | "local" {
-  if (isLeadClimateBrand(input.brandName)) return "lead";
   if (/local\s+business/i.test(input.jobTitle ?? "")) return "local";
   if (input.listingKind === "local") return "local";
-  if (isKnownLocalBusinessSponsorName(input.brandName)) return "local";
   if (
-    allLocalSponsors().some((row) => keysMatch(row.brandName, input.brandName))
+    readAdminLocalSponsors().some((row) =>
+      keysMatch(row.brandName, input.brandName)
+    )
   ) {
     return "local";
   }
@@ -81,18 +75,18 @@ function sponsorRole(input: {
 }
 
 function matchesForClub(clubName: string): AdminClubMatch[] {
-  const listings = loadSponsorDirectory();
-  const rounds = loadInviteRounds().filter((round) =>
-    clubsMatch(round.clubName, clubName)
+  const listings = readAdminSponsorDirectory();
+  const rounds = readAdminInviteRounds().filter((round) =>
+    adminNamesMatch(round.clubName ?? "", clubName)
   );
-  const folders = listAllMatchDayFolders().filter((folder) =>
-    clubsMatch(folder.clubName, clubName)
+  const folders = readAdminMatchDayFolders().filter((folder) =>
+    adminNamesMatch(folder.clubName, clubName)
   );
-  const locks = listMatchDayLocks().filter((lock) =>
-    clubsMatch(lock.clubName, clubName)
+  const locks = readAdminMatchDayLocks().filter((lock) =>
+    adminNamesMatch(lock.clubName ?? "", clubName)
   );
-  const wallets = listClimateWallets().filter((wallet) =>
-    clubsMatch(wallet.clubName, clubName)
+  const wallets = readAdminClimateWallets().filter((wallet) =>
+    adminNamesMatch(wallet.clubName ?? "", clubName)
   );
   const byMatch = new Map<string, AdminClubMatch>();
 
@@ -131,18 +125,18 @@ function matchesForClub(clubName: string): AdminClubMatch[] {
     const row = rowFor(round.matchLabel || "Match Day");
     row.projectNames = uniqueAdminNames([
       ...row.projectNames,
-      ...round.projectNames,
+      ...(round.projectNames ?? []),
     ]);
     row.invited = uniqueAdminNames([
       ...row.invited,
-      ...round.globalInviteeIds.map((id) => listingName(listings, id)),
-      ...round.localInviteeIds.map((id) => listingName(listings, id)),
-      ...round.commitments.map((item) => item.brandName),
+      ...(round.globalInviteeIds ?? []).map((id) => listingName(listings, id)),
+      ...(round.localInviteeIds ?? []).map((id) => listingName(listings, id)),
+      ...(round.commitments ?? []).map((item) => item.brandName),
     ]);
     row.proceeded = uniqueAdminNames([
       ...row.proceeded,
       round.lockedBrandName,
-      ...round.commitments
+      ...(round.commitments ?? [])
         .filter((item) => keysMatch(item.brandName, round.lockedBrandName))
         .map((item) => item.brandName),
     ]);
@@ -150,43 +144,47 @@ function matchesForClub(clubName: string): AdminClubMatch[] {
 
   for (const lock of locks) {
     const row = rowFor(lock.fixtureName || lock.matchLabel || "Match Day");
-    row.proceeded = uniqueAdminNames([...row.proceeded, lock.brandKey]);
+    row.proceeded = uniqueAdminNames([...row.proceeded, lock.brandKey ?? ""]);
   }
 
   for (const wallet of wallets) {
     if ((wallet.allocatedGbp || 0) <= 0 && (wallet.paidGbp || 0) <= 0) continue;
     const row = rowFor("Sponsored matches");
-    row.proceeded = uniqueAdminNames([...row.proceeded, wallet.brandName]);
+    row.proceeded = uniqueAdminNames([...row.proceeded, wallet.brandName ?? ""]);
   }
 
   return [...byMatch.values()];
 }
 
 function projectLogForBrand(brandName: string) {
-  const fromLead = listLeadProjectFolders()
+  const fromLead = readAdminLeadFolders()
     .filter((entry) => keysMatch(entry.brandName, brandName))
     .map((entry) => ({
-      clubName: entry.clubName,
+      clubName: entry.clubName ?? "",
       matchLabel: entry.matchTitle || entry.headline || "Match Day",
-      projectNames: uniqueAdminNames(entry.projects.map((project) => project.name)),
+      projectNames: uniqueAdminNames(
+        (entry.projects ?? []).map((project) => project.name)
+      ),
     }));
-  const fromRounds = loadInviteRounds()
+  const fromRounds = readAdminInviteRounds()
     .filter(
       (round) =>
         keysMatch(round.lockedBrandName, brandName) ||
-        round.commitments.some((item) => keysMatch(item.brandName, brandName))
+        (round.commitments ?? []).some((item) =>
+          keysMatch(item.brandName, brandName)
+        )
     )
     .map((round) => ({
-      clubName: round.clubName,
+      clubName: round.clubName ?? "",
       matchLabel: round.matchLabel || "Match Day",
       projectNames: uniqueAdminNames(round.projectNames),
     }));
-  const fromLocal = allLocalSponsors()
+  const fromLocal = readAdminLocalSponsors()
     .filter((row) => keysMatch(row.brandName, brandName))
     .flatMap((row) =>
       (row.matchSponsorships ?? []).map((match) => ({
-        clubName: row.clubName,
-        matchLabel: match.fixtureName,
+        clubName: row.clubName ?? "",
+        matchLabel: match.fixtureName ?? "Match Day",
         projectNames: [] as string[],
       }))
     );
@@ -251,7 +249,7 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
       id: adminParticipantId("club", clubName),
       clubName,
       directorName:
-        storedFullName(String(row.first_name ?? ""), String(row.last_name ?? "")) ||
+        adminStoredFullName(String(row.first_name ?? ""), String(row.last_name ?? "")) ||
         "Unnamed director",
       email: String(row.email ?? "").trim() || "No email",
       directorId: String(row.id),
@@ -262,7 +260,7 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     clubMap.set(clubKey(clubName), record);
   }
 
-  for (const folder of listAllMatchDayFolders()) {
+  for (const folder of readAdminMatchDayFolders()) {
     const key = clubKey(folder.clubName);
     if (!key) continue;
     if (!clubMap.has(key)) {
@@ -279,15 +277,16 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     }
   }
 
-  for (const round of loadInviteRounds()) {
-    const key = clubKey(round.clubName);
+  for (const round of readAdminInviteRounds()) {
+    const clubName = round.clubName || "No club selected";
+    const key = clubKey(clubName);
     if (!key || clubMap.has(key)) continue;
     const record: AdminClubRecord = {
-      id: adminParticipantId("club", round.clubName),
-      clubName: round.clubName,
+      id: adminParticipantId("club", clubName),
+      clubName,
       directorName: round.directorName || "Awaiting director record",
       email: "",
-      matches: matchesForClub(round.clubName),
+      matches: matchesForClub(clubName),
       status: "on-platform",
     };
     record.status = markStatus(record);
@@ -314,8 +313,8 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     left.clubName.localeCompare(right.clubName)
   );
 
-  const predictions = listP4pPredictions();
-  const allocations = listP4pProjectAllocations();
+  const predictions = readAdminP4pPredictions();
+  const allocations = readAdminP4pAllocations();
   const trips = readAdminMatchravTrips();
 
   const supporterMap = new Map<string, AdminSupporterRecord>();
@@ -324,10 +323,10 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     const email = String(row.email ?? "").trim();
     const authUserId = row.auth_user_id ? String(row.auth_user_id) : null;
     const id = adminParticipantId("supporter", email || String(row.id));
-    const teams = uniqueClubNames([
+    const teams = uniqueAdminNames([
       String(club?.name ?? ""),
       ...(prefClubs.get(authUserId ?? "") ?? []),
-      ...readLocalSupportedClubs(authUserId),
+      ...readAdminSupportedClubs(authUserId),
     ]);
     const record: AdminSupporterRecord = {
       id,
@@ -351,14 +350,14 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
       supporterFor(row.id) ||
       supporterMap.get(compactAdminKey(row.email || row.id));
     if (existing) {
-      existing.teams = uniqueClubNames([...existing.teams, ...(row.teams ?? [])]);
+      existing.teams = uniqueAdminNames([...existing.teams, ...(row.teams ?? [])]);
       continue;
     }
     const record: AdminSupporterRecord = {
       id: row.id,
       fullName: row.displayName,
       email: row.email,
-      teams: uniqueClubNames(row.teams ?? []),
+      teams: uniqueAdminNames(row.teams ?? []),
       fundedProjects: [],
       p4p: [],
       matchrav: [],
@@ -396,18 +395,18 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     const fan = supporterFor(row.fanId);
     if (!fan) continue;
     fan.fundedProjects.push({
-      clubName: row.clubName,
-      projectName: row.projectName,
-      gbp: row.amountGbp,
+      clubName: row.clubName ?? "",
+      projectName: row.projectName ?? "",
+      gbp: row.amountGbp ?? 0,
     });
   }
   for (const row of predictions) {
     const fan = supporterFor(row.fanId);
     if (!fan) continue;
     fan.p4p.push({
-      clubName: row.clubName,
-      fixtureName: row.fixtureName,
-      projectName: row.projectName,
+      clubName: row.clubName ?? "",
+      fixtureName: row.fixtureName ?? "",
+      projectName: row.projectName ?? "",
     });
   }
   for (const row of ledger.p4p) {
@@ -442,14 +441,14 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
     left.fullName.localeCompare(right.fullName)
   );
 
-  const listings = loadSponsorDirectory();
+  const listings = readAdminSponsorDirectory();
   const sponsorMap = new Map<string, AdminSponsorAccount>();
 
   function upsertSponsor(row: Omit<AdminSponsorAccount, "status">) {
     const key = compactAdminKey(row.brandName || row.email);
     const existing = sponsorMap.get(key);
     if (existing) {
-      existing.teams = uniqueClubNames([...existing.teams, ...row.teams]);
+      existing.teams = uniqueAdminNames([...existing.teams, ...row.teams]);
       existing.projectLog = [...existing.projectLog, ...row.projectLog];
       if (!existing.email && row.email) existing.email = row.email;
       if (!existing.contactName && row.contactName) existing.contactName = row.contactName;
@@ -475,7 +474,7 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
       contactName: String(row.website ?? "").trim() || listing?.contactName || "No contact name",
       email: listing?.email || "",
       sponsorId: String(row.id),
-      teams: uniqueClubNames([String(row.club_name ?? "")]),
+      teams: uniqueAdminNames([String(row.club_name ?? "")]),
       projectLog: projectLogForBrand(brandName),
     });
   }
@@ -483,37 +482,37 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
   for (const listing of listings) {
     const role = listing.kind === "local" ? "local" : "lead";
     upsertSponsor({
-      id: adminParticipantId(role, listing.brandName),
+      id: adminParticipantId(role, listing.brandName || "Unnamed brand"),
       role,
-      brandName: listing.brandName,
-      contactName: listing.contactName,
-      email: listing.email,
+      brandName: listing.brandName || "Unnamed brand",
+      contactName: listing.contactName || "",
+      email: listing.email || "",
       teams: [],
-      projectLog: projectLogForBrand(listing.brandName),
+      projectLog: projectLogForBrand(listing.brandName || ""),
     });
   }
 
-  for (const local of allLocalSponsors()) {
+  for (const local of readAdminLocalSponsors()) {
     upsertSponsor({
-      id: adminParticipantId("local", local.brandName),
+      id: adminParticipantId("local", local.brandName || "Unnamed brand"),
       role: "local",
-      brandName: local.brandName,
+      brandName: local.brandName || "Unnamed brand",
       contactName: local.signerName || "",
-      email: local.email,
-      teams: uniqueClubNames([local.clubName]),
-      projectLog: projectLogForBrand(local.brandName),
+      email: local.email || "",
+      teams: uniqueAdminNames([local.clubName]),
+      projectLog: projectLogForBrand(local.brandName || ""),
     });
   }
 
-  for (const entry of listLeadProjectFolders()) {
+  for (const entry of readAdminLeadFolders()) {
     upsertSponsor({
-      id: adminParticipantId("lead", entry.brandName),
+      id: adminParticipantId("lead", entry.brandName || "Unnamed brand"),
       role: "lead",
-      brandName: entry.brandName,
-      contactName: entry.signerName,
+      brandName: entry.brandName || "Unnamed brand",
+      contactName: entry.signerName || "",
       email: "",
-      teams: uniqueClubNames([entry.clubName]),
-      projectLog: projectLogForBrand(entry.brandName),
+      teams: uniqueAdminNames([entry.clubName]),
+      projectLog: projectLogForBrand(entry.brandName || ""),
     });
   }
 
@@ -526,7 +525,7 @@ export async function loadAdminBackend(): Promise<AdminBackendSnapshot> {
       brandName: row.brandName || row.displayName,
       contactName: row.displayName,
       email: row.email,
-      teams: uniqueClubNames(row.teams ?? (row.clubName ? [row.clubName] : [])),
+      teams: uniqueAdminNames(row.teams ?? (row.clubName ? [row.clubName] : [])),
       projectLog: projectLogForBrand(row.brandName || row.displayName),
     });
   }

@@ -80,7 +80,10 @@ assert(
 
 assert(
   !service.includes("isDemoClubName") &&
-    service.includes("listAllMatchDayFolders") &&
+    service.includes("readAdminMatchDayFolders") &&
+    !service.includes("match-day-folder") &&
+    !service.includes("dual-sponsor") &&
+    !service.includes("predict-for-planet") &&
     service.includes("setAdminParticipantPresence") &&
     lib.includes("ADMIN_REMOVED_STORAGE") &&
     lib.includes("recordAdminParticipant"),

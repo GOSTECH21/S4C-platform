@@ -169,6 +169,190 @@ export function readAdminMatchravTrips(): Array<{
   }));
 }
 
+export function adminNamesMatch(left: string, right: string) {
+  const a = compactAdminKey(left);
+  const b = compactAdminKey(right);
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+export function adminStoredFullName(firstName: string, lastName: string) {
+  return `${firstName.trim()} ${lastName.trim()}`.replace(/\s+/g, " ").trim();
+}
+
+type AdminMatchFolder = {
+  clubName: string;
+  matchDate?: string;
+  sponsorsFile?: { fileName?: string; sponsors?: Array<{ brandName?: string }> };
+  projectsFile?: { fileName?: string; projects?: Array<{ name?: string }> };
+};
+
+export function readAdminMatchDayFolders(): AdminMatchFolder[] {
+  if (typeof window === "undefined") return [];
+  const rows: AdminMatchFolder[] = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key?.startsWith("s4p.sd.matchDayFolder.")) continue;
+    try {
+      const parsed = JSON.parse(
+        window.localStorage.getItem(key) ?? ""
+      ) as AdminMatchFolder;
+      if (parsed?.clubName) rows.push(parsed);
+    } catch {
+      // Skip a malformed folder and keep reading.
+    }
+  }
+  return rows;
+}
+
+export function readAdminP4pPredictions(): Array<{
+  fanId?: string;
+  clubName?: string;
+  fixtureName?: string;
+  projectName?: string;
+}> {
+  const rows = readJson<unknown[]>("s4p.p4p.predictions", []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+export function readAdminP4pAllocations(): Array<{
+  fanId?: string;
+  clubName?: string;
+  projectName?: string;
+  amountGbp?: number;
+}> {
+  const rows = readJson<unknown[]>("s4p.p4p.project-funds", []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+export function readAdminSupportedClubs(userId?: string | null): string[] {
+  if (!userId) return [];
+  const parsed = readJson<{ userId?: string; clubs?: unknown }>(
+    "s4p.fan.supportedClubs",
+    {}
+  );
+  if (parsed.userId !== userId || !Array.isArray(parsed.clubs)) return [];
+  return parsed.clubs.filter(
+    (name): name is string => typeof name === "string" && Boolean(name.trim())
+  );
+}
+
+export function readAdminSponsorDirectory(): Array<{
+  id?: string;
+  brandName?: string;
+  contactName?: string;
+  email?: string;
+  kind?: string;
+}> {
+  const rows = readJson<unknown[]>("s4p.sponsor.listings", []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+export function readAdminInviteRounds(): Array<{
+  clubName?: string;
+  directorName?: string;
+  matchLabel?: string;
+  projectNames?: string[];
+  globalInviteeIds?: string[];
+  localInviteeIds?: string[];
+  commitments?: Array<{ brandName?: string }>;
+  lockedBrandName?: string;
+}> {
+  const rows = readJson<unknown[]>("s4p.sponsor.invite-rounds", []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+export function readAdminMatchDayLocks(): Array<{
+  clubName?: string;
+  fixtureName?: string;
+  matchLabel?: string;
+  brandKey?: string;
+}> {
+  const store = readJson<Record<string, unknown>>("s4p.sponsor.matchLock", {});
+  if (!store || typeof store !== "object" || Array.isArray(store)) return [];
+  return Object.values(store).flatMap((row) =>
+    row && typeof row === "object"
+      ? [row as { clubName?: string; fixtureName?: string; matchLabel?: string; brandKey?: string }]
+      : []
+  );
+}
+
+export function readAdminClimateWallets(): Array<{
+  clubName?: string;
+  brandName?: string;
+  allocatedGbp?: number;
+  paidGbp?: number;
+}> {
+  const store = readJson<Record<string, unknown>>("s4p.sponsor.wallets", {});
+  if (!store || typeof store !== "object" || Array.isArray(store)) return [];
+  return Object.values(store).flatMap((row) =>
+    row && typeof row === "object"
+      ? [row as { clubName?: string; brandName?: string; allocatedGbp?: number; paidGbp?: number }]
+      : []
+  );
+}
+
+export function readAdminLeadFolders(): Array<{
+  brandName?: string;
+  clubName?: string;
+  matchTitle?: string;
+  headline?: string;
+  signerName?: string;
+  projects?: Array<{ name?: string }>;
+}> {
+  const rows = readJson<unknown[]>("s4p.lead-project-folder", []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+export function readAdminLocalSponsors(): Array<{
+  brandName?: string;
+  clubName?: string;
+  signerName?: string;
+  email?: string;
+  matchSponsorships?: Array<{ fixtureName?: string }>;
+}> {
+  const store = readJson<Record<string, unknown>>(
+    "s4p.local-sponsors-by-club",
+    {}
+  );
+  if (!store || typeof store !== "object" || Array.isArray(store)) return [];
+  const rows: Array<{
+    brandName?: string;
+    clubName?: string;
+    signerName?: string;
+    email?: string;
+    matchSponsorships?: Array<{ fixtureName?: string }>;
+  }> = [];
+  for (const value of Object.values(store)) {
+    if (Array.isArray(value)) {
+      for (const row of value) {
+        if (row && typeof row === "object") {
+          rows.push(
+            row as {
+              brandName?: string;
+              clubName?: string;
+              signerName?: string;
+              email?: string;
+              matchSponsorships?: Array<{ fixtureName?: string }>;
+            }
+          );
+        }
+      }
+    } else if (value && typeof value === "object") {
+      rows.push(
+        value as {
+          brandName?: string;
+          clubName?: string;
+          signerName?: string;
+          email?: string;
+          matchSponsorships?: Array<{ fixtureName?: string }>;
+        }
+      );
+    }
+  }
+  return rows;
+}
+
 export function readAdminRemoved(): AdminRemovedStore {
   const stored = readJson<Partial<AdminRemovedStore>>(
     ADMIN_REMOVED_STORAGE,

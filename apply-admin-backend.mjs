@@ -72,6 +72,9 @@ const nav = existsSync("app/components/admin/AdminNav.tsx")
 const admin = existsSync("app/admin/page.tsx")
   ? readFileSync("app/admin/page.tsx", "utf8")
   : "";
+const service = existsSync("app/services/admin-backend.service.ts")
+  ? readFileSync("app/services/admin-backend.service.ts", "utf8")
+  : "";
 if (
   !admin.includes("AdminBackendHome") ||
   !sidebar.includes("Backend") ||
@@ -81,7 +84,9 @@ if (
   !home.includes("Keep") ||
   !nav.includes("md:hidden") ||
   !nav.includes("adminTabClass") ||
-  sidebar.includes("S4PLockup")
+  sidebar.includes("S4PLockup") ||
+  service.includes("match-day-folder") ||
+  service.includes("dual-sponsor")
 ) {
   console.error("The Admin backend did not land. Stay in the s4c-platform folder and run the git fetch / checkout lines again.");
   process.exit(1);

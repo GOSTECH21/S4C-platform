@@ -38,7 +38,9 @@ import {
 } from "../lib/sponsor-wallet";
 import { FAN_PARTICIPATION_POOL_RATE } from "../lib/score-for-planet";
 import { clubsMatch } from "../lib/sponsor-dashboard";
-import { isLeadWalletLabel } from "../lib/dual-sponsor";
+function isLeadWalletLabel(name: string | null | undefined): boolean {
+  return /^lead\s+climate\s+sponsors?$/i.test(String(name ?? "").trim());
+}
 import { FEATURED_PROJECT_NAME } from "../lib/sccan-catalog";
 import { totalLocalPledge } from "../lib/local-sponsor";
 import { liveLeadAndLocals } from "./match-day-branding.service";
