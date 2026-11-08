@@ -13,6 +13,10 @@ import {
   SPORT_ORDER,
   scoreLabelForSport,
 } from "../lib/sports";
+import {
+  adminParticipantId,
+  recordAdminParticipant,
+} from "../lib/admin-backend";
 
 export { SPORT_ORDER, scoreLabelForSport };
 
@@ -453,6 +457,14 @@ export async function saveSupportedTeams(
     }))
   );
   if (prefError) throw prefError;
+
+  recordAdminParticipant({
+    id: adminParticipantId("supporter", supporterId),
+    role: "supporter",
+    displayName: "Supporter",
+    email: "",
+    teams: teams.map((team) => team.name),
+  });
 }
 
 function normalizeName(value: string): string {

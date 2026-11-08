@@ -1,5 +1,9 @@
 import { supabase } from "../lib/supabase";
 import {
+  adminParticipantId,
+  recordAdminParticipant,
+} from "../lib/admin-backend";
+import {
   clubMatchDayLabel,
   resolveClubSelectedMatch,
   saveClubSelectedMatch,
@@ -329,6 +333,14 @@ export async function registerClubSustainabilityDirector(
     const { error } = await supabase.from("club_accounts").insert(payload);
     if (error) throw error;
   }
+
+  recordAdminParticipant({
+    id: adminParticipantId("club", club.name),
+    role: "club",
+    displayName: `${input.firstName} ${input.lastName}`.trim(),
+    email: input.email,
+    clubName: club.name,
+  });
 
   return club;
 }

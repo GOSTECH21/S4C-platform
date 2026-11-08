@@ -6,6 +6,7 @@ import {
   recordFanSponsorVote,
   writeProjectFunding,
 } from "../lib/climate-funding";
+import { recordAdminFanFund } from "../lib/admin-backend";
 import {
   applyFundingListToProjectsFile,
   applyRemainingToSponsorsFile,
@@ -37,7 +38,9 @@ import {
 } from "../lib/sponsor-wallet";
 import { FAN_PARTICIPATION_POOL_RATE } from "../lib/score-for-planet";
 import { clubsMatch } from "../lib/sponsor-dashboard";
-import { isLeadWalletLabel } from "../lib/dual-sponsor";
+function isLeadWalletLabel(name: string | null | undefined): boolean {
+  return /^lead\s+climate\s+sponsors?$/i.test(String(name ?? "").trim());
+}
 import { FEATURED_PROJECT_NAME } from "../lib/sccan-catalog";
 import { totalLocalPledge } from "../lib/local-sponsor";
 import { liveLeadAndLocals } from "./match-day-branding.service";
@@ -440,6 +443,19 @@ export function applyFanWalletVote({
   recordFanSponsorVote(supporterId, clubId, result.wallet.brandName);
   if (!brandsMatch(result.wallet.brandName, brandName)) {
     recordFanSponsorVote(supporterId, clubId, brandName);
+  }
+  if (supporterId) {
+    const funded = result.shares?.length
+      ? result.shares
+      : [{ project: result.project, amount: result.amount }];
+    for (const share of funded) {
+      recordAdminFanFund({
+        supporterKey: supporterId,
+        clubName: resolvedClub,
+        projectName: share.project.name,
+        gbp: share.amount,
+      });
+    }
   }
   void persistClimateWalletTake({
     amountGbp: result.amount,

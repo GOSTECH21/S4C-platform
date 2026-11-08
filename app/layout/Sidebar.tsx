@@ -1,39 +1,25 @@
 import Link from "next/link";
-import { S4PLockup } from "@/app/components/S4PLockup";
-import { HOME_PATH } from "@/app/lib/routes";
+import {
+  ADMIN_CATALOGUE_PATH,
+  ADMIN_PATH,
+  HOME_PATH,
+} from "@/app/lib/routes";
 
 const navItems = [
-  { label: "Registered participants", href: "/admin" },
-  { label: "Sports", href: "/admin/sports" },
-  { label: "Competitions", href: "/admin/competitions" },
-  { label: "Clubs", href: "/admin/clubs" },
-  { label: "Fixtures", href: "/admin/fixtures" },
-  { label: "Matchrav", href: "/admin/matchrav" },
-  { label: "Impact Opportunities", href: "/admin/impact-opportunities" },
-  { label: "Climate Assets", href: "/admin/climate-assets" },
-  { label: "Carbon Impact League Table", href: "/carbon-impact-league-table" },
-  { label: "Sponsors", href: "/admin/sponsors" },
-  { label: "Sponsor Campaigns", href: "/admin/sponsor-campaigns" },
-  { label: "Match Centre", href: "/admin/match-centre" },
-  { label: "Sponsor Credits", href: "/admin/sponsor-credits" },
-  { label: "Notifications", href: "/admin/notifications" },
-  
-  {
-    label: "My Climate Credits",
-    href: "/admin/my-climate-credits",
-},
-  
-{ label: "Supporter Portfolio", href: "/admin/supporter-portfolio" },
-{ label: "Supporters", href: "/admin/supporters" },
-{ label: "Settings", href: "/settings" },
+  { label: "Backend", href: ADMIN_PATH },
+  { label: "Catalogue", href: ADMIN_CATALOGUE_PATH },
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="hidden min-h-screen w-72 border-r border-emerald-400/20 bg-slate-900/80 p-6 text-white backdrop-blur md:block">
-      <div className="mb-10">
-        <Link href={HOME_PATH} aria-label="S4P SCORE-FOR-PLANET">
-          <S4PLockup className="h-12 w-auto max-w-[11rem] object-contain object-left" />
+    <aside className="hidden min-h-screen w-56 border-r border-emerald-400/20 bg-slate-900/80 p-6 text-white backdrop-blur md:block">
+      <div className="mb-4 md:mb-10">
+        <Link
+          href={HOME_PATH}
+          aria-label="S4P SCORE-FOR-PLANET"
+          className="text-lg font-black tracking-tight text-white"
+        >
+          S4P
         </Link>
         <p className="mt-2 text-sm text-slate-400">Score-For-Planet</p>
       </div>

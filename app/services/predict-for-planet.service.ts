@@ -1,6 +1,10 @@
 /* s4p-predict-for-planet-v7 */
 /* p4p-fund-project-v1 */
 import {
+  recordAdminFanFund,
+  recordAdminP4p,
+} from "@/app/lib/admin-backend";
+import {
   P4P_WINDOWS_PER_SLOT,
   awardP4pAccuracy,
   createGameTimeWallet,
@@ -221,6 +225,12 @@ export function fundP4pProject(input: {
   });
   if (!result.ok) return result;
   writeJson(P4P_PROJECT_FUNDS_STORAGE, [...allocations, result.allocation]);
+  recordAdminFanFund({
+    supporterKey: input.fanId,
+    clubName: input.clubName,
+    projectName: input.projectName,
+    gbp: result.allocation.amountGbp,
+  });
   return result;
 }
 
@@ -271,6 +281,12 @@ export function submitP4pPrediction(input: {
   }
   writeJson(P4P_PREDICTIONS_STORAGE, [...predictions, prediction]);
   if (wallet) saveGameTimeWallet(wallet);
+  recordAdminP4p({
+    supporterKey: input.fanId,
+    clubName: input.clubName,
+    fixtureName: input.fixtureName,
+    projectName: input.projectName,
+  });
   return { ok: true, prediction, wallet, takenGbp };
 }
 

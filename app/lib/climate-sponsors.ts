@@ -9,6 +9,7 @@ import { clubsMatch, normalizeClubName } from "./sponsor-dashboard";
 export { clubsMatch };
 import { MATCH_DAY_LEAD_HOURS } from "./partner-projects";
 import { sameNamedFixture } from "./club-fixtures";
+import { isAdminRemovedBrand } from "./admin-backend";
 
 export const CLIMATE_SPONSOR_LEAD_HOURS = MATCH_DAY_LEAD_HOURS;
 
@@ -55,7 +56,7 @@ export function isKnownLocalBusinessSponsorName(brandName: string): boolean {
 /** Carbon Warriors Limited is removed from the platform as a sponsor. */
 export function isRemovedSponsorBrand(name: string | null | undefined): boolean {
   const key = compactSponsorKey(String(name ?? ""));
-  return key.startsWith("carbonwarriors");
+  return key.startsWith("carbonwarriors") || isAdminRemovedBrand(name);
 }
 
 /** People deleted from the platform. They registered as Gillette for Hearts. */

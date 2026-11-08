@@ -57,6 +57,10 @@ export function leadFolderEntryKey(entry: {
   ].join("|");
 }
 
+export function listLeadProjectFolders(): LeadFolderEntry[] {
+  return readAll();
+}
+
 function readAll(): LeadFolderEntry[] {
   if (typeof window === "undefined") return [];
   try {
