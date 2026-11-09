@@ -21,6 +21,9 @@ import {
   TRAVEL_EXAMPLE,
   TRAVEL_MODES,
   estimateTravelKgCo2e,
+  flightHaulForOneWayMiles,
+  flightHaulLabel,
+  formatFlightKgPerMile,
   formatTravelKgCo2e,
   parseReturnMiles,
   saveStadiumTravelRecord,
@@ -633,6 +636,24 @@ export default function FanMatchravPanel({
               )}{" "}
               kg
             </p>
+            {outboundMode === "flight" ||
+            (!sameReturn && returnMode === "flight") ? (
+              <p
+                data-matchrav-flight-haul
+                className="mt-2 text-xs font-semibold text-slate-400"
+              >
+                {[
+                  outboundMode === "flight"
+                    ? flightHaulCopy("Outbound", outboundDistance)
+                    : null,
+                  !sameReturn && returnMode === "flight"
+                    ? flightHaulCopy("Return", inboundDistance)
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            ) : null}
 
             {error ? (
               <p data-matchrav-error className="mt-4 text-sm font-semibold text-red-300">
@@ -881,6 +902,13 @@ export default function FanMatchravPanel({
       </div>
     </section>
   );
+}
+
+function flightHaulCopy(leg: string, miles: number): string {
+  const haul = flightHaulForOneWayMiles(miles);
+  return `${leg} flight: ${flightHaulLabel(haul)} · ${formatFlightKgPerMile(
+    haul
+  )} kg CO2e per mile`;
 }
 
 function ModePicker({

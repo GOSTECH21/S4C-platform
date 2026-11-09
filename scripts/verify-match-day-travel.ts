@@ -1,6 +1,8 @@
 import {
   TRAVEL_EXAMPLE,
   estimateTravelKgCo2e,
+  flightHaulForOneWayMiles,
+  flightKgPerMile,
   formatTravelKgCo2e,
   listStadiumTravelRecords,
   saveStadiumTravelRecord,
@@ -36,8 +38,25 @@ assert(
 );
 assert(estimateTravelKgCo2e("train", 30) > 0, "Train miles produce a footprint");
 assert(
-  estimateTravelKgCo2e("flight", 30) > estimateTravelKgCo2e("car", 30, 1),
-  "Flight miles produce a higher footprint than a solo car"
+  flightHaulForOneWayMiles(180) === "short-haul" &&
+    estimateTravelKgCo2e("flight", 180) === 54,
+  "Edinburgh to Manchester (180 miles) uses DEFRA short-haul 0.30 kg per mile"
+);
+assert(
+  flightHaulForOneWayMiles(400) === "domestic" &&
+    estimateTravelKgCo2e("flight", 400) ===
+      Math.round(flightKgPerMile("domestic") * 400 * 10) / 10,
+  "Medium UK hops use DEFRA domestic with RF"
+);
+assert(
+  flightHaulForOneWayMiles(1050) === "long-haul" &&
+    estimateTravelKgCo2e("flight", 1050) ===
+      Math.round(flightKgPerMile("long-haul") * 1050 * 10) / 10,
+  "Edinburgh to Barcelona (1050 miles) uses DEFRA long-haul with RF"
+);
+assert(
+  estimateTravelKgCo2e("flight", 400) > estimateTravelKgCo2e("train", 400),
+  "A domestic flight has a higher footprint than the train for the same miles"
 );
 assert(
   estimateTravelKgCo2e("car", 0, 2) === 0,
