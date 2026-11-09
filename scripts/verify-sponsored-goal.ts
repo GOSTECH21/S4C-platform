@@ -33,11 +33,11 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(
-  currentSeasonTeamCount() === 3,
-  "The Sports Teams window must be exactly the three demo clubs"
+  currentSeasonTeamCount() > 3,
+  "The Sports Teams window counts every Sporting Calendar club"
 );
 assert(
-  mergePlatformStats({ sportsTeams: 221 }).sportsTeams === 3,
+  mergePlatformStats({ sportsTeams: 221 }).sportsTeams === currentSeasonTeamCount(),
   "Leftover duplicate club rows must not become the Sports Teams count"
 );
 assert(

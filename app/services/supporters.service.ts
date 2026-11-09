@@ -1,7 +1,5 @@
 import { supabase } from "../lib/supabase";
 import type { RegisteredFan } from "../lib/s4p-admin";
-import { isDemoClubName } from "../lib/current-season";
-
 export async function getSupporters() {
   const { data, error } = await supabase
     .from("supporters")
@@ -13,10 +11,7 @@ export async function getSupporters() {
 
   if (error) throw error;
 
-  return (data ?? []).filter((row) => {
-    const club = (row as { clubs?: { name?: string } | null }).clubs;
-    return isDemoClubName(String(club?.name ?? ""));
-  });
+  return data ?? [];
 }
 
 function mapFanRow(row: {
@@ -47,9 +42,9 @@ export async function getFanRegistrationsForStaff(): Promise<{
 
   if (error) throw error;
 
-  const fans = (data ?? [])
-    .map((row) => mapFanRow(row as Parameters<typeof mapFanRow>[0]))
-    .filter((fan) => isDemoClubName(fan.clubName));
+  const fans = (data ?? []).map((row) =>
+    mapFanRow(row as Parameters<typeof mapFanRow>[0])
+  );
   return { fans, memberships: fans };
 }
 

@@ -4,7 +4,6 @@ import {
   CURRENT_SEASON_LEAGUES,
   LEAGUE_SPORT,
   findClubOnRoster,
-  isDemoClubName,
   seasonNamesMatch,
 } from "../lib/current-season";
 import { sportingCalendarClubGroups } from "../lib/calendar-clubs";
@@ -378,7 +377,6 @@ export function selectedTeamsFromSources(
         )
       : [];
   if (fromFavourite.length === 0) return [];
-  if (fromFavourite.every((team) => isDemoClubName(team.name))) return [];
   return fromFavourite;
 }
 

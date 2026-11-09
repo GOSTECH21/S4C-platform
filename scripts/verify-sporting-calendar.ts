@@ -57,8 +57,8 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(
-  currentSeasonTeamCount() === 3,
-  "The three-club demo catalog is unchanged by the sporting calendar"
+  currentSeasonTeamCount() > 3,
+  "The season catalog is the Sporting Calendar, not three clubs"
 );
 assert(
   SPORTING_CALENDAR_SEASON === "2026/27",
@@ -443,9 +443,9 @@ assert(
 
 const currentSeason = readFileSync("app/lib/current-season.ts", "utf8");
 assert(
-  currentSeason.includes('Premier League": ["Arsenal"]') &&
-    currentSeason.includes('"Hearts", "Hibernian"'),
-  "CURRENT_SEASON_LEAGUES stays the three-club demo"
+  currentSeason.includes("SPORTING_CALENDAR_LEAGUES") &&
+    !currentSeason.includes('Premier League": ["Arsenal"]'),
+  "CURRENT_SEASON_LEAGUES is built from the Sporting Calendar"
 );
 
 assert(
@@ -695,8 +695,8 @@ assert(
   "The selected day does not repeat the Cup competition search paragraph"
 );
 assert(
-  currentSeasonTeamCount() === 3,
-  "Cup competitions do not add clubs to the three-club demo catalog"
+  currentSeasonTeamCount() > 3,
+  "Cup competitions do not replace the Sporting Calendar club count"
 );
 const evertonFromShot = matchesForClub("Everton", { fromDate: "2026-11-07" });
 const evertonWomenFromShot = matchesForClub("Everton Women", {
