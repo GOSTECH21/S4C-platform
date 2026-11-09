@@ -136,9 +136,12 @@ assert(
 );
 assert(
   readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
-    "climateProjectsReceivedCopy"
-  ),
-  "Climate Projects uses the cumulative FUND copy with Closing Date applies"
+    'section="cards"'
+  ) &&
+    readFileSync("app/lib/fan-climate-project-cards.ts", "utf8").includes(
+      "How it works"
+    ),
+  "Climate Projects uses How it works headings on the 1/5 cards"
 );
 assert(
   fanWalletDrainCopy("£0") ===

@@ -720,9 +720,9 @@ assert(
   fanPage.includes('section === "projects"') &&
     fanPage.includes("ClimateProjectSponsors") &&
     fanPage.includes("CampaignMatchHeader") &&
-    sponsorsPage.includes('section="sponsors"') &&
+    sponsorsPage.includes('section="cards"') &&
     sponsorsPage.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
-  "My S4P shows Climate Sponsors FUND-IT wallets under the Climate Projects List"
+  "My S4P keeps FUND-IT wallets; Climate Projects uses project+sponsor cards"
 );
 assert(
   fanPage.includes("Climate Projects List") &&
@@ -845,19 +845,24 @@ assert(
 assert(
   fanPage.includes("fanFundingIsOpen") &&
     !votePage.includes("fanFundingIsOpen") &&
+    fanPage.includes("FanClimateProjectPager") &&
+    fanPage.includes('section === "cards"') &&
     fanPage.includes("fan-local") &&
     fanPage.includes("voteError") &&
     fanPage.includes("displayedRemaining"),
-  "My S4P enables FUND-IT; Climate Projects only shows Received totals"
-);
-assert(votePage.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
-assert(
-  votePage.includes("Climate Project list"),
-  "Climate Projects still shows the numbered Climate Project list"
+  "My S4P enables FUND-IT; Climate Projects shows 1/5 project+sponsor cards"
 );
 assert(
-  votePage.includes("formatWalletGbp(project.fundedGbp)"),
-  "Projects Voted for and Climate Project list show the cumulative Received amount"
+  !votePage.includes("Projects Voted for") &&
+    !votePage.includes("Climate Project list"),
+  "Climate Projects no longer shows the old Voted for list"
+);
+assert(
+  votePage.includes('section="cards"') &&
+    readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
+      "FUND_IT_HOW_IT_WORKS_TITLE"
+    ),
+  "Climate Projects tab mounts the 1/5 pager with How it works headings"
 );
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
@@ -914,8 +919,10 @@ assert(
   walletForm.includes("Amount in Carbon Wallet") &&
     walletForm.includes("Put into Carbon Wallet") &&
     walletForm.includes("onLocalDeposit") &&
+    walletForm.includes("LOCAL_COMMIT_AMOUNT_LABEL") &&
+    walletForm.includes("LOCAL_CHOOSE_ONE_PROJECT_COPY") &&
     !walletForm.includes("Pay into Climate Sponsorship Wallet"),
-  "Local Business Climate Sponsors only enter how much goes into the Carbon Wallet"
+  "Local Business Climate Sponsors choose 1 Climate Project and how much they commit to it"
 );
 assert(
   walletPage.includes("depositLocalClimateWallet") &&

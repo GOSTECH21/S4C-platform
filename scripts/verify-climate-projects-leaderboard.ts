@@ -56,39 +56,34 @@ const voted = allocateWalletVote({
 assert(voted.ok && remainingGbp(voted.ok ? voted.wallet : wallet) === 749.8, "A FUND-IT leaves £749.80");
 
 const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
-assert(page.includes("Projects Voted for"), "The Hibernian box is titled Projects Voted for");
+assert(!page.includes("Projects Voted for"), "The old Voted for box is gone");
 assert(!page.includes("Posted for"), "The posted-for box no longer lists posted projects");
 assert(
   page.includes("FanCampaignWorkspace") &&
-    page.includes('section="sponsors"') &&
+    page.includes('section="cards"') &&
     page.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
-  "Climate Projects includes Climate Sponsors FUND-IT wallets"
+  "Climate Projects mounts the 1/5 project+sponsor cards"
 );
 assert(
   readFileSync("app/supporter/dashboard/climate-sponsors/page.tsx", "utf8").includes(
     "SUPPORTER_PROJECTS_PATH"
   ) &&
     readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
-      "ClimateProjectSponsors"
+      "FanClimateProjectPager"
     ),
-  "The old Climate Sponsors URL opens Climate Sponsors on Climate Projects"
-);
-assert(
-  page.includes("Climate Project list") &&
-    page.includes("formatWalletGbp(project.fundedGbp)"),
-  "Climate Project list shows the cumulative Received amount"
+  "The old Climate Sponsors URL opens the Climate Projects cards"
 );
 
 const preview = readFileSync("app/preview/climate-projects/page.tsx", "utf8");
 assert(
-  preview.includes("Climate Project list") &&
+  preview.includes("FanClimateProjectPager") &&
     !preview.includes("MatchDayWalletVote") &&
     !preview.includes("Climate Project Sponsor"),
-  "The Climate Projects preview shows Received totals without wallet FUND-IT"
+  "The Climate Projects preview shows the 1/5 project+sponsor cards"
 );
 assert(
-  preview.includes("climateProjectsReceivedCopy"),
-  "The Climate Projects preview uses the same cumulative FUND copy"
+  preview.includes("Community Rooftop Solar"),
+  "The Climate Projects preview includes a local project+sponsor card"
 );
 
 if (failures.length > 0) {
