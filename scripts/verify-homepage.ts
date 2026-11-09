@@ -562,7 +562,7 @@ assert(
   matchrav.includes('MATCHRAV_NAME = "Matchrav"') &&
     matchrav.includes("matchrav-fan-tabs-v1") &&
     matchrav.includes("Match-day travel is an important part of a club's carbon footprint") &&
-    matchrav.includes("Before & after the match") &&
+    matchrav.includes("Travels before & after the match") &&
     matchrav.includes("During the match") &&
     matchrav.includes("When your team scores") &&
     matchrav.includes('id: "matchrav"') &&

@@ -15,7 +15,14 @@ export const FAN_JOIN_HEADING = "Support your team. Help fund climate action.";
 export const FAN_JOIN_BODY =
   "Match-day travel is an important part of a club's carbon footprint. Supporter travel can be one of the largest contributors to a club's match-day carbon footprint. Help them address Match Day emissions. Join S4P for free, use Matchrav to plan smarter, lower-emission journeys, and play P4P to unlock sponsor-funded contributions towards your club's climate projects.";
 
-export const MATCHRAV_TAB_DETAIL = "Before & after the match";
+export const MATCHRAV_TAB_DETAIL = "Travels before & after the match";
+export const MATCHRAV_STADIUM_HEADING = "Stadium for this match";
+export const MATCHRAV_TRAVEL_THERE = "How would you travel there?";
+export const MATCHRAV_TRAVEL_BACK = "How would you travel back?";
+export const MATCHRAV_FUND_LABEL = "Fund climate action";
+export const MATCHRAV_TICKET_HEADING = "Travel ticket evidence";
+export const MATCHRAV_TICKET_BODY =
+  "Upload your travel ticket for this journey so the carbon you saved versus driving can be sponsored. For example, a Hearts of Midlothian FC fan who takes the train from Edinburgh to Glasgow to watch Rangers, instead of driving, uploads that train ticket to claim the sponsored saving.";
 export const P4P_FAN_TAB_DETAIL = "During the match";
 export const S4P_FAN_TAB_DETAIL = "When your team scores";
 

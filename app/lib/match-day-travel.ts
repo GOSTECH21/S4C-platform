@@ -3,13 +3,20 @@
 export const STADIUM_TRAVEL_STORAGE = "s4p.stadium-travel-records";
 export const FAN_TRAVEL_SESSION_KEY = "s4p.fan-travel-session";
 
-export type TravelMode = "car" | "train" | "local-bus" | "coach" | "walk-cycle";
+export type TravelMode =
+  | "car"
+  | "train"
+  | "local-bus"
+  | "coach"
+  | "flight"
+  | "walk-cycle";
 
 export const TRAVEL_MODES: Array<{ id: TravelMode; label: string }> = [
   { id: "car", label: "Car" },
   { id: "train", label: "Train" },
   { id: "local-bus", label: "Local bus" },
   { id: "coach", label: "Coach" },
+  { id: "flight", label: "Flight" },
   { id: "walk-cycle", label: "Walk or cycle" },
 ];
 
@@ -34,6 +41,7 @@ const PERSON_MILE_KG: Record<Exclude<TravelMode, "car">, number> = {
   train: 0.056,
   "local-bus": 0.164,
   coach: 0.043,
+  flight: 0.5,
   "walk-cycle": 0,
 };
 
