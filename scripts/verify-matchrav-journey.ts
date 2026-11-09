@@ -3,14 +3,17 @@ import {
   DEFAULT_MATCHRAV_CONSENT,
   compareRoutes,
   confirmMatchravTrip,
+  attachMatchravTicket,
   destinationForFixture,
   destinationPoint,
   listMatchravTrips,
   matchravStadiumForClub,
+  matchravStadiumForMatch,
   milesFromOriginToDestination,
   originPoint,
   readMatchravAnalytics,
   saveMatchravTrip,
+  stadiumLabel,
 } from "../app/lib/matchrav-journey";
 import {
   stadiumSiteForClub,
@@ -49,6 +52,12 @@ assert(
     panel.includes("milesFromOriginToDestination") &&
     !panel.includes("TRAVEL_EXAMPLE.miles / 2") &&
     panel.includes("Return the same way") &&
+    panel.includes("MATCHRAV_STADIUM_HEADING") &&
+    panel.includes("MATCHRAV_TRAVEL_THERE") &&
+    panel.includes("data-matchrav-ticket") &&
+    panel.includes("data-matchrav-fund") &&
+    panel.indexOf("legend={MATCHRAV_TRAVEL_THERE}") <
+      panel.indexOf("Outbound distance (miles)") &&
     panel.includes('type="submit"') &&
     !panel.includes("PhoneFrame") &&
     fanPage.includes("initialClub") &&
@@ -103,8 +112,9 @@ assert(
 const car = compareRoutes(30, 2).find((row) => row.id === "car");
 assert(
   car?.kg === 6.8 &&
-    compareRoutes(30, 2).some((row) => row.id === "walk-cycle" && row.kg === 0),
-  "Round-trip compare still locks Car 30 miles / 2 people at 6.8 kg"
+    compareRoutes(30, 2).some((row) => row.id === "walk-cycle" && row.kg === 0) &&
+    compareRoutes(200, 1).some((row) => row.id === "flight" && row.practical),
+  "Round-trip compare still locks Car 30 miles / 2 people at 6.8 kg and includes Flight"
 );
 
 assert(
@@ -136,8 +146,16 @@ const eh11ToGtech = milesFromOriginToDestination(
 assert(
   Boolean(originPoint("EH11 2PB")) &&
     stadiumSiteForVenue("Gtech Community Stadium")?.name === "Brentford" &&
-    destinationForFixture("Everton", brentfordAway, everton) ===
+    matchravStadiumForMatch("Everton", brentfordAway, everton)?.venue ===
       "Gtech Community Stadium" &&
+    destinationForFixture("Everton", brentfordAway, everton) ===
+      stadiumLabel(matchravStadiumForMatch("Everton", brentfordAway, everton)) &&
+    destinationForFixture("Everton", brentfordAway, everton).includes(
+      "Gtech Community Stadium"
+    ) &&
+    !destinationForFixture("Everton", brentfordAway, everton).includes(
+      "Hill Dickinson"
+    ) &&
     Boolean(destinationPoint("Gtech Community Stadium", brentfordAway, everton)) &&
     eh11ToGtech > 300 &&
     eh11ToGtech < 420,
@@ -202,6 +220,55 @@ assert(
   readMatchravAnalytics().confirmed === 1 &&
     readMatchravAnalytics().byMode.train === 1,
   "Anonymous analytics count confirmed journeys"
+);
+
+const hearts = matchravStadiumForClub("Hearts of Midlothian FC");
+const heartsAwayAtIbrox: UpcomingMatch = {
+  id: "rangers-hearts",
+  date: "2026-11-22",
+  kickoff: "15:00",
+  homeName: "Rangers",
+  awayName: "Hearts of Midlothian FC",
+  venue: "Ibrox Stadium",
+  competition: "Scottish Premiership",
+  source: "s4p",
+  sourceUrl: null,
+};
+const ibrox = matchravStadiumForMatch(
+  "Hearts of Midlothian FC",
+  heartsAwayAtIbrox,
+  hearts
+);
+assert(
+  ibrox?.venue === "Ibrox Stadium" &&
+    stadiumLabel(ibrox).includes("Ibrox Stadium") &&
+    !stadiumLabel(ibrox).includes("Tynecastle") &&
+    destinationForFixture(
+      "Hearts of Midlothian FC",
+      heartsAwayAtIbrox,
+      hearts
+    ) === stadiumLabel(ibrox),
+  "Hearts away at Rangers uses Ibrox Stadium details, matching Destination"
+);
+
+const withTicket = attachMatchravTicket(
+  stored?.id ?? "",
+  {
+    fileName: "edinburgh-glasgow-train.pdf",
+    mimeType: "application/pdf",
+    dataUrl: "data:application/pdf;base64,dGlja2V0",
+    uploadedAt: "2026-11-09T12:00:00.000Z",
+  },
+  DEFAULT_MATCHRAV_CONSENT
+);
+assert(
+  withTicket?.ticketEvidence?.fileName === "edinburgh-glasgow-train.pdf" &&
+    listMatchravTrips()[0]?.ticketEvidence?.fileName ===
+      "edinburgh-glasgow-train.pdf" &&
+    matchrav.includes("Travel ticket evidence") &&
+    matchrav.includes("Hearts of Midlothian FC") &&
+    panel.includes("MATCHRAV_TICKET_HEADING"),
+  "Fund climate action stores travel ticket evidence on the journey"
 );
 
 if (failures.length > 0) {

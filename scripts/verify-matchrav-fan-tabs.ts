@@ -37,7 +37,7 @@ assert(
     matchrav.includes('id: "matchrav"') &&
     matchrav.includes('id: "p4p"') &&
     matchrav.includes('id: "s4p"') &&
-    matchrav.includes("Before & after the match") &&
+    matchrav.includes("Travels before & after the match") &&
     matchrav.includes("During the match") &&
     matchrav.includes("When your team scores") &&
     join.includes("JOIN_S4P_FREE_LABEL") &&

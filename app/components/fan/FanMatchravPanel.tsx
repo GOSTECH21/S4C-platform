@@ -5,10 +5,16 @@ import Link from "next/link";
 import {
   MATCHRAV_ACCOUNT_INTRO,
   MATCHRAV_ACCOUNT_STAMP,
+  MATCHRAV_FUND_LABEL,
   MATCHRAV_JOURNEY_STAMP,
   MATCHRAV_NAME,
   MATCHRAV_PLANNER_STAMP,
+  MATCHRAV_STADIUM_HEADING,
   MATCHRAV_TAB_DETAIL,
+  MATCHRAV_TICKET_BODY,
+  MATCHRAV_TICKET_HEADING,
+  MATCHRAV_TRAVEL_BACK,
+  MATCHRAV_TRAVEL_THERE,
 } from "@/app/lib/matchrav";
 import {
   CAR_OCCUPANT_CHOICES,
@@ -23,6 +29,8 @@ import {
 } from "@/app/lib/match-day-travel";
 import {
   DEFAULT_MATCHRAV_CONSENT,
+  MATCHRAV_TICKET_ACCEPT,
+  attachMatchravTicket,
   compareRoutes,
   confirmMatchravTrip,
   destinationForFixture,
@@ -30,8 +38,10 @@ import {
   formatDuration,
   listMatchravTrips,
   matchravStadiumForClub,
+  matchravStadiumForMatch,
   milesFromOriginToDestination,
   readMatchravConsent,
+  readMatchravTicketFile,
   saveMatchravTrip,
   stadiumLabel,
   writeMatchravConsent,
@@ -85,6 +95,9 @@ export default function FanMatchravPanel({
   const [trips, setTrips] = useState<MatchravTrip[]>([]);
   const [savedKg, setSavedKg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [ticketError, setTicketError] = useState<string | null>(null);
+  const [showTicket, setShowTicket] = useState(false);
+  const [activeTripId, setActiveTripId] = useState("");
   const [gpsBusy, setGpsBusy] = useState(false);
   const [fixtureStatus, setFixtureStatus] = useState(
     initialFixtures.length
@@ -94,9 +107,11 @@ export default function FanMatchravPanel({
         : ""
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const ticketRef = useRef<HTMLElement>(null);
   const bootstrappedClub = useRef(initialClub.trim());
 
   const fixture = fixtures.find((row) => row.id === fixtureId) ?? null;
+  const matchStadium = matchravStadiumForMatch(club, fixture, stadium);
   const outboundDistance = parseReturnMiles(miles);
   const inboundDistance = sameReturn
     ? outboundDistance
@@ -267,7 +282,7 @@ export default function FanMatchravPanel({
         club: clubName,
         matchId: fixture?.id,
         fixtureName: fixture ? fixtureHeadline(fixture) : "",
-        venue: destination || stadiumLabel(stadium),
+        venue: destination || stadiumLabel(matchStadium),
         matchDate: fixture?.date,
         origin,
         destination,
@@ -281,22 +296,59 @@ export default function FanMatchravPanel({
     );
     if (!trip) {
       setError("Enter your club and an outbound distance to save this journey.");
-      return;
+      return null;
     }
     saveStadiumTravelRecord({
       club: clubName,
       matchId: fixture?.id,
       fixtureName: fixture ? fixtureHeadline(fixture) : "",
-      venue: destination || stadiumLabel(stadium),
+      venue: destination || stadiumLabel(matchStadium),
       matchDate: fixture?.date,
       mode: outboundMode,
       miles: totalDistance,
       occupants,
     });
     setSavedKg(formatTravelKgCo2e(trip.totalKg));
+    setActiveTripId(trip.id);
     setTrips(listMatchravTrips());
     if (!consent.storeLocal) {
       setSavedKg(formatTravelKgCo2e(trip.totalKg));
+    }
+    return trip;
+  }
+
+  function openTicketEvidence() {
+    setError(null);
+    setTicketError(null);
+    setShowTicket(true);
+    if (outboundDistance > 0) saveJourney();
+    window.setTimeout(() => {
+      ticketRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
+  async function onTicketChosen(file: File | undefined) {
+    if (!file) return;
+    setTicketError(null);
+    const latest =
+      listMatchravTrips().find((row) => row.id === activeTripId) ??
+      saveJourney();
+    if (!latest) {
+      setTicketError("Save this journey first, then upload the ticket.");
+      return;
+    }
+    try {
+      const evidence = await readMatchravTicketFile(file);
+      const next = attachMatchravTicket(latest.id, evidence, consent);
+      if (!next) {
+        setTicketError("Could not attach that ticket to this journey.");
+        return;
+      }
+      setTrips(listMatchravTrips());
+    } catch (err) {
+      setTicketError(
+        err instanceof Error ? err.message : "Could not read that travel ticket."
+      );
     }
   }
 
@@ -395,16 +447,16 @@ export default function FanMatchravPanel({
               data-matchrav-stadium
             >
               <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">
-                Stadium
+                {MATCHRAV_STADIUM_HEADING}
               </p>
               <p className="mt-1 text-sm font-black">
-                {stadium
-                  ? stadium.venue || stadiumLabel(stadium)
-                  : "Select a club to load the ground."}
+                {matchStadium
+                  ? matchStadium.venue || stadiumLabel(matchStadium)
+                  : "Select a club and fixture to load this match ground."}
               </p>
-              {stadium && stadiumLabel(stadium) !== stadium.venue ? (
+              {matchStadium ? (
                 <p className="mt-1 text-xs font-semibold text-slate-400">
-                  {stadiumLabel(stadium)}
+                  {stadiumLabel(matchStadium)}
                 </p>
               ) : null}
               {fixture ? (
@@ -412,10 +464,6 @@ export default function FanMatchravPanel({
                   {formatMatchDate(fixture.date)} · {formatKickoff(fixture.kickoff)}
                   {fixture.competition ? ` · ${fixture.competition}` : ""}
                   {clubIsHome(fixture, club) ? " · Home" : " · Away"}
-                  {fixture.venue?.trim() &&
-                  fixture.venue.trim() !== (stadium?.venue || "")
-                    ? ` · ${fixture.venue.trim()}`
-                    : ""}
                 </p>
               ) : null}
             </div>
@@ -448,15 +496,48 @@ export default function FanMatchravPanel({
 
             <label className="mt-5 block text-sm font-bold">
               Destination
-              <input
-                type="text"
+              <textarea
                 name="destination"
+                rows={3}
                 value={destination}
                 onChange={(event) => setDestination(event.target.value)}
-                placeholder="Stadium"
-                className={FIELD}
+                placeholder="Stadium for this match"
+                className="mt-2 w-full resize-y rounded-2xl border border-emerald-400/40 bg-slate-950 px-4 py-3 text-base font-semibold text-white"
               />
             </label>
+
+            <ModePicker
+              legend={MATCHRAV_TRAVEL_THERE}
+              value={outboundMode}
+              onChange={(mode) => {
+                setOutboundMode(mode);
+                if (sameReturn) setReturnMode(mode);
+              }}
+            />
+
+            <label className="mt-4 flex items-center gap-3 text-sm font-bold">
+              <input
+                type="checkbox"
+                checked={sameReturn}
+                onChange={(event) => {
+                  const checked = event.target.checked;
+                  setSameReturn(checked);
+                  if (checked) {
+                    setReturnMode(outboundMode);
+                    setReturnMiles(miles);
+                  }
+                }}
+              />
+              Return the same way
+            </label>
+
+            {!sameReturn ? (
+              <ModePicker
+                legend={MATCHRAV_TRAVEL_BACK}
+                value={returnMode}
+                onChange={setReturnMode}
+              />
+            ) : null}
 
             <label className="mt-5 block text-sm font-bold" data-matchrav-miles>
               Outbound distance (miles)
@@ -480,53 +561,22 @@ export default function FanMatchravPanel({
               </p>
             ) : null}
 
-            <label className="mt-4 flex items-center gap-3 text-sm font-bold">
+            <label className="mt-4 block text-sm font-bold">
+              Return distance (miles)
               <input
-                type="checkbox"
-                checked={sameReturn}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.1"
+                value={sameReturn ? miles : returnMiles}
                 onChange={(event) => {
-                  const checked = event.target.checked;
-                  setSameReturn(checked);
-                  if (checked) {
-                    setReturnMode(outboundMode);
-                    setReturnMiles(miles);
-                  }
+                  setSameReturn(false);
+                  setReturnMiles(event.target.value);
                 }}
+                readOnly={sameReturn}
+                className={FIELD}
               />
-              Return the same way
             </label>
-
-            {!sameReturn ? (
-              <label className="mt-4 block text-sm font-bold">
-                Return distance (miles)
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.1"
-                  value={returnMiles}
-                  onChange={(event) => setReturnMiles(event.target.value)}
-                  className={FIELD}
-                />
-              </label>
-            ) : null}
-
-            <ModePicker
-              legend="How will you travel there?"
-              value={outboundMode}
-              onChange={(mode) => {
-                setOutboundMode(mode);
-                if (sameReturn) setReturnMode(mode);
-              }}
-            />
-
-            {!sameReturn ? (
-              <ModePicker
-                legend="How will you travel back?"
-                value={returnMode}
-                onChange={setReturnMode}
-              />
-            ) : null}
 
             {outboundMode === "car" || (!sameReturn && returnMode === "car") ? (
               <fieldset className="mt-5">
@@ -606,12 +656,14 @@ export default function FanMatchravPanel({
               >
                 Save this journey
               </button>
-              <Link
-                href={SUPPORTER_PROJECTS_PATH}
+              <button
+                type="button"
+                data-matchrav-fund
+                onClick={openTicketEvidence}
                 className="inline-flex items-center justify-center rounded-full border border-emerald-400/40 px-5 py-3 text-sm font-black uppercase tracking-[0.12em]"
               >
-                Fund climate action
-              </Link>
+                {MATCHRAV_FUND_LABEL}
+              </button>
             </div>
           </form>
 
@@ -665,6 +717,64 @@ export default function FanMatchravPanel({
           </aside>
         </div>
 
+        {showTicket ? (
+          <section
+            ref={ticketRef}
+            data-matchrav-ticket
+            className="mt-6 rounded-2xl border border-emerald-400/25 bg-slate-900/80 p-5 sm:p-6"
+          >
+            <h2 className="text-xl font-black">{MATCHRAV_TICKET_HEADING}</h2>
+            <p className="mt-2 max-w-3xl text-sm font-medium text-slate-300">
+              {MATCHRAV_TICKET_BODY}
+            </p>
+            {savedKg ? (
+              <p className="mt-3 text-sm font-semibold text-emerald-300">
+                This journey saves {formatTravelKgCo2e(
+                  Math.max(
+                    0,
+                    estimateTravelKgCo2e("car", totalDistance, 1) - chosenKg
+                  )
+                )}{" "}
+                kg CO2e versus a solo car. Upload the ticket to claim that
+                sponsored saving.
+              </p>
+            ) : null}
+            <label className="mt-5 block text-sm font-bold">
+              Upload travel ticket
+              <input
+                type="file"
+                accept={MATCHRAV_TICKET_ACCEPT}
+                data-matchrav-ticket-file
+                onChange={(event) => {
+                  void onTicketChosen(event.target.files?.[0]);
+                  event.target.value = "";
+                }}
+                className="mt-2 w-full text-sm font-semibold text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-s4p-mark file:px-4 file:py-2 file:font-black file:uppercase file:tracking-[0.08em] file:text-black"
+              />
+            </label>
+            {ticketError ? (
+              <p className="mt-3 text-sm font-semibold text-red-300">{ticketError}</p>
+            ) : null}
+            {trips.find((row) => row.id === activeTripId)?.ticketEvidence ? (
+              <>
+                <p className="mt-3 text-sm font-semibold text-emerald-300">
+                  Ticket on this device:{" "}
+                  {
+                    trips.find((row) => row.id === activeTripId)?.ticketEvidence
+                      ?.fileName
+                  }
+                </p>
+                <Link
+                  href={SUPPORTER_PROJECTS_PATH}
+                  className="mt-5 inline-flex items-center justify-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
+                >
+                  Continue to climate projects
+                </Link>
+              </>
+            ) : null}
+          </section>
+        ) : null}
+
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
           <section
             data-matchrav-trips
@@ -697,6 +807,7 @@ export default function FanMatchravPanel({
                       {formatTravelKgCo2e(trip.totalKg)} kg · saved{" "}
                       {formatTravelKgCo2e(trip.savedVsSoloCarKg)} kg vs solo car ·{" "}
                       {trip.status === "confirmed" ? "Confirmed" : "Planned"}
+                      {trip.ticketEvidence ? " · Ticket uploaded" : ""}
                     </p>
                   </li>
                 ))}

@@ -36,6 +36,10 @@ assert(
 );
 assert(estimateTravelKgCo2e("train", 30) > 0, "Train miles produce a footprint");
 assert(
+  estimateTravelKgCo2e("flight", 30) > estimateTravelKgCo2e("car", 30, 1),
+  "Flight miles produce a higher footprint than a solo car"
+);
+assert(
   estimateTravelKgCo2e("car", 0, 2) === 0,
   "Zero miles is a zero footprint"
 );

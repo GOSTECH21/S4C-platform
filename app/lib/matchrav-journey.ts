@@ -7,6 +7,7 @@ import {
   stadiumSiteForClub,
   stadiumSiteForVenue,
   type GeoPoint,
+  type StadiumSite,
 } from "./project-site";
 import {
   estimateTravelKgCo2e,
@@ -46,10 +47,12 @@ const MODE_SPEED_MPH: Record<TravelMode, number> = {
   train: 40,
   "local-bus": 11,
   coach: 32,
+  flight: 180,
   "walk-cycle": 8,
 };
 
 const WALK_CYCLE_MAX_MILES = 12;
+const FLIGHT_MIN_MILES = 80;
 
 export type MatchravStadium = {
   club: string;
@@ -81,8 +84,16 @@ export type MatchravTrip = {
   savedVsSoloCarKg: number;
   status: "planned" | "confirmed";
   confirmedMode: TravelMode | null;
+  ticketEvidence: MatchravTicketEvidence | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type MatchravTicketEvidence = {
+  fileName: string;
+  mimeType: string;
+  dataUrl: string;
+  uploadedAt: string;
 };
 
 export type MatchravAnalytics = {
@@ -112,6 +123,7 @@ function emptyAnalytics(): MatchravAnalytics {
       train: 0,
       "local-bus": 0,
       coach: 0,
+      flight: 0,
       "walk-cycle": 0,
     },
     savedKg: 0,
@@ -161,21 +173,64 @@ export function calendarVenueForClub(clubName: string): string {
   return "";
 }
 
+function stadiumFromSite(site: StadiumSite, venueHint = ""): MatchravStadium {
+  const venue =
+    clean(venueHint) || site.address.split(",")[0]?.trim() || site.name;
+  return {
+    club: site.name,
+    venue,
+    address: site.address,
+    postcode: site.postcode,
+    place: site.place,
+    country: site.country,
+    point: site.point,
+  };
+}
+
 export function matchravStadiumForClub(clubName: string): MatchravStadium | null {
   const name = clean(clubName);
   if (!name) return null;
   const site = stadiumSiteForClub(name);
   const venue = site?.address.split(",")[0]?.trim() || calendarVenueForClub(name);
   if (!site && !venue) return null;
+  if (site) return stadiumFromSite(site, venue);
   return {
-    club: site?.name || name,
+    club: name,
     venue,
-    address: site?.address || venue,
-    postcode: site?.postcode || "",
-    place: site?.place || "",
-    country: site?.country || "",
-    point: site?.point ?? null,
+    address: venue,
+    postcode: "",
+    place: "",
+    country: "",
+    point: null,
   };
+}
+
+/** Ground where this fixture is played, not the supported club's home by default. */
+export function matchravStadiumForMatch(
+  club: string,
+  fixture: UpcomingMatch | null,
+  homeStadium: MatchravStadium | null
+): MatchravStadium | null {
+  const venue = fixture?.venue?.trim() || "";
+  if (venue) {
+    const site =
+      stadiumSiteForVenue(venue) ?? stadiumSiteForClub(fixture?.homeName);
+    if (site) return stadiumFromSite(site, venue);
+    return {
+      club: fixture?.homeName || clean(club),
+      venue,
+      address: venue,
+      postcode: "",
+      place: "",
+      country: "",
+      point: null,
+    };
+  }
+  if (fixture && !clubIsHome(fixture, club)) {
+    const site = stadiumSiteForClub(fixture.homeName);
+    if (site) return stadiumFromSite(site);
+  }
+  return homeStadium;
 }
 
 export function stadiumLabel(stadium: MatchravStadium | null): string {
@@ -191,10 +246,8 @@ export function destinationForFixture(
   fixture: UpcomingMatch | null,
   stadium: MatchravStadium | null
 ): string {
-  if (fixture && !clubIsHome(fixture, club) && fixture.venue?.trim()) {
-    return fixture.venue.trim();
-  }
-  return stadiumLabel(stadium) || fixture?.venue?.trim() || "";
+  const ground = matchravStadiumForMatch(club, fixture, stadium);
+  return stadiumLabel(ground) || fixture?.venue?.trim() || stadiumLabel(stadium);
 }
 
 export function fixtureHeadline(fixture: UpcomingMatch): string {
@@ -218,8 +271,10 @@ export function formatDuration(minutes: number): string {
 }
 
 export function routeIsPractical(mode: TravelMode, miles: number): boolean {
-  if (mode !== "walk-cycle") return true;
-  return parseReturnMiles(miles) <= WALK_CYCLE_MAX_MILES;
+  const distance = parseReturnMiles(miles);
+  if (mode === "walk-cycle") return distance <= WALK_CYCLE_MAX_MILES;
+  if (mode === "flight") return distance >= FLIGHT_MIN_MILES;
+  return true;
 }
 
 export function compareRoutes(
@@ -332,7 +387,11 @@ export function writeMatchravConsent(consent: MatchravConsent): void {
 
 export function listMatchravTrips(): MatchravTrip[] {
   const rows = readJson<MatchravTrip[]>(MATCHRAV_TRIPS_KEY, []);
-  return Array.isArray(rows) ? rows : [];
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => ({
+    ...row,
+    ticketEvidence: row.ticketEvidence ?? null,
+  }));
 }
 
 export function readMatchravAnalytics(): MatchravAnalytics {
@@ -427,6 +486,7 @@ export function buildMatchravTrip(input: MatchravTripInput): MatchravTrip | null
     savedVsSoloCarKg: round1(Math.max(0, solo - chosenWeighted)),
     status: "planned",
     confirmedMode: null,
+    ticketEvidence: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -449,6 +509,7 @@ export function saveMatchravTrip(
     trip.createdAt = rows[index].createdAt;
     trip.status = rows[index].status;
     trip.confirmedMode = rows[index].confirmedMode;
+    trip.ticketEvidence = rows[index].ticketEvidence ?? null;
     rows[index] = trip;
   } else {
     rows.unshift(trip);
@@ -461,6 +522,56 @@ export function saveMatchravTrip(
     );
   }
   return trip;
+}
+
+export const MATCHRAV_TICKET_MAX_BYTES = 2_000_000;
+export const MATCHRAV_TICKET_ACCEPT = "image/*,application/pdf";
+
+export function readMatchravTicketFile(file: File): Promise<MatchravTicketEvidence> {
+  const mime = String(file.type || "").toLowerCase();
+  const ok =
+    mime.startsWith("image/") ||
+    mime === "application/pdf" ||
+    /\.(jpe?g|png|webp|gif|pdf)$/i.test(file.name);
+  if (!ok) {
+    return Promise.reject(
+      new Error("Please upload a photo or PDF of your travel ticket.")
+    );
+  }
+  if (file.size > MATCHRAV_TICKET_MAX_BYTES) {
+    return Promise.reject(new Error("Travel ticket must be under 2 MB."));
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () =>
+      resolve({
+        fileName: file.name || "travel-ticket",
+        mimeType: mime || "application/octet-stream",
+        dataUrl: String(reader.result ?? ""),
+        uploadedAt: new Date().toISOString(),
+      });
+    reader.onerror = () =>
+      reject(new Error("Could not read that travel ticket."));
+    reader.readAsDataURL(file);
+  });
+}
+
+export function attachMatchravTicket(
+  tripId: string,
+  evidence: MatchravTicketEvidence,
+  consent: MatchravConsent
+): MatchravTrip | null {
+  const rows = listMatchravTrips();
+  const index = rows.findIndex((row) => row.id === tripId);
+  if (index < 0) return null;
+  const next: MatchravTrip = {
+    ...rows[index],
+    ticketEvidence: evidence,
+    updatedAt: new Date().toISOString(),
+  };
+  rows[index] = next;
+  if (consent.storeLocal) writeJson(MATCHRAV_TRIPS_KEY, rows);
+  return next;
 }
 
 export function confirmMatchravTrip(
