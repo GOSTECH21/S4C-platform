@@ -11,6 +11,8 @@ import {
 } from "./project-site";
 import {
   estimateTravelKgCo2e,
+  flightHaulForOneWayMiles,
+  flightKgPerMile,
   formatTravelKgCo2e,
   parseReturnMiles,
   TRAVEL_MODES,
@@ -282,12 +284,16 @@ export function compareRoutes(
   occupants: number
 ): MatchravRouteOption[] {
   const distance = parseReturnMiles(miles);
+  const flightOneWay = distance / 2;
   return TRAVEL_MODES.map((row) => ({
     id: row.id,
     label: row.label,
     miles: distance,
     minutes: estimateMinutes(row.id, distance),
-    kg: estimateTravelKgCo2e(row.id, distance, occupants),
+    kg:
+      row.id === "flight"
+        ? round1(flightKgPerMile(flightHaulForOneWayMiles(flightOneWay)) * distance)
+        : estimateTravelKgCo2e(row.id, distance, occupants),
     practical: routeIsPractical(row.id, distance),
   }));
 }

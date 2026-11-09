@@ -36,14 +36,69 @@ export const TRAVEL_EXAMPLE = {
 const CAR_VEHICLE_KG_PER_MILE =
   (TRAVEL_EXAMPLE.kgCo2e * TRAVEL_EXAMPLE.occupants) / TRAVEL_EXAMPLE.miles;
 
-/** kg CO2e per person-mile for non-car modes (DEFRA-style averages). */
-const PERSON_MILE_KG: Record<Exclude<TravelMode, "car">, number> = {
+/** kg CO2e per person-mile for surface modes (DEFRA-style averages). */
+const PERSON_MILE_KG: Record<Exclude<TravelMode, "car" | "flight">, number> = {
   train: 0.056,
   "local-bus": 0.164,
   coach: 0.043,
-  flight: 0.5,
   "walk-cycle": 0,
 };
+
+/** Statute miles in one kilometre conversion for DEFRA passenger.km factors. */
+export const KM_PER_MILE = 1.609344;
+
+/**
+ * UK GHG Conversion Factors 2024, business travel — air, average passenger,
+ * with radiative forcing (kg CO2e per passenger.km).
+ * Short-haul is stored as 0.30 kg per mile, as specified for short hops.
+ */
+export const DEFRA_2024_FLIGHT_KG_PER_PASSENGER_KM = {
+  "short-haul": 0.18592,
+  domestic: 0.27257,
+  "long-haul": 0.26128,
+} as const;
+
+/** Edinburgh–Manchester-scale hops use this rounded short-haul with-RF rate. */
+export const FLIGHT_SHORT_HAUL_KG_PER_MILE = 0.3;
+
+/**
+ * One-way miles at or below this use DEFRA short-haul with RF
+ * (e.g. Edinburgh to Old Trafford).
+ */
+export const FLIGHT_SHORT_HAUL_MAX_MILES = 250;
+
+/**
+ * One-way miles at or above this use DEFRA long-haul with RF
+ * (e.g. Edinburgh to Barcelona).
+ */
+export const FLIGHT_LONG_HAUL_MIN_MILES = 1000;
+
+export type FlightHaul = keyof typeof DEFRA_2024_FLIGHT_KG_PER_PASSENGER_KM;
+
+export function flightHaulForOneWayMiles(
+  miles: number | string | null | undefined
+): FlightHaul {
+  const distance = parseReturnMiles(miles);
+  if (distance > 0 && distance <= FLIGHT_SHORT_HAUL_MAX_MILES) return "short-haul";
+  if (distance >= FLIGHT_LONG_HAUL_MIN_MILES) return "long-haul";
+  return "domestic";
+}
+
+export function flightKgPerMile(haul: FlightHaul): number {
+  if (haul === "short-haul") return FLIGHT_SHORT_HAUL_KG_PER_MILE;
+  return DEFRA_2024_FLIGHT_KG_PER_PASSENGER_KM[haul] * KM_PER_MILE;
+}
+
+export function flightHaulLabel(haul: FlightHaul): string {
+  if (haul === "short-haul") return "DEFRA short-haul, with RF";
+  if (haul === "long-haul") return "DEFRA long-haul, with RF";
+  return "DEFRA domestic, with RF";
+}
+
+export function formatFlightKgPerMile(haul: FlightHaul): string {
+  const rate = flightKgPerMile(haul);
+  return haul === "short-haul" ? "0.30" : rate.toFixed(2);
+}
 
 export type StadiumTravelRecord = {
   id: string;
@@ -106,6 +161,9 @@ export function estimateTravelKgCo2e(
   if (mode === "car") {
     const people = clampCarOccupants(occupants);
     return round1((CAR_VEHICLE_KG_PER_MILE * distance) / people);
+  }
+  if (mode === "flight") {
+    return round1(flightKgPerMile(flightHaulForOneWayMiles(distance)) * distance);
   }
   return round1(PERSON_MILE_KG[mode] * distance);
 }

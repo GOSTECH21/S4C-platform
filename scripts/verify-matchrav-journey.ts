@@ -16,6 +16,10 @@ import {
   stadiumLabel,
 } from "../app/lib/matchrav-journey";
 import {
+  estimateTravelKgCo2e,
+  flightHaulForOneWayMiles,
+} from "../app/lib/match-day-travel";
+import {
   stadiumSiteForClub,
   stadiumSiteForVenue,
 } from "../app/lib/project-site";
@@ -57,6 +61,8 @@ assert(
     panel.includes("MATCHRAV_TRAVEL_THERE") &&
     panel.includes("data-matchrav-ticket") &&
     panel.includes("data-matchrav-fund") &&
+    panel.includes("data-matchrav-flight-haul") &&
+    panel.includes("flightHaulLabel") &&
     panel.indexOf("legend={MATCHRAV_TRAVEL_THERE}") <
       panel.indexOf("Outbound distance (miles)") &&
     panel.includes('type="submit"') &&
@@ -116,6 +122,24 @@ assert(
     compareRoutes(30, 2).some((row) => row.id === "walk-cycle" && row.kg === 0) &&
     compareRoutes(200, 1).some((row) => row.id === "flight" && row.practical),
   "Round-trip compare still locks Car 30 miles / 2 people at 6.8 kg and includes Flight"
+);
+
+const united = matchravStadiumForClub("Manchester United");
+const ediToOldTrafford = milesFromOriginToDestination(
+  "EH11 2PB",
+  stadiumLabel(united),
+  null,
+  united
+);
+const ediToBarcelonaMiles = 1050;
+assert(
+  ediToOldTrafford > 150 &&
+    ediToOldTrafford <= 250 &&
+    flightHaulForOneWayMiles(ediToOldTrafford) === "short-haul" &&
+    estimateTravelKgCo2e("flight", 180) === 54 &&
+    flightHaulForOneWayMiles(ediToBarcelonaMiles) === "long-haul" &&
+    compareRoutes(360, 1).some((row) => row.id === "flight" && row.kg === 108),
+  "Flight kg uses DEFRA short-haul for Edinburgh–Manchester and long-haul for Edinburgh–Barcelona"
 );
 
 assert(
