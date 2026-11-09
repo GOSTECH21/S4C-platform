@@ -36,6 +36,7 @@ const admin = readFileSync("app/admin/matchrav/page.tsx", "utf8");
 const ops = readFileSync("app/components/admin/MatchravOpsBoard.tsx", "utf8");
 const sidebar = readFileSync("app/layout/Sidebar.tsx", "utf8");
 const apply = readFileSync("apply-matchrav-journey.mjs", "utf8");
+const ticketApply = readFileSync("apply-matchrav-ticket-stadium.mjs", "utf8");
 
 assert(
   matchrav.includes('MATCHRAV_JOURNEY_STAMP = "matchrav-journey-ops-v1"') &&
@@ -169,6 +170,14 @@ assert(
     carMilesApply.includes("milesFromOriginToDestination") &&
     carMilesApply.includes("app/components/fan/FanMatchravPanel.tsx"),
   "PC overlay pulls the Matchrav car miles files"
+);
+
+assert(
+  ticketApply.includes("cursor/matchrav-ticket-stadium-18f9") &&
+    ticketApply.includes('PIN = "989b1b9"') &&
+    ticketApply.includes("app/components/fan/FanMatchravPanel.tsx") &&
+    ticketApply.includes("data-matchrav-ticket"),
+  "PC overlay pulls the Matchrav ticket and stadium files"
 );
 
 const memory = new Map<string, string>();
