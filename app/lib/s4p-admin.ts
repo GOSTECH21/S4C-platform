@@ -170,6 +170,46 @@ export function uniqueFansByPerson(fans: RegisteredFan[]): RegisteredFan[] {
   return [...byPerson.values()];
 }
 
+export function clubNameFromSources(options: {
+  joinedClubName?: string | null;
+  preferenceClubs?: string[];
+}) {
+  const joined = String(options.joinedClubName ?? "").trim();
+  if (joined && joined !== "No club selected") return joined;
+  const first = (options.preferenceClubs ?? [])
+    .map((name) => name.trim())
+    .find(Boolean);
+  return first || "No club selected";
+}
+
+export function expandFanClubMemberships(
+  fans: RegisteredFan[],
+  clubsByUserId: Map<string, string[]>
+): RegisteredFan[] {
+  const out: RegisteredFan[] = [];
+  for (const fan of fans) {
+    const extra = fan.authUserId
+      ? clubsByUserId.get(fan.authUserId) ?? []
+      : [];
+    const names = extra.length > 0 ? extra : [fan.clubName];
+    const unique: string[] = [];
+    for (const name of names) {
+      const trimmed = name.trim() || "No club selected";
+      if (
+        !unique.some(
+          (existing) => existing.toLowerCase() === trimmed.toLowerCase()
+        )
+      ) {
+        unique.push(trimmed);
+      }
+    }
+    for (const clubName of unique) {
+      out.push({ ...fan, clubName });
+    }
+  }
+  return out;
+}
+
 export function staffFanRoster(
   fans: RegisteredFan[],
   excluded: {
@@ -184,6 +224,28 @@ export function staffFanRoster(
     ...fan,
     fullName: adminDisplayName(fan.fullName, fan.email),
   }));
+}
+
+/** Keep one row per person per club so a fan appears under every team they support. */
+export function staffClubMemberships(
+  fans: RegisteredFan[],
+  excluded: {
+    emails: string[];
+    authUserIds: string[];
+    contactKeys: string[];
+  }
+): RegisteredFan[] {
+  const unique = new Map<string, RegisteredFan>();
+  for (const fan of fans) {
+    if (isStaffExcludedFan(fan, excluded)) continue;
+    const named = {
+      ...fan,
+      fullName: adminDisplayName(fan.fullName, fan.email),
+    };
+    const key = `${personKey(named.fullName, named.email)}|${compactIdentity(named.clubName)}`;
+    if (!unique.has(key)) unique.set(key, named);
+  }
+  return [...unique.values()];
 }
 
 /** Homepage Fans Engaged must equal Admin → Fans by club. */

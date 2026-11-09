@@ -1,6 +1,9 @@
 import { supabase } from "../lib/supabase";
-import type { RegisteredFan } from "../lib/s4p-admin";
-import { isDemoClubName } from "../lib/current-season";
+import {
+  clubNameFromSources,
+  expandFanClubMemberships,
+  type RegisteredFan,
+} from "../lib/s4p-admin";
 
 export async function getSupporters() {
   const { data, error } = await supabase
@@ -13,10 +16,7 @@ export async function getSupporters() {
 
   if (error) throw error;
 
-  return (data ?? []).filter((row) => {
-    const club = (row as { clubs?: { name?: string } | null }).clubs;
-    return isDemoClubName(String(club?.name ?? ""));
-  });
+  return data ?? [];
 }
 
 function mapFanRow(row: {
@@ -36,6 +36,25 @@ function mapFanRow(row: {
   };
 }
 
+async function loadPreferenceClubsByUser(): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>();
+  const { data, error } = await supabase
+    .from("supporter_preferences")
+    .select("user_id, club");
+  if (error || !data) return map;
+  for (const row of data) {
+    const userId = String(row.user_id ?? "").trim();
+    const club = String(row.club ?? "").trim();
+    if (!userId || !club) continue;
+    const list = map.get(userId) ?? [];
+    if (!list.some((name) => name.toLowerCase() === club.toLowerCase())) {
+      list.push(club);
+    }
+    map.set(userId, list);
+  }
+  return map;
+}
+
 export async function getFanRegistrationsForStaff(): Promise<{
   fans: RegisteredFan[];
   memberships: RegisteredFan[];
@@ -47,10 +66,25 @@ export async function getFanRegistrationsForStaff(): Promise<{
 
   if (error) throw error;
 
-  const fans = (data ?? [])
-    .map((row) => mapFanRow(row as Parameters<typeof mapFanRow>[0]))
-    .filter((fan) => isDemoClubName(fan.clubName));
-  return { fans, memberships: fans };
+  const prefsByUser = await loadPreferenceClubsByUser();
+  const fans = (data ?? []).map((row) => {
+    const mapped = mapFanRow(row as Parameters<typeof mapFanRow>[0]);
+    const preferenceClubs = mapped.authUserId
+      ? prefsByUser.get(mapped.authUserId) ?? []
+      : [];
+    return {
+      ...mapped,
+      clubName: clubNameFromSources({
+        joinedClubName: mapped.clubName,
+        preferenceClubs,
+      }),
+    };
+  });
+
+  return {
+    fans,
+    memberships: expandFanClubMemberships(fans, prefsByUser),
+  };
 }
 
 export async function createSupporter({

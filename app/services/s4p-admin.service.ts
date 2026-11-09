@@ -2,6 +2,7 @@ import { supabase } from "../lib/supabase";
 import {
   compactIdentity,
   emailKey,
+  staffClubMemberships,
   staffFanRoster,
   storedFullName,
   uniqueClubNames,
@@ -9,7 +10,6 @@ import {
 } from "../lib/s4p-admin";
 import { getFanRegistrationsForStaff } from "./supporters.service";
 import { clubsForBrandFromLocalStores } from "./climate-sponsors.service";
-import { isDemoClubName } from "../lib/current-season";
 import {
   isRemovedSponsorBrand,
   isRemovedSponsorIdentity,
@@ -33,7 +33,7 @@ export type StaffSponsor = {
 };
 
 export async function loadStaffParticipantRoster() {
-  const { fans } = await getFanRegistrationsForStaff();
+  const { fans, memberships } = await getFanRegistrationsForStaff();
 
   const directors = await supabase
     .from("club_accounts")
@@ -59,8 +59,7 @@ export async function loadStaffParticipantRoster() {
         email: String(row.email ?? "").trim() || "No email",
         clubName: String(club?.name ?? "").trim() || "No club selected",
       };
-    })
-    .filter((row) => isDemoClubName(row.clubName));
+    });
 
   const mappedSponsorsBase = (sponsors.data ?? []).map((row) => ({
     id: String(row.id),
@@ -91,9 +90,7 @@ export async function loadStaffParticipantRoster() {
 
   const mappedSponsors: StaffSponsor[] = mappedSponsorsBase
     .map((row) => {
-      const fromDb = (clubsFromDb.get(compactIdentity(row.brandName)) ?? []).filter(
-        (name) => isDemoClubName(name)
-      );
+      const fromDb = clubsFromDb.get(compactIdentity(row.brandName)) ?? [];
       const fromLocal = clubsForBrandFromLocalStores(row.brandName, row.email);
       return {
         ...row,
@@ -121,13 +118,12 @@ export async function loadStaffParticipantRoster() {
     ].filter((key) => key.length >= 6),
   };
 
-  const fanRoster = staffFanRoster(fans, excluded).filter((fan) =>
-    isDemoClubName(fan.clubName)
-  );
+  const fanRoster = staffFanRoster(fans, excluded);
+  const membershipRoster = staffClubMemberships(memberships, excluded);
 
   return {
     fans: fanRoster,
-    memberships: fanRoster,
+    memberships: membershipRoster.length > 0 ? membershipRoster : fanRoster,
     directors: mappedDirectors,
     sponsors: mappedSponsors,
     directorError: directors.error?.message ?? null,

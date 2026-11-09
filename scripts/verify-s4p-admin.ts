@@ -1,11 +1,14 @@
 import { readFileSync } from "fs";
 import {
   adminDisplayName,
+  clubNameFromSources,
+  expandFanClubMemberships,
   groupFansByClub,
   guessPersonNameFromEmailLocal,
   looksLikeEmailLocalPart,
   personKey,
   resolvedFullName,
+  staffClubMemberships,
   staffFanRoster,
   engagedFanCount,
   storedFullName,
@@ -165,6 +168,101 @@ assert(
   uniqueClubNames(["Arsenal", "arsenal", "Aston Villa"]).join(",") ===
     "Arsenal,Aston Villa",
   "Sponsored club lists de-duplicate club names"
+);
+
+const mobileFan: RegisteredFan = {
+  id: "6",
+  fullName: "Alex Mobile",
+  email: "alexmobilefan@gmail.com",
+  clubName: "No club selected",
+  authUserId: "auth-alex-mobile",
+};
+assert(
+  clubNameFromSources({
+    joinedClubName: "No club selected",
+    preferenceClubs: ["Rangers"],
+  }) === "Rangers",
+  "Admin uses the saved Sporting Calendar club when favourite_club_id did not join"
+);
+assert(
+  clubNameFromSources({
+    joinedClubName: "Arsenal",
+    preferenceClubs: ["Rangers"],
+  }) === "Arsenal",
+  "A clubs-table favourite still wins over preferences"
+);
+const expanded = expandFanClubMemberships(
+  [{ ...mobileFan, clubName: "Rangers" }],
+  new Map([["auth-alex-mobile", ["Rangers", "Celtic"]]])
+);
+assert(
+  expanded.length === 2 &&
+    expanded.some((fan) => fan.clubName === "Celtic"),
+  "A fan who supports two clubs appears under both"
+);
+const rangersRoster = staffFanRoster(
+  [...rawFans, { ...mobileFan, clubName: "Rangers" }],
+  {
+    emails: ["johnsmithvillafc@gmail.com"],
+    authUserIds: ["sponsor-bud"],
+    contactKeys: ["johnsmith", "jamesstewart"],
+  }
+);
+assert(
+  rangersRoster.some(
+    (fan) =>
+      fan.email === "alexmobilefan@gmail.com" && fan.clubName === "Rangers"
+  ),
+  "A new mobile Rangers fan appears in Admin Fans by club"
+);
+const rangersGroups = groupFansByClub(
+  staffClubMemberships(expanded, {
+    emails: [],
+    authUserIds: [],
+    contactKeys: [],
+  })
+);
+assert(
+  rangersGroups.some(
+    (group) =>
+      group.clubName === "Rangers" &&
+      group.members.some((fan) => fan.email === "alexmobilefan@gmail.com")
+  ),
+  "Fans by club groups the new mobile signup under Rangers"
+);
+
+const adminService = readFileSync("app/services/s4p-admin.service.ts", "utf8");
+const supportersService = readFileSync(
+  "app/services/supporters.service.ts",
+  "utf8"
+);
+const statsService = readFileSync(
+  "app/services/platform-stats.service.ts",
+  "utf8"
+);
+const adminPage = readFileSync("app/admin/page.tsx", "utf8");
+assert(
+  !adminService.includes("isDemoClubName") &&
+    !supportersService.includes("isDemoClubName") &&
+    !statsService.includes("isDemoClubName"),
+  "Admin, supporter lists and Fans Engaged are not limited to Arsenal, Hearts and Hibernian"
+);
+assert(
+  supportersService.includes("supporter_preferences") &&
+    supportersService.includes("clubNameFromSources") &&
+    adminService.includes("staffClubMemberships"),
+  "Admin fills the club from supporter preferences when the clubs join is empty"
+);
+assert(
+  adminPage.includes("admin-all-registered-fans-v1") &&
+    /every registered Fan\/Supporter/i.test(adminPage),
+  "Admin copy says every registered Fan/Supporter is listed"
+);
+assert(
+  readFileSync("app/services/teams.service.ts", "utf8").includes(
+    "findClubByPreferenceName(teams[0].name)"
+  ),
+  "Fan signup stores a clubs-table favourite when the Sporting Calendar id is not a UUID"
 );
 
 assert(kindFromProfileRole("admin") === "admin", "profiles.role admin is S4P staff");

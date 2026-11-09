@@ -61,10 +61,11 @@ export default function S4PAdminHomePage() {
             </p>
             <h1 className="mt-2 text-4xl font-black">Registered participants</h1>
             <p className="mt-3 max-w-3xl text-slate-300">
-              Authorized S4P staff can see the name and email captured when a
-              Fan, Sustainability Director or Sponsorship Manager registers —
-              grouped so you can count how many fans support each club.
+              Authorized S4P staff can see every registered Fan/Supporter,
+              Sustainability Director and Sponsorship Manager — name, email and
+              club — grouped so you can count how many fans support each club.
             </p>
+            {/* admin-all-registered-fans-v1 */}
           </div>
           <button
             type="button"
@@ -100,9 +101,10 @@ export default function S4PAdminHomePage() {
             <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
               <h2 className="text-3xl font-black">Fans by club</h2>
               <p className="mt-2 text-slate-400">
-                Totals use the club each fan chose at registration. Club
-                Sustainability Directors and Sponsorship Managers are listed in
-                their own sections, not as fans.
+                Totals use the club each fan chose at registration, including
+                every Sporting Calendar team. Club Sustainability Directors and
+                Sponsorship Managers are listed in their own sections, not as
+                fans.
               </p>
               {groups.length === 0 ? (
                 <p className="mt-6 text-slate-500">No fans registered yet.</p>
