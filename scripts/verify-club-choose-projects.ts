@@ -104,7 +104,10 @@ const overlay = readFileSync("apply-club-choose-projects.mjs", "utf8");
 assert(
   dashboard.includes("ClubChooseProjectsCopy") &&
     dashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
-    dashboard.includes("matchDayWindowCopy") &&
+    dashboard.includes("clubDashboardProjectsSentCopy") &&
+    dashboard.includes("CLUB_SELECT_MATCH_SENT_STAMP") &&
+    !dashboard.includes("SendInvitationToSponsorsLink") &&
+    !dashboard.includes("function ProjectGrid") &&
     !dashboard.includes("CLUB_CHOOSE_PROJECTS_STEPS") &&
     !chooser.includes("CLUB_CHOOSE_PROJECTS_STEPS") &&
     !dashboard.includes("<h2") &&
@@ -119,12 +122,15 @@ assert(
     picker.includes("ClubClimateProjectScopeTabs") &&
     picker.includes("SEND_INVITATION_LABEL") &&
     picker.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH") &&
+    picker.includes("ClimatePartnerSupplyCard") &&
+    picker.includes("climatePartnerSupplyBadge") &&
     picker.includes("club-choose-projects-scopes-v1") &&
     scopes.includes("CLIMATE_PROJECT_SCOPE_PROMPT") &&
     scopes.includes("otherClimateProjectScopes") &&
     !admin.includes("ClubAddressBookPanel") &&
     preview.includes("ClubClimateProjectScopeChooser") &&
     preview.includes("SEND_INVITATION_LABEL") &&
+    preview.includes("ClimatePartnerSupplyCard") &&
     preview.includes("preview/club-sponsors-address-books#"),
   "Blue tab asks Local/National/International, other lists sit at the end, Send Invitation lands on Sponsors Address Books"
 );

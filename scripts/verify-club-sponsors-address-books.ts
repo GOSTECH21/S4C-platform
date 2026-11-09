@@ -80,8 +80,9 @@ assert(
   "My Admin no longer shows Address Books"
 );
 assert(
-  dashboard.includes("SendInvitationToSponsorsLink") &&
+  picker.includes("data-send-invitation-to-sponsors") &&
     dashboard.includes("club-pending-invite") === false &&
+    !dashboard.includes("SendInvitationToSponsorsLink") &&
     readFileSync(
       "app/components/club/SendInvitationToSponsorsLink.tsx",
       "utf8"

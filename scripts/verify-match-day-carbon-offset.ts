@@ -99,7 +99,7 @@ assert(
     !shouldPublishChosenMatchDayProjects({
       projectCount: 4,
     }),
-  "The SD's five appear for interested sponsors as soon as chosen; fans still wait for Approved sign-off"
+  "The SD's five appear for interested sponsors as soon as chosen; fans still wait for approval and payment"
 );
 
 assert(

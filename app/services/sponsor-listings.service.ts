@@ -264,7 +264,7 @@ export async function submitGlobalSponsorshipCommitment({
   saveClubInviteRound(result.round);
   if (result.error) return { round: result.round, error: result.error };
   if (result.locked && result.winnerChanged) {
-    await publishLockedInviteToFans(result.round);
+    await notifyLockedInviteToClub(result.round);
   }
   return { round: result.round, error: null };
 }
@@ -282,7 +282,7 @@ export async function closeInviteWindowIfExpired(
     next.lockedListingId &&
     next.lockedListingId !== current.lockedListingId
   ) {
-    await publishLockedInviteToFans(next);
+    await notifyLockedInviteToClub(next);
   }
   return next;
 }
@@ -469,31 +469,9 @@ export async function acceptLocalInviteSponsorship({
   return { error: null, paymentPath: sponsorPayPath(round.clubName) };
 }
 
-async function publishLockedInviteToFans(round: SponsorInviteRound) {
+async function notifyLockedInviteToClub(round: SponsorInviteRound) {
   const projectIds = approvedProjectIdsFromInvite(round);
   if (projectIds.length === 0 || !round.lockedBrandName) return;
-  try {
-    const { publishSignedSponsorshipToFans } = await import(
-      "./club-match-day.service"
-    );
-    const winner = round.commitments.find(
-      (row) => row.listingId === round.lockedListingId
-    );
-    await publishSignedSponsorshipToFans({
-      clubId: round.clubId,
-      clubName: round.clubName,
-      brandName: round.lockedBrandName,
-      projects: projectIds.map((id, index) => ({
-        id,
-        name: round.projectNames[index] || id,
-      })),
-      minAmount: winner?.commitmentFeeGbp,
-      gbpPerGoal: winner?.gbpPerGoal,
-      maxAmount: winner?.maximumSponsorshipGbp,
-    });
-  } catch {
-    // Invitation lock-in still stands if the fan post cannot be written yet.
-  }
   notifySignedSponsorship({
     clubId: round.clubId,
     clubName: round.clubName,

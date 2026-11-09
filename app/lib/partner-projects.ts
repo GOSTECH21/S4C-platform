@@ -14,7 +14,11 @@ const MATCH_DAY_LEAD_DAYS = MATCH_DAY_LEAD_HOURS / 24;
 
 export const MATCH_DAY_PENDING_APPROVAL_LABEL = "pending approval";
 export const MATCH_DAY_APPROVED_LABEL = "Approved";
+export const MATCH_DAY_RELEASED_LABEL = "Released to Fans";
 export const MATCH_DAY_FULLY_FUNDED_LABEL = "Fully-Funded";
+export const CLUB_ADMIN_SENT_PROJECTS_HEADING = "Sent Climate Projects";
+export const CLUB_ADMIN_SENT_PROJECTS_STAMP = "club-admin-sent-projects-v1";
+export const CLUB_SELECT_MATCH_SENT_STAMP = "club-select-match-sent-v1";
 /** One Lead Climate Sponsor slot per Club per Match Day. */
 export const LEAD_CLIMATE_SPONSOR_SLOTS_PER_MATCH = 1;
 
@@ -64,6 +68,40 @@ export function matchDayProjectApprovalLabel(isApproved: boolean): string {
   return isApproved
     ? MATCH_DAY_APPROVED_LABEL
     : MATCH_DAY_PENDING_APPROVAL_LABEL;
+}
+
+export function matchDayInvitationSent(projectCount: number): boolean {
+  return projectCount >= MATCH_DAY_PROJECT_COUNT;
+}
+
+export function matchDayProjectsReleasedToFans({
+  approved,
+  paid,
+}: {
+  approved: boolean;
+  paid: boolean;
+}): boolean {
+  return approved && paid;
+}
+
+export function matchDayAdminStatusLabel({
+  approved,
+  paid,
+}: {
+  approved: boolean;
+  paid: boolean;
+}): string {
+  return matchDayProjectsReleasedToFans({ approved, paid })
+    ? MATCH_DAY_RELEASED_LABEL
+    : MATCH_DAY_PENDING_APPROVAL_LABEL;
+}
+
+export function clubDashboardProjectsSentCopy(): string {
+  return "Climate Projects have left Select Match and been sent to Selected Sponsors. A copy is saved in My Admin, tagged pending approval until sponsors approve and pay. Then they are released to fans.";
+}
+
+export function clubAdminSentProjectsCopy(): string {
+  return "A copy of the Climate Projects you sent to sponsors. They stay pending approval until a sponsor accepts, approves and pays. After payment they are released to fans, who can take cash from Carbon Wallets onto these projects.";
 }
 
 export function clubClimateProjectsIntroCopy(): string {

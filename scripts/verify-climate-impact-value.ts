@@ -453,9 +453,9 @@ assert(
 
 const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
-  clubSelect.includes("ClimateProjectCivBlock") &&
-    clubSelect.includes("clubClimateProjectsIntroCopy"),
-  "Club project lists show CIV, funding sought and the Match Day List intro"
+  clubSelect.includes("ClimatePartnerSupplyCard") &&
+    clubSelect.includes("climatePartnerSupplyBadge"),
+  "Club project lists use the compact Climate Partner supply card"
 );
 assert(
   !clubSelect.includes("only project classified as UK and International") &&
@@ -463,10 +463,12 @@ assert(
   "Club Climate Projects intro no longer uses the old five / voting-window statement"
 );
 
-const clubDash = readFileSync("app/club/dashboard/page.tsx", "utf8");
+const clubAdminLookback = readFileSync(
+  "app/components/club/ClubAdminLookbackAndCilt.tsx",
+  "utf8"
+);
 assert(
-  clubDash.includes("qualifyingCivTonnes") &&
-    clubDash.includes("ClimateProjectCivBlock"),
+  clubAdminLookback.includes("qualifyingCivTonnes"),
   "Club CILT extra tCO2e only comes from Live CIV"
 );
 

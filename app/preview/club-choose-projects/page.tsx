@@ -16,8 +16,11 @@ import {
   SELECT_CLIMATE_PROJECTS_LABEL,
   SEND_INVITATION_LABEL,
 } from "@/app/lib/partner-projects";
-import { matchDayWindowCopy } from "@/app/services/club-match-day.service";
 import { climateProjectListsForClub } from "@/app/lib/sccan-catalog";
+import {
+  ClimatePartnerSupplyCard,
+  climatePartnerSupplyBadge,
+} from "@/app/components/climate/ClimatePartnerSupplyCard";
 import {
   climateProjectsForScope,
   climateProjectScopeHeading,
@@ -69,9 +72,6 @@ export default function ClubChooseProjectsPreviewPage() {
           >
             {SELECT_CLIMATE_PROJECTS_LABEL}
           </button>
-          <p className="mt-10 max-w-3xl text-sm text-slate-400">
-            {matchDayWindowCopy()}
-          </p>
         </section>
 
         {open && scope === null ? (
@@ -81,15 +81,21 @@ export default function ClubChooseProjectsPreviewPage() {
         {open && scope ? (
           <section className="mt-8">
             <p className="font-bold">{climateProjectScopeHeading(scope)}</p>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((project) => (
-                <article
+                <ClimatePartnerSupplyCard
                   key={project.name}
-                  className="rounded-2xl border border-slate-700 bg-slate-900 p-6"
-                >
-                  <h2 className="text-xl font-bold">{project.name}</h2>
-                  <p className="mt-2 text-slate-300">{project.description}</p>
-                </article>
+                  project={{
+                    id: project.name,
+                    name: project.name,
+                    description: project.description,
+                    category: project.category,
+                    image_url: null,
+                    location: project.location,
+                    country: project.country,
+                  }}
+                  badge={climatePartnerSupplyBadge(scope)}
+                />
               ))}
             </div>
             <ClubClimateProjectScopeTabs current={scope} onChoose={setScope} />

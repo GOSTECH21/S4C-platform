@@ -984,21 +984,6 @@ export async function signSponsorOffer({
       });
     }
     if (offer?.clubId && offer.clubName) {
-      if (offer.projects.length > 0) {
-        const { publishSignedSponsorshipToFans } = await import(
-          "./club-match-day.service"
-        );
-        await publishSignedSponsorshipToFans({
-          clubId: offer.clubId,
-          clubName: offer.clubName,
-          brandName: signature.brandName,
-          projects: offer.projects,
-          minAmount: offer.sponsorshipAmountGbp,
-          gbpPerGoal: offer.gbpPerGoal,
-          maxAmount: offer.maxAmount,
-          gbpPerVote: offer.gbpPerVote,
-        });
-      }
       notifySignedSponsorship({
         clubId: offer.clubId,
         clubName: offer.clubName,

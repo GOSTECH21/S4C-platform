@@ -283,7 +283,7 @@ assert(
     nav.includes("CLUB_SPONSORS_PATH") &&
     sponsorsPage.includes("ClubSponsorsListings") &&
     !dashboard.includes("Open Sponsors listings") &&
-    dashboard.includes("approvedIdsForClubMatch") &&
+    dashboard.includes("CLUB_SPONSORS_PATH") &&
     readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
       "CLUB_SPONSORS_ADDRESS_BOOKS_PATH"
     ),
@@ -311,9 +311,12 @@ assert(
     !invitePage.includes("SponsorNav") &&
     readFileSync("app/sponsor/layout.tsx", "utf8").includes("SponsorNav") &&
     readFileSync("app/services/sponsor-listings.service.ts", "utf8").includes(
+      "notifyLockedInviteToClub"
+    ) &&
+    !readFileSync("app/services/sponsor-listings.service.ts", "utf8").includes(
       "publishSignedSponsorshipToFans"
     ),
-  "Invitations uses the header nav only, and lock-in publishes Approved projects to club fans"
+  "Invitations uses the header nav only; lock-in notifies the club and fans wait for payment"
 );
 assert(
   sponsorNav.includes("s4pTabClass(onInvitations)") &&

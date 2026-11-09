@@ -373,7 +373,7 @@ assert(
       },
     ]
   ) == null,
-  "Fans do not see the SD's chosen five until a Sponsor signs them off"
+  "Fans do not see the SD's chosen five until a Sponsor approves and pays"
 );
 assert(
   isPostedPortfolioStatus(MATCH_DAY_PORTFOLIO_POSTED) &&
@@ -397,7 +397,7 @@ assert(
     readFileSync("app/services/match-day-folder.service.ts", "utf8").includes(
       "publishMatchDayFolderFromSignedOffer"
     ),
-  "Sponsor sign-off publishes the signed five to fans and the Match-Day folder immediately"
+  "Sponsor payment publishes the signed five to fans and the Match-Day folder immediately"
 );
 assert(
   isFanPostVisible(new Date(Date.now() + 60_000).toISOString()),
@@ -669,11 +669,11 @@ assert(
     !clubDashboard.includes("clubDashboardLeadTabCount") &&
     !clubDashboard.includes("leadTabCount") &&
     clubDashboard.includes("orderedSelected") &&
-    clubDashboard.includes("matchDayProjectApprovalLabel") &&
-    clubDashboard.includes("MATCH_DAY_PENDING_APPROVAL_LABEL") &&
-    clubDashboard.includes("MATCH_DAY_APPROVED_LABEL") &&
-    clubDashboard.includes("matchDayWindowCopy"),
-  "Club dashboard keeps Choose Projects and the Chosen Climate Projects statement, without Brands Our Climate Sponsors"
+    clubDashboard.includes("clubDashboardProjectsSentCopy") &&
+    clubDashboard.includes("matchDayInvitationSent") &&
+    !clubDashboard.includes("function ProjectGrid") &&
+    !clubDashboard.includes("SendInvitationToSponsorsLink"),
+  "Club dashboard keeps Choose Projects without dumping the sent project cards on Select Match"
 );
 assert(
   clubDashboardChosenProjectsCopy().includes("Select 1 Global Schools Solar") &&
@@ -745,7 +745,7 @@ assert(
       'isMissingColumnError(climateIdInsert.error, "climate_project_id", "club_match_portfolio")'
     ) &&
     matchDayService.includes("export async function publishSignedSponsorshipToFans"),
-  "SD selection attaches the five for sponsors as soon as chosen; fans only receive them after Approved sign-off"
+  "SD selection attaches the five for sponsors as soon as chosen; fans only receive them after sponsors approve and pay"
 );
 
 const tabHelper = readFileSync("app/lib/s4p-tabs.ts", "utf8");

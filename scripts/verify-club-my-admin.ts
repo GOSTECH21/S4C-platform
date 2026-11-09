@@ -5,11 +5,19 @@ import {
   CLUB_SELECT_PROJECTS_PATH,
 } from "../app/lib/routes";
 import {
+  CLUB_ADMIN_SENT_PROJECTS_HEADING,
   CLUB_CHOOSE_PROJECTS_NOTE,
   CLUB_CHOOSE_PROJECTS_STEPS,
+  MATCH_DAY_PENDING_APPROVAL_LABEL,
+  MATCH_DAY_RELEASED_LABEL,
   SELECT_CLIMATE_PROJECTS_LABEL,
+  clubAdminSentProjectsCopy,
   clubDashboardChosenProjectsCopy,
   clubDashboardClimateProjectsIntroCopy,
+  clubDashboardProjectsSentCopy,
+  matchDayAdminStatusLabel,
+  matchDayInvitationSent,
+  matchDayProjectsReleasedToFans,
 } from "../app/lib/partner-projects";
 import {
   clubAddressBookListingId,
@@ -47,6 +55,22 @@ function assert(condition: boolean, message: string) {
 }
 
 assert(CLUB_ADMIN_PATH === "/club/admin", "My Admin lives at /club/admin");
+assert(
+  CLUB_ADMIN_SENT_PROJECTS_HEADING === "Sent Climate Projects" &&
+    matchDayInvitationSent(5) &&
+    !matchDayInvitationSent(4) &&
+    !matchDayProjectsReleasedToFans({ approved: true, paid: false }) &&
+    matchDayProjectsReleasedToFans({ approved: true, paid: true }) &&
+    matchDayAdminStatusLabel({ approved: false, paid: false }) ===
+      MATCH_DAY_PENDING_APPROVAL_LABEL &&
+    matchDayAdminStatusLabel({ approved: true, paid: false }) ===
+      MATCH_DAY_PENDING_APPROVAL_LABEL &&
+    matchDayAdminStatusLabel({ approved: true, paid: true }) ===
+      MATCH_DAY_RELEASED_LABEL &&
+    clubDashboardProjectsSentCopy().includes("sent to Selected Sponsors") &&
+    clubAdminSentProjectsCopy().includes("pending approval"),
+  "Sent Climate Projects stay pending in My Admin until sponsors approve and pay, then they are released to fans"
+);
 assert(
   formatMoney(1320) === "£1,320",
   "Collapsed sponsorships end on Match-Sponsorship: £1,320"
@@ -271,6 +295,11 @@ assert(
   lookback.includes("Match Day File Record") &&
     lookback.includes("Selected and Funded Projects, kept for lookback") &&
     lookback.includes("clubDashboardLookbackCopy") &&
+    lookback.includes("CLUB_ADMIN_SENT_PROJECTS_HEADING") &&
+    lookback.includes("clubAdminSentProjectsCopy") &&
+    lookback.includes("SentProjectsAccordion") &&
+    lookback.includes("MATCH_DAY_RELEASED_LABEL") &&
+    lookback.includes("ClimatePartnerSupplyCard") &&
     lookback.includes("S4P Climate Impact League Table") &&
     lookback.includes("climateImpactLeagueTable") &&
     lookback.includes("Download file record") &&
@@ -278,7 +307,7 @@ assert(
     lookback.includes("aria-expanded") &&
     lookback.includes("Match-Sponsorship:") &&
     lookback.includes("FanFootprintAnalytics"),
-  "My Admin holds the Match Day File Record, collapsed sponsorships, FanFootprint and CILT"
+  "My Admin holds sent Climate Projects, the Match Day File Record, collapsed sponsorships, FanFootprint and CILT"
 );
 const footprintUi = readFileSync(
   "app/components/club/FanFootprintAnalytics.tsx",

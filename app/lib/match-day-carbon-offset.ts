@@ -21,7 +21,7 @@ export const MATCH_DAY_PROJECTS_RECORD_COPY =
   "Sponsored Projects will be saved in a Folder for your Record";
 
 export const MATCH_DAY_PROJECTS_WAITING_COPY =
-  "Waiting for the club Sustainability Director to choose the Climate Projects for this Match Day. When they do, those Projects appear here as your record, and Fans can FUND-IT onto them.";
+  "Waiting for the club Sustainability Director to choose the Climate Projects for this Match Day. When they do, those Projects appear here as your record. Fans can FUND-IT onto them after you approve and pay.";
 
 export const MATCH_DAY_PROJECTS_BEFORE_SIGNOFF_COPY =
   "When you type a Club you wish to sponsor, you see that Club's chosen Climate Projects first. You may sign the sponsorship only after they are visible. If the Club has not uploaded them yet, sign-off stays pending approval until they do.";
