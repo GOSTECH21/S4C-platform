@@ -103,6 +103,9 @@ export function FanCampaignWorkspace({
         }
         setSupporter(current);
         await loadCampaigns(current);
+        void import("@/app/services/fan-activity.service").then(
+          ({ syncFanActivityToStaff }) => syncFanActivityToStaff(current.id)
+        );
       } catch (err) {
         console.error("Failed to load My S4P campaign:", err);
         setError(

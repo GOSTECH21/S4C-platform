@@ -192,7 +192,12 @@ export function localSponsorLoginPath(inviteCount: number): string {
 export const ADMIN_LOGIN_PATH = "/admin/login";
 export const ADMIN_REGISTER_PATH = "/admin/register";
 export const ADMIN_PATH = "/admin";
+export const ADMIN_FANS_PATH = "/admin/fans";
 export const ADMIN_MATCHRAV_PATH = "/admin/matchrav";
+
+export function adminFanProfilePath(id: string) {
+  return `${ADMIN_FANS_PATH}/${encodeURIComponent(String(id ?? "").trim())}`;
+}
 export const PARTNER_LOGIN_PATH = "/partner/login";
 export const PARTNER_REGISTER_PATH = "/partner/register";
 export const PARTNER_DASHBOARD_PATH = "/partner/dashboard";

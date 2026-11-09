@@ -452,6 +452,7 @@ export function applyFanWalletVote({
         : result.project.name,
     brandName: result.wallet.brandName,
     clubName: result.wallet.clubName,
+    supporterId,
   });
   if (folder?.sponsorsFile && folder.projectsFile) {
     const nextFolder = writeMatchDayFolder({

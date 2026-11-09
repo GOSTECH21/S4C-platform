@@ -314,6 +314,9 @@ export default function FanMatchravPanel({
     setSavedKg(formatTravelKgCo2e(trip.totalKg));
     setActiveTripId(trip.id);
     setTrips(listMatchravTrips());
+    void import("@/app/services/fan-activity.service").then(
+      ({ persistStaffMatchravTrip }) => persistStaffMatchravTrip(trip)
+    );
     if (!consent.storeLocal) {
       setSavedKg(formatTravelKgCo2e(trip.totalKg));
     }
@@ -357,8 +360,13 @@ export default function FanMatchravPanel({
 
   function confirmLatest(mode: TravelMode) {
     if (!latestPlanned) return;
-    confirmMatchravTrip(latestPlanned.id, mode, consent);
+    const next = confirmMatchravTrip(latestPlanned.id, mode, consent);
     setTrips(listMatchravTrips());
+    if (next) {
+      void import("@/app/services/fan-activity.service").then(
+        ({ persistStaffMatchravTrip }) => persistStaffMatchravTrip(next)
+      );
+    }
   }
 
   return (
