@@ -4,8 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   fileRecordDownloadName,
   loadClubProjectBoard,
+  matchDayWindowCopy,
+  readFileRecords,
   readStoredMatchDay,
   type ClubFileRecord,
+  type ClubFileProject,
   type ClubProfile,
 } from "@/app/services/club-match-day.service";
 import {
@@ -13,7 +16,10 @@ import {
   listClubSignedSponsorships,
   type SignedSponsorship,
 } from "@/app/services/sponsor-offers.service";
-import type { ClimateProject } from "@/app/services/votes.service";
+import {
+  isFeaturedClimateProject,
+  type ClimateProject,
+} from "@/app/services/votes.service";
 import {
   ciltLeagueForClub,
   ciltPositionLabel,
@@ -21,10 +27,17 @@ import {
 } from "@/app/lib/cilt";
 import { qualifyingCivTonnes } from "@/app/lib/climate-impact-value";
 import {
+  CLUB_ADMIN_SENT_PROJECTS_HEADING,
+  CLUB_ADMIN_SENT_PROJECTS_STAMP,
   MATCH_DAY_APPROVED_LABEL,
   MATCH_DAY_FULLY_FUNDED_LABEL,
+  MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
+  MATCH_DAY_RELEASED_LABEL,
+  clubAdminSentProjectsCopy,
   clubDashboardLookbackCopy,
+  matchDayAdminStatusLabel,
+  matchDayInvitationSent,
 } from "@/app/lib/partner-projects";
 import {
   lookbackProjectFunding,
@@ -41,6 +54,15 @@ import { FanFootprintAnalytics } from "@/app/components/club/FanFootprintAnalyti
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { approvedIdsForClubMatch } from "@/app/services/sponsor-listings.service";
+import {
+  isMatchDayCardPaymentConfirmed,
+  paidProjectIdsForClub,
+} from "@/app/lib/sponsor-card-payment";
+import {
+  ClimatePartnerSupplyCard,
+  climatePartnerSupplyBadge,
+} from "@/app/components/climate/ClimatePartnerSupplyCard";
+import { isFeaturedGssName } from "@/app/lib/featured-gss";
 
 export default function ClubAdminLookbackAndCilt({
   club,
@@ -54,7 +76,9 @@ export default function ClubAdminLookbackAndCilt({
   const [gbpPerGoal, setGbpPerGoal] = useState<number | null>(null);
   const [maxAmount, setMaxAmount] = useState<number | null>(null);
   const [gbpPerVote, setGbpPerVote] = useState<number | null>(null);
-  const [records, setRecords] = useState<ClubFileRecord[]>([]);
+  const [records, setRecords] = useState<ClubFileRecord[]>(() =>
+    readFileRecords(club.id)
+  );
   const [fanFunding, setFanFunding] = useState<
     ReturnType<typeof readProjectFunding>
   >([]);
@@ -171,8 +195,51 @@ export default function ClubAdminLookbackAndCilt({
     URL.revokeObjectURL(url);
   }
 
+  const paidIds = useMemo(() => {
+    return new Set(
+      paidProjectIdsForClub({ clubId: club.id, clubName: club.name })
+    );
+  }, [club.id, club.name, signedCopies]);
+  const clubPaid = isMatchDayCardPaymentConfirmed({ clubName: club.name });
+  const sentProjects: Array<ClimateProject | ClubFileProject> =
+    selected.length > 0
+      ? selected
+      : lookbackRecords[0]?.selected ?? [];
+  const sentReady = matchDayInvitationSent(sentProjects.length);
+
   return (
     <>
+      <section
+        data-sent-climate-projects={CLUB_ADMIN_SENT_PROJECTS_STAMP}
+        className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
+          My Admin
+        </p>
+        <h2 className="mt-2 text-3xl font-black">
+          {CLUB_ADMIN_SENT_PROJECTS_HEADING}
+        </h2>
+        <p className="mt-2 max-w-2xl text-slate-400">
+          {clubAdminSentProjectsCopy()}
+        </p>
+        <p className="mt-4 max-w-2xl text-sm text-slate-500">
+          {matchDayWindowCopy()}
+        </p>
+        {!sentReady ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-slate-400">
+            No Climate Projects sent to sponsors yet. Choose {MATCH_DAY_PROJECT_COUNT}{" "}
+            Match Day projects and press Send Invitation to Sponsors.
+          </div>
+        ) : (
+          <SentProjectsAccordion
+            projects={sentProjects}
+            approvedIds={approvedIds}
+            paidIds={paidIds}
+            clubPaid={clubPaid}
+          />
+        )}
+      </section>
+
       <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-8">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
@@ -297,6 +364,103 @@ export default function ClubAdminLookbackAndCilt({
         </div>
       </section>
     </>
+  );
+}
+
+function SentProjectsAccordion({
+  projects,
+  approvedIds,
+  paidIds,
+  clubPaid,
+}: {
+  projects: Array<ClimateProject | ClubFileProject>;
+  approvedIds: Set<string>;
+  paidIds: Set<string>;
+  clubPaid: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const detailsId = "sent-climate-projects";
+  const releasedCount = projects.filter((project) =>
+    matchDayAdminStatusLabel({
+      approved: approvedIds.has(project.id),
+      paid: paidIds.has(project.id) || clubPaid,
+    }) === MATCH_DAY_RELEASED_LABEL
+  ).length;
+  const overall =
+    releasedCount === projects.length && projects.length > 0
+      ? MATCH_DAY_RELEASED_LABEL
+      : MATCH_DAY_PENDING_APPROVAL_LABEL;
+
+  return (
+    <article
+      data-sent-projects-accordion="sent-projects-accordion-v1"
+      className="mt-6 overflow-hidden rounded-2xl border border-slate-700 bg-slate-950"
+    >
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={detailsId}
+          onClick={() => setOpen((current) => !current)}
+          className="flex w-full items-start gap-3 p-6 text-left"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-xl font-bold text-white">
+              {projects.length} Climate Projects sent to sponsors
+            </span>
+            <span className="mt-2 inline-flex rounded-full border border-s4p-mark bg-s4p-mark/15 px-3 py-1 text-xs font-semibold text-slate-950">
+              {overall}
+            </span>
+          </span>
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">
+            {open ? "Hide" : "Details"}
+          </span>
+        </button>
+      </h3>
+      {open ? (
+        <div id={detailsId} className="grid gap-4 px-6 pb-6 sm:grid-cols-2 xl:grid-cols-3">
+          {projects.map((project, index) => {
+            const featured =
+              "featured" in project
+                ? isFeaturedClimateProject(project as ClimateProject)
+                : isFeaturedGssName(project.name);
+            const approved = approvedIds.has(project.id);
+            const paid = paidIds.has(project.id) || clubPaid;
+            const status = matchDayAdminStatusLabel({ approved, paid });
+            const badge = featured
+              ? climatePartnerSupplyBadge("featured")
+              : climatePartnerSupplyBadge("local");
+            return (
+              <ClimatePartnerSupplyCard
+                key={project.id || `${project.name}-${index}`}
+                project={{
+                  id: project.id,
+                  name: project.name,
+                  description: project.description,
+                  category: project.category,
+                  image_url:
+                    "image_url" in project
+                      ? (project as ClimateProject).image_url
+                      : null,
+                  country: project.country,
+                }}
+                badge={badge}
+              >
+                <p
+                  className={`mt-3 inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold text-slate-950 ${
+                    status === MATCH_DAY_RELEASED_LABEL
+                      ? "bg-s4p-mark"
+                      : "border border-s4p-mark bg-s4p-mark/15"
+                  }`}
+                >
+                  {status}
+                </p>
+              </ClimatePartnerSupplyCard>
+            );
+          })}
+        </div>
+      ) : null}
+    </article>
   );
 }
 

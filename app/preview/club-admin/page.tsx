@@ -19,11 +19,46 @@ const PREVIEW_RECORD = {
   minAmount: 1320,
   sponsorName: "Scotmid Coop",
   selected: [
-    { id: "gss", name: "Global Schools Solar" },
-    { id: "retrofit", name: "Edinburgh Building Retrofit Collective" },
-    { id: "clean-heat", name: "Clean Heat Edinburgh" },
-    { id: "gorgie-solar", name: "Gorgie Community Rooftop Solar" },
-    { id: "gorgie-wildlife", name: "Gorgie River Wildlife Corridor" },
+    {
+      id: "gss",
+      name: "Global Schools Solar",
+      description:
+        "Install rooftop solar systems in schools around the world so classrooms can run on clean energy.",
+      category: "Solar",
+      country: "Global",
+    },
+    {
+      id: "south-seeds",
+      name: "South Seeds",
+      description:
+        "Community climate action on Glasgow's Southside, helping neighbours cut energy use.",
+      category: "Community",
+      country: "Scotland",
+    },
+    {
+      id: "ibrox-river",
+      name: "Ibrox River Wildlife Corridor",
+      description:
+        "Restore river and canal banks so wildlife can move and carbon stays in the soil.",
+      category: "Nature",
+      country: "Scotland",
+    },
+    {
+      id: "ibrox-energy",
+      name: "Ibrox Local Community Energy",
+      description:
+        "Local community energy so homes and clubs around Ibrox run cleaner.",
+      category: "Energy",
+      country: "Scotland",
+    },
+    {
+      id: "ibrox-air",
+      name: "Ibrox School Streets Clean Air",
+      description:
+        "School streets, monitors and planting so children near the ground breathe cleaner air.",
+      category: "Clean air",
+      country: "Scotland",
+    },
   ],
   voted: [],
 };

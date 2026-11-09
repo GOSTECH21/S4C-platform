@@ -229,7 +229,7 @@ export function postedMatchDayForFanTeam(
     })
   );
   const schedule = matchedSchedules[0];
-  // Chosen fives stay off My S4P until a Sponsor signs them off (that write
+  // Chosen fives stay off My S4P until a Sponsor approves and pays (that write
   // is the fan post schedule). The SD's local store alone is not a publish.
   if (!schedule) return null;
   const store = stores.find((row) => row.clubId === schedule.clubId) ?? null;

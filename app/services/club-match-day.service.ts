@@ -895,7 +895,7 @@ function mergeVotedProjects(
   return mergeLookbackProjects(previous, next);
 }
 
-function readFileRecords(clubId: string): ClubFileRecord[] {
+export function readFileRecords(clubId: string): ClubFileRecord[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(FILE_RECORD_STORAGE_PREFIX + clubId);
@@ -1709,6 +1709,7 @@ export async function postMatchDayProjectsToFans({
   return selection;
 }
 
+/** Called after a sponsor pays (Section C). Sign-off (Section B) does not release to fans. */
 export async function publishSignedSponsorshipToFans({
   clubId,
   clubName,

@@ -115,7 +115,7 @@ export function clubVotingWindowCopy(choiceCount: number): string {
 }
 
 export function clubMatchDayFolderCopy(): string {
-  return `Chosen Climate Projects uploaded by you 3 days before Match Kick-off will be visible to interested Sponsors. If sponsored & signed-off by a Sponsor, the list appears here. Fund allocation for a Saturday 15:00 kick-off opens on Wednesday at 15:00 and closes Monday at 15:00. Registered fans starts to take Permitted Cash from a Sponsor Wallet to put into preferred Climate Project during this period`;
+  return `Chosen Climate Projects uploaded by you 3 days before Match Kick-off will be visible to interested Sponsors. If sponsored, approved and paid for by a Sponsor, the list is released to fans. Fund allocation for a Saturday 15:00 kick-off opens on Wednesday at 15:00 and closes Monday at 15:00. Registered fans starts to take Permitted Cash from a Sponsor Wallet to put into preferred Climate Project during this period`;
 }
 
 export function formatVotingClock(value: Date): string {

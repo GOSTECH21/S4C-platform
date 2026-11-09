@@ -19,10 +19,6 @@ import {
   SEND_INVITATION_LABEL,
 } from "@/app/lib/partner-projects";
 import ClubSelectedMatchBanner from "@/app/components/club/ClubSelectedMatchBanner";
-import { isInternationalCatalogName, isLocalCatalogName } from "@/app/lib/sccan-catalog";
-import {
-  localCatalogCountryForClub,
-} from "@/app/lib/featured-climate-country";
 import {
   DEFAULT_WALLET_VOTE_GBP,
 } from "@/app/lib/sponsor-wallet";
@@ -38,8 +34,10 @@ import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
 import { clubGateCopy } from "@/app/lib/signed-in-role";
 import { identifySignedInKind } from "@/app/services/signed-in-role.service";
-import { ClimateProjectCivBlock } from "@/app/components/climate/ClimateProjectCiv";
-import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
+import {
+  ClimatePartnerSupplyCard,
+  climatePartnerSupplyBadge,
+} from "@/app/components/climate/ClimatePartnerSupplyCard";
 import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
 import { s4pActionBarClass } from "@/app/lib/s4p-tabs";
 import {
@@ -137,10 +135,6 @@ export default function SelectMatchDayProjectsPage() {
     load();
   }, [router]);
 
-  const localCountry = localCatalogCountryForClub({
-    clubName,
-    country: clubCountry,
-  });
   const visible = scope
     ? climateProjectsForScope(scope, {
         local: localProjects,
@@ -286,52 +280,39 @@ export default function SelectMatchDayProjectsPage() {
               </p>
             ) : null}
 
-            <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((project) => {
                 const isOn = selected.has(project.id);
                 const full = !isOn && selected.size >= MATCH_DAY_CHOICE_COUNT;
-                const region =
+                const badge =
                   scope === "local"
-                    ? "Local Climate Partner"
+                    ? climatePartnerSupplyBadge("local")
                     : scope === "national"
-                      ? isLocalCatalogName(project.name, localCountry)
-                        ? `${localCountry} Climate Partner`
-                        : "National Climate Partner"
-                      : isInternationalCatalogName(project.name)
-                        ? "International Climate Partner"
-                        : "Climate Project Partner";
+                      ? climatePartnerSupplyBadge("national")
+                      : climatePartnerSupplyBadge("international");
                 return (
-                  <div
-                    key={project.id}
-                    className={`flex flex-col rounded-2xl border p-6 ${
-                      isOn
-                        ? "border-green-500 bg-slate-800"
-                        : "border-slate-700 bg-slate-900"
-                    }`}
-                  >
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                      {region}
-                    </p>
-                    {isPartnerUpload(project) && (
-                      <p className="mt-1 text-xs font-semibold text-green-400">
-                        Uploaded climate project
-                      </p>
-                    )}
-                    <h2 className="mt-2 text-2xl font-bold">{project.name}</h2>
-                    <p className="mt-3 flex-1 text-slate-300">{project.description}</p>
-                    <div className="mt-4 space-y-1 text-sm text-slate-400">
-                      {project.category && <p>{project.category}</p>}
-                      {project.country && <p>{project.country}</p>}
-                      <ProjectSiteLine project={project} clubName={clubName} />
-                    </div>
-                    <ClimateProjectCivBlock project={project} compact={false} />
-                    <button
-                      onClick={() => toggle(project.id)}
-                      disabled={full}
-                      className={`mt-6 rounded-xl py-3 font-bold ${s4pActionBarClass(full)}`}
+                  <div key={project.id}>
+                    <ClimatePartnerSupplyCard
+                      project={project}
+                      badge={
+                        isPartnerUpload(project)
+                          ? `${badge} · uploaded`
+                          : badge
+                      }
+                      selected={isOn}
                     >
-                      {isOn ? "✓ Selected" : full ? "Limit reached" : "Select project"}
-                    </button>
+                      <button
+                        onClick={() => toggle(project.id)}
+                        disabled={full}
+                        className={`mt-3 w-full rounded-xl py-2.5 text-sm font-bold ${s4pActionBarClass(full)}`}
+                      >
+                        {isOn
+                          ? "✓ Selected"
+                          : full
+                            ? "Limit reached"
+                            : "Select project"}
+                      </button>
+                    </ClimatePartnerSupplyCard>
                   </div>
                 );
               })}

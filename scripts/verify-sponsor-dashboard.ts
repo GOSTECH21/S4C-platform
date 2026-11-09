@@ -838,11 +838,14 @@ assert(
   offerService.includes("ensureCarbonOffsetSponsorshipOffer") &&
     offerService.includes("attachProjectsToClubSponsorships") &&
     offerService.includes("hydrateClubSponsorsFromSigned") &&
-    offerService.includes("publishSignedSponsorshipToFans") &&
+    !offerService.includes("publishSignedSponsorshipToFans") &&
+    readFileSync("app/services/sponsor-card-payment.service.ts", "utf8").includes(
+      "publishSignedSponsorshipToFans"
+    ) &&
     offerService.includes("recordSignedLeadClimateSponsor") &&
     offerService.includes("firstLeadHoldsChosenProjects") &&
     offerService.includes("canClaimLeadClimateSponsor"),
-  "Sponsors sign off the Match Day carbon offset; the SD's five later attach as a record and publish to fans"
+  "Sponsors sign off the Match Day carbon offset; fans receive the five after payment"
 );
 assert(
   readFileSync("scripts/verify-sponsor-completion-flow.ts", "utf8").includes(
@@ -864,10 +867,10 @@ assert(
     readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "SIGNED_SPONSORSHIP_EVENT"
     ) &&
-    readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
+    readFileSync("app/components/club/ClubAdminLookbackAndCilt.tsx", "utf8").includes(
       "SIGNED_SPONSORSHIP_EVENT"
     ),
-  "Club Sustainability Directors and fans refresh as soon as the sponsor signs off"
+  "Club Sustainability Directors and fans refresh when a sponsor signs or pays"
 );
 
 const fundingLock = applyWalletFundingLock(
