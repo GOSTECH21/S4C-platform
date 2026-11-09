@@ -436,7 +436,9 @@ export async function saveSupportedTeams(
     teams.map((team) => team.name)
   );
 
-  const favouriteId = uuidOrNull(teams[0].id);
+  const favouriteId =
+    uuidOrNull(teams[0].id) ??
+    uuidOrNull((await findClubByPreferenceName(teams[0].name))?.id);
   const { error: favError } = await supabase
     .from("supporters")
     .update({ favourite_club_id: favouriteId })

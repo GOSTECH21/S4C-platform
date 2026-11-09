@@ -6,7 +6,7 @@ import {
   storedFullName,
   type RegisteredFan,
 } from "../lib/s4p-admin";
-import { currentSeasonTeamCount, isDemoClubName } from "../lib/current-season";
+import { currentSeasonTeamCount } from "../lib/current-season";
 import { mergePlatformStats, type PlatformStats } from "../lib/platform-stats";
 
 async function impactMomentsCreated(): Promise<number> {
@@ -74,8 +74,7 @@ async function fansEngagedFromTables(): Promise<number | null> {
           clubName: String(club?.name ?? "").trim() || "No club selected",
           authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
         };
-      })
-      .filter((fan) => isDemoClubName(fan.clubName));
+      });
 
     const mappedDirectors = (directors.error ? [] : directors.data ?? []).map((row) => ({
       email: String(row.email ?? "").trim(),
