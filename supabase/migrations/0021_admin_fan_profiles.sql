@@ -1,9 +1,36 @@
--- PASTE this file into Supabase Dashboard → SQL Editor → New query → Run.
--- Do not paste a cursor.com URL. Copy the SQL text only (no line numbers).
--- Safe to run more than once.
+-- Copy ALL of this SQL (from the first CREATE through the last END).
+-- Paste into Supabase Dashboard → SQL Editor → New query → Run.
+-- This is SQL text, not a URL or a file path. Safe to run more than once.
 --
 -- Lets S4P Admin open an individual Fan/Supporter profile with Climate
 -- Project funds, donations, P4P predictions and Matchrav journeys.
+
+create or replace function public.is_s4p_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth
+as $s4p$
+  select exists (
+    select 1
+    from public.profiles
+    where id = auth.uid()
+      and lower(coalesce(role, '')) = 'admin'
+  );
+$s4p$;
+
+revoke all on function public.is_s4p_staff() from public;
+grant execute on function public.is_s4p_staff() to authenticated;
+
+create table if not exists public.climate_wallet_takes (
+  id uuid primary key default gen_random_uuid(),
+  amount_gbp numeric not null,
+  project_name text,
+  brand_name text,
+  club_name text,
+  created_at timestamptz not null default now()
+);
 
 alter table public.climate_wallet_takes
   add column if not exists supporter_id uuid,
@@ -14,6 +41,23 @@ create index if not exists climate_wallet_takes_supporter_idx
   on public.climate_wallet_takes (supporter_id);
 create index if not exists climate_wallet_takes_auth_idx
   on public.climate_wallet_takes (auth_user_id);
+
+alter table public.climate_wallet_takes enable row level security;
+
+drop policy if exists "Anyone can read climate wallet takes" on public.climate_wallet_takes;
+create policy "Anyone can read climate wallet takes"
+  on public.climate_wallet_takes
+  for select
+  using (true);
+
+drop policy if exists "Signed-in fans can record climate wallet takes" on public.climate_wallet_takes;
+create policy "Signed-in fans can record climate wallet takes"
+  on public.climate_wallet_takes
+  for insert
+  with check (auth.uid() is not null);
+
+grant select on public.climate_wallet_takes to anon, authenticated;
+grant insert on public.climate_wallet_takes to authenticated;
 
 create table if not exists public.fan_p4p_predictions (
   id text primary key,
@@ -74,19 +118,24 @@ alter table public.fan_p4p_predictions enable row level security;
 alter table public.fan_p4p_project_funds enable row level security;
 alter table public.fan_matchrav_trips enable row level security;
 
-create or replace function public.fan_activity_is_own(auth_user uuid, email text)
+create or replace function public.fan_activity_is_own(row_auth uuid, row_email text)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public, auth
 as $s4p$
   select
     public.is_s4p_staff()
-    or (auth_user is not null and auth_user = auth.uid())
+    or (row_auth is not null and row_auth = auth.uid())
     or (
-      email is not null
-      and lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      row_email is not null
+      and lower(row_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
     );
 $s4p$;
+
+revoke all on function public.fan_activity_is_own(uuid, text) from public;
+grant execute on function public.fan_activity_is_own(uuid, text) to authenticated;
 
 drop policy if exists "Staff and owner can view p4p predictions" on public.fan_p4p_predictions;
 create policy "Staff and owner can view p4p predictions"
