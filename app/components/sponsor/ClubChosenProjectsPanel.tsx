@@ -21,17 +21,27 @@ import {
   WALLET_PROJECTS_AWAIT_PAYMENT_COPY,
   WALLET_PROJECTS_PAID_COPY,
 } from "@/app/lib/sponsor-card-payment";
+import {
+  LOCAL_CHOOSE_ONE_PROJECT_COPY,
+  LOCAL_CHOOSE_ONE_PROJECT_HEADING,
+} from "@/app/lib/local-sponsor";
 
 export function ClubChosenProjectsPanel({
   clubName,
   projects: provided,
   approved = false,
   confirmation = false,
+  selectable = false,
+  selectedProjectId = null,
+  onSelectProject,
 }: {
   clubName: string;
   projects?: ClimateProject[];
   approved?: boolean;
   confirmation?: boolean;
+  selectable?: boolean;
+  selectedProjectId?: string | null;
+  onSelectProject?: (project: ClimateProject) => void;
 }) {
   const [loaded, setLoaded] = useState<ClimateProject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,10 +78,14 @@ export function ClubChosenProjectsPanel({
         Match Day record
       </p>
       <h2 className="mt-3 text-2xl font-black">
-        {MATCH_DAY_PROJECTS_RECORD_LABEL}
+        {selectable
+          ? LOCAL_CHOOSE_ONE_PROJECT_HEADING
+          : MATCH_DAY_PROJECTS_RECORD_LABEL}
       </h2>
       <p className="mt-3 max-w-3xl text-slate-300">
-        {MATCH_DAY_GOALS_SCORED_COPY} {MATCH_DAY_PROJECTS_RECORD_COPY}
+        {selectable
+          ? LOCAL_CHOOSE_ONE_PROJECT_COPY
+          : `${MATCH_DAY_GOALS_SCORED_COPY} ${MATCH_DAY_PROJECTS_RECORD_COPY}`}
       </p>
       {loading ? (
         <p className="mt-6 text-slate-500">
@@ -82,20 +96,41 @@ export function ClubChosenProjectsPanel({
           <ul className="mt-6 space-y-2 text-slate-200">
             {projects.map((project) => {
               const country = climateProjectCountryLabel(project, { clubName });
+              const featured = isFeaturedClimateProject({
+                name: project.name,
+                featured: project.featured,
+              });
+              const pickable = selectable && !featured;
+              const selected = selectedProjectId === project.id;
               return (
                 <li
                   key={project.id}
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className={`rounded-xl border bg-slate-950 px-4 py-3 ${
+                    selected
+                      ? "border-green-400"
+                      : "border-slate-700"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
+                    {pickable ? (
+                      <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+                        <input
+                          type="radio"
+                          name="local-chosen-climate-project"
+                          checked={selected}
+                          onChange={() => onSelectProject?.(project)}
+                          className="mt-1"
+                          data-testid={`local-choose-project-${project.id}`}
+                        />
+                        <span className="font-semibold">{project.name}</span>
+                      </label>
+                    ) : (
                     <span className="font-semibold">{project.name}</span>
+                    )}
                     <span className="flex shrink-0 flex-wrap justify-end gap-2">
-                      {isFeaturedClimateProject({
-                        name: project.name,
-                        featured: project.featured,
-                      }) ? (
+                      {featured ? (
                         <span className="rounded-full bg-s4p-mark/15 px-3 py-1 text-xs font-semibold text-slate-950">
-                          Featured
+                          {selectable ? "Lead Climate Sponsor" : "Featured"}
                         </span>
                       ) : null}
                       <span className="rounded-full border border-s4p-mark bg-s4p-mark/15 px-3 py-1 text-xs font-semibold text-slate-950">

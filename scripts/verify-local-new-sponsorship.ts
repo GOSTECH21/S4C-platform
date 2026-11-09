@@ -59,7 +59,7 @@ assert(
   walletPage.includes("MATCH_DAY_PROJECTS_RECORD_LABEL") &&
     walletPage.includes("LOCAL_FIVE_RECORD_COPY") &&
     MATCH_DAY_PROJECTS_RECORD_LABEL.includes("5 chosen Climate Projects") &&
-    LOCAL_FIVE_RECORD_COPY.includes("insert your Sponsorship amount") &&
+    LOCAL_FIVE_RECORD_COPY.includes("Choose 1 Climate Project") &&
     !walletPage.includes("MATCH_DAY_GOALS_SCORED_COPY") &&
     !LOCAL_FIVE_RECORD_COPY.includes("Goals-scored") &&
     MATCH_DAY_GOALS_SCORED_COPY.includes("Match-Sponsorship"),

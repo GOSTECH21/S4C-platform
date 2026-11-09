@@ -12,9 +12,12 @@ import {
   readClimateWallet,
 } from "@/app/services/sponsor-wallet.service";
 import {
+  LOCAL_CHOOSE_ONE_PROJECT_COPY,
   localRecordFromProfile,
   readLocalSponsorRecord,
+  writeLocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
+import type { ClimateProject } from "@/app/services/votes.service";
 import {
   clearMatchDayLock,
   ensureGoalNetwork,
@@ -85,6 +88,9 @@ export default function SponsorWalletPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [chosenProject, setChosenProject] = useState<ClimateProject | null>(
+    null
+  );
 
   useEffect(() => {
     async function load() {
@@ -204,9 +210,11 @@ export default function SponsorWalletPage() {
       setChosenFixture(null);
       setFixtureNotice(null);
       setWallet(null);
+      setChosenProject(null);
       return;
     }
     setClubName(club);
+    setChosenProject(null);
     if (brand) setWallet(readClimateWallet(club, brand));
     if (!fixture) {
       setLockFixture("");
@@ -391,6 +399,9 @@ export default function SponsorWalletPage() {
         <ClubChosenProjectsPanel
           clubName={clubName}
           confirmation
+          selectable={kind === "local"}
+          selectedProjectId={chosenProject?.id ?? null}
+          onSelectProject={setChosenProject}
           approved={isMatchDayCardPaymentConfirmed({
             clubName,
             brandName: brand,
@@ -406,6 +417,7 @@ export default function SponsorWalletPage() {
         heading={kind === "lead" ? walletHeading : undefined}
         busy={busy}
         error={error}
+        selectedProjectName={kind === "local" ? chosenProject?.name ?? null : null}
         onLocalDeposit={(input) => {
           if (!clubName || !brand) {
             setError("Choose the club this Local Business Climate Sponsor supports.");
@@ -415,6 +427,10 @@ export default function SponsorWalletPage() {
             setError("Select the specific Match you wish to sponsor first.");
             return;
           }
+          if (!chosenProject) {
+            setError(LOCAL_CHOOSE_ONE_PROJECT_COPY);
+            return;
+          }
           if (!(Number(input.sponsorshipGbp) > 0)) {
             setError("Enter how much you are putting into this Carbon Wallet.");
             return;
@@ -422,10 +438,37 @@ export default function SponsorWalletPage() {
           setBusy(true);
           setError(null);
           try {
+            const existing = readLocalSponsorRecord() ?? localRecordFromProfile();
+            writeLocalSponsorRecord({
+              brandName: brand,
+              email: existing?.email ?? "",
+              clubName,
+              pledgeGbp: input.sponsorshipGbp,
+              createdAt: existing?.createdAt ?? new Date().toISOString(),
+              logoUrl: existing?.logoUrl,
+              tagline: existing?.tagline,
+              source: existing?.source ?? "registered",
+              matchSponsorships: [
+                ...(existing?.matchSponsorships ?? []).filter(
+                  (row) => row.fixtureName !== lockFixture
+                ),
+                {
+                  fixtureName: lockFixture,
+                  amountGbp: input.sponsorshipGbp,
+                  projectId: chosenProject.id,
+                  projectName: chosenProject.name,
+                },
+              ],
+              sponsoredProjectId: chosenProject.id,
+              sponsoredProjectName: chosenProject.name,
+              postcode: existing?.postcode,
+            });
             const next = depositLocalClimateWallet({
               clubName,
               brandName: brand,
               sponsorshipGbp: input.sponsorshipGbp,
+              sponsoredProjectId: chosenProject.id,
+              sponsoredProjectName: chosenProject.name,
             });
             setWallet(next);
             openCardPayment();

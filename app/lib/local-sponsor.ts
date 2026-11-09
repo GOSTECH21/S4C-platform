@@ -21,6 +21,8 @@ export type LocalMatchSponsorship = {
   fixtureName: string;
   amountGbp: number;
   date?: string | null;
+  projectId?: string | null;
+  projectName?: string | null;
 };
 
 export type LocalSponsorRecord = {
@@ -38,7 +40,16 @@ export type LocalSponsorRecord = {
   signerName?: string;
   signedAt?: string;
   postcode?: string;
+  /** The 1 Climate Project this Local Business Climate Sponsor chose to fund. */
+  sponsoredProjectId?: string | null;
+  sponsoredProjectName?: string | null;
 };
+
+export const LOCAL_CHOOSE_ONE_PROJECT_HEADING = "Choose 1 Climate Project";
+export const LOCAL_CHOOSE_ONE_PROJECT_COPY =
+  "Choose the 1 Climate Project you wish to sponsor, then enter how much sponsorship you wish to commit to this Project.";
+export const LOCAL_COMMIT_AMOUNT_LABEL =
+  "How much sponsorship you wish to commit to this Project";
 
 export function parseMatchSponsorships(value: unknown): LocalMatchSponsorship[] {
   if (!Array.isArray(value)) return [];
@@ -51,14 +62,22 @@ export function parseMatchSponsorships(value: unknown): LocalMatchSponsorship[] 
       amountGbp?: number;
       amount_gbp?: number;
       date?: string | null;
+      projectId?: string | null;
+      project_id?: string | null;
+      projectName?: string | null;
+      project_name?: string | null;
     };
     const fixtureName = String(row.fixtureName ?? row.fixture_name ?? "").trim();
     if (!fixtureName) continue;
     const iso = String(row.date ?? "").slice(0, 10);
+    const projectId = String(row.projectId ?? row.project_id ?? "").trim();
+    const projectName = String(row.projectName ?? row.project_name ?? "").trim();
     rows.push({
       fixtureName,
       amountGbp: Number(row.amountGbp ?? row.amount_gbp) || 0,
       date: /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : undefined,
+      projectId: projectId || undefined,
+      projectName: projectName || undefined,
     });
   }
   return rows;
@@ -91,11 +110,11 @@ export function recordFromSponsorRow(row: {
   });
 }
 
-export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee. Fans can take £0.20 from your Climate Sponsorship Wallet and donate it to a Climate Projects of their choice. Your business name & logo will appear to Fans that takes £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
+export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee. You choose 1 Climate Project to sponsor and the amount you commit to that Project. Fans can take £0.20 from your Climate Sponsorship Wallet and put it on the Climate Project you chose. Your business name & logo will appear to Fans that take £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
 
 /** Sign-off T&Cs for Local Business Climate Sponsors — no Goals, no Base Match Sponsorship. */
 export const LOCAL_SIGNOFF_TERMS =
-  "S4P Climate Sponsor Terms and Conditions: By signing you agree to sponsor the Club's Match Day carbon footprint offset. The Sustainability Director chooses five Climate Projects for each Match Day. All sponsored Projects (including those that received your monies) will be available to you for your records. Your brand logo is displayed alongside Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.";
+  "S4P Climate Sponsor Terms and Conditions: By signing you agree to sponsor the Club's Match Day carbon footprint offset. The Sustainability Director chooses five Climate Projects for each Match Day. You choose 1 of those Climate Projects and the amount you commit to it. All sponsored Projects (including those that received your monies) will be available to you for your records. Your brand logo is displayed alongside Climate Projects. You may withdraw before kick-off by writing to the club Sustainability Director.";
 
 export function localSignOffSponsorshipGbp({
   wallet,

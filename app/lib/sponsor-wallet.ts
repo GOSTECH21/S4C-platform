@@ -44,6 +44,9 @@ export type ClimateWallet = {
   paidGbp: number;
   allocatedGbp: number;
   updatedAt: string;
+  /** Local wallets: the 1 Climate Project this sponsor committed to. */
+  sponsoredProjectId?: string | null;
+  sponsoredProjectName?: string | null;
 };
 
 export type NumberedClimateProject = {
@@ -272,11 +275,15 @@ export function createLocalWallet({
   clubName,
   brandName,
   sponsorshipGbp,
+  sponsoredProjectId = null,
+  sponsoredProjectName = null,
   now = new Date(),
 }: {
   clubName: string;
   brandName: string;
   sponsorshipGbp: number;
+  sponsoredProjectId?: string | null;
+  sponsoredProjectName?: string | null;
   now?: Date | string;
 }): ClimateWallet {
   const topUp = localWalletTopUp(sponsorshipGbp);
@@ -293,6 +300,8 @@ export function createLocalWallet({
     managementFeeGbp: topUp.managementFeeGbp,
     paidGbp: topUp.paidGbp,
     allocatedGbp: 0,
+    sponsoredProjectId: sponsoredProjectId || null,
+    sponsoredProjectName: sponsoredProjectName || null,
     updatedAt: asIso(now),
   };
 }
@@ -473,7 +482,13 @@ export function allocateWalletVote({
   if (!(voteGbp > 0)) {
     return { ok: false, error: "Each FUND-IT must move cash from a sponsor wallet." };
   }
-  const number = parseProjectNumber(projectNumber, projects.length);
+  let number = parseProjectNumber(projectNumber, projects.length);
+  if (wallet.kind === "local" && wallet.sponsoredProjectId) {
+    const locked = projects.find(
+      (project) => project.id === wallet.sponsoredProjectId
+    );
+    if (locked) number = locked.number;
+  }
   if (number == null) {
     return {
       ok: false,

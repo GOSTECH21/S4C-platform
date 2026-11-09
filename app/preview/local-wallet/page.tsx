@@ -14,11 +14,51 @@ import {
   LOCAL_FIVE_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
 } from "@/app/lib/match-day-carbon-offset";
+import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
+import { FEATURED_PROJECT_NAME } from "@/app/lib/sccan-catalog";
+import type { ClimateProject } from "@/app/services/votes.service";
 import {
   createLocalWallet,
   remainingGbp,
   type ClimateWallet,
 } from "@/app/lib/sponsor-wallet";
+
+const PREVIEW_PROJECTS: ClimateProject[] = [
+  {
+    id: "gss",
+    name: FEATURED_PROJECT_NAME,
+    description: "Featured Global Schools Solar",
+    category: "Solar Energy",
+    country: "Global",
+    estimated_co2: 9600,
+    funding_goal: 150000,
+    image_url: null,
+    status: "active",
+    featured: true,
+  },
+  {
+    id: "wee",
+    name: "Wee Spoke Hub",
+    description: "Community cycling workshop",
+    category: "Active Travel",
+    country: "Scotland",
+    estimated_co2: 1800,
+    funding_goal: 85000,
+    image_url: null,
+    status: "active",
+  },
+  {
+    id: "porty",
+    name: "Porty Community Energy",
+    description: "Local energy",
+    category: "Renewable Energy",
+    country: "Scotland",
+    estimated_co2: 3200,
+    funding_goal: 120000,
+    image_url: null,
+    status: "active",
+  },
+];
 
 export default function LocalWalletPreviewPage() {
   const [clubName, setClubName] = useState("Hibernian");
@@ -27,6 +67,9 @@ export default function LocalWalletPreviewPage() {
   const [fixturesLoading, setFixturesLoading] = useState(false);
   const [wallet, setWallet] = useState<ClimateWallet | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [chosenProject, setChosenProject] = useState<ClimateProject | null>(
+    PREVIEW_PROJECTS[1]
+  );
 
   useEffect(() => {
     if (!clubName) {
@@ -144,17 +187,29 @@ export default function LocalWalletPreviewPage() {
           </div>
         </section>
 
+        <ClubChosenProjectsPanel
+          clubName={clubName}
+          projects={PREVIEW_PROJECTS}
+          confirmation
+          selectable
+          selectedProjectId={chosenProject?.id ?? null}
+          onSelectProject={setChosenProject}
+        />
+
         <ClimateSponsorshipWallet
           kind="local"
           wallet={wallet}
           clubName={clubName}
           notice={notice}
+          selectedProjectName={chosenProject?.name ?? null}
           onLeadDeposit={() => undefined}
           onLocalDeposit={({ sponsorshipGbp }) => {
             const next = createLocalWallet({
               clubName: clubName || "Hibernian",
               brandName: "Top Cellar",
               sponsorshipGbp,
+              sponsoredProjectId: chosenProject?.id ?? "wee",
+              sponsoredProjectName: chosenProject?.name ?? "Wee Spoke Hub",
             });
             setWallet(next);
             setNotice(

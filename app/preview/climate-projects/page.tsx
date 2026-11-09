@@ -1,108 +1,131 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
-import { SUPPORTER_CLIMATE_SPONSORS_HASH } from "@/app/lib/routes";
-import { formatWalletGbp, type NumberedClimateProject } from "@/app/lib/sponsor-wallet";
-import { loadFundedProjects } from "@/app/lib/climate-funding";
-import { climateProjectsReceivedCopy } from "@/app/lib/voting-window";
-import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
-import { nearbyProjectsCopy } from "@/app/lib/project-site";
+import { FanClimateProjectPager } from "@/app/components/fan/FanClimateProjectPager";
 import { FEATURED_PROJECT_NAME } from "@/app/lib/sccan-catalog";
+import {
+  DEFAULT_WALLET_VOTE_GBP,
+  formatWalletGbp,
+  type NumberedClimateProject,
+} from "@/app/lib/sponsor-wallet";
+import type { FanProjectDetail, FanProjectSponsor } from "@/app/lib/fan-climate-project-cards";
 
-const PREVIEW_CLUB = "preview-hibs";
-
-const INITIAL: NumberedClimateProject[] = [
-  { id: "gss", name: FEATURED_PROJECT_NAME, number: 1, fundedGbp: 0, votesReceived: 12 },
-  { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 12 },
-  { id: "retrofit", name: "Edinburgh Building Retrofit Collective", number: 3, fundedGbp: 0, votesReceived: 4 },
-  { id: "porty", name: "Porty Community Energy", number: 4, fundedGbp: 0, votesReceived: 9 },
-  { id: "craigshill", name: "Growing Together Craigshill", number: 5, fundedGbp: 0, votesReceived: 2 },
+const DETAILS: FanProjectDetail[] = [
+  {
+    id: "gss",
+    name: FEATURED_PROJECT_NAME,
+    description:
+      "Install rooftop solar systems in schools around the world so classrooms can run on clean energy.",
+    category: "Solar Energy",
+  },
+  {
+    id: "rooftop",
+    name: "Community Rooftop Solar",
+    description:
+      "Help bring cleaner energy to community buildings through your club's climate programme.",
+    category: "Solar Energy",
+  },
+  {
+    id: "energy",
+    name: "Vauxhall Local Community Energy",
+    description: "Community energy for streets around the stadium.",
+    category: "Renewable Energy",
+  },
+  {
+    id: "river",
+    name: "Sunderland Riverside Restoration",
+    description: "Restore the river corridor and lock up carbon on the Wear.",
+    category: "Biodiversity",
+    location: "River Wear, Sunderland, SR1 1UN",
+  },
+  {
+    id: "heat",
+    name: "Vauxhall Shared Clean Heat Loop",
+    description: "Shared clean heat for nearby terraced streets.",
+    category: "Renewable Energy",
+  },
 ];
 
-export default function ClimateProjectsPreviewPage() {
-  const [projects, setProjects] = useState(INITIAL);
+const INITIAL: NumberedClimateProject[] = DETAILS.map((project, index) => ({
+  id: project.id,
+  name: project.name,
+  number: index + 1,
+  fundedGbp: index === 0 || index === 3 ? 0.2 : 0,
+  votesReceived: index === 0 || index === 3 ? 1 : 0,
+}));
 
-  useEffect(() => {
-    setProjects(loadFundedProjects(PREVIEW_CLUB, INITIAL));
-  }, []);
+export default function ClimateProjectsPreviewPage() {
+  const [numbered, setNumbered] = useState(INITIAL);
+  const [leadRemaining, setLeadRemaining] = useState(9599.8);
+  const [localRemaining, setLocalRemaining] = useState(1149.8);
+  const [used, setUsed] = useState<string[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const lead: FanProjectSponsor = useMemo(
+    () => ({
+      brandName: "American Express",
+      kind: "lead",
+      remainingGbp: leadRemaining,
+      committedGbp: 9600,
+      logoUrl: null,
+    }),
+    [leadRemaining]
+  );
+  const locals: FanProjectSponsor[] = useMemo(
+    () => [
+      {
+        brandName: "Scotmid Coop",
+        kind: "local",
+        remainingGbp: localRemaining,
+        committedGbp: 1150,
+        sponsoredProjectId: "rooftop",
+        sponsoredProjectName: "Community Rooftop Solar",
+      },
+    ],
+    [localRemaining]
+  );
 
   return (
-    <main className="min-h-screen p-8 text-white">
-      <div className="mx-auto max-w-6xl">
+    <main className="min-h-screen px-4 py-6 text-slate-950">
+      <div className="mx-auto max-w-xl">
         <FanNav />
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          Climate Projects
-        </p>
-        <h1 className="mt-2 text-4xl font-black">Climate Projects</h1>
-        <p className="mt-3 max-w-2xl text-slate-300">
-          {climateProjectsReceivedCopy()}
-        </p>
-        <p className="mt-2 max-w-2xl text-sm text-emerald-300">
-          {nearbyProjectsCopy("Hibernian")}
-        </p>
-
-        <section className="mt-10 space-y-8">
-          <div className="rounded-2xl border border-green-500/30 bg-slate-900 p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
-              Projects Voted for
-            </p>
-            <h2 className="mt-2 text-2xl font-black">Hibernian</h2>
-            <ul className="mt-4 space-y-1 text-slate-300">
-              {projects.map((project) => (
-                <li key={project.id}>
-                  • Project {project.number}: {project.name} —{" "}
-                  {formatWalletGbp(project.fundedGbp)}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-black">Climate Project list</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              The Received amount on each project is the running total from every
-              fan during this 5-day Vote.
-            </p>
-            <ol className="mt-4 grid gap-3 md:grid-cols-5">
-              {projects.map((project) => (
-                <li
-                  key={project.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-900 p-4"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-green-400">
-                    Project {project.number}
-                  </p>
-                  <h3 className="mt-2 font-bold leading-tight text-white">
-                    {project.name}
-                  </h3>
-                  <div className="mt-2">
-                    <ProjectSiteLine project={project} clubName="Hibernian" />
-                  </div>
-                  <p className="mt-3 text-sm text-slate-400">Received</p>
-                  <p className="text-xl font-black text-green-400">
-                    {formatWalletGbp(project.fundedGbp)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section
-          id={SUPPORTER_CLIMATE_SPONSORS_HASH}
-          className="mt-16 scroll-mt-28 rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-green-400">
-            Climate Sponsors
-          </p>
-          <h2 className="mt-2 text-2xl font-black">Climate Sponsors</h2>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300">
-            Climate Sponsors now sit on this Climate Projects tab. Choose a
-            sponsor, pick the Climate Project from the drop-down, then press
-            FUND-IT.
-          </p>
-        </section>
+        <FanClimateProjectPager
+          clubName="Everton"
+          numbered={numbered}
+          details={DETAILS}
+          lead={lead}
+          locals={locals}
+          usedSponsorNames={used}
+          voteNotice={notice}
+          onFund={({ brandName, projectNumber }) => {
+            const project = numbered.find(
+              (row) => String(row.number) === String(projectNumber)
+            );
+            if (!project) return false;
+            setNumbered((prev) =>
+              prev.map((row) =>
+                row.id === project.id
+                  ? {
+                      ...row,
+                      fundedGbp: row.fundedGbp + DEFAULT_WALLET_VOTE_GBP,
+                      votesReceived: row.votesReceived + 1,
+                    }
+                  : row
+              )
+            );
+            if (brandName === "American Express") {
+              setLeadRemaining((value) => value - DEFAULT_WALLET_VOTE_GBP);
+            } else {
+              setLocalRemaining((value) => value - DEFAULT_WALLET_VOTE_GBP);
+            }
+            setUsed((prev) => [...prev, brandName]);
+            setNotice(
+              `FUND-IT moved ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}'s Carbon Wallet into ${project.name}.`
+            );
+            return true;
+          }}
+        />
       </div>
     </main>
   );

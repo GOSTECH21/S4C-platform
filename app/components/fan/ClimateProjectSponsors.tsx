@@ -35,6 +35,8 @@ export type CarbonWalletSponsor = {
   remainingGbp: number;
   committedGbp?: number;
   logoUrl?: string | null;
+  sponsoredProjectId?: string | null;
+  sponsoredProjectName?: string | null;
 };
 
 export type WalletVoteInput = {
@@ -62,7 +64,7 @@ export function ClimateProjectSponsors({
 }: {
   lead: CarbonWalletSponsor | null;
   locals: CarbonWalletSponsor[];
-  projects?: Array<{ number: number; name: string }>;
+  projects?: Array<{ id?: string; number: number; name: string }>;
   projectCount?: number;
   onVote?: (input: WalletVoteInput) => void | boolean | Promise<boolean | void>;
   onLeadVote?: (input: { projectNumber?: string; split?: boolean }) => void;
@@ -140,6 +142,26 @@ export function ClimateProjectSponsors({
   useEffect(() => {
     if (voteNotice) setLeadNumber("");
   }, [voteNotice]);
+
+  useEffect(() => {
+    setLocalNumbers((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const row of locals) {
+        const chosenId = String(row.sponsoredProjectId ?? "").trim();
+        if (!chosenId) continue;
+        const match = projects.find(
+          (project) =>
+            project.id === chosenId || project.name === row.sponsoredProjectName
+        );
+        if (match && next[row.brandName] !== String(match.number)) {
+          next[row.brandName] = String(match.number);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [locals, projects]);
 
   function fundLocal(row: CarbonWalletSponsor) {
     const projectNumber = localNumbers[row.brandName] ?? "";

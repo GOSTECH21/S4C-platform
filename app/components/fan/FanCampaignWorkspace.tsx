@@ -26,6 +26,7 @@ import {
 import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
 import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
 import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
+import { FanClimateProjectPager } from "@/app/components/fan/FanClimateProjectPager";
 import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
 import { resolveVotingWindow } from "@/app/lib/voting-window";
@@ -46,7 +47,11 @@ import {
 } from "@/app/lib/sponsor-wallet";
 import { fanVotedSponsorNames } from "@/app/lib/climate-funding";
 import { filterCampaignsForFan } from "@/app/lib/fan-campaign-scope";
-import { totalLocalPledge, type LocalSponsorRecord } from "@/app/lib/local-sponsor";
+import {
+  localSponsorsForClub,
+  totalLocalPledge,
+  type LocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
@@ -56,7 +61,7 @@ import { isLeadWalletLabel } from "@/app/lib/dual-sponsor";
 export function FanCampaignWorkspace({
   section,
 }: {
-  section: "projects" | "sponsors";
+  section: "projects" | "sponsors" | "cards";
 }) {
   const [supporter, setSupporter] = useState<Supporter | null>(null);
   const [campaigns, setCampaigns] = useState<S4PCampaign[]>([]);
@@ -136,7 +141,11 @@ export function FanCampaignWorkspace({
   if (loading) {
     return (
       <main className="px-8 pb-16 text-white">
-        <p className="text-slate-400">Loading your campaign...</p>
+        <p className="text-slate-400">
+          {section === "cards"
+            ? "Loading Climate Projects..."
+            : "Loading your campaign..."}
+        </p>
       </main>
     );
   }
@@ -226,7 +235,7 @@ function CampaignPanel({
   supporterId: string | null;
   votedIds: Set<string>;
   onVotesChanged: () => Promise<void>;
-  section: "projects" | "sponsors";
+  section: "projects" | "sponsors" | "cards";
 }) {
   const voteable = voteableProjects(campaign);
   const clubId = campaign.postedClubId ?? campaign.clubId;
@@ -367,6 +376,7 @@ function CampaignPanel({
   ]);
 
   const localSponsors = useMemo(() => {
+    const records = localSponsorsForClub(campaign.clubName);
     const remainingByBrand = new Map<
       string,
       {
@@ -374,16 +384,24 @@ function CampaignPanel({
         remainingGbp: number;
         committedGbp?: number;
         logoUrl?: string | null;
+        sponsoredProjectId?: string | null;
+        sponsoredProjectName?: string | null;
       }
     >();
     for (const row of sponsors.filter((item) => item.kind === "local")) {
+      const record = records.find((local) =>
+        brandsMatch(local.brandName, row.brandName)
+      );
       remainingByBrand.set(normalizeBrandKey(row.brandName), {
         brandName: row.brandName,
         remainingGbp: row.remainingGbp,
         committedGbp: row.committedGbp,
         logoUrl:
           rankedLocals.find((local) => local.brandName === row.brandName)?.logoUrl ??
+          record?.logoUrl ??
           null,
+        sponsoredProjectId: record?.sponsoredProjectId ?? null,
+        sponsoredProjectName: record?.sponsoredProjectName ?? null,
       });
     }
     for (const wallet of identifyClubSponsorWallets({
@@ -399,6 +417,14 @@ function CampaignPanel({
         remainingGbp: remainingGbp(wallet),
         committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
         logoUrl: remainingByBrand.get(key)?.logoUrl ?? null,
+        sponsoredProjectId:
+          wallet.sponsoredProjectId ??
+          remainingByBrand.get(key)?.sponsoredProjectId ??
+          null,
+        sponsoredProjectName:
+          wallet.sponsoredProjectName ??
+          remainingByBrand.get(key)?.sponsoredProjectName ??
+          null,
       });
     }
     for (const local of rankedLocals) {
@@ -408,6 +434,10 @@ function CampaignPanel({
         remainingByBrand.set(key, {
           ...existing,
           logoUrl: local.logoUrl ?? existing.logoUrl,
+          sponsoredProjectId:
+            local.sponsoredProjectId ?? existing.sponsoredProjectId ?? null,
+          sponsoredProjectName:
+            local.sponsoredProjectName ?? existing.sponsoredProjectName ?? null,
         });
         continue;
       }
@@ -416,6 +446,8 @@ function CampaignPanel({
         remainingGbp: totalLocalPledge(local),
         committedGbp: totalLocalPledge(local),
         logoUrl: local.logoUrl ?? null,
+        sponsoredProjectId: local.sponsoredProjectId ?? null,
+        sponsoredProjectName: local.sponsoredProjectName ?? null,
       });
     }
     return [...remainingByBrand.values()].map((row) => ({
@@ -424,6 +456,8 @@ function CampaignPanel({
       remainingGbp: row.remainingGbp,
       committedGbp: row.committedGbp,
       logoUrl: row.logoUrl ?? null,
+      sponsoredProjectId: row.sponsoredProjectId ?? null,
+      sponsoredProjectName: row.sponsoredProjectName ?? null,
     }));
   }, [
     sponsors,
@@ -524,6 +558,7 @@ function CampaignPanel({
       lead={leadSponsor}
       locals={localSponsors}
       projects={projects.map((project) => ({
+        id: project.id,
         number: project.number,
         name: project.name,
       }))}
@@ -544,6 +579,28 @@ function CampaignPanel({
       }
     />
   );
+
+  if (section === "cards") {
+    return (
+      <div className="px-1 pb-10 text-slate-950">
+        <FanClimateProjectPager
+          clubName={campaign.clubName}
+          numbered={projects}
+          details={voteable}
+          lead={leadSponsor}
+          locals={localSponsors}
+          fundingOpen={fundingOpen}
+          busy={busy}
+          usedSponsorNames={usedSponsors}
+          voteError={error}
+          voteNotice={notice}
+          onFund={({ brandName, projectNumber }) =>
+            voteFromWallet({ brandName, projectNumber, split: false })
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <main className="pb-8 text-white">

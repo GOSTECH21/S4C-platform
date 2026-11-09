@@ -37,7 +37,7 @@ export const TOP_UP_CASH_HEADING =
 
 /** Local Business Climate Sponsors keep the five as a record — no Goals-scored copy. */
 export const LOCAL_FIVE_RECORD_COPY =
-  "The five Climate Projects the Sustainability Director chooses for this Match Day are kept here as your record. Fans FUND-IT onto that list. Sign off after you insert your Sponsorship amount — you do not wait for the five.";
+  "The five Climate Projects the Sustainability Director chooses for this Match Day are kept here as your record. Choose 1 Climate Project you wish to sponsor and how much sponsorship you wish to commit to this Project. Fans then FUND-IT £0.20 from your Carbon Wallet onto that project.";
 
 export function chosenProjectsReadyForMatchDay(
   projectCount: number

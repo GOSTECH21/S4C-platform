@@ -58,7 +58,7 @@ assert(
   "My Teams lives inside My S4P; the old tab URL jumps there"
 );
 assert(
-  vote.includes('section="sponsors"') &&
+  vote.includes('section="cards"') &&
     vote.includes("SUPPORTER_CLIMATE_SPONSORS_HASH") &&
     sponsors.includes("SUPPORTER_PROJECTS_PATH") &&
     sponsors.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
