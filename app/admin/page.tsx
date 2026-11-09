@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import AppLayout from "../layout/AppLayout";
 import { groupFansByClub, type RegisteredFan } from "@/app/lib/s4p-admin";
+import { staffFanProfileHref } from "@/app/lib/admin-fan-profile";
 import {
   loadStaffParticipantRoster,
   type StaffDirector,
@@ -63,7 +65,8 @@ export default function S4PAdminHomePage() {
             <p className="mt-3 max-w-3xl text-slate-300">
               Authorized S4P staff can see every registered Fan/Supporter,
               Sustainability Director and Sponsorship Manager — name, email and
-              club — grouped so you can count how many fans support each club.
+              club. Open a fan to see Climate Projects they funded, donations,
+              P4P predictions and Matchrav journeys.
             </p>
             {/* admin-all-registered-fans-v1 */}
           </div>
@@ -125,10 +128,20 @@ export default function S4PAdminHomePage() {
                         {group.members.map((fan) => (
                           <li
                             key={`${fan.id}-${fan.clubName}`}
-                            className="flex flex-col justify-between gap-1 border-b border-slate-800 py-2 last:border-b-0 md:flex-row"
+                            className="border-b border-slate-800 last:border-b-0"
                           >
-                            <span className="font-semibold">{fan.fullName}</span>
-                            <span className="text-slate-400">{fan.email}</span>
+                            <Link
+                              href={staffFanProfileHref(fan.id)}
+                              data-admin-fan-link={fan.id}
+                              className="flex min-h-12 flex-col justify-between gap-1 py-3 md:flex-row md:items-center"
+                            >
+                              <span className="font-semibold text-green-300 hover:underline">
+                                {fan.fullName}
+                              </span>
+                              <span className="break-all text-slate-400">
+                                {fan.email}
+                              </span>
+                            </Link>
                           </li>
                         ))}
                       </ul>

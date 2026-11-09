@@ -221,6 +221,9 @@ export function fundP4pProject(input: {
   });
   if (!result.ok) return result;
   writeJson(P4P_PROJECT_FUNDS_STORAGE, [...allocations, result.allocation]);
+  void import("./fan-activity.service").then(({ persistStaffP4pFund }) =>
+    persistStaffP4pFund(result.allocation)
+  );
   return result;
 }
 
@@ -271,6 +274,9 @@ export function submitP4pPrediction(input: {
   }
   writeJson(P4P_PREDICTIONS_STORAGE, [...predictions, prediction]);
   if (wallet) saveGameTimeWallet(wallet);
+  void import("./fan-activity.service").then(({ persistStaffP4pPrediction }) =>
+    persistStaffP4pPrediction(prediction)
+  );
   return { ok: true, prediction, wallet, takenGbp };
 }
 
