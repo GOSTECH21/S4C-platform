@@ -20,7 +20,11 @@ import {
   scoreImpactUnlockedGbp,
   s4pLeadSponsorCopy,
 } from "@/app/lib/score-for-planet";
-import { LOCAL_SPONSOR_MIN_GBP } from "@/app/lib/local-sponsor";
+import {
+  LOCAL_COMMIT_AMOUNT_LABEL,
+  LOCAL_CHOOSE_ONE_PROJECT_COPY,
+  LOCAL_SPONSOR_MIN_GBP,
+} from "@/app/lib/local-sponsor";
 import {
   TOP_UP_CASH_HEADING,
   climateWalletHeading,
@@ -59,6 +63,7 @@ export function ClimateSponsorshipWallet({
   busy = false,
   notice,
   error,
+  selectedProjectName = null,
 }: {
   kind: SponsorWalletKind;
   wallet: ClimateWallet | null;
@@ -69,10 +74,14 @@ export function ClimateSponsorshipWallet({
     gbpPerGoal: number;
     maximumSponsorshipGbp: number;
   }) => void;
-  onLocalDeposit?: (input: { sponsorshipGbp: number }) => void;
+  onLocalDeposit?: (input: {
+    sponsorshipGbp: number;
+    projectName?: string | null;
+  }) => void;
   busy?: boolean;
   notice?: string | null;
   error?: string | null;
+  selectedProjectName?: string | null;
 }) {
   const [commitmentFee, setCommitmentFee] = useState("1000");
   const [localAmount, setLocalAmount] = useState(String(LOCAL_SPONSOR_MIN_GBP));
@@ -98,7 +107,7 @@ export function ClimateSponsorshipWallet({
       <p className="mt-3 max-w-3xl text-slate-400">
         {kind === "lead"
           ? s4pLeadSponsorCopy(Number(commitmentFee) || wallet?.commitmentFeeGbp || 0)
-          : `As a Local Business Climate Sponsor, put the amount you are sponsoring into this Carbon Wallet. Fans of ${clubName || "your club"} take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from it onto local Climate Projects.`}
+          : `As a Local Business Climate Sponsor, ${LOCAL_CHOOSE_ONE_PROJECT_COPY} Fans of ${clubName || "your club"} then take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} per FUND-IT from this Carbon Wallet onto the project you chose.`}
       </p>
 
       {wallet && kind === "lead" ? (
@@ -163,8 +172,20 @@ export function ClimateSponsorshipWallet({
             });
           }}
         >
+          {selectedProjectName ? (
+            <p className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200">
+              Committing to {selectedProjectName}
+            </p>
+          ) : (
+            <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm font-semibold text-amber-200">
+              {LOCAL_CHOOSE_ONE_PROJECT_COPY}
+            </p>
+          )}
           <label className="block max-w-md text-sm text-slate-400">
-            Amount in Carbon Wallet
+            {LOCAL_COMMIT_AMOUNT_LABEL}
+            <span className="mt-1 block text-xs uppercase tracking-[0.14em] text-slate-500">
+              Amount in Carbon Wallet
+            </span>
             <input
               type="number"
               min={0}
@@ -178,8 +199,8 @@ export function ClimateSponsorshipWallet({
           <p className="max-w-2xl text-sm text-slate-400">
             A 10% management fee is added on top. You pay{" "}
             {formatWalletGbp(localTopUp.paidGbp)};{" "}
-            {formatWalletGbp(localTopUp.sponsorshipGbp)} goes into the Carbon
-            Wallet.
+            {formatWalletGbp(localTopUp.sponsorshipGbp)} is committed to{" "}
+            {selectedProjectName || "the Climate Project you choose"}.
           </p>
           {wallet ? (
             <p className="text-sm text-green-300">
@@ -189,7 +210,7 @@ export function ClimateSponsorshipWallet({
           ) : null}
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || !selectedProjectName}
             className="w-full rounded-xl bg-green-500 py-4 font-bold text-slate-950 hover:bg-green-400 disabled:opacity-70"
           >
             {busy ? "Opening payment..." : "Put into Carbon Wallet"}

@@ -36,6 +36,8 @@ type LocalSponsorRow = {
   signer_name?: string | null;
   signed_at?: string | null;
   created_at?: string | null;
+  sponsored_project_id?: string | null;
+  sponsored_project_name?: string | null;
 };
 
 function isMissingTable(error: { code?: string; message?: string } | null) {
@@ -73,6 +75,16 @@ function recordFromCatalogRow(row: LocalSponsorRow): LocalSponsorRecord | null {
     signerName: row.signer_name ?? undefined,
     signedAt: row.signed_at ?? undefined,
     postcode: String(row.postcode ?? "").trim() || undefined,
+    sponsoredProjectId:
+      String(row.sponsored_project_id ?? "").trim() ||
+      parseMatchSponsorships(row.match_sponsorships).find((item) => item.projectId)
+        ?.projectId ||
+      null,
+    sponsoredProjectName:
+      String(row.sponsored_project_name ?? "").trim() ||
+      parseMatchSponsorships(row.match_sponsorships).find((item) => item.projectName)
+        ?.projectName ||
+      null,
   });
 }
 
@@ -89,6 +101,8 @@ function catalogPayload(record: LocalSponsorRecord) {
     tagline: record.tagline || null,
     source: record.source || "registered",
     match_sponsorships: record.matchSponsorships ?? [],
+    sponsored_project_id: record.sponsoredProjectId || null,
+    sponsored_project_name: record.sponsoredProjectName || null,
     submitted_at: record.submittedAt || null,
     accepted_terms: record.acceptedTerms ?? null,
     signer_name: record.signerName || null,

@@ -230,18 +230,31 @@ export function depositLocalClimateWallet({
   clubName,
   brandName,
   sponsorshipGbp,
+  sponsoredProjectId = null,
+  sponsoredProjectName = null,
 }: {
   clubName: string;
   brandName: string;
   sponsorshipGbp: number;
+  sponsoredProjectId?: string | null;
+  sponsoredProjectName?: string | null;
 }): ClimateWallet {
   const existing = findClimateWallet(clubName, brandName);
+  const project = {
+    sponsoredProjectId: sponsoredProjectId || existing?.sponsoredProjectId || null,
+    sponsoredProjectName:
+      sponsoredProjectName || existing?.sponsoredProjectName || null,
+  };
   if (!existing || existing.kind !== "local") {
     return writeClimateWallet(
-      createLocalWallet({ clubName, brandName, sponsorshipGbp })
+      createLocalWallet({ clubName, brandName, sponsorshipGbp, ...project })
     );
   }
-  return topUpLocalClimateWallet({ clubName, brandName, sponsorshipGbp });
+  const topped = topUpLocalClimateWallet({ clubName, brandName, sponsorshipGbp });
+  return writeClimateWallet({
+    ...topped,
+    ...project,
+  });
 }
 
 export function healLocalWalletsForClub(clubName: string): ClimateWallet[] {
