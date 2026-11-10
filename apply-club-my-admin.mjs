@@ -9,7 +9,7 @@ import { dirname, join } from "path";
 import { spawnSync } from "child_process";
 
 const REFS = ["main", "cursor/club-pc-no-phone-frame-18f9", "ce77eee", "cursor/club-projects-local-national-18f9", "cursor/club-my-admin-18f9"];
-const BUST = "club-my-admin-slim-1";
+const BUST = "club-partners-board-1";
 const SELF = "apply-club-my-admin.mjs";
 const FILES = [
   "app/components/home/PhoneFrame.tsx",
@@ -24,6 +24,7 @@ const FILES = [
   "app/lib/how-s4p-works.ts",
   "app/lib/local-sponsor.ts",
   "app/lib/club-registration.ts",
+  "app/lib/club-partners-board.ts",
   "app/services/club-match-day.service.ts",
   "app/services/sponsor-listings.service.ts",
   "app/services/local-sponsor.service.ts",
@@ -33,6 +34,7 @@ const FILES = [
   "app/components/club/ClubClimateProjectScopeChooser.tsx",
   "app/components/club/ClubAddressBookPanel.tsx",
   "app/components/club/ClubAdminClubDetails.tsx",
+  "app/components/club/ClubPartnersBoard.tsx",
   "app/components/club/ClubAdminLookbackAndCilt.tsx",
   "app/components/club/ClubSponsorsListings.tsx",
   "app/components/home/HowS4pSelectMatch.tsx",

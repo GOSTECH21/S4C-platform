@@ -49,6 +49,8 @@ import {
 } from "@/app/lib/sponsor-dashboard";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { FanFootprintAnalytics } from "@/app/components/club/FanFootprintAnalytics";
+import { ClubPartnersBoard } from "@/app/components/club/ClubPartnersBoard";
+import { CLUB_PARTNERS_BOARD_EVENT } from "@/app/lib/club-partners-board";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { approvedIdsForClubMatch } from "@/app/services/sponsor-listings.service";
@@ -133,9 +135,11 @@ export default function ClubAdminLookbackAndCilt({
       void refreshSignedLive();
     }
     window.addEventListener(SIGNED_SPONSORSHIP_EVENT, onLive);
+    window.addEventListener(CLUB_PARTNERS_BOARD_EVENT, onLive);
     window.addEventListener("storage", onLive);
     return () => {
       window.removeEventListener(SIGNED_SPONSORSHIP_EVENT, onLive);
+      window.removeEventListener(CLUB_PARTNERS_BOARD_EVENT, onLive);
       window.removeEventListener("storage", onLive);
     };
   }, [club.id, club.name]);
@@ -280,6 +284,26 @@ export default function ClubAdminLookbackAndCilt({
           </div>
         )}
       </section>
+
+      <ClubPartnersBoard
+        clubId={club.id}
+        clubName={club.name}
+        partners={sentProjects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          category: project.category,
+          country: project.country,
+          featured:
+            "featured" in project
+              ? isFeaturedClimateProject(project as ClimateProject)
+              : isFeaturedGssName(project.name),
+        }))}
+        signed={signedCopies.map((row) => ({
+          brandName: row.signature.brandName,
+          contactName: row.signature.signerName,
+          fixture: row.offer.matchTitle,
+        }))}
+      />
 
       <FanFootprintAnalytics
         clubName={club.name}

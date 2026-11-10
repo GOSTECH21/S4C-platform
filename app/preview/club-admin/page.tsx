@@ -70,6 +70,37 @@ function seedPreviewRecords() {
     `s4p.sd.fileRecords.${PREVIEW_CLUB.id}`,
     JSON.stringify([PREVIEW_RECORD])
   );
+  window.localStorage.setItem(
+    `s4p.sd.addressBook.${PREVIEW_CLUB.id}.lead`,
+    JSON.stringify([
+      {
+        id: "amex",
+        name: "Alex Brand",
+        email: "amex@example.com",
+        businessName: "American Express",
+        phone: "02079460000",
+      },
+    ])
+  );
+  window.localStorage.setItem(
+    `s4p.sd.addressBook.${PREVIEW_CLUB.id}.local`,
+    JSON.stringify([
+      {
+        id: "scotmid",
+        name: "Jo Local",
+        email: "jo@scotmid.test",
+        businessName: "Scotmid Coop",
+        phone: "01412220000",
+      },
+      {
+        id: "ibrox-cafe",
+        name: "Pat Cafe",
+        email: "pat@ibroxcafe.test",
+        businessName: "Ibrox Cafe",
+        phone: "01413330000",
+      },
+    ])
+  );
 }
 
 export default function ClubAdminPreviewPage() {
