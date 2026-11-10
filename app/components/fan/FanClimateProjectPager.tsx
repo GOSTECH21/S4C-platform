@@ -121,7 +121,8 @@ export function FanClimateProjectPager({
 
       <nav
         aria-label="Climate Projects"
-        className="mt-5 flex items-center justify-center gap-2"
+        data-fan-pager-shade="fan-pager-shade-v1"
+        className="mt-5 flex items-center justify-center gap-3"
       >
         <button
           type="button"
@@ -139,7 +140,7 @@ export function FanClimateProjectPager({
             onClick={() => setPageIndex(item.index)}
             className={`min-w-[2.6rem] rounded-full px-2 py-2 text-sm font-black ${
               item.index === pageIndex
-                ? "bg-emerald-800 text-white"
+                ? "bg-emerald-800 text-white ring-4 ring-emerald-400 shadow-[0_0_0_8px_rgba(167,243,208,0.95)]"
                 : "bg-white text-emerald-900 ring-1 ring-emerald-200"
             }`}
           >
@@ -228,9 +229,7 @@ function HowItWorksHeadings({ activeStep }: { activeStep: 1 | 2 | 3 }) {
               <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[0.7rem] font-black text-emerald-900">
                 {number}
               </span>
-              <span>
-                {number}. {step.heading}
-              </span>
+              <span>{step.heading}</span>
             </li>
           );
         })}

@@ -46,8 +46,15 @@ const pager = readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf
 assert(
   pager.includes("FUND_IT_HOW_IT_WORKS_TITLE") &&
     pager.includes("step.heading") &&
-    !pager.includes("step.backend"),
-  "The pager renders How it works headings and hides backend copy"
+    !pager.includes("step.backend") &&
+    !pager.includes("{number}. {step.heading}"),
+  "How it works keeps the circle numbers and does not repeat 1. 2. 3. in the headings"
+);
+assert(
+  pager.includes("fan-pager-shade-v1") &&
+    pager.includes("ring-4 ring-emerald-400") &&
+    pager.includes("shadow-[0_0_0_8px_rgba(167,243,208,0.95)]"),
+  "The active 1/5 page has a mint shade around the highlighted number"
 );
 assert(
   pager.includes("fundItButtonLabel") &&
