@@ -172,11 +172,11 @@ assert(
 const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 const admin = readFileSync("app/club/admin/page.tsx", "utf8");
 assert(
-  admin.includes("Start this club afresh") &&
-    admin.includes("clearClubProjectsAndSponsors") &&
+  !admin.includes("Start this club afresh") &&
+    !admin.includes("clearClubProjectsAndSponsors") &&
     dashboard.includes("clearClubProjectsAndSponsors") &&
     dashboard.includes("clubShouldStartBlank"),
-  "My Admin starts Arsenal from a blank Match Day"
+  "My Admin no longer starts a club afresh; Select Match still uses the blank-slate helper"
 );
 const preview = readFileSync("app/preview/clear-arsenal/page.tsx", "utf8");
 assert(

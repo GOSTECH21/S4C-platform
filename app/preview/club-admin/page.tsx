@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ClubNav from "@/app/components/club/ClubNav";
+import ClubAdminClubDetails from "@/app/components/club/ClubAdminClubDetails";
 import ClubAdminLookbackAndCilt from "@/app/components/club/ClubAdminLookbackAndCilt";
 
 const PREVIEW_CLUB = {
@@ -73,9 +74,13 @@ function seedPreviewRecords() {
 
 export default function ClubAdminPreviewPage() {
   const [ready, setReady] = useState(false);
+  const [approved, setApproved] = useState(false);
 
   useEffect(() => {
     seedPreviewRecords();
+    setApproved(
+      new URLSearchParams(window.location.search).get("status") === "approved"
+    );
     setReady(true);
   }, []);
 
@@ -91,10 +96,21 @@ export default function ClubAdminPreviewPage() {
     <main className="min-h-screen p-4 text-white sm:p-10">
       <div className="mx-auto max-w-7xl">
         <ClubNav />
-        <p className="mb-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          My Admin
-        </p>
-        <h1 className="mb-8 text-4xl font-black">{PREVIEW_CLUB.name}</h1>
+        <ClubAdminClubDetails
+          club={PREVIEW_CLUB}
+          account={{
+            id: "preview-rangers-account",
+            club_id: PREVIEW_CLUB.id,
+            first_name: "Alex",
+            last_name: "Rangersfc",
+            job_title: "Sustainability Director",
+            email: "alexrangersfc@gmail.com",
+            phone: "07856362245",
+            status: approved ? "approved" : "pending",
+            supporter_base: "5,000 - 50,000",
+            average_attendance: "51000",
+          }}
+        />
         <ClubAdminLookbackAndCilt club={PREVIEW_CLUB} />
       </div>
     </main>
