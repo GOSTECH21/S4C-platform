@@ -71,14 +71,22 @@ export function FanClimateProjectPager({
   const [pageIndex, setPageIndex] = useState(0);
   const [confirming, setConfirming] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [noticePage, setNoticePage] = useState<number | null>(null);
+  const pageIndexRef = useRef(0);
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  pageIndexRef.current = pageIndex;
 
   useEffect(() => {
     setConfirming(false);
   }, [pageIndex]);
 
   useEffect(() => {
-    if (voteNotice) setConfirming(false);
+    if (voteNotice) {
+      setConfirming(false);
+      setNoticePage(pageIndexRef.current);
+    } else {
+      setNoticePage(null);
+    }
   }, [voteNotice]);
 
   useEffect(() => {
@@ -202,7 +210,7 @@ export function FanClimateProjectPager({
             used={sponsorIsUsed(page.sponsor, used)}
             confirming={confirming}
             voteError={voteError}
-            voteNotice={voteNotice}
+            voteNotice={noticePage === pageIndex ? voteNotice : null}
             onSelectFundIt={() => setConfirming(true)}
             onCancel={() => setConfirming(false)}
             onConfirm={confirmPage}
