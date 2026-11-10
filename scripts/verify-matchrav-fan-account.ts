@@ -57,7 +57,7 @@ assert(
 assert(
   tabs.includes('label: "Matchrav"') &&
     tabs.includes("SUPPORTER_MATCHRAV_PATH") &&
-    tabs.includes('data-fan-tabs="6"') &&
+    tabs.includes('data-fan-tabs="5"') &&
     tabs.includes('data-fan-tabs-style="club-buttons"') &&
     tabs.includes("s4pTabClass") &&
     tabs.indexOf('label: "Matchrav"') < tabs.indexOf('label: "P4P"'),

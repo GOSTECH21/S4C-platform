@@ -25,17 +25,19 @@ export const FAN_TAB_LINKS = [
     label: "P4P",
     match: "predict" as const,
   },
-  {
-    href: SUPPORTER_PROJECTS_PATH,
-    label: "Climate Projects",
-    match: "projects" as const,
-  },
   { href: SUPPORTER_CIFT_PATH, label: "CIFT", match: "cift" as const },
 ];
 
 function isActive(match: (typeof FAN_TAB_LINKS)[number]["match"], pathname: string) {
   if (match === "campaign") {
-    return isMyS4PPath(pathname) || pathname === SUPPORTER_TEAMS_PATH;
+    return (
+      isMyS4PPath(pathname) ||
+      pathname === SUPPORTER_TEAMS_PATH ||
+      pathname === SUPPORTER_PROJECTS_PATH ||
+      pathname === "/supporter/dashboard/vote" ||
+      pathname === SUPPORTER_CLIMATE_SPONSORS_PATH ||
+      pathname === "/dashboard/supporter/climate-sponsors"
+    );
   }
   if (match === "matchrav") {
     return (
@@ -49,15 +51,7 @@ function isActive(match: (typeof FAN_TAB_LINKS)[number]["match"], pathname: stri
       pathname === "/dashboard/supporter/predict"
     );
   }
-  if (match === "cift") {
-    return pathname === SUPPORTER_CIFT_PATH;
-  }
-  return (
-    pathname === SUPPORTER_PROJECTS_PATH ||
-    pathname === "/supporter/dashboard/vote" ||
-    pathname === SUPPORTER_CLIMATE_SPONSORS_PATH ||
-    pathname === "/dashboard/supporter/climate-sponsors"
-  );
+  return pathname === SUPPORTER_CIFT_PATH;
 }
 
 export function FanTabBar({
@@ -70,7 +64,7 @@ export function FanTabBar({
   return (
     <nav
       aria-label="Supporter"
-      data-fan-tabs="6"
+      data-fan-tabs="5"
       data-fan-tabs-style="club-buttons"
       className="flex flex-wrap items-center gap-2"
     >

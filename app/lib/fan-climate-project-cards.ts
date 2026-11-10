@@ -1,4 +1,4 @@
-/** Fan Climate Projects tab: one card per Match Day project, paired with its sponsor. */
+/** Fan Climate Project pager: one card per Match Day project, paired with its sponsor. Lives inside My S4P. */
 
 import { isFeaturedGssName } from "./featured-gss";
 import { MATCH_DAY_PROJECT_COUNT } from "./partner-projects";
@@ -13,13 +13,14 @@ import {
 
 export const FAN_CLIMATE_PROJECT_PAGE_COUNT = MATCH_DAY_PROJECT_COUNT;
 
-export const FAN_CLIMATE_PAGER_STAMP = "fan-climate-cards-v1";
+export const FAN_CLIMATE_PAGER_STAMP = "fan-mys4p-pager-v1";
+export const FAN_CLIMATE_AUTO_ADVANCE_MS = 800;
 
 export const FUND_IT_HOW_IT_WORKS_TITLE = "How it works";
 
 /**
  * Headings are shown to fans. `backend` is the allocation engine contract and
- * must not be rendered on the Climate Projects tab.
+ * must not be rendered on the My S4P Climate Project cards.
  */
 export const FUND_IT_HOW_IT_WORKS = [
   {

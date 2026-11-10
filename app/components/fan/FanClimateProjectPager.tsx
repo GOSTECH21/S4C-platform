@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
 import { ProjectSiteLine } from "@/app/components/climate/ProjectSiteLine";
+import { InviteFriendsRemainingFunds } from "@/app/components/fan/InviteFriendsRemainingFunds";
 import { showcaseImagesForProject } from "@/app/lib/project-images";
 import {
   LEAD_CLIMATE_SPONSOR_LABEL,
   LOCAL_BUSINESS_SPONSOR_LABEL,
 } from "@/app/lib/dual-sponsor";
 import {
+  FAN_CLIMATE_AUTO_ADVANCE_MS,
   FAN_CLIMATE_PAGER_STAMP,
   FAN_CLIMATE_PROJECT_PAGE_COUNT,
   FUND_IT_ALLOCATED_LABEL,
@@ -24,7 +25,6 @@ import {
   type FanProjectDetail,
   type FanProjectSponsor,
 } from "@/app/lib/fan-climate-project-cards";
-import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   canPressFundIt,
@@ -36,6 +36,7 @@ import { sponsorLogoSrc } from "@/app/services/teams.service";
 
 export function FanClimateProjectPager({
   clubName,
+  clubId,
   numbered,
   details,
   lead,
@@ -48,6 +49,7 @@ export function FanClimateProjectPager({
   onFund,
 }: {
   clubName: string;
+  clubId?: string | null;
   numbered: NumberedClimateProject[];
   details: FanProjectDetail[];
   lead: FanProjectSponsor | null;
@@ -69,14 +71,29 @@ export function FanClimateProjectPager({
   const [pageIndex, setPageIndex] = useState(0);
   const [confirming, setConfirming] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [noticePage, setNoticePage] = useState<number | null>(null);
+  const pageIndexRef = useRef(0);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  pageIndexRef.current = pageIndex;
 
   useEffect(() => {
     setConfirming(false);
   }, [pageIndex]);
 
   useEffect(() => {
-    if (voteNotice) setConfirming(false);
+    if (voteNotice) {
+      setConfirming(false);
+      setNoticePage(pageIndexRef.current);
+    } else {
+      setNoticePage(null);
+    }
   }, [voteNotice]);
+
+  useEffect(() => {
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
+  }, []);
 
   const page = pages[pageIndex] ?? pages[0];
   const used = new Set(
@@ -89,25 +106,40 @@ export function FanClimateProjectPager({
     setPageIndex(wrapped);
   }
 
+  function confirmPage() {
+    if (!page?.sponsor || !page.project) return;
+    const fromIndex = pageIndex;
+    void Promise.resolve(
+      onFund({
+        brandName: page.sponsor.brandName,
+        projectNumber: String(page.project.number),
+      })
+    ).then((ok) => {
+      if (!ok) return;
+      if (fromIndex >= FAN_CLIMATE_PROJECT_PAGE_COUNT - 1) return;
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+      advanceTimer.current = setTimeout(() => {
+        setPageIndex((current) =>
+          current === fromIndex ? fromIndex + 1 : current
+        );
+      }, FAN_CLIMATE_AUTO_ADVANCE_MS);
+    });
+  }
+
   return (
     <section
       data-fan-climate-pager={FAN_CLIMATE_PAGER_STAMP}
       data-active-page={page?.position ?? "1/5"}
+      data-auto-advance={FAN_CLIMATE_AUTO_ADVANCE_MS}
       className="mx-auto max-w-xl text-slate-950"
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <Link
-          href={SUPPORTER_CAMPAIGN_PATH}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-800 hover:text-emerald-950"
-        >
-          ← My Climate Projects
-        </Link>
-        {clubName ? (
+      {clubName ? (
+        <div className="mb-4 flex justify-end">
           <p className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
             ✓ {clubName} supporter
           </p>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <HowItWorksHeadings
         activeStep={
@@ -178,19 +210,17 @@ export function FanClimateProjectPager({
             used={sponsorIsUsed(page.sponsor, used)}
             confirming={confirming}
             voteError={voteError}
-            voteNotice={voteNotice}
+            voteNotice={noticePage === pageIndex ? voteNotice : null}
             onSelectFundIt={() => setConfirming(true)}
             onCancel={() => setConfirming(false)}
-            onConfirm={() => {
-              if (!page.sponsor || !page.project) return;
-              void Promise.resolve(
-                onFund({
-                  brandName: page.sponsor.brandName,
-                  projectNumber: String(page.project.number),
-                })
-              );
-            }}
+            onConfirm={confirmPage}
           />
+        </div>
+      ) : null}
+
+      {pageIndex === FAN_CLIMATE_PROJECT_PAGE_COUNT - 1 ? (
+        <div className="mt-8">
+          <InviteFriendsRemainingFunds clubId={clubId} clubName={clubName} />
         </div>
       ) : null}
     </section>

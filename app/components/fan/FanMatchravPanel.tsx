@@ -52,7 +52,7 @@ import {
   type MatchravStadium,
   type MatchravTrip,
 } from "@/app/lib/matchrav-journey";
-import { SUPPORTER_PROJECTS_PATH } from "@/app/lib/routes";
+import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { getOrCreateSupporter } from "@/app/services/votes.service";
 import { getSupportedTeams } from "@/app/services/teams.service";
 import {
@@ -794,7 +794,7 @@ export default function FanMatchravPanel({
                   }
                 </p>
                 <Link
-                  href={SUPPORTER_PROJECTS_PATH}
+                  href={SUPPORTER_CAMPAIGN_PATH}
                   className="mt-5 inline-flex items-center justify-center rounded-full bg-s4p-mark px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-black hover:brightness-110"
                 >
                   Continue to climate projects

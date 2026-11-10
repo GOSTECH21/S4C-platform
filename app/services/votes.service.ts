@@ -56,6 +56,7 @@ import {
 import { listGoalNetworks, listMatchDayLocks } from "./climate-sponsors.service";
 import { getPublishedFixturesForClub } from "./next-fixtures.service";
 import { fixturesFromUpcoming } from "../lib/club-fixtures";
+import { resolveFanMatchVenue } from "../lib/fan-match-meta";
 
 export type ClimateProject = {
   id: string;
@@ -527,6 +528,7 @@ export type S4PCampaign = {
   votingOpens: string | null;
   votingCloses: string | null;
   kickoffAt: string | null;
+  venue?: string | null;
 };
 
 const REQUIRED_VOTES = FUND_IT_MAX_TIMES;
@@ -946,11 +948,7 @@ type AuctionSettings = {
 async function applyNextFanMatchHeadline(
   campaign: S4PCampaign
 ): Promise<S4PCampaign> {
-  let published: Array<{
-    fixtureName: string;
-    date: string;
-    kickoff: string | null;
-  }> = [];
+  let published: ReturnType<typeof fixturesFromUpcoming> = [];
   try {
     published = fixturesFromUpcoming(
       await getPublishedFixturesForClub(campaign.clubName)
@@ -965,7 +963,14 @@ async function applyNextFanMatchHeadline(
     ),
     published,
   });
-  if (!next?.fixtureName) return campaign;
+  const venue = resolveFanMatchVenue({
+    clubName: campaign.clubName,
+    fixtureName: next?.fixtureName ?? campaign.matchTitle,
+    fixtures: published,
+  });
+  if (!next?.fixtureName) {
+    return { ...campaign, venue: campaign.venue ?? venue };
+  }
   const matchTitle = formatMatchHeadline(next.fixtureName);
   const kickoff = parseFixtureKickoff({
     fixture_date: next.date ?? null,
@@ -980,6 +985,7 @@ async function applyNextFanMatchHeadline(
   return {
     ...campaign,
     matchTitle,
+    venue,
     ...(matchSponsor
       ? {
           sponsorName: matchSponsor,

@@ -136,13 +136,13 @@ assert(
   "My S4P no longer shows the Lead Climate Sponsor payment and exposure copy"
 );
 assert(
-  readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
-    'section="cards"'
+  readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
+    "FanClimateProjectPager"
   ) &&
     readFileSync("app/lib/fan-climate-project-cards.ts", "utf8").includes(
       "How it works"
     ),
-  "Climate Projects uses How it works headings on the 1/5 cards"
+  "My S4P uses How it works headings on the 1/5 cards"
 );
 assert(
   fanWalletDrainCopy("£0") ===

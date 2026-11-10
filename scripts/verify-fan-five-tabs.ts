@@ -27,7 +27,7 @@ const ciftPage = readFileSync("app/supporter/dashboard/cift/page.tsx", "utf8");
 const cift = readFileSync("app/components/fan/FanCiftTable.tsx", "utf8");
 
 assert(
-  nav.includes('data-fan-tabs="6"') &&
+  nav.includes('data-fan-tabs="5"') &&
     nav.includes('data-fan-tabs-style="club-buttons"') &&
     nav.includes("flex flex-wrap items-center gap-2") &&
     nav.includes("s4pTabClass") &&
@@ -36,12 +36,12 @@ assert(
     nav.includes('label: "Matchrav"') &&
     nav.includes("SUPPORTER_MATCHRAV_PATH") &&
     nav.includes('label: "P4P"') &&
-    nav.includes('label: "Climate Projects"') &&
+    !nav.includes('label: "Climate Projects"') &&
     nav.includes('label: "CIFT"') &&
     nav.includes("Logout") &&
     !nav.includes('label: "My Teams"') &&
     !nav.includes('label: "Climate Sponsors"'),
-  "Fan nav is six Club-style wrap buttons with Matchrav after My S4P"
+  "Fan nav is five Club-style wrap buttons: My S4P, Matchrav, P4P, CIFT, Logout"
 );
 assert(
   routes.includes('SUPPORTER_CIFT_PATH = "/supporter/dashboard/cift"') &&
@@ -58,11 +58,11 @@ assert(
   "My Teams lives inside My S4P; the old tab URL jumps there"
 );
 assert(
-  vote.includes('section="cards"') &&
-    vote.includes("SUPPORTER_CLIMATE_SPONSORS_HASH") &&
-    sponsors.includes("SUPPORTER_PROJECTS_PATH") &&
-    sponsors.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
-  "Climate Sponsors lives inside Climate Projects; the old tab URL jumps there"
+  vote.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    vote.includes("window.location.replace") &&
+    sponsors.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    !vote.includes('section="cards"'),
+  "The old Climate Projects and Climate Sponsors URLs open My S4P"
 );
 assert(
   readFileSync(
@@ -99,5 +99,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Fan tabs wrap like Club Select Match: My S4P (with My Teams), Matchrav, P4P, Climate Projects (with Climate Sponsors), CIFT, Logout."
+  "Fan tabs wrap like Club Select Match: My S4P (with My Teams and Climate Projects), Matchrav, P4P, CIFT, Logout."
 );

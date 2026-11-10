@@ -141,11 +141,20 @@ assert(leadWallet.kind === "lead", "Lead wallets stay on the featured page");
 
 const votePage = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(
-  votePage.includes('section="cards"') &&
+  votePage.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    votePage.includes("window.location.replace") &&
     !votePage.includes("Projects Voted for") &&
-    !votePage.includes("Climate Project list") &&
-    !votePage.includes("Invite friends to use remaining funds"),
-  "Climate Projects replaces the old list and FUND-IT strips with cards"
+    !votePage.includes("Climate Project list"),
+  "The old Climate Projects URL opens My S4P"
+);
+assert(
+  readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
+    "InviteFriendsRemainingFunds"
+  ) &&
+    readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
+      "FAN_CLIMATE_AUTO_ADVANCE_MS"
+    ),
+  "The 1/5 pager auto-advances after FUND-IT and shows Invite friends on 5/5"
 );
 
 const wallet = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
@@ -166,4 +175,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Fan Climate Projects show 1/5 cards with How it works headings and paired sponsors.");
+console.log("Fan Climate Projects live on My S4P as 1/5 cards with How it works headings and paired sponsors.");

@@ -114,13 +114,12 @@ assert(
   "My S4P filters campaigns to the supporter's clubs and does not capture another club's invite"
 );
 
-const climateProjects = readFileSync(
-  "app/dashboard/supporter/vote/page.tsx",
-  "utf8"
-);
 assert(
-  climateProjects.includes("filterCampaignsForFan(posted, supported)"),
-  "Climate Projects is scoped to the same clubs as My S4P"
+  myS4p.includes("filterCampaignsForFan(camps, supported)") &&
+    readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8").includes(
+      "SUPPORTER_CAMPAIGN_PATH"
+    ),
+  "Climate Projects now live on My S4P and stay scoped to the supporter's clubs"
 );
 
 if (failures.length > 0) {
