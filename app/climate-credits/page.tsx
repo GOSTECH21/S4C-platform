@@ -3,7 +3,7 @@ import { SolutionPage } from "@/app/components/home/SolutionPage";
 import {
   CLIMATE_CREDITS_PATH,
   FAN_REGISTER_PATH,
-  SUPPORTER_PROJECTS_PATH,
+  SUPPORTER_CAMPAIGN_PATH,
 } from "@/app/lib/routes";
 import { S4P_THIRD_UNLOCK_COPY } from "@/app/lib/score-for-planet";
 
@@ -63,7 +63,7 @@ export default function ClimateCreditsPage() {
             Register as a Fan
           </Link>
           <Link
-            href={SUPPORTER_PROJECTS_PATH}
+            href={SUPPORTER_CAMPAIGN_PATH}
             className="rounded-xl border border-slate-600 px-6 py-3 font-semibold"
           >
             Vote on Climate Projects

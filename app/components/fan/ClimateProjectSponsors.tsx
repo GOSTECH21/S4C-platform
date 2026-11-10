@@ -8,14 +8,12 @@ import {
   type ReactNode,
 } from "react";
 import { BrandMark } from "@/app/components/club/BrandMark";
+import { InviteFriendsRemainingFunds } from "@/app/components/fan/InviteFriendsRemainingFunds";
 import { isLeadClimateBrand } from "@/app/lib/match-day-branding";
-import { fanInviteRegisterPath } from "@/app/lib/climate-funding";
-import { FAN_REGISTER_PATH } from "@/app/lib/routes";
 import { localFromList } from "@/app/lib/featured-gss";
 import {
   DEFAULT_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
-  FUND_IT_MAX_TIMES,
   canPressFundIt,
   formatWalletGbp,
   leadFundItCopy,
@@ -80,7 +78,6 @@ export function ClimateProjectSponsors({
 }) {
   const [leadNumber, setLeadNumber] = useState("");
   const [localNumbers, setLocalNumbers] = useState<Record<string, string>>({});
-  const [copied, setCopied] = useState(false);
   const used = useMemo(() => {
     const keys = new Set<string>();
     for (const name of usedSponsorNames) {
@@ -122,7 +119,6 @@ export function ClimateProjectSponsors({
     (lead ? lead.remainingGbp : 0) +
       localRows.reduce((sum, row) => sum + row.remainingGbp, 0)
   );
-  const inviteHref = fanInviteRegisterPath(clubId, clubName);
 
   function fundLead() {
     if (!lead || !leadNumber) return;
@@ -170,18 +166,6 @@ export function ClimateProjectSponsors({
     setLocalNumbers((prev) => ({ ...prev, [row.brandName]: "" }));
   }
 
-  async function copyInvite() {
-    const url =
-      typeof window === "undefined"
-        ? inviteHref
-        : new URL(inviteHref, window.location.origin).toString();
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  }
 
   return (
     <section className="space-y-8" data-my-s4p-fund-strips="fund-strips-v1">
@@ -301,30 +285,7 @@ export function ClimateProjectSponsors({
       </div>
 
       {showInvite && remainingFunds > 0 ? (
-        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/5 p-6">
-          <h3 className="text-xl font-black">Invite friends to use remaining funds</h3>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300">
-            If Carbon Wallets still show cash on Day 5, invite friends to
-            register on S4P. They may or may not support {clubName || "this club"}
-            — they only need an account so they can {FUND_IT_LABEL} once from
-            each remaining sponsor, up to {FUND_IT_MAX_TIMES} times.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => void copyInvite()}
-              className="rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-green-400"
-            >
-              {copied ? "Invite link copied" : "Copy invite link"}
-            </button>
-            <a
-              href={inviteHref || FAN_REGISTER_PATH}
-              className="rounded-xl border border-green-500/40 px-5 py-3 text-sm font-bold text-green-300 hover:bg-green-500/10"
-            >
-              Open fan registration
-            </a>
-          </div>
-        </div>
+        <InviteFriendsRemainingFunds clubId={clubId} clubName={clubName} />
       ) : null}
     </section>
   );

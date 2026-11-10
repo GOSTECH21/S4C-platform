@@ -368,10 +368,11 @@ assert(
     nav.includes('label: "Matchrav"') &&
     nav.includes('label: "P4P"') &&
     nav.includes('label: "CIFT"') &&
-    nav.includes('data-fan-tabs="6"') &&
+    nav.includes('data-fan-tabs="5"') &&
     nav.includes('data-fan-tabs-style="club-buttons"') &&
-    nav.includes("s4pTabClass"),
-  "Fan navigation is six Club-style wrap buttons: My S4P, Matchrav, P4P, Climate Projects, CIFT, Logout"
+    nav.includes("s4pTabClass") &&
+    !nav.includes('label: "Climate Projects"'),
+  "Fan navigation is five Club-style wrap buttons: My S4P, Matchrav, P4P, CIFT, Logout"
 );
 assert(
   readFileSync("app/dashboard/supporter/sponsors/page.tsx", "utf8").includes(

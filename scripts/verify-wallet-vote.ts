@@ -717,28 +717,27 @@ const sponsorsPage = readFileSync(
   "utf8"
 );
 assert(
-  fanPage.includes('section === "projects"') &&
-    fanPage.includes("ClimateProjectSponsors") &&
+  fanPage.includes("FanClimateProjectPager") &&
     fanPage.includes("CampaignMatchHeader") &&
-    sponsorsPage.includes('section="cards"') &&
-    sponsorsPage.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
-  "My S4P keeps FUND-IT wallets; Climate Projects uses project+sponsor cards"
+    !fanPage.includes("ClimateProjectSponsors") &&
+    sponsorsPage.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    sponsorsPage.includes("window.location.replace"),
+  "My S4P hosts the 1/5 Climate Project pager; the old Climate Projects URL opens My S4P"
 );
 assert(
-  fanPage.includes("Climate Projects List") &&
-    fanPage.includes("space-y-2") &&
+  !fanPage.includes("Climate Projects List") &&
     fanPage.includes("withFeaturedGssVersions") &&
     !fanPage.includes("one programme that applies in every country") &&
     !fanPage.includes("Open Climate Project Sponsors"),
-  "My S4P uses the Climate Projects List heading as a stacked accordion with one Featured GSS"
+  "My S4P no longer shows the Climate Projects List accordion"
 );
 assert(
   !fanPage.includes("Climate Project list"),
   "My S4P no longer duplicates Climate Project list"
 );
 assert(
-  fanPage.includes("showSponsors={false}"),
-  "My S4P Climate Projects List has no sponsor logo or name"
+  !fanPage.includes("showSponsors={false}"),
+  "My S4P no longer renders the Climate Projects List cards"
 );
 assert(
   readFileSync("app/components/fan/MatchDayProjectCard.tsx", "utf8").includes(
@@ -753,10 +752,11 @@ assert(!fanPage.includes("MatchDayWalletVote"), "My S4P no longer uses the mixed
 assert(!fanPage.includes("TodaysClimateSponsors"), "My S4P does not mix local logos into the Amex bar");
 assert(!fanPage.includes("Choose three"), "Fans no longer pick 3 of 5 Climate Projects");
 assert(
-  readFileSync("app/components/fan/ClimateProjectSponsors.tsx", "utf8").includes(
-    "FUND_IT_MAX_TIMES"
-  ),
-  "Climate Project Sponsors still FUND-IT once per wallet, up to 5 wallets"
+  readFileSync(
+    "app/components/fan/InviteFriendsRemainingFunds.tsx",
+    "utf8"
+  ).includes("FUND_IT_MAX_TIMES"),
+  "Invite friends still FUND-IT once per wallet, up to 5 wallets"
 );
 
 const fanLogin = readFileSync("app/fan/login/page.tsx", "utf8");
@@ -821,7 +821,8 @@ assert(
   "My S4P keeps only the Lead and Local FUND-IT tap lines, not the four-step sponsor essay"
 );
 assert(
-  sponsorsUi.includes("Invite friends") && sponsorsUi.includes("Already used"),
+  sponsorsUi.includes("InviteFriendsRemainingFunds") &&
+    sponsorsUi.includes("Already used"),
   "Fans can invite friends to drain remaining wallets and only vote once per sponsor"
 );
 
@@ -846,11 +847,10 @@ assert(
   fanPage.includes("fanFundingIsOpen") &&
     !votePage.includes("fanFundingIsOpen") &&
     fanPage.includes("FanClimateProjectPager") &&
-    fanPage.includes('section === "cards"') &&
     fanPage.includes("fan-local") &&
     fanPage.includes("voteError") &&
     fanPage.includes("displayedRemaining"),
-  "My S4P enables FUND-IT; Climate Projects shows 1/5 project+sponsor cards"
+  "My S4P enables FUND-IT on the 1/5 Climate Project pager"
 );
 assert(
   !votePage.includes("Projects Voted for") &&
@@ -858,11 +858,11 @@ assert(
   "Climate Projects no longer shows the old Voted for list"
 );
 assert(
-  votePage.includes('section="cards"') &&
+  votePage.includes("SUPPORTER_CAMPAIGN_PATH") &&
     readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
       "FUND_IT_HOW_IT_WORKS_TITLE"
     ),
-  "Climate Projects tab mounts the 1/5 pager with How it works headings"
+  "My S4P mounts the 1/5 pager with How it works headings"
 );
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
@@ -971,10 +971,10 @@ assert(MATCH_DAY_FOLDER_NAME === "Match-Day", "The folder is called Match-Day");
 
 const preview = readFileSync("app/preview/my-s4p/page.tsx", "utf8");
 assert(
-  preview.includes("Climate Projects List") &&
+  preview.includes("FanClimateProjectPager") &&
     preview.includes("American Express") &&
-    preview.includes("showSponsors={false}"),
-  "The My S4P preview shows numbered Climate Projects without sponsor branding"
+    preview.includes("CampaignMatchHeader"),
+  "The My S4P preview shows the Climate Campaign headline then the 1/5 pager"
 );
 assert(
   readFileSync("app/preview/wallet-vote/page.tsx", "utf8").includes("Puma") &&

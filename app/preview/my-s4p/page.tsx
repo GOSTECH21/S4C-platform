@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import FanNav from "@/app/dashboard/supporter/components/FanNav";
 import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
-import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
-import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
+import { FanClimateProjectPager } from "@/app/components/fan/FanClimateProjectPager";
 import { loadFundedProjects } from "@/app/lib/climate-funding";
 import {
+  DEFAULT_WALLET_VOTE_GBP,
   applyLeadCommitment,
   createLeadWallet,
   createLocalWallet,
@@ -115,6 +115,7 @@ export default function MyS4PPreviewPage() {
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [used, setUsed] = useState<string[]>([]);
 
   useEffect(() => {
     setFunded(seedProjects());
@@ -122,7 +123,7 @@ export default function MyS4PPreviewPage() {
   const lead = wallets.find((wallet) => wallet.kind === "lead") ?? null;
 
   return (
-    <main className="min-h-screen p-8 text-white">
+    <main className="min-h-screen bg-[#f6f4ea] p-8 text-slate-950">
       <div className="mx-auto max-w-[90rem]">
         <FanNav />
         <CampaignMatchHeader
@@ -132,6 +133,8 @@ export default function MyS4PPreviewPage() {
           sponsorLogoUrl={
             lead ? sponsorLogoSrc(lead.brandName, null) : null
           }
+          kickoffAt="2026-11-24T20:00:00.000Z"
+          venue="Easter Road Stadium"
         />
 
         {error && (
@@ -171,27 +174,12 @@ export default function MyS4PPreviewPage() {
           </div>
         ) : null}
 
-        <section className="mt-10">
-          <h2 className="text-3xl font-black">Climate Projects List</h2>
-          <div className="mt-6 space-y-2">
-            {PROJECTS.map((project, index) => (
-              <MatchDayProjectCard
-                key={project.id}
-                project={project}
-                cardIndex={index + 1}
-                clubName="Hibernian"
-                showVote={false}
-                showSponsors={false}
-                fundedGbp={
-                  funded.find((row) => row.id === project.id)?.fundedGbp ?? 0
-                }
-              />
-            ))}
-          </div>
-        </section>
-
         <div className="mt-10">
-          <ClimateProjectSponsors
+          <FanClimateProjectPager
+            clubName="Hibernian"
+            clubId={PREVIEW_CLUB}
+            numbered={funded}
+            details={PROJECTS}
             lead={
               lead
                 ? {
@@ -212,11 +200,43 @@ export default function MyS4PPreviewPage() {
                 committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
                 logoUrl: sponsorLogoSrc(wallet.brandName, null),
               }))}
-            projects={funded.map((project) => ({
-              number: project.number,
-              name: project.name,
-            }))}
-            projectCount={funded.length || 5}
+            usedSponsorNames={used}
+            voteError={error}
+            voteNotice={notice}
+            onFund={({ brandName, projectNumber }) => {
+              const project = funded.find(
+                (row) => String(row.number) === String(projectNumber)
+              );
+              if (!project) return false;
+              setFunded((prev) =>
+                prev.map((row) =>
+                  row.id === project.id
+                    ? {
+                        ...row,
+                        fundedGbp: row.fundedGbp + DEFAULT_WALLET_VOTE_GBP,
+                        votesReceived: row.votesReceived + 1,
+                      }
+                    : row
+                )
+              );
+              setWallets((prev) =>
+                prev.map((wallet) =>
+                  wallet.brandName === brandName
+                    ? {
+                        ...wallet,
+                        allocatedGbp:
+                          wallet.allocatedGbp + DEFAULT_WALLET_VOTE_GBP,
+                      }
+                    : wallet
+                )
+              );
+              setUsed((prev) => [...prev, brandName]);
+              setNotice(
+                `FUND-IT moved ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}'s Carbon Wallet into ${project.name}.`
+              );
+              setError(null);
+              return true;
+            }}
           />
         </div>
       </div>

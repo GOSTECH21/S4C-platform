@@ -31,10 +31,11 @@ assert(
   "After Save My Teams, My S4P accordion-hides the picker down to the first sentence"
 );
 assert(
-  workspace.includes("Climate Projects List") &&
-    workspace.includes("CampaignMatchHeader") &&
-    workspace.includes("ClimateProjectSponsors"),
-  "My S4P still shows the Match Climate Campaign and Climate Projects List"
+  workspace.includes("CampaignMatchHeader") &&
+    workspace.includes("FanClimateProjectPager") &&
+    !workspace.includes("Climate Projects List") &&
+    !workspace.includes("ClimateProjectSponsors"),
+  "My S4P shows the Match Climate Campaign then the 1/5 Climate Project pager"
 );
 assert(
   sponsors.includes('data-my-s4p-fund-strips="fund-strips-v1"') &&
@@ -42,7 +43,7 @@ assert(
     sponsors.includes("LOCAL_SPONSOR_FUND_SLOTS = 4") &&
     sponsors.includes("leadFundItCopy") &&
     sponsors.includes("localFundItCopy") &&
-    sponsors.includes("Invite friends to use remaining funds") &&
+    sponsors.includes("InviteFriendsRemainingFunds") &&
     sponsors.includes("<select") &&
     sponsors.includes('data-fund-strip-fit="phone-stack-v1"') &&
     !sponsors.includes("overflow-x-auto") &&
@@ -73,5 +74,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "My S4P streamlines saved teams into an accordion and FUND-IT into Logo / Name / Wallet / Projects / FUND-IT strips."
+  "My S4P streamlines saved teams into an accordion and folds Climate Projects into the 1/5 pager."
 );

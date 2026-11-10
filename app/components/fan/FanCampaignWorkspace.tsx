@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   getMyS4PCampaigns,
   getOrCreateSupporter,
@@ -19,13 +18,8 @@ import {
   type TeamOption,
 } from "@/app/services/teams.service";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
-import {
-  FAN_LOGIN_PATH,
-  SUPPORTER_CAMPAIGN_PATH,
-} from "@/app/lib/routes";
+import { FAN_LOGIN_PATH } from "@/app/lib/routes";
 import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
-import { MatchDayProjectCard } from "@/app/components/fan/MatchDayProjectCard";
-import { ClimateProjectSponsors } from "@/app/components/fan/ClimateProjectSponsors";
 import { FanClimateProjectPager } from "@/app/components/fan/FanClimateProjectPager";
 import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
 import { readFanPostSchedule } from "@/app/lib/match-day-post";
@@ -144,11 +138,7 @@ export function FanCampaignWorkspace({
   if (loading) {
     return (
       <main className="px-8 pb-16 text-white">
-        <p className="text-slate-400">
-          {section === "cards"
-            ? "Loading Climate Projects..."
-            : "Loading your campaign..."}
-        </p>
+        <p className="text-slate-400">Loading your campaign...</p>
       </main>
     );
   }
@@ -556,57 +546,11 @@ function CampaignPanel({
     (sponsoredByName ? loadBrandLogo(sponsoredByName) : null) ||
     (sponsoredByName ? sponsorLogoSrc(sponsoredByName, null) : null);
 
-  const sponsorsPanel = (
-    <ClimateProjectSponsors
-      lead={leadSponsor}
-      locals={localSponsors}
-      projects={projects.map((project) => ({
-        id: project.id,
-        number: project.number,
-        name: project.name,
-      }))}
-      projectCount={projects.length || 5}
-      busy={busy}
-      votingOpen={fundingOpen}
-      usedSponsorNames={usedSponsors}
-      clubId={clubId}
-      clubName={campaign.clubName}
-      voteError={error}
-      voteNotice={notice}
-      onVote={({ brandName, projectNumber, split }) =>
-        voteFromWallet({
-          brandName,
-          projectNumber,
-          split,
-        })
-      }
-    />
-  );
-
-  if (section === "cards") {
-    return (
-      <div className="px-1 pb-10 text-slate-950">
-        <FanClimateProjectPager
-          clubName={campaign.clubName}
-          numbered={projects}
-          details={voteable}
-          lead={leadSponsor}
-          locals={localSponsors}
-          fundingOpen={fundingOpen}
-          busy={busy}
-          usedSponsorNames={usedSponsors}
-          voteError={error}
-          voteNotice={notice}
-          onFund={({ brandName, projectNumber }) =>
-            voteFromWallet({ brandName, projectNumber, split: false })
-          }
-        />
-      </div>
-    );
-  }
-
   return (
-    <main className="pb-8 text-white">
+    <main
+      data-workspace-section={section}
+      className="pb-8 text-slate-950"
+    >
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         <div className="mb-6">
           <FanGoalAlertBanner
@@ -621,52 +565,28 @@ function CampaignPanel({
           matchTitle={campaign.matchTitle}
           sponsorName={sponsoredByName}
           sponsorLogoUrl={sponsoredByLogo}
+          kickoffAt={campaign.kickoffAt ?? folder?.matchDate ?? null}
+          venue={campaign.venue ?? null}
         />
 
-        {error && (
-          <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-center text-red-300">
-            {error}
-          </div>
-        )}
-
-        {notice && !error && (
-          <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-center text-green-300">
-            ✓ {notice}
-          </div>
-        )}
-
-        {section === "projects" ? (
-          <section className="mt-10">
-            <h2 className="text-3xl font-black">Climate Projects List</h2>
-            <div className="mt-6 space-y-2">
-              {voteable.map((project, index) => {
-                const funded = projects.find((row) => row.id === project.id);
-                return (
-                  <MatchDayProjectCard
-                    key={project.id}
-                    project={project}
-                    cardIndex={funded?.number ?? index + 1}
-                    clubName={campaign.clubName}
-                    showVote={false}
-                    showSponsors={false}
-                    fundedGbp={funded?.fundedGbp ?? 0}
-                  />
-                );
-              })}
-            </div>
-            <div className="mt-10">{sponsorsPanel}</div>
-          </section>
-        ) : (
-          <div className="mt-10">
-            <Link
-              href={SUPPORTER_CAMPAIGN_PATH}
-              className="mb-6 inline-flex text-sm font-semibold text-emerald-300 hover:text-emerald-200"
-            >
-              ← Climate Projects List
-            </Link>
-            {sponsorsPanel}
-          </div>
-        )}
+        <div className="mt-8">
+          <FanClimateProjectPager
+            clubName={campaign.clubName}
+            clubId={clubId}
+            numbered={projects}
+            details={voteable}
+            lead={leadSponsor}
+            locals={localSponsors}
+            fundingOpen={fundingOpen}
+            busy={busy}
+            usedSponsorNames={usedSponsors}
+            voteError={error}
+            voteNotice={notice}
+            onFund={({ brandName, projectNumber }) =>
+              voteFromWallet({ brandName, projectNumber, split: false })
+            }
+          />
+        </div>
       </div>
     </main>
   );

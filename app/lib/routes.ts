@@ -49,7 +49,7 @@ export const SUPPORTER_PROJECTS_PATH = "/dashboard/supporter/vote";
 export const SUPPORTER_TEAMS_PATH = "/dashboard/supporter/preferences";
 /** Old fan Sponsor tab; now redirects to My S4P. */
 export const SUPPORTER_SPONSOR_PATH = "/dashboard/supporter/sponsors";
-/** Climate Project Sponsor wallets live inside Climate Projects. */
+/** Old Climate Sponsors URL; now redirects to My S4P. */
 export const SUPPORTER_CLIMATE_SPONSORS_PATH =
   "/supporter/dashboard/climate-sponsors";
 export const SUPPORTER_CLIMATE_SPONSORS_HASH = "climate-sponsors";

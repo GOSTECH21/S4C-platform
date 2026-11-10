@@ -6,6 +6,11 @@ import {
   campaignHeadline,
   matchSponsorshipHeading,
 } from "../app/lib/sponsorship-auction";
+import {
+  fanMatchMetaLine,
+  formatFanMatchWhen,
+  resolveFanMatchVenue,
+} from "../app/lib/fan-match-meta";
 
 const failures: string[] = [];
 
@@ -54,6 +59,32 @@ assert(
     now,
   })?.fixtureName === "St Mirren v Rangers",
   "With no funded Match Day, Rangers fans still see the next published fixture"
+);
+assert(
+  formatFanMatchWhen("2026-11-24T20:00:00.000Z") ===
+    "Tue, 24 Nov 2026 · 8:00 pm",
+  "Rangers v Aberdeen shows the Match date and kickoff"
+);
+assert(
+  resolveFanMatchVenue({
+    clubName: "Rangers",
+    fixtureName: "Rangers v Aberdeen",
+    fixtures: [
+      {
+        fixtureName: "Rangers v Aberdeen",
+        venue: "Ibrox Stadium",
+      },
+    ],
+  }) === "Ibrox Stadium",
+  "Rangers v Aberdeen shows Ibrox Stadium as the venue"
+);
+assert(
+  fanMatchMetaLine({
+    kickoffAt: "2026-11-24T20:00:00.000Z",
+    venue: "Ibrox Stadium",
+    clubName: "Rangers",
+  }) === "Tue, 24 Nov 2026 · 8:00 pm · Ibrox Stadium",
+  "My S4P prints date, kickoff and venue under the Climate Campaign headline"
 );
 
 if (failures.length > 0) {

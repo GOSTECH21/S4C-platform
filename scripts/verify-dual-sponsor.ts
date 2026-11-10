@@ -497,13 +497,14 @@ assert(
   "My S4P still resolves the Match Day five for the club"
 );
 assert(
-  vote.includes("showSponsors={false}"),
-  "My S4P Climate Projects List does not attach a sponsor logo or name"
+  vote.includes("FanClimateProjectPager") &&
+    !vote.includes("showSponsors={false}"),
+  "My S4P funds Climate Projects from the 1/5 pager, not the old list"
 );
 assert(
-  vote.includes("ClimateProjectSponsors") &&
-    vote.includes("CampaignMatchHeader"),
-  "Lead and local Carbon Wallets sit on Climate Projects"
+  vote.includes("CampaignMatchHeader") &&
+    vote.includes("FanClimateProjectPager"),
+  "Lead and local Carbon Wallets sit on the My S4P Climate Project cards"
 );
 assert(
   !vote.includes("leftoverSponsor"),

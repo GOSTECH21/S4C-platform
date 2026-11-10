@@ -59,19 +59,19 @@ const page = readFileSync("app/dashboard/supporter/vote/page.tsx", "utf8");
 assert(!page.includes("Projects Voted for"), "The old Voted for box is gone");
 assert(!page.includes("Posted for"), "The posted-for box no longer lists posted projects");
 assert(
-  page.includes("FanCampaignWorkspace") &&
-    page.includes('section="cards"') &&
-    page.includes("SUPPORTER_CLIMATE_SPONSORS_HASH"),
-  "Climate Projects mounts the 1/5 project+sponsor cards"
+  page.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    page.includes("window.location.replace") &&
+    !page.includes("FanCampaignWorkspace"),
+  "The old Climate Projects URL opens My S4P"
 );
 assert(
   readFileSync("app/supporter/dashboard/climate-sponsors/page.tsx", "utf8").includes(
-    "SUPPORTER_PROJECTS_PATH"
+    "SUPPORTER_CAMPAIGN_PATH"
   ) &&
     readFileSync("app/components/fan/FanCampaignWorkspace.tsx", "utf8").includes(
       "FanClimateProjectPager"
     ),
-  "The old Climate Sponsors URL opens the Climate Projects cards"
+  "The old Climate Sponsors URL opens the My S4P Climate Project cards"
 );
 
 const preview = readFileSync("app/preview/climate-projects/page.tsx", "utf8");
