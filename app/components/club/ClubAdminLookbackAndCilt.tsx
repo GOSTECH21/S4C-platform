@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   fileRecordDownloadName,
   loadClubProjectBoard,
-  matchDayWindowCopy,
   readFileRecords,
   readStoredMatchDay,
   type ClubFileRecord,
@@ -34,7 +33,6 @@ import {
   MATCH_DAY_PENDING_APPROVAL_LABEL,
   MATCH_DAY_PROJECT_COUNT,
   MATCH_DAY_RELEASED_LABEL,
-  clubAdminSentProjectsCopy,
   clubDashboardLookbackCopy,
   matchDayAdminStatusLabel,
   matchDayInvitationSent,
@@ -219,12 +217,6 @@ export default function ClubAdminLookbackAndCilt({
         <h2 className="mt-2 text-3xl font-black">
           {CLUB_ADMIN_SENT_PROJECTS_HEADING}
         </h2>
-        <p className="mt-2 max-w-2xl text-slate-400">
-          {clubAdminSentProjectsCopy()}
-        </p>
-        <p className="mt-4 max-w-2xl text-sm text-slate-500">
-          {matchDayWindowCopy()}
-        </p>
         {!sentReady ? (
           <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-slate-400">
             No Climate Projects sent to sponsors yet. Choose {MATCH_DAY_PROJECT_COUNT}{" "}

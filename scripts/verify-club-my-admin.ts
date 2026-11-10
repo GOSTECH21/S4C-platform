@@ -20,6 +20,15 @@ import {
   matchDayProjectsReleasedToFans,
 } from "../app/lib/partner-projects";
 import {
+  CLUB_DETAILS_ACCORDION_STAMP,
+  CLUB_REGISTRATION_APPROVED_LABEL,
+  CLUB_REGISTRATION_PENDING_LABEL,
+  CLUB_REGISTRATION_STATUS_LABEL,
+  CLUB_REPRESENTATIVE_ACCORDION_STAMP,
+  clubRegistrationStatusCaption,
+  clubRegistrationStatusLabel,
+} from "../app/lib/club-registration";
+import {
   clubAddressBookListingId,
   clubAddressBookPrompt,
   clubAddressBookSubtitle,
@@ -70,6 +79,17 @@ assert(
     clubDashboardProjectsSentCopy().includes("sent to Selected Sponsors") &&
     clubAdminSentProjectsCopy().includes("pending approval"),
   "Sent Climate Projects stay pending in My Admin until sponsors approve and pay, then they are released to fans"
+);
+assert(
+  CLUB_REGISTRATION_STATUS_LABEL === "Club registration" &&
+    clubRegistrationStatusLabel("pending") === CLUB_REGISTRATION_PENDING_LABEL &&
+    clubRegistrationStatusLabel(null) === CLUB_REGISTRATION_PENDING_LABEL &&
+    clubRegistrationStatusLabel("approved") ===
+      CLUB_REGISTRATION_APPROVED_LABEL &&
+    clubRegistrationStatusLabel("active") === CLUB_REGISTRATION_APPROVED_LABEL &&
+    clubRegistrationStatusCaption().includes("Pending until Score-For-Planet") &&
+    clubRegistrationStatusCaption().includes("Approved when the Club is live"),
+  "Club registration is Pending until S4P confirms the Club, then Approved"
 );
 assert(
   formatMoney(1320) === "£1,320",
@@ -242,9 +262,13 @@ assert(
 const preview = readFileSync("app/preview/club-admin/page.tsx", "utf8");
 assert(
   preview.includes("ClubAdminLookbackAndCilt") &&
+    preview.includes("ClubAdminClubDetails") &&
+    preview.includes('get("status") === "approved"') &&
+    preview.includes("Welcome to your Score-4-Our-Planet Club Dashboard") ===
+      false &&
     !preview.includes("ClubAddressBookPanel") &&
     preview.includes("Match Day File Record") === false,
-  "My Admin preview renders lookback and CILT without Address Books"
+  "My Admin preview renders club details, lookback and CILT without Address Books"
 );
 
 const overlay = readFileSync("apply-club-my-admin.mjs", "utf8");
@@ -256,8 +280,10 @@ assert(
   overlay.includes("app/services/local-sponsor.service.ts") &&
     overlay.includes("app/lib/local-sponsor.ts") &&
     overlay.includes("app/components/club/ClubAdminLookbackAndCilt.tsx") &&
+    overlay.includes("app/components/club/ClubAdminClubDetails.tsx") &&
+    overlay.includes("app/lib/club-registration.ts") &&
     overlay.includes("app/components/club/ClubClimateProjectScopeChooser.tsx") &&
-    overlay.includes('BUST = "club-my-admin-pc-7"') &&
+    overlay.includes('BUST = "club-my-admin-slim-1"') &&
     overlay.includes("app/components/home/PhoneFrame.tsx") &&
     overlay.includes('framed={mode !== "club"}') &&
     overlay.includes("S4P_OVERLAY_SELF") &&
@@ -281,11 +307,30 @@ assert(
 );
 assert(
     admin.includes("My Admin") &&
-    admin.includes("Club Representative") &&
-    admin.includes("Start this club afresh") &&
+    admin.includes("ClubAdminClubDetails") &&
+    admin.includes("Welcome to your Score-4-Our-Planet Club Dashboard") ===
+      false &&
+    !admin.includes("Start this club afresh") &&
+    !admin.includes("clearClubProjectsAndSponsors") &&
     !admin.includes("ClubAddressBookPanel") &&
     admin.includes("ClubAdminLookbackAndCilt"),
-  "My Admin combines club stats, the representative, lookback and CILT"
+  "My Admin combines club details, the representative, lookback and CILT"
+);
+const details = readFileSync(
+  "app/components/club/ClubAdminClubDetails.tsx",
+  "utf8"
+);
+assert(
+  details.includes("Welcome to your Score-4-Our-Planet Club Dashboard") &&
+    details.includes("Club details") &&
+    details.includes("Club Representative") &&
+    details.includes("CLUB_DETAILS_ACCORDION_STAMP") &&
+    details.includes("CLUB_REPRESENTATIVE_ACCORDION_STAMP") &&
+    details.includes("CLUB_REGISTRATION_STATUS_LABEL") &&
+    details.includes("clubRegistrationStatusCaption") &&
+    details.includes("aria-expanded") &&
+    !details.includes("Start this club afresh"),
+  "Club and Sustainability Director details sit in collapsed accordions"
 );
 
 const lookback = readFileSync(
@@ -297,7 +342,8 @@ assert(
     lookback.includes("Selected and Funded Projects, kept for lookback") &&
     lookback.includes("clubDashboardLookbackCopy") &&
     lookback.includes("CLUB_ADMIN_SENT_PROJECTS_HEADING") &&
-    lookback.includes("clubAdminSentProjectsCopy") &&
+    !lookback.includes("clubAdminSentProjectsCopy") &&
+    !lookback.includes("matchDayWindowCopy") &&
     lookback.includes("SentProjectsAccordion") &&
     lookback.includes("MATCH_DAY_RELEASED_LABEL") &&
     lookback.includes("ClimatePartnerSupplyCard") &&
