@@ -4,6 +4,7 @@ import {
   ClimatePartnerSupplyCard,
   climatePartnerSupplyBadge,
 } from "@/app/components/climate/ClimatePartnerSupplyCard";
+import { s4pActionBarClass } from "@/app/lib/s4p-tabs";
 import type { ClimateProject } from "@/app/services/votes.service";
 
 export function FeaturedGssPicker({
@@ -31,24 +32,26 @@ export function FeaturedGssPicker({
         {options.map((project) => {
           const chosen = project.id === chosenId;
           return (
-            <button
+            <ClimatePartnerSupplyCard
               key={project.id}
-              type="button"
-              role="radio"
-              aria-checked={chosen}
-              onClick={() => onChoose(project.id)}
-              className="text-left"
+              project={project}
+              badge={
+                chosen
+                  ? climatePartnerSupplyBadge("featured")
+                  : "Choose as Featured"
+              }
+              selected={chosen}
             >
-              <ClimatePartnerSupplyCard
-                project={project}
-                badge={
-                  chosen
-                    ? climatePartnerSupplyBadge("featured")
-                    : "Choose as Featured"
-                }
-                selected={chosen}
-              />
-            </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={chosen}
+                onClick={() => onChoose(project.id)}
+                className={`mt-3 w-full rounded-xl py-2.5 text-sm font-bold ${s4pActionBarClass()}`}
+              >
+                {chosen ? "✓ Featured" : "Choose as Featured"}
+              </button>
+            </ClimatePartnerSupplyCard>
           );
         })}
       </div>

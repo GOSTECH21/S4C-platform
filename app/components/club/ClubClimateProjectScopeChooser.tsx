@@ -10,8 +10,10 @@ import {
 } from "@/app/lib/s4p-climate-projects";
 
 export function ClubClimateProjectScopeChooser({
+  selected = null,
   onChoose,
 }: {
+  selected?: ClimateProjectScope | null;
   onChoose: (scope: ClimateProjectScope) => void;
 }) {
   return (
@@ -36,8 +38,13 @@ export function ClubClimateProjectScopeChooser({
           <button
             key={scope}
             type="button"
+            aria-pressed={selected === scope}
             onClick={() => onChoose(scope)}
-            className="rounded-xl bg-blue-600 px-4 py-4 text-lg font-bold text-white hover:bg-blue-500"
+            className={`rounded-xl px-4 py-4 text-lg font-bold ${
+              selected === scope
+                ? s4pTabClass(true)
+                : "bg-blue-600 text-white hover:bg-blue-500"
+            }`}
           >
             {climateProjectScopeButtonLabel(scope)}
           </button>

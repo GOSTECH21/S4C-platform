@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import type { ClimateProject } from "@/app/services/votes.service";
 import {
@@ -28,7 +27,9 @@ import {
   CLUB_SPONSORS_ADDRESS_BOOKS_PATH,
 } from "@/app/lib/routes";
 import ClubNav from "@/app/components/club/ClubNav";
+import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
 import { FeaturedGssPicker } from "@/app/components/club/FeaturedGssPicker";
+import { CLUB_CHOOSE_PROJECTS_HEADING } from "@/app/lib/club-how-it-works";
 import { chosenFeaturedProject } from "@/app/lib/featured-gss";
 import { clubShouldStartBlank } from "@/app/lib/clear-club-data";
 import { clearClubProjectsAndSponsors } from "@/app/services/clear-club-data.service";
@@ -38,7 +39,7 @@ import {
   ClimatePartnerSupplyCard,
   climatePartnerSupplyBadge,
 } from "@/app/components/climate/ClimatePartnerSupplyCard";
-import { nearbyProjectsCopy, stadiumSiteForClub } from "@/app/lib/project-site";
+import { stadiumSiteForClub } from "@/app/lib/project-site";
 import { s4pActionBarClass } from "@/app/lib/s4p-tabs";
 import {
   climateProjectsForScope,
@@ -64,6 +65,7 @@ export default function SelectMatchDayProjectsPage() {
   const [featuredId, setFeaturedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [scope, setScope] = useState<ClimateProjectScope | null>(null);
+  const [listOpen, setListOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -214,36 +216,16 @@ export default function SelectMatchDayProjectsPage() {
         <ClubSelectedMatchBanner clubId={clubId} clubName={clubName} />
 
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          Choose Projects
-        </p>
-        <h1 className="mt-3 text-2xl font-bold text-blue-300">
-          {SELECT_CLIMATE_PROJECTS_LABEL}
-        </h1>
-        <p className="mt-4 max-w-3xl text-slate-300">
-          {nearbyProjectsCopy(clubName)} Choose Local, National or International
-          Climate Projects, then press {SEND_INVITATION_LABEL} to open the Address
-          Books in Sponsors and invite Lead Climate Sponsors and Local Business
-          Climate Sponsors.
+          {CLUB_CHOOSE_PROJECTS_HEADING}
         </p>
 
-        {error && scope === null ? (
+        {error && !listOpen ? (
           <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">
             {error}
           </div>
         ) : null}
 
-        {scope === null ? (
-          <>
-            <ClubClimateProjectScopeChooser onChoose={setScope} />
-            <Link
-              href={CLUB_SPONSORS_ADDRESS_BOOKS_PATH}
-              data-send-invitation-to-sponsors="club-sponsors-address-books-v1"
-              className="mt-10 block w-full rounded-xl bg-green-500 py-4 text-center text-lg font-bold text-slate-950 hover:bg-green-400"
-            >
-              {SEND_INVITATION_LABEL}
-            </Link>
-          </>
-        ) : (
+        {listOpen && scope ? (
           <>
             {featured.length > 0 && (
               <div id="select-climate-projects-list" className="mt-8">
@@ -342,6 +324,35 @@ export default function SelectMatchDayProjectsPage() {
                 {saving ? "Saving..." : SEND_INVITATION_LABEL}
               </button>
             </div>
+          </>
+        ) : (
+          <>
+            <div className="mx-auto mt-6 max-w-3xl">
+              <ClubChooseProjectsCopy />
+            </div>
+            <ClubClimateProjectScopeChooser
+              selected={scope}
+              onChoose={(next) => {
+                setError(null);
+                setScope(next);
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (!scope) {
+                  setError(
+                    "Choose Local, National or International Projects."
+                  );
+                  return;
+                }
+                setError(null);
+                setListOpen(true);
+              }}
+              className="mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
+            >
+              {SELECT_CLIMATE_PROJECTS_LABEL}
+            </button>
           </>
         )}
       </div>

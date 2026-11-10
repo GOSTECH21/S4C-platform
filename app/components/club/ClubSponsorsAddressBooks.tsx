@@ -5,7 +5,7 @@ import {
   CLUB_ADDRESS_BOOKS_ID,
   CLUB_EXISTING_SPONSORS_ID,
 } from "@/app/lib/routes";
-import { EXISTING_SPONSORS_HEADING } from "@/app/lib/sponsor-listings";
+import { GO_TO_EXISTING_SPONSORS_LABEL } from "@/app/lib/sponsor-listings";
 import type {
   ClubAddressBookContact,
 } from "@/app/lib/club-address-book";
@@ -35,7 +35,7 @@ export default function ClubSponsorsAddressBooks({
           href={`#${CLUB_EXISTING_SPONSORS_ID}`}
           className="rounded-xl border border-emerald-400/40 px-4 py-2 text-center text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10"
         >
-          Go to {EXISTING_SPONSORS_HEADING}
+          {GO_TO_EXISTING_SPONSORS_LABEL}
         </a>
       </div>
       <div className="mt-8 grid gap-8 xl:grid-cols-2">

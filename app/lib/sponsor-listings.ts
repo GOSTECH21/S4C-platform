@@ -247,6 +247,7 @@ export type SponsorInviteRound = {
 
 export const SPONSORS_SECTION_TITLE = "Sponsors";
 export const EXISTING_SPONSORS_HEADING = "Existing Sponsors";
+export const GO_TO_EXISTING_SPONSORS_LABEL = "Go to Existing Sponsors";
 export const GLOBAL_BRANDS_TAB_LABEL = "Global Brands";
 export const LOCAL_BUSINESS_TAB_LABEL = "Local Business Sponsors";
 
@@ -256,7 +257,7 @@ export const LOCAL_INVITE_SUBJECT = "Invitation to Sponsor";
 export const SEND_INVITATIONS_LABEL = "Send Invitations";
 
 export function sponsorsSectionIntroCopy(): string {
-  return `Register new Lead Climate Sponsors in Address Book 1 and Local Business Climate Sponsors in Address Book 2, then choose ${EXISTING_SPONSORS_HEADING} and press ${SEND_INVITATIONS_LABEL}. Invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor and more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} Local Business Climate Sponsors. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted. Once that Lead Sponsorship is locked in, Climate Projects tagged ${MATCH_DAY_PENDING_APPROVAL_LABEL} change to ${MATCH_DAY_APPROVED_LABEL} and appear to your fans.`;
+  return `Register new Lead Climate Sponsors in Address Book 1; and new Local Business Climate Sponsors in Address Book 2. Alternatively, click the "${GO_TO_EXISTING_SPONSORS_LABEL}" Tab to make your selection.`;
 }
 
 export function globalInviteMustChooseProjectsCopy(): string {

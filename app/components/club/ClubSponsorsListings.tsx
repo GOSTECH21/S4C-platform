@@ -20,8 +20,6 @@ import {
   formatRangeLabel,
   globalInviteCountCopy,
   globalInviteMailtos,
-  inviteDeadlineLabel,
-  inviteWindowOpen,
   localInviteCountCopy,
   localInviteMailtos,
   localInvitesDeliveredCopy,
@@ -82,7 +80,6 @@ export function ClubSponsorsListings({
     [listings]
   );
   const ready = projectCount >= MATCH_DAY_PROJECT_COUNT;
-  const windowOpen = round ? inviteWindowOpen(round, new Date()) : false;
 
   return (
     <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
@@ -92,22 +89,6 @@ export function ClubSponsorsListings({
       <h1 className="mt-2 text-4xl font-black">{SPONSORS_SECTION_TITLE}</h1>
       <p className="mt-3 max-w-3xl text-slate-300">{sponsorsSectionIntroCopy()}</p>
 
-      {round?.lockedBrandName && (
-        <div className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-200">
-          {round.lockedBrandName} is locked in
-          {round.lockedAmountGbp
-            ? ` at £${round.lockedAmountGbp.toLocaleString("en-GB")}`
-            : ""}
-          . Climate Projects are Approved and published to {clubName} fans.
-        </div>
-      )}
-      {round && !round.lockedBrandName && windowOpen && (
-        <p className="mt-6 text-sm text-amber-200">
-          Global Brand invitation window open until{" "}
-          {inviteDeadlineLabel(round.expiresAt)}. Highest committed amount wins.
-        </p>
-      )}
-
       {children}
 
       <div
@@ -116,10 +97,6 @@ export function ClubSponsorsListings({
         data-existing-sponsors="club-sponsors-address-books-v1"
       >
         <h2 className="text-3xl font-black">{EXISTING_SPONSORS_HEADING}</h2>
-        <p className="mt-2 max-w-3xl text-slate-400">
-          Select Lead Climate Sponsors and Local Business Climate Sponsors already
-          in your Address Books or the directory, then press {SEND_INVITATIONS_LABEL}.
-        </p>
       </div>
 
       <div className="mt-8 flex flex-wrap gap-2" role="tablist">

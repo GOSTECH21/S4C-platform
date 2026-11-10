@@ -8,11 +8,12 @@ import {
   CLUB_ADMIN_PATH,
   CLUB_DASHBOARD_PATH,
   CLUB_LOGIN_PATH,
-  CLUB_SELECT_PROJECTS_ALIASES,
-  CLUB_SELECT_PROJECTS_PATH,
-  CLUB_SPONSOR_LEADERBOARD_PATH,
-  CLUB_SPONSORS_PATH,
 } from "@/app/lib/routes";
+import {
+  CLUB_HOW_IT_WORKS_LABEL,
+  CLUB_HOW_IT_WORKS_STAMP,
+  isClubHowItWorksPath,
+} from "@/app/lib/club-how-it-works";
 import { storedFullName, welcomeBackMessage } from "@/app/lib/s4p-admin";
 import { loadClubSession } from "@/app/services/club-match-day.service";
 import { s4pTabClass } from "@/app/lib/s4p-tabs";
@@ -20,18 +21,8 @@ import { s4pTabClass } from "@/app/lib/s4p-tabs";
 const LINKS = [
   {
     href: CLUB_DASHBOARD_PATH,
-    label: "Select Match",
-    match: "select-match" as const,
-  },
-  {
-    href: CLUB_SELECT_PROJECTS_PATH,
-    label: "Choose Projects",
-    match: "projects" as const,
-  },
-  {
-    href: CLUB_SPONSORS_PATH,
-    label: "Sponsors",
-    match: "sponsors" as const,
+    label: CLUB_HOW_IT_WORKS_LABEL,
+    match: "how" as const,
   },
   {
     href: CLUB_ADMIN_PATH,
@@ -69,7 +60,10 @@ export default function ClubNav() {
   }
 
   return (
-    <header className="sticky top-[4.75rem] z-30 mb-10 flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-1 py-4 backdrop-blur sm:top-[5.25rem] sm:flex-row sm:items-center sm:justify-between">
+    <header
+      data-club-how-it-works={CLUB_HOW_IT_WORKS_STAMP}
+      className="sticky top-[4.75rem] z-30 mb-10 flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-1 py-4 backdrop-blur sm:top-[5.25rem] sm:flex-row sm:items-center sm:justify-between"
+    >
       <Link href={CLUB_DASHBOARD_PATH} className="flex flex-col">
         <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
           Club
@@ -85,15 +79,10 @@ export default function ClubNav() {
       <nav className="flex flex-wrap items-center gap-2">
         {LINKS.map((link) => {
           const active =
-            link.match === "select-match"
-              ? pathname === CLUB_DASHBOARD_PATH
-              : link.match === "projects"
-                ? CLUB_SELECT_PROJECTS_ALIASES.includes(pathname ?? "")
-                : link.match === "admin"
-                  ? pathname === CLUB_ADMIN_PATH
-                  : pathname === CLUB_SPONSORS_PATH ||
-                    pathname === CLUB_SPONSOR_LEADERBOARD_PATH;
-          const bigger = link.match === "select-match";
+            link.match === "how"
+              ? isClubHowItWorksPath(pathname)
+              : pathname === CLUB_ADMIN_PATH;
+          const bigger = link.match === "how";
 
           return (
             <Link
