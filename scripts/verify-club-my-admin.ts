@@ -55,6 +55,15 @@ import {
   FAN_FOOTPRINT_TABS,
   fanFootprintReport,
 } from "../app/lib/fan-footprint";
+import {
+  CLUB_PARTNERS_BOARD_NAME,
+  CLUB_PARTNERS_BOARD_STAMP,
+  CLUB_PARTNERS_TABS,
+  clubPartnersCounts,
+  clubPartnersRemovePrompt,
+  clubPartnersRows,
+  clubPartnersSeasonLabel,
+} from "../app/lib/club-partners-board";
 import { formatMoney } from "../app/lib/sponsorship-auction";
 
 const failures: string[] = [];
@@ -109,6 +118,50 @@ assert(
     fanFootprintReport({ clubName: "Rangers" }).leagueName ===
       "Scottish Premiership",
   "FanFootprint Analytics is the Sustainability Director reference board"
+);
+const partnerRows = clubPartnersRows({
+  leadContacts: [
+    {
+      id: "amex",
+      name: "Alex Brand",
+      email: "amex@example.com",
+      businessName: "American Express",
+      phone: "02079460000",
+    },
+  ],
+  localContacts: [
+    {
+      id: "scotmid",
+      name: "Jo Local",
+      email: "jo@scotmid.test",
+      businessName: "Scotmid Coop",
+      phone: "01412220000",
+    },
+  ],
+  partners: [
+    {
+      id: "gss",
+      name: "Global Schools Solar",
+      category: "Solar",
+      country: "Global",
+      featured: true,
+    },
+  ],
+});
+assert(
+  CLUB_PARTNERS_BOARD_NAME === "Club Climate Partners" &&
+    CLUB_PARTNERS_BOARD_STAMP === "club-partners-board-v1" &&
+    CLUB_PARTNERS_TABS.map((row) => row.id).join(",") ===
+      "lead,local,partners" &&
+    clubPartnersSeasonLabel("Rangers").includes("Rangers") &&
+    partnerRows.lead[0]?.name === "American Express" &&
+    partnerRows.local[0]?.name === "Scotmid Coop" &&
+    partnerRows.partners[0]?.hint === "Featured Climate Project" &&
+    clubPartnersCounts(partnerRows).total === 3 &&
+    clubPartnersRemovePrompt("American Express", "Rangers", "lead").includes(
+      "Lead Climate Sponsor"
+    ),
+  "Club Climate Partners board lists Lead, Local and chosen Climate Project Partners"
 );
 assert(
   SELECT_CLIMATE_PROJECTS_LABEL === "Select Climate Projects",
@@ -267,7 +320,8 @@ assert(
     preview.includes("Welcome to your Score-4-Our-Planet Club Dashboard") ===
       false &&
     !preview.includes("ClubAddressBookPanel") &&
-    preview.includes("Match Day File Record") === false,
+    preview.includes("Match Day File Record") === false &&
+    preview.includes("s4p.sd.addressBook."),
   "My Admin preview renders club details, lookback and CILT without Address Books"
 );
 
@@ -283,7 +337,9 @@ assert(
     overlay.includes("app/components/club/ClubAdminClubDetails.tsx") &&
     overlay.includes("app/lib/club-registration.ts") &&
     overlay.includes("app/components/club/ClubClimateProjectScopeChooser.tsx") &&
-    overlay.includes('BUST = "club-my-admin-slim-1"') &&
+    overlay.includes("app/components/club/ClubPartnersBoard.tsx") &&
+    overlay.includes("app/lib/club-partners-board.ts") &&
+    overlay.includes('BUST = "club-partners-board-1"') &&
     overlay.includes("app/components/home/PhoneFrame.tsx") &&
     overlay.includes('framed={mode !== "club"}') &&
     overlay.includes("S4P_OVERLAY_SELF") &&
@@ -353,8 +409,11 @@ assert(
     lookback.includes('data-lookback-accordion="lookback-accordion-v1"') &&
     lookback.includes("aria-expanded") &&
     lookback.includes("Match-Sponsorship:") &&
-    lookback.includes("FanFootprintAnalytics"),
-  "My Admin holds sent Climate Projects, the Match Day File Record, collapsed sponsorships, FanFootprint and CILT"
+    lookback.includes("<ClubPartnersBoard") &&
+    lookback.indexOf("<ClubPartnersBoard") <
+      lookback.indexOf("<FanFootprintAnalytics") &&
+    lookback.includes("<FanFootprintAnalytics"),
+  "My Admin holds sent Climate Projects, the Match Day File Record, collapsed sponsorships, Club Climate Partners, FanFootprint and CILT"
 );
 const footprintUi = readFileSync(
   "app/components/club/FanFootprintAnalytics.tsx",
@@ -368,6 +427,9 @@ assert(
     footprintUi.includes("FAN_FOOTPRINT_FUTURE_NOTE") &&
     readFileSync("app/globals.css", "utf8").includes(
       '[data-fan-footprint="fan-footprint-v1"]'
+    ) &&
+    readFileSync("app/globals.css", "utf8").includes(
+      '[data-club-partners-board="club-partners-board-v1"]'
     ) &&
     readFileSync("app/globals.css", "utf8").includes(
       "background: #f7f4e8 !important;"

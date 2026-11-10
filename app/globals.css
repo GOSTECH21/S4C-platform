@@ -422,7 +422,8 @@ header {
   }
 }
 
-[data-fan-footprint="fan-footprint-v1"] {
+[data-fan-footprint="fan-footprint-v1"],
+[data-club-partners-board="club-partners-board-v1"] {
   background: #f7f4e8 !important;
   color: #000000 !important;
   border-color: #000000 !important;
@@ -430,33 +431,40 @@ header {
   min-width: 0;
   overflow-x: hidden;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-card {
+[data-fan-footprint="fan-footprint-v1"] .fp-card,
+[data-club-partners-board="club-partners-board-v1"] .fp-card {
   background: #fffdf8 !important;
   color: #000000 !important;
   border-color: #000000 !important;
   max-width: 100%;
   min-width: 0;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-muted {
+[data-fan-footprint="fan-footprint-v1"] .fp-muted,
+[data-club-partners-board="club-partners-board-v1"] .fp-muted {
   color: #0c5c2c !important;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-tab {
+[data-fan-footprint="fan-footprint-v1"] .fp-tab,
+[data-club-partners-board="club-partners-board-v1"] .fp-tab {
   background: transparent !important;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-tab-on {
+[data-fan-footprint="fan-footprint-v1"] .fp-tab-on,
+[data-club-partners-board="club-partners-board-v1"] .fp-tab-on {
   background: #5bc662 !important;
   color: #000000 !important;
   border-color: #5bc662 !important;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-tab-off {
+[data-fan-footprint="fan-footprint-v1"] .fp-tab-off,
+[data-club-partners-board="club-partners-board-v1"] .fp-tab-off {
   background: rgb(91 198 98 / 0.15) !important;
   color: #000000 !important;
   border-color: #5bc662 !important;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-good {
+[data-fan-footprint="fan-footprint-v1"] .fp-good,
+[data-club-partners-board="club-partners-board-v1"] .fp-good {
   color: #0c5c2c !important;
 }
-[data-fan-footprint="fan-footprint-v1"] .fp-settings {
+[data-fan-footprint="fan-footprint-v1"] .fp-settings,
+[data-club-partners-board="club-partners-board-v1"] .fp-settings {
   background: #5bc662 !important;
   color: #000000 !important;
 }
