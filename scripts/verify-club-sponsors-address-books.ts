@@ -59,7 +59,7 @@ assert(
     books.includes('kind="lead"') &&
     books.includes('kind="local"') &&
     books.includes("Register New Sponsors") &&
-    books.includes("Go to") &&
+    books.includes("GO_TO_EXISTING_SPONSORS_LABEL") &&
     !books.includes("Address Books") &&
     !listings.includes("Choose Projects") &&
     !listings.includes("Sponsor Leaderboard") &&

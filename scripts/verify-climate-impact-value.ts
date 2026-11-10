@@ -455,7 +455,7 @@ const clubSelect = readFileSync("app/club/projects/select/page.tsx", "utf8");
 assert(
   clubSelect.includes("ClimatePartnerSupplyCard") &&
     clubSelect.includes("climatePartnerSupplyBadge"),
-  "Club project lists use the compact Climate Partner supply card"
+  "Club project lists use the Climate Partner supply card with funding progress"
 );
 assert(
   !clubSelect.includes("only project classified as UK and International") &&

@@ -7,6 +7,7 @@ import {
 import SelectMatchFixtures, {
   SelectMatchPhone,
   SelectMatchProvider,
+  type HomeUpcomingMatch,
   type SelectMatchMode,
 } from "@/app/components/home/SelectMatchFixtures";
 import {
@@ -29,12 +30,14 @@ export default function HowS4pSelectMatch({
   clubLocked = false,
   clubOptions = null,
   className = "",
+  onClubMatchSelected,
 }: {
   audience: HowS4pSelectMatchAudience;
   initialClub?: string;
   clubLocked?: boolean;
   clubOptions?: string[] | null;
   className?: string;
+  onClubMatchSelected?: (match: HomeUpcomingMatch) => void;
 }) {
   const copy = howS4pSelectMatchCopy(audience);
   const mode = MODE_FOR[audience];
@@ -46,6 +49,7 @@ export default function HowS4pSelectMatch({
       clubLocked={clubLocked}
       clubOptions={clubOptions}
       mode={mode}
+      onClubMatchSelected={onClubMatchSelected}
     >
       <section
         data-how-s4p-select-match={audience}

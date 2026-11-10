@@ -267,9 +267,10 @@ assert(
       "Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
     ) &&
     sponsorsSectionIntroCopy().includes("Address Book 1") &&
-    sponsorsSectionIntroCopy().includes("Send Invitations") &&
+    sponsorsSectionIntroCopy().includes("Go to Existing Sponsors") &&
     !sponsorsSectionIntroCopy().includes("based on (i)") &&
-    !sponsorsSectionIntroCopy().includes("committed amount"),
+    !sponsorsSectionIntroCopy().includes("committed amount") &&
+    !sponsorsSectionIntroCopy().includes("locked in"),
   "Club copy sends the SD from chosen projects to Address Books and Send Invitations"
 );
 
@@ -279,15 +280,14 @@ const dashboard = readFileSync("app/club/dashboard/page.tsx", "utf8");
 const globalRegister = readFileSync("app/sponsor/register/page.tsx", "utf8");
 const localRegister = readFileSync("app/sponsor/local/register/page.tsx", "utf8");
 assert(
-  nav.includes('label: "Sponsors"') &&
-    nav.includes("CLUB_SPONSORS_PATH") &&
+  nav.includes("CLUB_HOW_IT_WORKS_LABEL") &&
     sponsorsPage.includes("ClubSponsorsListings") &&
     !dashboard.includes("Open Sponsors listings") &&
     dashboard.includes("CLUB_SPONSORS_PATH") &&
     readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
       "CLUB_SPONSORS_ADDRESS_BOOKS_PATH"
     ),
-  "Club nav Sponsors still opens listings; after choosing projects the SD lands on Sponsors Address Books"
+  "After choosing projects the SD lands on Sponsors Address Books from How it works"
 );
 assert(
   globalRegister.includes("MATCH_SPONSORSHIP_RANGE_LABEL") &&

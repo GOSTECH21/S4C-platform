@@ -9,29 +9,62 @@ import {
   type ProjectLifecycleStage,
 } from "@/app/lib/climate-impact-value";
 
+export type ClimateProjectCivTone = "dark" | "paper";
+
 export function FundingProgressPanel({
   receivedGbp,
   soughtGbp,
+  tone = "dark",
 }: {
   receivedGbp: number;
   soughtGbp: number;
+  tone?: ClimateProjectCivTone;
 }) {
   const progress = fundingProgress(receivedGbp, soughtGbp);
   if (progress.soughtGbp <= 0 && progress.receivedGbp <= 0) return null;
+  const paper = tone === "paper";
   return (
-    <div className="mt-3 rounded-xl border border-emerald-500/20 bg-slate-950/70 p-3">
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-emerald-400">
+    <div
+      className={`mt-3 rounded-xl p-3 ${
+        paper
+          ? "border border-emerald-200 bg-emerald-50/80"
+          : "border border-emerald-500/20 bg-slate-950/70"
+      }`}
+    >
+      <p
+        className={`text-[0.65rem] font-semibold uppercase tracking-[0.18em] ${
+          paper ? "text-emerald-700" : "text-emerald-400"
+        }`}
+      >
         Funding progress
       </p>
-      <p className="mt-1 text-lg font-black text-white">{progress.headline}</p>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
+      <p
+        className={`mt-1 text-lg font-black ${
+          paper ? "text-slate-950" : "text-white"
+        }`}
+      >
+        {progress.headline}
+      </p>
+      <div
+        className={`mt-2 h-2 overflow-hidden rounded-full ${
+          paper ? "bg-emerald-100" : "bg-slate-800"
+        }`}
+      >
         <div
           className="h-full rounded-full bg-emerald-400"
           style={{ width: `${progress.percent}%` }}
         />
       </div>
-      <p className="mt-2 text-xs font-semibold text-amber-300">{progress.throughS4p}</p>
-      <p className="text-xs text-slate-300">{progress.remainingCopy}</p>
+      <p
+        className={`mt-2 text-xs font-semibold ${
+          paper ? "text-emerald-700" : "text-amber-300"
+        }`}
+      >
+        {progress.throughS4p}
+      </p>
+      <p className={`text-xs ${paper ? "text-slate-500" : "text-slate-300"}`}>
+        {progress.remainingCopy}
+      </p>
     </div>
   );
 }
@@ -39,11 +72,14 @@ export function FundingProgressPanel({
 export function ProjectLifecycleStrip({
   stage,
   compact = false,
+  tone = "dark",
 }: {
   stage: ProjectLifecycleStage;
   compact?: boolean;
+  tone?: ClimateProjectCivTone;
 }) {
   const active = lifecycleIndex(stage);
+  const paper = tone === "paper";
   return (
     <ol
       className={`mt-3 flex flex-wrap ${compact ? "gap-1" : "gap-1.5"}`}
@@ -57,10 +93,16 @@ export function ProjectLifecycleStrip({
             key={item}
             className={`rounded-full px-2 py-0.5 text-[0.62rem] font-bold ${
               current
-                ? "bg-emerald-500 text-slate-950 ring-2 ring-emerald-200"
+                ? paper
+                  ? "bg-emerald-700 text-white ring-2 ring-emerald-200"
+                  : "bg-emerald-500 text-slate-950 ring-2 ring-emerald-200"
                 : done
-                  ? "bg-emerald-500/20 text-emerald-200"
-                  : "bg-slate-800 text-slate-500"
+                  ? paper
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-emerald-500/20 text-emerald-200"
+                  : paper
+                    ? "bg-emerald-50 text-emerald-700/70"
+                    : "bg-slate-800 text-slate-500"
             }`}
             aria-current={current ? "step" : undefined}
           >
@@ -80,13 +122,19 @@ export function ProjectLifecycleStrip({
 export function CivSummary({
   tonnes,
   pipDays,
+  tone = "dark",
 }: {
   tonnes: number;
   period?: string;
   pipDays?: number;
+  tone?: ClimateProjectCivTone;
 }) {
   return (
-    <p className="mt-2 text-xs font-semibold text-amber-300">
+    <p
+      className={`mt-2 text-xs font-semibold ${
+        tone === "paper" ? "text-emerald-700" : "text-amber-300"
+      }`}
+    >
       {formatCivPipSummary(tonnes, pipDays ?? 0)}
     </p>
   );
@@ -96,6 +144,7 @@ export function ClimateProjectCivBlock({
   project,
   fundedGbp = 0,
   compact = true,
+  tone = "dark",
 }: {
   project: {
     estimated_co2?: number | null;
@@ -107,6 +156,7 @@ export function ClimateProjectCivBlock({
   };
   fundedGbp?: number;
   compact?: boolean;
+  tone?: ClimateProjectCivTone;
 }) {
   const civ = civForProject(project);
   const stage = deriveProjectLifecycle({ ...project, fundedGbp });
@@ -115,12 +165,16 @@ export function ClimateProjectCivBlock({
   return (
     <>
       {sought > 0 ? (
-        <FundingProgressPanel receivedGbp={fundedGbp} soughtGbp={sought} />
+        <FundingProgressPanel
+          receivedGbp={fundedGbp}
+          soughtGbp={sought}
+          tone={tone}
+        />
       ) : null}
       {tonnes > 0 ? (
-        <CivSummary tonnes={tonnes} pipDays={civ.pipDays} />
+        <CivSummary tonnes={tonnes} pipDays={civ.pipDays} tone={tone} />
       ) : null}
-      <ProjectLifecycleStrip stage={stage} compact={compact} />
+      <ProjectLifecycleStrip stage={stage} compact={compact} tone={tone} />
     </>
   );
 }

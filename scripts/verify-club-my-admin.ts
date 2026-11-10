@@ -185,15 +185,16 @@ assert(
 
 const nav = readFileSync("app/components/club/ClubNav.tsx", "utf8");
 assert(
-  nav.includes('label: "Select Match"') &&
-    nav.includes('label: "Choose Projects"') &&
+  nav.includes("CLUB_HOW_IT_WORKS_LABEL") &&
     nav.includes('label: "My Admin"') &&
     nav.includes("CLUB_ADMIN_PATH") &&
-    nav.includes("CLUB_SELECT_PROJECTS_PATH") &&
     nav.includes("text-base sm:text-lg") &&
+    !nav.includes('label: "Select Match"') &&
+    !nav.includes('label: "Choose Projects"') &&
+    !nav.includes('label: "Sponsors"') &&
     !nav.includes('label: "Dashboard"') &&
     !nav.includes('label: "Climate Projects"'),
-  "Club nav is Select Match, Choose Projects, Sponsors, My Admin"
+  "Club nav is How it works, My Admin, Logout"
 );
 
 const how = readFileSync("app/components/home/HowS4pSelectMatch.tsx", "utf8");
@@ -227,8 +228,8 @@ const listings = readFileSync(
 );
 assert(
   dashboard.includes("HowS4pSelectMatch") &&
-    dashboard.includes("ClubChooseProjectsCopy") &&
-    dashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
+    dashboard.includes("onClubMatchSelected") &&
+    dashboard.includes("CLUB_SELECT_PROJECTS_PATH") &&
     dashboard.includes("hydrateLocalSponsorRecords") &&
     !dashboard.includes("Club Representative") &&
     !dashboard.includes("Start this club afresh") &&

@@ -66,6 +66,7 @@ type SelectMatchState = {
   clubLocked: boolean;
   clubOptions: string[] | null;
   pickerRef: RefObject<HTMLSelectElement | null>;
+  onClubMatchSelected?: (match: HomeUpcomingMatch) => void;
 };
 
 const SelectMatchContext = createContext<SelectMatchState | null>(null);
@@ -130,6 +131,7 @@ export function SelectMatchProvider({
   clubLocked = false,
   clubOptions = null,
   mode = "sponsor",
+  onClubMatchSelected,
 }: {
   active: boolean;
   children: ReactNode;
@@ -137,6 +139,7 @@ export function SelectMatchProvider({
   clubLocked?: boolean;
   clubOptions?: string[] | null;
   mode?: SelectMatchMode;
+  onClubMatchSelected?: (match: HomeUpcomingMatch) => void;
 }) {
   const groups = useMemo(
     () =>
@@ -264,6 +267,7 @@ export function SelectMatchProvider({
       clubLocked,
       clubOptions,
       pickerRef,
+      onClubMatchSelected,
     }),
     [
       groups,
@@ -275,6 +279,7 @@ export function SelectMatchProvider({
       resolvedClub,
       loading,
       error,
+      onClubMatchSelected,
       load,
       mode,
       clubLocked,
@@ -305,6 +310,7 @@ export function SelectMatchPhone({
     loading,
     error,
     mode,
+    onClubMatchSelected,
   } = useSelectMatch();
   const shown = resolvedClub || club;
   const clubList = mode === "club";
@@ -544,7 +550,10 @@ export function SelectMatchPhone({
                           onClick={(event) => {
                             event.stopPropagation();
                             setSelectedMatch(match);
-                            if (mode === "club") persistClubMatch(shown, match);
+                            if (mode === "club") {
+                              persistClubMatch(shown, match);
+                              onClubMatchSelected?.(match);
+                            }
                           }}
                           className={`${rowClass} w-full text-left`}
                           style={{ backgroundColor: "#f3f5f8" }}

@@ -443,6 +443,22 @@ function SentProjectsAccordion({
                       ? (project as ClimateProject).image_url
                       : null,
                   country: project.country,
+                  location:
+                    "location" in project
+                      ? (project as ClimateProject).location
+                      : null,
+                  funding_goal:
+                    "funding_goal" in project
+                      ? (project as ClimateProject).funding_goal
+                      : null,
+                  estimated_co2:
+                    "estimated_co2" in project
+                      ? (project as ClimateProject).estimated_co2
+                      : null,
+                  status:
+                    "status" in project
+                      ? (project as ClimateProject).status
+                      : null,
                 }}
                 badge={badge}
               >

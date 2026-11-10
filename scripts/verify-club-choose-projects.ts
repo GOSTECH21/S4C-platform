@@ -102,10 +102,11 @@ const preview = readFileSync(
 const overlay = readFileSync("apply-club-choose-projects.mjs", "utf8");
 
 assert(
-  dashboard.includes("ClubChooseProjectsCopy") &&
-    dashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
+  dashboard.includes("onClubMatchSelected") &&
     dashboard.includes("clubDashboardProjectsSentCopy") &&
     dashboard.includes("CLUB_SELECT_MATCH_SENT_STAMP") &&
+    !dashboard.includes("ClubChooseProjectsCopy") &&
+    !dashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
     !dashboard.includes("SendInvitationToSponsorsLink") &&
     !dashboard.includes("function ProjectGrid") &&
     !dashboard.includes("CLUB_CHOOSE_PROJECTS_STEPS") &&
@@ -114,12 +115,14 @@ assert(
     !dashboard.includes("<ClubClimateSponsorTabs") &&
     !dashboard.includes("Our Climate Sponsors") &&
     !dashboard.includes("Open Sponsors listings"),
-  "Dashboard drops the bold Select Climate Projects heading, numbered steps, and Brands Our Climate Sponsors"
+  "Dashboard is Select Match only; Choose Projects starts after the fixture is picked"
 );
 assert(
   chooser.includes("clubDashboardClimateProjectsIntroCopy") &&
+    picker.includes("ClubChooseProjectsCopy") &&
     picker.includes("ClubClimateProjectScopeChooser") &&
     picker.includes("ClubClimateProjectScopeTabs") &&
+    picker.includes("listOpen") &&
     picker.includes("SEND_INVITATION_LABEL") &&
     picker.includes("CLUB_SPONSORS_ADDRESS_BOOKS_PATH") &&
     picker.includes("ClimatePartnerSupplyCard") &&
@@ -143,7 +146,7 @@ assert(
     overlay.includes("Working folder:") &&
     overlay.includes('rmSync(".next"') &&
     overlay.includes("S4P_OVERLAY_SELF") &&
-    dashboard.includes("club-choose-projects-scopes-v1"),
+    picker.includes("club-choose-projects-scopes-v1"),
   "PC overlay pulls the shortened Choose Projects flow and clears the Next.js cache"
 );
 

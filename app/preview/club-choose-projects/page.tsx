@@ -12,6 +12,7 @@ import {
   CLUB_ADDRESS_BOOKS_ID,
   CLUB_SELECT_PROJECTS_PATH,
 } from "@/app/lib/routes";
+import { CLUB_CHOOSE_PROJECTS_HEADING } from "@/app/lib/club-how-it-works";
 import {
   SELECT_CLIMATE_PROJECTS_LABEL,
   SEND_INVITATION_LABEL,
@@ -30,8 +31,9 @@ import {
 const LISTS = climateProjectListsForClub("Everton", "England");
 
 export default function ClubChooseProjectsPreviewPage() {
-  const [open, setOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
   const [scope, setScope] = useState<ClimateProjectScope | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,16 +43,15 @@ export default function ClubChooseProjectsPreviewPage() {
       requested === "national" ||
       requested === "international"
     ) {
-      setOpen(true);
       setScope(requested);
-      return;
+      if (params.get("open") === "1") setListOpen(true);
     }
-    if (params.get("open") === "1") setOpen(true);
   }, []);
 
-  const visible = scope
-    ? climateProjectsForScope(scope, LISTS).slice(0, 6)
-    : [];
+  const visible =
+    listOpen && scope
+      ? climateProjectsForScope(scope, LISTS).slice(0, 6)
+      : [];
 
   return (
     <main className="min-h-screen p-4 text-white sm:p-10">
@@ -59,57 +60,78 @@ export default function ClubChooseProjectsPreviewPage() {
         <section className="mt-8 rounded-3xl border border-slate-700 bg-slate-900 p-10">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-              Choose Projects
+              {CLUB_CHOOSE_PROJECTS_HEADING}
             </p>
             <div className="mx-auto mt-6 max-w-3xl text-left">
               <ClubChooseProjectsCopy />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
-          >
-            {SELECT_CLIMATE_PROJECTS_LABEL}
-          </button>
-        </section>
-
-        {open && scope === null ? (
-          <ClubClimateProjectScopeChooser onChoose={setScope} />
-        ) : null}
-
-        {open && scope ? (
-          <section className="mt-8">
-            <p className="font-bold">{climateProjectScopeHeading(scope)}</p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {visible.map((project) => (
-                <ClimatePartnerSupplyCard
-                  key={project.name}
-                  project={{
-                    id: project.name,
-                    name: project.name,
-                    description: project.description,
-                    category: project.category,
-                    image_url: null,
-                    location: project.location,
-                    country: project.country,
-                  }}
-                  badge={climatePartnerSupplyBadge(scope)}
-                />
-              ))}
-            </div>
-            <ClubClimateProjectScopeTabs current={scope} onChoose={setScope} />
-            <Link
-              href={`/preview/club-sponsors-address-books#${CLUB_ADDRESS_BOOKS_ID}`}
-              className="mt-10 block w-full rounded-xl bg-green-500 py-4 text-center text-lg font-bold text-slate-950"
-            >
-              {SEND_INVITATION_LABEL}
-            </Link>
-            <p className="mt-3 text-sm text-slate-400">
-              Live path: {CLUB_SELECT_PROJECTS_PATH}
+          {error ? (
+            <p className="mt-6 text-center text-sm font-semibold text-red-300">
+              {error}
             </p>
-          </section>
-        ) : null}
+          ) : null}
+          {!(listOpen && scope) ? (
+            <>
+              <ClubClimateProjectScopeChooser
+                selected={scope}
+                onChoose={(next) => {
+                  setError(null);
+                  setScope(next);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!scope) {
+                    setError(
+                      "Choose Local, National or International Projects."
+                    );
+                    return;
+                  }
+                  setError(null);
+                  setListOpen(true);
+                }}
+                className="mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
+              >
+                {SELECT_CLIMATE_PROJECTS_LABEL}
+              </button>
+            </>
+          ) : (
+            <section className="mt-8">
+              <p className="font-bold">{climateProjectScopeHeading(scope)}</p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {visible.map((project) => (
+                  <ClimatePartnerSupplyCard
+                    key={project.name}
+                    project={{
+                      id: project.name,
+                      name: project.name,
+                      description: project.description,
+                      category: project.category,
+                      image_url: null,
+                      location: project.location,
+                      country: project.country,
+                      funding_goal: project.funding_goal,
+                      estimated_co2: project.estimated_co2,
+                    }}
+                    badge={climatePartnerSupplyBadge(scope)}
+                  />
+                ))}
+              </div>
+              <ClubClimateProjectScopeTabs current={scope} onChoose={setScope} />
+              <Link
+                href={`/preview/club-sponsors-address-books#${CLUB_ADDRESS_BOOKS_ID}`}
+                className="mt-10 block w-full rounded-xl bg-green-500 py-4 text-center text-lg font-bold text-slate-950"
+              >
+                {SEND_INVITATION_LABEL}
+              </Link>
+              <p className="mt-3 text-sm text-slate-400">
+                Live path: {CLUB_SELECT_PROJECTS_PATH}
+              </p>
+            </section>
+          )}
+        </section>
       </div>
     </main>
   );

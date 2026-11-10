@@ -17,11 +17,9 @@ import { chosenFeaturedProject } from "@/app/lib/featured-gss";
 import { isFeaturedClimateProject } from "@/app/services/votes.service";
 import {
   CLUB_SELECT_MATCH_SENT_STAMP,
-  SELECT_CLIMATE_PROJECTS_LABEL,
   clubDashboardProjectsSentCopy,
   matchDayInvitationSent,
 } from "@/app/lib/partner-projects";
-import ClubChooseProjectsCopy from "@/app/components/club/ClubChooseProjectsCopy";
 import {
   CLUB_ADMIN_PATH,
   CLUB_LOGIN_PATH,
@@ -175,41 +173,23 @@ export default function ClubDashboardPage() {
           initialClub={club.name}
           clubLocked
           className="mb-10"
+          onClubMatchSelected={() => router.push(CLUB_SELECT_PROJECTS_PATH)}
         />
-
-        <section className="mt-12 rounded-3xl border border-slate-700 bg-slate-900 p-10">
-          {/* club-choose-projects-scopes-v1 */}
-          <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-              Choose Projects
-            </p>
-            <div className="mx-auto mt-6 max-w-3xl text-left">
-              <ClubChooseProjectsCopy />
-            </div>
-          </div>
-
-          <Link
-            href={CLUB_SELECT_PROJECTS_PATH}
-            className="mt-10 block w-full rounded-xl bg-blue-600 py-4 text-center text-lg font-bold text-white hover:bg-blue-500"
+        {projectsSent ? (
+          <p
+            data-select-match-sent={CLUB_SELECT_MATCH_SENT_STAMP}
+            className="mt-6 text-center text-sm font-semibold text-green-300"
           >
-            {SELECT_CLIMATE_PROJECTS_LABEL}
-          </Link>
-          {projectsSent ? (
-            <p
-              data-select-match-sent={CLUB_SELECT_MATCH_SENT_STAMP}
-              className="mt-6 text-center text-sm font-semibold text-green-300"
-            >
-              {clubDashboardProjectsSentCopy()}{" "}
-              <Link href={CLUB_ADMIN_PATH} className="underline">
-                My Admin
-              </Link>
-              {" · "}
-              <Link href={CLUB_SPONSORS_PATH} className="underline">
-                Sponsors
-              </Link>
-            </p>
-          ) : null}
-        </section>
+            {clubDashboardProjectsSentCopy()}{" "}
+            <Link href={CLUB_ADMIN_PATH} className="underline">
+              My Admin
+            </Link>
+            {" · "}
+            <Link href={CLUB_SPONSORS_PATH} className="underline">
+              Sponsors
+            </Link>
+          </p>
+        ) : null}
       </div>
     </main>
   );

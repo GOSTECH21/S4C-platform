@@ -656,8 +656,8 @@ assert(
 assert(
   !clubDashboard.includes("<ClubClimateSponsorTabs") &&
     !clubDashboard.includes("Our Climate Sponsors") &&
-    clubDashboard.includes("ClubChooseProjectsCopy") &&
-    clubDashboard.includes("SELECT_CLIMATE_PROJECTS_LABEL") &&
+    clubDashboard.includes("onClubMatchSelected") &&
+    clubDashboard.includes("CLUB_SELECT_PROJECTS_PATH") &&
     !clubDashboard.includes("MatchDayFolderPanel") &&
     !clubDashboard.includes("Signed copy of the sponsorship") &&
     !clubDashboard.includes("Voted-For Projects") &&
@@ -673,7 +673,7 @@ assert(
     clubDashboard.includes("matchDayInvitationSent") &&
     !clubDashboard.includes("function ProjectGrid") &&
     !clubDashboard.includes("SendInvitationToSponsorsLink"),
-  "Club dashboard keeps Choose Projects without dumping the sent project cards on Select Match"
+  "Club dashboard is Select Match first; Choose Projects opens after the fixture is picked"
 );
 assert(
   clubDashboardChosenProjectsCopy().includes("Select 1 Global Schools Solar") &&
