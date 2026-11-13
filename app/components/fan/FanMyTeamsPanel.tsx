@@ -12,7 +12,7 @@ import {
   type TeamGroup,
   type TeamOption,
 } from "@/app/services/teams.service";
-import { getOrCreateSupporter } from "@/app/services/votes.service";
+import { getOrCreateSupporter } from "@/app/services/fan-session.service";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
 import { CURRENT_SEASON } from "@/app/lib/current-season";
 import {

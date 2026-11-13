@@ -5,7 +5,7 @@ import HowS4pPredictForPlanet from "@/app/components/home/HowS4pPredictForPlanet
 import { PredictForPlanetPlay } from "@/app/components/fan/PredictForPlanetPlay";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
 import { P4P_FALLBACK_PROJECTS } from "@/app/lib/predict-for-planet";
-import { getOrCreateSupporter } from "@/app/services/votes.service";
+import { getOrCreateSupporter } from "@/app/services/fan-session.service";
 import { getSupportedTeams } from "@/app/services/teams.service";
 import {
   fanVisibleProjects,
@@ -27,21 +27,25 @@ export default function PredictForPlanetPage() {
           return;
         }
         setFanId(supporter.email || supporter.id || "fan");
-        const teams = await getSupportedTeams(supporter);
-        const clubs = teams
-          .map((team) => team.name || team.displayName)
-          .filter((name): name is string => Boolean(name?.trim()));
-        setPreferredClubNames(clubs);
-        const club = clubs[0];
-        if (club) {
-          const folder = visibleMatchDayFolderForClub({
-            clubId: teams[0]?.id,
-            clubName: club,
-          });
-          const listed = fanVisibleProjects(folder, teams[0]?.id ?? null);
-          if (listed.length > 0) {
-            setProjects(listed.map((row) => row.name));
+        try {
+          const teams = await getSupportedTeams(supporter);
+          const clubs = teams
+            .map((team) => team.name || team.displayName)
+            .filter((name): name is string => Boolean(name?.trim()));
+          setPreferredClubNames(clubs);
+          const club = clubs[0];
+          if (club) {
+            const folder = visibleMatchDayFolderForClub({
+              clubId: teams[0]?.id,
+              clubName: club,
+            });
+            const listed = fanVisibleProjects(folder, teams[0]?.id ?? null);
+            if (listed.length > 0) {
+              setProjects(listed.map((row) => row.name));
+            }
           }
+        } catch {
+          // Stay on P4P with fallback clubs/projects rather than bouncing to login.
         }
       } catch {
         window.location.href = FAN_LOGIN_PATH;

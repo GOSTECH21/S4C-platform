@@ -14,7 +14,10 @@ import {
   currentSponsorshipAmount,
   formatMatchHeadline,
 } from "../lib/sponsorship-auction";
-import { expandFeaturedGssVersions, isFeaturedGssName } from "../lib/featured-gss";
+import {
+  expandFeaturedGssVersions,
+  isFeaturedClimateProject,
+} from "../lib/featured-gss";
 import { MATCH_DAY_CHOICE_COUNT } from "../lib/partner-projects";
 import { FUND_IT_MAX_TIMES } from "../lib/sponsor-wallet";
 import { seasonNamesMatch } from "../lib/current-season";
@@ -41,22 +44,21 @@ import {
   retainVoteCampaignId,
   voteRowsForInsert,
 } from "../lib/fan-votes";
-import { resolvedFullName } from "../lib/s4p-admin";
 import {
   resolveVotingWindow,
   parseFixtureKickoff,
 } from "../lib/voting-window";
-import { identifySignedInKind } from "./signed-in-role.service";
-import { isFanFacingKind } from "../lib/signed-in-role";
 import {
   chosenMatchesForClub,
   leadSponsorBrandForFixture,
   nextFanMatchForClub,
 } from "../lib/climate-sponsors";
 import { listGoalNetworks, listMatchDayLocks } from "./climate-sponsors.service";
-import { getPublishedFixturesForClub } from "./next-fixtures.service";
-import { fixturesFromUpcoming } from "../lib/club-fixtures";
 import { resolveFanMatchVenue } from "../lib/fan-match-meta";
+import type { Supporter } from "./fan-session.service";
+
+export { isFeaturedClimateProject } from "../lib/featured-gss";
+export { getOrCreateSupporter, type Supporter } from "./fan-session.service";
 
 export type ClimateProject = {
   id: string;
@@ -70,14 +72,6 @@ export type ClimateProject = {
   status: string | null;
   featured?: boolean | null;
   location?: string | null;
-};
-
-export type Supporter = {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  auth_user_id: string | null;
-  favourite_club_id?: string | null;
 };
 
 const PROJECT_FIELDS =
@@ -108,13 +102,6 @@ function throwIfQueryError(error: unknown, fallback: string) {
   const err = new Error(message);
   (err as Error & { code?: string }).code = code;
   throw err;
-}
-
-export function isFeaturedClimateProject(
-  project: Pick<ClimateProject, "name" | "featured">
-): boolean {
-  if (isFeaturedGssName(project.name)) return true;
-  return Boolean(project.featured);
 }
 
 export async function getFeaturedClimateProjects(): Promise<ClimateProject[]> {
@@ -340,93 +327,6 @@ async function createVoteFixtureId(clubId: string): Promise<string | null> {
     .select("id")
     .single();
   return fixture.data?.id ?? null;
-}
-
-function metadataFullName(user: {
-  email?: string | null;
-  user_metadata?: { full_name?: string; first_name?: string; last_name?: string };
-}) {
-  const meta = user.user_metadata;
-  const combined = `${meta?.first_name ?? ""} ${meta?.last_name ?? ""}`.trim();
-  return (
-    meta?.full_name?.trim() ||
-    combined ||
-    undefined
-  );
-}
-
-async function supporterWithResolvedName(
-  row: Supporter,
-  user: { email?: string | null; user_metadata?: { full_name?: string; first_name?: string; last_name?: string } }
-): Promise<Supporter> {
-  const fullName = resolvedFullName(
-    row.full_name,
-    row.email ?? user.email,
-    metadataFullName(user)
-  );
-  if (!fullName || fullName === row.full_name) return row;
-  await supabase.from("supporters").update({ full_name: fullName }).eq("id", row.id);
-  return { ...row, full_name: fullName };
-}
-
-/**
- * Resolve the supporter row for the currently authenticated user, creating a
- * minimal one on first use. Registration only creates a `profiles` row, so a
- * fan may not yet have a `supporters` record when they first vote.
- */
-export async function getOrCreateSupporter(): Promise<Supporter | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const kind = await identifySignedInKind();
-  if (kind && !isFanFacingKind(kind)) return null;
-
-  const byAuthId = await supabase
-    .from("supporters")
-    .select("id, full_name, email, auth_user_id, favourite_club_id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (byAuthId.data) return supporterWithResolvedName(byAuthId.data, user);
-
-  if (user.email) {
-    const byEmail = await supabase
-      .from("supporters")
-      .select("id, full_name, email, auth_user_id, favourite_club_id")
-      .eq("email", user.email)
-      .maybeSingle();
-
-    if (byEmail.data) {
-      if (!byEmail.data.auth_user_id) {
-        await supabase
-          .from("supporters")
-          .update({ auth_user_id: user.id })
-          .eq("id", byEmail.data.id);
-      }
-      return supporterWithResolvedName(
-        { ...byEmail.data, auth_user_id: user.id },
-        user
-      );
-    }
-  }
-
-  const created = await supabase
-    .from("supporters")
-    .insert({
-      full_name: metadataFullName(user) || "Supporter",
-      email: user.email,
-      auth_user_id: user.id,
-      notification_enabled: true,
-    })
-    .select("id, full_name, email, auth_user_id, favourite_club_id")
-    .single();
-
-  if (created.error) throw created.error;
-
-  return created.data;
 }
 
 /** Projects this supporter has voted for, plus those votes that have been funded. */
@@ -945,17 +845,44 @@ type AuctionSettings = {
   brandExposures: number;
 };
 
+async function publishedClubFixtures(clubName: string): Promise<
+  Array<{
+    fixtureName: string;
+    date: string;
+    kickoff: string | null;
+    venue: string | null;
+  }>
+> {
+  try {
+    const res = await fetch(
+      `/api/sponsor/club-fixtures?club=${encodeURIComponent(clubName)}`
+    );
+    if (!res.ok) return [];
+    const json = (await res.json()) as {
+      fixtures?: Array<{
+        fixtureName?: string;
+        date?: string;
+        kickoff?: string | null;
+        venue?: string | null;
+      }>;
+    };
+    return (json.fixtures ?? [])
+      .filter((row) => Boolean(row.fixtureName && row.date))
+      .map((row) => ({
+        fixtureName: String(row.fixtureName),
+        date: String(row.date),
+        kickoff: row.kickoff ?? null,
+        venue: row.venue ?? null,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 async function applyNextFanMatchHeadline(
   campaign: S4PCampaign
 ): Promise<S4PCampaign> {
-  let published: ReturnType<typeof fixturesFromUpcoming> = [];
-  try {
-    published = fixturesFromUpcoming(
-      await getPublishedFixturesForClub(campaign.clubName)
-    );
-  } catch {
-    published = [];
-  }
+  const published = await publishedClubFixtures(campaign.clubName);
   const next = nextFanMatchForClub({
     clubName: campaign.clubName,
     signedOff: listMatchDayLocks().flatMap((lock) =>

@@ -58,11 +58,9 @@ import { sponsorLogoSrc } from "./teams.service";
 import {
   chosenFeaturedProject,
   expandFeaturedGssVersions,
-} from "../lib/featured-gss";
-import {
   isFeaturedClimateProject,
-  type ClimateProject,
-} from "./votes.service";
+} from "../lib/featured-gss";
+import type { ClimateProject } from "./votes.service";
 import {
   clubShouldStartBlank,
   markClubSelectionLive,

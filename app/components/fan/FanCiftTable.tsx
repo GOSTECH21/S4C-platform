@@ -7,7 +7,7 @@ import {
   type ImpactTableRow,
 } from "@/app/lib/s4p-impact-tables";
 import { FAN_LOGIN_PATH } from "@/app/lib/routes";
-import { getOrCreateSupporter } from "@/app/services/votes.service";
+import { getOrCreateSupporter } from "@/app/services/fan-session.service";
 import { loadFanCiftRows } from "@/app/services/s4p-impact-tables.service";
 
 const meta = impactTableMeta("cift");

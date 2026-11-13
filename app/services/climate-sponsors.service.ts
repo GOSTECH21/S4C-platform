@@ -51,7 +51,7 @@ import { isExampleLocalBrand } from "../lib/match-day-branding";
 import {
   canAddGlobalPick,
   type GlobalMatchPick,
-} from "../lib/global-match-day";
+} from "../lib/global-match-picks";
 import {
   allLocalSponsors,
   submittedLocalSponsorsForClub,

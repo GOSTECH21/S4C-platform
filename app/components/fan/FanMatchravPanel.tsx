@@ -53,7 +53,7 @@ import {
   type MatchravTrip,
 } from "@/app/lib/matchrav-journey";
 import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
-import { getOrCreateSupporter } from "@/app/services/votes.service";
+import { getOrCreateSupporter } from "@/app/services/fan-session.service";
 import { getSupportedTeams } from "@/app/services/teams.service";
 import {
   clubIsHome,

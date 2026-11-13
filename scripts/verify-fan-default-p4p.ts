@@ -63,6 +63,12 @@ assert(
   "Logged-in fan P4P does not arm a Climate Projects hand-off"
 );
 
+assert(
+  predictPage.includes("fan-session.service") &&
+    !predictPage.includes("votes.service"),
+  "Logged-in fan P4P loads the supporter session without the votes/fixtures module"
+);
+
 if (failures.length > 0) {
   console.error("verify-fan-default-p4p failed:");
   for (const failure of failures) console.error(`- ${failure}`);
