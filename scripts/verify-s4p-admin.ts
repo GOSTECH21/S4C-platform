@@ -288,9 +288,9 @@ assert(
 
 assert(
   /from ["']\.\.\/lib\/s4p-admin["']/.test(
-    readFileSync("app/services/votes.service.ts", "utf8")
+    readFileSync("app/services/fan-session.service.ts", "utf8")
   ) &&
-    readFileSync("app/services/votes.service.ts", "utf8").includes(
+    readFileSync("app/services/fan-session.service.ts", "utf8").includes(
       "resolvedFullName"
     ),
   "My Teams can resolve the supporter name"

@@ -26,10 +26,6 @@ import {
   formatKickoff,
   formatMatchDate,
 } from "@/app/lib/upcoming-matches";
-import {
-  loadClubSession,
-  rememberClubSelectedMatch,
-} from "@/app/services/club-match-day.service";
 
 const MARK_GREEN = "#5bc662";
 const MINT = "#0c5c2c";
@@ -95,21 +91,24 @@ function clubInitials(name: string) {
 }
 
 function persistClubMatch(club: string, match: HomeUpcomingMatch) {
-  void loadClubSession().then((session) => {
-    const payload = {
-      matchId: match.id,
-      fixtureName: match.fixtureName,
-      league: match.league,
-      date: match.date,
-      kickoff: match.kickoff,
-      venue: match.venue,
-    };
-    rememberClubSelectedMatch(
-      session?.club.id ?? club,
-      session?.club.name ?? club,
-      payload
-    );
-  });
+  void import("@/app/services/club-match-day.service").then(
+    ({ loadClubSession, rememberClubSelectedMatch }) => {
+      void loadClubSession().then((session) => {
+        rememberClubSelectedMatch(
+          session?.club.id ?? club,
+          session?.club.name ?? club,
+          {
+            matchId: match.id,
+            fixtureName: match.fixtureName,
+            league: match.league,
+            date: match.date,
+            kickoff: match.kickoff,
+            venue: match.venue,
+          }
+        );
+      });
+    }
+  );
 }
 
 export function useOptionalSelectMatch() {

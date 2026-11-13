@@ -3,15 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   getMyS4PCampaigns,
-  getOrCreateSupporter,
   getVotedProjectIds,
   markPortfolioProjectsVoted,
   submitCampaignVotes,
   describeDataError,
   type CampaignProject,
   type S4PCampaign,
-  type Supporter,
 } from "@/app/services/votes.service";
+import {
+  getOrCreateSupporter,
+  type Supporter,
+} from "@/app/services/fan-session.service";
 import {
   getSupportedTeams,
   sponsorLogoSrc,

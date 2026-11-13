@@ -30,7 +30,7 @@ export default function VotePage() {
     if (donateFunding !== true) return;
     async function guard() {
       const { getOrCreateSupporter } = await import(
-        "@/app/services/votes.service"
+        "@/app/services/fan-session.service"
       );
       const supporter = await getOrCreateSupporter();
       if (!supporter) window.location.href = FAN_LOGIN_PATH;

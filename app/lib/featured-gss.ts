@@ -9,6 +9,14 @@ export function isFeaturedGssName(name: string | null | undefined): boolean {
   return /global\s+schools\s+solar/i.test((name ?? "").trim());
 }
 
+export function isFeaturedClimateProject(project: {
+  name?: string | null;
+  featured?: boolean | null;
+}): boolean {
+  if (isFeaturedGssName(project.name)) return true;
+  return Boolean(project.featured);
+}
+
 export function isFeaturedGssLocalName(name: string | null | undefined): boolean {
   const value = name ?? "";
   return (

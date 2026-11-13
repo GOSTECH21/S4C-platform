@@ -26,7 +26,7 @@ export default function FanNav() {
         await Promise.all([
           import("@/app/lib/supabase"),
           import("@/app/services/signed-in-role.service"),
-          import("@/app/services/votes.service"),
+          import("@/app/services/fan-session.service"),
         ]);
       const {
         data: { user },
