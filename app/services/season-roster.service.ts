@@ -26,6 +26,9 @@ type CompetitionRow = {
 let syncPromise: Promise<void> | null = null;
 
 export function ensureCurrentSeasonRoster(): Promise<void> {
+  // Fan tabs (especially My S4P) import this module. Syncing here would
+  // download the whole fixtures table and delete rows from the phone.
+  if (typeof window !== "undefined") return Promise.resolve();
   if (!syncPromise) {
     syncPromise = syncCurrentSeasonRoster().catch((error) => {
       syncPromise = null;

@@ -57,10 +57,13 @@ export default function TeamPicker({
     onChange([...selected, team]);
   }
 
-  const sportGroups = filtered.map((group) => {
-    const category = sportCategory(group.sport);
-    const leagueCount = group.competitions.length;
-    return (
+  const sportGroups =
+    catalogAccordion && !query.trim() && !browseOpen
+      ? null
+      : filtered.map((group) => {
+          const category = sportCategory(group.sport);
+          const leagueCount = group.competitions.length;
+          return (
       <details
         key={`${group.sport}:${query.trim() ? "search" : "browse"}`}
         data-sport-accordion="sport-accordion-v1"
@@ -165,7 +168,9 @@ export default function TeamPicker({
               Football, Rugby, NFL, NBA, Cricket
             </span>
           </summary>
-          <div className="mt-6 space-y-6">{sportGroups}</div>
+          <div className="mt-6 space-y-6">
+            {query.trim() || browseOpen ? sportGroups : null}
+          </div>
         </details>
       ) : (
         <div className="mt-6 space-y-6">{sportGroups}</div>

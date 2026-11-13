@@ -47,6 +47,7 @@ export default function FanMyTeamsPanel() {
         if (teams.length > 0) {
           setHasSavedTeams(true);
           setSavedOpen(false);
+          setEditing(false);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load teams.");

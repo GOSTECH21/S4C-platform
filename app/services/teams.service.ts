@@ -189,7 +189,6 @@ export function fanRegisterCatalog(): TeamGroup[] {
 export async function loadFanRegisterCatalog(): Promise<TeamGroup[]> {
   const catalog = fanRegisterCatalog();
   try {
-    await ensureCurrentSeasonRoster();
     const { data, error } = await supabase
       .from("clubs")
       .select("id, name, competition_id, competitions ( name, sports ( name ) )")
