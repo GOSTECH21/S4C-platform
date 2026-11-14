@@ -11,11 +11,6 @@ function assert(condition: boolean, message: string) {
 
 const banner = readFileSync("app/components/home/HomeTopBanner.tsx", "utf8");
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
-const intro = banner.slice(
-  banner.indexOf("data-home-mobile-intro"),
-  banner.indexOf("<HeadlineAndFeatures")
-);
-
 assert(
   HOME_JOIN_COMMUNITY_LABEL === "Join the Community" &&
     HOME_JOIN_COMMUNITY_HREF === "#are-you",
@@ -23,20 +18,21 @@ assert(
 );
 
 assert(
-  !intro.includes("JoinRoleTabs") &&
-    intro.includes("SportClusterImage") &&
-    banner.includes("JoinRoleTabs") &&
-    banner.includes("hidden min-w-0 md:block"),
-  "Fan and Sports Clubs tabs sit under the desktop sports banner only"
+  banner.includes("SportClusterImage") &&
+    banner.includes("FirstBlock") &&
+    !banner.includes("JoinRoleTabs") &&
+    !banner.includes("Join as a Fan") &&
+    !banner.includes("For Sports Clubs"),
+  "The first homepage block no longer duplicates Fan and Sports Clubs tabs"
 );
 
 assert(
   banner.includes('data-join-community="join-community-v1"') &&
     banner.includes("HOME_JOIN_COMMUNITY_LABEL") &&
-    banner.includes("md:hidden") &&
     banner.includes("onJoinCommunity") &&
-    banner.includes("HOME_JOIN_COMMUNITY_HREF"),
-  "Join the Community sits under the global sports copy on mobile"
+    banner.includes("HOME_JOIN_COMMUNITY_HREF") &&
+    !banner.includes("hover:brightness-110 md:hidden"),
+  "Join the Community sits under the global sports copy on every screen"
 );
 
 assert(

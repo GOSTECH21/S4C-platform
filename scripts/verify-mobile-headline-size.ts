@@ -21,9 +21,7 @@ assert(
 assert(
   join.includes('id="club-director-heading"') &&
     join.includes("text-[1.45rem]") &&
-    join.includes(
-      "Turn Match Day Scores into sponsorship for Climate Projects"
-    ) &&
+    join.includes("HOME_CLUB_HEADING") &&
     join.includes("sm:text-4xl"),
   "Match Day Scores heading is smaller on mobile and unchanged from sm up"
 );

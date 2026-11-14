@@ -11,13 +11,12 @@ const roles = readFileSync("app/components/home/HomeRoleSection.tsx", "utf8");
 const clubs = HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs");
 
 assert(
-  banner.includes(
-    "We help your club address match-day carbon emissions & fund meaningful"
-  ) &&
-    banner.includes("global brands, local businesses & supporters") &&
+  banner.includes("HOME_MOBILE_SUPPORT") &&
+    banner.includes("passion into progress") &&
+    !banner.includes("We help your club address match-day carbon emissions") &&
     !banner.includes("We help your team to offset its Match Day carbon emissions") &&
     !banner.includes("Global Brands & Businesses"),
-  "Homepage support line uses the club, brands, local businesses and supporters copy"
+  "Homepage support line uses the shorter togetherness copy"
 );
 
 assert(

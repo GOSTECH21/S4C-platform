@@ -1,13 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 import {
+  HOME_CLUB_CTA,
+  HOME_CLUB_HEADING,
+  HOME_CLUB_IMAGE,
+  HOME_CLUB_KICKER,
+  HOME_CLUB_POINTS,
+  HOME_CLUB_STAMP,
+  HOME_CLUB_SUPPORT,
+} from "@/app/lib/home-hero";
+import {
   EXPLORE_MATCHRAV_LABEL,
-  FAN_JOIN_BODY,
+  FAN_FUNDING_HEADING,
+  FAN_FUNDING_POINTS,
   FAN_JOIN_HEADING,
   FAN_JOIN_KICKER,
   FAN_PRODUCT_TABS,
+  FAN_WAYS_HEADING,
   JOIN_S4P_FREE_LABEL,
   MATCHRAV_EXPLORE_HREF,
   MATCHRAV_NAME,
@@ -22,6 +34,7 @@ import {
 } from "@/app/lib/routes";
 
 const MINT = "#0c5c2c";
+const MARK_GREEN = "#5bc662";
 const TAB_BG = "rgba(12, 92, 44, 0.08)";
 const TAB_BG_ACTIVE = "rgba(12, 92, 44, 0.16)";
 
@@ -88,6 +101,7 @@ export function FanJoinPanel({ compact = false }: { compact?: boolean }) {
           id="matchrav"
           aria-labelledby="fan-join-heading"
           data-fan-join-copy={MATCHRAV_STAMP}
+          data-home-block="home-block-3"
           data-play-p4p-fan-login="play-p4p-fan-login-v1"
           className={`s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 shadow-sm ${
             compact
@@ -107,14 +121,17 @@ export function FanJoinPanel({ compact = false }: { compact?: boolean }) {
           >
             {FAN_JOIN_HEADING}
           </h2>
-          <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-            {FAN_JOIN_BODY}
+          <p
+            data-fan-ways-heading="three-ways-v1"
+            className="mt-6 text-center text-lg font-black uppercase tracking-tight sm:text-xl"
+          >
+            {FAN_WAYS_HEADING}
           </p>
           <div
             role="tablist"
             aria-label={`${MATCHRAV_NAME}, P4P and S4P`}
             data-fan-join-tabs={MATCHRAV_STAMP}
-            className="mt-8 grid grid-cols-3 gap-2"
+            className="mt-4 grid grid-cols-3 gap-2"
           >
             {FAN_PRODUCT_TABS.map((tab) => {
               const selected = selectedTab === tab.id;
@@ -173,6 +190,17 @@ export function FanJoinPanel({ compact = false }: { compact?: boolean }) {
               {PLAY_P4P_LABEL}
             </a>
           </div>
+          <h3
+            data-fan-funding-heading="funding-goes-v1"
+            className="mt-8 text-center text-lg font-black uppercase leading-tight tracking-tight sm:text-xl"
+          >
+            {FAN_FUNDING_HEADING}
+          </h3>
+          <ul className="mt-4 list-disc space-y-3 pl-5 text-sm font-semibold leading-6 sm:text-base sm:leading-7">
+            {FAN_FUNDING_POINTS.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
         </article>
   );
 }
@@ -187,37 +215,59 @@ export default function HomeJoinMission() {
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
         <article
           aria-labelledby="club-director-heading"
-          data-club-director-copy="club-sponsorship-copy-v1"
-          className="s4p-navy-panel rounded-[1.75rem] border border-emerald-400/30 px-6 py-8 shadow-sm sm:px-10 sm:py-9"
+          data-club-director-copy={HOME_CLUB_STAMP}
+          data-home-block="home-block-2"
+          className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-4 py-5 shadow-sm sm:px-8 sm:py-8"
         >
+          <Image
+            src={HOME_CLUB_IMAGE}
+            alt="A packed stadium under floodlights at night"
+            width={1600}
+            height={900}
+            className="h-auto w-full rounded-[1.25rem] object-cover"
+            unoptimized
+            priority
+          />
           <p
-            className="text-xs font-black uppercase tracking-[0.22em]"
+            className="mt-5 text-xs font-black uppercase tracking-[0.22em]"
             style={{ color: MINT }}
           >
-            For club sustainability &amp; commercial directors
+            {HOME_CLUB_KICKER}
           </p>
           <h2
             id="club-director-heading"
             className="mt-3 text-[1.45rem] font-black uppercase leading-snug tracking-tight sm:text-4xl"
           >
-            Turn Match Day Scores into sponsorship for Climate Projects
+            {HOME_CLUB_HEADING}
           </h2>
           <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-            Give your club a new way to engage supporters, attract global and
-            local sponsors, fund approved climate projects and demonstrate
-            measurable progress.
+            {HOME_CLUB_SUPPORT}
           </p>
-          <p className="mt-4 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-            From scoring moments to live fan predictions, S4P creates new
-            commercial opportunities around every match.
-          </p>
+          <ul className="mt-5 space-y-3">
+            {HOME_CLUB_POINTS.map((point) => (
+              <li key={point} className="flex items-start gap-3">
+                <span
+                  className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                  style={{ borderColor: MARK_GREEN, color: MARK_GREEN }}
+                  aria-hidden
+                >
+                  <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.4">
+                    <path d="M3.2 8.4 6.1 11.2 12.8 4.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <span className="text-sm font-semibold leading-6 sm:text-base">
+                  {point}
+                </span>
+              </li>
+            ))}
+          </ul>
           <a
             href={CLUB_REGISTER_PATH}
             onClick={(event) => hardNavigateOnClick(CLUB_REGISTER_PATH, event)}
             data-club-cta="club-cta-one-line-v1"
             className="mt-8 flex w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-full bg-s4p-mark px-3 py-3.5 text-[0.72rem] font-black uppercase tracking-[0.06em] text-black hover:brightness-110 sm:px-6 sm:py-4 sm:text-base sm:tracking-[0.18em]"
           >
-            Explore club partnership <span aria-hidden> →</span>
+            {HOME_CLUB_CTA} <span aria-hidden> →</span>
           </a>
         </article>
 

@@ -12,6 +12,13 @@ export const MATCHRAV_PREVIEW_PATH = "/preview/matchrav";
 
 export const FAN_JOIN_KICKER = "Every fan counts";
 export const FAN_JOIN_HEADING = "Support your team. Help fund climate action.";
+export const FAN_WAYS_HEADING = "Three ways to participate";
+export const FAN_FUNDING_HEADING = "You choose where the funding goes";
+export const FAN_FUNDING_POINTS = [
+  "S4P Scoring Moments & Predict-4-Planet (P4P) correct predictions can unlock sponsor-funded climate contributions.",
+  "Fans donate contributions to local, national or international club-approved climate projects subject to club's selected projects sponsorship agreements",
+  "Matchrav helps supporters explore lower-emission travel options to mitigate Club's Match-Day emissions.",
+] as const;
 export const FAN_JOIN_BODY =
   "Match-day travel is an important part of a club's carbon footprint. Supporter travel can be one of the largest contributors to a club's match-day carbon footprint. Help them address Match Day emissions. Join S4P for free, use Matchrav to plan smarter, lower-emission journeys, and play P4P to unlock sponsor-funded contributions towards your club's climate projects.";
 

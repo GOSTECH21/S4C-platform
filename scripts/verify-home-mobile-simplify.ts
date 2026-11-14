@@ -20,7 +20,7 @@ const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 
 assert(
   HOME_MOBILE_HEADLINE === "EVERY SCORE COUNTS. EVERY FAN COUNTS." &&
-    HOME_MOBILE_SUPPORT.includes("sponsor-funded climate action") &&
+    HOME_MOBILE_SUPPORT.includes("sponsored climate actions") &&
     HOME_JOIN_FAN_LABEL === "Join as a Fan" &&
     HOME_JOIN_CLUB_LABEL === "For Sports Clubs" &&
     HOME_JOIN_FREE_LABEL === "Join Free",
@@ -33,18 +33,16 @@ assert(
     banner.includes("md:hidden") &&
     banner.includes("hidden md:flex") &&
     banner.includes("EVERY FAN COUNTS") &&
-    banner.includes(HOME_JOIN_FAN_LABEL) &&
-    banner.includes(HOME_JOIN_CLUB_LABEL) &&
     banner.includes(HOME_JOIN_FREE_LABEL) &&
     banner.includes("Login") &&
     banner.includes("Open menu") &&
-    banner.includes("FAN_REGISTER_PATH") &&
-    banner.includes("CLUB_REGISTER_PATH") &&
     banner.includes("passion into progress") &&
     banner.includes("Sport unites people") &&
     banner.includes("HOME_JOIN_COMMUNITY_LABEL") &&
-    banner.includes("data-join-community"),
-  "Mobile uses the compact header, five-sports banner, Join the Community, and Login beside Join Free"
+    banner.includes("data-join-community") &&
+    !banner.includes("Join as a Fan") &&
+    !banner.includes("For Sports Clubs"),
+  "The first homepage block uses the compact header, five-sports banner, Join the Community, and Login beside Join Free"
 );
 
 assert(
