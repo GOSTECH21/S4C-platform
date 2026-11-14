@@ -4,6 +4,7 @@ import {
   capLocalWalletSponsorship,
   createLeadWallet,
   createLocalWallet,
+  createPhilanthropistWallet,
   normalizeClimateWallet,
   remainingGbp,
   settleLeadScoreImpactPool,
@@ -111,6 +112,45 @@ export function findClimateWallet(
   return matches.reduce((best, wallet) =>
     Number(wallet.allocatedGbp) > Number(best.allocatedGbp) ? wallet : best
   );
+}
+
+export function ensurePhilanthropistWallet({
+  clubName,
+  brandName,
+  giftGbp,
+}: {
+  clubName: string;
+  brandName: string;
+  giftGbp: number;
+}): ClimateWallet {
+  const gift = Math.max(0, Number(giftGbp) || 0);
+  const existing = findClimateWallet(clubName, brandName);
+  if (existing?.kind === "philanthropist") {
+    if (existing.sponsorshipGbp + 0.001 < gift) {
+      return writeClimateWallet({
+        ...existing,
+        sponsorshipGbp: gift,
+        paidGbp: gift,
+      });
+    }
+    return existing;
+  }
+  if (existing) return existing;
+  return writeClimateWallet(
+    createPhilanthropistWallet({ clubName, brandName, giftGbp: gift })
+  );
+}
+
+export function depositPhilanthropistClimateWallet({
+  clubName,
+  brandName,
+  giftGbp,
+}: {
+  clubName: string;
+  brandName: string;
+  giftGbp: number;
+}): ClimateWallet {
+  return ensurePhilanthropistWallet({ clubName, brandName, giftGbp });
 }
 
 export function writeClimateWallet(wallet: ClimateWallet): ClimateWallet {

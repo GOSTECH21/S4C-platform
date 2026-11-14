@@ -3,7 +3,9 @@ import {
   allocateWalletVote,
   createLeadWallet,
   createLocalWallet,
+  createPhilanthropistWallet,
   DEFAULT_WALLET_VOTE_GBP,
+  PHILANTHROPIST_WALLET_VOTE_GBP,
   FUND_IT_LABEL,
   FUND_IT_MAX_TIMES,
   LEAD_WALLET_VOTE_GBP,
@@ -75,6 +77,12 @@ assert(FUND_IT_MAX_TIMES === 5, "Fans can FUND-IT up to 5 times");
 assert(
   LEAD_WALLET_VOTE_GBP === DEFAULT_WALLET_VOTE_GBP,
   "Lead and Local Business Climate Sponsors use the same £0.20 FUND-IT"
+);
+assert(
+  PHILANTHROPIST_WALLET_VOTE_GBP === 0.5 &&
+    walletVoteAmount({ kind: "philanthropist" }) === 0.5 &&
+    walletVoteAmount({ kind: "lead" }) === 0.2,
+  "Fans take £0.50 from a Philanthropist Carbon Wallet"
 );
 assert(LOCAL_MANAGEMENT_FEE_RATE === 0.1, "Local wallets add a 10% management fee");
 assert(FUND_IT_LABEL === "FUND-IT", "The action tab is labelled FUND-IT");
@@ -228,6 +236,18 @@ assert(
 );
 assert(walletVoteAmount(amex) === 0.2, "An Amex FUND-IT takes £0.20");
 
+const philanthropistWallet = createPhilanthropistWallet({
+  clubName: "Rangers",
+  brandName: "Davies Family Trust",
+  giftGbp: 250,
+});
+assert(
+  remainingGbp(philanthropistWallet) === 250 &&
+    philanthropistWallet.kind === "philanthropist" &&
+    walletVoteAmount(philanthropistWallet) === 0.5,
+  "A philanthropist gift of £250 sits in the Philanthropist Carbon Wallet"
+);
+
 const projects = [
   { id: "gss", name: FEATURED_PROJECT_NAME, number: 1, fundedGbp: 0, votesReceived: 0 },
   { id: "wee", name: "Wee Spoke Hub", number: 2, fundedGbp: 0, votesReceived: 0 },
@@ -300,6 +320,25 @@ if (voted.ok) {
   assert(
     formatWalletGbp(remainingGbp(voted.wallet)) === "£749.80",
     "Remaining cash is shown with pence"
+  );
+}
+
+const philanthropistTake = allocateWalletVote({
+  wallet: philanthropistWallet,
+  projects,
+  projectNumber: 2,
+});
+assert(
+  philanthropistTake.ok,
+  "A fan can take £0.50 from the Philanthropist Carbon Wallet onto a chosen Climate Project"
+);
+if (philanthropistTake.ok) {
+  assert(
+    philanthropistTake.amount === 0.5 &&
+      remainingGbp(philanthropistTake.wallet) === 249.5 &&
+      philanthropistTake.project.name === "Wee Spoke Hub" &&
+      philanthropistTake.project.fundedGbp === 0.5,
+    "£0.50 leaves the Philanthropist Carbon Wallet and lands on the chosen Climate Project"
   );
 }
 
@@ -861,8 +900,14 @@ assert(
   votePage.includes("SUPPORTER_CAMPAIGN_PATH") &&
     readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
       "FUND_IT_HOW_IT_WORKS_TITLE"
+    ) &&
+    readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
+      "PHILANTHROPIST_CARBON_WALLET_LABEL"
+    ) &&
+    readFileSync("app/components/fan/FanClimateProjectPager.tsx", "utf8").includes(
+      "PHILANTHROPIST_TAKE_LABEL"
     ),
-  "My S4P mounts the 1/5 pager with How it works headings"
+  "My S4P mounts the 1/5 pager with How it works headings and the Philanthropist Carbon Wallet"
 );
 
 const walletPage = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
@@ -1149,6 +1194,33 @@ async function verifyStoredLocalRemaining() {
       rangersTake.project.name === FEATURED_PROJECT_NAME &&
         rangersTake.project.fundedGbp === 0.2,
       "The £0.20 from the Rangers Lead wallet lands on Global Schools Solar"
+    );
+  }
+
+  writeClimateWallet(philanthropistWallet);
+  const giftTake = applyFanWalletVote({
+    clubId: "rangers-lead",
+    clubName: "Rangers",
+    brandName: "Davies Family Trust",
+    projectNumber: 2,
+    supporterId: "lewis-gift",
+    projects: rangersProjects,
+  });
+  assert(
+    giftTake.ok,
+    "A Rangers fan can take £0.50 from the Philanthropist Carbon Wallet onto a chosen Climate Project"
+  );
+  if (giftTake.ok) {
+    assert(
+      giftTake.wallet.kind === "philanthropist" &&
+        remainingGbp(giftTake.wallet) === 249.5 &&
+        giftTake.amount === 0.5,
+      "The Philanthropist Carbon Wallet drops from £250 to £249.50"
+    );
+    assert(
+      giftTake.project.fundedGbp === 0.5 &&
+        giftTake.project.name !== FEATURED_PROJECT_NAME,
+      "The £0.50 lands on the Climate Project the fan chose"
     );
   }
 

@@ -74,8 +74,9 @@ assert(
     !register.includes("Match-Sponsor") &&
     !register.includes("Register as Sponsor") &&
     !register.includes("Brand / Sponsor") &&
-    !register.includes("GAME_TIME_PRODUCT_LABEL"),
-  "Philanthropist register is a donation card, not the Global Brand Match-Sponsor form"
+    !register.includes("GAME_TIME_PRODUCT_LABEL") &&
+    register.includes("depositPhilanthropistClimateWallet"),
+  "Philanthropist register is a donation card that deposits the Carbon Wallet"
 );
 
 assert(
@@ -129,9 +130,10 @@ const gift = philanthropistGiftCopy({
 assert(
   gift.includes("Rangers") &&
     gift.includes("£250") &&
-    gift.includes("Climate Impact League Table (CILT)") &&
+    gift.includes("Philanthropist Carbon Wallet") &&
+    gift.includes("£0.50") &&
     gift.includes("not a Lead Climate Sponsorship"),
-  "Gift copy tells fans they direct the donation to CILT projects"
+  "Gift copy tells fans they take £0.50 from the Philanthropist Carbon Wallet"
 );
 
 if (failures.length > 0) {

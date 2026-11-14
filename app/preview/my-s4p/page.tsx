@@ -6,10 +6,11 @@ import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
 import { FanClimateProjectPager } from "@/app/components/fan/FanClimateProjectPager";
 import { loadFundedProjects } from "@/app/lib/climate-funding";
 import {
-  DEFAULT_WALLET_VOTE_GBP,
   applyLeadCommitment,
   createLeadWallet,
   createLocalWallet,
+  createPhilanthropistWallet,
+  walletVoteAmount,
   formatWalletGbp,
   remainingGbp,
   type ClimateWallet,
@@ -98,6 +99,11 @@ function seedWallets(): ClimateWallet[] {
       clubName: "Hibernian",
       brandName: "Fountain Brewery",
       sponsorshipGbp: 500,
+    }),
+    createPhilanthropistWallet({
+      clubName: "Hibernian",
+      brandName: "Davies Family Trust",
+      giftGbp: 250,
     }),
   ];
 }
@@ -200,6 +206,14 @@ export default function MyS4PPreviewPage() {
                 committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
                 logoUrl: sponsorLogoSrc(wallet.brandName, null),
               }))}
+            philanthropists={wallets
+              .filter((wallet) => wallet.kind === "philanthropist")
+              .map((wallet) => ({
+                brandName: wallet.brandName,
+                kind: "philanthropist" as const,
+                remainingGbp: remainingGbp(wallet),
+                committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
+              }))}
             usedSponsorNames={used}
             voteError={error}
             voteNotice={notice}
@@ -207,32 +221,33 @@ export default function MyS4PPreviewPage() {
               const project = funded.find(
                 (row) => String(row.number) === String(projectNumber)
               );
-              if (!project) return false;
+              const wallet = wallets.find((row) => row.brandName === brandName);
+              if (!project || !wallet) return false;
+              const take = walletVoteAmount(wallet);
               setFunded((prev) =>
                 prev.map((row) =>
                   row.id === project.id
                     ? {
                         ...row,
-                        fundedGbp: row.fundedGbp + DEFAULT_WALLET_VOTE_GBP,
+                        fundedGbp: row.fundedGbp + take,
                         votesReceived: row.votesReceived + 1,
                       }
                     : row
                 )
               );
               setWallets((prev) =>
-                prev.map((wallet) =>
-                  wallet.brandName === brandName
+                prev.map((row) =>
+                  row.brandName === brandName
                     ? {
-                        ...wallet,
-                        allocatedGbp:
-                          wallet.allocatedGbp + DEFAULT_WALLET_VOTE_GBP,
+                        ...row,
+                        allocatedGbp: row.allocatedGbp + take,
                       }
-                    : wallet
+                    : row
                 )
               );
               setUsed((prev) => [...prev, brandName]);
               setNotice(
-                `FUND-IT moved ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} from ${brandName}'s Carbon Wallet into ${project.name}.`
+                `${wallet.kind === "philanthropist" ? "Take" : "FUND-IT"} moved ${formatWalletGbp(take)} from ${brandName}'s Carbon Wallet into ${project.name}.`
               );
               setError(null);
               return true;

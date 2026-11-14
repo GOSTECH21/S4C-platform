@@ -1,6 +1,10 @@
 /* philanthropist-register-v1 */
 
+import { clubsMatch } from "./sponsor-dashboard";
+
 export const PHILANTHROPIST_STORAGE = "s4p.sponsor.philanthropist";
+export const PHILANTHROPISTS_BY_CLUB_STORAGE = "s4p.philanthropists-by-club";
+export const PHILANTHROPIST_CARBON_WALLET_LABEL = "Philanthropist Carbon Wallet";
 export const PHILANTHROPIST_JOB_TITLE = "Philanthropist";
 export const PHILANTHROPIST_KICKER = "Philanthropist";
 export const PHILANTHROPIST_REGISTER_HEADING = "Register as a Philanthropist";
@@ -57,6 +61,7 @@ export function readPhilanthropistRecord(): PhilanthropistRecord | null {
 export function writePhilanthropistRecord(record: PhilanthropistRecord): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(PHILANTHROPIST_STORAGE, JSON.stringify(record));
+  upsertPhilanthropistForClub(record);
   try {
     const raw = window.localStorage.getItem("s4p.sponsor.profile");
     const previous = raw
@@ -78,6 +83,64 @@ export function writePhilanthropistRecord(record: PhilanthropistRecord): void {
   } catch {
     // Browser storage can be blocked; the dedicated record is enough to route home.
   }
+}
+
+function readPhilanthropistsByClub(): Record<string, PhilanthropistRecord[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(PHILANTHROPISTS_BY_CLUB_STORAGE);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, PhilanthropistRecord[]>;
+    if (!parsed || typeof parsed !== "object") return {};
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+export function upsertPhilanthropistForClub(record: PhilanthropistRecord): void {
+  if (typeof window === "undefined") return;
+  const clubKey = record.clubName.trim().toLowerCase();
+  if (!clubKey) return;
+  const store = readPhilanthropistsByClub();
+  const rows = store[clubKey] ?? [];
+  const email = record.email.trim().toLowerCase();
+  const next = rows.filter(
+    (row) =>
+      row.email.trim().toLowerCase() !== email &&
+      philanthropistDisplayName(row).toLowerCase() !==
+        philanthropistDisplayName(record).toLowerCase()
+  );
+  next.push(record);
+  store[clubKey] = next;
+  window.localStorage.setItem(
+    PHILANTHROPISTS_BY_CLUB_STORAGE,
+    JSON.stringify(store)
+  );
+}
+
+export function philanthropistsForClub(clubName: string): PhilanthropistRecord[] {
+  const club = clubName.trim();
+  if (!club) return [];
+  const store = readPhilanthropistsByClub();
+  const rows: PhilanthropistRecord[] = [];
+  for (const list of Object.values(store)) {
+    for (const row of list ?? []) {
+      if (clubsMatch(row.clubName, club)) rows.push(row);
+    }
+  }
+  const session = readPhilanthropistRecord();
+  if (
+    session &&
+    clubsMatch(session.clubName, club) &&
+    !rows.some(
+      (row) =>
+        row.email.trim().toLowerCase() === session.email.trim().toLowerCase()
+    )
+  ) {
+    rows.push(session);
+  }
+  return rows.filter((row) => row.giftGbp >= 1 && row.clubName.trim());
 }
 
 export function isPhilanthropistSponsor(
@@ -127,5 +190,5 @@ export function isPhilanthropistSponsor(
 
 export function philanthropistGiftCopy(record: PhilanthropistRecord): string {
   const amount = `£${record.giftGbp.toLocaleString("en-GB")}`;
-  return `You are supporting ${record.clubName} with ${amount} per match. Fans of ${record.clubName} direct this gift to club-approved climate projects that help the team climb the Climate Impact League Table (CILT). This is a philanthropic donation — not a Lead Climate Sponsorship.`;
+  return `You are supporting ${record.clubName} with ${amount} per match. Fans of ${record.clubName} see this in the ${PHILANTHROPIST_CARBON_WALLET_LABEL} and can take £0.50 onto a climate project they choose. This is a philanthropic donation — not a Lead Climate Sponsorship.`;
 }

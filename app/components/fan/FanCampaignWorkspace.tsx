@@ -53,6 +53,10 @@ import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { isLeadWalletLabel } from "@/app/lib/dual-sponsor";
+import {
+  philanthropistDisplayName,
+  philanthropistsForClub,
+} from "@/app/lib/philanthropist";
 
 export function FanCampaignWorkspace({
   section,
@@ -481,6 +485,61 @@ function CampaignPanel({
     campaign.matchTitle,
   ]);
 
+  const philanthropistSponsors = useMemo(() => {
+    const remainingByBrand = new Map<
+      string,
+      {
+        brandName: string;
+        remainingGbp: number;
+        committedGbp?: number;
+      }
+    >();
+    for (const row of sponsors.filter((item) => item.kind === "philanthropist")) {
+      remainingByBrand.set(normalizeBrandKey(row.brandName), {
+        brandName: row.brandName,
+        remainingGbp: row.remainingGbp,
+        committedGbp: row.committedGbp,
+      });
+    }
+    for (const wallet of identifyClubSponsorWallets({
+      clubId,
+      clubName: campaign.clubName,
+      minAmount: campaign.minimumAmount,
+      gbpPerGoal: campaign.gbpPerGoal,
+      fixtureName: campaign.matchTitle,
+    }).filter((item) => item.kind === "philanthropist")) {
+      const key = normalizeBrandKey(wallet.brandName);
+      remainingByBrand.set(key, {
+        brandName: remainingByBrand.get(key)?.brandName ?? wallet.brandName,
+        remainingGbp: remainingGbp(wallet),
+        committedGbp: remainingGbp(wallet) + wallet.allocatedGbp,
+      });
+    }
+    for (const gift of philanthropistsForClub(campaign.clubName)) {
+      const brandName = philanthropistDisplayName(gift);
+      const key = normalizeBrandKey(brandName);
+      if (remainingByBrand.has(key)) continue;
+      remainingByBrand.set(key, {
+        brandName,
+        remainingGbp: gift.giftGbp,
+        committedGbp: gift.giftGbp,
+      });
+    }
+    return [...remainingByBrand.values()].map((row) => ({
+      brandName: row.brandName,
+      kind: "philanthropist" as const,
+      remainingGbp: row.remainingGbp,
+      committedGbp: row.committedGbp,
+    }));
+  }, [
+    sponsors,
+    clubId,
+    campaign.clubName,
+    campaign.minimumAmount,
+    campaign.gbpPerGoal,
+    campaign.matchTitle,
+  ]);
+
   async function voteFromWallet({
     brandName,
     projectNumber,
@@ -596,6 +655,7 @@ function CampaignPanel({
             details={voteable}
             lead={leadSponsor}
             locals={localSponsors}
+            philanthropists={philanthropistSponsors}
             fundingOpen={fundingOpen}
             busy={busy}
             usedSponsorNames={usedSponsors}

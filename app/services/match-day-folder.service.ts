@@ -40,10 +40,15 @@ import { clubsMatch } from "../lib/sponsor-dashboard";
 import { isLeadWalletLabel } from "../lib/dual-sponsor";
 import { FEATURED_PROJECT_NAME } from "../lib/sccan-catalog";
 import { totalLocalPledge } from "../lib/local-sponsor";
+import {
+  philanthropistDisplayName,
+  philanthropistsForClub,
+} from "../lib/philanthropist";
 import { liveLeadAndLocals } from "./match-day-branding.service";
 import {
   ensureLeadWallet,
   ensureLocalWallet,
+  ensurePhilanthropistWallet,
   healLocalWalletsForClub,
   findClimateWallet,
   listClimateWallets,
@@ -193,6 +198,15 @@ export function identifyClubSponsorWallets({
         clubName,
         brandName: local.brandName,
         sponsorshipGbp: totalLocalPledge(local),
+      })
+    );
+  }
+  for (const gift of philanthropistsForClub(clubName)) {
+    wallets.push(
+      ensurePhilanthropistWallet({
+        clubName: gift.clubName || clubName,
+        brandName: philanthropistDisplayName(gift),
+        giftGbp: gift.giftGbp,
       })
     );
   }

@@ -25,10 +25,14 @@ import {
   type FanProjectDetail,
   type FanProjectSponsor,
 } from "@/app/lib/fan-climate-project-cards";
+import { PHILANTHROPIST_CARBON_WALLET_LABEL } from "@/app/lib/philanthropist";
 import {
   DEFAULT_WALLET_VOTE_GBP,
+  PHILANTHROPIST_TAKE_LABEL,
+  PHILANTHROPIST_WALLET_VOTE_GBP,
   canPressFundIt,
   formatWalletGbp,
+  philanthropistFundItCopy,
   type NumberedClimateProject,
 } from "@/app/lib/sponsor-wallet";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
@@ -41,6 +45,7 @@ export function FanClimateProjectPager({
   details,
   lead,
   locals,
+  philanthropists = [],
   fundingOpen = true,
   busy = false,
   usedSponsorNames = [],
@@ -54,6 +59,7 @@ export function FanClimateProjectPager({
   details: FanProjectDetail[];
   lead: FanProjectSponsor | null;
   locals: FanProjectSponsor[];
+  philanthropists?: FanProjectSponsor[];
   fundingOpen?: boolean;
   busy?: boolean;
   usedSponsorNames?: string[];
@@ -70,6 +76,12 @@ export function FanClimateProjectPager({
   );
   const [pageIndex, setPageIndex] = useState(0);
   const [confirming, setConfirming] = useState(false);
+  const [confirmingPhilanthropist, setConfirmingPhilanthropist] = useState<
+    string | null
+  >(null);
+  const [philanthropistAllocated, setPhilanthropistAllocated] = useState<
+    Record<string, string>
+  >({});
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [noticePage, setNoticePage] = useState<number | null>(null);
   const pageIndexRef = useRef(0);
@@ -78,6 +90,7 @@ export function FanClimateProjectPager({
 
   useEffect(() => {
     setConfirming(false);
+    setConfirmingPhilanthropist(null);
   }, [pageIndex]);
 
   useEffect(() => {
@@ -137,6 +150,34 @@ export function FanClimateProjectPager({
         <div className="mb-4 flex justify-end">
           <p className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
             ✓ {clubName} supporter
+          </p>
+        </div>
+      ) : null}
+
+      {philanthropists.length > 0 ? (
+        <div
+          data-philanthropist-carbon-wallet="philanthropist-carbon-wallet-v1"
+          data-testid="philanthropist-carbon-wallet"
+          className="mb-4 rounded-2xl bg-white p-4 shadow-sm"
+        >
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            {PHILANTHROPIST_CARBON_WALLET_LABEL}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {philanthropists.map((gift) => (
+              <li
+                key={gift.brandName}
+                className="flex items-baseline justify-between gap-3"
+              >
+                <span className="font-black leading-tight">{gift.brandName}</span>
+                <span className="text-2xl font-black text-emerald-800">
+                  {formatWalletGbp(gift.remainingGbp)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm text-slate-600">
+            {philanthropistFundItCopy()}
           </p>
         </div>
       ) : null}
@@ -205,15 +246,40 @@ export function FanClimateProjectPager({
             key={page.position}
             page={page}
             clubName={clubName}
+            philanthropists={philanthropists}
+            usedNames={used}
             fundingOpen={fundingOpen}
             busy={busy}
             used={sponsorIsUsed(page.sponsor, used)}
             confirming={confirming}
+            confirmingPhilanthropist={confirmingPhilanthropist}
             voteError={voteError}
             voteNotice={noticePage === pageIndex ? voteNotice : null}
             onSelectFundIt={() => setConfirming(true)}
             onCancel={() => setConfirming(false)}
             onConfirm={confirmPage}
+            onSelectPhilanthropist={(brandName) =>
+              setConfirmingPhilanthropist(brandName)
+            }
+            onCancelPhilanthropist={() => setConfirmingPhilanthropist(null)}
+            philanthropistAllocated={philanthropistAllocated}
+            onConfirmPhilanthropist={(brandName) => {
+              if (!page.project) return;
+              const projectName = page.project.name;
+              void Promise.resolve(
+                onFund({
+                  brandName,
+                  projectNumber: String(page.project.number),
+                })
+              ).then((ok) => {
+                if (!ok) return;
+                setConfirmingPhilanthropist(null);
+                setPhilanthropistAllocated((current) => ({
+                  ...current,
+                  [brandName]: projectName,
+                }));
+              });
+            }}
           />
         </div>
       ) : null}
@@ -271,27 +337,41 @@ function HowItWorksHeadings({ activeStep }: { activeStep: 1 | 2 | 3 }) {
 function ClimateProjectFundCard({
   page,
   clubName,
+  philanthropists,
+  usedNames,
   fundingOpen,
   busy,
   used,
   confirming,
+  confirmingPhilanthropist,
+  philanthropistAllocated,
   voteError,
   voteNotice,
   onSelectFundIt,
   onCancel,
   onConfirm,
+  onSelectPhilanthropist,
+  onCancelPhilanthropist,
+  onConfirmPhilanthropist,
 }: {
   page: FanClimateProjectPage;
   clubName: string;
+  philanthropists: FanProjectSponsor[];
+  usedNames: Set<string>;
   fundingOpen: boolean;
   busy: boolean;
   used: boolean;
   confirming: boolean;
+  confirmingPhilanthropist: string | null;
+  philanthropistAllocated: Record<string, string>;
   voteError: string | null;
   voteNotice: string | null;
   onSelectFundIt: () => void;
   onCancel: () => void;
   onConfirm: () => void;
+  onSelectPhilanthropist: (brandName: string) => void;
+  onCancelPhilanthropist: () => void;
+  onConfirmPhilanthropist: (brandName: string) => void;
 }) {
   const project = page.project;
   const sponsor = page.sponsor;
@@ -457,6 +537,93 @@ function ClimateProjectFundCard({
           </button>
         )}
       </div>
+
+      {philanthropists.length > 0 && project ? (
+        <div
+          data-philanthropist-take="philanthropist-carbon-wallet-v1"
+          className="mt-3 space-y-3 rounded-2xl bg-white p-4 shadow-sm"
+        >
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            {PHILANTHROPIST_CARBON_WALLET_LABEL}
+          </p>
+          {philanthropists.map((gift) => {
+            const giftUsed = usedNames.has(gift.brandName.trim().toLowerCase());
+            const canTake = canPressFundIt({
+              busy,
+              fundingOpen,
+              used: giftUsed,
+              remainingGbp: gift.remainingGbp,
+              projectNumber: project.number,
+              projectCount: Math.max(
+                project.number,
+                FAN_CLIMATE_PROJECT_PAGE_COUNT
+              ),
+              voteGbp: PHILANTHROPIST_WALLET_VOTE_GBP,
+            });
+            return (
+              <div
+                key={gift.brandName}
+                data-testid={`philanthropist-wallet-${gift.brandName}`}
+                className="border-t border-slate-100 pt-3 first:border-t-0 first:pt-0"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="font-black leading-tight">{gift.brandName}</p>
+                  <p className="text-xl font-black text-emerald-800">
+                    {formatWalletGbp(gift.remainingGbp)}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm text-slate-500">
+                  Your available allocation{" "}
+                  <span className="font-black text-emerald-800">
+                    {formatWalletGbp(PHILANTHROPIST_WALLET_VOTE_GBP)}
+                  </span>
+                </p>
+                {giftUsed ? (
+                  <p className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+                    ✓ {FUND_IT_ALLOCATED_LABEL}{" "}
+                    {formatWalletGbp(PHILANTHROPIST_WALLET_VOTE_GBP)} from this
+                    Carbon Wallet is on{" "}
+                    {philanthropistAllocated[gift.brandName] ||
+                      "the Climate Project you chose"}
+                    .
+                  </p>
+                ) : confirmingPhilanthropist === gift.brandName ? (
+                  <div className="mt-3 space-y-2">
+                    <button
+                      type="button"
+                      data-testid={`philanthropist-confirm-${gift.brandName}`}
+                      disabled={!canTake}
+                      onClick={() => onConfirmPhilanthropist(gift.brandName)}
+                      className="flex h-12 w-full items-center justify-center rounded-full bg-emerald-800 text-sm font-black text-white disabled:opacity-50"
+                    >
+                      {busy
+                        ? "Allocating..."
+                        : `Confirm ${formatWalletGbp(PHILANTHROPIST_WALLET_VOTE_GBP)} →`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onCancelPhilanthropist}
+                      className="w-full text-sm font-semibold text-slate-500"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    data-testid={`philanthropist-take-${gift.brandName}`}
+                    disabled={!canTake}
+                    onClick={() => onSelectPhilanthropist(gift.brandName)}
+                    className="mt-3 flex h-12 w-full items-center justify-center rounded-full bg-emerald-800 text-sm font-black text-white disabled:opacity-50"
+                  >
+                    {PHILANTHROPIST_TAKE_LABEL} →
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
 
       <AboutAccordion title="About this climate project">
         {project ? (

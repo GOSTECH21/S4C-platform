@@ -11,7 +11,10 @@ import {
 export const DEFAULT_WALLET_VOTE_GBP = 0.2;
 /** Lead and Local Business Climate Sponsors use the same FUND-IT amount. */
 export const LEAD_WALLET_VOTE_GBP = DEFAULT_WALLET_VOTE_GBP;
+/** Fans take this from a Philanthropist Carbon Wallet onto a chosen Climate Project. */
+export const PHILANTHROPIST_WALLET_VOTE_GBP = 0.5;
 export const FUND_IT_LABEL = "FUND-IT";
+export const PHILANTHROPIST_TAKE_LABEL = "Take £0.50";
 /** Once per Carbon Wallet; typically five wallets on a Match Day. */
 export const FUND_IT_MAX_TIMES = 5;
 export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
@@ -20,7 +23,7 @@ export const PLATFORM_FEE_RATE = 0.05;
 export const PLATFORM_FEE_PERCENT_LABEL = "5%";
 export const PLATFORM_FEE_LABEL = "Platform Fee (5%)";
 
-export type SponsorWalletKind = "lead" | "local";
+export type SponsorWalletKind = "lead" | "local" | "philanthropist";
 
 export type ClimateWallet = {
   id: string;
@@ -306,6 +309,35 @@ export function createLocalWallet({
   };
 }
 
+export function createPhilanthropistWallet({
+  clubName,
+  brandName,
+  giftGbp,
+  now = new Date(),
+}: {
+  clubName: string;
+  brandName: string;
+  giftGbp: number;
+  now?: Date | string;
+}): ClimateWallet {
+  const gift = roundGbp(Math.max(0, Number(giftGbp) || 0));
+  return {
+    id: walletIdFor(clubName, brandName),
+    clubName,
+    brandName,
+    kind: "philanthropist",
+    commitmentFeeGbp: 0,
+    gbpPerGoal: 0,
+    goalsScored: 0,
+    maximumSponsorshipGbp: 0,
+    sponsorshipGbp: gift,
+    managementFeeGbp: 0,
+    paidGbp: gift,
+    allocatedGbp: 0,
+    updatedAt: asIso(now),
+  };
+}
+
 export function createLeadWallet({
   clubName,
   brandName,
@@ -444,6 +476,7 @@ export function canPressFundIt({
   remainingGbp,
   projectNumber,
   projectCount,
+  voteGbp,
 }: {
   busy?: boolean;
   fundingOpen?: boolean;
@@ -451,15 +484,20 @@ export function canPressFundIt({
   remainingGbp: number;
   projectNumber: string | number | null | undefined;
   projectCount: number;
+  voteGbp?: number;
 }): boolean {
   if (busy || !fundingOpen || used) return false;
-  if (!(Number(remainingGbp) >= DEFAULT_WALLET_VOTE_GBP)) return false;
+  const take = roundGbp(
+    Math.max(0, Number(voteGbp ?? DEFAULT_WALLET_VOTE_GBP) || 0)
+  );
+  if (!(Number(remainingGbp) >= take)) return false;
   return parseProjectNumber(projectNumber, projectCount) != null;
 }
 
 export function walletVoteAmount(
-  _wallet?: Pick<ClimateWallet, "kind">
+  wallet?: Pick<ClimateWallet, "kind">
 ): number {
+  if (wallet?.kind === "philanthropist") return PHILANTHROPIST_WALLET_VOTE_GBP;
   return DEFAULT_WALLET_VOTE_GBP;
 }
 
@@ -627,6 +665,10 @@ export function fundItTimesCopy(): string {
   return `You can ${FUND_IT_LABEL} up to ${FUND_IT_MAX_TIMES} times. Take ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} once from each Carbon Wallet onto a listed Climate Project. Local Business wallets fund local Climate Projects only.`;
 }
 
+export function philanthropistFundItCopy(): string {
+  return `Take ${formatWalletGbp(PHILANTHROPIST_WALLET_VOTE_GBP)} from this Philanthropist Carbon Wallet onto the Climate Project you choose.`;
+}
+
 export function leadFundItCopy(): string {
   return `Tap a Climate Project, then press ${FUND_IT_LABEL}. ${formatWalletGbp(DEFAULT_WALLET_VOTE_GBP)} goes from this Carbon Wallet onto the project you choose.`;
 }
@@ -641,6 +683,8 @@ export function fundItCopy(): string {
 
 export function walletVoteNotice(result: WalletVoteSuccess): string {
   const remaining = formatWalletGbp(remainingGbp(result.wallet));
+  const verb =
+    result.wallet.kind === "philanthropist" ? "Take" : FUND_IT_LABEL;
   const shares = (result.shares ?? []).filter((share) => share.amount > 0);
   if (shares.length > 1) {
     const parts = shares
@@ -649,9 +693,9 @@ export function walletVoteNotice(result: WalletVoteSuccess): string {
           `${formatWalletGbp(share.amount)} to ${share.project.name}`
       )
       .join("; ");
-    return `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet (${parts}). Carbon Wallet now ${remaining}.`;
+    return `${verb} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet (${parts}). Carbon Wallet now ${remaining}.`;
   }
-  return `${FUND_IT_LABEL} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${remaining}.`;
+  return `${verb} moved ${formatWalletGbp(result.amount)} from ${result.wallet.brandName}'s Carbon Wallet into ${result.project.name}. Carbon Wallet now ${remaining}.`;
 }
 
 export function numberClimateProjects<T extends { id: string; name: string }>(
