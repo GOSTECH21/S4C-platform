@@ -450,10 +450,8 @@ assert(
     banner.includes("Sport unites people") &&
     banner.includes("Together we drive change") &&
     banner.includes("passion into progress") &&
-    banner.includes(
-      "We help your club address match-day carbon emissions"
-    ) &&
-    banner.includes("global brands, local businesses & supporters") &&
+    banner.includes("HOME_MOBILE_SUPPORT") &&
+    !banner.includes("We help your club address match-day carbon emissions") &&
     !banner.includes("We help your team to offset its Match Day carbon emissions") &&
     !banner.includes("Global Brands & Businesses") &&
     !banner.includes("We help elite sports clubs, their fans, sponsors and partners") &&
@@ -462,8 +460,8 @@ assert(
     banner.includes("A cleaner, greener planet") &&
     banner.includes("EVERY SCORE COUNTS") &&
     banner.includes("EVERY FAN COUNTS") &&
-    banner.includes("Join as a Fan") &&
-    banner.includes("For Sports Clubs") &&
+    !banner.includes("Join as a Fan") &&
+    !banner.includes("For Sports Clubs") &&
     banner.includes("HOME_JOIN_COMMUNITY_LABEL") &&
     banner.includes("data-join-community") &&
     banner.includes("onJoinCommunity") &&
@@ -494,29 +492,22 @@ const joinMission = readFileSync(
   "utf8"
 );
 assert(
-  joinMission.includes("For club sustainability") &&
-    joinMission.includes(
-      "Turn Match Day Scores into sponsorship for Climate Projects"
-    ) &&
-    joinMission.includes("Give your club a new way to engage supporters") &&
-    joinMission.includes("attract global and") &&
-    joinMission.includes("local sponsors") &&
-    joinMission.includes("fund approved climate projects") &&
-    joinMission.includes("demonstrate") &&
-    joinMission.includes("measurable progress") &&
-    joinMission.includes("From scoring moments to live fan predictions") &&
-    joinMission.includes(
-      "commercial opportunities around every match"
-    ) &&
-    joinMission.includes('data-club-director-copy="club-sponsorship-copy-v1"') &&
-    joinMission.includes("Explore club partnership") &&
+  joinMission.includes("HOME_CLUB_KICKER") &&
+    joinMission.includes("HOME_CLUB_HEADING") &&
+    joinMission.includes("HOME_CLUB_SUPPORT") &&
+    joinMission.includes("HOME_CLUB_POINTS") &&
+    joinMission.includes("HOME_CLUB_IMAGE") &&
+    joinMission.includes('data-club-director-copy={HOME_CLUB_STAMP}') &&
+    joinMission.includes("HOME_CLUB_CTA") &&
     joinMission.includes("club-cta-one-line-v1") &&
     joinMission.includes("whitespace-nowrap") &&
     joinMission.includes("text-[0.72rem]") &&
     joinMission.includes("CLUB_REGISTER_PATH") &&
     joinMission.includes("FAN_JOIN_KICKER") &&
     joinMission.includes("FAN_JOIN_HEADING") &&
-    joinMission.includes("FAN_JOIN_BODY") &&
+    joinMission.includes("FAN_WAYS_HEADING") &&
+    joinMission.includes("FAN_FUNDING_HEADING") &&
+    joinMission.includes("FAN_FUNDING_POINTS") &&
     joinMission.includes("data-fan-join-copy={MATCHRAV_STAMP}") &&
     joinMission.includes("data-fan-join-tabs={MATCHRAV_STAMP}") &&
     joinMission.includes("grid-cols-3") &&
@@ -540,6 +531,7 @@ assert(
     joinMission.includes("bg-s4p-mark") &&
     !joinMission.includes("Turn match-day passion into sponsorship revenue and climate action") &&
     !joinMission.includes("Turn Match Day Scores into sponsored funding for Climate Projects") &&
+    !joinMission.includes("Turn Match Day Scores into sponsorship for Climate Projects") &&
     !joinMission.includes("Turn every score in a match into a sponsored climate action") &&
     !joinMission.includes("Emissions measurement") &&
     !joinMission.includes("Global fan engagement") &&

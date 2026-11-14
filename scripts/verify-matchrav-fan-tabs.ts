@@ -28,8 +28,9 @@ assert(
     matchrav.includes("play P4P to unlock sponsor-funded contributions towards your club's climate projects") &&
     join.includes("FAN_JOIN_KICKER") &&
     join.includes("FAN_JOIN_HEADING") &&
-    join.includes("FAN_JOIN_BODY"),
-  "Fan join heading sits above Matchrav travel copy"
+    join.includes("FAN_WAYS_HEADING") &&
+    join.includes("FAN_FUNDING_HEADING"),
+  "Fan join heading sits above three ways to participate"
 );
 
 assert(

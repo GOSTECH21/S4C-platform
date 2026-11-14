@@ -6,14 +6,12 @@ import Link from "next/link";
 import {
   HOME_JOIN_COMMUNITY_HREF,
   HOME_JOIN_COMMUNITY_LABEL,
+  HOME_MOBILE_SUPPORT,
 } from "@/app/lib/home-hero";
 import {
   CLIMATE_CREDITS_PATH,
-  CLUB_REGISTER_PATH,
-  FAN_REGISTER_PATH,
   S4P_IMPACT_TABLES_PATH,
 } from "@/app/lib/routes";
-import { hardNavigateOnClick } from "@/app/lib/hard-navigate";
 import { SPORT_CATEGORIES } from "@/app/lib/sports";
 
 const MARK_GREEN = "#5bc662";
@@ -186,55 +184,51 @@ function SportClusterImage({
   );
 }
 
-function JoinRoleTabs() {
-  return (
-    <div
-      role="tablist"
-      aria-label="Join as a Fan or For Sports Clubs"
-      className="grid grid-cols-2 gap-2"
-    >
-      <a
-        href={FAN_REGISTER_PATH}
-        role="tab"
-        onClick={(event) => hardNavigateOnClick(FAN_REGISTER_PATH, event)}
-        className="rounded-full bg-s4p-mark px-3 py-3 text-center text-sm font-black text-slate-950 hover:brightness-110"
-      >
-        Join as a Fan
-      </a>
-      <a
-        href={CLUB_REGISTER_PATH}
-        role="tab"
-        onClick={(event) => hardNavigateOnClick(CLUB_REGISTER_PATH, event)}
-        className="rounded-full border border-emerald-400/50 bg-s4p-paper px-3 py-3 text-center text-sm font-black text-slate-950 hover:bg-s4p-mark/20"
-      >
-        For Sports Clubs
-      </a>
-    </div>
-  );
-}
-
-function HeadlineAndFeatures({
+function FirstBlock({
   onJoinCommunity,
 }: {
   onJoinCommunity: () => void;
 }) {
   return (
-    <div className="min-w-0">
-      <h1
+    <div
+      data-home-mobile-intro="home-less-text-v1"
+      data-home-block="home-block-1"
+      className="mx-auto max-w-[42rem] px-4 pb-8 pt-2 md:max-w-[48rem] md:px-10"
+    >
+      <h1 className="text-[1.65rem] font-black uppercase leading-[1.05] tracking-tight sm:text-4xl">
+        EVERY SCORE COUNTS.{" "}
+        <span style={{ color: MARK_GREEN }}>EVERY FAN COUNTS.</span>
+      </h1>
+      <SportClusterImage className="mt-4" />
+      <div
+        data-home-five-sports="cricket-fifth-sport-v1"
+        className="mt-3 grid grid-cols-5 gap-1 text-center"
+      >
+        {SPORT_CATEGORIES.map((sport) => (
+          <div key={sport.name} className="min-w-0">
+            <span className="block text-lg leading-none" aria-hidden>
+              {sport.icon}
+            </span>
+            <span className="mt-1 block text-[10px] font-black uppercase leading-tight tracking-wide">
+              {sport.name}
+            </span>
+          </div>
+        ))}
+      </div>
+      <h2
         data-home-headline-size="mobile-headline-size-v1"
-        className="text-[1.85rem] font-black uppercase leading-[1.02] tracking-tight sm:text-5xl xl:text-[3.35rem]"
+        className="mt-6 text-[1.85rem] font-black uppercase leading-[1.02] tracking-tight sm:text-5xl"
       >
         A global sports
         <br />
         platform turning
         <br />
         <span style={{ color: MARK_GREEN }}>passion into progress.</span>
-      </h1>
-      <p className="mt-4 max-w-xl text-sm font-semibold leading-6 sm:text-base">
-        We help your club address match-day carbon emissions & fund meaningful
-        climate action through global brands, local businesses & supporters.
+      </h2>
+      <p className="mt-4 text-sm font-semibold leading-6 sm:text-base">
+        {HOME_MOBILE_SUPPORT}
       </p>
-      <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 xl:grid-cols-4">
+      <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4">
         {FEATURES.map((item) => (
           <li key={item.label} className="flex items-center gap-2.5">
             <FeatureIcon name={item.icon} />
@@ -249,7 +243,7 @@ function HeadlineAndFeatures({
           event.preventDefault();
           onJoinCommunity();
         }}
-        className="mt-6 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-4 py-3.5 text-sm font-black text-slate-950 hover:brightness-110 md:hidden"
+        className="mt-6 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-4 py-3.5 text-sm font-black text-slate-950 hover:brightness-110"
       >
         {HOME_JOIN_COMMUNITY_LABEL}
       </a>
@@ -326,10 +320,7 @@ export default function HomeTopBanner({
         </div>
       </div>
 
-      <div
-        data-home-mobile-intro="home-mobile-simplify-v1"
-        className="mx-auto max-w-[1600px] px-4 pb-4 pt-3 md:hidden"
-      >
+      <div className="mx-auto max-w-[1600px] px-4 pb-4 pt-3 md:hidden">
         <div className="flex min-w-0 items-center justify-between gap-2">
           <Image
             src="/images/home/s4p-lockup.png"
@@ -380,41 +371,9 @@ export default function HomeTopBanner({
             ))}
           </nav>
         ) : null}
-        <h1 className="mt-5 text-[1.65rem] font-black uppercase leading-[1.05] tracking-tight">
-          EVERY SCORE COUNTS.{" "}
-          <span style={{ color: MARK_GREEN }}>EVERY FAN COUNTS.</span>
-        </h1>
-        <p className="mt-3 text-sm font-semibold leading-6">
-          Sport brings fans together. S4P turns match-day participation and
-          scoring moments into sponsor-funded climate action.
-        </p>
-        <SportClusterImage className="mt-4" />
-        <div
-          data-home-five-sports="cricket-fifth-sport-v1"
-          className="mt-3 grid grid-cols-5 gap-1 text-center"
-        >
-          {SPORT_CATEGORIES.map((sport) => (
-            <div key={sport.name} className="min-w-0">
-              <span className="block text-lg leading-none" aria-hidden>
-                {sport.icon}
-              </span>
-              <span className="mt-1 block text-[10px] font-black uppercase leading-tight tracking-wide">
-                {sport.name}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
 
-      <div className="mx-auto grid max-w-[1600px] items-center gap-6 px-5 pb-6 pt-2 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-4 lg:pb-4">
-        <HeadlineAndFeatures onJoinCommunity={onJoinCommunity} />
-        <div className="hidden min-w-0 md:block">
-          <SportClusterImage blend />
-          <div className="mt-4 max-w-xl">
-            <JoinRoleTabs />
-          </div>
-        </div>
-      </div>
+      <FirstBlock onJoinCommunity={onJoinCommunity} />
     </header>
   );
 }
