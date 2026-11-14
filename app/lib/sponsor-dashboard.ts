@@ -1,4 +1,5 @@
 import { qualifyingCivTonnes } from "./climate-impact-value";
+import { seasonNamesMatch } from "./current-season";
 import { OPENING_SPONSORSHIP, formatMatchFundingLine } from "./sponsorship-auction";
 
 export type FolderProject = {
@@ -66,7 +67,9 @@ export function clubsMatch(left: string, right: string): boolean {
   const a = normalizeClubName(left);
   const b = normalizeClubName(right);
   if (!a || !b) return false;
-  return a === b || a.includes(b) || b.includes(a);
+  if (a === b) return true;
+  // Alias match only. Substring match would treat Rangers as Queens Park Rangers.
+  return seasonNamesMatch(left, right);
 }
 
 export function bestClubMatch<T extends { name: string }>(
@@ -77,12 +80,7 @@ export function bestClubMatch<T extends { name: string }>(
   if (!normalized) return null;
   const ranked = clubs
     .map((club) => ({ club, n: normalizeClubName(club.name) }))
-    .filter(
-      (row) =>
-        row.n === normalized ||
-        row.n.includes(normalized) ||
-        normalized.includes(row.n)
-    )
+    .filter((row) => clubsMatch(row.club.name, clubName))
     .sort((a, b) => {
       const aExact = a.n === normalized ? 0 : 1;
       const bExact = b.n === normalized ? 0 : 1;

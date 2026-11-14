@@ -15,6 +15,7 @@ import {
   type SponsoredMatchListing,
 } from "./sponsor-signed-home";
 import { sportingCalendarMatches } from "./sporting-calendar";
+import { namesMatch } from "./upcoming-matches";
 
 export function localRecordsForBrand(
   brandName: string,
@@ -77,10 +78,7 @@ function calendarDateForFixture(
   if (clubName) {
     const forClub = catalog.find(
       (row) =>
-        row.homeName.toLowerCase().includes(clubName.trim().toLowerCase()) ||
-        row.awayName.toLowerCase().includes(clubName.trim().toLowerCase()) ||
-        clubName.toLowerCase().includes(row.homeName.toLowerCase()) ||
-        clubName.toLowerCase().includes(row.awayName.toLowerCase())
+        namesMatch(row.homeName, clubName) || namesMatch(row.awayName, clubName)
     );
     if (forClub) return matchDateKey(forClub.date);
   }

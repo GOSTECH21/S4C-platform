@@ -1,3 +1,5 @@
+import { seasonNamesMatch } from "./current-season";
+
 export type UpcomingMatchSource = "club-website" | "fixtures-list" | "s4p";
 
 export type UpcomingMatch = {
@@ -41,6 +43,10 @@ const NAME_ALIASES: Record<string, string[]> = {
   "scotland rugby": ["scotland rugby", "scotland"],
   deportivo: ["deportivo", "deportivo la coruna"],
   "deportivo la coruna": ["deportivo", "deportivo la coruna"],
+  "queens park rangers": ["qpr"],
+  qpr: ["queens park rangers"],
+  rangers: ["glasgow rangers"],
+  "glasgow rangers": ["rangers"],
 };
 
 export function normalizeClubName(value: string): string {
@@ -56,37 +62,21 @@ export function namesExactlyMatch(a: string, b: string): boolean {
   const right = normalizeClubName(b);
   if (!left || !right) return false;
   if (left === right) return true;
-  const leftAliases = NAME_ALIASES[left] ?? [left];
-  const rightAliases = NAME_ALIASES[right] ?? [right];
-  return leftAliases.some((alias) => rightAliases.includes(alias));
+  const leftNames = new Set([left, ...(NAME_ALIASES[left] ?? [])]);
+  const rightNames = new Set([right, ...(NAME_ALIASES[right] ?? [])]);
+  for (const name of leftNames) {
+    if (rightNames.has(name)) return true;
+  }
+  return false;
 }
 
 export function namesMatch(a: string, b: string): boolean {
-  if (namesExactlyMatch(a, b)) return true;
-  const left = normalizeClubName(a);
-  const right = normalizeClubName(b);
-  return left.includes(right) || right.includes(left);
+  // Do not substring-match: "Rangers" is contained in "Queens Park Rangers".
+  return namesExactlyMatch(a, b) || seasonNamesMatch(a, b);
 }
 
 export function namesLooselyMatch(a: string, b: string): boolean {
-  if (namesMatch(a, b)) return true;
-  const skip = new Set([
-    "united",
-    "city",
-    "town",
-    "real",
-    "sporting",
-    "athletic",
-    "club",
-    "hotspur",
-  ]);
-  const tokens = (value: string) =>
-    normalizeClubName(value)
-      .split(" ")
-      .filter((token) => token.length >= 4 && !skip.has(token));
-  const left = tokens(a);
-  const right = tokens(b);
-  return left.some((token) => right.includes(token));
+  return namesMatch(a, b);
 }
 
 export function formatKickoff(kickoff: string | null): string {

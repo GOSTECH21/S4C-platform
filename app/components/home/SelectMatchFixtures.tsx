@@ -25,6 +25,7 @@ import {
 import {
   formatKickoff,
   formatMatchDate,
+  namesMatch,
 } from "@/app/lib/upcoming-matches";
 
 const MARK_GREEN = "#5bc662";
@@ -315,11 +316,9 @@ export function SelectMatchPhone({
   const clubList = mode === "club";
   const shownMatches = (matches ?? [])
     .filter((match) => {
-      const name = shown.toLowerCase();
       return (
-        match.homeName.toLowerCase().includes(name) ||
-        match.awayName.toLowerCase().includes(name) ||
-        match.fixtureName.toLowerCase().includes(name)
+        namesMatch(match.homeName, shown) ||
+        namesMatch(match.awayName, shown)
       );
     })
     .slice(0, 10);

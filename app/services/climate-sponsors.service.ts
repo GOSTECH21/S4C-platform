@@ -321,11 +321,8 @@ export function rosterForClubName(clubName: string): ClubSponsorRoster | null {
   if (!isSportingCalendarClub(clubName)) return null;
   const store = readJson<RosterStore>(ROSTER_KEY, {});
   return (
-    Object.values(store).find((row) =>
-      row.clubName.toLowerCase() === clubName.toLowerCase() ||
-      row.clubName.toLowerCase().includes(clubName.toLowerCase()) ||
-      clubName.toLowerCase().includes(row.clubName.toLowerCase())
-    ) ?? null
+    Object.values(store).find((row) => clubsMatch(row.clubName, clubName)) ??
+    null
   );
 }
 

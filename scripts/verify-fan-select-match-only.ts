@@ -18,7 +18,8 @@ const preview = readFileSync("app/preview/my-teams/page.tsx", "utf8");
 
 assert(
   fan.includes('audience="fan"') &&
-    fan.includes("clubOptions={selected.map((team) => team.name)}") &&
+    (fan.includes("clubOptions={selected.map((team) => team.name)}") ||
+      fan.includes("clubOptions={clubNames}")) &&
     fan.includes("HowS4pSelectMatch") &&
     !fan.includes("UpcomingMatches") &&
     !fan.includes("MyTeamsList") &&
@@ -39,8 +40,8 @@ assert(
     fixtures.includes("value={pendingClub}") &&
     fixtures.includes("data-see-upcoming-matches") &&
     fixtures.includes("data-select-match-picker") &&
-    fixtures.includes("match.homeName.toLowerCase().includes(name)") &&
-    fixtures.includes("match.awayName.toLowerCase().includes(name)"),
+    fixtures.includes("namesMatch(match.homeName, shown)") &&
+    fixtures.includes("namesMatch(match.awayName, shown)"),
   "The match phone stays contained, capped at 10, and only lists the selected club"
 );
 

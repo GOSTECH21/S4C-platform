@@ -2,7 +2,7 @@ import {
   clubInitials,
   clubLogoSearchQuery,
 } from "@/app/lib/club-logos";
-import { namesMatch } from "@/app/lib/upcoming-matches";
+import { namesExactlyMatch } from "@/app/lib/upcoming-matches";
 
 const FETCH_HEADERS = {
   "User-Agent":
@@ -59,9 +59,9 @@ async function lookupTheSportsDb(name: string): Promise<string | null> {
   };
   const pool = teams.filter(sportOk);
   const ranked = (pool.length > 0 ? pool : teams).filter((team) =>
-    team.strTeam ? namesMatch(team.strTeam, query) : false
+    team.strTeam ? namesExactlyMatch(team.strTeam, query) : false
   );
-  return pickBadge(ranked[0] ?? pool[0] ?? teams[0]);
+  return pickBadge(ranked[0] ?? null);
 }
 
 async function lookupWikipedia(name: string): Promise<string | null> {
