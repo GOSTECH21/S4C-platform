@@ -20,10 +20,11 @@ assert(
   "Fan browsers do not sync or delete the fixtures table"
 );
 assert(
-  /export async function loadFanRegisterCatalog[\s\S]*?fanRegisterCatalog\(\);/.test(
+  /async function hydrateFanRegisterCatalog[\s\S]*?fanRegisterCatalog\(\);/.test(
     catalog
   ) &&
-    !/export async function loadFanRegisterCatalog[\s\S]*?ensureCurrentSeasonRoster\(\);/.test(
+    catalog.includes("fanRegisterCatalogPromise") &&
+    !/async function hydrateFanRegisterCatalog[\s\S]*?ensureCurrentSeasonRoster\(\);/.test(
       catalog
     ),
   "My S4P team catalog does not rebuild the season roster on the phone"

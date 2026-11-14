@@ -91,6 +91,7 @@ export function fixtureSides(name: string): [string, string] | null {
 
 /** Same published match, including home/away reversed and vs/v spelling. */
 export function sameNamedFixture(left: string, right: string): boolean {
+  if (typeof left !== "string" || typeof right !== "string") return false;
   const a = fixtureSides(left);
   const b = fixtureSides(right);
   if (!a || !b) {

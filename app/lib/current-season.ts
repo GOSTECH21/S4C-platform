@@ -124,7 +124,8 @@ const CLUB_ALIASES: Record<string, string[]> = {
   sixers: ["philadelphia 76ers"],
 };
 
-export function normalizeSeasonName(value: string): string {
+export function normalizeSeasonName(value: string | null | undefined): string {
+  if (typeof value !== "string" || !value) return "";
   return value
     .toLowerCase()
     .replace(/\bassociation football club\b/g, " ")
@@ -151,7 +152,10 @@ export function canonicalLeagueName(
   return null;
 }
 
-export function seasonNamesMatch(left: string, right: string): boolean {
+export function seasonNamesMatch(
+  left: string | null | undefined,
+  right: string | null | undefined
+): boolean {
   const a = normalizeSeasonName(left);
   const b = normalizeSeasonName(right);
   if (!a || !b) return false;
