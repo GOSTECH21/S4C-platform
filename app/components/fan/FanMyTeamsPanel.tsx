@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import TeamPicker from "@/app/components/fan/TeamPicker";
 import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
@@ -86,6 +86,11 @@ export default function FanMyTeamsPanel() {
     }
   }
 
+  const clubNames = useMemo(
+    () => selected.map((team) => team.name),
+    [selected]
+  );
+
   const picker = (
     <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -144,7 +149,7 @@ export default function FanMyTeamsPanel() {
             <HowS4pSelectMatch
               audience="fan"
               initialClub={selected[0]?.name}
-              clubOptions={selected.map((team) => team.name)}
+              clubOptions={clubNames}
             />
           )}
         </div>

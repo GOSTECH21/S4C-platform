@@ -22,6 +22,7 @@ import { MATCHRAV_JOURNEY_STAMP } from "./matchrav";
 import { SPORTING_CALENDAR_LEAGUES } from "./sporting-calendar-leagues";
 import {
   clubIsHome,
+  namesExactlyMatch,
   namesMatch,
   type UpcomingMatch,
 } from "./upcoming-matches";
@@ -169,7 +170,7 @@ export function calendarVenueForClub(clubName: string): string {
   const name = clean(clubName);
   if (!name) return "";
   for (const league of SPORTING_CALENDAR_LEAGUES) {
-    const team = league.teams.find((row) => namesMatch(row.name, name));
+    const team = league.teams.find((row) => namesExactlyMatch(row.name, name));
     if (team?.venue && team.venue !== "TBC") return team.venue;
   }
   return "";

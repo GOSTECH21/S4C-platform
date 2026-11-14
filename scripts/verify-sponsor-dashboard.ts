@@ -105,8 +105,17 @@ const signature = {
   signedAt: "2026-09-14T11:00:00.000Z",
 };
 
-assert(clubsMatch("Manchester United", "Man United") === false, "Exact club helper still matches substrings only when contained");
-assert(clubsMatch("Manchester United FC", "Manchester United"), "Club names match when one contains the other");
+assert(
+  clubsMatch("Manchester United", "Man United"),
+  "Man United is an alias of Manchester United, not a substring"
+);
+assert(clubsMatch("Manchester United FC", "Manchester United"), "Club names match when the FC suffix is stripped");
+assert(
+  !clubsMatch("Rangers", "Queens Park Rangers"),
+  "Rangers is not Queens Park Rangers"
+);
+assert(!clubsMatch("Rangers", "Berwick Rangers"), "Rangers is not Berwick Rangers");
+assert(!clubsMatch("Everton", "Everton Women"), "Everton is not Everton Women");
 
 const pendingBefore = unsignedMatchOffers([offer, otherOffer], []);
 assert(pendingBefore.length === 2, "Unsigned inbox shows both club offers before sign-off");

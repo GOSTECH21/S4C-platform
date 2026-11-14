@@ -264,26 +264,26 @@ export async function findClubByPreferenceName(
 
   const { data } = await supabase
     .from("clubs")
-    .select("id, name, competitions ( name, sports ( name ) )")
-    .ilike("name", `%${name}%`)
-    .not("competition_id", "is", null)
-    .limit(1)
-    .maybeSingle();
+    .select("id, name, competition_id, competitions ( name, sports ( name ) )")
+    .not("competition_id", "is", null);
 
-  if (!data) return null;
-  const competition = (
-    data as unknown as {
-      competitions: { name: string | null; sports: { name: string } | null } | null;
-    }
-  ).competitions;
+  const dataRows = (data ?? []) as Array<{
+    id: string;
+    name: string;
+    competition_id?: string | null;
+    competitions?: { name: string | null; sports: { name: string } | null } | null;
+  }>;
+  const matched = findClubOnRoster(dataRows, name);
+  if (!matched) return null;
+  const competition = matched.competitions;
   const currentLeague =
     Object.entries(CURRENT_SEASON_LEAGUES).find(([, names]) =>
-      names.some((clubName) => seasonNamesMatch(clubName, data.name as string))
+      names.some((clubName) => seasonNamesMatch(clubName, matched.name))
     )?.[0] ?? competition?.name ?? "";
   return {
-    id: data.id as string,
-    name: data.name as string,
-    displayName: displayClubName(data.name as string),
+    id: matched.id,
+    name: matched.name,
+    displayName: displayClubName(matched.name),
     sport: competition?.sports?.name ?? LEAGUE_SPORT[currentLeague] ?? "Football",
     competition: currentLeague,
   };
@@ -478,10 +478,14 @@ function uniqueTeamsById(teams: TeamOption[]): TeamOption[] {
 function namesMatch(a: string, b: string): boolean {
   const left = normalizeName(a);
   const right = normalizeName(b);
+  if (!left || !right) return false;
   if (left === right) return true;
-  const leftAliases = NAME_ALIASES[left] ?? [left];
-  const rightAliases = NAME_ALIASES[right] ?? [right];
-  return leftAliases.some((alias) => rightAliases.includes(alias));
+  const leftNames = new Set([left, ...(NAME_ALIASES[left] ?? [])]);
+  const rightNames = new Set([right, ...(NAME_ALIASES[right] ?? [])]);
+  for (const name of leftNames) {
+    if (rightNames.has(name)) return true;
+  }
+  return false;
 }
 
 function uuidOrNull(value?: string | null): string | null {

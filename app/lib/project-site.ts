@@ -1,5 +1,7 @@
 /** Implementation postcode / address for Climate Projects and stadium-radius matching. */
 
+import { seasonNamesMatch } from "./current-season";
+
 function clubKey(name: string): string {
   return name
     .toLowerCase()
@@ -13,7 +15,8 @@ function clubsMatch(left: string, right: string): boolean {
   const a = clubKey(left);
   const b = clubKey(right);
   if (!a || !b) return false;
-  return a === b || a.includes(b) || b.includes(a);
+  if (a === b) return true;
+  return seasonNamesMatch(left, right);
 }
 
 /** Local-business copy still uses this 5-mile figure where it is mentioned. */

@@ -88,6 +88,8 @@ const CLUB_ALIASES: Record<string, string[]> = {
   cologne: ["fc koln", "koln"],
   "queens park rangers": ["qpr"],
   qpr: ["queens park rangers"],
+  rangers: ["glasgow rangers"],
+  "glasgow rangers": ["rangers"],
   "st johnstone": ["saint johnstone"],
   "saint johnstone": ["st johnstone"],
   deportivo: ["deportivo la coruna"],

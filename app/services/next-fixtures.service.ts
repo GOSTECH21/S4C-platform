@@ -395,10 +395,9 @@ async function fetchFeedFixtures(team: TeamRef): Promise<UpcomingMatch[]> {
           (row.strSport ?? "").toLowerCase().includes(wantedSport) ||
           (wantedSport === "soccer" &&
             (row.strSport ?? "").toLowerCase().includes("football"));
-        return sportOk && namesMatch(row.strTeam, query);
+        return sportOk && namesExactlyMatch(row.strTeam, query);
       }) ??
-      (searched.teams ?? []).find((row) => namesMatch(row.strTeam, query)) ??
-      searched.teams?.[0];
+      (searched.teams ?? []).find((row) => namesExactlyMatch(row.strTeam, query));
     if (!teamRow) return [];
 
     const next = await fetch(
@@ -527,7 +526,10 @@ async function fetchS4pFixtures(
 ): Promise<UpcomingMatch[]> {
   const clubIds = new Set<string>([team.id]);
   for (const row of clubs) {
-    if (namesMatch(row.name, team.name) || namesMatch(row.name, team.displayName)) {
+    if (
+      namesExactlyMatch(row.name, team.name) ||
+      namesExactlyMatch(row.name, team.displayName)
+    ) {
       clubIds.add(row.id);
     }
   }
@@ -701,6 +703,7 @@ export async function getPublishedFixturesForClub(
   ]);
   const published = fillHomeVenues(enrichVenues(live, extras))
     .filter((match) => Boolean(match.date) && match.date >= todayStamp())
+    .filter((match) => involvesTeam(match, team))
     .sort((left, right) => matchSortKey(left).localeCompare(matchSortKey(right)))
     .slice(0, 16);
   return withDemoUpcomingFixtures(name, published);

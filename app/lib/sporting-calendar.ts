@@ -371,8 +371,7 @@ export function resolveSportingCalendarClub(query: string): string | null {
   const lower = needle.toLowerCase();
   const starts = clubs.filter((name) => name.toLowerCase().startsWith(lower));
   if (starts.length === 1) return starts[0];
-  const includes = clubs.filter((name) => name.toLowerCase().includes(lower));
-  if (includes.length === 1) return includes[0];
+  // Do not substring-match: "Rangers" is contained in "Queens Park Rangers".
   return null;
 }
 

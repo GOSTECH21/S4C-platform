@@ -27,6 +27,7 @@ import {
 } from "../lib/fan-campaign-scope";
 import {
   MATCH_DAY_PORTFOLIO_VOTED,
+  campaignLabelParts,
   fanPostVisibility,
   fanTeamMatchesPostedClub,
   isPostedPortfolioStatus,
@@ -36,6 +37,7 @@ import {
   readAllFanPostSchedules,
   storedCampaignIdForClub,
 } from "../lib/match-day-post";
+import { namesMatch } from "../lib/upcoming-matches";
 import {
   MISSING_CAMPAIGN_VOTE_MESSAGE,
   isCampaignIdNotNullError,
@@ -540,6 +542,14 @@ async function postedClubNameById(
 
 function titleIncludesTeam(title: string, team: TeamOption): boolean {
   return fanTeamMatchesPostedClub(team, { title });
+}
+
+function campaignTextNamesClub(
+  text: string | null | undefined,
+  clubName: string
+): boolean {
+  if (!text?.trim() || !clubName.trim()) return false;
+  return campaignLabelParts(text).some((label) => namesMatch(label, clubName));
 }
 
 async function resolveClubIdsForFanTeam(team: TeamOption): Promise<string[]> {
@@ -1192,22 +1202,18 @@ async function resolveCampaignSponsor({
     .eq("status", "Active");
 
   const matching = (rows ?? []).filter((row) => {
-    const fixture = (row.fixture ?? "").toLowerCase();
-    const event = (row.sponsored_event ?? "").toLowerCase();
-    const club = clubName.toLowerCase();
-    const needle = fixtureNeedle.toLowerCase();
     return (
-      fixture.includes(club) ||
-      event.includes(club) ||
-      (needle.length > 3 && fixture.includes(needle))
+      campaignTextNamesClub(row.fixture, clubName) ||
+      campaignTextNamesClub(row.sponsored_event, clubName) ||
+      (fixtureNeedle.length > 3 &&
+        campaignTextNamesClub(row.fixture, fixtureNeedle))
     );
   });
 
   const preferred =
     matching.find(
       (row) =>
-        (row.sponsored_event ?? "").toLowerCase().includes(clubName.toLowerCase()) &&
-        row.sponsor_id
+        campaignTextNamesClub(row.sponsored_event, clubName) && row.sponsor_id
     ) ??
     matching.find((row) => row.sponsor_id) ??
     matching[0];

@@ -14,10 +14,8 @@ export type SponsorSignatureRef = {
 
 export function offerBelongsToClub(offerClubName: string, clubName: string): boolean {
   if (!offerClubName.trim() || !clubName.trim()) return false;
-  if (seasonNamesMatch(offerClubName, clubName)) return true;
-  const offer = offerClubName.toLowerCase();
-  const club = clubName.toLowerCase();
-  return offer.includes(club) || club.includes(offer);
+  // Alias match only. Substring match would treat Rangers as Queens Park Rangers.
+  return seasonNamesMatch(offerClubName, clubName);
 }
 
 /** Signed brand on the latest club offer, else the brand the SD posted that five to. */
