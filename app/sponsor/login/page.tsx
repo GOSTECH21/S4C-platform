@@ -7,6 +7,7 @@ import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   HOME_PATH,
   LOCAL_SPONSOR_REGISTER_PATH,
+  PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_REGISTER_PATH,
   localSponsorLoginPath,
   localSponsorRegisterPath,
@@ -136,6 +137,10 @@ export default function SponsorLoginPage() {
         {" or "}
         <Link href={registerLocalHref} className="font-semibold text-green-400">
           a Local Business Climate Sponsor
+        </Link>
+        {" or "}
+        <Link href={PHILANTHROPIST_REGISTER_PATH} className="font-semibold text-green-400">
+          a Philanthropist
         </Link>
       </p>
       <p className="mt-4 text-center">

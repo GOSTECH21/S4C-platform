@@ -191,6 +191,35 @@ assert(
   "Local sponsor registration does not SSR generic email/password inputs"
 );
 
+const philanthropistRegisterAccount = roleRegisterAccount("philanthropist");
+assert(
+  philanthropistRegisterAccount.formId === "s4p-philanthropist-register" &&
+    philanthropistRegisterAccount.emailName ===
+      "s4p-philanthropist-register-email" &&
+    philanthropistRegisterAccount.passwordName ===
+      "s4p-philanthropist-register-password" &&
+    philanthropistRegisterAccount.emailName !== accounts.sponsor.emailName &&
+    philanthropistRegisterAccount.emailName !== localRegisterAccount.emailName,
+  "Philanthropist registration uses its own blank fields, not the Lead Sponsor names"
+);
+
+const philanthropistRegister = readFileSync(
+  "app/sponsor/philanthropist/register/page.tsx",
+  "utf8"
+);
+assert(
+  philanthropistRegister.includes('roleRegisterAccount("philanthropist")') &&
+    philanthropistRegister.includes("formReady") &&
+    philanthropistRegister.includes("SafeInput") &&
+    philanthropistRegister.includes("account.contactName") &&
+    philanthropistRegister.includes("account.emailName") &&
+    philanthropistRegister.includes("account.passwordName") &&
+    !philanthropistRegister.includes("<input") &&
+    !philanthropistRegister.includes('name="email"') &&
+    !philanthropistRegister.includes('name="password"'),
+  "Philanthropist registration does not SSR generic email/password inputs"
+);
+
 const genericLogin = readFileSync("app/login/page.tsx", "utf8");
 assert(
   genericLogin.includes('roleLoginAccount("fan")') &&

@@ -1,7 +1,7 @@
 /** Per-title login fields so Fan, Club, Sponsor, Partner and Staff stay separate. */
 
 export type LoginRole = "fan" | "club" | "sponsor" | "partner" | "admin";
-export type RegisterRole = LoginRole | "local";
+export type RegisterRole = LoginRole | "local" | "philanthropist";
 
 export type RoleLoginAccount = {
   email: string;

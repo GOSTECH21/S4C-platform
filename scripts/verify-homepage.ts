@@ -22,6 +22,7 @@ import {
 } from "../app/lib/local-sponsor";
 import {
   LOCAL_SPONSOR_REGISTER_PATH,
+  PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_REGISTER_PATH,
 } from "../app/lib/routes";
 import { MATCH_DAY_PROJECT_COUNT } from "../app/lib/partner-projects";
@@ -51,6 +52,10 @@ assert(
       ?.description.includes("any amount per match") &&
     HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
       ?.description.includes("Climate Impact League Table (CILT)") &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
+      ?.register === PHILANTHROPIST_REGISTER_PATH &&
+    HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
+      ?.register !== SPONSOR_REGISTER_PATH &&
     !HOME_STAKEHOLDERS.find((card) => card.title === "Philanthropists")
       ?.description.includes("£10,000 per match"),
   "Philanthropists can make any-amount climate donations that fans direct toward CILT"

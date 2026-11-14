@@ -15,6 +15,8 @@ import {
   HOME_PATH,
   LOCAL_SPONSOR_HOME_PATH,
   LOCAL_SPONSOR_REGISTER_PATH,
+  PHILANTHROPIST_HOME_PATH,
+  PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_GAME_TIME_PATH,
@@ -22,6 +24,7 @@ import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
+import { PHILANTHROPIST_NAV_REGISTER } from "@/app/lib/philanthropist";
 import {
   rememberLocalSponsorSession,
   sponsorHomePath,
@@ -51,7 +54,8 @@ export function SponsorTabBar({
   onLogout: () => void;
 }) {
   const showGameTime = homePath === SPONSOR_DASHBOARD_PATH;
-  const tabCount = showGameTime ? 4 : 3;
+  const showInvitations = homePath !== PHILANTHROPIST_HOME_PATH;
+  const tabCount = showGameTime ? 4 : showInvitations ? 3 : 2;
 
   return (
     <div
@@ -60,7 +64,11 @@ export function SponsorTabBar({
       data-sponsor-tabs-visible="sponsor-tabs-visible-v1"
       data-sponsor-drop-calendar="sponsor-drop-calendar-v1"
       className={`grid w-full gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2 ${
-        showGameTime ? "grid-cols-4" : "grid-cols-3"
+        showGameTime
+          ? "grid-cols-4"
+          : showInvitations
+            ? "grid-cols-3"
+            : "grid-cols-2"
       }`}
     >
       <Link
@@ -77,12 +85,14 @@ export function SponsorTabBar({
           {GAME_TIME_NAV_LABEL}
         </Link>
       ) : null}
-      <Link
-        href={SPONSOR_INVITATIONS_PATH}
-        className={`${tabClass} ${s4pTabClass(onInvitations)}`}
-      >
-        {sponsorInvitationsNavLabel(inviteCount)}
-      </Link>
+      {showInvitations ? (
+        <Link
+          href={SPONSOR_INVITATIONS_PATH}
+          className={`${tabClass} ${s4pTabClass(onInvitations)}`}
+        >
+          {sponsorInvitationsNavLabel(inviteCount)}
+        </Link>
+      ) : null}
       <button
         type="button"
         onClick={onLogout}
@@ -181,7 +191,8 @@ export function SponsorNav() {
     !onGameTime &&
     ((pathname ?? "") === homePath ||
       (pathname ?? "") === SPONSOR_DASHBOARD_PATH ||
-      (pathname ?? "") === LOCAL_SPONSOR_HOME_PATH);
+      (pathname ?? "") === LOCAL_SPONSOR_HOME_PATH ||
+      (pathname ?? "") === PHILANTHROPIST_HOME_PATH);
 
   if (loggedIn) {
     return (
@@ -197,7 +208,11 @@ export function SponsorNav() {
   }
 
   const onLogin = (pathname ?? "").startsWith(SPONSOR_LOGIN_PATH);
+  const onPhilanthropistRegister = (pathname ?? "").startsWith(
+    PHILANTHROPIST_REGISTER_PATH
+  );
   const onRegister =
+    onPhilanthropistRegister ||
     (pathname ?? "").startsWith(SPONSOR_REGISTER_PATH) ||
     (pathname ?? "").startsWith(LOCAL_SPONSOR_REGISTER_PATH);
 
@@ -209,10 +224,16 @@ export function SponsorNav() {
       className="grid w-full grid-cols-3 gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2"
     >
       <Link
-        href={SPONSOR_REGISTER_PATH}
+        href={
+          onPhilanthropistRegister
+            ? PHILANTHROPIST_REGISTER_PATH
+            : SPONSOR_REGISTER_PATH
+        }
         className={`${tabClass} ${s4pTabClass(onRegister)}`}
       >
-        Register as Sponsor
+        {onPhilanthropistRegister
+          ? PHILANTHROPIST_NAV_REGISTER
+          : "Register as Sponsor"}
       </Link>
       <Link
         href={SPONSOR_LOGIN_PATH}

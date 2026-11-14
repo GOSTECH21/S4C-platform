@@ -6,6 +6,7 @@ import {
   LOCAL_SPONSOR_REGISTER_PATH,
   PARTNER_LOGIN_PATH,
   PARTNER_REGISTER_PATH,
+  PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
@@ -117,11 +118,11 @@ export const HOME_STAKEHOLDERS: HomeStakeholder[] = [
     tabDescription:
       "Make a climate donation and let fans help your team climb the Climate Impact League Table.",
     tabCta: "Be a Philanthropic Sponsor →",
-    register: SPONSOR_REGISTER_PATH,
+    register: PHILANTHROPIST_REGISTER_PATH,
     login: SPONSOR_LOGIN_PATH,
     registerText: "Be a Philanthropic Sponsor →",
     loginText: "Already registered? Login",
-    loginButtonText: "Login as a Sponsor →",
+    loginButtonText: "Login as a Philanthropist →",
     image: "/images/home/role-philanthropist.png",
     imageAlt: "Hands holding a seedling in soil",
   },

@@ -11,6 +11,7 @@ import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import { BrandLogoField } from "@/app/components/sponsor/BrandLogoField";
 import {
   LOCAL_SPONSOR_REGISTER_PATH,
+  PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_GAME_TIME_PATH,
   SPONSOR_LOGIN_PATH,
@@ -313,6 +314,10 @@ export default function SponsorRegisterPage() {
         {" · "}
         <Link href={LOCAL_SPONSOR_REGISTER_PATH} className="font-semibold text-green-400">
           Local Business instead?
+        </Link>
+        {" · "}
+        <Link href={PHILANTHROPIST_REGISTER_PATH} className="font-semibold text-green-400">
+          Philanthropist instead?
         </Link>
       </p>
     </div>

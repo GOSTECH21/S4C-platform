@@ -8,8 +8,10 @@ import {
   readLocalSponsorRecord,
   readSponsorTier,
 } from "./local-sponsor";
+import { isPhilanthropistSponsor } from "./philanthropist";
 import {
   LOCAL_SPONSOR_HOME_PATH,
+  PHILANTHROPIST_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
 } from "./routes";
 
@@ -69,6 +71,7 @@ export function sponsorHomePath(
   brandName?: string | null,
   hints: SponsorHomeHints = {}
 ): string {
+  if (isPhilanthropistSponsor(brandName, hints)) return PHILANTHROPIST_HOME_PATH;
   if (isLocalClimateSponsor(brandName, hints)) return LOCAL_SPONSOR_HOME_PATH;
   if (brandName && isLeadClimateBrand(brandName)) return SPONSOR_DASHBOARD_PATH;
   if (readSponsorTier() === "local") return LOCAL_SPONSOR_HOME_PATH;
