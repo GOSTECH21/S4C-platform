@@ -41,10 +41,10 @@ assert(
 
 assert(
   front.includes("onJoinCommunity") &&
-    front.includes('data-how-s4p-desktop="true"') &&
-    front.includes("hidden md:block") &&
+    front.includes('data-how-s4p-mobile-pc="how-s4p-mobile-pc-v1"') &&
+    !front.includes('data-how-s4p-desktop="true"') &&
     front.includes("<HowItWorks"),
-  "How S4P Works stays on desktop and is removed from the mobile homepage"
+  "How S4P Works sits on the homepage for mobile and PC"
 );
 
 if (failures.length > 0) {

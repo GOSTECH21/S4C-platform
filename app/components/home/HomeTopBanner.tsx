@@ -365,8 +365,8 @@ export default function HomeTopBanner({
           </div>
         </div>
         {menuOpen ? (
-          <nav aria-label="Homepage" className="mt-3 grid grid-cols-4 gap-2">
-            {NAV.filter((item) => item.label !== "How it works").map((item) => (
+          <nav aria-label="Homepage" className="mt-3 grid grid-cols-5 gap-2">
+            {NAV.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}

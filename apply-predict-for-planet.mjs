@@ -190,7 +190,6 @@ for (const root of roots) {
   if (
     !howText.includes("how-s4p-split-steps-v1") ||
     !howText.includes("HOW_S4P_ACCESS_JOIN") ||
-    !howText.includes("hidden md:block") ||
     !howText.includes("data-phone-frame") ||
     howText.includes("Explore the six steps below") ||
     howText.includes("PredictForPlanetPhone") ||
