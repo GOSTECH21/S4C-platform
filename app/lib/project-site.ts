@@ -2,7 +2,8 @@
 
 import { seasonNamesMatch } from "./current-season";
 
-function clubKey(name: string): string {
+function clubKey(name: string | null | undefined): string {
+  if (typeof name !== "string" || !name) return "";
   return name
     .toLowerCase()
     .replace(/\b(football club|f\.c\.|fc|afc)\b/g, " ")
@@ -11,7 +12,10 @@ function clubKey(name: string): string {
     .trim();
 }
 
-function clubsMatch(left: string, right: string): boolean {
+function clubsMatch(
+  left: string | null | undefined,
+  right: string | null | undefined
+): boolean {
   const a = clubKey(left);
   const b = clubKey(right);
   if (!a || !b) return false;

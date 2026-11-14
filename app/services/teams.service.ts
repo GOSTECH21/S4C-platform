@@ -186,7 +186,16 @@ export function fanRegisterCatalog(): TeamGroup[] {
   return groupTeams(teams).filter((group) => isPrimarySport(group.sport));
 }
 
+let fanRegisterCatalogPromise: Promise<TeamGroup[]> | null = null;
+
 export async function loadFanRegisterCatalog(): Promise<TeamGroup[]> {
+  if (!fanRegisterCatalogPromise) {
+    fanRegisterCatalogPromise = hydrateFanRegisterCatalog();
+  }
+  return fanRegisterCatalogPromise;
+}
+
+async function hydrateFanRegisterCatalog(): Promise<TeamGroup[]> {
   const catalog = fanRegisterCatalog();
   try {
     const { data, error } = await supabase
@@ -262,31 +271,7 @@ export async function findClubByPreferenceName(
     }
   }
 
-  const { data } = await supabase
-    .from("clubs")
-    .select("id, name, competition_id, competitions ( name, sports ( name ) )")
-    .not("competition_id", "is", null);
-
-  const dataRows = (data ?? []) as Array<{
-    id: string;
-    name: string;
-    competition_id?: string | null;
-    competitions?: { name: string | null; sports: { name: string } | null } | null;
-  }>;
-  const matched = findClubOnRoster(dataRows, name);
-  if (!matched) return null;
-  const competition = matched.competitions;
-  const currentLeague =
-    Object.entries(CURRENT_SEASON_LEAGUES).find(([, names]) =>
-      names.some((clubName) => seasonNamesMatch(clubName, matched.name))
-    )?.[0] ?? competition?.name ?? "";
-  return {
-    id: matched.id,
-    name: matched.name,
-    displayName: displayClubName(matched.name),
-    sport: competition?.sports?.name ?? LEAGUE_SPORT[currentLeague] ?? "Football",
-    competition: currentLeague,
-  };
+  return null;
 }
 
 export function flattenCatalog(catalog: TeamGroup[]): TeamOption[] {
@@ -456,7 +441,8 @@ export async function saveSupportedTeams(
   if (prefError) throw prefError;
 }
 
-function normalizeName(value: string): string {
+function normalizeName(value: string | null | undefined): string {
+  if (typeof value !== "string" || !value) return "";
   return value
     .toLowerCase()
     .replace(/fc\b/g, "")

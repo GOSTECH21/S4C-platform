@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { clubsMatch } from "../app/lib/sponsor-dashboard";
 import { namesMatch, namesExactlyMatch } from "../app/lib/upcoming-matches";
+import { seasonNamesMatch } from "../app/lib/current-season";
 import { stadiumSiteForClub } from "../app/lib/project-site";
 import { calendarVenueForClub } from "../app/lib/matchrav-journey";
 import {
@@ -86,11 +87,35 @@ assert(
   "Rangers upcoming matches do not include Queens Park Rangers"
 );
 
+assert(
+  namesMatch(undefined, "Everton") === false &&
+    namesMatch("Rangers", null) === false &&
+    clubsMatch(undefined, "Everton") === false &&
+    seasonNamesMatch(undefined, "Rangers") === false,
+  "Club matching never throws when a fixture or campaign is missing a name"
+);
+
 const teamsService = readFileSync("app/services/teams.service.ts", "utf8");
+const preferenceLookup = teamsService.slice(
+  teamsService.indexOf("export async function findClubByPreferenceName"),
+  teamsService.indexOf("export function flattenCatalog")
+);
 assert(
   !teamsService.includes('.ilike("name", `%${name}%`)') &&
-    teamsService.includes("findClubOnRoster(dataRows, name)"),
-  "Looking up a Rangers supporter does not SQL-wildcard every other Rangers club"
+    !preferenceLookup.includes('.from("clubs")') &&
+    teamsService.includes("fanRegisterCatalogPromise"),
+  "Looking up a supporter's club stays on the Sporting Calendar and does not download every club again"
+);
+
+const workspace = readFileSync(
+  "app/components/fan/FanCampaignWorkspace.tsx",
+  "utf8"
+);
+assert(
+  workspace.includes("SUPPORTER_CAMPAIGN_PATH") &&
+    workspace.includes('from "@/app/lib/routes"') &&
+    workspace.includes("Could not load My S4P"),
+  "My S4P shows a load error instead of crashing when a campaign is missing"
 );
 
 if (failures.length > 0) {

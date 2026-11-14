@@ -1,5 +1,3 @@
-import { seasonNamesMatch } from "./current-season";
-
 export type UpcomingMatchSource = "club-website" | "fixtures-list" | "s4p";
 
 export type UpcomingMatch = {
@@ -49,7 +47,8 @@ const NAME_ALIASES: Record<string, string[]> = {
   "glasgow rangers": ["rangers"],
 };
 
-export function normalizeClubName(value: string): string {
+export function normalizeClubName(value: string | null | undefined): string {
+  if (typeof value !== "string" || !value) return "";
   return value
     .toLowerCase()
     .replace(/fc\b/g, "")
@@ -57,7 +56,10 @@ export function normalizeClubName(value: string): string {
     .trim();
 }
 
-export function namesExactlyMatch(a: string, b: string): boolean {
+export function namesExactlyMatch(
+  a: string | null | undefined,
+  b: string | null | undefined
+): boolean {
   const left = normalizeClubName(a);
   const right = normalizeClubName(b);
   if (!left || !right) return false;
@@ -70,9 +72,12 @@ export function namesExactlyMatch(a: string, b: string): boolean {
   return false;
 }
 
-export function namesMatch(a: string, b: string): boolean {
-  // Do not substring-match: "Rangers" is contained in "Queens Park Rangers".
-  return namesExactlyMatch(a, b) || seasonNamesMatch(a, b);
+export function namesMatch(
+  a: string | null | undefined,
+  b: string | null | undefined
+): boolean {
+  // Alias match only. Substring match would treat Rangers as Queens Park Rangers.
+  return namesExactlyMatch(a, b);
 }
 
 export function namesLooselyMatch(a: string, b: string): boolean {

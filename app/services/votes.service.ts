@@ -37,7 +37,6 @@ import {
   readAllFanPostSchedules,
   storedCampaignIdForClub,
 } from "../lib/match-day-post";
-import { namesMatch } from "../lib/upcoming-matches";
 import {
   MISSING_CAMPAIGN_VOTE_MESSAGE,
   isCampaignIdNotNullError,
@@ -546,10 +545,12 @@ function titleIncludesTeam(title: string, team: TeamOption): boolean {
 
 function campaignTextNamesClub(
   text: string | null | undefined,
-  clubName: string
+  clubName: string | null | undefined
 ): boolean {
-  if (!text?.trim() || !clubName.trim()) return false;
-  return campaignLabelParts(text).some((label) => namesMatch(label, clubName));
+  if (!String(text ?? "").trim() || !String(clubName ?? "").trim()) return false;
+  return campaignLabelParts(String(text)).some((label) =>
+    seasonNamesMatch(label, clubName)
+  );
 }
 
 async function resolveClubIdsForFanTeam(team: TeamOption): Promise<string[]> {
@@ -1194,7 +1195,9 @@ async function resolveCampaignSponsor({
   } catch {
     // Fall through to the campaign table.
   }
-  const fixtureNeedle = matchTitle.replace(/ Climate Campaign$/i, "").trim();
+  const fixtureNeedle = String(matchTitle ?? "")
+    .replace(/ Climate Campaign$/i, "")
+    .trim();
 
   const { data: rows } = await supabase
     .from("sponsorship_campaigns")

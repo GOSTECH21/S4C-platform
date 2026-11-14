@@ -13,7 +13,7 @@ export type SponsorSignatureRef = {
 };
 
 export function offerBelongsToClub(offerClubName: string, clubName: string): boolean {
-  if (!offerClubName.trim() || !clubName.trim()) return false;
+  if (!String(offerClubName ?? "").trim() || !String(clubName ?? "").trim()) return false;
   // Alias match only. Substring match would treat Rangers as Queens Park Rangers.
   return seasonNamesMatch(offerClubName, clubName);
 }

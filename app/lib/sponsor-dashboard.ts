@@ -53,7 +53,8 @@ export type SponsorDashboardStats = {
   fanVotes: number;
 };
 
-export function normalizeClubName(name: string): string {
+export function normalizeClubName(name: string | null | undefined): string {
+  if (typeof name !== "string" || !name) return "";
   return name
     .toLowerCase()
     .replace(/&/g, " and ")
@@ -63,7 +64,10 @@ export function normalizeClubName(name: string): string {
     .trim();
 }
 
-export function clubsMatch(left: string, right: string): boolean {
+export function clubsMatch(
+  left: string | null | undefined,
+  right: string | null | undefined
+): boolean {
   const a = normalizeClubName(left);
   const b = normalizeClubName(right);
   if (!a || !b) return false;

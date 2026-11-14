@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/app/lib/supabase";
 import TeamPicker from "@/app/components/fan/TeamPicker";
-import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
+
+const HowS4pSelectMatch = dynamic(
+  () => import("@/app/components/home/HowS4pSelectMatch"),
+  { ssr: false }
+);
 import {
   getSupportedTeams,
   loadFanRegisterCatalog,

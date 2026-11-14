@@ -20,7 +20,7 @@ import {
   type TeamOption,
 } from "@/app/services/teams.service";
 import { loadBrandLogo } from "@/app/services/climate-sponsors.service";
-import { FAN_LOGIN_PATH } from "@/app/lib/routes";
+import { FAN_LOGIN_PATH, SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { CampaignMatchHeader } from "@/app/components/fan/CampaignMatchHeader";
 import { FanClimateProjectPager } from "@/app/components/fan/FanClimateProjectPager";
 import { liveMatchDayBranding } from "@/app/services/match-day-branding.service";
@@ -141,6 +141,23 @@ export function FanCampaignWorkspace({
     return (
       <main className="px-8 pb-16 text-white">
         <p className="text-slate-400">Loading your campaign...</p>
+      </main>
+    );
+  }
+
+  if (error && teams.length === 0 && campaigns.length === 0) {
+    return (
+      <main className="px-8 pb-16 text-white">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-red-500/40 bg-red-500/10 p-8">
+          <h2 className="text-2xl font-bold">Could not load My S4P</h2>
+          <p className="mt-3 text-red-200">{error}</p>
+          <a
+            href={SUPPORTER_CAMPAIGN_PATH}
+            className="mt-6 inline-flex rounded-lg bg-green-500 px-5 py-3 font-bold text-slate-950"
+          >
+            Try My S4P again
+          </a>
+        </div>
       </main>
     );
   }
