@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { registerSponsor } from "@/app/services/sponsor-auth.service";
+import { depositPhilanthropistClimateWallet } from "@/app/services/sponsor-wallet.service";
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
 import {
   PHILANTHROPIST_HOME_PATH,
@@ -69,6 +70,11 @@ export default function PhilanthropistRegisterPage() {
         clubName: clubName.trim(),
         giftGbp: gift,
         createdAt: new Date().toISOString(),
+      });
+      depositPhilanthropistClimateWallet({
+        clubName: clubName.trim(),
+        brandName: companyName,
+        giftGbp: gift,
       });
       window.location.href = PHILANTHROPIST_HOME_PATH;
     } catch (err) {

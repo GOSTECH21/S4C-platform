@@ -201,7 +201,7 @@ export function pairFanClimateProjectPages({
       listed.filter((row) => row.id !== featured?.id)[index] ?? null
   );
 
-  const localWallets = locals.filter((row) => row.kind !== "lead");
+  const localWallets = locals.filter((row) => row.kind === "local");
   const byProject = new Map<string, FanProjectSponsor>();
   const used = new Set<string>();
 

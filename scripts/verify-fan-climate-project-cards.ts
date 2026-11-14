@@ -156,6 +156,13 @@ assert(
     ),
   "The 1/5 pager auto-advances after FUND-IT and shows Invite friends on 5/5"
 );
+assert(
+  pager.includes("PHILANTHROPIST_CARBON_WALLET_LABEL") &&
+    pager.includes('data-testid="philanthropist-carbon-wallet"') &&
+    pager.includes("PHILANTHROPIST_TAKE_LABEL") &&
+    pager.includes("philanthropists"),
+  "My S4P shows the Philanthropist Carbon Wallet and Take £0.50 on each Climate Project"
+);
 
 const wallet = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 assert(
