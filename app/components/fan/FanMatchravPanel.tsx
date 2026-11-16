@@ -42,7 +42,6 @@ import {
   listMatchravTrips,
   matchravStadiumForClub,
   matchravStadiumForMatch,
-  milesFromOriginToDestination,
   readMatchravConsent,
   readMatchravTicketFile,
   saveMatchravTrip,
@@ -52,6 +51,12 @@ import {
   type MatchravStadium,
   type MatchravTrip,
 } from "@/app/lib/matchrav-journey";
+import {
+  GOOGLE_MAPS_DISTANCE_LABEL,
+  MATCHRAV_GOOGLE_MILES_STAMP,
+  requestMatchravDistance,
+  type MatchravDistanceSource,
+} from "@/app/lib/matchrav-google-distance";
 import { SUPPORTER_CAMPAIGN_PATH } from "@/app/lib/routes";
 import { getOrCreateSupporter } from "@/app/services/fan-session.service";
 import { getSupportedTeams } from "@/app/services/teams.service";
@@ -93,6 +98,9 @@ export default function FanMatchravPanel({
   const [sameReturn, setSameReturn] = useState(true);
   const [miles, setMiles] = useState("");
   const [returnMiles, setReturnMiles] = useState("");
+  const [distanceSource, setDistanceSource] =
+    useState<MatchravDistanceSource | null>(null);
+  const [distanceBusy, setDistanceBusy] = useState(false);
   const [occupants, setOccupants] = useState(TRAVEL_EXAMPLE.occupants);
   const [consent, setConsent] = useState<MatchravConsent>(DEFAULT_MATCHRAV_CONSENT);
   const [trips, setTrips] = useState<MatchravTrip[]>([]);
@@ -242,16 +250,32 @@ export default function FanMatchravPanel({
   }, [club, fixture, stadium]);
 
   useEffect(() => {
-    const computed = milesFromOriginToDestination(
-      origin,
-      destination,
-      fixture,
-      stadium
-    );
-    if (computed <= 0) return;
-    const value = String(computed);
-    setMiles(value);
-    if (sameReturn) setReturnMiles(value);
+    const from = origin.trim();
+    const to = destination.trim();
+    if (!from || !to) return;
+    const abort = new AbortController();
+    setDistanceBusy(true);
+    void requestMatchravDistance({
+      origin: from,
+      destination: to,
+      mode: outboundMode,
+      homeName: fixture?.homeName ?? matchStadium?.club ?? stadium?.club,
+      signal: abort.signal,
+    })
+      .then((result) => {
+        if (!result) return;
+        const value = String(result.miles);
+        setMiles(value);
+        if (sameReturn) setReturnMiles(value);
+        setDistanceSource(result.source);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      })
+      .finally(() => {
+        if (!abort.signal.aborted) setDistanceBusy(false);
+      });
+    return () => abort.abort();
   }, [origin, destination, fixture, stadium, sameReturn, outboundMode]);
 
   function persistConsent(next: MatchravConsent) {
@@ -565,10 +589,25 @@ export default function FanMatchravPanel({
                 className={FIELD}
               />
             </label>
-            {parseReturnMiles(miles) > 0 && origin.trim() && destination.trim() ? (
-              <p className="mt-1 text-xs font-semibold text-slate-400">
-                Estimated from origin to destination
-                {outboundMode === "car" ? " for Car" : ""}.
+            {origin.trim() && destination.trim() ? (
+              <p
+                className="mt-1 text-xs font-semibold text-slate-400"
+                data-matchrav-google-miles={MATCHRAV_GOOGLE_MILES_STAMP}
+                data-distance-source={distanceSource ?? ""}
+              >
+                {distanceBusy
+                  ? `Looking up ${GOOGLE_MAPS_DISTANCE_LABEL}…`
+                  : distanceSource === "google"
+                    ? `${GOOGLE_MAPS_DISTANCE_LABEL} from origin to destination${
+                        outboundMode === "car" ? " for Car" : ""
+                      }.`
+                    : distanceSource === "osrm"
+                      ? `Driving distance from origin to destination, using ${GOOGLE_MAPS_DISTANCE_LABEL} as the reference.`
+                      : parseReturnMiles(miles) > 0
+                        ? `Estimated from origin to destination${
+                            outboundMode === "car" ? " for Car" : ""
+                          }.`
+                        : `Uses ${GOOGLE_MAPS_DISTANCE_LABEL} from origin to destination.`}
               </p>
             ) : null}
 
