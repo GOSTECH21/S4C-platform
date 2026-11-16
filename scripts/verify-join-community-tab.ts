@@ -1,5 +1,7 @@
 import { readFileSync } from "fs";
 import {
+  HOME_CLUBS_SPONSORS_HREF,
+  HOME_CLUBS_SPONSORS_LABEL,
   HOME_JOIN_COMMUNITY_HREF,
   HOME_JOIN_COMMUNITY_LABEL,
 } from "../app/lib/home-hero";
@@ -12,9 +14,11 @@ function assert(condition: boolean, message: string) {
 const banner = readFileSync("app/components/home/HomeTopBanner.tsx", "utf8");
 const front = readFileSync("app/components/home/HomeFrontPage.tsx", "utf8");
 assert(
-  HOME_JOIN_COMMUNITY_LABEL === "Join the Community" &&
-    HOME_JOIN_COMMUNITY_HREF === "#are-you",
-  "Join the Community points at the S4P community role section"
+  HOME_JOIN_COMMUNITY_LABEL === "Join the S4P Community" &&
+    HOME_JOIN_COMMUNITY_HREF === "#are-you" &&
+    HOME_CLUBS_SPONSORS_LABEL === "For Clubs & Sponsors" &&
+    HOME_CLUBS_SPONSORS_HREF === "#join-s4p-community",
+  "Join the S4P Community points at the role section; Clubs & Sponsors opens the club panel"
 );
 
 assert(
@@ -31,8 +35,10 @@ assert(
     banner.includes("HOME_JOIN_COMMUNITY_LABEL") &&
     banner.includes("onJoinCommunity") &&
     banner.includes("HOME_JOIN_COMMUNITY_HREF") &&
+    banner.includes("HOME_CLUBS_SPONSORS_LABEL") &&
+    banner.includes("HOME_CLUBS_SPONSORS_HREF") &&
     !banner.includes("hover:brightness-110 md:hidden"),
-  "Join the Community sits under the global sports copy on every screen"
+  "Join the S4P Community and For Clubs & Sponsors sit under the Image 1 intro on every screen"
 );
 
 assert(

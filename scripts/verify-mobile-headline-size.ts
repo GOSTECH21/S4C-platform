@@ -10,12 +10,12 @@ const join = readFileSync("app/components/home/HomeJoinMission.tsx", "utf8");
 
 assert(
   banner.includes('data-home-headline-size="mobile-headline-size-v1"') &&
-    banner.includes("text-[1.85rem]") &&
-    banner.includes("sm:text-5xl") &&
-    !banner.includes(
-      'className="text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl'
-    ),
-  "Global sports headline is smaller on mobile and unchanged from sm up"
+    banner.includes("text-[1.65rem]") &&
+    banner.includes("sm:text-4xl") &&
+    !banner.includes("text-[1.85rem]") &&
+    !banner.includes("sm:text-5xl") &&
+    !banner.includes("passion into progress"),
+  "Every Score Counts headline stays compact; the old progress headline is gone"
 );
 
 assert(
