@@ -54,7 +54,8 @@ assert(
     panel.includes("data-matchrav-confirm") &&
     panel.includes("data-matchrav-privacy") &&
     panel.includes("data-matchrav-miles") &&
-    panel.includes("milesFromOriginToDestination") &&
+    panel.includes("requestMatchravDistance") &&
+    panel.includes("GOOGLE_MAPS_DISTANCE_LABEL") &&
     !panel.includes("TRAVEL_EXAMPLE.miles / 2") &&
     panel.includes("Return the same way") &&
     panel.includes("MATCHRAV_STADIUM_HEADING") &&
