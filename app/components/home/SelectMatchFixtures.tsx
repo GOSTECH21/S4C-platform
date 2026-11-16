@@ -310,9 +310,10 @@ export function SelectMatchPhone({
     loading,
     error,
     mode,
+    clubLocked,
     onClubMatchSelected,
   } = useSelectMatch();
-  const shown = resolvedClub || club;
+  const shown = clubLocked && club.trim() ? club : resolvedClub || club;
   const clubList = mode === "club";
   const shownMatches = (matches ?? [])
     .filter((match) => {
@@ -586,7 +587,7 @@ export default function SelectMatchFixtures() {
     clubOptions,
     pickerRef,
   } = useSelectMatch();
-  const shown = resolvedClub || club;
+  const shown = clubLocked && club.trim() ? club : resolvedClub || club;
   const names =
     clubOptions && clubOptions.length > 0
       ? clubOptions

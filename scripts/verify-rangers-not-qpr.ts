@@ -49,8 +49,9 @@ assert(
   resolveSportingCalendarClub("Rangers") === "Rangers" &&
     resolveSportingCalendarClub("Queens Park Rangers") ===
       "Queens Park Rangers" &&
-    resolveSportingCalendarClub("QPR") === "Queens Park Rangers",
-  "Select Match resolves Rangers and QPR to different clubs"
+    resolveSportingCalendarClub("QPR") === "Queens Park Rangers" &&
+    resolveSportingCalendarClub("Brighton & Hove Albion") === "Brighton",
+  "Select Match resolves Rangers, QPR, and Brighton & Hove Albion to the calendar clubs"
 );
 assert(
   clubsMatch("Everton", "Everton") && !clubsMatch("Everton", "Everton Women"),

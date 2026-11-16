@@ -58,8 +58,8 @@ assert(
 assert(
   preview.includes('audience="club"') &&
     preview.includes("HowS4pSelectMatch") &&
-    preview.includes('initialClub="Hearts"'),
-  "Club Select Match preview is the unframed Hearts fixture list"
+    preview.includes('initialClub="Brighton & Hove Albion"'),
+  "Club Select Match preview is the unframed Brighton & Hove Albion fixture list"
 );
 assert(
   overlay.includes("club-pc-no-phone-frame-v1") &&
