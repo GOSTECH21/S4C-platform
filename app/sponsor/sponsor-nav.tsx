@@ -15,7 +15,10 @@ import {
   HOME_PATH,
   LOCAL_SPONSOR_HOME_PATH,
   LOCAL_SPONSOR_REGISTER_PATH,
+  PHILANTHROPIST_ADMIN_ID,
+  PHILANTHROPIST_ADMIN_PATH,
   PHILANTHROPIST_HOME_PATH,
+  PHILANTHROPIST_PST_ID,
   PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_CALENDAR_PATH,
   SPONSOR_DASHBOARD_PATH,
@@ -24,7 +27,10 @@ import {
   SPONSOR_LOGIN_PATH,
   SPONSOR_REGISTER_PATH,
 } from "@/app/lib/routes";
-import { PHILANTHROPIST_NAV_REGISTER } from "@/app/lib/philanthropist";
+import {
+  PHILANTHROPIST_ADMIN_NAV,
+  PHILANTHROPIST_NAV_REGISTER,
+} from "@/app/lib/philanthropist";
 import {
   rememberLocalSponsorSession,
   sponsorHomePath,
@@ -44,6 +50,7 @@ export function SponsorTabBar({
   onDashboard,
   onGameTime,
   onInvitations,
+  onAdmin = false,
   onLogout,
 }: {
   homePath: string;
@@ -51,11 +58,13 @@ export function SponsorTabBar({
   onDashboard: boolean;
   onGameTime: boolean;
   onInvitations: boolean;
+  onAdmin?: boolean;
   onLogout: () => void;
 }) {
   const showGameTime = homePath === SPONSOR_DASHBOARD_PATH;
   const showInvitations = homePath !== PHILANTHROPIST_HOME_PATH;
-  const tabCount = showGameTime ? 4 : showInvitations ? 3 : 2;
+  const showAdmin = homePath === PHILANTHROPIST_HOME_PATH;
+  const tabCount = showGameTime ? 4 : showInvitations || showAdmin ? 3 : 2;
 
   return (
     <div
@@ -66,17 +75,25 @@ export function SponsorTabBar({
       className={`grid w-full gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2 ${
         showGameTime
           ? "grid-cols-4"
-          : showInvitations
+          : showInvitations || showAdmin
             ? "grid-cols-3"
             : "grid-cols-2"
       }`}
     >
       <Link
         href={homePath || LOCAL_SPONSOR_HOME_PATH}
-        className={`${tabClass} ${s4pTabClass(onDashboard)}`}
+        className={`${tabClass} ${s4pTabClass(onDashboard && !onAdmin)}`}
       >
         Dashboard
       </Link>
+      {showAdmin ? (
+        <Link
+          href={PHILANTHROPIST_ADMIN_PATH}
+          className={`${tabClass} ${s4pTabClass(onAdmin)}`}
+        >
+          {PHILANTHROPIST_ADMIN_NAV}
+        </Link>
+      ) : null}
       {showGameTime ? (
         <Link
           href={SPONSOR_GAME_TIME_PATH}
@@ -110,6 +127,14 @@ export function SponsorNav() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [homePath, setHomePath] = useState(SPONSOR_DASHBOARD_PATH);
   const [inviteCount, setInviteCount] = useState(0);
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const syncHash = () => setHash(window.location.hash);
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -185,10 +210,13 @@ export function SponsorNav() {
   const onInvitations = (pathname ?? "").startsWith(SPONSOR_INVITATIONS_PATH);
   const onCalendar = (pathname ?? "").startsWith(SPONSOR_CALENDAR_PATH);
   const onGameTime = (pathname ?? "").startsWith(SPONSOR_GAME_TIME_PATH);
+  const onAdmin =
+    hash === `#${PHILANTHROPIST_ADMIN_ID}` || hash === `#${PHILANTHROPIST_PST_ID}`;
   const onDashboard =
     !onInvitations &&
     !onCalendar &&
     !onGameTime &&
+    !onAdmin &&
     ((pathname ?? "") === homePath ||
       (pathname ?? "") === SPONSOR_DASHBOARD_PATH ||
       (pathname ?? "") === LOCAL_SPONSOR_HOME_PATH ||
@@ -202,6 +230,7 @@ export function SponsorNav() {
         onDashboard={onDashboard}
         onGameTime={onGameTime}
         onInvitations={onInvitations}
+        onAdmin={onAdmin}
         onLogout={() => void logout()}
       />
     );

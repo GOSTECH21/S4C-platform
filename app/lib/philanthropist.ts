@@ -15,6 +15,14 @@ export const PHILANTHROPIST_NAV_REGISTER = "Register as Philanthropist";
 export const PHILANTHROPIST_HOME_HEADING = "Your philanthropic climate gift";
 export const PHILANTHROPIST_HOME_EMPTY =
   "Register as a Philanthropist to make a climate donation. Fans of your chosen team direct that gift to club-approved climate projects.";
+export const PHILANTHROPIST_ADMIN_NAV = "My S4P Admin";
+export const PHILANTHROPIST_ADMIN_HEADING = "My S4P Admin";
+export const PHILANTHROPIST_ADMIN_COPY =
+  "Clubs you have put money up for, the Match Days you are sponsoring or have sponsored, and how many fans have taken £0.50 from your Philanthropist Carbon Wallet.";
+export const PHILANTHROPIST_PST_SHORT = "PST";
+export const PHILANTHROPIST_PST_TITLE = "Philanthropist Sponsors Table (PST)";
+export const PHILANTHROPIST_PST_COPY =
+  "PST ranks Philanthropist Sponsors by climate funding put into Match Day sponsorships, in each geographical area.";
 
 export type PhilanthropistRecord = {
   name: string;

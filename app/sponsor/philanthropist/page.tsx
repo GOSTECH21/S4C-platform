@@ -8,6 +8,8 @@ import {
   PHILANTHROPIST_REGISTER_PATH,
   SPONSOR_LOGIN_PATH,
 } from "@/app/lib/routes";
+import { PhilanthropistAdmin } from "@/app/components/sponsor/PhilanthropistAdmin";
+import { PhilanthropistSponsorsTable } from "@/app/components/sponsor/PhilanthropistSponsorsTable";
 import {
   PHILANTHROPIST_HOME_EMPTY,
   PHILANTHROPIST_HOME_HEADING,
@@ -37,7 +39,7 @@ export default function PhilanthropistHomePage() {
 
   return (
     <div
-      className="mx-auto max-w-3xl py-10"
+      className="mx-auto max-w-5xl py-10"
       data-philanthropist-home="philanthropist-register-v1"
       data-testid="philanthropist-home"
     >
@@ -51,7 +53,12 @@ export default function PhilanthropistHomePage() {
       <p className="mt-4 text-slate-300">
         {record ? philanthropistGiftCopy(record) : PHILANTHROPIST_HOME_EMPTY}
       </p>
-      {!record ? (
+      {record ? (
+        <>
+          <PhilanthropistAdmin record={record} />
+          <PhilanthropistSponsorsTable record={record} />
+        </>
+      ) : (
         <p className="mt-8 flex flex-wrap gap-3">
           <Link
             href={PHILANTHROPIST_REGISTER_PATH}
@@ -66,7 +73,7 @@ export default function PhilanthropistHomePage() {
             Login
           </Link>
         </p>
-      ) : null}
+      )}
     </div>
   );
 }
