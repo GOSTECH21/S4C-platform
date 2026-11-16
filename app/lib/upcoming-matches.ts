@@ -1,3 +1,5 @@
+import { seasonNamesMatch } from "./current-season";
+
 export type UpcomingMatchSource = "club-website" | "fixtures-list" | "s4p";
 
 export type UpcomingMatch = {
@@ -69,7 +71,9 @@ export function namesExactlyMatch(
   for (const name of leftNames) {
     if (rightNames.has(name)) return true;
   }
-  return false;
+  // Official titles such as Brighton & Hove Albion share the Sporting Calendar
+  // short name Brighton. Do not substring-match: Rangers is not QPR.
+  return seasonNamesMatch(a, b);
 }
 
 export function namesMatch(

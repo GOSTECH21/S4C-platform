@@ -12,7 +12,7 @@ export default function ClubSelectMatchPreviewPage() {
         <ClubNav />
         <HowS4pSelectMatch
           audience="club"
-          initialClub="Hearts"
+          initialClub="Brighton & Hove Albion"
           clubLocked
           onClubMatchSelected={() =>
             router.push("/preview/club-choose-projects")

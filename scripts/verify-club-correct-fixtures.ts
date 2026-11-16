@@ -1,8 +1,10 @@
+import { namesMatch } from "../app/lib/upcoming-matches";
 import {
   calendarMatchesAsUpcoming,
   canonicalPublishedTeamName,
   matchesForClub,
   nextClubMatches,
+  resolveSportingCalendarClub,
 } from "../app/lib/sporting-calendar";
 import { PREMIER_LEAGUE_TEAMS } from "../app/lib/sporting-calendar-leagues";
 
@@ -78,6 +80,27 @@ assert(
     );
   }),
   "Every Premier League club list is that club only, with one league match per day"
+);
+
+const brightonOfficial = "Brighton & Hove Albion";
+const brightonCalendar = resolveSportingCalendarClub(brightonOfficial);
+const brightonMatches = nextClubMatches(brightonOfficial, { fromDate });
+const brightonShown = brightonMatches.filter(
+  (row) =>
+    namesMatch(row.homeName, brightonOfficial) ||
+    namesMatch(row.awayName, brightonOfficial)
+);
+
+assert(
+  namesMatch(brightonOfficial, "Brighton") &&
+    brightonCalendar === "Brighton" &&
+    brightonMatches.length > 0 &&
+    brightonShown.length === brightonMatches.length &&
+    brightonMatches.every(
+      (row) => row.homeName === "Brighton" || row.awayName === "Brighton"
+    ) &&
+    !brightonMatches.some((row) => /queens park rangers/i.test(row.fixtureName)),
+  "A Brighton & Hove Albion club account lists Brighton's Sporting Calendar matches"
 );
 
 if (failures.length > 0) {
