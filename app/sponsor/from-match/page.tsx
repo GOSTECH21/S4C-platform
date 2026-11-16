@@ -18,9 +18,11 @@ import {
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   localNewSponsorshipPath,
+  philanthropistNewSponsorshipPath,
   sponsorLoginPath,
   sponsorWalletPath,
 } from "@/app/lib/routes";
+import { isPhilanthropistSponsor } from "@/app/lib/philanthropist";
 import {
   isLocalClimateSponsor,
   rememberLocalSponsorSession,
@@ -70,6 +72,15 @@ export default function SponsorFromMatchPage() {
           venue: match.venue || null,
         });
         clearPendingSponsorMatch();
+        if (isPhilanthropistSponsor(brandName, { jobTitle })) {
+          window.location.replace(
+            philanthropistNewSponsorshipPath({
+              club: match.club,
+              fixtureName: match.fixtureName,
+            })
+          );
+          return;
+        }
         if (isLocalClimateSponsor(brandName, { jobTitle })) {
           const wallet = new URL(
             localNewSponsorshipPath(),

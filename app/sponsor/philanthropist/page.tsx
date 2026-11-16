@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   PHILANTHROPIST_REGISTER_PATH,
-  PHILANTHROPIST_SPONSOR_PATH,
+  PHILANTHROPIST_SPONSOR_ID,
   SPONSOR_LOGIN_PATH,
   SPONSOR_NEW_SPONSORSHIP_LABEL,
 } from "@/app/lib/routes";
@@ -30,6 +30,7 @@ export default function PhilanthropistHomePage() {
   const [brand, setBrand] = useState("");
   const [email, setEmail] = useState("");
   const [signedIn, setSignedIn] = useState(false);
+  const [draftKey, setDraftKey] = useState(0);
 
   useEffect(() => {
     setRecord(readPhilanthropistRecord());
@@ -85,14 +86,24 @@ export default function PhilanthropistHomePage() {
       {canSponsor ? (
         <>
           <p className="mt-6">
-            <a
-              href={PHILANTHROPIST_SPONSOR_PATH}
+            <button
+              type="button"
+              data-philanthropist-new-sponsorship="philanthropist-new-match-v1"
+              onClick={() => {
+                setDraftKey((current) => current + 1);
+                window.requestAnimationFrame(() => {
+                  document
+                    .getElementById(PHILANTHROPIST_SPONSOR_ID)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              }}
               className="inline-flex rounded-lg bg-s4p-mark px-5 py-2 text-sm font-bold text-slate-950 hover:brightness-110"
             >
               {SPONSOR_NEW_SPONSORSHIP_LABEL}
-            </a>
+            </button>
           </p>
           <PhilanthropistMatchGift
+            key={draftKey}
             identity={identity}
             record={record}
             brandName={headingName || brand}

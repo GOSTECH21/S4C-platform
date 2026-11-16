@@ -16,6 +16,7 @@ import {
   PHILANTHROPIST_HOME_PATH,
   PHILANTHROPIST_SPONSOR_ID,
   PHILANTHROPIST_SPONSOR_PATH,
+  philanthropistNewSponsorshipPath,
 } from "../app/lib/routes";
 
 const failures: string[] = [];
@@ -109,6 +110,7 @@ const gift = readFileSync(
 const login = readFileSync("app/sponsor/login/page.tsx", "utf8");
 const wallet = readFileSync("app/sponsor/wallet/page.tsx", "utf8");
 const dashboard = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
+const fromMatch = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const picker = readFileSync(
   "app/components/sponsor/MatchSponsorshipPicker.tsx",
   "utf8"
@@ -126,7 +128,9 @@ assert(
     register.includes("Select the Match you wish to sponsor") &&
     register.includes("matchSponsorships") &&
     register.includes("lockMatchDayClub") &&
-    register.includes("depositPhilanthropistClimateWallet"),
+    register.includes("depositPhilanthropistClimateWallet") &&
+    register.includes("onClubMatchSelected") &&
+    register.includes("onClubConfirmed"),
   "Philanthropist register chooses Club, Match and amount like other sponsors"
 );
 
@@ -140,6 +144,18 @@ assert(
     gift.includes("lockMatchDayClub") &&
     gift.includes("depositPhilanthropistClimateWallet") &&
     gift.includes('data-philanthropist-match-gift="philanthropist-choose-match-v1"') &&
+    gift.includes("onClubMatchSelected") &&
+    gift.includes("onClubConfirmed") &&
+    gift.includes('useState("")') &&
+    !gift.includes("useState(record?.clubName") &&
+    home.includes("philanthropist-new-match-v1") &&
+    home.includes("draftKey") &&
+    fromMatch.includes("isPhilanthropistSponsor") &&
+    fromMatch.includes("philanthropistNewSponsorshipPath") &&
+    philanthropistNewSponsorshipPath({
+      club: "Chelsea",
+      fixtureName: "Chelsea v Arsenal",
+    }).includes("club=Chelsea") &&
     preview.includes("PhilanthropistMatchGift"),
   "Logged-in philanthropists can choose Club, Match and amount from their home"
 );
@@ -167,8 +183,12 @@ assert(
     fixtures.includes("max-md:!overflow-visible") &&
     fixtures.includes("are on the phone.") &&
     fixtures.includes("md:hidden") &&
+    fixtures.includes("philanthropist-stay-v1") &&
+    fixtures.includes("onClubConfirmed") &&
+    gift.includes("data-draft-club") &&
+    gift.includes("data-draft-fixture") &&
     !fixtures.includes("max-md:h-[28rem]"),
-  "Philanthropist Select Match has no phone surround on mobile"
+  "Philanthropist Select Match has no phone surround on mobile and keeps a new club on the page"
 );
 
 if (failures.length > 0) {

@@ -293,6 +293,26 @@ export default function PhilanthropistRegisterPage() {
                 audience="sponsor"
                 initialClub={clubName}
                 className="mb-4"
+                onClubConfirmed={(club) => {
+                  if (club === clubName) return;
+                  setClubName(club);
+                  setSelectedMatches([]);
+                  setAmounts({});
+                }}
+                onClubMatchSelected={(match, club) => {
+                  const fixtureName = match.fixtureName.includes(" v ")
+                    ? match.fixtureName
+                    : match.fixtureName.replace(" vs ", " v ");
+                  if (club !== clubName) {
+                    setClubName(club);
+                    setSelectedMatches([fixtureName]);
+                    setAmounts({
+                      [fixtureName]: giftGbp || String(PHILANTHROPIST_MIN_GBP),
+                    });
+                    return;
+                  }
+                  toggleMatch(fixtureName);
+                }}
               />
               <MatchSponsorshipPicker
                 clubName={clubName}
