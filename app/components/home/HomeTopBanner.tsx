@@ -4,9 +4,14 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  HOME_CLUBS_SPONSORS_HREF,
+  HOME_CLUBS_SPONSORS_LABEL,
+  HOME_CONNECTS_COPY,
+  HOME_INTRO_PRODUCTS,
   HOME_JOIN_COMMUNITY_HREF,
   HOME_JOIN_COMMUNITY_LABEL,
-  HOME_MOBILE_SUPPORT,
+  HOME_MOBILE_TAGLINE,
+  HOME_TOGETHER_HEADING,
 } from "@/app/lib/home-hero";
 import {
   CLIMATE_CREDITS_PATH,
@@ -26,16 +31,6 @@ const NAV: Array<{
   { href: S4P_IMPACT_TABLES_PATH, label: "Impact", icon: "leaf" },
   { href: CLIMATE_CREDITS_PATH, label: "Projects", icon: "file" },
   { href: "/#", label: "News", icon: "news" },
-];
-
-const FEATURES: Array<{
-  label: string;
-  icon: "target" | "coins" | "leaf" | "bars";
-}> = [
-  { label: "Measure emissions", icon: "target" },
-  { label: "Unlock funding", icon: "coins" },
-  { label: "Support climate projects", icon: "leaf" },
-  { label: "Show real impact", icon: "bars" },
 ];
 
 function NavIcon({ name }: { name: (typeof NAV)[number]["icon"] }) {
@@ -75,32 +70,54 @@ function NavIcon({ name }: { name: (typeof NAV)[number]["icon"] }) {
   );
 }
 
-function FeatureIcon({ name }: { name: (typeof FEATURES)[number]["icon"] }) {
-  const common = "h-7 w-7";
+function ProductIntroIcon({
+  name,
+}: {
+  name: (typeof HOME_INTRO_PRODUCTS)[number]["icon"];
+}) {
+  const common = "h-5 w-5 shrink-0";
   if (name === "target") {
     return (
-      <svg viewBox="0 0 24 24" className={common} fill={MARK_GREEN} aria-hidden>
-        <path d="M12 3.2A8.8 8.8 0 1 0 20.8 12 8.8 8.8 0 0 0 12 3.2Zm0 2.2A6.6 6.6 0 1 1 5.4 12 6.6 6.6 0 0 1 12 5.4Zm0 2.4A4.2 4.2 0 1 0 16.2 12 4.2 4.2 0 0 0 12 7.8Zm-.2 1.7 4.6-1.2-1.2 4.6-3.4-3.4Z" />
+      <svg
+        viewBox="0 0 24 24"
+        className={common}
+        fill="none"
+        stroke={MARK_GREEN}
+        strokeWidth="2"
+        aria-hidden
+      >
+        <circle cx="12" cy="12" r="8.2" />
+        <circle cx="12" cy="12" r="4.4" />
+        <circle cx="12" cy="12" r="1.4" fill={MARK_GREEN} stroke="none" />
       </svg>
     );
   }
-  if (name === "coins") {
+  if (name === "route") {
     return (
-      <svg viewBox="0 0 24 24" className={common} fill={MARK_GREEN} aria-hidden>
-        <path d="M7 8.2c3.3 0 6 .9 6 2.1s-2.7 2.1-6 2.1-6-.9-6-2.1 2.7-2.1 6-2.1Zm0 5.4c3.3 0 6 .9 6 2.1s-2.7 2.1-6 2.1-6-.9-6-2.1 2.7-2.1 6-2.1Zm10.2-2.6c3 0 5.4.8 5.4 1.9s-2.4 1.9-5.4 1.9-5.4-.8-5.4-1.9 2.4-1.9 5.4-1.9Zm0 4.6c3 0 5.4.8 5.4 1.9s-2.4 1.9-5.4 1.9-5.4-.8-5.4-1.9 2.4-1.9 5.4-1.9Z" />
-      </svg>
-    );
-  }
-  if (name === "leaf") {
-    return (
-      <svg viewBox="0 0 24 24" className={common} fill={MARK_GREEN} aria-hidden>
-        <path d="M17.2 4.2C12.4 4.5 7 8.2 7 14.2c0 2 .6 3.7 1.7 5L5 21.8l.9 1.3 4.6-3.1c.8.4 1.7.6 2.7.6 6 0 9.4-5.8 9.2-11.4-.1-2.4-1.6-4.7-5.2-5ZM12.8 18.4c-2.6 0-4.3-2-4.3-4.6 0-4.4 3.8-7.4 7.8-7.6 2.4.4 3.3 1.8 3.4 3.4.2 4.2-2.4 8.8-6.9 8.8Z" />
+      <svg
+        viewBox="0 0 24 24"
+        className={common}
+        fill="none"
+        stroke={MARK_GREEN}
+        strokeWidth="2"
+        aria-hidden
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.5 13.5a4.5 4.5 0 0 0 6.36 0l1.77-1.77a4.5 4.5 0 1 0-6.36-6.36L10 6.64"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M14.5 10.5a4.5 4.5 0 0 0-6.36 0L6.37 12.27a4.5 4.5 0 1 0 6.36 6.36L14 17.36"
+        />
       </svg>
     );
   }
   return (
     <svg viewBox="0 0 24 24" className={common} fill={MARK_GREEN} aria-hidden>
-      <path d="M4.2 18.8h2.4V12H4.2v6.8Zm4.4 0h2.4V8.2H8.6v10.6Zm4.4 0h2.4V5.2h-2.4v13.6Zm4.4 0h2.4V9.6h-2.4v9.2Z" />
+      <path d="M17.2 4.2C12.4 4.5 7 8.2 7 14.2c0 2 .6 3.7 1.7 5L5 21.8l.9 1.3 4.6-3.1c.8.4 1.7.6 2.7.6 6 0 9.4-5.8 9.2-11.4-.1-2.4-1.6-4.7-5.2-5ZM12.8 18.4c-2.6 0-4.3-2-4.3-4.6 0-4.4 3.8-7.4 7.8-7.6 2.4.4 3.3 1.8 3.4 3.4.2 4.2-2.4 8.8-6.9 8.8Z" />
     </svg>
   );
 }
@@ -191,14 +208,23 @@ function FirstBlock({
 }) {
   return (
     <div
-      data-home-mobile-intro="home-less-text-v1"
+      data-home-mobile-intro="home-image1-intro-v1"
       data-home-block="home-block-1"
       className="mx-auto max-w-[42rem] px-4 pb-8 pt-2 md:max-w-[48rem] md:px-10"
     >
-      <h1 className="text-[1.65rem] font-black uppercase leading-[1.05] tracking-tight sm:text-4xl">
+      <h1
+        data-home-headline-size="mobile-headline-size-v1"
+        className="text-[1.65rem] font-black uppercase leading-[1.05] tracking-tight sm:text-4xl"
+      >
         EVERY SCORE COUNTS.{" "}
         <span style={{ color: MARK_GREEN }}>EVERY FAN COUNTS.</span>
       </h1>
+      <p
+        data-home-tagline="home-image1-tagline-v1"
+        className="mt-3 rounded-md bg-white/80 px-2 py-2 text-sm font-semibold leading-6 sm:text-base"
+      >
+        {HOME_MOBILE_TAGLINE}
+      </p>
       <SportClusterImage className="mt-4" />
       <div
         data-home-five-sports="cricket-fifth-sport-v1"
@@ -216,23 +242,38 @@ function FirstBlock({
         ))}
       </div>
       <h2
-        data-home-headline-size="mobile-headline-size-v1"
-        className="mt-6 text-[1.85rem] font-black uppercase leading-[1.02] tracking-tight sm:text-5xl"
+        data-home-together="home-image1-together-v1"
+        className="mt-6 text-base font-semibold leading-7 sm:text-lg"
+        style={{ color: MARK_GREEN }}
       >
-        A global sports
-        <br />
-        platform turning
-        <br />
-        <span style={{ color: MARK_GREEN }}>passion into progress.</span>
+        {HOME_TOGETHER_HEADING}
       </h2>
-      <p className="mt-4 text-sm font-semibold leading-6 sm:text-base">
-        {HOME_MOBILE_SUPPORT}
+      <p
+        data-home-connects="home-image1-connects-v1"
+        className="mt-3 rounded-md bg-white/80 px-2 py-2 text-sm font-medium leading-6 sm:text-base"
+      >
+        {HOME_CONNECTS_COPY}
       </p>
-      <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4">
-        {FEATURES.map((item) => (
-          <li key={item.label} className="flex items-center gap-2.5">
-            <FeatureIcon name={item.icon} />
-            <span className="text-sm font-bold leading-tight">{item.label}</span>
+      <ul
+        data-home-intro-products="home-image1-products-v1"
+        className="mt-5 space-y-4"
+      >
+        {HOME_INTRO_PRODUCTS.map((item) => (
+          <li key={item.id} className="flex items-start gap-3">
+            <span className="mt-0.5" aria-hidden>
+              <ProductIntroIcon name={item.icon} />
+            </span>
+            <span>
+              <span
+                className="block text-sm font-bold leading-snug"
+                style={{ color: MARK_GREEN }}
+              >
+                {item.title}
+              </span>
+              <span className="mt-0.5 block text-sm font-medium leading-6 text-slate-600">
+                {item.detail}
+              </span>
+            </span>
           </li>
         ))}
       </ul>
@@ -246,6 +287,14 @@ function FirstBlock({
         className="mt-6 flex w-full cursor-pointer items-center justify-center rounded-full bg-s4p-mark px-4 py-3.5 text-sm font-black text-slate-950 hover:brightness-110"
       >
         {HOME_JOIN_COMMUNITY_LABEL}
+      </a>
+      <a
+        href={HOME_CLUBS_SPONSORS_HREF}
+        data-clubs-sponsors="clubs-sponsors-v1"
+        className="mt-3 flex w-full cursor-pointer items-center justify-center rounded-full border-2 px-4 py-3.5 text-sm font-black text-slate-950 hover:bg-emerald-50"
+        style={{ borderColor: MARK_GREEN }}
+      >
+        {HOME_CLUBS_SPONSORS_LABEL}
       </a>
     </div>
   );

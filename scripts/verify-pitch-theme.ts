@@ -146,7 +146,7 @@ assert(
     banner.includes('src="/images/home/s4p-lockup.png"') &&
     banner.includes('src="/images/home/global-sports-cluster.png"') &&
     banner.includes("width={912}") &&
-    banner.includes("passion into progress") &&
+    banner.includes("HOME_TOGETHER_HEADING") &&
     banner.includes("#5bc662") &&
     !banner.includes("Every score counts") &&
     !banner.includes("every-score-counts-banner.png") &&
