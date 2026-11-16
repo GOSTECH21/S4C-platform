@@ -334,7 +334,7 @@ export function SelectMatchPhone({
       screenClassName={
         clubList
           ? "[pointer-events:auto] h-[32rem] max-h-[32rem] sm:h-[38rem] sm:max-h-[38rem]"
-          : "[pointer-events:auto] max-md:h-[28rem] max-md:max-h-[28rem] md:rounded-[0_0_1.35rem_1.35rem]"
+          : "[pointer-events:auto] max-md:h-auto max-md:max-h-none md:rounded-[0_0_1.35rem_1.35rem]"
       }
       screenStyle={{
         top: "14.9%",
@@ -349,7 +349,9 @@ export function SelectMatchPhone({
         data-club-pc-no-phone-frame={
           clubList ? "club-pc-no-phone-frame-v1" : undefined
         }
-        className={`flex h-full flex-col ${clubList ? "px-4 pt-4" : "px-3 pt-2.5"}`}
+        className={`flex h-full flex-col ${
+          clubList ? "px-4 pt-4" : "px-3 pt-2.5 max-md:h-auto"
+        }`}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
         aria-live="polite"
@@ -406,7 +408,11 @@ export function SelectMatchPhone({
             </span>
             <span className="pb-1.5 opacity-40">Results</span>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 pt-2 [touch-action:pan-y]">
+          <div
+            className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 pt-2 [touch-action:pan-y] ${
+              clubList ? "" : "max-md:!flex-none max-md:!overflow-visible"
+            }`}
+          >
             {loading ? (
               <p className="text-xs font-semibold">Loading upcoming matches...</p>
             ) : null}
@@ -664,7 +670,15 @@ export default function SelectMatchFixtures() {
           }`}
         >
           {clubPossessive(shown)} next {Math.min(matches.length, 10)} league and
-          cup matches {mode === "club" ? "are in this list." : "are on the phone."}
+          cup matches{" "}
+          {mode === "club" ? (
+            "are in this list."
+          ) : (
+            <>
+              <span className="md:hidden">are in this list.</span>
+              <span className="hidden md:inline">are on the phone.</span>
+            </>
+          )}
           {mode === "sponsor"
             ? " Tap a match to lock it in, complete your sponsorship and sign it off."
             : mode === "club"

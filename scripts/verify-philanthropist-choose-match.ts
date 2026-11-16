@@ -153,6 +153,24 @@ assert(
   "Login restores the philanthropist record and keeps them off the Lead wallet"
 );
 
+const frame = readFileSync("app/components/home/PhoneFrame.tsx", "utf8");
+const fixtures = readFileSync(
+  "app/components/home/SelectMatchFixtures.tsx",
+  "utf8"
+);
+assert(
+  gift.includes("HowS4pSelectMatch") &&
+    gift.includes("max-md:rounded-none max-md:border-0") &&
+    frame.includes("phone-mobile-unframed-v1") &&
+    frame.includes("max-md:rounded-none max-md:border-0") &&
+    fixtures.includes("max-md:h-auto") &&
+    fixtures.includes("max-md:!overflow-visible") &&
+    fixtures.includes("are on the phone.") &&
+    fixtures.includes("md:hidden") &&
+    !fixtures.includes("max-md:h-[28rem]"),
+  "Philanthropist Select Match has no phone surround on mobile"
+);
+
 if (failures.length > 0) {
   console.error("verify-philanthropist-choose-match failed:");
   for (const failure of failures) console.error(`- ${failure}`);

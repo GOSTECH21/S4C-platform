@@ -56,7 +56,7 @@ export default function HowS4pSelectMatch({
         data-club-pc-no-phone-frame={
           audience === "club" ? "club-pc-no-phone-frame-v1" : undefined
         }
-        className={`s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8 ${className}`}
+        className={`s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black max-md:rounded-none max-md:border-0 max-md:px-0 sm:px-6 sm:py-8 md:px-8 ${className}`}
       >
         <div className="flex min-w-0 flex-col items-center gap-8 px-1 lg:flex-row lg:items-center lg:gap-12">
           <div

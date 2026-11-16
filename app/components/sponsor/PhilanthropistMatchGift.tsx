@@ -177,7 +177,7 @@ export function PhilanthropistMatchGift({
       id={PHILANTHROPIST_SPONSOR_ID}
       data-testid="philanthropist-match-gift"
       data-philanthropist-match-gift="philanthropist-choose-match-v1"
-      className="mt-10 scroll-mt-6 space-y-6 rounded-3xl border border-green-500/30 bg-slate-900 p-6 sm:p-8"
+      className="mt-10 scroll-mt-6 space-y-6 rounded-3xl border border-green-500/30 bg-slate-900 p-6 max-md:rounded-none max-md:border-0 max-md:px-0 sm:p-8"
     >
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">

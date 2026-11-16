@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
 const SCREEN_CLASS =
-  "relative z-20 overflow-hidden max-md:!inset-auto max-md:static max-md:w-full max-md:rounded-2xl max-md:border max-md:border-slate-200 md:absolute";
+  "relative z-20 max-md:!inset-auto max-md:static max-md:w-full max-md:overflow-visible max-md:rounded-none max-md:border-0 md:absolute md:overflow-hidden";
 
 const UNFRAMED_SCREEN_CLASS =
   "relative z-20 w-full overflow-hidden rounded-2xl border border-slate-200";
@@ -43,6 +43,7 @@ export function PhoneFrame({
       ) : null}
       <div
         data-phone-screen
+        data-phone-mobile-unframed="phone-mobile-unframed-v1"
         data-phone-unframed={framed ? undefined : "true"}
         className={`${framed ? SCREEN_CLASS : UNFRAMED_SCREEN_CLASS} ${screenClassName}`}
         style={
@@ -58,7 +59,7 @@ export function PhoneFrame({
 }
 
 export const PHONE_COLUMN_CLASS =
-  "relative w-full max-w-none shrink-0 overflow-hidden md:max-w-[18rem] lg:max-w-[20rem]";
+  "relative w-full max-w-none shrink-0 max-md:overflow-visible md:max-w-[18rem] md:overflow-hidden lg:max-w-[20rem]";
 
 export const CLUB_FIXTURE_COLUMN_CLASS =
   "relative w-full max-w-xl shrink-0 overflow-hidden";
