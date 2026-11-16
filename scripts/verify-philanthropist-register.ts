@@ -68,6 +68,8 @@ assert(
     register.includes("PHILANTHROPIST_REGISTER_CTA") &&
     register.includes("Gift per match") &&
     register.includes("ClubNetworkPicker") &&
+    register.includes("MatchSponsorshipPicker") &&
+    register.includes("Select the Match you wish to sponsor") &&
     register.includes("single") &&
     !register.includes("Gillette UK") &&
     !register.includes("Sponsorship Manager") &&
@@ -98,6 +100,7 @@ assert(
 assert(
   home.includes("PHILANTHROPIST_HOME_HEADING") &&
     home.includes("philanthropistGiftCopy") &&
+    home.includes("PhilanthropistMatchGift") &&
     !home.includes("LeadSponsorHome") &&
     !home.includes("GAME_TIME"),
   "Philanthropist home confirms the climate gift instead of the Lead dashboard"

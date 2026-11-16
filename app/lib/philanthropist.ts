@@ -1,5 +1,6 @@
 /* philanthropist-register-v1 */
 
+import { sameNamedFixture } from "./club-fixtures";
 import { clubsMatch } from "./sponsor-dashboard";
 
 export const PHILANTHROPIST_STORAGE = "s4p.sponsor.philanthropist";
@@ -7,14 +8,20 @@ export const PHILANTHROPISTS_BY_CLUB_STORAGE = "s4p.philanthropists-by-club";
 export const PHILANTHROPIST_CARBON_WALLET_LABEL = "Philanthropist Carbon Wallet";
 export const PHILANTHROPIST_JOB_TITLE = "Philanthropist";
 export const PHILANTHROPIST_KICKER = "Philanthropist";
+export const PHILANTHROPIST_MIN_GBP = 1;
 export const PHILANTHROPIST_REGISTER_HEADING = "Register as a Philanthropist";
 export const PHILANTHROPIST_REGISTER_COPY =
-  "Make a climate donation (any amount per match) and let fans direct your gift to club-approved climate projects that help your team climb the Climate Impact League Table (CILT).";
+  "Make a climate donation (any amount per match) and let fans direct your gift to club-approved climate projects that help your team climb the Climate Impact League Table (CILT). Choose the Club, the Match, and how much you are putting into that sponsorship — you can do this again whenever you log in.";
 export const PHILANTHROPIST_REGISTER_CTA = "Register as Philanthropist";
 export const PHILANTHROPIST_NAV_REGISTER = "Register as Philanthropist";
 export const PHILANTHROPIST_HOME_HEADING = "Your philanthropic climate gift";
 export const PHILANTHROPIST_HOME_EMPTY =
   "Register as a Philanthropist to make a climate donation. Fans of your chosen team direct that gift to club-approved climate projects.";
+export const PHILANTHROPIST_SPONSOR_HEADING = "Sponsor a Club and Match";
+export const PHILANTHROPIST_SPONSOR_COPY =
+  "Choose the Club you wish to sponsor, choose the Match, then enter how much money you are putting into this sponsorship. You can log in at any time and do this again for another Club or Match.";
+export const PHILANTHROPIST_SPONSOR_CTA = "Put into Carbon Wallet";
+export const PHILANTHROPIST_AMOUNT_LABEL = "How much you are putting into this sponsorship (£)";
 export const PHILANTHROPIST_ADMIN_NAV = "My S4P Admin";
 export const PHILANTHROPIST_ADMIN_HEADING = "My S4P Admin";
 export const PHILANTHROPIST_ADMIN_COPY =
@@ -24,6 +31,16 @@ export const PHILANTHROPIST_PST_TITLE = "Philanthropist Sponsors Table (PST)";
 export const PHILANTHROPIST_PST_COPY =
   "PST ranks Philanthropist Sponsors by climate funding put into Match Day sponsorships, in each geographical area.";
 
+export type PhilanthropistMatchSponsorship = {
+  clubName: string;
+  fixtureName: string;
+  amountGbp: number;
+  date?: string | null;
+  competition?: string;
+  kickoff?: string | null;
+  venue?: string | null;
+};
+
 export type PhilanthropistRecord = {
   name: string;
   organisation: string;
@@ -31,14 +48,121 @@ export type PhilanthropistRecord = {
   clubName: string;
   giftGbp: number;
   createdAt: string;
+  matchSponsorships?: PhilanthropistMatchSponsorship[];
+};
+
+export type PhilanthropistIdentity = {
+  name: string;
+  organisation: string;
+  email: string;
+  createdAt?: string;
 };
 
 export function isPhilanthropistJobTitle(value: string | null | undefined): boolean {
   return /philanthropist/i.test(String(value ?? "").trim());
 }
 
-export function philanthropistDisplayName(record: PhilanthropistRecord): string {
+export function philanthropistDisplayName(record: {
+  name: string;
+  organisation: string;
+}): string {
   return record.organisation.trim() || record.name.trim();
+}
+
+export function parsePhilanthropistMatchSponsorships(
+  value: unknown,
+  fallbackClub = ""
+): PhilanthropistMatchSponsorship[] {
+  if (!Array.isArray(value)) return [];
+  const rows: PhilanthropistMatchSponsorship[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as {
+      clubName?: string;
+      club_name?: string;
+      fixtureName?: string;
+      fixture_name?: string;
+      amountGbp?: number;
+      amount_gbp?: number;
+      date?: string | null;
+      competition?: string;
+      kickoff?: string | null;
+      venue?: string | null;
+    };
+    const fixtureName = String(row.fixtureName ?? row.fixture_name ?? "").trim();
+    const clubName = String(row.clubName ?? row.club_name ?? fallbackClub).trim();
+    const amountGbp = Number(row.amountGbp ?? row.amount_gbp);
+    if (!fixtureName || !clubName || !Number.isFinite(amountGbp) || amountGbp < PHILANTHROPIST_MIN_GBP) {
+      continue;
+    }
+    const iso = String(row.date ?? "").slice(0, 10);
+    rows.push({
+      clubName,
+      fixtureName,
+      amountGbp,
+      date: /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : undefined,
+      competition: String(row.competition ?? "").trim() || undefined,
+      kickoff: String(row.kickoff ?? "").trim() || undefined,
+      venue: String(row.venue ?? "").trim() || undefined,
+    });
+  }
+  return rows;
+}
+
+export function philanthropistFundingGbp(record: PhilanthropistRecord): number {
+  const matches = parsePhilanthropistMatchSponsorships(
+    record.matchSponsorships,
+    record.clubName
+  );
+  if (matches.length > 0) {
+    return matches.reduce((sum, row) => sum + row.amountGbp, 0);
+  }
+  return Number(record.giftGbp) || 0;
+}
+
+export function philanthropistClubTotalGbp(
+  record: PhilanthropistRecord,
+  clubName: string
+): number {
+  const matches = parsePhilanthropistMatchSponsorships(
+    record.matchSponsorships,
+    record.clubName
+  ).filter((row) => clubsMatch(row.clubName, clubName));
+  if (matches.length > 0) {
+    return matches.reduce((sum, row) => sum + row.amountGbp, 0);
+  }
+  return clubsMatch(record.clubName, clubName) ? Number(record.giftGbp) || 0 : 0;
+}
+
+function normalizeRecord(
+  parsed: Partial<PhilanthropistRecord> & { match_sponsorships?: unknown }
+): PhilanthropistRecord | null {
+  const name = String(parsed.name ?? "").trim();
+  const matchSponsorships = parsePhilanthropistMatchSponsorships(
+    parsed.matchSponsorships ?? parsed.match_sponsorships,
+    String(parsed.clubName ?? "").trim()
+  );
+  const clubName =
+    String(parsed.clubName ?? "").trim() || matchSponsorships[0]?.clubName || "";
+  const giftGbp = Number.isFinite(Number(parsed.giftGbp))
+    ? Number(parsed.giftGbp)
+    : matchSponsorships[0]?.amountGbp ?? 0;
+  if (!name) return null;
+  if (
+    matchSponsorships.length === 0 &&
+    (!clubName || !Number.isFinite(giftGbp) || giftGbp < PHILANTHROPIST_MIN_GBP)
+  ) {
+    return null;
+  }
+  return {
+    name,
+    organisation: String(parsed.organisation ?? "").trim(),
+    email: String(parsed.email ?? "").trim(),
+    clubName,
+    giftGbp: Number.isFinite(giftGbp) ? giftGbp : 0,
+    createdAt: String(parsed.createdAt ?? new Date().toISOString()),
+    matchSponsorships,
+  };
 }
 
 export function readPhilanthropistRecord(): PhilanthropistRecord | null {
@@ -46,30 +170,51 @@ export function readPhilanthropistRecord(): PhilanthropistRecord | null {
   try {
     const raw = window.localStorage.getItem(PHILANTHROPIST_STORAGE);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<PhilanthropistRecord>;
-    const name = String(parsed.name ?? "").trim();
-    const clubName = String(parsed.clubName ?? "").trim();
-    const giftGbp = Number(parsed.giftGbp);
-    if (!name || !clubName || !Number.isFinite(giftGbp) || giftGbp < 1) {
-      return null;
-    }
-    return {
-      name,
-      organisation: String(parsed.organisation ?? "").trim(),
-      email: String(parsed.email ?? "").trim(),
-      clubName,
-      giftGbp,
-      createdAt: String(parsed.createdAt ?? new Date().toISOString()),
-    };
+    return normalizeRecord(JSON.parse(raw) as Partial<PhilanthropistRecord>);
   } catch {
     return null;
   }
 }
 
+function clubsFromRecord(record: PhilanthropistRecord): string[] {
+  const names = parsePhilanthropistMatchSponsorships(
+    record.matchSponsorships,
+    record.clubName
+  ).map((row) => row.clubName.trim());
+  if (record.clubName.trim()) names.unshift(record.clubName.trim());
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const name of names) {
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(name);
+  }
+  return unique;
+}
+
 export function writePhilanthropistRecord(record: PhilanthropistRecord): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(PHILANTHROPIST_STORAGE, JSON.stringify(record));
-  upsertPhilanthropistForClub(record);
+  const normalized: PhilanthropistRecord = {
+    ...record,
+    matchSponsorships: parsePhilanthropistMatchSponsorships(
+      record.matchSponsorships,
+      record.clubName
+    ),
+  };
+  window.localStorage.setItem(PHILANTHROPIST_STORAGE, JSON.stringify(normalized));
+  const clubs = clubsFromRecord(normalized);
+  if (clubs.length === 0) {
+    upsertPhilanthropistForClub(normalized);
+  } else {
+    for (const clubName of clubs) {
+      upsertPhilanthropistForClub({
+        ...normalized,
+        clubName,
+        giftGbp: philanthropistClubTotalGbp(normalized, clubName),
+      });
+    }
+  }
   try {
     const raw = window.localStorage.getItem("s4p.sponsor.profile");
     const previous = raw
@@ -79,12 +224,13 @@ export function writePhilanthropistRecord(record: PhilanthropistRecord): void {
       "s4p.sponsor.profile",
       JSON.stringify({
         ...previous,
-        companyName: philanthropistDisplayName(record),
-        contactName: record.name,
+        companyName: philanthropistDisplayName(normalized),
+        contactName: normalized.name,
         jobTitle: PHILANTHROPIST_JOB_TITLE,
-        email: record.email,
-        clubName: record.clubName,
-        pledgeGbp: record.giftGbp,
+        email: normalized.email,
+        clubName: normalized.clubName,
+        pledgeGbp: philanthropistFundingGbp(normalized),
+        matchSponsorships: normalized.matchSponsorships,
         tier: "philanthropist",
       })
     );
@@ -140,7 +286,11 @@ export function philanthropistsForClub(clubName: string): PhilanthropistRecord[]
   const session = readPhilanthropistRecord();
   if (
     session &&
-    clubsMatch(session.clubName, club) &&
+    (clubsMatch(session.clubName, club) ||
+      parsePhilanthropistMatchSponsorships(
+        session.matchSponsorships,
+        session.clubName
+      ).some((row) => clubsMatch(row.clubName, club))) &&
     !rows.some(
       (row) =>
         row.email.trim().toLowerCase() === session.email.trim().toLowerCase()
@@ -148,7 +298,9 @@ export function philanthropistsForClub(clubName: string): PhilanthropistRecord[]
   ) {
     rows.push(session);
   }
-  return rows.filter((row) => row.giftGbp >= 1 && row.clubName.trim());
+  return rows.filter(
+    (row) => philanthropistClubTotalGbp(row, club) >= PHILANTHROPIST_MIN_GBP
+  );
 }
 
 export function isPhilanthropistSponsor(
@@ -197,6 +349,181 @@ export function isPhilanthropistSponsor(
 }
 
 export function philanthropistGiftCopy(record: PhilanthropistRecord): string {
+  const matches = parsePhilanthropistMatchSponsorships(
+    record.matchSponsorships,
+    record.clubName
+  );
+  if (matches.length === 1) {
+    const row = matches[0];
+    const amount = `£${row.amountGbp.toLocaleString("en-GB")}`;
+    return `You are supporting ${row.clubName} with ${amount} on ${row.fixtureName}. Fans of ${row.clubName} see this in the ${PHILANTHROPIST_CARBON_WALLET_LABEL} and can take £0.50 onto a climate project they choose. This is a philanthropic donation — not a Lead Climate Sponsorship.`;
+  }
+  if (matches.length > 1) {
+    const total = `£${philanthropistFundingGbp(record).toLocaleString("en-GB")}`;
+    return `You have put ${total} into ${matches.length} Match Day sponsorships. Fans see this in the ${PHILANTHROPIST_CARBON_WALLET_LABEL} and can take £0.50 onto a climate project they choose. This is a philanthropic donation — not a Lead Climate Sponsorship.`;
+  }
   const amount = `£${record.giftGbp.toLocaleString("en-GB")}`;
   return `You are supporting ${record.clubName} with ${amount} per match. Fans of ${record.clubName} see this in the ${PHILANTHROPIST_CARBON_WALLET_LABEL} and can take £0.50 onto a climate project they choose. This is a philanthropic donation — not a Lead Climate Sponsorship.`;
+}
+
+export function upsertPhilanthropistMatch(
+  record: PhilanthropistRecord,
+  gift: PhilanthropistMatchSponsorship
+): PhilanthropistRecord {
+  const current = parsePhilanthropistMatchSponsorships(
+    record.matchSponsorships,
+    record.clubName
+  );
+  const next = current.filter(
+    (row) =>
+      !(
+        clubsMatch(row.clubName, gift.clubName) &&
+        sameNamedFixture(row.fixtureName, gift.fixtureName)
+      )
+  );
+  next.push(gift);
+  return {
+    ...record,
+    clubName: gift.clubName,
+    giftGbp: gift.amountGbp,
+    matchSponsorships: next,
+  };
+}
+
+export function applyPhilanthropistMatchGifts(
+  identity: PhilanthropistIdentity & Partial<PhilanthropistRecord>,
+  gifts: PhilanthropistMatchSponsorship[]
+): PhilanthropistRecord {
+  const createdAt = identity.createdAt || new Date().toISOString();
+  let record: PhilanthropistRecord = {
+    name: identity.name.trim(),
+    organisation: identity.organisation.trim(),
+    email: identity.email.trim(),
+    clubName: identity.clubName?.trim() || gifts[0]?.clubName || "",
+    giftGbp: identity.giftGbp ?? gifts[0]?.amountGbp ?? 0,
+    createdAt,
+    matchSponsorships: parsePhilanthropistMatchSponsorships(
+      identity.matchSponsorships,
+      identity.clubName
+    ),
+  };
+  for (const gift of gifts) {
+    record = upsertPhilanthropistMatch(record, gift);
+  }
+  return record;
+}
+
+export function philanthropistRecordFromSponsor(
+  sponsor: {
+    name?: string | null;
+    website?: string | null;
+    industry?: string | null;
+    email?: string | null;
+    club_name?: string | null;
+    pledge_gbp?: number | null;
+    match_sponsorships?: unknown;
+  } | null
+): PhilanthropistRecord | null {
+  if (!sponsor) return null;
+  if (!isPhilanthropistJobTitle(String(sponsor.industry ?? ""))) return null;
+  const organisation = String(sponsor.name ?? "").trim();
+  const name = String(sponsor.website ?? "").trim() || organisation;
+  const clubName = String(sponsor.club_name ?? "").trim();
+  const matchSponsorships = parsePhilanthropistMatchSponsorships(
+    sponsor.match_sponsorships,
+    clubName
+  );
+  return normalizeRecord({
+    name,
+    organisation,
+    email: String(sponsor.email ?? "").trim(),
+    clubName,
+    giftGbp: Number(sponsor.pledge_gbp) || matchSponsorships[0]?.amountGbp || 0,
+    createdAt: new Date().toISOString(),
+    matchSponsorships,
+  });
+}
+
+export function philanthropistRecordFromProfile(): PhilanthropistRecord | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem("s4p.sponsor.profile");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      companyName?: string;
+      contactName?: string;
+      email?: string;
+      jobTitle?: string;
+      tier?: string;
+      clubName?: string;
+      pledgeGbp?: number;
+      matchSponsorships?: unknown;
+    };
+    if (
+      parsed.tier !== "philanthropist" &&
+      !isPhilanthropistJobTitle(parsed.jobTitle)
+    ) {
+      return null;
+    }
+    return normalizeRecord({
+      name: String(parsed.contactName ?? "").trim() ||
+        String(parsed.companyName ?? "").trim(),
+      organisation: String(parsed.companyName ?? "").trim(),
+      email: String(parsed.email ?? "").trim(),
+      clubName: String(parsed.clubName ?? "").trim(),
+      giftGbp: Number(parsed.pledgeGbp) || 0,
+      createdAt: new Date().toISOString(),
+      matchSponsorships: parsed.matchSponsorships,
+    });
+  } catch {
+    return null;
+  }
+}
+
+function mergePhilanthropistRecords(
+  ...rows: Array<PhilanthropistRecord | null | undefined>
+): PhilanthropistRecord | null {
+  const present = rows.filter(Boolean) as PhilanthropistRecord[];
+  if (present.length === 0) return null;
+  let merged = present[0];
+  for (const row of present.slice(1)) {
+    const gifts = parsePhilanthropistMatchSponsorships(
+      row.matchSponsorships,
+      row.clubName
+    );
+    merged = applyPhilanthropistMatchGifts(
+      {
+        name: merged.name || row.name,
+        organisation: merged.organisation || row.organisation,
+        email: merged.email || row.email,
+        createdAt: merged.createdAt || row.createdAt,
+        clubName: merged.clubName || row.clubName,
+        giftGbp: merged.giftGbp || row.giftGbp,
+        matchSponsorships: merged.matchSponsorships,
+      },
+      gifts
+    );
+    if (!merged.clubName && row.clubName) {
+      merged = { ...merged, clubName: row.clubName, giftGbp: row.giftGbp };
+    }
+  }
+  return merged;
+}
+
+export function hydratePhilanthropistRecord(sponsor?: {
+  name?: string | null;
+  website?: string | null;
+  industry?: string | null;
+  email?: string | null;
+  club_name?: string | null;
+  pledge_gbp?: number | null;
+  match_sponsorships?: unknown;
+} | null): PhilanthropistRecord | null {
+  const merged = mergePhilanthropistRecords(
+    readPhilanthropistRecord(),
+    philanthropistRecordFromProfile(),
+    philanthropistRecordFromSponsor(sponsor ?? null)
+  );
+  if (merged) writePhilanthropistRecord(merged);
+  return merged;
 }

@@ -11,14 +11,14 @@ import {
 } from "@/app/services/climate-sponsors.service";
 import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
 import {
-  LOCAL_SPONSOR_HOME_PATH,
+  SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   sponsorWalletPath,
 } from "@/app/lib/routes";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 import {
-  isLeadSponsorHome,
   rememberLocalSponsorSession,
+  sponsorHomePath,
 } from "@/app/lib/sponsor-home";
 
 export default function SponsorCalendarPage() {
@@ -35,8 +35,11 @@ export default function SponsorCalendarPage() {
         const sponsor = await getCurrentSponsor();
         const name = String(sponsor.name ?? "your brand");
         rememberLocalSponsorSession(sponsor);
-        if (!isLeadSponsorHome(name, { jobTitle: String(sponsor.industry ?? "") })) {
-          router.replace(LOCAL_SPONSOR_HOME_PATH);
+        const home = sponsorHomePath(name, {
+          jobTitle: String(sponsor.industry ?? ""),
+        });
+        if (home !== SPONSOR_DASHBOARD_PATH) {
+          router.replace(home);
           return;
         }
         if (cancelled) return;

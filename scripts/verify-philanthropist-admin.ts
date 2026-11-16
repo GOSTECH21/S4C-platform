@@ -145,6 +145,7 @@ assert(
     PHILANTHROPIST_PST_ID === "pst" &&
     home.includes("PhilanthropistAdmin") &&
     home.includes("PhilanthropistSponsorsTable") &&
+    home.includes("PhilanthropistMatchGift") &&
     nav.includes("PHILANTHROPIST_ADMIN_NAV") &&
     nav.includes("PHILANTHROPIST_ADMIN_PATH") &&
     admin.includes("PHILANTHROPIST_ADMIN_COPY") &&

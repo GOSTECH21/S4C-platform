@@ -19,6 +19,7 @@ import {
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
+import { hydratePhilanthropistRecord } from "@/app/lib/philanthropist";
 import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { roleLoginAccount } from "@/app/lib/role-login";
@@ -56,6 +57,10 @@ export default function SponsorLoginPage() {
         brandName,
         email,
         sponsor,
+      });
+      hydratePhilanthropistRecord({
+        ...sponsor,
+        email,
       });
       rememberLocalSponsorSession(sponsor);
       const pendingMatch = continueAfterSponsorAuth();

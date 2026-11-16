@@ -5,6 +5,7 @@ import { LEAGUE_COUNTRY, seasonNamesMatch } from "./current-season";
 import { formatFundingGbp } from "./platform-stats";
 import {
   philanthropistDisplayName,
+  philanthropistFundingGbp,
   type PhilanthropistRecord,
 } from "./philanthropist";
 import { brandsMatch } from "./sponsor-dashboard";
@@ -134,9 +135,10 @@ export function mergePstCatalog(
       record.organisation.trim() || philanthropistDisplayName(record);
     const key = keyFor(record.name, organisation);
     const country = countryForClub(record.clubName);
+    const fundingGbp = philanthropistFundingGbp(record);
     const existing = byKey.get(key);
     if (existing) {
-      existing.giftGbp = Math.max(existing.giftGbp, record.giftGbp);
+      existing.giftGbp = Math.max(existing.giftGbp, fundingGbp);
       existing.clubName = record.clubName.trim() || existing.clubName;
       existing.country = country;
       continue;
@@ -145,7 +147,7 @@ export function mergePstCatalog(
       name: record.name.trim(),
       organisation,
       clubName: record.clubName.trim(),
-      giftGbp: record.giftGbp,
+      giftGbp: fundingGbp,
       country,
     });
   }

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { registerSponsor } from "@/app/services/sponsor-auth.service";
 import { depositPhilanthropistClimateWallet } from "@/app/services/sponsor-wallet.service";
 import { ClubNetworkPicker } from "@/app/components/sponsor/ClubNetworkPicker";
+import { MatchSponsorshipPicker } from "@/app/components/sponsor/MatchSponsorshipPicker";
+import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 import {
   PHILANTHROPIST_HOME_PATH,
   SPONSOR_LOGIN_PATH,
@@ -13,14 +15,25 @@ import {
 } from "@/app/lib/routes";
 import { roleRegisterAccount } from "@/app/lib/role-login";
 import { SafeInput } from "@/app/components/forms/SafeFormField";
+import { sameNamedFixture } from "@/app/lib/club-fixtures";
+import { calendarFixturesForClub } from "@/app/lib/sporting-calendar";
 import {
+  applyPhilanthropistMatchGifts,
   PHILANTHROPIST_JOB_TITLE,
   PHILANTHROPIST_KICKER,
+  PHILANTHROPIST_MIN_GBP,
   PHILANTHROPIST_REGISTER_COPY,
   PHILANTHROPIST_REGISTER_CTA,
   PHILANTHROPIST_REGISTER_HEADING,
+  philanthropistClubTotalGbp,
+  philanthropistDisplayName,
   writePhilanthropistRecord,
+  type PhilanthropistMatchSponsorship,
 } from "@/app/lib/philanthropist";
+import {
+  ensureGoalNetwork,
+  lockMatchDayClub,
+} from "@/app/services/climate-sponsors.service";
 
 export default function PhilanthropistRegisterPage() {
   const account = roleRegisterAccount("philanthropist");
@@ -31,6 +44,8 @@ export default function PhilanthropistRegisterPage() {
   const [password, setPassword] = useState("");
   const [clubName, setClubName] = useState("");
   const [giftGbp, setGiftGbp] = useState("");
+  const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,18 +53,55 @@ export default function PhilanthropistRegisterPage() {
     setFormReady(true);
   }, []);
 
+  function toggleMatch(fixtureName: string) {
+    setSelectedMatches((current) =>
+      current.includes(fixtureName)
+        ? current.filter((name) => name !== fixtureName)
+        : [...current, fixtureName]
+    );
+    setAmounts((current) => ({
+      ...current,
+      [fixtureName]:
+        current[fixtureName] || giftGbp || String(PHILANTHROPIST_MIN_GBP),
+    }));
+  }
+
   async function handleRegister(event: React.FormEvent) {
     event.preventDefault();
     if (loading) return;
-    const gift = Number(giftGbp);
+    const defaultGift = Number(giftGbp);
     if (!clubName.trim()) {
-      setError("Select the club whose fans will direct your gift.");
+      setError("Select the Club you wish to sponsor.");
       return;
     }
-    if (!Number.isFinite(gift) || gift < 1) {
-      setError("Enter a climate gift of at least £1 per match.");
+    if (selectedMatches.length === 0) {
+      setError("Select the Match you wish to sponsor.");
       return;
     }
+    const clubFixtures = calendarFixturesForClub(clubName.trim());
+    const matchSponsorships: PhilanthropistMatchSponsorship[] = [];
+    for (const fixtureName of selectedMatches) {
+      const amount = Number(amounts[fixtureName] || giftGbp);
+      if (!Number.isFinite(amount) || amount < PHILANTHROPIST_MIN_GBP) {
+        setError("Enter how much money you are putting into each selected Match.");
+        return;
+      }
+      const fixture = clubFixtures.find((row) =>
+        sameNamedFixture(row.fixtureName, fixtureName)
+      );
+      matchSponsorships.push({
+        clubName: clubName.trim(),
+        fixtureName,
+        amountGbp: amount,
+        date: fixture?.date,
+        competition: fixture?.competition,
+        kickoff: fixture?.kickoff,
+        venue: fixture?.venue,
+      });
+    }
+    const gift = Number.isFinite(defaultGift) && defaultGift >= PHILANTHROPIST_MIN_GBP
+      ? defaultGift
+      : matchSponsorships[0].amountGbp;
     setLoading(true);
     setError(null);
     try {
@@ -62,20 +114,40 @@ export default function PhilanthropistRegisterPage() {
         password,
         clubName: clubName.trim(),
         pledgeGbp: gift,
+        matchSponsorships: matchSponsorships.map((row) => ({
+          fixtureName: row.fixtureName,
+          amountGbp: row.amountGbp,
+          date: row.date,
+        })),
       });
-      writePhilanthropistRecord({
-        name: name.trim(),
-        organisation: organisation.trim(),
-        email: email.trim(),
-        clubName: clubName.trim(),
-        giftGbp: gift,
-        createdAt: new Date().toISOString(),
-      });
+      const record = applyPhilanthropistMatchGifts(
+        {
+          name: name.trim(),
+          organisation: organisation.trim(),
+          email: email.trim(),
+          createdAt: new Date().toISOString(),
+        },
+        matchSponsorships
+      );
+      writePhilanthropistRecord(record);
+      const brand = philanthropistDisplayName(record) || companyName;
       depositPhilanthropistClimateWallet({
         clubName: clubName.trim(),
-        brandName: companyName,
-        giftGbp: gift,
+        brandName: brand,
+        giftGbp: philanthropistClubTotalGbp(record, clubName.trim()),
       });
+      const first = matchSponsorships[0];
+      lockMatchDayClub({
+        brandName: brand,
+        clubName: clubName.trim(),
+        matchLabel: first.competition || "Match Day",
+        fixtureName: first.fixtureName,
+        competition: first.competition,
+        fixtureDate: first.date || undefined,
+        kickoff: first.kickoff,
+        venue: first.venue,
+      });
+      ensureGoalNetwork({ brandName: brand, clubNames: [clubName.trim()] });
       window.location.href = PHILANTHROPIST_HOME_PATH;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not register.");
@@ -172,25 +244,66 @@ export default function PhilanthropistRegisterPage() {
               type="number"
               id={`${account.formId}-gift`}
               name={`${account.formId}-gift`}
-              min={1}
+              min={PHILANTHROPIST_MIN_GBP}
               step={1}
               inputMode="numeric"
               autoComplete="off"
               value={giftGbp}
-              onChange={(event) => setGiftGbp(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                setGiftGbp(next);
+                setAmounts((current) => {
+                  const updated = { ...current };
+                  for (const fixtureName of selectedMatches) {
+                    if (!updated[fixtureName]) updated[fixtureName] = next;
+                  }
+                  return updated;
+                });
+              }}
               className="mt-2 w-full rounded-lg bg-slate-800 p-3 text-white"
               required
             />
           </label>
           <div>
             <p className="text-sm text-slate-400">
-              The club whose fans will direct your gift
+              Select the Club you wish to sponsor
             </p>
             <div className="mt-3">
               <ClubNetworkPicker
                 selected={clubName ? [clubName] : []}
-                onChange={(clubs) => setClubName(clubs[0] ?? "")}
+                onChange={(clubs) => {
+                  setClubName(clubs[0] ?? "");
+                  setSelectedMatches([]);
+                  setAmounts({});
+                }}
                 single
+              />
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-200">
+              Select the Match you wish to sponsor
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Tick the Match (or Matches) and enter how much money you are
+              putting into each sponsorship. You can log in later and add more.
+            </p>
+            <div className="mt-3">
+              <HowS4pSelectMatch
+                audience="sponsor"
+                initialClub={clubName}
+                className="mb-4"
+              />
+              <MatchSponsorshipPicker
+                clubName={clubName}
+                selected={selectedMatches}
+                amounts={amounts}
+                onToggle={toggleMatch}
+                onAmount={(fixtureName, amount) =>
+                  setAmounts((current) => ({ ...current, [fixtureName]: amount }))
+                }
+                minGbp={PHILANTHROPIST_MIN_GBP}
+                submitHint="Any amount per selected Match. This gift goes into the Philanthropist Carbon Wallet for fans of this club."
               />
             </div>
           </div>
