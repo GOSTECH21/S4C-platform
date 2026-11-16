@@ -25,6 +25,7 @@ function FixtureRows({
   onAmount,
   heading,
   startExpanded = false,
+  minGbp = LOCAL_SPONSOR_MIN_GBP,
 }: {
   fixtures: ClubFixture[];
   selectable: boolean;
@@ -34,6 +35,7 @@ function FixtureRows({
   onAmount: (fixtureName: string, amount: string) => void;
   heading: string;
   startExpanded?: boolean;
+  minGbp?: number;
 }) {
   const [expanded, setExpanded] = useState(startExpanded);
   const visible = visibleAccordionItems(fixtures, expanded, (row) =>
@@ -97,9 +99,9 @@ function FixtureRows({
                 Sponsorship amount
                 <SafeInput
                   type="number"
-                  min={LOCAL_SPONSOR_MIN_GBP}
-                  step={50}
-                  value={amounts[fixture.fixtureName] ?? String(LOCAL_SPONSOR_MIN_GBP)}
+                  min={minGbp}
+                  step={minGbp >= 50 ? 50 : 1}
+                  value={amounts[fixture.fixtureName] ?? String(minGbp)}
                   onChange={(event) =>
                     onAmount(fixture.fixtureName, event.target.value)
                   }
@@ -120,12 +122,16 @@ export function MatchSponsorshipPicker({
   amounts,
   onToggle,
   onAmount,
+  minGbp = LOCAL_SPONSOR_MIN_GBP,
+  submitHint,
 }: {
   clubName: string;
   selected: string[];
   amounts: Record<string, string>;
   onToggle: (fixtureName: string) => void;
   onAmount: (fixtureName: string, amount: string) => void;
+  minGbp?: number;
+  submitHint?: string;
 }) {
   if (!clubName.trim()) {
     return (
@@ -157,6 +163,7 @@ export function MatchSponsorshipPicker({
           onToggle={onToggle}
           onAmount={onAmount}
           startExpanded
+          minGbp={minGbp}
         />
       ) : (
         <>
@@ -169,8 +176,8 @@ export function MatchSponsorshipPicker({
         </>
       )}
       <p className="text-xs text-green-100">
-        From {formatMoney(LOCAL_SPONSOR_MIN_GBP)} per selected Match. SUBMIT
-        sends these amounts to the {clubName} Sustainability Director.
+        {submitHint ||
+          `From ${formatMoney(minGbp)} per selected Match. SUBMIT sends these amounts to the ${clubName} Sustainability Director.`}
       </p>
     </section>
   );

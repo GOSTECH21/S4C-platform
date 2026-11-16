@@ -716,6 +716,12 @@ assert(
   readFileSync("app/components/home/PhoneFrame.tsx", "utf8").includes(
     "data-phone-frame"
   ) &&
+    readFileSync("app/components/home/PhoneFrame.tsx", "utf8").includes(
+      "max-md:rounded-none max-md:border-0"
+    ) &&
+    readFileSync("app/components/home/PhoneFrame.tsx", "utf8").includes(
+      "phone-mobile-unframed-v1"
+    ) &&
     readFileSync("app/components/home/HowS4pSelectMatch.tsx", "utf8").includes(
       "PHONE_COLUMN_CLASS"
     ) &&
@@ -737,7 +743,7 @@ assert(
     readFileSync("app/components/home/HowYoureSupporting.tsx", "utf8").includes(
       "PhoneFrame"
     ),
-  "PhoneFrame hides the decorative handset on mobile"
+  "PhoneFrame hides the decorative handset and the leftover screen surround on mobile"
 );
 assert(
   !howItWorks.includes("/images/home/select-match-phone.png") &&
@@ -781,7 +787,8 @@ assert(
     selectMatchFixtures.includes("Sponsor · Sign off") &&
     selectMatchFixtures.includes("Select this Match") &&
     selectMatchFixtures.includes("select-match-contained-v1") &&
-    selectMatchFixtures.includes("max-md:h-[28rem]") &&
+    selectMatchFixtures.includes("max-md:h-auto") &&
+    selectMatchFixtures.includes("max-md:max-h-none") &&
     selectMatchFixtures.includes("shownMatches") &&
     selectMatchFixtures.includes("clubOptions.includes(club)") &&
     selectMatchFixtures.includes("showSelectedClub") &&

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { PhilanthropistAdmin } from "@/app/components/sponsor/PhilanthropistAdmin";
+import { PhilanthropistMatchGift } from "@/app/components/sponsor/PhilanthropistMatchGift";
 import { PhilanthropistSponsorsTable } from "@/app/components/sponsor/PhilanthropistSponsorsTable";
 import {
   PHILANTHROPIST_HOME_HEADING,
   PHILANTHROPIST_KICKER,
   philanthropistDisplayName,
   philanthropistGiftCopy,
+  readPhilanthropistRecord,
   writePhilanthropistRecord,
   type PhilanthropistRecord,
 } from "@/app/lib/philanthropist";
@@ -26,13 +28,20 @@ export default function PhilanthropistAdminPreviewPage() {
   const [record, setRecord] = useState<PhilanthropistRecord | null>(null);
 
   useEffect(() => {
-    writePhilanthropistRecord(SMITH);
+    const existing = readPhilanthropistRecord();
+    const seeded =
+      existing?.email === SMITH.email
+        ? existing
+        : (() => {
+            writePhilanthropistRecord(SMITH);
+            return SMITH;
+          })();
     depositPhilanthropistClimateWallet({
-      clubName: SMITH.clubName,
-      brandName: philanthropistDisplayName(SMITH),
-      giftGbp: SMITH.giftGbp,
+      clubName: seeded.clubName,
+      brandName: philanthropistDisplayName(seeded),
+      giftGbp: seeded.giftGbp,
     });
-    setRecord(SMITH);
+    setRecord(seeded);
   }, []);
 
   if (!record) {
@@ -54,6 +63,17 @@ export default function PhilanthropistAdminPreviewPage() {
           {philanthropistDisplayName(record)}
         </p>
         <p className="mt-4 text-slate-300">{philanthropistGiftCopy(record)}</p>
+        <PhilanthropistMatchGift
+          identity={{
+            name: record.name,
+            organisation: record.organisation,
+            email: record.email,
+            createdAt: record.createdAt,
+          }}
+          record={record}
+          brandName={philanthropistDisplayName(record)}
+          onSaved={setRecord}
+        />
         <PhilanthropistAdmin record={record} />
         <PhilanthropistSponsorsTable record={record} />
       </div>

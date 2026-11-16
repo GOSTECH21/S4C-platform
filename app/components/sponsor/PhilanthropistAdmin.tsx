@@ -117,7 +117,8 @@ export function PhilanthropistAdmin({
       </h3>
       {snapshot.matches.length === 0 ? (
         <p className="mt-3 text-sm font-semibold text-slate-400">
-          No league or cup matches are listed for your club yet.
+          Choose a Club and Match above, then enter how much you are putting
+          into that sponsorship.
         </p>
       ) : (
         <>

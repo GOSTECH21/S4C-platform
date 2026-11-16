@@ -27,7 +27,9 @@ assert(
     frame.includes("data-phone-unframed") &&
     frame.includes("UNFRAMED_SCREEN_CLASS") &&
     frame.includes("CLUB_FIXTURE_COLUMN_CLASS") &&
-    frame.includes("data-phone-frame"),
+    frame.includes("data-phone-frame") &&
+    frame.includes("max-md:rounded-none max-md:border-0") &&
+    frame.includes("phone-mobile-unframed-v1"),
   "PhoneFrame can drop the handset and keep a static fixture card"
 );
 assert(
@@ -35,7 +37,7 @@ assert(
     fixtures.includes("club-pc-no-phone-frame-v1") &&
     fixtures.includes("data-select-this-match") &&
     fixtures.includes("sm:text-base md:text-lg") &&
-    fixtures.includes("max-md:h-[28rem]") &&
+    fixtures.includes("max-md:h-auto") &&
     fixtures.includes("are in this list.") &&
     fixtures.includes("are on the phone.") &&
     !fixtures.includes('className="mt-1.5 inline-flex rounded-full px-2.5 py-1 text-[10px]'),
@@ -44,6 +46,7 @@ assert(
 assert(
   select.includes("CLUB_FIXTURE_COLUMN_CLASS") &&
     select.includes("PHONE_COLUMN_CLASS") &&
+    select.includes("max-md:rounded-none max-md:border-0") &&
     select.includes("club-pc-no-phone-frame-v1") &&
     select.includes('audience === "club"'),
   "Club Select Match uses a wider unframed column; fan/sponsor keep the handset"

@@ -47,6 +47,7 @@ import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProj
 import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
 import {
   LOCAL_SPONSOR_HOME_PATH,
+  PHILANTHROPIST_HOME_PATH,
   SPONSOR_ANOTHER_TEAM_CLICK,
   SPONSOR_ANOTHER_TEAM_PROMPT,
   SPONSOR_CLUB_TYPE_IN_PATH,
@@ -62,6 +63,7 @@ import {
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
+import { isPhilanthropistSponsor } from "@/app/lib/philanthropist";
 import {
   LOCAL_FIVE_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
@@ -124,6 +126,10 @@ export default function SponsorWalletPage() {
         setLock(matchLock);
         setClubName(club);
         setLockFixture(matchLock ? displayLockFixture(matchLock) : "");
+        if (isPhilanthropistSponsor(brandName, { jobTitle })) {
+          router.replace(PHILANTHROPIST_HOME_PATH);
+          return;
+        }
         const localKind = isLocalClimateSponsor(brandName, { jobTitle });
         setKind(localKind ? "local" : "lead");
         if (localKind && !isNewSponsorshipRequest(window.location.search)) {

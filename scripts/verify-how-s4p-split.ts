@@ -124,12 +124,15 @@ const p4pPhone = readFileSync(
 assert(
   frame.includes("data-phone-frame") &&
     frame.includes("hidden h-auto w-full md:block") &&
+    frame.includes("max-md:rounded-none max-md:border-0") &&
+    frame.includes("phone-mobile-unframed-v1") &&
     frame.includes("PHONE_COLUMN_CLASS") &&
     how.includes("hidden md:block") &&
     how.includes("data-phone-frame") &&
     how.includes("PHONE_COLUMN_CLASS") &&
     how.includes("onLogin") &&
     select.includes("PHONE_COLUMN_CLASS") &&
+    select.includes("max-md:rounded-none max-md:border-0") &&
     p4pSection.includes("PHONE_COLUMN_CLASS") &&
     fixtures.includes("PhoneFrame") &&
     fixtures.includes('framed={mode !== "club"}') &&
@@ -139,7 +142,7 @@ assert(
     p4pPhone.includes("PhoneFrame") &&
     supporting.includes("PhoneFrame") &&
     supporting.includes("max-md:static"),
-  "Phone bezels hide below md; Club Select Match drops the handset on PC; fan/sponsor stay handset-native"
+  "Phone bezels and screen surrounds hide below md; Club Select Match drops the handset on PC"
 );
 
 if (failures.length > 0) {

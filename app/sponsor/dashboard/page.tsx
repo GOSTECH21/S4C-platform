@@ -25,7 +25,6 @@ import {
 } from "@/app/lib/lead-sponsor-home";
 import { committedGbpForSignedHome } from "@/app/lib/sponsor-signed-home";
 import {
-  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_CALENDAR_PATH,
   SPONSOR_LOGIN_PATH,
   SPONSOR_RECEIVE_SECTION_ID,
@@ -35,6 +34,7 @@ import {
 import {
   isLeadSponsorHome,
   rememberLocalSponsorSession,
+  sponsorHomePath,
 } from "@/app/lib/sponsor-home";
 import { findClimateWallet } from "@/app/services/sponsor-wallet.service";
 import { loadVotedPortfolioProjects } from "@/app/services/club-match-day.service";
@@ -87,7 +87,7 @@ export default function SponsorDashboardPage() {
         rememberLocalSponsorSession(sponsor);
         setBrand(sponsorName);
         if (!isLeadSponsorHome(sponsorName, { jobTitle })) {
-          router.replace(LOCAL_SPONSOR_HOME_PATH);
+          router.replace(sponsorHomePath(sponsorName, { jobTitle }));
           return;
         }
         const uploaded = loadBrandLogo(sponsorName);

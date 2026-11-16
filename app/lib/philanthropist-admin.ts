@@ -12,8 +12,12 @@ import {
   type CalendarMatch,
 } from "./sporting-calendar";
 import { formatKickoff, formatMatchDate } from "./upcoming-matches";
+import { sameNamedFixture } from "./club-fixtures";
 import {
+  parsePhilanthropistMatchSponsorships,
+  philanthropistClubTotalGbp,
   philanthropistDisplayName,
+  type PhilanthropistMatchSponsorship,
   type PhilanthropistRecord,
 } from "./philanthropist";
 import type { ClimateWalletTake } from "./climate-wallet-takes";
@@ -55,19 +59,43 @@ export function philanthropistGifts(
   record: PhilanthropistRecord | null | undefined,
   extras: PhilanthropistRecord[] = []
 ): PhilanthropistRecord[] {
-  const rows = [...extras];
-  if (record) rows.unshift(record);
-  const seen = new Set<string>();
-  const unique: PhilanthropistRecord[] = [];
+  const rows = record ? [record, ...extras] : [...extras];
+  const byClub = new Map<string, PhilanthropistRecord>();
   for (const row of rows) {
+    const matches = parsePhilanthropistMatchSponsorships(
+      row.matchSponsorships,
+      row.clubName
+    );
+    if (matches.length > 0) {
+      const grouped = new Map<string, PhilanthropistMatchSponsorship[]>();
+      for (const match of matches) {
+        const key = match.clubName.trim().toLowerCase();
+        if (!key) continue;
+        const list = grouped.get(key) ?? [];
+        list.push(match);
+        grouped.set(key, list);
+      }
+      for (const list of grouped.values()) {
+        const clubName = list[0].clubName.trim();
+        const key = clubName.toLowerCase();
+        const giftGbp = list.reduce((sum, match) => sum + match.amountGbp, 0);
+        const existing = byClub.get(key);
+        byClub.set(key, {
+          ...row,
+          clubName,
+          giftGbp: existing ? existing.giftGbp + giftGbp : giftGbp,
+          matchSponsorships: [...(existing?.matchSponsorships ?? []), ...list],
+        });
+      }
+      continue;
+    }
     const club = row.clubName.trim();
     if (!club || row.giftGbp < 1) continue;
     const key = club.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    unique.push(row);
+    if (byClub.has(key)) continue;
+    byClub.set(key, row);
   }
-  return unique;
+  return [...byClub.values()];
 }
 
 export function fansEngagedFromTakes(
@@ -147,6 +175,36 @@ export function philanthropistMatchesForClub(
   return selected.map((row) => toMatchRow(row, club, giftGbp, now));
 }
 
+function matchRowFromSponsorship(
+  gift: PhilanthropistMatchSponsorship,
+  now: Date | string
+): PhilanthropistMatchRow {
+  const catalog = matchesForClub(gift.clubName, {
+    fromDate: PHILANTHROPIST_SEASON_FROM,
+  });
+  const found = catalog.find((row) =>
+    sameNamedFixture(row.fixtureName, gift.fixtureName)
+  );
+  const date = gift.date || found?.date || "";
+  const status = matchStatusForDate(date || isoToday(now), now);
+  const when = [formatMatchDate(date), formatKickoff(gift.kickoff || found?.kickoff || null)]
+    .filter(Boolean)
+    .join(" · ");
+  return {
+    id: found?.id || `${gift.clubName}:${gift.fixtureName}`,
+    clubName: gift.clubName,
+    fixtureName: gift.fixtureName.replace(/\s+v\s+/i, " vs "),
+    date,
+    when: when || "TBC",
+    league: gift.competition || found?.league || "Match Day",
+    venue: gift.venue || found?.venue || "TBC",
+    amountGbp: gift.amountGbp,
+    amountLabel: formatFundingGbp(gift.amountGbp),
+    status,
+    statusLabel: status === "sponsored" ? "Sponsored" : "Sponsoring",
+  };
+}
+
 function toMatchRow(
   row: CalendarMatch,
   clubName: string,
@@ -191,11 +249,23 @@ export function philanthropistAdminSnapshot({
   const gifts = philanthropistGifts(record, extras);
   const clubs = gifts.map((gift) => {
     const brand = philanthropistDisplayName(gift);
+    const chosen = parsePhilanthropistMatchSponsorships(
+      gift.matchSponsorships,
+      gift.clubName
+    );
+    const giftGbp =
+      chosen.length > 0
+        ? philanthropistClubTotalGbp(gift, gift.clubName)
+        : gift.giftGbp;
+    const giftLabel =
+      chosen.length > 0
+        ? formatFundingGbp(giftGbp)
+        : `${formatFundingGbp(giftGbp)} per match`;
     return {
       clubName: gift.clubName.trim(),
       country: countryForClub(gift.clubName),
-      giftGbp: gift.giftGbp,
-      giftLabel: `${formatFundingGbp(gift.giftGbp)} per match`,
+      giftGbp,
+      giftLabel,
       fansEngaged: fansEngagedForGift({
         brandName: brand,
         clubName: gift.clubName,
@@ -204,9 +274,16 @@ export function philanthropistAdminSnapshot({
       }),
     };
   });
-  const matches = gifts.flatMap((gift) =>
-    philanthropistMatchesForClub(gift.clubName, gift.giftGbp, now)
-  );
+  const matches = gifts.flatMap((gift) => {
+    const chosen = parsePhilanthropistMatchSponsorships(
+      gift.matchSponsorships,
+      gift.clubName
+    );
+    if (chosen.length > 0) {
+      return chosen.map((row) => matchRowFromSponsorship(row, now));
+    }
+    return philanthropistMatchesForClub(gift.clubName, gift.giftGbp, now);
+  });
   const fansEngaged = clubs.reduce((sum, club) => sum + club.fansEngaged, 0);
   return { clubs, matches, fansEngaged };
 }

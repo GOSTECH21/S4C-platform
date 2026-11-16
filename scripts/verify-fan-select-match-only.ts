@@ -30,7 +30,9 @@ assert(
 
 assert(
   fixtures.includes('data-select-match-contained="select-match-contained-v1"') &&
-    fixtures.includes("max-md:h-[28rem]") &&
+    fixtures.includes("max-md:h-auto") &&
+    fixtures.includes("max-md:max-h-none") &&
+    fixtures.includes("max-md:!overflow-visible") &&
     fixtures.includes("shownMatches") &&
     fixtures.includes(".slice(0, 10)") &&
     fixtures.includes("clubOptions.includes(club)") &&
@@ -42,15 +44,16 @@ assert(
     fixtures.includes("data-select-match-picker") &&
     fixtures.includes("namesMatch(match.homeName, shown)") &&
     fixtures.includes("namesMatch(match.awayName, shown)"),
-  "The match phone stays contained, capped at 10, and only lists the selected club"
+  "The match list is unframed on mobile, capped at 10, and only lists the selected club"
 );
 
 assert(
   select.includes("order-2 lg:order-1") &&
     select.includes("order-1 min-w-0 flex-1 lg:order-2") &&
+    select.includes("max-md:rounded-none max-md:border-0") &&
     !select.includes("Confirm your Selection") &&
     !select.includes("data-confirm-club-selection"),
-  "On a phone, Choose your club sits above the contained 10-match list"
+  "On a phone, Choose your club sits above the unframed 10-match list"
 );
 
 assert(
