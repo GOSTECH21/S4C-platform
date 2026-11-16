@@ -30,6 +30,7 @@ export default function HowS4pSelectMatch({
   clubLocked = false,
   clubOptions = null,
   className = "",
+  onClubConfirmed,
   onClubMatchSelected,
 }: {
   audience: HowS4pSelectMatchAudience;
@@ -37,7 +38,8 @@ export default function HowS4pSelectMatch({
   clubLocked?: boolean;
   clubOptions?: string[] | null;
   className?: string;
-  onClubMatchSelected?: (match: HomeUpcomingMatch) => void;
+  onClubConfirmed?: (club: string) => void;
+  onClubMatchSelected?: (match: HomeUpcomingMatch, club: string) => void;
 }) {
   const copy = howS4pSelectMatchCopy(audience);
   const mode = MODE_FOR[audience];
@@ -49,6 +51,7 @@ export default function HowS4pSelectMatch({
       clubLocked={clubLocked}
       clubOptions={clubOptions}
       mode={mode}
+      onClubConfirmed={onClubConfirmed}
       onClubMatchSelected={onClubMatchSelected}
     >
       <section

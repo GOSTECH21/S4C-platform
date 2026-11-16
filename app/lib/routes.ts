@@ -174,6 +174,19 @@ export function localNewSponsorshipPath(): string {
   return `${SPONSOR_WALLET_PATH}?${SPONSOR_NEW_SPONSORSHIP_QUERY}=1`;
 }
 
+export function philanthropistNewSponsorshipPath(match?: {
+  club?: string | null;
+  fixtureName?: string | null;
+}): string {
+  const query = new URLSearchParams();
+  query.set(SPONSOR_NEW_SPONSORSHIP_QUERY, "1");
+  const club = String(match?.club ?? "").trim();
+  const fixtureName = String(match?.fixtureName ?? "").trim();
+  if (club) query.set("club", club);
+  if (fixtureName) query.set("fixture", fixtureName);
+  return `${PHILANTHROPIST_HOME_PATH}?${query.toString()}#${PHILANTHROPIST_SPONSOR_ID}`;
+}
+
 export function isNewSponsorshipRequest(
   search: string | null | undefined
 ): boolean {

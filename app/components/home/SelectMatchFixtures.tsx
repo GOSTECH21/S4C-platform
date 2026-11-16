@@ -63,7 +63,7 @@ type SelectMatchState = {
   clubLocked: boolean;
   clubOptions: string[] | null;
   pickerRef: RefObject<HTMLSelectElement | null>;
-  onClubMatchSelected?: (match: HomeUpcomingMatch) => void;
+  onClubMatchSelected?: (match: HomeUpcomingMatch, club: string) => void;
 };
 
 const SelectMatchContext = createContext<SelectMatchState | null>(null);
@@ -131,6 +131,7 @@ export function SelectMatchProvider({
   clubLocked = false,
   clubOptions = null,
   mode = "sponsor",
+  onClubConfirmed,
   onClubMatchSelected,
 }: {
   active: boolean;
@@ -139,7 +140,8 @@ export function SelectMatchProvider({
   clubLocked?: boolean;
   clubOptions?: string[] | null;
   mode?: SelectMatchMode;
-  onClubMatchSelected?: (match: HomeUpcomingMatch) => void;
+  onClubConfirmed?: (club: string) => void;
+  onClubMatchSelected?: (match: HomeUpcomingMatch, club: string) => void;
 }) {
   const groups = useMemo(
     () =>
@@ -218,9 +220,10 @@ export function SelectMatchProvider({
       if (!name) return;
       setPendingClub(name);
       setClub(name);
+      onClubConfirmed?.(name);
       void load(name);
     },
-    [pendingClub, club, load]
+    [pendingClub, club, load, onClubConfirmed]
   );
 
   useEffect(() => {
@@ -518,6 +521,30 @@ export function SelectMatchPhone({
                       </>
                     );
                     if (mode === "sponsor") {
+                      if (onClubMatchSelected) {
+                        return (
+                          <li key={match.id}>
+                            <button
+                              type="button"
+                              data-phone-match-sponsor="true"
+                              data-philanthropist-select-match="philanthropist-stay-v1"
+                              data-draft-club={shown}
+                              aria-current={selected ? "true" : undefined}
+                              aria-label={`Sponsor ${label} — complete this sponsorship and sign it off`}
+                              onPointerDown={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setSelectedMatch(match);
+                                onClubMatchSelected(match, shown);
+                              }}
+                              className={`${rowClass} w-full text-left`}
+                              style={{ backgroundColor: "#f3f5f8" }}
+                            >
+                              {body}
+                            </button>
+                          </li>
+                        );
+                      }
                       return (
                         <li key={match.id}>
                           <a
@@ -557,7 +584,7 @@ export function SelectMatchPhone({
                             setSelectedMatch(match);
                             if (mode === "club") {
                               persistClubMatch(shown, match);
-                              onClubMatchSelected?.(match);
+                              onClubMatchSelected?.(match, shown);
                             }
                           }}
                           className={`${rowClass} w-full text-left`}

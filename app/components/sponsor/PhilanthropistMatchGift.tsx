@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
+import type { HomeUpcomingMatch } from "@/app/components/home/SelectMatchFixtures";
 import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
 import {
   ClubLeagueMenu,
@@ -30,6 +31,23 @@ import {
 } from "@/app/services/climate-sponsors.service";
 import { depositPhilanthropistClimateWallet } from "@/app/services/sponsor-wallet.service";
 
+function fixtureFromHomeMatch(match: HomeUpcomingMatch): ClubFixture {
+  const fixtureName = match.fixtureName.includes(" v ")
+    ? match.fixtureName
+    : match.fixtureName.replace(" vs ", " v ");
+  return {
+    id: match.id,
+    homeName: match.homeName,
+    awayName: match.awayName,
+    fixtureName,
+    competition: match.league,
+    date: match.date,
+    kickoff: match.kickoff,
+    venue: match.venue,
+    sourceUrl: null,
+  };
+}
+
 export function PhilanthropistMatchGift({
   identity,
   record,
@@ -41,7 +59,7 @@ export function PhilanthropistMatchGift({
   brandName: string;
   onSaved: (next: PhilanthropistRecord) => void;
 }) {
-  const [clubName, setClubName] = useState(record?.clubName ?? "");
+  const [clubName, setClubName] = useState("");
   const [lockFixture, setLockFixture] = useState("");
   const [chosenFixture, setChosenFixture] = useState<ClubFixture | null>(null);
   const [clubFixtures, setClubFixtures] = useState<ClubFixture[]>([]);
@@ -50,6 +68,7 @@ export function PhilanthropistMatchGift({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [pickerEpoch, setPickerEpoch] = useState(0);
 
   useEffect(() => {
     if (!clubName) {
@@ -86,6 +105,29 @@ export function PhilanthropistMatchGift({
     setLockFixture(fixture.fixtureName);
     setChosenFixture(fixture);
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const club = params.get("club")?.trim() || "";
+    const fixtureName = params.get("fixture")?.trim() || "";
+    if (!club) return;
+    applyClub(
+      club,
+      fixtureName
+        ? {
+            id: fixtureName,
+            homeName: "",
+            awayName: "",
+            fixtureName,
+            competition: "",
+            date: "",
+            kickoff: null,
+            venue: null,
+            sourceUrl: null,
+          }
+        : null
+    );
+  }, []);
 
   const selectedFixture =
     chosenFixture && chosenFixture.fixtureName === lockFixture
@@ -162,6 +204,10 @@ export function PhilanthropistMatchGift({
         `${club} · ${fixtureName} is now in your Philanthropist Carbon Wallet at £${gift.toLocaleString("en-GB")}.`
       );
       setAmountGbp("");
+      setClubName("");
+      setLockFixture("");
+      setChosenFixture(null);
+      setPickerEpoch((current) => current + 1);
       onSaved(next);
     } catch (err) {
       setError(
@@ -177,6 +223,9 @@ export function PhilanthropistMatchGift({
       id={PHILANTHROPIST_SPONSOR_ID}
       data-testid="philanthropist-match-gift"
       data-philanthropist-match-gift="philanthropist-choose-match-v1"
+      data-philanthropist-new-match="philanthropist-new-match-v1"
+      data-draft-club={clubName}
+      data-draft-fixture={lockFixture}
       className="mt-10 scroll-mt-6 space-y-6 rounded-3xl border border-green-500/30 bg-slate-900 p-6 max-md:rounded-none max-md:border-0 max-md:px-0 sm:p-8"
     >
       <div>
@@ -187,7 +236,18 @@ export function PhilanthropistMatchGift({
         <p className="mt-3 max-w-3xl text-slate-300">{PHILANTHROPIST_SPONSOR_COPY}</p>
       </div>
 
-      <HowS4pSelectMatch audience="sponsor" initialClub={clubName} />
+      <HowS4pSelectMatch
+        key={pickerEpoch}
+        audience="sponsor"
+        initialClub={clubName}
+        onClubConfirmed={(club) => {
+          if (club.trim() === clubName.trim()) return;
+          applyClub(club, null);
+        }}
+        onClubMatchSelected={(match, club) =>
+          applyClub(club, fixtureFromHomeMatch(match))
+        }
+      />
 
       <div className="overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
         <p className="text-sm uppercase tracking-[0.2em] text-green-300">
