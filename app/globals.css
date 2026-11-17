@@ -471,3 +471,60 @@ header {
 [data-fan-footprint="fan-footprint-v1"] .fp-track {
   background: #efe8d4 !important;
 }
+
+/* Invitation tab flashes while a Match Day invite is still waiting. */
+@keyframes s4p-invite-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(91 198 98 / 0);
+  }
+  50% {
+    box-shadow: 0 0 16px 4px rgb(91 198 98 / 0.95);
+  }
+}
+
+@keyframes s4p-invite-flash-fill {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+
+.s4p-invite-flash {
+  position: relative;
+  isolation: isolate;
+  animation: s4p-invite-flash 1s ease-in-out infinite;
+}
+
+.s4p-invite-flash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: #5bc662;
+  opacity: 0;
+  animation: s4p-invite-flash-fill 1s ease-in-out infinite;
+  z-index: 0;
+}
+
+.s4p-invite-flash > .s4p-invite-flash-label {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s4p-invite-flash,
+  .s4p-invite-flash::after {
+    animation: none;
+  }
+  .s4p-invite-flash {
+    background-color: #5bc662 !important;
+  }
+  .s4p-invite-flash::after {
+    opacity: 0;
+  }
+}

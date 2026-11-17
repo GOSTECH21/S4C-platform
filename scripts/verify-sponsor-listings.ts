@@ -33,6 +33,7 @@ import {
   SPONSORS_SECTION_TITLE,
   approvedProjectIdsFromInvite,
   commitGlobalSponsorship,
+  commitLocalInviteSponsorship,
   createInviteRound,
   invitationCountForBrand,
   inviteReceiptsForKind,
@@ -181,11 +182,11 @@ assert(
   "Highest Match-Sponsorship within 8 hours wins"
 );
 assert(
-  sponsorInvitationsNavLabel(0) === "Invitations" &&
+  sponsorInvitationsNavLabel(0) === "Invitations (0)" &&
     sponsorInvitationsNavLabel(1) === "Invitations (1)" &&
     sponsorInvitationsNavLabel(2) === "Invitations (2)" &&
     invitationCountForBrand([funded.round], globals[0].brandName, listings) === 1,
-  "Invitations tab shows the number of club invites waiting"
+  "Invitations tab shows the number of club invites waiting, including (0)"
 );
 assert(
   lockedInviteSummary({ amountGbp: 13000 }).includes("13,000") &&
@@ -413,6 +414,34 @@ assert(
       "localSponsorLoginPath"
     ),
   "Local Business login opens invitations first; each invite has amount, Terms, sign, then Payment"
+);
+
+assert(
+  invitationCountForBrand(
+    [localRound],
+    locals[0].brandName,
+    listings
+  ) === 1,
+  "A waiting local invitation counts as 1"
+);
+const dealtLocal = commitLocalInviteSponsorship(
+  localRound,
+  locals[0],
+  750,
+  "2026-10-26T10:00:00.000Z"
+);
+assert(
+  !dealtLocal.error &&
+    invitationCountForBrand(
+      [dealtLocal.round],
+      locals[0].brandName,
+      listings
+    ) === 0 &&
+    sponsorInvitationsNavLabel(0) === "Invitations (0)" &&
+    listingsService.includes("commitLocalInviteSponsorship") &&
+    listingsService.includes("notifySignedSponsorship") &&
+    listingsService.includes("localInviteDealtBySignedRecord"),
+  "Signing a local invitation drops the Invitations tab to (0)"
 );
 
 if (failures.length > 0) {

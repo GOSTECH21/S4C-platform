@@ -4,6 +4,8 @@
 /* sponsor-drop-calendar-v1 */
 /* sponsor-nav-pc-fix-v1 */
 /* s4p-logo-back-home-v1 */
+/* local-mys4p-tab-v1 */
+/* invite-tab-flash-v1 */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -14,6 +16,7 @@ import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
   HOME_PATH,
   LOCAL_SPONSOR_HOME_PATH,
+  LOCAL_SPONSOR_MY_S4P_PATH,
   LOCAL_SPONSOR_REGISTER_PATH,
   PHILANTHROPIST_ADMIN_ID,
   PHILANTHROPIST_ADMIN_PATH,
@@ -35,11 +38,12 @@ import {
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
-import { s4pTabClass } from "@/app/lib/s4p-tabs";
+import { inviteTabFlashClass, s4pTabClass } from "@/app/lib/s4p-tabs";
 import { sponsorInvitationsNavLabel } from "@/app/lib/sponsor-listings";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { GAME_TIME_NAV_LABEL } from "@/app/lib/predict-for-planet";
+import { LOCAL_MY_S4P_NAV } from "@/app/lib/local-sponsor-mys4p";
 
 const tabClass =
   "min-w-0 w-full overflow-hidden whitespace-normal rounded-lg px-1 py-2 text-center text-[11px] font-bold leading-tight sm:w-auto sm:px-5 sm:text-sm";
@@ -51,6 +55,7 @@ export function SponsorTabBar({
   onGameTime,
   onInvitations,
   onAdmin = false,
+  onMyS4p = false,
   onLogout,
 }: {
   homePath: string;
@@ -59,12 +64,20 @@ export function SponsorTabBar({
   onGameTime: boolean;
   onInvitations: boolean;
   onAdmin?: boolean;
+  onMyS4p?: boolean;
   onLogout: () => void;
 }) {
   const showGameTime = homePath === SPONSOR_DASHBOARD_PATH;
-  const showInvitations = homePath !== PHILANTHROPIST_HOME_PATH;
+  const showInvitations = true;
   const showAdmin = homePath === PHILANTHROPIST_HOME_PATH;
-  const tabCount = showGameTime ? 4 : showInvitations || showAdmin ? 3 : 2;
+  const showMyS4p = homePath === LOCAL_SPONSOR_HOME_PATH;
+  const tabCount =
+    1 +
+    (showAdmin ? 1 : 0) +
+    (showMyS4p ? 1 : 0) +
+    (showGameTime ? 1 : 0) +
+    (showInvitations ? 1 : 0) +
+    1;
 
   return (
     <div
@@ -72,17 +85,18 @@ export function SponsorTabBar({
       data-sponsor-tabs={String(tabCount)}
       data-sponsor-tabs-visible="sponsor-tabs-visible-v1"
       data-sponsor-drop-calendar="sponsor-drop-calendar-v1"
+      data-local-mys4p={showMyS4p ? "local-mys4p-tab-v1" : undefined}
       className={`grid w-full gap-1 overflow-x-hidden sm:flex sm:w-auto sm:items-center sm:gap-2 ${
-        showGameTime
+        tabCount >= 4
           ? "grid-cols-4"
-          : showInvitations || showAdmin
+          : tabCount === 3
             ? "grid-cols-3"
             : "grid-cols-2"
       }`}
     >
       <Link
         href={homePath || LOCAL_SPONSOR_HOME_PATH}
-        className={`${tabClass} ${s4pTabClass(onDashboard && !onAdmin)}`}
+        className={`${tabClass} ${s4pTabClass(onDashboard)}`}
       >
         Dashboard
       </Link>
@@ -92,6 +106,14 @@ export function SponsorTabBar({
           className={`${tabClass} ${s4pTabClass(onAdmin)}`}
         >
           {PHILANTHROPIST_ADMIN_NAV}
+        </Link>
+      ) : null}
+      {showMyS4p ? (
+        <Link
+          href={LOCAL_SPONSOR_MY_S4P_PATH}
+          className={`${tabClass} ${s4pTabClass(onMyS4p)}`}
+        >
+          {LOCAL_MY_S4P_NAV}
         </Link>
       ) : null}
       {showGameTime ? (
@@ -105,9 +127,17 @@ export function SponsorTabBar({
       {showInvitations ? (
         <Link
           href={SPONSOR_INVITATIONS_PATH}
-          className={`${tabClass} ${s4pTabClass(onInvitations)}`}
+          className={`${tabClass} ${s4pTabClass(onInvitations)} ${inviteTabFlashClass(inviteCount)}`}
+          data-invite-flash={inviteCount > 0 ? "pending" : "none"}
+          aria-label={
+            inviteCount > 0
+              ? `${sponsorInvitationsNavLabel(inviteCount)} waiting`
+              : sponsorInvitationsNavLabel(inviteCount)
+          }
         >
-          {sponsorInvitationsNavLabel(inviteCount)}
+          <span className="s4p-invite-flash-label">
+            {sponsorInvitationsNavLabel(inviteCount)}
+          </span>
         </Link>
       ) : null}
       <button
@@ -210,6 +240,7 @@ export function SponsorNav() {
   const onInvitations = (pathname ?? "").startsWith(SPONSOR_INVITATIONS_PATH);
   const onCalendar = (pathname ?? "").startsWith(SPONSOR_CALENDAR_PATH);
   const onGameTime = (pathname ?? "").startsWith(SPONSOR_GAME_TIME_PATH);
+  const onMyS4p = (pathname ?? "").startsWith(LOCAL_SPONSOR_MY_S4P_PATH);
   const onAdmin =
     hash === `#${PHILANTHROPIST_ADMIN_ID}` || hash === `#${PHILANTHROPIST_PST_ID}`;
   const onDashboard =
@@ -217,6 +248,7 @@ export function SponsorNav() {
     !onCalendar &&
     !onGameTime &&
     !onAdmin &&
+    !onMyS4p &&
     ((pathname ?? "") === homePath ||
       (pathname ?? "") === SPONSOR_DASHBOARD_PATH ||
       (pathname ?? "") === LOCAL_SPONSOR_HOME_PATH ||
@@ -231,6 +263,7 @@ export function SponsorNav() {
         onGameTime={onGameTime}
         onInvitations={onInvitations}
         onAdmin={onAdmin}
+        onMyS4p={onMyS4p}
         onLogout={() => void logout()}
       />
     );

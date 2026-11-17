@@ -5,8 +5,8 @@ import {
   SPONSOR_INVITE_ROUNDS_STORAGE,
   approvedProjectIdsFromInvite,
   commitGlobalSponsorship,
+  commitLocalInviteSponsorship,
   createInviteRound,
-  invitationCountForBrand,
   currentRoundForClub,
   hydrateInviteCommitment,
   hydrateInviteRound,
@@ -30,8 +30,10 @@ import { paidProjectIdsForClub } from "../lib/sponsor-card-payment";
 import { sponsorInviteApprovalPath, sponsorPayPath } from "../lib/routes";
 import {
   LOCAL_SPONSOR_MIN_GBP,
+  allLocalSponsors,
   writeLocalSponsorRecord,
 } from "../lib/local-sponsor";
+import { localInviteDealtBySignedRecord } from "../lib/local-sponsor-mys4p";
 import { ensureLocalWallet } from "./sponsor-wallet.service";
 
 function readJson<T>(key: string, fallback: T): T {
@@ -292,15 +294,16 @@ export function invitesWaitingForBrand(brandName: string): SponsorInviteRound[] 
     loadInviteRounds(),
     brandName,
     loadSponsorDirectory()
+  ).filter(
+    (round) =>
+      !localInviteDealtBySignedRecord(round, brandName, allLocalSponsors())
   );
 }
 
 export function inviteCountWaitingForBrand(brandName: string): number {
-  return invitationCountForBrand(
-    loadInviteRounds(),
-    brandName,
-    loadSponsorDirectory()
-  );
+  return new Set(
+    invitesWaitingForBrand(brandName).map((row) => row.clubId)
+  ).size;
 }
 
 export function approvedIdsForClubMatch(clubId: string): string[] {
@@ -430,6 +433,14 @@ export async function acceptLocalInviteSponsorship({
     acceptedTerms: true,
     signerName: signer,
     signedAt: now,
+  });
+  const committed = commitLocalInviteSponsorship(round, listing, amount, now);
+  saveClubInviteRound(committed.round);
+  notifySignedSponsorship({
+    clubId: round.clubId,
+    clubName: round.clubName,
+    brandName: listing.brandName,
+    projectIds: round.projectIds,
   });
   try {
     const { publishSponsorMatchOffer, signSponsorOffer } = await import(

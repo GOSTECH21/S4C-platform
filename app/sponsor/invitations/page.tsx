@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SponsorInviteInbox } from "@/app/components/sponsor/SponsorInviteInbox";
+import { isPhilanthropistSponsor } from "@/app/lib/philanthropist";
 import { SPONSOR_LOGIN_PATH } from "@/app/lib/routes";
 import type { SponsorInviteRound, SponsorListing } from "@/app/lib/sponsor-listings";
 import { getCurrentSponsorWithTimeout } from "@/app/services/current-sponsor.service";
@@ -16,6 +17,7 @@ export default function SponsorInvitationsPage() {
   const [listing, setListing] = useState<SponsorListing | null>(null);
   const [rounds, setRounds] = useState<SponsorInviteRound[]>([]);
   const [loading, setLoading] = useState(true);
+  const [philanthropist, setPhilanthropist] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -24,12 +26,21 @@ export default function SponsorInvitationsPage() {
         const brandName = String(sponsor.name ?? "");
         const row = listingForBrand(brandName, String(sponsor.website ?? ""));
         setListing(row);
+        setPhilanthropist(
+          isPhilanthropistSponsor(brandName, {
+            jobTitle: String(sponsor.industry ?? ""),
+          })
+        );
         setRounds(brandName ? invitesWaitingForBrand(brandName) : []);
       } catch {
         try {
           const raw = window.localStorage.getItem("s4p.sponsor.profile");
           const parsed = raw
-            ? (JSON.parse(raw) as { companyName?: string; email?: string })
+            ? (JSON.parse(raw) as {
+                companyName?: string;
+                email?: string;
+                jobTitle?: string;
+              })
             : null;
           const brandName = parsed?.companyName ?? "";
           if (!brandName) {
@@ -37,6 +48,11 @@ export default function SponsorInvitationsPage() {
             return;
           }
           setListing(listingForBrand(brandName, parsed?.email));
+          setPhilanthropist(
+            isPhilanthropistSponsor(brandName, {
+              jobTitle: parsed?.jobTitle,
+            })
+          );
           setRounds(invitesWaitingForBrand(brandName));
         } catch {
           router.replace(SPONSOR_LOGIN_PATH);
@@ -66,7 +82,9 @@ export default function SponsorInvitationsPage() {
       <p className="mt-3 text-slate-300">
         {listing?.kind === "local"
           ? "Open each Invitation to Sponsor, see this Club's Climate Projects, enter your sponsorship amount, agree to the Terms & Conditions, sign, then proceed to Payment."
-          : "Club Sustainability Directors send their chosen Match Day Climate Projects here. See the Projects, enter one Match-Sponsorship amount, then pay that amount plus a 5% Platform Fee via Stripe. Global Brands compete on amount within 8 hours."}
+          : philanthropist
+            ? "Club Sustainability Directors send Match Day invitations here. Open each invitation, see the Club's Climate Projects, and put your gift into that sponsorship. This tab flashes until you deal with a waiting invitation."
+            : "Club Sustainability Directors send their chosen Match Day Climate Projects here. See the Projects, enter one Match-Sponsorship amount, then pay that amount plus a 5% Platform Fee via Stripe. Global Brands compete on amount within 8 hours."}
       </p>
       <div className="mt-8">
         {listing ? (
@@ -81,8 +99,9 @@ export default function SponsorInvitationsPage() {
           />
         ) : (
           <p className="text-slate-400">
-            Register as a Global Brand or Local Business Sponsor to appear on
-            the Sponsors listings and receive invitations here.
+            {philanthropist
+              ? "No Invitation to Sponsor is waiting. When a Club invites you, this tab flashes until you open it and deal with the invitation."
+              : "Register as a Global Brand or Local Business Sponsor to appear on the Sponsors listings and receive invitations here."}
           </p>
         )}
       </div>
