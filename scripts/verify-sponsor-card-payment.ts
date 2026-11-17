@@ -53,8 +53,8 @@ assert(
 );
 assert(
   cardPaymentAmountGbp({ kind: "lead", commitmentFeeGbp: 2500 }) === 2625 &&
-    cardPaymentAmountGbp({ kind: "local", paidGbp: 825, sponsorshipGbp: 750 }) ===
-      825,
+    cardPaymentAmountGbp({ kind: "local", paidGbp: 787.5, sponsorshipGbp: 750 }) ===
+      787.5,
   "Lead Stripe charge is Match-Sponsorship plus 5% Platform Fee; Local pays the wallet amount including the fee"
 );
 

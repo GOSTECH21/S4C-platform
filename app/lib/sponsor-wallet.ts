@@ -17,11 +17,12 @@ export const FUND_IT_LABEL = "FUND-IT";
 export const PHILANTHROPIST_TAKE_LABEL = "Take £0.50";
 /** Once per Carbon Wallet; typically five wallets on a Match Day. */
 export const FUND_IT_MAX_TIMES = 5;
-export const LOCAL_MANAGEMENT_FEE_RATE = 0.1;
-/** Lead Match-Sponsorship pays this Platform Fee on top via Stripe. */
+/** Lead Match-Sponsorship and local wallets pay this Platform Fee on top. */
 export const PLATFORM_FEE_RATE = 0.05;
 export const PLATFORM_FEE_PERCENT_LABEL = "5%";
 export const PLATFORM_FEE_LABEL = "Platform Fee (5%)";
+/** Local wallets charge the same 5% Platform Fee on top of the spendable amount. */
+export const LOCAL_MANAGEMENT_FEE_RATE = PLATFORM_FEE_RATE;
 
 export type SponsorWalletKind = "lead" | "local" | "philanthropist";
 
@@ -41,9 +42,9 @@ export type ClimateWallet = {
   scoreImpactSettled?: boolean;
   /** Local: spendable top-up (e.g. £750). */
   sponsorshipGbp: number;
-  /** Local: 10% management fee paid on top of the spendable amount. */
+  /** Local: 5% Platform Fee paid on top of the spendable amount. */
   managementFeeGbp: number;
-  /** Local: sponsorship + fee actually paid (e.g. £825). */
+  /** Local: sponsorship + fee actually paid (e.g. £787.50). */
   paidGbp: number;
   allocatedGbp: number;
   updatedAt: string;

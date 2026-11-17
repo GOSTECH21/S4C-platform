@@ -110,7 +110,7 @@ export function recordFromSponsorRow(row: {
   });
 }
 
-export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 10% management fee. You choose 1 Climate Project to sponsor and the amount you commit to that Project. Fans can take £0.20 from your Climate Sponsorship Wallet and put it on the Climate Project you chose. Your business name & logo will appear to Fans that take £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
+export const LOCAL_SPONSOR_TERMS = `S4P Local Business Climate Sponsor Terms and Conditions: by signing you agree to pay the Match Day amounts you entered (from a minimum of £${LOCAL_SPONSOR_MIN_GBP} per Match), plus a 5% Platform Fee. You choose 1 Climate Project to sponsor and the amount you commit to that Project. Fans can take £0.20 from your Climate Sponsorship Wallet and put it on the Climate Project you chose. Your business name & logo will appear to Fans that take £0.20 from your Climate Sponsorship Wallet. Your sponsorship payment must be paid for and cleared before it will appear in your Wallet`;
 
 /** Sign-off T&Cs for Local Business Climate Sponsors — no Goals, no Base Match Sponsorship. */
 export const LOCAL_SIGNOFF_TERMS =

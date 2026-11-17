@@ -84,7 +84,7 @@ assert(
 );
 
 assert(
-  LOCAL_SPONSOR_TERMS.includes("plus a 10% management fee") &&
+  LOCAL_SPONSOR_TERMS.includes("plus a 5% Platform Fee") &&
     LOCAL_SPONSOR_TERMS.includes("Goal Sponsor") === false,
   "Local registration T&Cs stay the wallet/min-amount copy"
 );
