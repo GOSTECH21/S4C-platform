@@ -47,7 +47,7 @@ export const HOME_CLUB_IMAGE = "/images/home/club-stadium-night.jpg";
 export const HOME_CLUB_KICKER = "For club sustainability & commercial directors";
 export const HOME_CLUB_HEADING = "Turn match days into climate action.";
 export const HOME_CLUB_SUPPORT =
-  "Engage supporters, attract global and local sponsors, and fund approved climate projects.";
+  "Local businesses and global brands sponsor approved climate projects around match days. Fans help direct eligible funding, accredited Climate Partners deliver the projects, and clubs can celebrate the results with their communities.";
 export const HOME_CLUB_POINTS = [
   "New sponsorship opportunities",
   "Greater supporter engagement",

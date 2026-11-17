@@ -515,7 +515,8 @@ assert(
     joinMission.includes("FAN_JOIN_HEADING") &&
     joinMission.includes("FAN_WAYS_HEADING") &&
     joinMission.includes("FAN_FUNDING_HEADING") &&
-    joinMission.includes("FAN_FUNDING_POINTS") &&
+    joinMission.includes("FAN_FUNDING_LEAD") &&
+    joinMission.includes("FAN_FUNDING_PARAS") &&
     joinMission.includes("data-fan-join-copy={MATCHRAV_STAMP}") &&
     joinMission.includes("data-fan-join-tabs={MATCHRAV_STAMP}") &&
     joinMission.includes("grid-cols-3") &&
