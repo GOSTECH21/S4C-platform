@@ -3,7 +3,11 @@
 import { useEffect } from "react";
 import { LeadSponsorHome } from "@/app/components/sponsor/LeadSponsorHome";
 import { SponsorTabBar } from "@/app/sponsor/sponsor-nav";
-import { SPONSOR_DASHBOARD_PATH } from "@/app/lib/routes";
+import {
+  LOCAL_SPONSOR_HOME_PATH,
+  PHILANTHROPIST_HOME_PATH,
+  SPONSOR_DASHBOARD_PATH,
+} from "@/app/lib/routes";
 import { S4P_SPONSOR_MARK } from "@/app/lib/s4p-tabs";
 
 export default function SponsorNavPreviewPage() {
@@ -37,6 +41,28 @@ export default function SponsorNavPreviewPage() {
               onInvitations={false}
               onLogout={() => {}}
             />
+            <div className="mt-3">
+              <SponsorTabBar
+                homePath={LOCAL_SPONSOR_HOME_PATH}
+                inviteCount={0}
+                onDashboard={false}
+                onGameTime={false}
+                onInvitations={false}
+                onMyS4p
+                onLogout={() => {}}
+              />
+            </div>
+            <div className="mt-3">
+              <SponsorTabBar
+                homePath={PHILANTHROPIST_HOME_PATH}
+                inviteCount={1}
+                onDashboard
+                onGameTime={false}
+                onInvitations={false}
+                onAdmin={false}
+                onLogout={() => {}}
+              />
+            </div>
           </nav>
         </div>
       </header>

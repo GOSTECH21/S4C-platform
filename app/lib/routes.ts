@@ -84,6 +84,7 @@ export const SPONSOR_LOGIN_PATH = "/sponsor/login";
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const LOCAL_SPONSOR_HOME_PATH = "/sponsor/local";
+export const LOCAL_SPONSOR_MY_S4P_PATH = "/sponsor/local/mys4p";
 export const PHILANTHROPIST_REGISTER_PATH = "/sponsor/philanthropist/register";
 export const PHILANTHROPIST_HOME_PATH = "/sponsor/philanthropist";
 export const PHILANTHROPIST_ADMIN_ID = "my-s4p-admin";

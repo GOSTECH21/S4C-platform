@@ -9,6 +9,15 @@ export function s4pTabClass(active: boolean): string {
     : "border border-s4p-mark bg-s4p-mark/15 text-slate-950 hover:bg-s4p-mark/30";
 }
 
+/** Invitations tab flashes for Lead, Local, and Philanthropist while a Match Day invite waits. */
+export function inviteTabShouldFlash(count: number): boolean {
+  return Math.max(0, Math.round(Number(count) || 0)) > 0;
+}
+
+export function inviteTabFlashClass(count: number): string {
+  return inviteTabShouldFlash(count) ? "s4p-invite-flash" : "";
+}
+
 /** Select / Selected action bar — always lime with black copy, never a dark fill. */
 export function s4pActionBarClass(disabled = false): string {
   return disabled

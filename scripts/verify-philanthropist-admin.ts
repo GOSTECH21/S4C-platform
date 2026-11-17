@@ -148,6 +148,8 @@ assert(
     home.includes("PhilanthropistMatchGift") &&
     nav.includes("PHILANTHROPIST_ADMIN_NAV") &&
     nav.includes("PHILANTHROPIST_ADMIN_PATH") &&
+    nav.includes("showInvitations = true") &&
+    nav.includes("inviteTabFlashClass") &&
     admin.includes("PHILANTHROPIST_ADMIN_COPY") &&
     table.includes("PHILANTHROPIST_PST_COPY") &&
     table.includes("Your position") &&

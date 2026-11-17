@@ -211,7 +211,14 @@ export function hydrateInviteRound(round: SponsorInviteRound): SponsorInviteRoun
 
 export function sponsorInvitationsNavLabel(count: number): string {
   const n = Math.max(0, Math.round(Number(count) || 0));
-  return n > 0 ? `Invitations (${n})` : "Invitations";
+  return `Invitations (${n})`;
+}
+
+export function listingHasInviteCommitment(
+  round: SponsorInviteRound,
+  listingId: string
+): boolean {
+  return round.commitments.some((row) => row.listingId === listingId);
 }
 
 export function invitationCountForBrand(
@@ -673,6 +680,53 @@ export type CommitGlobalResult = {
   error?: string;
 };
 
+export function commitLocalInviteSponsorship(
+  round: SponsorInviteRound,
+  listing: Pick<SponsorListing, "id" | "brandName" | "kind">,
+  amountGbp: number,
+  now: Date | string = new Date()
+): { round: SponsorInviteRound; error?: string } {
+  if (listing.kind !== "local") {
+    return {
+      round,
+      error: "Only Local Business Climate Sponsors use this form.",
+    };
+  }
+  if (!round.localInviteeIds.includes(listing.id)) {
+    return {
+      round,
+      error: `${listing.brandName} was not invited for this Match Day.`,
+    };
+  }
+  const amount = Math.round(Number(amountGbp) || 0);
+  if (amount <= 0) {
+    return {
+      round,
+      error: `Enter how much you wish to sponsor this Match for.`,
+    };
+  }
+  const at = toDate(now);
+  const commitment: SponsorInviteCommitment = {
+    listingId: listing.id,
+    brandName: listing.brandName,
+    amountGbp: amount,
+    matchSponsorshipGbp: amount,
+    commitmentFeeGbp: amount,
+    gbpPerGoal: 0,
+    maximumSponsorshipGbp: amount,
+    receivedAt: at.toISOString(),
+  };
+  return {
+    round: {
+      ...round,
+      commitments: [
+        ...round.commitments.filter((row) => row.listingId !== listing.id),
+        commitment,
+      ],
+    },
+  };
+}
+
 export function commitGlobalSponsorship(
   round: SponsorInviteRound,
   listing: Pick<SponsorListing, "id" | "brandName" | "kind">,
@@ -770,7 +824,9 @@ export function pendingInvitesForBrand(
       round.globalInviteeIds.includes(listing.id) ||
       round.localInviteeIds.includes(listing.id);
     if (!invited) return false;
-    if (listing.kind === "local") return true;
+    if (listing.kind === "local") {
+      return !listingHasInviteCommitment(round, listing.id);
+    }
     return inviteWindowOpen(round, now) || Boolean(round.lockedListingId);
   });
 }
