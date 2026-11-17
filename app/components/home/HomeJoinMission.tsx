@@ -15,7 +15,8 @@ import {
 import {
   EXPLORE_MATCHRAV_LABEL,
   FAN_FUNDING_HEADING,
-  FAN_FUNDING_POINTS,
+  FAN_FUNDING_LEAD,
+  FAN_FUNDING_PARAS,
   FAN_JOIN_HEADING,
   FAN_JOIN_KICKER,
   FAN_PRODUCT_TABS,
@@ -196,11 +197,20 @@ export function FanJoinPanel({ compact = false }: { compact?: boolean }) {
           >
             {FAN_FUNDING_HEADING}
           </h3>
-          <ul className="mt-4 list-disc space-y-3 pl-5 text-sm font-semibold leading-6 sm:text-base sm:leading-7">
-            {FAN_FUNDING_POINTS.map((point) => (
-              <li key={point}>{point}</li>
+          <p
+            data-fan-funding-lead="funding-lead-v1"
+            className="mt-4 text-sm font-bold leading-6 sm:text-base sm:leading-7"
+          >
+            {FAN_FUNDING_LEAD}
+          </p>
+          <div
+            data-fan-funding-copy="funding-paras-v1"
+            className="mt-3 space-y-3 text-sm font-medium leading-6 sm:text-base sm:leading-7"
+          >
+            {FAN_FUNDING_PARAS.map((para) => (
+              <p key={para}>{para}</p>
             ))}
-          </ul>
+          </div>
         </article>
   );
 }

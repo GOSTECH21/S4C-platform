@@ -27,7 +27,8 @@ assert(
     matchrav.includes("Join S4P for free, use Matchrav") &&
     matchrav.includes("plan smarter, lower-emission journeys") &&
     matchrav.includes("play P4P to unlock sponsor-funded contributions") &&
-    join.includes("FAN_FUNDING_POINTS") &&
+    join.includes("FAN_FUNDING_LEAD") &&
+    join.includes("FAN_FUNDING_PARAS") &&
     !join.includes("Over 50% of a Match Day carbon emissions") &&
     !join.includes("At the stadium or following from anywhere") &&
     !join.includes("Match Day entertainment that generates"),
