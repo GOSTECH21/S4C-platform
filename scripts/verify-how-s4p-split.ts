@@ -75,15 +75,19 @@ assert(
 );
 assert(
   fan.includes('audience="fan"') &&
-    fan.includes("clubOptions={selected.map((team) => team.name)}") &&
+    fan.includes("clubOptions={clubNames}") &&
     !fan.includes("UpcomingMatches") &&
     !fan.includes("MyTeamsList") &&
     lead.includes('audience="sponsor"') &&
-    localRegister.includes('audience="sponsor"') &&
     wallet.includes('audience="sponsor"') &&
     club.includes('audience="club"') &&
     club.includes("clubLocked"),
-  "Select Match is on fan My Teams, lead lock-in, local register/wallet, and club dashboard"
+  "Select Match is on fan My Teams, lead lock-in, local wallet, and club dashboard"
+);
+assert(
+  localRegister.includes("MatchSponsorshipPicker") &&
+    !localRegister.includes("HowS4pSelectMatch"),
+  "Local Business Climate Sponsor registration uses the tick-box fixture list only"
 );
 assert(
   fanP4p.includes("HowS4pPredictForPlanet") &&

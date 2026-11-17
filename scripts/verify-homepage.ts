@@ -209,6 +209,8 @@ assert(
     localPage.includes("Score-4-Planet") &&
     localPage.includes("Sign & SUBMIT") &&
     localPage.includes("<ol") &&
+    localPage.includes("MatchSponsorshipPicker") &&
+    !localPage.includes("HowS4pSelectMatch") &&
     !localPage.includes("Terms and Conditions apply. Sign off this Local Business Climate"),
   "Local registration asks for postcode, logo if available, club, T&Cs, then Sign & SUBMIT"
 );
@@ -457,6 +459,7 @@ assert(
     banner.includes("HOME_TOGETHER_HEADING") &&
     banner.includes("HOME_CONNECTS_COPY") &&
     banner.includes("HOME_INTRO_PRODUCTS") &&
+    !banner.includes("bg-white/80") &&
     !banner.includes("HOME_MOBILE_SUPPORT") &&
     !banner.includes("passion into progress") &&
     !banner.includes("We help your club address match-day carbon emissions") &&
@@ -836,16 +839,13 @@ assert(
     readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(
       'audience="sponsor"'
     ) &&
-    readFileSync("app/sponsor/local/register/page.tsx", "utf8").includes(
-      'audience="sponsor"'
-    ) &&
     readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
       'audience="sponsor"'
     ) &&
     readFileSync("app/club/dashboard/page.tsx", "utf8").includes(
       'audience="club"'
     ),
-  "Select Match phone is assigned to fans, lead/local sponsors, and the Club Sustainability Director"
+  "Select Match phone is assigned to fans, lead sponsors, local wallets, and the Club Sustainability Director"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");

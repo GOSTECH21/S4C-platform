@@ -221,7 +221,7 @@ function FirstBlock({
       </h1>
       <p
         data-home-tagline="home-image1-tagline-v1"
-        className="mt-3 rounded-md bg-white/80 px-2 py-2 text-sm font-semibold leading-6 sm:text-base"
+        className="mt-3 text-sm font-semibold leading-6 sm:text-base"
       >
         {HOME_MOBILE_TAGLINE}
       </p>
@@ -243,14 +243,14 @@ function FirstBlock({
       </div>
       <h2
         data-home-together="home-image1-together-v1"
-        className="mt-6 text-base font-semibold leading-7 sm:text-lg"
+        className="mt-6 text-base font-black leading-7 sm:text-lg"
         style={{ color: MARK_GREEN }}
       >
         {HOME_TOGETHER_HEADING}
       </h2>
       <p
         data-home-connects="home-image1-connects-v1"
-        className="mt-3 rounded-md bg-white/80 px-2 py-2 text-sm font-medium leading-6 sm:text-base"
+        className="mt-3 text-sm font-medium leading-6 sm:text-base"
       >
         {HOME_CONNECTS_COPY}
       </p>
@@ -265,7 +265,7 @@ function FirstBlock({
             </span>
             <span>
               <span
-                className="block text-sm font-bold leading-snug"
+                className="block text-sm font-black leading-snug"
                 style={{ color: MARK_GREEN }}
               >
                 {item.title}

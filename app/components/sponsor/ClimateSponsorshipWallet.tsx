@@ -156,7 +156,7 @@ export function ClimateSponsorshipWallet({
             value={formatWalletGbp(wallet.sponsorshipGbp)}
           />
           <WalletStat
-            label="Management fee paid"
+            label="Platform Fee paid"
             value={formatWalletGbp(wallet.managementFeeGbp)}
           />
         </div>
@@ -197,7 +197,7 @@ export function ClimateSponsorshipWallet({
             />
           </label>
           <p className="max-w-2xl text-sm text-slate-400">
-            A 10% management fee is added on top. You pay{" "}
+            A 5% Platform Fee is added on top. You pay{" "}
             {formatWalletGbp(localTopUp.paidGbp)};{" "}
             {formatWalletGbp(localTopUp.sponsorshipGbp)} is committed to{" "}
             {selectedProjectName || "the Climate Project you choose"}.

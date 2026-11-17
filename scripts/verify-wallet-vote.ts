@@ -84,7 +84,7 @@ assert(
     walletVoteAmount({ kind: "lead" }) === 0.2,
   "Fans take £0.50 from a Philanthropist Carbon Wallet"
 );
-assert(LOCAL_MANAGEMENT_FEE_RATE === 0.1, "Local wallets add a 10% management fee");
+assert(LOCAL_MANAGEMENT_FEE_RATE === 0.05, "Local wallets add a 5% Platform Fee");
 assert(FUND_IT_LABEL === "FUND-IT", "The action tab is labelled FUND-IT");
 assert(
   isLeadWalletLabel(LEAD_CLIMATE_SPONSOR_LABEL) &&
@@ -94,8 +94,8 @@ assert(
 
 const topUp = localWalletTopUp(750);
 assert(topUp.sponsorshipGbp === 750, "£750 stays as spendable cash in the wallet");
-assert(topUp.managementFeeGbp === 75, "10% of £750 is the £75 management fee");
-assert(topUp.paidGbp === 825, "The local sponsor pays £750 + 10% = £825");
+assert(topUp.managementFeeGbp === 37.5, "5% of £750 is the £37.50 Platform Fee");
+assert(topUp.paidGbp === 787.5, "The local sponsor pays £750 + 5% = £787.50");
 
 const fountainWallet = {
   ...createLocalWallet({
@@ -925,6 +925,13 @@ assert(
   "Lead wallet shows Amount in CARBON WALLET"
 );
 assert(
+  walletForm.includes("A 5% Platform Fee is added on top") &&
+    walletForm.includes("Platform Fee paid") &&
+    !walletForm.includes("10% management fee") &&
+    !walletForm.includes("Management fee paid"),
+  "Local wallet adds the 5% Platform Fee on top of the spendable amount"
+);
+assert(
   walletForm.includes("MATCH_SPONSORSHIP_LABEL") &&
     walletForm.includes("matchSponsorshipTopUp") &&
     walletForm.includes("PLATFORM_FEE_LABEL") &&
@@ -1004,12 +1011,12 @@ assert(
     localPage.includes("I have read and agree to the Score-4-Planet Terms & Conditions.") &&
     !localPage.includes("Terms and Conditions apply. Sign off this Local Business Climate") &&
     readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
-      "plus a 10% management fee"
+      "plus a 5% Platform Fee"
     ) &&
     readFileSync("app/lib/local-sponsor.ts", "utf8").includes(
       "paid for and cleared before it will appear in your Wallet"
     ),
-  "Local registration T&Cs include the 10% fee and cleared-payment wallet rule"
+  "Local registration T&Cs include the 5% Platform Fee and cleared-payment wallet rule"
 );
 
 assert(MATCH_DAY_FOLDER_NAME === "Match-Day", "The folder is called Match-Day");
