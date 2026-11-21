@@ -340,7 +340,7 @@ export default function SponsorWalletPage() {
       {kind === "local" ? (
         <section
           id="match-day-lock-in"
-          className="scroll-mt-6 overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8"
+          className="scroll-mt-6 overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8 max-md:rounded-none max-md:border-0 max-md:px-0"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
             Match Day lock-in

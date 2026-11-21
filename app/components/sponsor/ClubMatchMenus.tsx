@@ -32,11 +32,13 @@ function useDismiss(open: boolean, onClose: () => void) {
   onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return;
-    function onDoc(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) onCloseRef.current();
+    function onDoc(event: PointerEvent) {
+      const node = event.target as Node | null;
+      if (rootRef.current?.contains(node)) return;
+      onCloseRef.current();
     }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("pointerdown", onDoc);
+    return () => document.removeEventListener("pointerdown", onDoc);
   }, [open]);
   return rootRef;
 }
@@ -304,7 +306,7 @@ export function ClubLeagueMenu({
         aria-expanded={open}
         aria-label="Club"
         onClick={() => setOpen((current) => !current)}
-        className="mt-2 flex w-full items-center justify-between rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950"
+        className="mt-2 flex min-h-12 w-full items-center justify-between rounded-lg border border-slate-600 bg-white p-3 text-left font-semibold text-slate-950 [touch-action:manipulation]"
       >
         <span>{value || registered[0] || extra || "Club"}</span>
         <span aria-hidden="true">▾</span>
@@ -319,9 +321,15 @@ export function ClubLeagueMenu({
                 ? "All clubs on the platform"
                 : "Premier League and Scottish Premiership clubs"
           }
-          className={`absolute z-40 mt-2 w-full min-w-[18rem] rounded-xl border border-slate-300 bg-white p-3 shadow-lg ${
-            allPlatformClubs ? "max-h-[70vh] overflow-y-auto" : ""
-          }`}
+          data-mobile-club-accordion={
+            allPlatformClubs ? "inline-v1" : undefined
+          }
+          className={
+            allPlatformClubs
+              ? "relative z-40 mt-2 w-full min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 shadow-lg [touch-action:pan-y] max-md:max-h-none md:absolute md:z-[60] md:max-h-[70vh]"
+              : "absolute z-40 mt-2 w-full min-w-0 rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
+          }
+          onPointerDown={(event) => event.stopPropagation()}
         >
           {allPlatformClubs ? (
             <div className="sticky top-0 z-10 bg-white pb-3">
@@ -578,7 +586,7 @@ export function MatchFixtureMenu({
           <div
             role="listbox"
             aria-label="Published matches"
-            className="mt-2 max-h-[28rem] overflow-y-auto rounded-xl border border-slate-300 bg-white p-3"
+            className="mt-2 max-h-[28rem] overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 [touch-action:pan-y] max-md:max-h-none max-md:overflow-visible"
           >
             {choices}
           </div>

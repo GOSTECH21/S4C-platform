@@ -63,6 +63,9 @@ assert(
     menus.includes('data-club-sport-accordion="sport-league-accordion-v1"') &&
     menus.includes('data-club-league-accordion="sport-league-accordion-v1"') &&
     menus.includes("max-h-[70vh]") &&
+    menus.includes('data-mobile-club-accordion') &&
+    menus.includes("inline-v1") &&
+    menus.includes("max-md:max-h-none") &&
     menus.includes("AccordionBlock") &&
     menus.includes("forceOpen") &&
     sports[0]?.sport === "Football" &&
