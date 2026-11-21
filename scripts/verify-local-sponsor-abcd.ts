@@ -1,5 +1,7 @@
 import { readFileSync } from "fs";
 import { sportingCalendarClubGroups } from "../app/lib/calendar-clubs";
+import { formatLocalFundingLine } from "../app/lib/sponsorship-auction";
+import { sponsorPayPath } from "../app/lib/routes";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -39,6 +41,23 @@ assert(
     localHome.includes("loadClubChosenClimateProjects") &&
     localHome.includes("clubsNeedingChosenProjects"),
   "Local Business Climate Sponsors see the same A-D sections as Lead Climate Sponsors"
+);
+
+assert(
+  formatLocalFundingLine(850) === "£850 sponsorship" &&
+    formatLocalFundingLine(600) === "£600 sponsorship" &&
+    formatLocalFundingLine(400) === "£400 sponsorship" &&
+    localUi.includes('kind="local"') &&
+    localUi.includes("localAmountByClub") &&
+    !localUi.includes("Okechukwu") &&
+    localHome.includes("fundedClimateProjectsFromBrandTakes") &&
+    localHome.includes("isLocalClimateSponsor") &&
+    leadUi.includes("sponsorPayPath") &&
+    leadUi.includes("formatLocalFundingLine") &&
+    sponsorPayPath("Hearts").includes("club=Hearts") &&
+    sponsorPayPath("Hibernian").includes("club=Hibernian") &&
+    sponsorPayPath("Rangers").includes("club=Rangers"),
+  "Every Local Business Climate Sponsor uses their own amount and Pay opens card payment"
 );
 
 assert(

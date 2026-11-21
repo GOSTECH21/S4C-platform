@@ -17,6 +17,7 @@ import {
   type ImpactTableRow,
 } from "./s4p-impact-tables";
 import type { FolderOffer, SignedSponsorship } from "./sponsor-dashboard";
+import type { ClimateWalletTake } from "./climate-wallet-takes";
 import { votedProjectsOnSignedOffer } from "./sponsor-dashboard";
 import { findCalendarMatch } from "./sporting-calendar";
 import {
@@ -327,6 +328,41 @@ export function fundedClimateProjectsForHome(
   const fromSigned = fundedClimateProjectsFromSigned(signed, votedByClub);
   if (fromSigned.length > 0) return fromSigned;
   return fundedClimateProjectsFromOffers(pending, votedByClub);
+}
+
+/** Local home: only cash taken from this brand's Carbon Wallet after payment. */
+export function fundedClimateProjectsFromBrandTakes(
+  takes: Array<Pick<ClimateWalletTake, "brandName" | "clubName" | "projectName" | "amountGbp">>,
+  brandName: string
+): FundedSponsorProject[] {
+  const brand = brandName.trim();
+  const own = takes.filter((row) => brandsMatch(row.brandName, brand));
+  const byName = new Map<string, FundedSponsorProject>();
+  for (const take of own) {
+    const name = String(take.projectName ?? "").trim();
+    if (!name) continue;
+    const id = name.toLowerCase();
+    const current = byName.get(id);
+    const fundedGbp = Number(take.amountGbp) || 0;
+    if (current) {
+      current.fundedGbp += fundedGbp;
+      current.fanFunded = true;
+      continue;
+    }
+    byName.set(id, {
+      id,
+      name,
+      clubName: take.clubName,
+      matchTitle: "",
+      description: null,
+      fundedGbp,
+      fanFunded: true,
+    });
+  }
+  return [...byName.values()].sort((left, right) => {
+    if (right.fundedGbp !== left.fundedGbp) return right.fundedGbp - left.fundedGbp;
+    return left.name.localeCompare(right.name);
+  });
 }
 
 export function cistRowsForSponsor({

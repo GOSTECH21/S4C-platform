@@ -14,7 +14,6 @@ import {
 } from "@/app/lib/sponsor-card-payment";
 import {
   LOCAL_SPONSOR_HOME_PATH,
-  SPONSOR_INVITATIONS_PATH,
   SPONSOR_LOGIN_PATH,
   sponsorWalletPath,
 } from "@/app/lib/routes";
@@ -215,10 +214,10 @@ export default function SponsorCardPaymentPage() {
               Back to dashboard
             </Link>
             <Link
-              href={sponsorWalletPath(clubName)}
+              href={kind === "local" ? LOCAL_SPONSOR_HOME_PATH : sponsorWalletPath(clubName)}
               className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
             >
-              View Climate Sponsorship Wallet
+              {kind === "local" ? "Back to dashboard" : "View Climate Sponsorship Wallet"}
             </Link>
           </div>
         </div>
@@ -236,7 +235,7 @@ export default function SponsorCardPaymentPage() {
         <Link
           href={
             kind === "local"
-              ? SPONSOR_INVITATIONS_PATH
+              ? LOCAL_SPONSOR_HOME_PATH
               : sponsorWalletPath(clubName)
           }
           className="inline-flex rounded-xl border border-slate-600 px-5 py-3 font-semibold"

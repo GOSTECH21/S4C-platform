@@ -15,6 +15,7 @@ import {
   sponsorFromMatchPath,
 } from "@/app/lib/pending-sponsor-match";
 import {
+  LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_DASHBOARD_PATH,
   SPONSOR_LOGIN_PATH,
   localNewSponsorshipPath,
@@ -26,11 +27,13 @@ import { isPhilanthropistSponsor } from "@/app/lib/philanthropist";
 import {
   isLocalClimateSponsor,
   rememberLocalSponsorSession,
+  sponsorHomePath,
 } from "@/app/lib/sponsor-home";
 
 export default function SponsorFromMatchPage() {
   const [error, setError] = useState<string | null>(null);
   const [fixtureLabel, setFixtureLabel] = useState("");
+  const [homeHref, setHomeHref] = useState(SPONSOR_DASHBOARD_PATH);
 
   useEffect(() => {
     async function continueSponsorship() {
@@ -57,6 +60,11 @@ export default function SponsorFromMatchPage() {
         }
         rememberLocalSponsorSession(sponsor);
         const jobTitle = String(sponsor.industry ?? "");
+        const localKind = isLocalClimateSponsor(brandName, { jobTitle });
+        const philanthropistKind = isPhilanthropistSponsor(brandName, {
+          jobTitle,
+        });
+        setHomeHref(sponsorHomePath(brandName, { jobTitle }));
         ensureGoalNetwork({
           brandName,
           clubNames: [match.club],
@@ -70,9 +78,10 @@ export default function SponsorFromMatchPage() {
           fixtureDate: match.date,
           kickoff: match.kickoff || null,
           venue: match.venue || null,
+          jobTitle,
         });
         clearPendingSponsorMatch();
-        if (isPhilanthropistSponsor(brandName, { jobTitle })) {
+        if (philanthropistKind) {
           window.location.replace(
             philanthropistNewSponsorshipPath({
               club: match.club,
@@ -81,7 +90,7 @@ export default function SponsorFromMatchPage() {
           );
           return;
         }
-        if (isLocalClimateSponsor(brandName, { jobTitle })) {
+        if (localKind) {
           const wallet = new URL(
             localNewSponsorshipPath(),
             window.location.origin
@@ -114,7 +123,7 @@ export default function SponsorFromMatchPage() {
         ) : null}
         <p className="mt-4 text-slate-300">{error}</p>
         <Link
-          href={SPONSOR_DASHBOARD_PATH}
+          href={homeHref || LOCAL_SPONSOR_HOME_PATH}
           className="mt-8 inline-flex rounded-xl bg-green-500 px-5 py-3 font-bold text-slate-950"
         >
           Open your sponsorship dashboard

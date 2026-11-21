@@ -94,6 +94,17 @@ export function isMatchDayCardPaymentConfirmed({
   );
 }
 
+/** Every Local Business Climate Sponsor's Carbon Wallet opens only after they pay. */
+export function isLocalCarbonWalletOpen({
+  clubName,
+  brandName,
+}: {
+  clubName: string;
+  brandName: string;
+}): boolean {
+  return isMatchDayCardPaymentConfirmed({ clubName, brandName });
+}
+
 export function paidProjectIdsForClub({
   clubId,
   clubName,

@@ -1110,6 +1110,37 @@ async function verifyStoredLocalRemaining() {
   const treeNumber = fanVisibleSponsors(posted).length
     ? treeProjects.find((row) => row.name === "Edinburgh Tree Planting")?.number
     : 6;
+  const unpaidVisible = fanVisibleSponsors(posted, {
+    clubId: "hibs-malmaison",
+    clubName: "Hibernian",
+  });
+  assert(
+    !unpaidVisible.some((row) => row.brandName === "Malmaison Hotel Leith"),
+    "Unpaid Local Business Climate Sponsors stay off the fan FUND-IT list"
+  );
+  const unpaidTake = applyFanWalletVote({
+    clubId: "hibs-malmaison",
+    clubName: "Hibernian",
+    brandName: "Malmaison Hotel Leith",
+    projectNumber: treeNumber,
+    supporterId: "barry",
+    projects: treeProjects,
+  });
+  assert(
+    !unpaidTake.ok,
+    "Fans cannot take from any unpaid Local Business Carbon Wallet"
+  );
+  const { recordMatchDayCardPayment } = await import(
+    "../app/lib/sponsor-card-payment"
+  );
+  recordMatchDayCardPayment({
+    clubId: "hibs-malmaison",
+    clubName: "Hibernian",
+    brandName: "Malmaison Hotel Leith",
+    projectIds: ["trees"],
+    amountGbp: 1260,
+    kind: "local",
+  });
   const result = applyFanWalletVote({
     clubId: "hibs-malmaison",
     clubName: "Hibernian",

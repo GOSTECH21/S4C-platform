@@ -39,6 +39,7 @@ import { FAN_PARTICIPATION_POOL_RATE } from "../lib/score-for-planet";
 import { clubsMatch } from "../lib/sponsor-dashboard";
 import { isLeadWalletLabel } from "../lib/dual-sponsor";
 import { FEATURED_PROJECT_NAME } from "../lib/sccan-catalog";
+import { isLocalCarbonWalletOpen } from "../lib/sponsor-card-payment";
 import { totalLocalPledge } from "../lib/local-sponsor";
 import {
   philanthropistDisplayName,
@@ -166,6 +167,14 @@ export function visibleMatchDayFolderForClub({
   );
 }
 
+function localWalletVisibleToFans(wallet: ClimateWallet): boolean {
+  if (wallet.kind !== "local") return true;
+  return isLocalCarbonWalletOpen({
+    clubName: wallet.clubName,
+    brandName: wallet.brandName,
+  });
+}
+
 export function identifyClubSponsorWallets({
   clubId,
   clubName,
@@ -193,13 +202,13 @@ export function identifyClubSponsorWallets({
     );
   }
   for (const local of branding.locals) {
-    wallets.push(
-      ensureLocalWallet({
-        clubName,
-        brandName: local.brandName,
-        sponsorshipGbp: totalLocalPledge(local),
-      })
-    );
+    const wallet = ensureLocalWallet({
+      clubName,
+      brandName: local.brandName,
+      sponsorshipGbp: totalLocalPledge(local),
+    });
+    if (!localWalletVisibleToFans(wallet)) continue;
+    wallets.push(wallet);
   }
   for (const gift of philanthropistsForClub(clubName)) {
     wallets.push(
@@ -212,7 +221,7 @@ export function identifyClubSponsorWallets({
   }
   const seen = new Set(wallets.map((wallet) => wallet.id));
   for (const extra of listClimateWalletsForClub(clubName)) {
-    if (seen.has(extra.id)) continue;
+    if (seen.has(extra.id) || !localWalletVisibleToFans(extra)) continue;
     wallets.push(extra);
     seen.add(extra.id);
   }
@@ -427,6 +436,19 @@ export function applyFanWalletVote({
       : null);
   if (!wallet) {
     return { ok: false, error: `No Carbon Wallet found for ${brandName}.` };
+  }
+  if (
+    wallet.kind === "local" &&
+    !isLocalCarbonWalletOpen({
+      clubName: wallet.clubName,
+      brandName: wallet.brandName,
+    })
+  ) {
+    return {
+      ok: false,
+      error:
+        "This Local Business has not paid yet, so fans cannot take from that Carbon Wallet.",
+    };
   }
   const voteAmount = amount ?? walletVoteAmount(wallet);
   const alreadyTaken = Number(wallet.allocatedGbp) >= voteAmount - 0.001;

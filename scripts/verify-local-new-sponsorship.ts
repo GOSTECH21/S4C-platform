@@ -1,4 +1,9 @@
 import { readFileSync } from "fs";
+import { sportingCalendarClubsBySport } from "../app/lib/calendar-clubs";
+import {
+  fixtureKindLabel,
+  fixturePickerDate,
+} from "../app/lib/club-fixtures";
 import {
   LOCAL_FIVE_RECORD_COPY,
   MATCH_DAY_GOALS_SCORED_COPY,
@@ -6,6 +11,7 @@ import {
   TOP_UP_CASH_HEADING,
 } from "../app/lib/match-day-carbon-offset";
 import { localNewSponsorshipPath } from "../app/lib/routes";
+import { calendarFixturesForClub } from "../app/lib/sporting-calendar";
 
 const failures: string[] = [];
 function assert(condition: boolean, message: string) {
@@ -19,6 +25,8 @@ const walletForm = readFileSync(
 );
 const preview = readFileSync("app/preview/local-wallet/page.tsx", "utf8");
 const dashboard = readFileSync("app/sponsor/dashboard/page.tsx", "utf8");
+const menus = readFileSync("app/components/sponsor/ClubMatchMenus.tsx", "utf8");
+const sports = sportingCalendarClubsBySport();
 
 assert(
   localNewSponsorshipPath() === "/sponsor/wallet?new=1",
@@ -35,6 +43,69 @@ assert(
     walletPage.includes("Select any club on the Sporting Calendar") &&
     !walletPage.includes("Select a club from Premier League or Scottish Premiership"),
   "Local New Sponsorship selects any Sporting Calendar club and Match and can See Match details"
+);
+
+assert(
+  !walletPage.includes("HowS4pSelectMatch") &&
+    !preview.includes("HowS4pSelectMatch") &&
+    walletPage.includes("HOW_S4P_SELECT_MATCH_SPONSOR") &&
+    walletPage.includes("HOW_S4P_SELECT_MATCH") &&
+    walletPage.includes('data-local-select-match-intro="caption-only"') &&
+    preview.includes('data-local-select-match-intro="caption-only"') &&
+    !walletPage.includes("HOW_S4P_SELECT_MATCH_SPONSOR.points") &&
+    walletPage.indexOf("data-local-select-match-intro") <
+      walletPage.indexOf('id="match-day-lock-in"'),
+  "Local New Sponsorship keeps only the Select Match caption, then Match Day lock-in"
+);
+
+assert(
+  menus.includes("sportingCalendarClubsBySport") &&
+    menus.includes('data-club-sport-accordion="sport-league-accordion-v1"') &&
+    menus.includes('data-club-league-accordion="sport-league-accordion-v1"') &&
+    menus.includes("max-h-[70vh]") &&
+    menus.includes('data-mobile-club-accordion') &&
+    menus.includes("inline-v1") &&
+    menus.includes("max-md:max-h-none") &&
+    menus.includes("AccordionBlock") &&
+    menus.includes("forceOpen") &&
+    sports[0]?.sport === "Football" &&
+    sports.some((row) =>
+      row.leagues.some((league) => league.clubs.includes("Hearts"))
+    ) &&
+    sports.some((row) => row.sport === "NFL") &&
+    sports.some((row) => row.sport === "Rugby"),
+  "The Club dropdown is a scrollable sport and league accordion of every Sporting Calendar club"
+);
+
+assert(
+  menus.includes("fixtureKindLabel") &&
+    menus.includes("fixturePickerDate") &&
+    menus.includes("matchDetailsLines") &&
+    menus.includes('data-fixture-kind={kind}') &&
+    menus.includes('layout === "list"') &&
+    walletPage.includes('layout="list"') &&
+    preview.includes('layout="list"') &&
+    fixtureKindLabel("Scottish Premiership Match") === "League" &&
+    fixtureKindLabel("Europa Conference League Match") === "Cup" &&
+    fixturePickerDate("2026-11-21").includes("2026"),
+  "Match lists show date, kick-off, stadium, and League or Cup for each fixture"
+);
+
+const heartsFixtures = calendarFixturesForClub("Hearts");
+assert(
+  heartsFixtures.length >= 8 &&
+    heartsFixtures.every(
+      (row) =>
+        Boolean(row.date) &&
+        Boolean(row.fixtureName) &&
+        Boolean(row.competition) &&
+        Boolean(row.venue)
+    ) &&
+    heartsFixtures.some(
+      (row) => fixtureKindLabel(row.competition) === "League"
+    ) &&
+    heartsFixtures.some((row) => fixtureKindLabel(row.competition) === "Cup"),
+  "Hearts published fixtures include date, stadium, and both League and Cup matches"
 );
 
 assert(

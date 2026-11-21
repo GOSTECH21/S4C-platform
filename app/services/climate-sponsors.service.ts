@@ -48,6 +48,8 @@ import {
   isWalletFundingLocked,
 } from "../lib/sponsor-completion-flow";
 import { isExampleLocalBrand } from "../lib/match-day-branding";
+import { brandIsLocalClimateSponsor } from "../lib/sponsor-home";
+import { isPhilanthropistSponsor } from "../lib/philanthropist";
 import {
   canAddGlobalPick,
   type GlobalMatchPick,
@@ -183,7 +185,12 @@ function pruneNonDemoLocalSponsorStores() {
       !isRemovedSponsorBrand(row.brandKey) &&
       !isSponsorBlockedFromClub(row.brandKey, row.clubName)
     ) {
-      nextLocks[key] = row;
+      const healed =
+        row.kind !== "local" && lockBelongsToLocalClimateSponsor(row)
+          ? { ...row, kind: "local" as const }
+          : row;
+      if (healed.kind !== row.kind) lockChanged = true;
+      nextLocks[key] = healed;
     } else lockChanged = true;
   }
   if (lockChanged) writeJson(LOCK_KEY, nextLocks);
@@ -343,10 +350,25 @@ export function listMatchDayLocks(): MatchDayClubLock[] {
   );
 }
 
+function localClimateSponsorExcludeKeys(extraBrand?: string | null): string[] {
+  const names = allLocalSponsors().map((row) => row.brandName);
+  for (const lock of Object.values(readJson<LockStore>(LOCK_KEY, {}))) {
+    if (!lock) continue;
+    if (lock.kind === "local" || lockBelongsToLocalClimateSponsor(lock)) {
+      names.push(lock.brandKey);
+    }
+  }
+  if (extraBrand?.trim()) names.push(extraBrand.trim());
+  return [...new Set(names.filter(Boolean))];
+}
+
+function lockBelongsToLocalClimateSponsor(lock: MatchDayClubLock): boolean {
+  if (lock.kind === "local") return true;
+  return brandIsLocalClimateSponsor(lock.brandKey);
+}
+
 export function leadClimateSponsorsForClub(clubName: string): LeadClubSponsorRow[] {
-  const excluded = allLocalSponsors()
-    .map((row) => row.brandName)
-    .filter((name) => !isLeadMatchDaySponsorBrand(name));
+  const excluded = localClimateSponsorExcludeKeys();
   return leadSponsorsForClubFromStores({
     clubName,
     networks: listGoalNetworks(),
@@ -409,7 +431,8 @@ export function localBusinessClimateSponsorsForClub(
   const byBrand = new Map<string, LocalSponsorRecord>();
   for (const row of submittedLocalSponsorsForClub(clubName)) {
     if (
-      isLeadMatchDaySponsorBrand(row.brandName) ||
+      (!brandIsLocalClimateSponsor(row.brandName) &&
+        isLeadMatchDaySponsorBrand(row.brandName)) ||
       isExampleLocalBrand(row.brandName) ||
       isRemovedSponsorBrand(row.brandName) ||
       isRemovedSponsorIdentity(row.signerName, row.email)
@@ -427,7 +450,8 @@ export function localBusinessClimateSponsorsForClub(
     locks: listMatchDayLocks(),
   })) {
     if (
-      isLeadMatchDaySponsorBrand(row.brandName) ||
+      (!brandIsLocalClimateSponsor(row.brandName) &&
+        isLeadMatchDaySponsorBrand(row.brandName)) ||
       isExampleLocalBrand(row.brandName) ||
       isRemovedSponsorBrand(row.brandName) ||
       isRemovedSponsorIdentity(row.email)
@@ -645,6 +669,7 @@ export function lockMatchDayClub({
   kickoff,
   venue,
   sourceUrl,
+  jobTitle,
 }: {
   brandName: string;
   clubName: string;
@@ -655,6 +680,7 @@ export function lockMatchDayClub({
   kickoff?: string | null;
   venue?: string | null;
   sourceUrl?: string | null;
+  jobTitle?: string | null;
 }): MatchDayClubLock {
   if (isSponsorBlockedFromClub(brandName, clubName)) {
     throw new Error(
@@ -663,13 +689,22 @@ export function lockMatchDayClub({
   }
   const lockedAt = new Date().toISOString();
   const store = readJson<LockStore>(LOCK_KEY, {});
+  const localKind =
+    brandIsLocalClimateSponsor(brandName, { jobTitle }) ||
+    isPhilanthropistSponsor(brandName, { jobTitle });
   const occupant = occupyingLeadClimateSponsorForMatch({
     clubName,
     fixtureName,
     networks: listGoalNetworks(),
-    locks: Object.values(store).filter((row) => row && row.clubName),
+    locks: Object.values(store).filter(
+      (row) => row && row.clubName && !lockBelongsToLocalClimateSponsor(row)
+    ),
+    excludeBrandKeys: localClimateSponsorExcludeKeys(
+      localKind ? brandName : null
+    ),
   });
   if (
+    !localKind &&
     isLeadMatchDaySponsorBrand(brandName) &&
     occupant &&
     !brandsMatch(occupant.brandName, brandName)
@@ -702,6 +737,7 @@ export function lockMatchDayClub({
     kickoff,
     venue,
     sourceUrl,
+    kind: localKind ? "local" : existing?.kind === "local" ? "local" : "lead",
     lockedAt,
     ...keepFunding,
   };

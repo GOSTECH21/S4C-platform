@@ -41,9 +41,11 @@ import { SIGNED_SPONSORSHIP_EVENT } from "@/app/lib/sponsor-completion-flow";
 import { isMatchDayCardPaymentConfirmed } from "@/app/lib/sponsor-card-payment";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
 import {
+  formatLocalFundingLine,
   formatMatchFundingLine,
   formatVoteCount,
 } from "@/app/lib/sponsorship-auction";
+import { sponsorPayPath } from "@/app/lib/routes";
 import { readLogoFile, saveBrandLogo } from "@/app/services/climate-sponsors.service";
 import { sponsorLogoSrc } from "@/app/services/teams.service";
 
@@ -128,6 +130,8 @@ export function SponsorAbcdSections({
   lock,
   folder: folderOverride,
   awaitingFallbackHref,
+  kind = "lead",
+  localAmountByClub,
 }: {
   brand: string;
   pending?: FolderOffer[];
@@ -138,6 +142,8 @@ export function SponsorAbcdSections({
   lock?: MatchDayClubLock | null;
   folder?: LeadFolderEntry[];
   awaitingFallbackHref?: string;
+  kind?: "lead" | "local";
+  localAmountByClub?: Record<string, number>;
 }) {
   const router = useRouter();
   const pendingRows = pending ?? [];
@@ -164,6 +170,8 @@ export function SponsorAbcdSections({
     lock,
     folder,
     awaitingFallbackHref,
+    kind,
+    localAmountByClub,
   });
 
   function payForGroup(group: LeadSponsorMatchGroup) {
@@ -183,11 +191,11 @@ export function SponsorAbcdSections({
         description: project.description,
         country: project.country,
         estimated_co2: project.estimated_co2,
-        fundedGbp: project.fundedGbp,
+        fundedGbp: kind === "local" ? 0 : project.fundedGbp,
       })),
       sponsorshipAmountGbp: group.sponsorshipAmountGbp,
-      gbpPerGoal: group.gbpPerGoal,
-      maxAmount: group.maxAmount,
+      gbpPerGoal: kind === "local" ? null : group.gbpPerGoal,
+      maxAmount: kind === "local" ? null : group.maxAmount,
     });
     const alreadyPaid = isMatchDayCardPaymentConfirmed({
       clubName: group.clubName,
@@ -203,7 +211,9 @@ export function SponsorAbcdSections({
       setFolder(readLeadProjectFolder(brand));
       return;
     }
-    router.push(group.actionHref);
+    router.push(
+      kind === "local" ? sponsorPayPath(group.clubName) : group.actionHref
+    );
   }
 
   return (
@@ -214,6 +224,7 @@ export function SponsorAbcdSections({
         title={LEAD_AWAITING_TITLE}
         intro={LEAD_AWAITING_INTRO}
         groups={sections.awaiting}
+        kind={kind}
       />
       <ProjectSection
         id={LEAD_APPROVED_SECTION_ID}
@@ -223,6 +234,7 @@ export function SponsorAbcdSections({
         empty={LEAD_APPROVED_EMPTY}
         groups={sections.approved}
         onPay={payForGroup}
+        kind={kind}
       />
       <ProjectSection
         id={LEAD_PAID_SECTION_ID}
@@ -231,6 +243,7 @@ export function SponsorAbcdSections({
         intro={LEAD_PAID_INTRO}
         empty={LEAD_PAID_EMPTY}
         groups={sections.paid}
+        kind={kind}
       />
       <SponsorCistTable
         sectionId={LEAD_CIST_SECTION_ID}
@@ -251,6 +264,7 @@ function ProjectSection({
   empty,
   groups,
   onPay,
+  kind = "lead",
 }: {
   id: string;
   letter: "a" | "b" | "c";
@@ -259,6 +273,7 @@ function ProjectSection({
   empty?: string;
   groups: LeadSponsorMatchGroup[];
   onPay?: (group: LeadSponsorMatchGroup) => void;
+  kind?: "lead" | "local";
 }) {
   return (
     <section
@@ -279,6 +294,7 @@ function ProjectSection({
               key={group.key}
               group={group}
               onPay={onPay}
+              kind={kind}
             />
           ))}
         </div>
@@ -290,16 +306,21 @@ function ProjectSection({
 function MatchProjectCard({
   group,
   onPay,
+  kind = "lead",
 }: {
   group: LeadSponsorMatchGroup;
   onPay?: (group: LeadSponsorMatchGroup) => void;
+  kind?: "lead" | "local";
 }) {
   const when = formatLongMatchDate(group.matchDate);
-  const funding = formatMatchFundingLine({
-    baseAmount: Number(group.sponsorshipAmountGbp) || 0,
-    gbpPerGoal: group.gbpPerGoal,
-    maxAmount: group.maxAmount,
-  });
+  const funding =
+    kind === "local"
+      ? formatLocalFundingLine(group.sponsorshipAmountGbp)
+      : formatMatchFundingLine({
+          baseAmount: Number(group.sponsorshipAmountGbp) || 0,
+          gbpPerGoal: group.gbpPerGoal,
+          maxAmount: group.maxAmount,
+        });
   return (
     <article className="rounded-2xl border border-green-500/30 bg-slate-950 p-6">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">

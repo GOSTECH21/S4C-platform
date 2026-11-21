@@ -105,6 +105,77 @@ async function main() {
     "A second Lead Climate Sponsor is rejected on the same Hibernian Match Day"
   );
 
+  const okechukwu = lockMatchDayClub({
+    brandName: "Okechukwu Limited",
+    clubName: "Hearts",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hearts v Celtic",
+    competition: "Scottish Premiership Match",
+    jobTitle: "Local Business Climate Sponsor",
+  });
+  assert(
+    okechukwu.kind === "local",
+    "A Local Business Climate Sponsor lock is stored as local, not Lead"
+  );
+
+  const bakehouse = lockMatchDayClub({
+    brandName: "Capital Bakehouse",
+    clubName: "Hearts",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hearts v Celtic",
+    competition: "Scottish Premiership Match",
+    jobTitle: "Local Business Climate Sponsor",
+  });
+  assert(
+    bakehouse.kind === "local" &&
+      bakehouse.fixtureName === "Hearts v Celtic",
+    "A second Local Business Climate Sponsor can lock the same Match another local already holds"
+  );
+
+  const mashTun = lockMatchDayClub({
+    brandName: "Mash Tun",
+    clubName: "Hearts",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hearts v Celtic",
+    competition: "Scottish Premiership Match",
+  });
+  assert(
+    mashTun.kind === "local",
+    "Known Local Business brands skip the one-Lead rule without a special job title"
+  );
+
+  const amexHearts = lockMatchDayClub({
+    brandName: "American Express",
+    clubName: "Hearts",
+    matchLabel: "Scottish Premiership Match",
+    fixtureName: "Hearts v Celtic",
+    competition: "Scottish Premiership Match",
+  });
+  assert(
+    amexHearts.kind !== "local" &&
+      leadClimateSponsorsForClub("Hearts")[0]?.brandName === "American Express",
+    "Locals on Hearts v Celtic do not occupy the Lead Climate Sponsor slot"
+  );
+
+  let pumaHeartsRejected = false;
+  try {
+    lockMatchDayClub({
+      brandName: "Puma",
+      clubName: "Hearts",
+      matchLabel: "Scottish Premiership Match",
+      fixtureName: "Hearts v Celtic",
+      competition: "Scottish Premiership Match",
+    });
+  } catch (err) {
+    pumaHeartsRejected = /only one lead climate sponsor/i.test(
+      err instanceof Error ? err.message : String(err)
+    );
+  }
+  assert(
+    pumaHeartsRejected,
+    "A second Lead Climate Sponsor is still rejected after locals lock the same Hearts Match"
+  );
+
   const laterMatch = lockMatchDayClub({
     brandName: "Puma",
     clubName: "Hibernian",
@@ -172,6 +243,19 @@ async function main() {
       tabs.includes("aria-pressed") &&
       tabs.includes("setSelectedLeadKey"),
     "The Lead Climate Sponsor tab activates after sign-off so the Sustainability Director can click the brand"
+  );
+
+  const lockService = readFileSync(
+    "app/services/climate-sponsors.service.ts",
+    "utf8"
+  );
+  const fromMatch = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
+  assert(
+    lockService.includes("brandIsLocalClimateSponsor") &&
+      lockService.includes('kind: localKind ? "local"') &&
+      fromMatch.includes("jobTitle") &&
+      fromMatch.includes("isLocalClimateSponsor"),
+    "Match lock-in classifies every Local Business Climate Sponsor before the one-Lead rule"
   );
 
   if (failures.length > 0) {

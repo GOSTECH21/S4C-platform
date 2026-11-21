@@ -27,9 +27,10 @@ import {
   localSponsoredMatches,
 } from "@/app/lib/local-sponsor-home";
 import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
+import { listLocalWalletTakes } from "@/app/lib/climate-wallet-takes";
 import {
   defaultCalendarMonth,
-  fundedClimateProjectsForHome,
+  fundedClimateProjectsFromBrandTakes,
 } from "@/app/lib/sponsor-signed-home";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
 import {
@@ -54,7 +55,7 @@ export default function LocalSponsorHomePage() {
     localSponsoredClubMatches([])
   );
   const [projects, setProjects] = useState(
-    fundedClimateProjectsForHome([], [])
+    fundedClimateProjectsFromBrandTakes([], "")
   );
   const [lobiRows, setLobiRows] = useState(
     lobiRowsForArea({
@@ -184,10 +185,9 @@ export default function LocalSponsorHomePage() {
         );
         setChosenByClub(Object.fromEntries(chosenEntries));
         setProjects(
-          fundedClimateProjectsForHome(
-            folder.signed,
-            folder.pending,
-            votedMap
+          fundedClimateProjectsFromBrandTakes(
+            listLocalWalletTakes(),
+            brandName
           )
         );
       } catch {

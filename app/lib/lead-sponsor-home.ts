@@ -15,6 +15,7 @@ import { fixtureLabelFromOffer } from "./sponsor-signed-home";
 import {
   SPONSOR_CALENDAR_PATH,
   sponsorOfferSignOffPath,
+  sponsorPayPath,
   sponsorWalletPath,
 } from "./routes";
 import { DEFAULT_WALLET_VOTE_GBP } from "./sponsor-wallet";
@@ -38,7 +39,7 @@ export const LEAD_CIST_TITLE = "Climate Impact Sponsors Table (CIST)";
 export const LEAD_AWAITING_INTRO =
   "When a Club Sustainability Director compiles Climate Projects for a Match Day and uploads them, they appear here. Accept and approve the list to sponsor that Club's Match Day carbon footprint offset.";
 export const LEAD_APPROVED_INTRO =
-  "Climate Projects you have accepted and approved. They leave the waiting list above. Pay from your Climate Sponsorship Wallet to move them into your paid history.";
+  "Climate Projects you have accepted and approved. They leave the waiting list above. Pay for these Climate Projects to move them into your paid history.";
 export const LEAD_PAID_INTRO =
   "Master folder: a history of every Climate Project you have backed and paid for. Paid lists stay here and do not return to awaiting or approved.";
 export const LEAD_APPROVED_EMPTY =
@@ -267,13 +268,50 @@ function awaitingActionHref(
   offerId: string | null,
   clubName: string,
   lock?: MatchDayClubLock | null,
-  fallbackHref = SPONSOR_CALENDAR_PATH
+  fallbackHref = SPONSOR_CALENDAR_PATH,
+  kind: "lead" | "local" = "lead"
 ) {
   if (offerId) return sponsorOfferSignOffPath(offerId);
+  if (kind === "local") return fallbackHref;
   if (lock && clubsMatch(lock.clubName, clubName)) {
     return sponsorWalletPath(clubName);
   }
   return fallbackHref;
+}
+
+function payActionHref(clubName: string, kind: "lead" | "local") {
+  return kind === "local" ? sponsorPayPath(clubName) : sponsorWalletPath(clubName);
+}
+
+function localAmountForClub(
+  clubName: string,
+  amounts?: Record<string, number>
+): number | null {
+  if (!amounts) return null;
+  const exact = Number(amounts[clubName]);
+  if (exact > 0) return exact;
+  const hit = Object.entries(amounts).find(([name]) => clubsMatch(name, clubName));
+  const value = hit ? Number(hit[1]) : 0;
+  return value > 0 ? value : null;
+}
+
+function withLocalFunding(
+  group: LeadSponsorMatchGroup,
+  kind: "lead" | "local",
+  amounts?: Record<string, number>
+): LeadSponsorMatchGroup {
+  if (kind !== "local") return group;
+  const amount = localAmountForClub(group.clubName, amounts);
+  return {
+    ...group,
+    sponsorshipAmountGbp: amount ?? group.sponsorshipAmountGbp,
+    gbpPerGoal: null,
+    maxAmount: null,
+    actionHref:
+      group.actionLabel === LEAD_PAY_LABEL
+        ? payActionHref(group.clubName, kind)
+        : group.actionHref,
+  };
 }
 
 function groupFromFolder(
@@ -320,6 +358,8 @@ export function leadSponsorHomeSections({
   lock,
   folder = [],
   awaitingFallbackHref = SPONSOR_CALENDAR_PATH,
+  kind = "lead",
+  localAmountByClub,
 }: {
   pending: FolderOffer[];
   signed: SignedSponsorship[];
@@ -328,6 +368,8 @@ export function leadSponsorHomeSections({
   lock?: MatchDayClubLock | null;
   folder?: LeadFolderEntry[];
   awaitingFallbackHref?: string;
+  kind?: "lead" | "local";
+  localAmountByClub?: Record<string, number>;
 }): LeadSponsorHomeSections {
   const awaiting: LeadSponsorMatchGroup[] = [];
   const coveredClubs: string[] = [];
@@ -354,7 +396,8 @@ export function leadSponsorHomeSections({
           offer.id,
           offer.clubName,
           lock,
-          awaitingFallbackHref
+          awaitingFallbackHref,
+          kind
         ),
         actionLabel: LEAD_ACCEPT_LABEL,
         key: `awaiting:${offer.id}`,
@@ -390,16 +433,21 @@ export function leadSponsorHomeSections({
           headline: `${clubName} · uploaded Climate Projects`,
           matchTitle,
           matchDate: lock?.fixtureDate ?? null,
-          sponsorshipAmountGbp: lock?.commitmentFeeGbp ?? null,
-          gbpPerGoal: lock?.gbpPerGoal ?? null,
-          maxAmount: lock?.maximumSponsorshipGbp ?? null,
+          sponsorshipAmountGbp:
+            kind === "local"
+              ? localAmountForClub(clubName, localAmountByClub)
+              : lock?.commitmentFeeGbp ?? null,
+          gbpPerGoal: kind === "local" ? null : lock?.gbpPerGoal ?? null,
+          maxAmount:
+            kind === "local" ? null : lock?.maximumSponsorshipGbp ?? null,
         },
         projects: uploaded.map(asProject),
         actionHref: awaitingActionHref(
           null,
           clubName,
           lock,
-          awaitingFallbackHref
+          awaitingFallbackHref,
+          kind
         ),
         actionLabel: LEAD_ACCEPT_LABEL,
         key: `awaiting:chosen:${clubName}`,
@@ -418,7 +466,9 @@ export function leadSponsorHomeSections({
       )?.[1] ??
       [];
     const projects = row.offer.projects.map((project) =>
-      withVoteFunding(asProject(project as FolderProject), voted)
+      kind === "local"
+        ? asProject(project as FolderProject)
+        : withVoteFunding(asProject(project as FolderProject), voted)
     );
     const matchTitle = matchTitleFor(row.offer, lock);
     const headlineOffer = { ...row.offer, matchTitle };
@@ -435,7 +485,7 @@ export function leadSponsorHomeSections({
           signerName: row.signature.signerName,
           actionHref: row.offer.id
             ? sponsorOfferSignOffPath(row.offer.id)
-            : sponsorWalletPath(row.offer.clubName),
+            : payActionHref(row.offer.clubName, kind),
           actionLabel: "Open signed copy",
           key: `paid:${row.signature.id}`,
         })
@@ -447,7 +497,7 @@ export function leadSponsorHomeSections({
           projects,
           signedAt: row.signature.signedAt,
           signerName: row.signature.signerName,
-          actionHref: sponsorWalletPath(row.offer.clubName),
+          actionHref: payActionHref(row.offer.clubName, kind),
           actionLabel: LEAD_PAY_LABEL,
           key: `approved:${row.signature.id}`,
         })
@@ -467,7 +517,7 @@ export function leadSponsorHomeSections({
           entry,
           entry.offerId
             ? sponsorOfferSignOffPath(entry.offerId)
-            : sponsorWalletPath(entry.clubName),
+            : payActionHref(entry.clubName, kind),
           "Open signed copy",
           "paid-folder"
         )
@@ -476,7 +526,7 @@ export function leadSponsorHomeSections({
       approved.push(
         groupFromFolder(
           entry,
-          sponsorWalletPath(entry.clubName),
+          payActionHref(entry.clubName, kind),
           LEAD_PAY_LABEL,
           "approved-folder"
         )
@@ -484,7 +534,13 @@ export function leadSponsorHomeSections({
     }
   }
 
-  return { awaiting, approved, paid };
+  const stamp = (group: LeadSponsorMatchGroup) =>
+    withLocalFunding(group, kind, localAmountByClub);
+  return {
+    awaiting: awaiting.map(stamp),
+    approved: approved.map(stamp),
+    paid: paid.map(stamp),
+  };
 }
 
 export function leadSponsorSectionIds() {

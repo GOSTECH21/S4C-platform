@@ -207,6 +207,8 @@ export type MatchDayClubLock = {
   venue?: string | null;
   sourceUrl?: string | null;
   matches?: ChosenMatch[];
+  /** Local Business locks never occupy the one Lead Climate Sponsor slot. */
+  kind?: "lead" | "local";
   lockedAt: string;
   /** Set when the Lead deposits the Climate Sponsorship Wallet for this lock. */
   fundingLockedAt?: string;
@@ -506,6 +508,7 @@ export function removeChosenMatch(
   return {
     ...lockFromChosenMatch(existing.brandKey, existing.lockedAt, nextPrimary),
     matches: remaining,
+    kind: existing.kind,
     fundingLockedAt: existing.fundingLockedAt,
     commitmentFeeGbp: existing.commitmentFeeGbp,
     gbpPerGoal: existing.gbpPerGoal,
@@ -652,6 +655,13 @@ export function lockHoldsClubFixture(
   );
 }
 
+function leadLocksOnly(locks: MatchDayClubLock[]): MatchDayClubLock[] {
+  return locks.filter(
+    (lock) =>
+      lock.kind !== "local" && !isKnownLocalBusinessSponsorName(lock.brandKey)
+  );
+}
+
 export function occupyingLeadClimateSponsor({
   clubName,
   networks,
@@ -667,7 +677,7 @@ export function occupyingLeadClimateSponsor({
     sponsorsForClubFromStores({
       clubName,
       networks,
-      locks,
+      locks: leadLocksOnly(locks),
       excludeBrandKeys,
     }),
     clubName
@@ -690,7 +700,7 @@ export function occupyingLeadClimateSponsorForMatch({
 }): LeadClubSponsorRow | null {
   const fixture = String(fixtureName ?? "").trim();
   if (!clubName.trim() || !isNamedFixture(fixture)) return null;
-  const matchingLocks = locks.filter((lock) =>
+  const matchingLocks = leadLocksOnly(locks).filter((lock) =>
     lockHoldsClubFixture(lock, clubName, fixture)
   );
   if (matchingLocks.length === 0) return null;
