@@ -10,6 +10,8 @@ export const METERS_PER_STATUTE_MILE = 1609.344;
 export const GOOGLE_DISTANCE_MATRIX_URL =
   "https://maps.googleapis.com/maps/api/distancematrix/json";
 export const OSRM_ROUTE_URL = "https://router.project-osrm.org/route/v1";
+export const NOMINATIM_SEARCH_URL =
+  "https://nominatim.openstreetmap.org/search";
 
 export type MatchravDistanceSource = "google" | "osrm" | "straight";
 
@@ -21,6 +23,36 @@ export type MatchravDistanceResult = {
 };
 
 export type GoogleTravelMode = "driving" | "transit" | "walking" | "bicycling";
+
+export function googleDestinationQueries(
+  destination: string,
+  homeName?: string | null
+): string[] {
+  const raw = destination.trim();
+  if (!raw) return [];
+  const home = String(homeName ?? "").trim();
+  const withoutParen = raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const at = raw.match(/\bat\s+([^,()]+)/i)?.[1]?.trim();
+  const seen = new Set<string>();
+  const add = (value: string) => {
+    const next = value.replace(/\s+/g, " ").trim();
+    if (next) seen.add(next);
+  };
+  add(raw);
+  add(withoutParen);
+  if (at) add(at);
+  if (home) {
+    add(`${withoutParen}, ${home}`);
+    if (at) add(`${at}, ${home}`);
+  }
+  return [...seen];
+}
+
+export function googleLatLng(point: GeoPoint | null | undefined): string {
+  if (!point) return "";
+  if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) return "";
+  return `${point.lat},${point.lng}`;
+}
 
 export function googleModeForTravel(
   mode: TravelMode | null | undefined
@@ -143,17 +175,41 @@ export function osrmRouteUrl({
   return `${OSRM_ROUTE_URL}/${profile}/${from.lng},${from.lat};${to.lng},${to.lat}?overview=false`;
 }
 
+export function nominatimSearchUrl(query: string): string {
+  const url = new URL(NOMINATIM_SEARCH_URL);
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("limit", "1");
+  return url.toString();
+}
+
+export function pointFromNominatimSearch(
+  payload: Array<{ lat?: string; lon?: string }> | null | undefined
+): GeoPoint | null {
+  const row = payload?.[0];
+  const lat = Number(row?.lat);
+  const lng = Number(row?.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  if (lat === 0 && lng === 0) return null;
+  return { lat, lng };
+}
+
 export async function requestMatchravDistance({
   origin,
   destination,
   mode,
   homeName,
+  destLat,
+  destLng,
   signal,
 }: {
   origin: string;
   destination: string;
   mode: TravelMode;
   homeName?: string | null;
+  destLat?: number | null;
+  destLng?: number | null;
   signal?: AbortSignal;
 }): Promise<MatchravDistanceResult | null> {
   const from = origin.trim();
@@ -165,6 +221,15 @@ export async function requestMatchravDistance({
     mode,
   });
   if (homeName?.trim()) params.set("homeName", homeName.trim());
+  if (
+    destLat != null &&
+    destLng != null &&
+    Number.isFinite(destLat) &&
+    Number.isFinite(destLng)
+  ) {
+    params.set("destLat", String(destLat));
+    params.set("destLng", String(destLng));
+  }
   const response = await fetch(`${MATCHRAV_DISTANCE_PATH}?${params}`, {
     signal,
     cache: "no-store",

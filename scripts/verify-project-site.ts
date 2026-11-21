@@ -46,6 +46,13 @@ assert(
     stadiumSiteForClub("Brentford")?.postcode === "TW8 0AU",
   "Brentford's Gtech Community Stadium is listed for Matchrav destinations"
 );
+assert(
+  stadiumSiteForClub("Dundee")?.postcode === "DD3 7JY" &&
+    stadiumSiteForVenue("The Scot Foam Stadium at Dens Park")?.name ===
+      "Dundee" &&
+    stadiumSiteForVenue("Dens Park")?.name === "Dundee",
+  "Dundee's Dens Park is listed so Matchrav can auto-fill miles for every fixture there"
+);
 
 assert(
   listedSiteForProjectName("Bridgend Farmhouse")?.postcode === "EH16 4TE",

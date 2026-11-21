@@ -265,6 +265,70 @@ export const CLUB_STADIUM_SITES: StadiumSite[] = [
     country: "Scotland",
   },
   {
+    name: "Aberdeen",
+    address: "Pittodrie Stadium, Pittodrie Street, Aberdeen",
+    postcode: "AB24 5QH",
+    point: { lat: 57.1593, lng: -2.0881 },
+    place: "Pittodrie",
+    country: "Scotland",
+  },
+  {
+    name: "Dundee",
+    address: "Dens Park, Sandeman Street, Dundee",
+    postcode: "DD3 7JY",
+    point: { lat: 56.4747, lng: -2.9689 },
+    place: "Dens Road",
+    country: "Scotland",
+  },
+  {
+    name: "Dundee United",
+    address: "Tannadice Park, Tannadice Street, Dundee",
+    postcode: "DD3 7JW",
+    point: { lat: 56.4756, lng: -2.969 },
+    place: "Tannadice",
+    country: "Scotland",
+  },
+  {
+    name: "Falkirk",
+    address: "Falkirk Stadium, Westfield, Falkirk",
+    postcode: "FK2 9DX",
+    point: { lat: 56.0054, lng: -3.7533 },
+    place: "Westfield",
+    country: "Scotland",
+  },
+  {
+    name: "Kilmarnock",
+    address: "Rugby Park, Kilmarnock",
+    postcode: "KA1 2DA",
+    point: { lat: 55.6042, lng: -4.5081 },
+    place: "Kilmarnock",
+    country: "Scotland",
+  },
+  {
+    name: "Motherwell",
+    address: "Fir Park, Motherwell",
+    postcode: "ML1 2QN",
+    point: { lat: 55.7802, lng: -3.9801 },
+    place: "Motherwell",
+    country: "Scotland",
+  },
+  {
+    name: "St Johnstone",
+    address: "McDiarmid Park, Crieff Road, Perth",
+    postcode: "PH1 2SJ",
+    point: { lat: 56.4095, lng: -3.4769 },
+    place: "Perth",
+    country: "Scotland",
+  },
+  {
+    name: "St Mirren",
+    address: "St Mirren Park, Love Street, Paisley",
+    postcode: "PA3 2EJ",
+    point: { lat: 55.8506, lng: -4.4291 },
+    place: "Paisley",
+    country: "Scotland",
+  },
+  {
     name: "Cardiff City",
     address: "Cardiff City Stadium, Leckwith Road, Cardiff",
     postcode: "CF11 8AZ",
@@ -610,19 +674,38 @@ export function stadiumSiteForClub(
   );
 }
 
+function venueNeedles(label: string): string[] {
+  const needle = label.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!needle) return [];
+  const needles = [needle];
+  const withoutParen = needle.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+  if (withoutParen && withoutParen !== needle) needles.push(withoutParen);
+  const at = needle.match(/\bat\s+([^,()]+)$/);
+  if (at?.[1]) needles.push(at[1].trim());
+  const generic = /^(the\s+)?(stadium|park|arena|ground|road)$/;
+  return [...new Set(needles)].filter((row) => row.length >= 5 && !generic.test(row));
+}
+
 /** Match a typed stadium / venue label onto a listed club ground. */
 export function stadiumSiteForVenue(
   label: string | null | undefined
 ): StadiumSite | null {
-  const needle = String(label ?? "").trim().toLowerCase();
-  if (!needle) return null;
+  const needles = venueNeedles(String(label ?? ""));
+  if (!needles.length) return null;
   const byClub = stadiumSiteForClub(label);
   if (byClub) return byClub;
   return (
     CLUB_STADIUM_SITES.find((row) => {
       const venue = row.address.split(",")[0]?.trim().toLowerCase() ?? "";
+      const postcode = row.postcode.trim().toLowerCase();
       if (!venue) return false;
-      return needle === venue || needle.includes(venue) || venue.includes(needle);
+      return needles.some(
+        (needle) =>
+          needle === venue ||
+          needle.includes(venue) ||
+          venue.includes(needle) ||
+          (postcode.length >= 5 && needle.includes(postcode))
+      );
     }) ?? null
   );
 }

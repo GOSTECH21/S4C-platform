@@ -4,11 +4,13 @@ import {
   MATCHRAV_DISTANCE_PATH,
   MATCHRAV_GOOGLE_MILES_STAMP,
   METERS_PER_STATUTE_MILE,
+  googleDestinationQueries,
   googleModeForTravel,
   metersToStatuteMiles,
   milesFromGoogleDistanceMatrix,
   milesFromOsrmRoute,
   osrmRouteUrl,
+  pointFromNominatimSearch,
 } from "../app/lib/matchrav-google-distance";
 import {
   milesFromOriginToDestination,
@@ -101,11 +103,52 @@ assert(
   panel.includes("data-matchrav-google-miles") &&
     panel.includes("GOOGLE_MAPS_DISTANCE_LABEL") &&
     panel.includes("requestMatchravDistance") &&
+    panel.includes("destLat") &&
     !panel.includes("milesFromOriginToDestination(") &&
     api.includes("GOOGLE_MAPS_API_KEY") &&
     api.includes("googleMiles") &&
+    api.includes("googleDestinationQueries") &&
+    api.includes("if (!raw) return null") &&
+    api.includes("nominatimSearchUrl") &&
     api.includes("osrmMiles"),
   "Matchrav fills outbound miles from Google Maps, with road routing as fallback"
+);
+
+const densQueries = googleDestinationQueries(
+  "The Scot Foam Stadium at Dens Park",
+  "Dundee"
+);
+assert(
+  densQueries.includes("The Scot Foam Stadium at Dens Park") &&
+    densQueries.includes("Dens Park") &&
+    densQueries.includes("Dens Park, Dundee"),
+  "Google Maps retries sponsor-prefixed grounds with the real venue and home club"
+);
+
+const densPoint = destinationPoint("The Scot Foam Stadium at Dens Park", {
+  id: "dundee-hearts",
+  date: "2026-11-21",
+  kickoff: "17:45",
+  homeName: "Dundee",
+  awayName: "Hearts",
+  venue: "The Scot Foam Stadium at Dens Park",
+  competition: "Scottish Premiership",
+  source: "s4p",
+  sourceUrl: null,
+});
+assert(
+  Boolean(densPoint) &&
+    Math.abs((densPoint?.lat ?? 0) - 56.4747) < 0.01 &&
+    Math.abs((densPoint?.lng ?? 0) + 2.9689) < 0.01,
+  "Dens Park resolves to coordinates so Google, OSRM and straight-line can all fill miles"
+);
+
+assert(
+  pointFromNominatimSearch([
+    { lat: "48.2187901", lon: "11.6236227" },
+  ])?.lat === 48.2187901 &&
+    pointFromNominatimSearch([]) == null,
+  "Unlisted grounds geocode so Matchrav can still auto-fill miles"
 );
 
 const from = originPoint("EH11 2PB");
@@ -133,6 +176,26 @@ async function verifyLiveRoadMiles() {
   assert(
     Boolean(live && live.miles >= 240 && live.miles <= 260),
     `Live road miles from EH11 2PB to MKM Stadium should be ~249, got ${live?.miles ?? "none"}`
+  );
+  const densOrigin = originPoint("55.9383,-3.2340");
+  if (!densOrigin || !densPoint) return;
+  const densUrl = osrmRouteUrl({
+    from: densOrigin,
+    to: densPoint,
+    profile: "driving",
+  });
+  const densResponse = await fetch(densUrl, {
+    headers: { Accept: "application/json" },
+  });
+  if (!densResponse.ok) return;
+  const densPayload = (await densResponse.json()) as {
+    code?: string;
+    routes?: Array<{ distance?: number }>;
+  };
+  const densLive = milesFromOsrmRoute(densPayload);
+  assert(
+    Boolean(densLive && densLive.miles >= 45 && densLive.miles <= 75),
+    `Live road miles from Edinburgh GPS to Dens Park should auto-fill, got ${densLive?.miles ?? "none"}`
   );
 }
 
