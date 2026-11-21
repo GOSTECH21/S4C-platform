@@ -44,7 +44,10 @@ import {
   type SponsorMatchOffer,
 } from "@/app/services/sponsor-offers.service";
 import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
-import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
+import {
+  HOW_S4P_SELECT_MATCH,
+  HOW_S4P_SELECT_MATCH_SPONSOR,
+} from "@/app/lib/how-s4p-works";
 import {
   LOCAL_SPONSOR_HOME_PATH,
   PHILANTHROPIST_HOME_PATH,
@@ -321,10 +324,17 @@ export default function SponsorWalletPage() {
       ) : null}
 
       {kind === "local" ? (
-        <HowS4pSelectMatch
-          audience="sponsor"
-          initialClub={clubName}
-        />
+        <section
+          data-local-select-match-intro="caption-only"
+          className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black max-md:rounded-none max-md:border-0 max-md:px-0 sm:px-6 sm:py-8 md:px-8"
+        >
+          <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
+            {HOW_S4P_SELECT_MATCH.title}
+          </h2>
+          <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
+            {HOW_S4P_SELECT_MATCH_SPONSOR.caption}
+          </p>
+        </section>
       ) : null}
 
       {kind === "local" ? (
@@ -345,7 +355,7 @@ export default function SponsorWalletPage() {
                   ? "Select the Match"
                   : "Select a Club"}
             </p>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4">
               <ClubLeagueMenu
                 value={clubName}
                 allPlatformClubs
@@ -356,6 +366,7 @@ export default function SponsorWalletPage() {
                 value={lockFixture}
                 fixtures={clubFixtures}
                 loading={fixturesLoading}
+                layout="list"
                 onChange={(fixture) => applyLocalLock(clubName, fixture)}
               />
             </div>

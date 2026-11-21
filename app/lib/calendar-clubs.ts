@@ -30,6 +30,30 @@ export function sportingCalendarClubGroups(): CalendarClubGroup[] {
   });
 }
 
+export type CalendarSportClubGroup = {
+  sport: CalendarSport;
+  leagues: CalendarClubGroup[];
+};
+
+/** Sport → league accordion for picking any club on the Sporting Calendar. */
+export function sportingCalendarClubsBySport(): CalendarSportClubGroup[] {
+  const order: CalendarSport[] = [];
+  const bySport = new Map<CalendarSport, CalendarClubGroup[]>();
+  for (const group of sportingCalendarClubGroups()) {
+    const existing = bySport.get(group.sport);
+    if (!existing) {
+      order.push(group.sport);
+      bySport.set(group.sport, [group]);
+      continue;
+    }
+    existing.push(group);
+  }
+  return order.map((sport) => ({
+    sport,
+    leagues: bySport.get(sport) ?? [],
+  }));
+}
+
 export function sportingCalendarClubCount(): number {
   const names = new Set<string>();
   for (const group of sportingCalendarClubGroups()) {

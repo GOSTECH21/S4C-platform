@@ -79,10 +79,13 @@ assert(
     !fan.includes("UpcomingMatches") &&
     !fan.includes("MyTeamsList") &&
     lead.includes('audience="sponsor"') &&
-    wallet.includes('audience="sponsor"') &&
+    !wallet.includes("HowS4pSelectMatch") &&
+    !wallet.includes('audience="sponsor"') &&
+    wallet.includes("HOW_S4P_SELECT_MATCH_SPONSOR") &&
+    wallet.includes("HOW_S4P_SELECT_MATCH") &&
     club.includes('audience="club"') &&
     club.includes("clubLocked"),
-  "Select Match is on fan My Teams, lead lock-in, local wallet, and club dashboard"
+  "Select Match phone is on fan My Teams, lead lock-in, and club dashboard; Local New Sponsorship keeps the caption only"
 );
 assert(
   localRegister.includes("MatchSponsorshipPicker") &&
@@ -155,5 +158,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "How S4P Works: homepage Access & Join only; Select Match on fan, lead, local, and club screens."
+  "How S4P Works: homepage Access & Join only; Select Match on fan, lead, and club screens; locals keep the caption."
 );

@@ -4,6 +4,7 @@ import {
   displayCompetition,
   formatKickoff,
   formatMatchDate,
+  isCupCompetition,
   namesMatch,
   normalizeClubName,
   type UpcomingMatch,
@@ -146,4 +147,18 @@ export function hasMatchDetails(fixture: {
   kickoff?: string | null;
 }): boolean {
   return Boolean(fixture.date || fixture.venue || fixture.kickoff);
+}
+
+export function fixtureKindLabel(
+  competition: string | null | undefined
+): "League" | "Cup" {
+  return isCupCompetition(competition) ? "Cup" : "League";
+}
+
+export function fixturePickerDate(date: string | null | undefined): string {
+  const raw = String(date ?? "").trim();
+  if (!raw) return "TBC";
+  const labelled = formatMatchDate(raw);
+  const year = raw.slice(0, 4);
+  return /^\d{4}$/.test(year) ? `${labelled} ${year}` : labelled;
 }
