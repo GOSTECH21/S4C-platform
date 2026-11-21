@@ -260,6 +260,8 @@ export default function FanMatchravPanel({
       destination: to,
       mode: outboundMode,
       homeName: fixture?.homeName ?? matchStadium?.club ?? stadium?.club,
+      destLat: matchStadium?.point?.lat ?? null,
+      destLng: matchStadium?.point?.lng ?? null,
       signal: abort.signal,
     })
       .then((result) => {

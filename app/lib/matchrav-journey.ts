@@ -176,6 +176,59 @@ export function calendarVenueForClub(clubName: string): string {
   return "";
 }
 
+export function calendarTeamForVenue(
+  venue: string | null | undefined
+): { name: string; venue: string } | null {
+  const needle = clean(venue).toLowerCase();
+  if (!needle) return null;
+  const at = needle.match(/\bat\s+([^,()]+)$/)?.[1]?.trim() || needle;
+  for (const league of SPORTING_CALENDAR_LEAGUES) {
+    for (const team of league.teams) {
+      const ground = team.venue.trim().toLowerCase();
+      if (!ground || ground === "tbc" || ground.length < 6) continue;
+      if (
+        needle === ground ||
+        needle.includes(ground) ||
+        ground.includes(needle) ||
+        at === ground ||
+        at.includes(ground) ||
+        ground.includes(at)
+      ) {
+        return team;
+      }
+    }
+  }
+  return null;
+}
+
+function stripSponsorVenuePrefix(value: string): string {
+  const raw = value.trim();
+  const at = raw.match(/\bat\s+(.+)$/i);
+  return at?.[1]?.trim() || raw;
+}
+
+function destinationLooksLikeMatchGround(
+  destination: string,
+  fixture: UpcomingMatch
+): boolean {
+  const needle = clean(destination).toLowerCase();
+  if (!needle) return false;
+  const venue = clean(fixture.venue).toLowerCase();
+  const calendar = calendarVenueForClub(fixture.homeName).toLowerCase();
+  const extracted = needle.replace(/^.*\bat\s+/, "");
+  if (venue && (needle === venue || needle.includes(venue) || venue.includes(needle))) {
+    return true;
+  }
+  if (
+    calendar &&
+    calendar !== "tbc" &&
+    (needle.includes(calendar) || extracted.includes(calendar) || calendar.includes(extracted))
+  ) {
+    return true;
+  }
+  return namesMatch(destination, fixture.homeName);
+}
+
 function stadiumFromSite(site: StadiumSite, venueHint = ""): MatchravStadium {
   const venue =
     clean(venueHint) || site.address.split(",")[0]?.trim() || site.name;
@@ -217,12 +270,16 @@ export function matchravStadiumForMatch(
   const venue = fixture?.venue?.trim() || "";
   if (venue) {
     const site =
-      stadiumSiteForVenue(venue) ?? stadiumSiteForClub(fixture?.homeName);
+      stadiumSiteForVenue(venue) ??
+      stadiumSiteForClub(fixture?.homeName) ??
+      stadiumSiteForClub(calendarTeamForVenue(venue)?.name);
     if (site) return stadiumFromSite(site, venue);
+    const home = clean(fixture?.homeName) || clean(club);
+    const ground = stripSponsorVenuePrefix(venue);
     return {
-      club: fixture?.homeName || clean(club),
+      club: home,
       venue,
-      address: venue,
+      address: home ? `${ground}, ${home}` : ground,
       postcode: "",
       place: "",
       country: "",
@@ -250,7 +307,16 @@ export function destinationForFixture(
   stadium: MatchravStadium | null
 ): string {
   const ground = matchravStadiumForMatch(club, fixture, stadium);
-  return stadiumLabel(ground) || fixture?.venue?.trim() || stadiumLabel(stadium);
+  const labelled = stadiumLabel(ground);
+  if (ground?.postcode && labelled) return labelled;
+  const venue = stripSponsorVenuePrefix(
+    ground?.venue || fixture?.venue?.trim() || labelled
+  );
+  const home = clean(fixture?.homeName) || clean(ground?.club);
+  if (venue && home && !venue.toLowerCase().includes(home.toLowerCase())) {
+    return `${venue}, ${home}`;
+  }
+  return venue || labelled || stadiumLabel(stadium);
 }
 
 export function fixtureHeadline(fixture: UpcomingMatch): string {
@@ -322,6 +388,7 @@ export function destinationPoint(
     parseLatLng(typed) ??
     pointForPostcode(typed) ??
     stadiumSiteForVenue(typed)?.point ??
+    stadiumSiteForClub(calendarTeamForVenue(typed)?.name)?.point ??
     null;
   if (fromTyped) return fromTyped;
   if (fixture) {
@@ -331,7 +398,9 @@ export function destinationPoint(
     if (supported && !clubIsHome(fixture, supported) && homeGround) {
       return homeGround;
     }
-    if (homeGround && namesMatch(typed, fixture.homeName)) return homeGround;
+    if (homeGround && destinationLooksLikeMatchGround(typed, fixture)) {
+      return homeGround;
+    }
     if (awayGround && namesMatch(typed, fixture.awayName)) return awayGround;
   }
   return homeStadium?.point ?? null;

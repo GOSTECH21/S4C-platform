@@ -99,8 +99,12 @@ assert(
     journey.includes("destinationForFixture") &&
     Boolean(stadiumSiteForClub("Real Madrid")) &&
     Boolean(madrid?.venue.includes("Bernabeu")) &&
-    destinationForFixture("Real Madrid", awayFixture, madrid) ===
-      "Mestalla Stadium" &&
+    destinationForFixture("Real Madrid", awayFixture, madrid).includes(
+      "Mestalla Stadium"
+    ) &&
+    destinationForFixture("Real Madrid", awayFixture, madrid).includes(
+      "Valencia"
+    ) &&
     Boolean(
       destinationForFixture("Real Madrid", homeFixture, madrid).includes(
         "Bernabeu"
@@ -283,6 +287,68 @@ assert(
       hearts
     ) === stadiumLabel(ibrox),
   "Hearts away at Rangers uses Ibrox Stadium details, matching Destination"
+);
+
+const heartsAwayAtDens: UpcomingMatch = {
+  id: "dundee-hearts",
+  date: "2026-11-21",
+  kickoff: "17:45",
+  homeName: "Dundee",
+  awayName: "Hearts",
+  venue: "The Scot Foam Stadium at Dens Park",
+  competition: "Scottish Premiership",
+  source: "s4p",
+  sourceUrl: null,
+};
+const dens = matchravStadiumForMatch("Hearts", heartsAwayAtDens, hearts);
+const densDestination = destinationForFixture(
+  "Hearts",
+  heartsAwayAtDens,
+  hearts
+);
+const densMiles = milesFromOriginToDestination(
+  "55.9383,-3.2340",
+  "The Scot Foam Stadium at Dens Park",
+  heartsAwayAtDens,
+  hearts
+);
+assert(
+  stadiumSiteForVenue("The Scot Foam Stadium at Dens Park")?.name === "Dundee" &&
+    dens?.venue === "The Scot Foam Stadium at Dens Park" &&
+    dens?.postcode === "DD3 7JY" &&
+    densDestination.includes("Dens Park") &&
+    densDestination.includes("DD3 7JY") &&
+    Boolean(
+      destinationPoint(
+        "The Scot Foam Stadium at Dens Park",
+        heartsAwayAtDens,
+        hearts
+      )
+    ) &&
+    densMiles > 35 &&
+    densMiles < 80,
+  "Hearts away at Dundee auto-fills Dens Park miles from origin, like Gtech does for Everton"
+);
+
+const bayernHome: UpcomingMatch = {
+  id: "bayern-arsenal",
+  date: "2026-11-24",
+  kickoff: "19:45",
+  homeName: "Bayern Munich",
+  awayName: "Arsenal",
+  venue: "Allianz Arena",
+  competition: "Bundesliga",
+  source: "s4p",
+  sourceUrl: null,
+};
+assert(
+  destinationForFixture("Arsenal", bayernHome, matchravStadiumForClub("Arsenal")).includes(
+    "Allianz Arena"
+  ) &&
+    destinationForFixture("Arsenal", bayernHome, matchravStadiumForClub("Arsenal")).includes(
+      "Bayern Munich"
+    ),
+  "Unlisted grounds still send Google Maps a venue plus home-club destination"
 );
 
 const withTicket = attachMatchravTicket(
