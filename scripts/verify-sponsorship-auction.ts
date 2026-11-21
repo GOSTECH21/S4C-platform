@@ -11,6 +11,7 @@ import {
   formatMatchHeadline,
   formatSponsorshipBadge,
   formatSponsorshipRate,
+  formatLocalFundingLine,
   formatLocalSponsorPayableCopy,
   formatSponsorPayableCopy,
   formatStipulatedRate,
@@ -142,6 +143,11 @@ assert(
       maxAmount: 8000,
     }).includes("/Goal"),
   "Funding line is one Match-Sponsorship amount"
+);
+assert(
+  formatLocalFundingLine(850) === "£850 sponsorship" &&
+    !formatLocalFundingLine(850).includes("Match-Sponsorship"),
+  "Local Business cards show this sponsor's amount, not Match-Sponsorship"
 );
 assert(
   formatSponsorPayableCopy({

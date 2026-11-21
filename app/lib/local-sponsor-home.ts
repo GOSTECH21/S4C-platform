@@ -162,6 +162,18 @@ export function localSponsoredMatches({
   );
 }
 
+export function localAmountByClubName(
+  matches: LocalSponsoredClubMatch[]
+): Record<string, number> {
+  const amounts: Record<string, number> = {};
+  for (const row of matches) {
+    const name = row.clubName.trim();
+    if (!name) continue;
+    amounts[name] = (amounts[name] ?? 0) + (Number(row.amountGbp) || 0);
+  }
+  return amounts;
+}
+
 export function localCommittedGbp(records: LocalSponsorRecord[]): number {
   const byClub = new Map<string, number>();
   for (const record of uniqueLocalClubBrandRecords(records)) {

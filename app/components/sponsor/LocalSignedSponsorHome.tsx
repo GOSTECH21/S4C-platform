@@ -9,7 +9,10 @@ import type { MatchDayClubLock } from "@/app/lib/climate-sponsors";
 import type { ChosenProjectInput } from "@/app/lib/lead-sponsor-home";
 import type { LeadFolderEntry } from "@/app/lib/lead-project-folder";
 import type { LobiRow } from "@/app/lib/lobi";
-import type { LocalSponsoredClubMatch } from "@/app/lib/local-sponsor-home";
+import {
+  localAmountByClubName,
+  type LocalSponsoredClubMatch,
+} from "@/app/lib/local-sponsor-home";
 import { formatFundingGbp } from "@/app/lib/platform-stats";
 import {
   localNewSponsorshipPath,
@@ -19,6 +22,7 @@ import type { FolderOffer, SignedSponsorship } from "@/app/lib/sponsor-dashboard
 import type { FundedSponsorProject } from "@/app/lib/sponsor-signed-home";
 import type { SponsoredMatchListing } from "@/app/lib/sponsor-signed-home";
 
+/** Shared home for every Local Business Climate Sponsor. */
 export function LocalSignedSponsorHome({
   brand,
   logoUrl,
@@ -31,7 +35,7 @@ export function LocalSignedSponsorHome({
   pending,
   signed,
   chosenByClub,
-  votedByClub,
+  votedByClub: _votedByClub,
   lock,
   folder,
   committedGbp,
@@ -117,11 +121,13 @@ export function LocalSignedSponsorHome({
           pending={pending}
           signed={signed}
           chosenByClub={chosenByClub}
-          votedByClub={votedByClub}
+          votedByClub={{}}
           lock={lock}
           folder={folder}
           committedGbp={committedGbp}
           awaitingFallbackHref={localNewSponsorshipPath()}
+          kind="local"
+          localAmountByClub={localAmountByClubName(sponsored)}
         />
       </div>
 

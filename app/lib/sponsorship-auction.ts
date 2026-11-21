@@ -266,6 +266,12 @@ export function formatSponsorPayableCopy({
   return `You pay the ${formatMoney(topUp.matchSponsorshipGbp)} Match-Sponsorship for ${who}, plus a ${PLATFORM_FEE_PERCENT_LABEL} Platform Fee of ${formatMoney(topUp.platformFeeGbp)} (total ${formatMoney(topUp.paidGbp)}) via Stripe.`;
 }
 
+export function formatLocalFundingLine(amountGbp?: number | null): string {
+  const amount = Number(amountGbp) || 0;
+  if (!(amount > 0)) return "";
+  return `${formatMoney(amount)} sponsorship`;
+}
+
 /** Local Business Climate Sponsors pay a Match amount — they do not sponsor Goals. */
 export function formatLocalSponsorPayableCopy({
   sponsorshipGbp,

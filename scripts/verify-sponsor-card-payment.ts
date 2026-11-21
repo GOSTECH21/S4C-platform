@@ -104,8 +104,40 @@ assert(
     panel.includes("WALLET_PROJECTS_PAID_COPY") &&
     payPage.includes("approved={paid}") &&
     listingsService.includes("paidProjectIdsForClub") &&
-    home.includes("isMatchDayCardPaymentConfirmed"),
+    home.includes("isMatchDayCardPaymentConfirmed") &&
+    home.includes("sponsorPayPath") &&
+    home.includes('kind === "local"'),
   "Confirmed card payment flips pending approval to Approved"
+);
+
+const cardService = readFileSync(
+  "app/services/sponsor-card-payment.service.ts",
+  "utf8"
+);
+const folderService = readFileSync(
+  "app/services/match-day-folder.service.ts",
+  "utf8"
+);
+assert(
+  cardService.includes("recordLeadMatchPaid") &&
+    cardService.includes('kind === "local"') &&
+    folderService.includes("localWalletVisibleToFans") &&
+    folderService.includes("isLocalCarbonWalletOpen") &&
+    folderService.includes("This Local Business has not paid yet"),
+  "Local Pay records Section (C) and keeps unpaid wallets off the fan FUND-IT list"
+);
+
+const cardLib = readFileSync("app/lib/sponsor-card-payment.ts", "utf8");
+const fanWorkspace = readFileSync(
+  "app/components/fan/FanCampaignWorkspace.tsx",
+  "utf8"
+);
+assert(
+  cardLib.includes("export function isLocalCarbonWalletOpen") &&
+    fanWorkspace.includes("isLocalCarbonWalletOpen") &&
+    !folderService.includes("Okechukwu") &&
+    !fanWorkspace.includes("Okechukwu"),
+  "Unpaid Local Business Climate Sponsors stay off FUND-IT until they pay, for every brand"
 );
 
 if (failures.length > 0) {

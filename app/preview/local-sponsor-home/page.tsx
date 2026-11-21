@@ -118,7 +118,8 @@ const mashAwaiting: FolderOffer = {
     { id: "gss-hibs", name: "Global Schools Solar", country: "Global" },
   ],
   postedAt: "2026-10-01T12:00:00.000Z",
-  sponsorshipAmountGbp: 600,
+  sponsorshipAmountGbp: 15000,
+  maxAmount: 15000,
 };
 
 const mashApproved: SignedSponsorship = {
@@ -134,7 +135,8 @@ const mashApproved: SignedSponsorship = {
       { id: "lauriston", name: "Lauriston Agroecology Farm", country: "Scotland" },
     ],
     postedAt: "2026-10-12T12:00:00.000Z",
-    sponsorshipAmountGbp: 600,
+    sponsorshipAmountGbp: 15000,
+    maxAmount: 15000,
   },
   signature: {
     id: "sig-mash-hearts",
@@ -144,6 +146,33 @@ const mashApproved: SignedSponsorship = {
     brandName: "Mash Tun",
     acceptedTerms: true,
     signedAt: "2026-10-12T18:00:00.000Z",
+  },
+};
+
+const fulhamApproved: SignedSponsorship = {
+  offer: {
+    id: "fulham-pier-coventry",
+    clubId: "fulham-demo",
+    clubName: "Fulham",
+    headline: "Coventry City v Fulham Climate Projects",
+    matchTitle: "Coventry City v Fulham",
+    matchDate: "2026-10-24",
+    projectIds: ["lcr"],
+    projects: [
+      { id: "lcr", name: "London Community Retrofit", country: "England" },
+    ],
+    postedAt: "2026-10-10T12:00:00.000Z",
+    sponsorshipAmountGbp: 15000,
+    maxAmount: 15000,
+  },
+  signature: {
+    id: "sig-fulham-pier",
+    offerId: "fulham-pier-coventry",
+    sponsorId: "fulham-pier",
+    signerName: "Fulham Pier",
+    brandName: "Fulham Pier",
+    acceptedTerms: true,
+    signedAt: "2026-10-10T18:00:00.000Z",
   },
 };
 
@@ -195,6 +224,7 @@ export default function LocalSponsorHomePreview() {
             sourceUrl: null,
           })),
         })}
+        clubMatches={localSponsoredClubMatches([mashTun, mashHearts])}
         projects={projects}
         lobiRows={lobiRowsForArea({
           records,
@@ -230,7 +260,9 @@ export default function LocalSponsorHomePreview() {
               },
             ],
           })}
+          clubMatches={localSponsoredClubMatches([fulhamPier])}
           projects={[]}
+          signed={[fulhamApproved]}
           lobiRows={lobiRowsForArea({
             records: [fulhamPier, fulhamDuplicate],
             area: "SW",

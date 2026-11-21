@@ -22,12 +22,14 @@ export function FundedClimateProjectsList({
           ? "Fans take £0.20 from your Carbon Wallet, and Donate it to a Climate Project of their choice. Your business name and logo will be visible to these Fans."
           : "Fans take your Match-Sponsorship and put that cash onto numbered Climate Projects. Open a project to see how much of your money it has received."}
       </p>
-      {fanFunded.length === 0 && kind !== "local" ? (
+      {fanFunded.length === 0 ? (
         <p className="mt-6 text-slate-400">
-          Fans have not yet taken cash from your Climate Sponsorship Wallet onto
-          a Climate Project. These are the signed five waiting for FUND-IT.
+          {kind === "local"
+            ? "Fans can take £0.20 from your Carbon Wallet only after you pay for these Climate Projects. Nothing has been taken from this wallet yet."
+            : "Fans have not yet taken cash from your Climate Sponsorship Wallet onto a Climate Project. These are the signed five waiting for FUND-IT."}
         </p>
       ) : null}
+      {fanFunded.length === 0 && kind === "local" ? null : (
       <div className="mt-6 space-y-3">
         {(fanFunded.length > 0 ? fanFunded : projects).map((project) => (
           <details
@@ -66,6 +68,7 @@ export function FundedClimateProjectsList({
           </details>
         ))}
       </div>
+      )}
     </section>
   );
 }

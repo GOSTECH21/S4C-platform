@@ -246,7 +246,9 @@ assert(
   moneyWent.includes(
     "Fans take £0.20 from your Carbon Wallet, and Donate it to a Climate Project of their choice. Your business name and logo will be visible to these Fans."
   ) &&
-    moneyWent.includes('kind !== "local"') &&
+    moneyWent.includes(
+      "Fans can take £0.20 from your Carbon Wallet only after you pay for these Climate Projects"
+    ) &&
     !moneyWent.includes(
       "Fans take £0.20 from your Climate Sponsorship Wallet onto numbered Climate Projects"
     ),
@@ -266,6 +268,20 @@ assert(
       "This table is the"
     ),
   "LOBI copy ranks by climate funding and names the local area postcode, not Hearts and Hibernian"
+);
+
+const previewHome = readFileSync(
+  "app/preview/local-sponsor-home/page.tsx",
+  "utf8"
+);
+assert(
+  previewHome.includes('brand="Mash Tun"') &&
+    previewHome.includes('brand="Fulham Pier"') &&
+    previewHome.includes('brand="Scotmid Coop"') &&
+    previewHome.includes("clubMatches={localSponsoredClubMatches") &&
+    previewHome.includes("sponsorshipAmountGbp: 15000") &&
+    !previewHome.includes("Okechukwu"),
+  "Local home preview proves Mash Tun, Fulham Pier, and Scotmid all use the same ABCD home"
 );
 
 if (failures.length > 0) {

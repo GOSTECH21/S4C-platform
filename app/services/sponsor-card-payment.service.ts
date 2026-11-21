@@ -5,6 +5,18 @@ import {
 } from "../lib/sponsor-card-payment";
 import { notifySignedSponsorship } from "../lib/sponsor-completion-flow";
 import {
+  recordLeadMatchApproved,
+  recordLeadMatchPaid,
+} from "../lib/lead-project-folder";
+import {
+  brandsMatch,
+  displayLockFixture,
+} from "../lib/climate-sponsors";
+import {
+  isSignedOffLocalSponsor,
+  localSponsorsForClub,
+} from "../lib/local-sponsor";
+import {
   bindFundedSponsorToClub,
   ensureGoalNetwork,
   ensureMatchDayClubLock,
@@ -79,6 +91,49 @@ export async function confirmMatchDayCardPayment({
     amountGbp,
     kind,
   });
+
+  if (kind === "local") {
+    const local = localSponsorsForClub(club).find(
+      (row) =>
+        brandsMatch(row.brandName, brand) && isSignedOffLocalSponsor(row)
+    );
+    const matchTitle =
+      displayLockFixture(loadMatchDayLock(brand)) ||
+      String(local?.matchSponsorships?.[0]?.fixtureName ?? "").trim() ||
+      `${club} Match`;
+    const localAmount =
+      Number(wallet?.sponsorshipGbp) ||
+      Number(local?.pledgeGbp) ||
+      Number(local?.matchSponsorships?.[0]?.amountGbp) ||
+      amountGbp;
+    recordLeadMatchApproved({
+      brandName: brand,
+      offerId: "",
+      clubId: clubId || `name:${club}`,
+      clubName: club,
+      matchTitle,
+      matchDate: local?.matchSponsorships?.[0]?.date ?? null,
+      headline: `${club} · ${matchTitle}`,
+      signedAt: new Date().toISOString(),
+      signerName: brand,
+      projects: projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        description: project.description ?? null,
+        country: project.country ?? null,
+        estimated_co2: project.estimated_co2 ?? null,
+        fundedGbp: 0,
+      })),
+      sponsorshipAmountGbp: localAmount,
+      gbpPerGoal: null,
+      maxAmount: null,
+    });
+    recordLeadMatchPaid({
+      brandName: brand,
+      clubName: club,
+      matchTitle,
+    });
+  }
 
   if (clubId && projectIds.length > 0) {
     await publishSignedSponsorshipToFans({

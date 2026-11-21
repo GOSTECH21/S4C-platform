@@ -48,6 +48,7 @@ import {
   totalLocalPledge,
   type LocalSponsorRecord,
 } from "@/app/lib/local-sponsor";
+import { isLocalCarbonWalletOpen } from "@/app/lib/sponsor-card-payment";
 import { fanFundingIsOpen, type MatchDayFolder } from "@/app/lib/match-day-folder";
 import { FanGoalAlertBanner } from "@/app/components/fan/FanGoalAlertBanner";
 import { SPONSORED_GOAL_EVENT } from "@/app/lib/sponsored-goal";
@@ -405,6 +406,14 @@ function CampaignPanel({
       }
     >();
     for (const row of sponsors.filter((item) => item.kind === "local")) {
+      if (
+        !isLocalCarbonWalletOpen({
+          clubName: campaign.clubName,
+          brandName: row.brandName,
+        })
+      ) {
+        continue;
+      }
       const record = records.find((local) =>
         brandsMatch(local.brandName, row.brandName)
       );
@@ -455,6 +464,14 @@ function CampaignPanel({
           sponsoredProjectName:
             local.sponsoredProjectName ?? existing.sponsoredProjectName ?? null,
         });
+        continue;
+      }
+      if (
+        !isLocalCarbonWalletOpen({
+          clubName: campaign.clubName,
+          brandName: local.brandName,
+        })
+      ) {
         continue;
       }
       remainingByBrand.set(key, {

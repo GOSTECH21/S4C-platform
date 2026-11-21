@@ -15,7 +15,11 @@ import {
   leadSponsorHomeSections,
 } from "../app/lib/lead-sponsor-home";
 import type { FolderOffer, SignedSponsorship } from "../app/lib/sponsor-dashboard";
-import { SPONSOR_CALENDAR_PATH, sponsorOfferSignOffPath } from "../app/lib/routes";
+import {
+  SPONSOR_CALENDAR_PATH,
+  sponsorOfferSignOffPath,
+  sponsorPayPath,
+} from "../app/lib/routes";
 
 const failures: string[] = [];
 
@@ -354,6 +358,114 @@ const localSigned = readFileSync(
   "app/components/sponsor/LocalSignedSponsorHome.tsx",
   "utf8"
 );
+const localHearts = leadSponsorHomeSections({
+  pending: [
+    {
+      ...pending,
+      id: "hearts-dundee-offer",
+      clubId: "hearts-demo",
+      clubName: "Hearts",
+      headline: "Hearts v Celtic",
+      matchTitle: "Hearts v Celtic",
+      matchDate: "2026-11-29",
+      sponsorshipAmountGbp: 15000,
+      maxAmount: 15000,
+    },
+  ],
+  signed: [],
+  chosenByClub: {
+    Hearts: [
+      { id: "gss", name: "Global Schools Solar" },
+      { id: "cargo", name: "Cargo Bike Movement" },
+    ],
+  },
+  kind: "local",
+  localAmountByClub: { Hearts: 850 },
+});
+assert(
+  localHearts.awaiting.length === 1 &&
+    localHearts.awaiting[0]?.sponsorshipAmountGbp === 850 &&
+    localHearts.awaiting[0]?.maxAmount == null &&
+    localHearts.awaiting[0]?.actionHref.includes("hearts-dundee-offer"),
+  "Local Section (A) shows this sponsor's £850, not a £15,000 Match-Sponsorship"
+);
+
+const localApproved = leadSponsorHomeSections({
+  pending: [],
+  signed: [
+    {
+      ...heartsSigned,
+      offer: {
+        ...heartsSigned.offer,
+        matchTitle: "Hearts v Celtic",
+        headline: "Hearts v Celtic",
+        sponsorshipAmountGbp: 15000,
+        maxAmount: 15000,
+      },
+    },
+  ],
+  kind: "local",
+  localAmountByClub: { Hearts: 850 },
+});
+assert(
+  localApproved.approved.length === 1 &&
+    localApproved.approved[0]?.sponsorshipAmountGbp === 850 &&
+    localApproved.approved[0]?.actionHref === sponsorPayPath("Hearts") &&
+    localApproved.approved[0]?.projects.every((row) => row.fundedGbp === 0),
+  "Local Pay opens card payment for £850 and does not show fan £0.20 takes before payment"
+);
+
+const localHibs = leadSponsorHomeSections({
+  pending: [],
+  signed: [
+    {
+      ...heartsSigned,
+      offer: {
+        ...heartsSigned.offer,
+        clubId: "hibs-demo",
+        clubName: "Hibernian",
+        matchTitle: "Hibernian v Rangers",
+        headline: "Hibernian v Rangers",
+        sponsorshipAmountGbp: 15000,
+        maxAmount: 15000,
+      },
+    },
+  ],
+  kind: "local",
+  localAmountByClub: { Hibernian: 600 },
+});
+assert(
+  localHibs.approved.length === 1 &&
+    localHibs.approved[0]?.sponsorshipAmountGbp === 600 &&
+    localHibs.approved[0]?.actionHref === sponsorPayPath("Hibernian") &&
+    localHibs.approved[0]?.maxAmount == null,
+  "Every Local Business Climate Sponsor sees their own pledge, not the Lead £15,000"
+);
+
+const localRangers = leadSponsorHomeSections({
+  pending: [
+    {
+      ...pending,
+      id: "rangers-celtic-offer",
+      clubId: "rangers-demo",
+      clubName: "Rangers",
+      headline: "Rangers v Celtic",
+      matchTitle: "Rangers v Celtic",
+      sponsorshipAmountGbp: 15000,
+      maxAmount: 15000,
+    },
+  ],
+  signed: [],
+  kind: "local",
+  localAmountByClub: { Rangers: 400 },
+});
+assert(
+  localRangers.awaiting.length === 1 &&
+    localRangers.awaiting[0]?.sponsorshipAmountGbp === 400 &&
+    localRangers.awaiting[0]?.maxAmount == null,
+  "Section (A) uses each Local Business Climate Sponsor's amount on every club"
+);
+
 assert(
   localHome.includes("LocalSignedSponsorHome") &&
     localHome.includes("clubsNeedingChosenProjects") &&
