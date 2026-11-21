@@ -53,7 +53,7 @@ export default function HomeFrontPage() {
       <div className="relative flex flex-col" data-matchrav-home="matchrav-fan-tabs-v1">
         <HomeJoinMission />
 
-        <div className="hidden md:block" data-how-s4p-desktop="true">
+        <div data-how-s4p-mobile-pc="how-s4p-mobile-pc-v1">
           <HowItWorks
             onCreateAccount={() => showJoin("register")}
             onLogin={() => showJoin("login")}

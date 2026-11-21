@@ -43,7 +43,7 @@ if (existsSync(banner) && existsSync(front)) {
     intro.includes("JoinRoleTabs") ||
     !bannerSrc.includes("HOME_JOIN_COMMUNITY_LABEL") ||
     !bannerSrc.includes("join-community-v1") ||
-    !frontSrc.includes("data-how-s4p-desktop")
+    !frontSrc.includes("<HowItWorks")
   ) {
     failed += 1;
     console.error(

@@ -37,6 +37,10 @@ const club = readFileSync("app/club/dashboard/page.tsx", "utf8");
 
 assert(how.includes("how-s4p-split-steps-v1"), "HowItWorks stamp is split v1");
 assert(
+  how.includes("how-s4p-mobile-pc-v1") && !how.includes("hidden md:block"),
+  "Access & Join phone is on mobile and PC"
+);
+assert(
   how.includes("HOW_S4P_ACCESS_JOIN") &&
     how.includes("{HOW_S4P_ACCESS_JOIN.title}") &&
     !how.includes("Explore the six steps below") &&
@@ -131,7 +135,6 @@ assert(
     frame.includes("max-md:rounded-none max-md:border-0") &&
     frame.includes("phone-mobile-unframed-v1") &&
     frame.includes("PHONE_COLUMN_CLASS") &&
-    how.includes("hidden md:block") &&
     how.includes("data-phone-frame") &&
     how.includes("PHONE_COLUMN_CLASS") &&
     how.includes("onLogin") &&
