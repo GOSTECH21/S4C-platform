@@ -1172,9 +1172,9 @@ export function registeredClubForLockIn(
   return registered[0] ?? "";
 }
 
-/** Local Business Climate Sponsors lock a Club and Match, then fund an amount — not Goals-scored. */
+/** Local Business Climate Sponsors are invited 72 hours before kick-off. */
 export function localLockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
-  return `${hours} hours before kick-off, choose a Club you wish to sponsor and the specific Match. Then open the Climate Sponsorship Wallet; insert your Sponsorship amount; Accept the Terms & Conditions; & Sign-off your sponsorship. The club's five chosen Climate Projects will later appear on your Dashboard for your records.`;
+  return `${hours} hours before kick-off, you will be sent an Invitation-to-Sponsor from S4P Partner Club. This will activate the Invitations Tab. Click the flashing Invitations (1) Tab to open the Invitation. Follow the Instructions to complete your Sponsorship`;
 }
 
 export function unlockedMatchDay(matchLabel = MATCH_DAY_LOCK_LABELS[0]): {

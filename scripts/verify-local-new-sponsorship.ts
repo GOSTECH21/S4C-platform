@@ -36,7 +36,7 @@ assert(
 assert(
   walletPage.includes("SeeMatchDetails") &&
     walletPage.includes("Unlock") &&
-    walletPage.includes("Select a Club") &&
+    walletPage.includes("Select a Club and Match") &&
     walletPage.includes("Select the Match") &&
     walletPage.includes("localLockCopy()") &&
     walletPage.includes("allPlatformClubs") &&
@@ -48,14 +48,12 @@ assert(
 assert(
   !walletPage.includes("HowS4pSelectMatch") &&
     !preview.includes("HowS4pSelectMatch") &&
-    walletPage.includes("HOW_S4P_SELECT_MATCH_SPONSOR") &&
-    walletPage.includes("HOW_S4P_SELECT_MATCH") &&
-    walletPage.includes('data-local-select-match-intro="caption-only"') &&
-    preview.includes('data-local-select-match-intro="caption-only"') &&
-    !walletPage.includes("HOW_S4P_SELECT_MATCH_SPONSOR.points") &&
-    walletPage.indexOf("data-local-select-match-intro") <
-      walletPage.indexOf('id="match-day-lock-in"'),
-  "Local New Sponsorship keeps only the Select Match caption, then Match Day lock-in"
+    !walletPage.includes("HOW_S4P_SELECT_MATCH") &&
+    !preview.includes("HOW_S4P_SELECT_MATCH") &&
+    !walletPage.includes("data-local-select-match-intro") &&
+    !preview.includes("data-local-select-match-intro") &&
+    preview.includes("Select a Club and Match"),
+  "Local New Sponsorship has no Select Match block; lock-in is Select a Club and Match"
 );
 
 assert(

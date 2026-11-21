@@ -588,13 +588,13 @@ assert(
   "Match Day lock-in tells Lead Climate Sponsors to lock the Match for the club already chosen at register"
 );
 assert(
-  localLockCopy().includes("the specific Match") &&
-    localLockCopy().includes("insert your Sponsorship amount") &&
-    localLockCopy().includes("Accept the Terms & Conditions") &&
-    localLockCopy().includes("Sign-off your sponsorship") &&
+  localLockCopy().includes("Invitation-to-Sponsor") &&
+    localLockCopy().includes("Invitations Tab") &&
+    localLockCopy().includes("flashing Invitations (1) Tab") &&
+    localLockCopy().includes("Follow the Instructions to complete your Sponsorship") &&
     !localLockCopy().includes("Goal-Sponsorship") &&
     !localLockCopy().includes("Goals-scored Sponsorship"),
-  "Local Business Climate Sponsors are told to insert a Sponsorship amount, not Goals-scored"
+  "Local Business Climate Sponsors are told to open the flashing Invitations tab"
 );
 assert(
   sponsorDashboardPage.includes("LeadSponsorHome") &&

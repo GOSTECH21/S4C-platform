@@ -11,10 +11,6 @@ import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import { localLockCopy } from "@/app/lib/climate-sponsors";
 import {
-  HOW_S4P_SELECT_MATCH,
-  HOW_S4P_SELECT_MATCH_SPONSOR,
-} from "@/app/lib/how-s4p-works";
-import {
   LOCAL_FIVE_RECORD_COPY,
   MATCH_DAY_PROJECTS_RECORD_LABEL,
 } from "@/app/lib/match-day-carbon-offset";
@@ -116,25 +112,13 @@ export default function LocalWalletPreviewPage() {
         </button>
 
         <section
-          data-local-select-match-intro="caption-only"
-          className="s4p-navy-panel overflow-hidden rounded-[1.75rem] border border-emerald-400/30 px-3 py-6 text-black sm:px-6 sm:py-8 md:px-8"
-        >
-          <h2 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
-            {HOW_S4P_SELECT_MATCH.title}
-          </h2>
-          <p className="mt-4 max-w-xl text-base font-semibold leading-7 sm:text-lg sm:leading-8">
-            {HOW_S4P_SELECT_MATCH_SPONSOR.caption}
-          </p>
-        </section>
-
-        <section
           id="match-day-lock-in"
           className="overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8 max-md:rounded-none max-md:border-0 max-md:px-0"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
             Match Day lock-in
           </p>
-          <h2 className="mt-2 text-3xl font-black">Select a Club</h2>
+          <h2 className="mt-2 text-3xl font-black">Select a Club and Match</h2>
           <p className="mt-3 max-w-3xl text-slate-300">{localLockCopy()}</p>
           <div className="mt-6 overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
             <p className="text-sm uppercase tracking-[0.2em] text-green-300">
