@@ -118,8 +118,13 @@ assert(
 assert(
   sql.includes("fan_p4p_predictions") &&
     sql.includes("fan_matchrav_trips") &&
-    sql.includes("S4P staff can view supporter votes"),
-  "Hosted SQL creates the Admin fan-profile tables"
+    sql.includes("S4P staff can view supporter votes") &&
+    sql.includes("create or replace function public.is_s4p_staff()") &&
+    sql.includes("create table if not exists public.climate_wallet_takes") &&
+    sql.indexOf("create table if not exists public.climate_wallet_takes") <
+      sql.indexOf("add column if not exists supporter_id") &&
+    /Copy ALL of this SQL/i.test(sql),
+  "Hosted SQL is pasteable SQL text and creates the Admin fan-profile tables"
 );
 assert(
   readFileSync("app/preview/admin-fan-profile/page.tsx", "utf8").includes(
