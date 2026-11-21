@@ -853,6 +853,9 @@ assert(
   fromMatchPage.includes("lockMatchDayClub") &&
     fromMatchPage.includes("sponsorWalletPath") &&
     fromMatchPage.includes("sponsorLoginPath") &&
+    fromMatchPage.includes("jobTitle") &&
+    fromMatchPage.includes("isLocalClimateSponsor") &&
+    fromMatchPage.includes("sponsorHomePath") &&
     pendingMatch.includes("sponsorFromMatchPath") &&
     pendingMatch.includes("PENDING_SPONSOR_MATCH_KEY"),
   "Tapping a Select Match phone fixture takes a Sponsor through login if needed, then lock-in and the wallet"

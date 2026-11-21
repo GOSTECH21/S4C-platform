@@ -244,6 +244,7 @@ export default function SponsorWalletPage() {
         kickoff: fixture.kickoff,
         venue: fixture.venue,
         sourceUrl: fixture.sourceUrl,
+        jobTitle: kind === "local" ? "Local Business Climate Sponsor" : null,
       });
       ensureGoalNetwork({ brandName: brand, clubNames: [club] });
       setLock(next);

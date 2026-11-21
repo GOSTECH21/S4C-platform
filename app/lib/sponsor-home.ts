@@ -1,3 +1,4 @@
+import { brandsMatch } from "./climate-sponsors";
 import {
   isKnownLocalBusinessBrand,
   isLeadClimateBrand,
@@ -23,25 +24,21 @@ function isLocalBusinessJobTitle(value: string | null | undefined): boolean {
   return /local\s+business/i.test(value ?? "");
 }
 
-/** Local Business Climate Sponsors never use the Lead goal-sponsorship wallet. */
-export function isLocalClimateSponsor(
+/**
+ * True for this brand as a Local Business Climate Sponsor.
+ * Does not use the signed-in session tier, so one local login cannot
+ * reclassify every other brand (including Leads) as local.
+ */
+export function brandIsLocalClimateSponsor(
   brandName?: string | null,
   hints: SponsorHomeHints = {}
 ): boolean {
   const name = (brandName ?? "").trim();
-  if (name && isLeadClimateBrand(name)) return false;
-  if (name && isKnownLocalBusinessBrand(name)) return true;
-  if (readSponsorTier() === "local") return true;
+  if (!name || isLeadClimateBrand(name)) return false;
+  if (isKnownLocalBusinessBrand(name)) return true;
   if (isLocalBusinessJobTitle(hints.jobTitle)) return true;
   const record = readLocalSponsorRecord() ?? localRecordFromProfile();
-  if (
-    record &&
-    (!name ||
-      record.brandName.trim().toLowerCase() === name.toLowerCase())
-  ) {
-    return true;
-  }
-  if (!name) return false;
+  if (record && brandsMatch(record.brandName, name)) return true;
   if (typeof window !== "undefined") {
     try {
       const raw = window.localStorage.getItem("s4p.sponsor.profile");
@@ -49,21 +46,30 @@ export function isLocalClimateSponsor(
         const parsed = JSON.parse(raw) as {
           jobTitle?: string;
           companyName?: string;
+          tier?: string;
         };
-        if (
-          parsed.companyName?.trim().toLowerCase() === name.toLowerCase() &&
-          isLocalBusinessJobTitle(parsed.jobTitle)
-        ) {
-          return true;
+        if (brandsMatch(String(parsed.companyName ?? ""), name)) {
+          if (parsed.tier === "local") return true;
+          if (isLocalBusinessJobTitle(parsed.jobTitle)) return true;
         }
       }
     } catch {
       // Profile storage can be blocked; fall through to club-local records.
     }
   }
-  return allLocalSponsors().some(
-    (row) => row.brandName.trim().toLowerCase() === name.toLowerCase()
-  );
+  return allLocalSponsors().some((row) => brandsMatch(row.brandName, name));
+}
+
+/** Local Business Climate Sponsors never use the Lead goal-sponsorship wallet. */
+export function isLocalClimateSponsor(
+  brandName?: string | null,
+  hints: SponsorHomeHints = {}
+): boolean {
+  if (brandIsLocalClimateSponsor(brandName, hints)) return true;
+  const name = (brandName ?? "").trim();
+  if (name && isLeadClimateBrand(name)) return false;
+  if (readSponsorTier() === "local") return true;
+  return false;
 }
 
 /** Lead Climate Sponsors use the S4P Sponsorship Dashboard. Locals use the LOBI home. */
