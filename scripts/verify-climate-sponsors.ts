@@ -397,10 +397,10 @@ assert(
 );
 assert(
   localLockCopy().includes("72 hours") &&
-    localLockCopy().includes("the specific Match") &&
-    localLockCopy().includes("insert your Sponsorship amount") &&
-    localLockCopy().includes("your Dashboard for your records"),
-  "Local Business Climate Sponsors lock a Club and Match, then insert a Sponsorship amount"
+    localLockCopy().includes("Invitation-to-Sponsor") &&
+    localLockCopy().includes("S4P Partner Club") &&
+    localLockCopy().includes("flashing Invitations (1) Tab"),
+  "Local Business Climate Sponsors are invited 72 hours before kick-off"
 );
 assert(
   leagueFromMatchLabel("Premier League Match") === "Premier League" &&

@@ -842,13 +842,13 @@ assert(
     !readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
       "HowS4pSelectMatch"
     ) &&
-    readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
-      "HOW_S4P_SELECT_MATCH_SPONSOR"
+    !readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
+      "HOW_S4P_SELECT_MATCH"
     ) &&
     readFileSync("app/club/dashboard/page.tsx", "utf8").includes(
       'audience="club"'
     ),
-  "Select Match phone is assigned to fans, lead sponsors, and the Club Sustainability Director; locals keep the caption only"
+  "Select Match phone is assigned to fans, lead sponsors, and the Club Sustainability Director"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
