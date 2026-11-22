@@ -37,25 +37,23 @@ import {
 } from "@/app/lib/local-sponsor";
 
 export default function PhilanthropistHomePage() {
-  const [record, setRecord] = useState<PhilanthropistRecord | null>(null);
+  const [record, setRecord] = useState<PhilanthropistRecord | null>(() => {
+    const stored = readPhilanthropistRecord();
+    if (!stored) return null;
+    const storedLocal = readLocalSponsorRecord();
+    return withoutBorrowedLocalGifts(stored, [
+      ...allLocalSponsors(),
+      ...(storedLocal ? [storedLocal] : []),
+    ]);
+  });
   const [brand, setBrand] = useState("");
   const [email, setEmail] = useState("");
   const [signedIn, setSignedIn] = useState(false);
   const [draftKey, setDraftKey] = useState(0);
 
   useEffect(() => {
-    const stored = readPhilanthropistRecord();
-    const storedLocal = readLocalSponsorRecord();
-    setRecord(
-      stored
-        ? withoutBorrowedLocalGifts(stored, [
-            ...allLocalSponsors(),
-            ...(storedLocal ? [storedLocal] : []),
-          ])
-        : null
-    );
     void getCurrentSponsor()
-      .then((sponsor) => {
+      .then(async (sponsor) => {
         const brandName = String(sponsor.name ?? "").trim();
         const jobTitle = String(sponsor.industry ?? "");
         setBrand(brandName);
