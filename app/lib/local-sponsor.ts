@@ -406,8 +406,7 @@ function syncLocalSponsorProfile(record: LocalSponsorRecord) {
         ...previous,
         companyName: record.brandName,
         email: record.email || previous.email || "",
-        jobTitle:
-          previous.jobTitle || "Local Business Climate Sponsor",
+        jobTitle: "Local Business Climate Sponsor",
         tier: "local",
         clubName: record.clubName,
         pledgeGbp: totalLocalPledge(record),

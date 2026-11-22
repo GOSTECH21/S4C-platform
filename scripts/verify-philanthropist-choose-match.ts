@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import {
   applyPhilanthropistMatchGifts,
   PHILANTHROPIST_AMOUNT_LABEL,
+  PHILANTHROPIST_INVITE_COPY,
   PHILANTHROPIST_MIN_GBP,
   PHILANTHROPIST_SPONSOR_COPY,
   PHILANTHROPIST_SPONSOR_CTA,
@@ -9,6 +10,7 @@ import {
   philanthropistFundingGbp,
   philanthropistGiftCopy,
   upsertPhilanthropistMatch,
+  withoutBorrowedLocalGifts,
   type PhilanthropistRecord,
 } from "../app/lib/philanthropist";
 import { philanthropistAdminSnapshot } from "../app/lib/philanthropist-admin";
@@ -44,7 +46,9 @@ const withMatch = applyPhilanthropistMatchGifts(smith, [
 
 assert(
   PHILANTHROPIST_MIN_GBP === 1 &&
-    PHILANTHROPIST_SPONSOR_HEADING === "Sponsor a Club and Match" &&
+    PHILANTHROPIST_SPONSOR_HEADING === "Select a Club and a Match" &&
+    PHILANTHROPIST_INVITE_COPY.includes("Sustainability Director") &&
+    PHILANTHROPIST_INVITE_COPY.includes("Invitation") &&
     PHILANTHROPIST_SPONSOR_COPY.includes("Choose the Club") &&
     PHILANTHROPIST_SPONSOR_COPY.includes("choose the Match") &&
     PHILANTHROPIST_SPONSOR_COPY.includes("how much money") &&
@@ -144,10 +148,12 @@ assert(
     gift.includes("lockMatchDayClub") &&
     gift.includes("depositPhilanthropistClimateWallet") &&
     gift.includes('data-philanthropist-match-gift="philanthropist-choose-match-v1"') &&
-    gift.includes("onClubMatchSelected") &&
-    gift.includes("onClubConfirmed") &&
+    gift.includes("SPONSOR_INVITATIONS_PATH") &&
+    gift.includes("PHILANTHROPIST_INVITE_COPY") &&
+    gift.includes("matchLocked ?") &&
     gift.includes('useState("")') &&
     !gift.includes("useState(record?.clubName") &&
+    !gift.includes("HowS4pSelectMatch") &&
     home.includes("philanthropist-new-match-v1") &&
     home.includes("draftKey") &&
     fromMatch.includes("isPhilanthropistSponsor") &&
@@ -175,20 +181,58 @@ const fixtures = readFileSync(
   "utf8"
 );
 assert(
-  gift.includes("HowS4pSelectMatch") &&
-    gift.includes("max-md:rounded-none max-md:border-0") &&
-    frame.includes("phone-mobile-unframed-v1") &&
-    frame.includes("max-md:rounded-none max-md:border-0") &&
-    fixtures.includes("max-md:h-auto") &&
-    fixtures.includes("max-md:!overflow-visible") &&
-    fixtures.includes("are on the phone.") &&
-    fixtures.includes("md:hidden") &&
-    fixtures.includes("philanthropist-stay-v1") &&
-    fixtures.includes("onClubConfirmed") &&
+  !gift.includes("HowS4pSelectMatch") &&
+    gift.includes("PHILANTHROPIST_SPONSOR_HEADING") &&
+    gift.includes("PHILANTHROPIST_SPONSOR_COPY") &&
+    gift.includes("Locked in") &&
     gift.includes("data-draft-club") &&
     gift.includes("data-draft-fixture") &&
-    !fixtures.includes("max-md:h-[28rem]"),
-  "Philanthropist Select Match has no phone surround on mobile and keeps a new club on the page"
+    frame.includes("phone-mobile-unframed-v1") &&
+    fixtures.includes("philanthropist-stay-v1"),
+  "Logged-in philanthropists select a Club and Match in the lock-in card, with no fixture list above it"
+);
+
+const borrowed = withoutBorrowedLocalGifts(
+  applyPhilanthropistMatchGifts(smith, [
+    {
+      clubName: "Sunderland",
+      fixtureName: "Sunderland vs Tottenham Hotspur",
+      amountGbp: 1300,
+    },
+  ]),
+  [
+    {
+      brandName: "OKECHUKWU LIMITED",
+      clubName: "Sunderland",
+      pledgeGbp: 1300,
+      matchSponsorships: [
+        { fixtureName: "Hearts v Celtic", amountGbp: 1300 },
+      ],
+    },
+  ]
+);
+assert(
+  borrowed === null || philanthropistFundingGbp(borrowed) === 0,
+  "A local business £1,300 is not shown as the philanthropist's own sponsorship"
+);
+
+const kept = withoutBorrowedLocalGifts(withMatch, [
+  {
+    brandName: "OKECHUKWU LIMITED",
+    clubName: "Sunderland",
+    pledgeGbp: 1300,
+    matchSponsorships: [
+      { fixtureName: "Sunderland vs Tottenham Hotspur", amountGbp: 1300 },
+    ],
+  },
+]);
+assert(
+  kept !== null &&
+    philanthropistFundingGbp(kept) === 17500 &&
+    (kept.matchSponsorships ?? []).every(
+      (row) => !row.fixtureName.includes("Sunderland")
+    ),
+  "A philanthropist's own Match stays when another brand sponsored a different club"
 );
 
 if (failures.length > 0) {

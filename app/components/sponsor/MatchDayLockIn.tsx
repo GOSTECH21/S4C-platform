@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   clubsMatch,
   displayLockFixture,
+  LEAD_SELECT_MATCH_HEADING,
   lockCopy,
   secondLeadClimateSponsorRejectedMessage,
   type MatchDayClubLock,
@@ -23,7 +24,8 @@ import {
   lockMatchDayClub,
 } from "@/app/services/climate-sponsors.service";
 import { ClubChosenProjectsPanel } from "@/app/components/sponsor/ClubChosenProjectsPanel";
-import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
+import Link from "next/link";
+import { SPONSOR_INVITATIONS_PATH } from "@/app/lib/routes";
 
 export function MatchDayLockIn({
   brandName,
@@ -141,20 +143,30 @@ export function MatchDayLockIn({
 
   return (
     <>
-    <HowS4pSelectMatch
-      audience="sponsor"
-      initialClub={lockClub}
-      className="mb-8"
-    />
     <section className="overflow-visible rounded-3xl border border-green-500/30 bg-slate-900 p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-green-400">
         Match Day lock-in
       </p>
-      <h2 className="mt-2 text-3xl font-black">Match Day Lock-In</h2>
+      <h2 className="mt-2 text-3xl font-black">{LEAD_SELECT_MATCH_HEADING}</h2>
       <p className="mt-3 max-w-3xl text-slate-300">{lockCopy()}</p>
+      <p className="mt-3 max-w-3xl text-sm text-slate-300">
+        Or open an{" "}
+        <Link
+          href={SPONSOR_INVITATIONS_PATH}
+          className="font-semibold text-s4p-mint underline decoration-s4p-mark decoration-2 underline-offset-2"
+        >
+          Invitation to Sponsor
+        </Link>{" "}
+        from a Club&apos;s Sustainability Director and follow the instructions
+        to complete your sponsorship.
+      </p>
       <div className="mt-6 overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
         <p className="text-sm uppercase tracking-[0.2em] text-green-300">
-          {matchLocked ? "Locked in" : "Choose the Match"}
+          {matchLocked
+            ? "Locked in"
+            : lockClub
+              ? "Select the Match"
+              : "Select a Club"}
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ClubTypeInMenu
@@ -207,7 +219,7 @@ export function MatchDayLockIn({
         </button>
       </div>
     </section>
-    {lockClub ? (
+    {matchLocked ? (
       <div id={projectsSectionId} className="mt-8 scroll-mt-6">
         <ClubChosenProjectsPanel clubName={lockClub} />
       </div>

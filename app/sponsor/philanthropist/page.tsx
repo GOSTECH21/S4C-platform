@@ -16,14 +16,25 @@ import { PhilanthropistSponsorsTable } from "@/app/components/sponsor/Philanthro
 import {
   PHILANTHROPIST_HOME_EMPTY,
   PHILANTHROPIST_HOME_HEADING,
+  PHILANTHROPIST_HOME_READY,
   PHILANTHROPIST_KICKER,
+  PHILANTHROPIST_MIN_GBP,
+  PHILANTHROPIST_STORAGE,
   hydratePhilanthropistRecord,
   isPhilanthropistSponsor,
   philanthropistDisplayName,
+  philanthropistFundingGbp,
   philanthropistGiftCopy,
   readPhilanthropistRecord,
+  withoutBorrowedLocalGifts,
+  writePhilanthropistRecord,
   type PhilanthropistRecord,
 } from "@/app/lib/philanthropist";
+import { fetchLocalSponsorRecords } from "@/app/services/local-sponsor.service";
+import {
+  allLocalSponsors,
+  readLocalSponsorRecord,
+} from "@/app/lib/local-sponsor";
 
 export default function PhilanthropistHomePage() {
   const [record, setRecord] = useState<PhilanthropistRecord | null>(null);
@@ -33,7 +44,16 @@ export default function PhilanthropistHomePage() {
   const [draftKey, setDraftKey] = useState(0);
 
   useEffect(() => {
-    setRecord(readPhilanthropistRecord());
+    const stored = readPhilanthropistRecord();
+    const storedLocal = readLocalSponsorRecord();
+    setRecord(
+      stored
+        ? withoutBorrowedLocalGifts(stored, [
+            ...allLocalSponsors(),
+            ...(storedLocal ? [storedLocal] : []),
+          ])
+        : null
+    );
     void getCurrentSponsor()
       .then((sponsor) => {
         const brandName = String(sponsor.name ?? "").trim();
@@ -43,12 +63,19 @@ export default function PhilanthropistHomePage() {
         const philanthropist = isPhilanthropistSponsor(brandName, { jobTitle });
         setSignedIn(philanthropist);
         if (philanthropist) {
-          setRecord(
-            hydratePhilanthropistRecord({
-              ...sponsor,
-              email: String(sponsor.email ?? "").trim(),
-            })
-          );
+          const hydrated = hydratePhilanthropistRecord({
+            ...sponsor,
+            email: String(sponsor.email ?? "").trim(),
+          });
+          const remote = await fetchLocalSponsorRecords().catch(() => []);
+          const cleaned = hydrated
+            ? withoutBorrowedLocalGifts(hydrated, remote)
+            : null;
+          if (cleaned) writePhilanthropistRecord(cleaned);
+          else if (hydrated && typeof window !== "undefined") {
+            window.localStorage.removeItem(PHILANTHROPIST_STORAGE);
+          }
+          setRecord(cleaned);
         }
       })
       .catch(() => {
@@ -81,7 +108,11 @@ export default function PhilanthropistHomePage() {
         <p className="mt-2 text-lg font-semibold text-white">{headingName}</p>
       ) : null}
       <p className="mt-4 text-slate-300">
-        {record ? philanthropistGiftCopy(record) : PHILANTHROPIST_HOME_EMPTY}
+        {record && philanthropistFundingGbp(record) >= PHILANTHROPIST_MIN_GBP
+          ? philanthropistGiftCopy(record)
+          : canSponsor
+            ? PHILANTHROPIST_HOME_READY
+            : PHILANTHROPIST_HOME_EMPTY}
       </p>
       {canSponsor ? (
         <>

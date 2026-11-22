@@ -78,13 +78,18 @@ assert(
     fan.includes("clubOptions={clubNames}") &&
     !fan.includes("UpcomingMatches") &&
     !fan.includes("MyTeamsList") &&
-    lead.includes('audience="sponsor"') &&
+    lead.includes("LEAD_SELECT_MATCH_HEADING") &&
+    readFileSync("app/lib/climate-sponsors.ts", "utf8").includes(
+      'LEAD_SELECT_MATCH_HEADING = "Select a Club and a Match"'
+    ) &&
+    !lead.includes("HowS4pSelectMatch") &&
+    !lead.includes('audience="sponsor"') &&
     !wallet.includes("HowS4pSelectMatch") &&
     !wallet.includes('audience="sponsor"') &&
     !wallet.includes("HOW_S4P_SELECT_MATCH") &&
     club.includes('audience="club"') &&
     club.includes("clubLocked"),
-  "Select Match phone is on fan My Teams, lead lock-in, and club dashboard; Local New Sponsorship has no Select Match block"
+  "Select Match phone is on fan My Teams and the club dashboard; Lead and Local lock-in are Select a Club and a Match"
 );
 assert(
   localRegister.includes("MatchSponsorshipPicker") &&
@@ -157,5 +162,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "How S4P Works: homepage Access & Join only; Select Match on fan, lead, and club screens."
+  "How S4P Works: homepage Access & Join only; Select Match on fan and club screens; Lead lock-in is Select a Club and a Match."
 );
