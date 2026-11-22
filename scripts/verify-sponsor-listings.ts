@@ -82,6 +82,12 @@ assert(
     readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8").includes(
       'setTab("local")'
     ) &&
+    readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8").includes(
+      'data-global-brands-tab={globalSent ? "sent" : "open"}'
+    ) &&
+    readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8").includes(
+      "bg-slate-100 text-slate-950"
+    ) &&
     readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
       "Opening Sponsors..."
     ) &&
