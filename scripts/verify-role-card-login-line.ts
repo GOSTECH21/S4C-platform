@@ -5,6 +5,7 @@ import {
   FAN_LOGIN_PATH,
   PARTNER_LOGIN_PATH,
   LOCAL_SPONSOR_SIGN_IN_PATH,
+  PHILANTHROPIST_LOGIN_PATH,
   SPONSOR_LOGIN_PATH,
 } from "../app/lib/routes";
 
@@ -40,7 +41,7 @@ assert(
     fan?.login === FAN_LOGIN_PATH &&
     local?.login === LOCAL_SPONSOR_SIGN_IN_PATH &&
     global?.login === SPONSOR_LOGIN_PATH &&
-    philanthropist?.login === SPONSOR_LOGIN_PATH &&
+    philanthropist?.login === PHILANTHROPIST_LOGIN_PATH &&
     partner?.login === PARTNER_LOGIN_PATH,
   "Each role login line opens that role's login page"
 );
@@ -50,10 +51,19 @@ assert(
     sponsorLogin.includes(
       "Sign in as Local Business Climate Sponsor to receive a Partner Club's 5 Climate Project."
     ) &&
-    sponsorLogin.includes('searchParams.get("as") === "local"') &&
+    sponsorLogin.includes('audience === "local"') &&
     sponsorLogin.includes("isLocalClimateSponsor") &&
-    sponsorLogin.includes("Brand / Sponsor"),
-  "Local Business sign-in shows its heading and introduction; other sponsors keep Brand / Sponsor"
+    sponsorLogin.includes("Brand / Sponsor") &&
+    sponsorLogin.includes("Philanthropic Sponsor") &&
+    sponsorLogin.includes(
+      "Sign in as a Philanthropic Sponsor to receive a Partner Club's 5 Climate Projects."
+    ) &&
+    sponsorLogin.includes('audience === "philanthropist"') &&
+    sponsorLogin.includes(
+      "Sign in as Sponsorship Manager to receive a club's 5 Climate Projects."
+    ) &&
+    !sponsorLogin.includes("create your own campaign list"),
+  "Philanthropist and Global Brand sign-in use their own introductions, without create your own campaign list"
 );
 
 const firstLoginLine = roles.indexOf("<RoleLoginLine");
