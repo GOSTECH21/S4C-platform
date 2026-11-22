@@ -19,6 +19,7 @@ import {
 import type { FolderOffer, SignedSponsorship } from "./sponsor-dashboard";
 import type { ClimateWalletTake } from "./climate-wallet-takes";
 import { votedProjectsOnSignedOffer } from "./sponsor-dashboard";
+import { fixtureTitleForClub } from "./club-fixture-guard";
 import { findCalendarMatch } from "./sporting-calendar";
 import {
   globalPicksFromLock,
@@ -73,7 +74,8 @@ export function fixtureLabelFromOffer(matchTitle: string, clubName: string): str
   const title = String(matchTitle ?? "")
     .replace(/\s+climate campaign$/i, "")
     .trim();
-  if (/\sv\s/i.test(title) || /\svs\.?\s/i.test(title)) return title;
+  const aligned = fixtureTitleForClub({ clubName, fixtureName: title });
+  if (aligned) return aligned;
   return title || `${clubName} Match`;
 }
 
@@ -117,7 +119,11 @@ export function sponsoredMatchesFromLock(
   lock: MatchDayClubLock | null | undefined
 ): SponsoredMatchListing[] {
   if (!lock?.clubName?.trim()) return [];
-  const fixture = displayLockFixture(lock);
+  const fixture = fixtureTitleForClub({
+    clubName: lock.clubName,
+    fixtureName: displayLockFixture(lock),
+    date: lock.fixtureDate,
+  });
   if (!isNamedFixture(fixture)) return [];
   const date =
     matchDateKey(lock.fixtureDate) ||
