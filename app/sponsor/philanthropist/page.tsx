@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
+  PHILANTHROPIST_ADMIN_ID,
+  PHILANTHROPIST_PST_ID,
   PHILANTHROPIST_REGISTER_PATH,
   PHILANTHROPIST_SPONSOR_ID,
   SPONSOR_LOGIN_PATH,
@@ -83,6 +85,22 @@ export default function PhilanthropistHomePage() {
       });
   }, []);
 
+  useEffect(() => {
+    function scrollToHash() {
+      const id = window.location.hash.replace(/^#/, "");
+      if (id !== PHILANTHROPIST_ADMIN_ID && id !== PHILANTHROPIST_PST_ID) return;
+      window.requestAnimationFrame(() => {
+        document.getElementById(id)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, [signedIn, record]);
+
   const headingName = record ? philanthropistDisplayName(record) : brand;
   const canSponsor = Boolean(record || signedIn);
   const identity = {
@@ -91,6 +109,19 @@ export default function PhilanthropistHomePage() {
     email: record?.email || email,
     createdAt: record?.createdAt,
   };
+  const adminRecord: PhilanthropistRecord | null =
+    record ??
+    (canSponsor
+      ? {
+          name: identity.name || headingName || "Philanthropist",
+          organisation: identity.organisation || headingName || "",
+          email: identity.email,
+          clubName: "",
+          giftGbp: 0,
+          createdAt: identity.createdAt || new Date().toISOString(),
+          matchSponsorships: [],
+        }
+      : null);
 
   return (
     <div
@@ -138,10 +169,10 @@ export default function PhilanthropistHomePage() {
             brandName={headingName || brand}
             onSaved={setRecord}
           />
-          {record ? (
+          {adminRecord ? (
             <>
-              <PhilanthropistAdmin record={record} />
-              <PhilanthropistSponsorsTable record={record} />
+              <PhilanthropistAdmin record={adminRecord} />
+              <PhilanthropistSponsorsTable record={adminRecord} />
             </>
           ) : null}
         </>

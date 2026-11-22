@@ -101,19 +101,24 @@ function SponsorLoginForm({
       const sponsor = await getCurrentSponsor();
       const brandName = String(sponsor.name ?? "");
       const jobTitle = String(sponsor.industry ?? "");
-      await hydrateLocalSponsorRecords({
-        brandName,
-        email,
-        sponsor,
-      });
+      const philanthropist = isPhilanthropistSponsor(brandName, { jobTitle });
+      if (!philanthropist) {
+        await hydrateLocalSponsorRecords({
+          brandName,
+          email,
+          sponsor,
+        });
+        rememberLocalSponsorSession(sponsor);
+      }
       hydratePhilanthropistRecord({
         ...sponsor,
         email,
       });
-      rememberLocalSponsorSession(sponsor);
       const pendingMatch = continueAfterSponsorAuth();
       if (pendingMatch) {
         window.location.href = pendingMatch;
+      } else if (philanthropist) {
+        window.location.href = sponsorHomePath(brandName, { jobTitle });
       } else if (isLocalClimateSponsor(brandName, { jobTitle })) {
         window.location.href = localSponsorLoginPath(
           inviteCountWaitingForBrand(brandName)
