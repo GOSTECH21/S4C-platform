@@ -36,6 +36,7 @@ import {
 } from "../lib/climate-sponsors";
 import { uniqueClubNames } from "../lib/s4p-admin";
 import { recordLeadMatchPaid } from "../lib/lead-project-folder";
+import { alignClubFixture } from "../lib/club-fixture-guard";
 import { CURRENT_SEASON_LEAGUES } from "../lib/current-season";
 import {
   calendarClubNamesOnly,
@@ -687,6 +688,11 @@ export function lockMatchDayClub({
       secondLeadClimateSponsorRejectedMessage(clubName, "Puma", fixtureName)
     );
   }
+  const aligned = alignClubFixture({ clubName, fixtureName, date: fixtureDate });
+  const resolvedFixture = aligned.fixtureName || fixtureName;
+  const resolvedDate = aligned.changed ? aligned.date ?? fixtureDate : fixtureDate;
+  const resolvedKickoff = aligned.changed ? aligned.kickoff ?? kickoff : kickoff;
+  const resolvedVenue = aligned.changed ? aligned.venue ?? venue : venue;
   const lockedAt = new Date().toISOString();
   const store = readJson<LockStore>(LOCK_KEY, {});
   const localKind =
@@ -694,7 +700,7 @@ export function lockMatchDayClub({
     isPhilanthropistSponsor(brandName, { jobTitle });
   const occupant = occupyingLeadClimateSponsorForMatch({
     clubName,
-    fixtureName,
+    fixtureName: resolvedFixture,
     networks: listGoalNetworks(),
     locks: Object.values(store).filter(
       (row) => row && row.clubName && !lockBelongsToLocalClimateSponsor(row)
@@ -713,7 +719,7 @@ export function lockMatchDayClub({
       secondLeadClimateSponsorRejectedMessage(
         clubName,
         occupant.brandName,
-        fixtureName
+        resolvedFixture
       )
     );
   }
@@ -730,12 +736,16 @@ export function lockMatchDayClub({
   const next: MatchDayClubLock = {
     brandKey: brandKey(brandName),
     clubName,
-    matchLabel,
-    fixtureName,
+    matchLabel:
+      aligned.changed &&
+      (!matchLabel.trim() || matchLabel.trim() === String(fixtureName ?? "").trim())
+        ? resolvedFixture
+        : matchLabel,
+    fixtureName: resolvedFixture,
     competition: competition || matchLabel,
-    fixtureDate,
-    kickoff,
-    venue,
+    fixtureDate: resolvedDate,
+    kickoff: resolvedKickoff,
+    venue: resolvedVenue,
     sourceUrl,
     kind: localKind ? "local" : existing?.kind === "local" ? "local" : "lead",
     lockedAt,

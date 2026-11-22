@@ -466,6 +466,40 @@ assert(
   "Section (A) uses each Local Business Climate Sponsor's amount on every club"
 );
 
+const sunderlandWrongMatch = leadSponsorHomeSections({
+  pending: [],
+  signed: [
+    {
+      ...heartsSigned,
+      offer: {
+        ...heartsSigned.offer,
+        id: "sunderland-offer",
+        clubId: "sunderland",
+        clubName: "Sunderland",
+        headline: "Hearts v Celtic",
+        matchTitle: "Hearts v Celtic",
+        matchDate: "2026-11-29",
+      },
+      signature: {
+        ...heartsSigned.signature,
+        id: "sig-sunderland",
+        signerName: "OKECHUKWU LIMITED",
+      },
+    },
+  ],
+  kind: "local",
+  localAmountByClub: { Sunderland: 1300 },
+});
+assert(
+  sunderlandWrongMatch.approved.length === 1 &&
+    sunderlandWrongMatch.approved[0]?.clubName === "Sunderland" &&
+    sunderlandWrongMatch.approved[0]?.matchTitle ===
+      "Sunderland v Tottenham Hotspur" &&
+    !String(sunderlandWrongMatch.approved[0]?.matchTitle).includes("Hearts") &&
+    localApproved.approved[0]?.matchTitle === "Hearts v Celtic",
+  "A club card shows only that club's match: Sunderland on 29 Nov is Sunderland v Tottenham Hotspur, and Hearts keeps Hearts v Celtic"
+);
+
 assert(
   localHome.includes("LocalSignedSponsorHome") &&
     localHome.includes("clubsNeedingChosenProjects") &&

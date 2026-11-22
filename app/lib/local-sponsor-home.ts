@@ -1,6 +1,7 @@
 /** Local Business Climate Sponsor login home: calendar, matches, money, LOBI. */
 
 import { brandsMatch, displayLockFixture, isNamedFixture, type MatchDayClubLock } from "./climate-sponsors";
+import { fixtureTitleForClub } from "./club-fixture-guard";
 import { sameNamedFixture, type ClubFixture } from "./club-fixtures";
 import {
   allLocalSponsors,
@@ -51,7 +52,11 @@ export function localSponsoredClubMatches(
       continue;
     }
     for (const match of matches) {
-      const fixtureName = match.fixtureName.trim();
+      const fixtureName = fixtureTitleForClub({
+        clubName: record.clubName,
+        fixtureName: match.fixtureName.trim(),
+        date: match.date,
+      });
       if (!fixtureName) continue;
       const key = `${record.clubName.toLowerCase()}|${fixtureName.toLowerCase()}`;
       if (seen.has(key)) continue;
@@ -144,11 +149,16 @@ export function localSponsoredMatches({
     for (const match of matches) {
       const date = dateForSponsoredMatch(match, record, fixtures);
       if (!date) continue;
+      const fixtureName = fixtureTitleForClub({
+        clubName: record.clubName,
+        fixtureName: match.fixtureName,
+        date,
+      });
       add({
         date,
         clubName: record.clubName,
-        fixtureName: match.fixtureName,
-        headline: `${record.clubName} · ${match.fixtureName}`,
+        fixtureName,
+        headline: `${record.clubName} · ${fixtureName}`,
         offerId: `local:${record.brandName}:${record.clubName}:${match.fixtureName}`,
       });
     }

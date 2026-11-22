@@ -11,6 +11,7 @@ import {
   isNamedFixture,
   type MatchDayClubLock,
 } from "./climate-sponsors";
+import { fixtureIncludesClub, fixtureTitleForClub } from "./club-fixture-guard";
 import { fixtureLabelFromOffer } from "./sponsor-signed-home";
 import {
   SPONSOR_CALENDAR_PATH,
@@ -205,16 +206,34 @@ function isTakenMatch(
 }
 
 function matchTitleFor(
-  offer: Pick<FolderOffer, "matchTitle" | "clubName">,
+  offer: Pick<FolderOffer, "matchTitle" | "clubName" | "matchDate">,
   lock?: MatchDayClubLock | null
 ) {
   const fromOffer = fixtureLabelFromOffer(offer.matchTitle, offer.clubName);
-  if (fromOffer && isNamedFixture(fromOffer)) return fromOffer;
-  if (lock && clubsMatch(lock.clubName, offer.clubName)) {
-    const fixture = displayLockFixture(lock);
-    if (isNamedFixture(fixture)) return fixture;
+  if (
+    fromOffer &&
+    isNamedFixture(fromOffer) &&
+    fixtureIncludesClub(fromOffer, offer.clubName)
+  ) {
+    return fromOffer;
   }
-  return fromOffer || `${offer.clubName} Match Day`;
+  if (lock && clubsMatch(lock.clubName, offer.clubName)) {
+    const fixture = fixtureTitleForClub({
+      clubName: offer.clubName,
+      fixtureName: displayLockFixture(lock),
+      date: lock.fixtureDate ?? offer.matchDate,
+    });
+    if (isNamedFixture(fixture) && fixtureIncludesClub(fixture, offer.clubName)) {
+      return fixture;
+    }
+  }
+  return (
+    fixtureTitleForClub({
+      clubName: offer.clubName,
+      fixtureName: offer.matchTitle,
+      date: offer.matchDate,
+    }) || `${offer.clubName} Match Day`
+  );
 }
 
 function groupFromOffer({
@@ -324,7 +343,11 @@ function groupFromFolder(
     key: `${keyPrefix}:${entry.key}`,
     clubId: entry.clubId,
     clubName: entry.clubName,
-    matchTitle: entry.matchTitle,
+    matchTitle: fixtureTitleForClub({
+      clubName: entry.clubName,
+      fixtureName: entry.matchTitle,
+      date: entry.matchDate,
+    }),
     matchDate: entry.matchDate,
     headline: entry.headline,
     offerId: entry.offerId || null,
