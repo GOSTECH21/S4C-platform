@@ -109,8 +109,8 @@ export function ClubSponsorsListings({
   }, [clubName]);
 
   useEffect(() => {
-    if (noticeKind === "global" && globalSent && !error) setTab("local");
-  }, [noticeKind, globalSent, error]);
+    if (globalSent && !error) setTab("local");
+  }, [globalSent, error]);
 
   return (
     <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8">
@@ -135,7 +135,12 @@ export function ClubSponsorsListings({
           type="button"
           role="tab"
           aria-selected={tab === "global"}
-          className={`rounded-lg px-4 py-2 text-sm font-semibold ${s4pTabClass(tab === "global")}`}
+          data-global-brands-tab={globalSent ? "sent" : "open"}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+            globalSent
+              ? "border border-slate-800 bg-slate-100 text-slate-950"
+              : s4pTabClass(tab === "global")
+          }`}
           onClick={() => setTab("global")}
         >
           {GLOBAL_BRANDS_TAB_LABEL}
