@@ -33,6 +33,7 @@ export function brandIsLocalClimateSponsor(
   brandName?: string | null,
   hints: SponsorHomeHints = {}
 ): boolean {
+  if (isPhilanthropistSponsor(brandName, hints)) return false;
   const name = (brandName ?? "").trim();
   if (!name || isLeadClimateBrand(name)) return false;
   if (isKnownLocalBusinessBrand(name)) return true;
@@ -65,6 +66,7 @@ export function isLocalClimateSponsor(
   brandName?: string | null,
   hints: SponsorHomeHints = {}
 ): boolean {
+  if (isPhilanthropistSponsor(brandName, hints)) return false;
   if (brandIsLocalClimateSponsor(brandName, hints)) return true;
   const name = (brandName ?? "").trim();
   if (name && isLeadClimateBrand(name)) return false;

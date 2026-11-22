@@ -127,7 +127,8 @@ export function ClubTypeInMenu({
         <div
           role="listbox"
           aria-label="Clubs you can sponsor"
-          className="absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
+          data-menu-scroll="club-match-scroll-v1"
+          className="absolute z-40 mt-2 max-h-[min(22rem,58vh)] w-full overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 shadow-lg [touch-action:pan-y]"
         >
           <div className="grid gap-2">
             {suggestions.map((club) => {
@@ -140,7 +141,6 @@ export function ClubTypeInMenu({
                   aria-selected={selected}
                   onPointerDown={(event) => {
                     event.preventDefault();
-                    event.stopPropagation();
                     commit(club);
                   }}
                   className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
@@ -324,10 +324,11 @@ export function ClubLeagueMenu({
           data-mobile-club-accordion={
             allPlatformClubs ? "inline-v1" : undefined
           }
+          data-menu-scroll="club-match-scroll-v1"
           className={
             allPlatformClubs
-              ? "relative z-40 mt-2 w-full min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 shadow-lg [touch-action:pan-y] max-md:max-h-none md:absolute md:z-[60] md:max-h-[70vh]"
-              : "absolute z-40 mt-2 w-full min-w-0 rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
+              ? "relative z-40 mt-2 max-h-[min(22rem,58vh)] w-full min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 shadow-lg [touch-action:pan-y] md:absolute md:z-[60] md:max-h-[70vh]"
+              : "absolute z-40 mt-2 max-h-[min(22rem,58vh)] w-full min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 shadow-lg [touch-action:pan-y]"
           }
           onPointerDown={(event) => event.stopPropagation()}
         >
@@ -403,11 +404,7 @@ export function ClubLeagueMenu({
                                   type="button"
                                   role="option"
                                   aria-selected={selected}
-                                  onPointerDown={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    chooseClub(club);
-                                  }}
+                                  onClick={() => chooseClub(club)}
                                   className={pickClubClass(selected)}
                                 >
                                   {club}
@@ -439,11 +436,7 @@ export function ClubLeagueMenu({
                           type="button"
                           role="option"
                           aria-selected={selected}
-                          onPointerDown={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            chooseClub(club);
-                          }}
+                          onClick={() => chooseClub(club)}
                           className={pickClubClass(selected)}
                         >
                           {club}
@@ -492,11 +485,7 @@ function FixtureChoiceButton({
       role="option"
       aria-selected={selected}
       data-fixture-kind={kind}
-      onPointerDown={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        onPick(fixture);
-      }}
+      onClick={() => onPick(fixture)}
       className={`rounded-xl border px-3 py-3 text-left ${
         selected
           ? "border-s4p-mark bg-s4p-mark/80 text-slate-950"
@@ -586,7 +575,8 @@ export function MatchFixtureMenu({
           <div
             role="listbox"
             aria-label="Published matches"
-            className="mt-2 max-h-[28rem] overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 [touch-action:pan-y] max-md:max-h-none max-md:overflow-visible"
+            data-menu-scroll="club-match-scroll-v1"
+            className="mt-2 max-h-[min(22rem,58vh)] overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 [touch-action:pan-y]"
           >
             {choices}
           </div>
@@ -621,7 +611,8 @@ export function MatchFixtureMenu({
         <div
           role="listbox"
           aria-label="Published matches"
-          className="absolute z-40 mt-2 max-h-[28rem] w-full overflow-y-auto rounded-xl border border-slate-300 bg-white p-3 shadow-lg"
+          data-menu-scroll="club-match-scroll-v1"
+          className="absolute z-40 mt-2 max-h-[min(22rem,58vh)] w-full overflow-y-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-3 shadow-lg [touch-action:pan-y]"
         >
           {choices}
         </div>

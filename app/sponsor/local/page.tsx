@@ -34,10 +34,12 @@ import {
 } from "@/app/lib/sponsor-signed-home";
 import type { ClubFixture } from "@/app/lib/club-fixtures";
 import {
+  PHILANTHROPIST_HOME_PATH,
   SPONSOR_LOGIN_PATH,
   isNewSponsorshipRequest,
   localNewSponsorshipPath,
 } from "@/app/lib/routes";
+import { isPhilanthropistSponsor } from "@/app/lib/philanthropist";
 import {
   isLocalClimateSponsor,
   rememberLocalSponsorSession,
@@ -77,6 +79,7 @@ export default function LocalSponsorHomePage() {
   const [lock, setLock] = useState<MatchDayClubLock | null>(null);
   const [committedGbp, setCommittedGbp] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     if (isNewSponsorshipRequest(window.location.search)) {
@@ -88,8 +91,14 @@ export default function LocalSponsorHomePage() {
         const sponsor = await getCurrentSponsor();
         const brandName = String(sponsor.name ?? "");
         const jobTitle = String(sponsor.industry ?? "");
+        if (isPhilanthropistSponsor(brandName, { jobTitle })) {
+          setLeaving(true);
+          router.replace(PHILANTHROPIST_HOME_PATH);
+          return;
+        }
         rememberLocalSponsorSession(sponsor);
         if (!brandName || !isLocalClimateSponsor(brandName, { jobTitle })) {
+          setLeaving(true);
           router.replace(SPONSOR_LOGIN_PATH);
           return;
         }
@@ -191,6 +200,7 @@ export default function LocalSponsorHomePage() {
           )
         );
       } catch {
+        setLeaving(true);
         router.replace(SPONSOR_LOGIN_PATH);
       } finally {
         setLoading(false);
@@ -199,7 +209,7 @@ export default function LocalSponsorHomePage() {
     void load();
   }, [router]);
 
-  if (loading) {
+  if (loading || leaving) {
     return <p className="text-slate-400">Loading your Local Business home...</p>;
   }
 

@@ -27,6 +27,10 @@ import {
   PHILANTHROPIST_HOME_PATH,
   PHILANTHROPIST_PST_ID,
 } from "../app/lib/routes";
+import {
+  isLocalClimateSponsor,
+  sponsorHomePath,
+} from "../app/lib/sponsor-home";
 import { namesMatch } from "../app/lib/upcoming-matches";
 
 const failures: string[] = [];
@@ -148,6 +152,22 @@ assert(
     home.includes("PhilanthropistMatchGift") &&
     nav.includes("PHILANTHROPIST_ADMIN_NAV") &&
     nav.includes("PHILANTHROPIST_ADMIN_PATH") &&
+    nav.includes("getElementById(PHILANTHROPIST_ADMIN_ID)") &&
+    home.includes("PHILANTHROPIST_ADMIN_ID") &&
+    home.includes("scrollIntoView") &&
+    home.includes("adminRecord") &&
+    !isLocalClimateSponsor("The Smith Foundation", {
+      jobTitle: "Philanthropist",
+    }) &&
+    sponsorHomePath("The Smith Foundation", {
+      jobTitle: "Philanthropist",
+    }) === PHILANTHROPIST_HOME_PATH &&
+    readFileSync("app/sponsor/local/page.tsx", "utf8").includes(
+      "PHILANTHROPIST_HOME_PATH"
+    ) &&
+    readFileSync("app/sponsor/login/page.tsx", "utf8").includes(
+      "isPhilanthropistSponsor(brandName, { jobTitle })"
+    ) &&
     nav.includes("showInvitations = true") &&
     nav.includes("inviteTabFlashClass") &&
     admin.includes("PHILANTHROPIST_ADMIN_COPY") &&

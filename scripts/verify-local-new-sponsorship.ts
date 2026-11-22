@@ -63,7 +63,10 @@ assert(
     menus.includes("max-h-[70vh]") &&
     menus.includes('data-mobile-club-accordion') &&
     menus.includes("inline-v1") &&
-    menus.includes("max-md:max-h-none") &&
+    menus.includes('data-menu-scroll="club-match-scroll-v1"') &&
+    menus.includes("max-h-[min(22rem,58vh)]") &&
+    menus.includes("[touch-action:pan-y]") &&
+    !menus.includes("max-md:max-h-none") &&
     menus.includes("AccordionBlock") &&
     menus.includes("forceOpen") &&
     sports[0]?.sport === "Football" &&

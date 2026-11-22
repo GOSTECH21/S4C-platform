@@ -104,6 +104,14 @@ export function SponsorTabBar({
         <Link
           href={PHILANTHROPIST_ADMIN_PATH}
           className={`${tabClass} ${s4pTabClass(onAdmin)}`}
+          onClick={() => {
+            window.setTimeout(() => {
+              document.getElementById(PHILANTHROPIST_ADMIN_ID)?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }, 50);
+          }}
         >
           {PHILANTHROPIST_ADMIN_NAV}
         </Link>
