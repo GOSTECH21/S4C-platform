@@ -1153,6 +1153,8 @@ export function selectedBrandsReadyToReceive(
   });
 }
 
+export const LEAD_SELECT_MATCH_HEADING = "Select a Club and a Match";
+
 export function lockCopy(hours = CLIMATE_SPONSOR_LEAD_HOURS): string {
   return `${hours} hours before kick-off, choose the Match you wish to lock-in for Match-Sponsorship; see this Club's Match Day chosen Climate Projects; open your Climate Sponsorship Wallet; deposit your Match-Sponsorship; complete payment of the Match-Sponsorship plus the 5% Platform Fee via Stripe`;
 }

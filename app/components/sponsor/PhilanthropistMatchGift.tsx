@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import HowS4pSelectMatch from "@/app/components/home/HowS4pSelectMatch";
-import type { HomeUpcomingMatch } from "@/app/components/home/SelectMatchFixtures";
+import Link from "next/link";
 import { SeeMatchDetails } from "@/app/components/sponsor/SeeMatchDetails";
 import {
   ClubLeagueMenu,
@@ -12,6 +11,7 @@ import { SafeInput } from "@/app/components/forms/SafeFormField";
 import {
   applyPhilanthropistMatchGifts,
   PHILANTHROPIST_AMOUNT_LABEL,
+  PHILANTHROPIST_INVITE_COPY,
   PHILANTHROPIST_MIN_GBP,
   PHILANTHROPIST_SPONSOR_COPY,
   PHILANTHROPIST_SPONSOR_CTA,
@@ -22,7 +22,10 @@ import {
   type PhilanthropistIdentity,
   type PhilanthropistRecord,
 } from "@/app/lib/philanthropist";
-import { PHILANTHROPIST_SPONSOR_ID } from "@/app/lib/routes";
+import {
+  PHILANTHROPIST_SPONSOR_ID,
+  SPONSOR_INVITATIONS_PATH,
+} from "@/app/lib/routes";
 import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
 import {
@@ -30,23 +33,6 @@ import {
   lockMatchDayClub,
 } from "@/app/services/climate-sponsors.service";
 import { depositPhilanthropistClimateWallet } from "@/app/services/sponsor-wallet.service";
-
-function fixtureFromHomeMatch(match: HomeUpcomingMatch): ClubFixture {
-  const fixtureName = match.fixtureName.includes(" v ")
-    ? match.fixtureName
-    : match.fixtureName.replace(" vs ", " v ");
-  return {
-    id: match.id,
-    homeName: match.homeName,
-    awayName: match.awayName,
-    fixtureName,
-    competition: match.league,
-    date: match.date,
-    kickoff: match.kickoff,
-    venue: match.venue,
-    sourceUrl: null,
-  };
-}
 
 export function PhilanthropistMatchGift({
   identity,
@@ -68,7 +54,6 @@ export function PhilanthropistMatchGift({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [pickerEpoch, setPickerEpoch] = useState(0);
 
   useEffect(() => {
     if (!clubName) {
@@ -207,7 +192,6 @@ export function PhilanthropistMatchGift({
       setClubName("");
       setLockFixture("");
       setChosenFixture(null);
-      setPickerEpoch((current) => current + 1);
       onSaved(next);
     } catch (err) {
       setError(
@@ -234,20 +218,17 @@ export function PhilanthropistMatchGift({
         </p>
         <h2 className="mt-2 text-3xl font-black">{PHILANTHROPIST_SPONSOR_HEADING}</h2>
         <p className="mt-3 max-w-3xl text-slate-300">{PHILANTHROPIST_SPONSOR_COPY}</p>
+        <p className="mt-3 max-w-3xl text-sm text-slate-300">
+          {PHILANTHROPIST_INVITE_COPY}{" "}
+          <Link
+            href={SPONSOR_INVITATIONS_PATH}
+            className="font-semibold text-s4p-mint underline decoration-s4p-mark decoration-2 underline-offset-2"
+          >
+            Open invitations
+          </Link>
+          .
+        </p>
       </div>
-
-      <HowS4pSelectMatch
-        key={pickerEpoch}
-        audience="sponsor"
-        initialClub={clubName}
-        onClubConfirmed={(club) => {
-          if (club.trim() === clubName.trim()) return;
-          applyClub(club, null);
-        }}
-        onClubMatchSelected={(match, club) =>
-          applyClub(club, fixtureFromHomeMatch(match))
-        }
-      />
 
       <div className="overflow-visible rounded-2xl border border-green-500/40 bg-green-500/10 p-5">
         <p className="text-sm uppercase tracking-[0.2em] text-green-300">
@@ -297,6 +278,7 @@ export function PhilanthropistMatchGift({
         )}
       </div>
 
+      {matchLocked ? (
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block max-w-md text-sm text-slate-400">
           {PHILANTHROPIST_AMOUNT_LABEL}
@@ -320,6 +302,7 @@ export function PhilanthropistMatchGift({
           {busy ? "Saving sponsorship..." : PHILANTHROPIST_SPONSOR_CTA}
         </button>
       </form>
+      ) : null}
       {error ? (
         <p className="text-sm font-semibold text-red-400">{error}</p>
       ) : null}

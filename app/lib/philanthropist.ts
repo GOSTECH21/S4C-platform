@@ -1,7 +1,13 @@
 /* philanthropist-register-v1 */
 
 import { sameNamedFixture } from "./club-fixtures";
-import { clubsMatch } from "./sponsor-dashboard";
+import { fixtureIncludesClub } from "./club-fixture-guard";
+import {
+  allLocalSponsors,
+  readLocalSponsorRecord,
+  type LocalSponsorRecord,
+} from "./local-sponsor";
+import { brandsMatch, clubsMatch } from "./sponsor-dashboard";
 
 export const PHILANTHROPIST_STORAGE = "s4p.sponsor.philanthropist";
 export const PHILANTHROPISTS_BY_CLUB_STORAGE = "s4p.philanthropists-by-club";
@@ -17,9 +23,13 @@ export const PHILANTHROPIST_NAV_REGISTER = "Register as Philanthropist";
 export const PHILANTHROPIST_HOME_HEADING = "Your philanthropic climate gift";
 export const PHILANTHROPIST_HOME_EMPTY =
   "Register as a Philanthropist to make a climate donation. Fans of your chosen team direct that gift to club-approved climate projects.";
-export const PHILANTHROPIST_SPONSOR_HEADING = "Sponsor a Club and Match";
+export const PHILANTHROPIST_HOME_READY =
+  "You have not put a sponsorship into your Philanthropist Carbon Wallet yet. Select a Club and a Match below and enter your amount, or open an Invitation from a Club's Sustainability Director.";
+export const PHILANTHROPIST_SPONSOR_HEADING = "Select a Club and a Match";
 export const PHILANTHROPIST_SPONSOR_COPY =
   "Choose the Club you wish to sponsor, choose the Match, then enter how much money you are putting into this sponsorship. You can log in at any time and do this again for another Club or Match.";
+export const PHILANTHROPIST_INVITE_COPY =
+  "Or, if a Club's Sustainability Director has sent you an Invitation to Sponsor, open the invitation and follow the instructions to complete your sponsorship.";
 export const PHILANTHROPIST_SPONSOR_CTA = "Put into Carbon Wallet";
 export const PHILANTHROPIST_AMOUNT_LABEL = "How much you are putting into this sponsorship (£)";
 export const PHILANTHROPIST_ADMIN_NAV = "My S4P Admin";
@@ -460,6 +470,13 @@ export function philanthropistRecordFromProfile(): PhilanthropistRecord | null {
       matchSponsorships?: unknown;
     };
     if (
+      parsed.tier === "local" ||
+      parsed.tier === "lead" ||
+      parsed.tier === "national"
+    ) {
+      return null;
+    }
+    if (
       parsed.tier !== "philanthropist" &&
       !isPhilanthropistJobTitle(parsed.jobTitle)
     ) {
@@ -510,6 +527,85 @@ function mergePhilanthropistRecords(
   return merged;
 }
 
+type LocalGiftSource = Pick<
+  LocalSponsorRecord,
+  "brandName" | "clubName" | "pledgeGbp" | "matchSponsorships"
+>;
+
+function localGiftSources(): LocalGiftSource[] {
+  if (typeof window === "undefined") return [];
+  const own = readLocalSponsorRecord();
+  return own ? [...allLocalSponsors(), own] : allLocalSponsors();
+}
+
+function isBorrowedLocalGift(
+  gift: PhilanthropistMatchSponsorship,
+  ownBrand: string,
+  locals: LocalGiftSource[]
+): boolean {
+  for (const local of locals) {
+    if (!local.brandName.trim() || brandsMatch(local.brandName, ownBrand)) continue;
+    if (!clubsMatch(local.clubName, gift.clubName)) continue;
+    const matches = local.matchSponsorships ?? [];
+    for (const match of matches) {
+      if (Number(match.amountGbp) !== gift.amountGbp) continue;
+      if (!(Number(match.amountGbp) >= PHILANTHROPIST_MIN_GBP)) continue;
+      if (
+        !match.fixtureName ||
+        sameNamedFixture(match.fixtureName, gift.fixtureName) ||
+        !fixtureIncludesClub(match.fixtureName, gift.clubName)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function isBorrowedClubPledge(
+  record: PhilanthropistRecord,
+  ownBrand: string,
+  locals: LocalGiftSource[]
+): boolean {
+  if (!record.clubName.trim() || !(Number(record.giftGbp) >= PHILANTHROPIST_MIN_GBP)) {
+    return false;
+  }
+  return locals.some((local) => {
+    if (!local.brandName.trim() || brandsMatch(local.brandName, ownBrand)) return false;
+    if (!clubsMatch(local.clubName, record.clubName)) return false;
+    if (Number(local.pledgeGbp) === record.giftGbp) return true;
+    return (local.matchSponsorships ?? []).some(
+      (match) => Number(match.amountGbp) === record.giftGbp
+    );
+  });
+}
+
+/** A Local Business sponsorship must not appear as this philanthropist's own gift. */
+export function withoutBorrowedLocalGifts(
+  record: PhilanthropistRecord,
+  locals: LocalGiftSource[] = []
+): PhilanthropistRecord | null {
+  const ownBrand = philanthropistDisplayName(record);
+  const matches = parsePhilanthropistMatchSponsorships(
+    record.matchSponsorships,
+    record.clubName
+  ).filter((gift) => !isBorrowedLocalGift(gift, ownBrand, locals));
+  const borrowedPledge =
+    matches.length === 0 && isBorrowedClubPledge(record, ownBrand, locals);
+  return normalizeRecord({
+    ...record,
+    clubName: borrowedPledge
+      ? ""
+      : matches[matches.length - 1]?.clubName || record.clubName,
+    giftGbp: borrowedPledge
+      ? 0
+      : matches.length > 0
+        ? matches[matches.length - 1].amountGbp
+        : record.giftGbp,
+    matchSponsorships: matches,
+  });
+}
+
 export function hydratePhilanthropistRecord(sponsor?: {
   name?: string | null;
   website?: string | null;
@@ -524,6 +620,14 @@ export function hydratePhilanthropistRecord(sponsor?: {
     philanthropistRecordFromProfile(),
     philanthropistRecordFromSponsor(sponsor ?? null)
   );
-  if (merged) writePhilanthropistRecord(merged);
-  return merged;
+  if (!merged) return null;
+  const cleaned = withoutBorrowedLocalGifts(merged, localGiftSources());
+  if (cleaned) {
+    writePhilanthropistRecord(cleaned);
+    return cleaned;
+  }
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(PHILANTHROPIST_STORAGE);
+  }
+  return null;
 }

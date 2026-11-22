@@ -837,7 +837,13 @@ assert(
       "MyTeamsList"
     ) &&
     readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(
-      'audience="sponsor"'
+      "LEAD_SELECT_MATCH_HEADING"
+    ) &&
+    readFileSync("app/lib/climate-sponsors.ts", "utf8").includes(
+      "Select a Club and a Match"
+    ) &&
+    !readFileSync("app/components/sponsor/MatchDayLockIn.tsx", "utf8").includes(
+      "HowS4pSelectMatch"
     ) &&
     !readFileSync("app/sponsor/wallet/page.tsx", "utf8").includes(
       "HowS4pSelectMatch"
@@ -848,7 +854,7 @@ assert(
     readFileSync("app/club/dashboard/page.tsx", "utf8").includes(
       'audience="club"'
     ),
-  "Select Match phone is assigned to fans, lead sponsors, and the Club Sustainability Director"
+  "Select Match phone stays with fans and the Club Sustainability Director; Lead lock-in is Select a Club and a Match"
 );
 const fromMatchPage = readFileSync("app/sponsor/from-match/page.tsx", "utf8");
 const pendingMatch = readFileSync("app/lib/pending-sponsor-match.ts", "utf8");
