@@ -176,7 +176,7 @@ assert(
     clubDashboardChosenProjectsCopy().includes(CLUB_CHOOSE_PROJECTS_STEPS[0]) &&
     clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
     clubDashboardChosenProjectsCopy().includes(CLUB_CHOOSE_PROJECTS_NOTE) &&
-    CLUB_CHOOSE_PROJECTS_NOTE.includes("more than 1 Lead Climate Sponsor") &&
+    CLUB_CHOOSE_PROJECTS_NOTE.includes("at least 1 Lead Climate Sponsor") &&
     CLUB_CHOOSE_PROJECTS_NOTE.includes("more than 5 Local Business Climate Sponsors"),
   "Address Book and Send Invitations copy still exists for My Admin"
 );

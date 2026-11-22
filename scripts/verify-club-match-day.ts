@@ -680,7 +680,7 @@ assert(
     clubDashboardChosenProjectsCopy().includes("Address Book") &&
     clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
     clubDashboardChosenProjectsCopy().includes(
-      "Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
+      "Invite at least 1 Lead Climate Sponsor. Invite more than 5 Local Business Climate Sponsors"
     ) &&
     matchDayProjectApprovalLabel(false) === MATCH_DAY_PENDING_APPROVAL_LABEL &&
     matchDayProjectApprovalLabel(true) === MATCH_DAY_APPROVED_LABEL,
