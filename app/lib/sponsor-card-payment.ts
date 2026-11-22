@@ -2,7 +2,7 @@
 
 import { brandsMatch, clubsMatch } from "./climate-sponsors";
 import { MATCH_DAY_APPROVED_LABEL } from "./partner-projects";
-import { matchSponsorshipTopUp } from "./sponsor-wallet";
+import { localWalletTopUp, matchSponsorshipTopUp } from "./sponsor-wallet";
 
 export const MATCH_DAY_CARD_PAYMENT_STORAGE = "s4p.match-day-card-payment";
 
@@ -26,7 +26,7 @@ export type MatchDayCardPayment = {
   brandName: string;
   projectIds: string[];
   amountGbp: number;
-  kind: "lead" | "local";
+  kind: "lead" | "local" | "philanthropist";
   paidAt: string;
 };
 
@@ -188,6 +188,9 @@ export function cardPaymentAmountGbp(wallet: {
   sponsorshipGbp?: number | null;
 } | null): number {
   if (!wallet) return 0;
+  if (wallet.kind === "philanthropist") {
+    return localWalletTopUp(Number(wallet.sponsorshipGbp) || 0).paidGbp;
+  }
   if (wallet.kind === "local") {
     return Math.max(
       0,

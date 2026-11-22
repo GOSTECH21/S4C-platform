@@ -321,7 +321,7 @@ export function createPhilanthropistWallet({
   giftGbp: number;
   now?: Date | string;
 }): ClimateWallet {
-  const gift = roundGbp(Math.max(0, Number(giftGbp) || 0));
+  const topUp = localWalletTopUp(giftGbp);
   return {
     id: walletIdFor(clubName, brandName),
     clubName,
@@ -331,9 +331,9 @@ export function createPhilanthropistWallet({
     gbpPerGoal: 0,
     goalsScored: 0,
     maximumSponsorshipGbp: 0,
-    sponsorshipGbp: gift,
-    managementFeeGbp: 0,
-    paidGbp: gift,
+    sponsorshipGbp: topUp.sponsorshipGbp,
+    managementFeeGbp: topUp.managementFeeGbp,
+    paidGbp: topUp.paidGbp,
     allocatedGbp: 0,
     updatedAt: asIso(now),
   };

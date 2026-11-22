@@ -5,6 +5,7 @@ import {
   createLeadWallet,
   createLocalWallet,
   createPhilanthropistWallet,
+  localWalletTopUp,
   normalizeClimateWallet,
   remainingGbp,
   settleLeadScoreImpactPool,
@@ -123,21 +124,25 @@ export function ensurePhilanthropistWallet({
   brandName: string;
   giftGbp: number;
 }): ClimateWallet {
-  const gift = Math.max(0, Number(giftGbp) || 0);
+  const topUp = localWalletTopUp(giftGbp);
   const existing = findClimateWallet(clubName, brandName);
   if (existing?.kind === "philanthropist") {
-    if (existing.sponsorshipGbp + 0.001 < gift) {
+    if (
+      existing.sponsorshipGbp + 0.001 < topUp.sponsorshipGbp ||
+      existing.managementFeeGbp + 0.001 < topUp.managementFeeGbp
+    ) {
       return writeClimateWallet({
         ...existing,
-        sponsorshipGbp: gift,
-        paidGbp: gift,
+        sponsorshipGbp: topUp.sponsorshipGbp,
+        managementFeeGbp: topUp.managementFeeGbp,
+        paidGbp: topUp.paidGbp,
       });
     }
     return existing;
   }
   if (existing) return existing;
   return writeClimateWallet(
-    createPhilanthropistWallet({ clubName, brandName, giftGbp: gift })
+    createPhilanthropistWallet({ clubName, brandName, giftGbp })
   );
 }
 

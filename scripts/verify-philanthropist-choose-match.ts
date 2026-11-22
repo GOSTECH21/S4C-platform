@@ -147,6 +147,7 @@ assert(
     gift.includes("PHILANTHROPIST_AMOUNT_LABEL") &&
     gift.includes("lockMatchDayClub") &&
     gift.includes("depositPhilanthropistClimateWallet") &&
+    gift.includes("sponsorPayPath") &&
     gift.includes('data-philanthropist-match-gift="philanthropist-choose-match-v1"') &&
     gift.includes("SPONSOR_INVITATIONS_PATH") &&
     gift.includes("PHILANTHROPIST_INVITE_COPY") &&
