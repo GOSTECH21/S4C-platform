@@ -153,6 +153,8 @@ assert(
     nav.includes("PHILANTHROPIST_ADMIN_NAV") &&
     nav.includes("PHILANTHROPIST_ADMIN_PATH") &&
     nav.includes("getElementById(PHILANTHROPIST_ADMIN_ID)") &&
+    nav.includes("window.scrollTo({ top: 0, behavior: \"smooth\" })") &&
+    home.includes("PhilanthropistPaymentDue") &&
     home.includes("PHILANTHROPIST_ADMIN_ID") &&
     home.includes("scrollIntoView") &&
     home.includes("adminRecord") &&

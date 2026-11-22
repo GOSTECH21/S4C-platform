@@ -34,7 +34,7 @@ export async function confirmMatchDayCardPayment({
 }: {
   brandName: string;
   clubName: string;
-  kind: "lead" | "local";
+  kind: "lead" | "local" | "philanthropist";
 }): Promise<MatchDayCardPayment> {
   const brand = brandName.trim();
   const club = clubName.trim();
@@ -80,7 +80,10 @@ export async function confirmMatchDayCardPayment({
   bindFundedSponsorToClub({
     clubName: club,
     brandName: brand,
-    spentGbp: amountGbp,
+    spentGbp:
+      kind === "philanthropist"
+        ? Number(wallet?.sponsorshipGbp) || amountGbp
+        : amountGbp,
   });
 
   const payment = recordMatchDayCardPayment({

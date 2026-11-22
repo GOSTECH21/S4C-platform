@@ -25,6 +25,7 @@ import {
 import {
   PHILANTHROPIST_SPONSOR_ID,
   SPONSOR_INVITATIONS_PATH,
+  sponsorPayPath,
 } from "@/app/lib/routes";
 import { fixtureByIdOrName, type ClubFixture } from "@/app/lib/club-fixtures";
 import { loadClubFixtures } from "@/app/services/club-fixtures.service";
@@ -185,14 +186,8 @@ export function PhilanthropistMatchGift({
           giftGbp: philanthropistClubTotalGbp(next, club),
         });
       }
-      setNotice(
-        `${club} · ${fixtureName} is now in your Philanthropist Carbon Wallet at £${gift.toLocaleString("en-GB")}.`
-      );
-      setAmountGbp("");
-      setClubName("");
-      setLockFixture("");
-      setChosenFixture(null);
       onSaved(next);
+      window.location.assign(sponsorPayPath(club));
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not save this sponsorship."

@@ -14,9 +14,15 @@ import {
 } from "@/app/lib/sponsor-card-payment";
 import {
   LOCAL_SPONSOR_HOME_PATH,
+  PHILANTHROPIST_HOME_PATH,
   SPONSOR_LOGIN_PATH,
   sponsorWalletPath,
 } from "@/app/lib/routes";
+import {
+  isPhilanthropistSponsor,
+  philanthropistClubTotalGbp,
+  readPhilanthropistRecord,
+} from "@/app/lib/philanthropist";
 import {
   isSignedOffLocalSponsor,
   localSponsorsForClub,
@@ -32,13 +38,18 @@ import {
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
-import { formatWalletGbp } from "@/app/lib/sponsor-wallet";
+import {
+  PLATFORM_FEE_LABEL,
+  formatWalletGbp,
+  localWalletTopUp,
+} from "@/app/lib/sponsor-wallet";
 import { climateWalletHeading } from "@/app/lib/match-day-carbon-offset";
 import { getCurrentSponsorWithTimeout } from "@/app/services/current-sponsor.service";
 import { loadMatchDayLock } from "@/app/services/climate-sponsors.service";
 import { confirmMatchDayCardPayment } from "@/app/services/sponsor-card-payment.service";
 import {
   ensureLocalWallet,
+  ensurePhilanthropistWallet,
   readClimateWallet,
 } from "@/app/services/sponsor-wallet.service";
 import type { ClimateWallet } from "@/app/lib/sponsor-wallet";
@@ -64,7 +75,7 @@ export default function SponsorCardPaymentPage() {
   const router = useRouter();
   const [brand, setBrand] = useState("");
   const [clubName, setClubName] = useState("");
-  const [kind, setKind] = useState<"lead" | "local">("lead");
+  const [kind, setKind] = useState<"lead" | "local" | "philanthropist">("lead");
   const [wallet, setWallet] = useState<ClimateWallet | null>(null);
   const [fixture, setFixture] = useState("");
   const [busy, setBusy] = useState(false);
@@ -91,7 +102,9 @@ export default function SponsorCardPaymentPage() {
           router.replace(SPONSOR_LOGIN_PATH);
           return;
         }
-        const localKind = isLocalClimateSponsor(brandName, { jobTitle });
+        const philanthropist = isPhilanthropistSponsor(brandName, { jobTitle });
+        const localKind =
+          !philanthropist && isLocalClimateSponsor(brandName, { jobTitle });
         const matchLock = loadMatchDayLock(brandName);
         const clubFromQuery =
           typeof window !== "undefined"
@@ -100,14 +113,24 @@ export default function SponsorCardPaymentPage() {
             : "";
         const club = clubFromQuery || matchLock?.clubName || "";
         setBrand(brandName);
-        setKind(localKind ? "local" : "lead");
-        setClubName(club);
+        setKind(philanthropist ? "philanthropist" : localKind ? "local" : "lead");
+        const philanthropistRecord = philanthropist
+          ? readPhilanthropistRecord()
+          : null;
+        const philanthropistClub =
+          club || philanthropistRecord?.clubName || "";
+        if (philanthropist && philanthropistClub) {
+          setClubName(philanthropistClub);
+        } else {
+          setClubName(club);
+        }
         let fixtureLabel =
           matchLock && (!clubFromQuery || clubsMatch(matchLock.clubName, club))
             ? displayLockFixture(matchLock)
             : "";
-        if (club) {
-          let stored = readClimateWallet(club, brandName);
+        const walletClub = philanthropist ? philanthropistClub : club;
+        if (walletClub) {
+          let stored = readClimateWallet(walletClub, brandName);
           const session = readLocalSponsorRecord();
           const signed = localKind
             ? session &&
@@ -123,10 +146,26 @@ export default function SponsorCardPaymentPage() {
             : null;
           if (localKind && !(cardPaymentAmountGbp(stored) > 0) && signed?.pledgeGbp) {
             stored = ensureLocalWallet({
-              clubName: club,
+              clubName: walletClub,
               brandName,
               sponsorshipGbp: signed.pledgeGbp,
             });
+          }
+          if (philanthropist) {
+            const gift = philanthropistRecord
+              ? philanthropistClubTotalGbp(philanthropistRecord, walletClub)
+              : 0;
+            if (gift > 0) {
+              stored = ensurePhilanthropistWallet({
+                clubName: walletClub,
+                brandName,
+                giftGbp: gift,
+              });
+            }
+            const matchName = philanthropistRecord?.matchSponsorships?.find(
+              (row) => row.clubName.trim().toLowerCase() === walletClub.trim().toLowerCase()
+            )?.fixtureName;
+            if (!fixtureLabel && matchName) fixtureLabel = matchName;
           }
           if (!fixtureLabel) {
             fixtureLabel = String(
@@ -134,7 +173,12 @@ export default function SponsorCardPaymentPage() {
             ).trim();
           }
           setWallet(stored);
-          setPaid(isMatchDayCardPaymentConfirmed({ clubName: club, brandName }));
+          setPaid(
+            isMatchDayCardPaymentConfirmed({
+              clubName: walletClub,
+              brandName,
+            })
+          );
         }
         setFixture(fixtureLabel);
       } catch {
@@ -148,9 +192,13 @@ export default function SponsorCardPaymentPage() {
   }, [router]);
 
   const amountGbp = cardPaymentAmountGbp(wallet);
-  const dashboardHref = kind === "local"
-    ? LOCAL_SPONSOR_HOME_PATH
-    : `${sponsorHomePath(brand)}#${LEAD_PAID_SECTION_ID}`;
+  const fee = localWalletTopUp(Number(wallet?.sponsorshipGbp) || 0);
+  const dashboardHref =
+    kind === "philanthropist"
+      ? PHILANTHROPIST_HOME_PATH
+      : kind === "local"
+        ? LOCAL_SPONSOR_HOME_PATH
+        : `${sponsorHomePath(brand)}#${LEAD_PAID_SECTION_ID}`;
 
   async function pay() {
     if (!clubName || !brand) {
@@ -182,7 +230,11 @@ export default function SponsorCardPaymentPage() {
     <div className="space-y-8" data-local-invite-pay-page="local-invite-pay-v1">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-          {kind === "local" ? "Local Business Climate Sponsor" : brand}
+          {kind === "philanthropist"
+            ? "Philanthropist"
+            : kind === "local"
+              ? "Local Business Climate Sponsor"
+              : brand}
         </p>
         <h1 className="mt-2 text-4xl font-black">
           {paid ? CARD_PAYMENT_CONFIRMED_COPY : PAY_WITH_CARD_LABEL}
@@ -193,7 +245,34 @@ export default function SponsorCardPaymentPage() {
         </p>
       </div>
 
-      {clubName ? (
+      {kind === "philanthropist" && !paid && fee.sponsorshipGbp > 0 ? (
+        <dl className="grid gap-3 rounded-3xl border border-slate-700 bg-slate-900 p-6 sm:grid-cols-3">
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em] text-slate-500">
+              Sponsorship
+            </dt>
+            <dd className="text-xl font-black">
+              {formatWalletGbp(fee.sponsorshipGbp)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em] text-slate-500">
+              {PLATFORM_FEE_LABEL}
+            </dt>
+            <dd className="text-xl font-black">
+              {formatWalletGbp(fee.managementFeeGbp)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.14em] text-slate-500">
+              You pay
+            </dt>
+            <dd className="text-xl font-black">{formatWalletGbp(fee.paidGbp)}</dd>
+          </div>
+        </dl>
+      ) : null}
+
+      {clubName && kind !== "philanthropist" ? (
         <ClubChosenProjectsPanel
           clubName={clubName}
           approved={paid}
@@ -214,7 +293,13 @@ export default function SponsorCardPaymentPage() {
               Back to dashboard
             </Link>
             <Link
-              href={kind === "local" ? LOCAL_SPONSOR_HOME_PATH : sponsorWalletPath(clubName)}
+              href={
+                kind === "philanthropist"
+                  ? PHILANTHROPIST_HOME_PATH
+                  : kind === "local"
+                    ? LOCAL_SPONSOR_HOME_PATH
+                    : sponsorWalletPath(clubName)
+              }
               className="rounded-xl border border-slate-600 px-5 py-3 font-semibold"
             >
               {kind === "local" ? "Back to dashboard" : "View Climate Sponsorship Wallet"}
@@ -234,9 +319,11 @@ export default function SponsorCardPaymentPage() {
       {!paid ? (
         <Link
           href={
-            kind === "local"
-              ? LOCAL_SPONSOR_HOME_PATH
-              : sponsorWalletPath(clubName)
+            kind === "philanthropist"
+              ? PHILANTHROPIST_HOME_PATH
+              : kind === "local"
+                ? LOCAL_SPONSOR_HOME_PATH
+                : sponsorWalletPath(clubName)
           }
           className="inline-flex rounded-xl border border-slate-600 px-5 py-3 font-semibold"
         >

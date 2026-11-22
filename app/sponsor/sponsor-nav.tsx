@@ -97,6 +97,14 @@ export function SponsorTabBar({
       <Link
         href={homePath || LOCAL_SPONSOR_HOME_PATH}
         className={`${tabClass} ${s4pTabClass(onDashboard)}`}
+        onClick={(event) => {
+          const target = homePath || LOCAL_SPONSOR_HOME_PATH;
+          if (window.location.pathname !== target) return;
+          event.preventDefault();
+          window.history.pushState(null, "", target);
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
       >
         Dashboard
       </Link>
@@ -172,7 +180,7 @@ export function SponsorNav() {
     syncHash();
     window.addEventListener("hashchange", syncHash);
     return () => window.removeEventListener("hashchange", syncHash);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     let mounted = true;

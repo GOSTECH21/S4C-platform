@@ -33,6 +33,9 @@ const wallet = createPhilanthropistWallet({
 assert(
   wallet.kind === "philanthropist" &&
     remainingGbp(wallet) === 250 &&
+    wallet.sponsorshipGbp === 250 &&
+    wallet.managementFeeGbp === 12.5 &&
+    wallet.paidGbp === 262.5 &&
     walletVoteAmount(wallet) === 0.5,
   "Fans of that club see the philanthropist gift amount in the Carbon Wallet"
 );

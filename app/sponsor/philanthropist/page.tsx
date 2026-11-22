@@ -14,6 +14,7 @@ import {
 } from "@/app/lib/routes";
 import { PhilanthropistAdmin } from "@/app/components/sponsor/PhilanthropistAdmin";
 import { PhilanthropistMatchGift } from "@/app/components/sponsor/PhilanthropistMatchGift";
+import { PhilanthropistPaymentDue } from "@/app/components/sponsor/PhilanthropistPaymentDue";
 import { PhilanthropistSponsorsTable } from "@/app/components/sponsor/PhilanthropistSponsorsTable";
 import {
   PHILANTHROPIST_HOME_EMPTY,
@@ -143,6 +144,9 @@ export default function PhilanthropistHomePage() {
             ? PHILANTHROPIST_HOME_READY
             : PHILANTHROPIST_HOME_EMPTY}
       </p>
+      {record && philanthropistFundingGbp(record) >= PHILANTHROPIST_MIN_GBP ? (
+        <PhilanthropistPaymentDue record={record} />
+      ) : null}
       {canSponsor ? (
         <>
           <p className="mt-6">
