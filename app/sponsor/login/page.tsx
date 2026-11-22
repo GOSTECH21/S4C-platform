@@ -20,7 +20,10 @@ import {
   rememberLocalSponsorSession,
   sponsorHomePath,
 } from "@/app/lib/sponsor-home";
-import { hydratePhilanthropistRecord } from "@/app/lib/philanthropist";
+import {
+  hydratePhilanthropistRecord,
+  isPhilanthropistSponsor,
+} from "@/app/lib/philanthropist";
 import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service";
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { roleLoginAccount } from "@/app/lib/role-login";
@@ -28,8 +31,19 @@ import { roleLoginAccount } from "@/app/lib/role-login";
 const LOCAL_BUSINESS_LOGIN_KICKER = "Local Business Sponsor";
 const LOCAL_BUSINESS_LOGIN_INTRO =
   "Sign in as Local Business Climate Sponsor to receive a Partner Club's 5 Climate Project.";
+const PHILANTHROPIC_LOGIN_KICKER = "Philanthropic Sponsor";
+const PHILANTHROPIC_LOGIN_INTRO =
+  "Sign in as a Philanthropic Sponsor to receive a Partner Club's 5 Climate Projects.";
+const BRAND_LOGIN_INTRO =
+  "Sign in as Sponsorship Manager to receive a club's 5 Climate Projects.";
 
-function SponsorLoginForm({ asLocal }: { asLocal: boolean }) {
+function SponsorLoginForm({
+  asLocal,
+  asPhilanthropist,
+}: {
+  asLocal: boolean;
+  asPhilanthropist: boolean;
+}) {
   const account = roleLoginAccount("sponsor");
   const [email, setEmail] = useState(account.email);
   const [password, setPassword] = useState(account.password);
@@ -42,7 +56,10 @@ function SponsorLoginForm({ asLocal }: { asLocal: boolean }) {
     LOCAL_SPONSOR_REGISTER_PATH
   );
   const [signedInLocal, setSignedInLocal] = useState(false);
-  const showLocal = asLocal || signedInLocal;
+  const [signedInPhilanthropist, setSignedInPhilanthropist] = useState(false);
+  const showPhilanthropist =
+    asPhilanthropist || (!asLocal && signedInPhilanthropist);
+  const showLocal = !showPhilanthropist && (asLocal || signedInLocal);
 
   useEffect(() => {
     const next = continueAfterSponsorAuth();
@@ -56,13 +73,17 @@ function SponsorLoginForm({ asLocal }: { asLocal: boolean }) {
       try {
         const sponsor = await getCurrentSponsor();
         if (cancelled) return;
-        setSignedInLocal(
-          isLocalClimateSponsor(String(sponsor.name ?? ""), {
-            jobTitle: String(sponsor.industry ?? ""),
-          })
+        const brandName = String(sponsor.name ?? "");
+        const jobTitle = String(sponsor.industry ?? "");
+        setSignedInLocal(isLocalClimateSponsor(brandName, { jobTitle }));
+        setSignedInPhilanthropist(
+          isPhilanthropistSponsor(brandName, { jobTitle })
         );
       } catch {
-        if (!cancelled) setSignedInLocal(false);
+        if (!cancelled) {
+          setSignedInLocal(false);
+          setSignedInPhilanthropist(false);
+        }
       }
     })();
     return () => {
@@ -109,13 +130,19 @@ function SponsorLoginForm({ asLocal }: { asLocal: boolean }) {
   return (
     <div className="mx-auto max-w-lg py-10">
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-        {showLocal ? LOCAL_BUSINESS_LOGIN_KICKER : "Brand / Sponsor"}
+        {showPhilanthropist
+          ? PHILANTHROPIC_LOGIN_KICKER
+          : showLocal
+            ? LOCAL_BUSINESS_LOGIN_KICKER
+            : "Brand / Sponsor"}
       </p>
       <h1 className="mt-3 text-4xl font-black">Sponsor Login</h1>
       <p className="mt-4 text-slate-300">
-        {showLocal
-          ? LOCAL_BUSINESS_LOGIN_INTRO
-          : "Sign in as Sponsorship Manager to receive a club's 5 Climate Projects or create your own campaign list."}
+        {showPhilanthropist
+          ? PHILANTHROPIC_LOGIN_INTRO
+          : showLocal
+            ? LOCAL_BUSINESS_LOGIN_INTRO
+            : BRAND_LOGIN_INTRO}
       </p>
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -191,14 +218,20 @@ function SponsorLoginForm({ asLocal }: { asLocal: boolean }) {
 
 function SponsorLoginWithSearch() {
   const searchParams = useSearchParams();
+  const audience = searchParams.get("as");
   return (
-    <SponsorLoginForm asLocal={searchParams.get("as") === "local"} />
+    <SponsorLoginForm
+      asLocal={audience === "local"}
+      asPhilanthropist={audience === "philanthropist"}
+    />
   );
 }
 
 export default function SponsorLoginPage() {
   return (
-    <Suspense fallback={<SponsorLoginForm asLocal={false} />}>
+    <Suspense
+      fallback={<SponsorLoginForm asLocal={false} asPhilanthropist={false} />}
+    >
       <SponsorLoginWithSearch />
     </Suspense>
   );

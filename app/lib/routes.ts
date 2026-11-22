@@ -95,7 +95,8 @@ export const PHILANTHROPIST_SPONSOR_ID = "sponsor-a-match";
 export const PHILANTHROPIST_ADMIN_PATH = `${PHILANTHROPIST_HOME_PATH}#${PHILANTHROPIST_ADMIN_ID}`;
 export const PHILANTHROPIST_PST_PATH = `${PHILANTHROPIST_HOME_PATH}#${PHILANTHROPIST_PST_ID}`;
 export const PHILANTHROPIST_SPONSOR_PATH = `${PHILANTHROPIST_HOME_PATH}#${PHILANTHROPIST_SPONSOR_ID}`;
-export const PHILANTHROPIST_LOGIN_PATH = SPONSOR_LOGIN_PATH;
+/** Philanthropic Sponsor sign-in. Same form, philanthropic heading and introduction. */
+export const PHILANTHROPIST_LOGIN_PATH = `${SPONSOR_LOGIN_PATH}?as=philanthropist`;
 export const SPONSOR_DASHBOARD_PATH = "/sponsor/dashboard";
 export const SPONSOR_FROM_MATCH_PATH = "/sponsor/from-match";
 export const SPONSOR_CALENDAR_PATH = "/sponsor/calendar";
