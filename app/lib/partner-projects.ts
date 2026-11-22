@@ -51,7 +51,7 @@ export const CLUB_CHOOSE_PROJECTS_STEPS = [
 ] as const;
 
 export const CLUB_CHOOSE_PROJECTS_NOTE =
-  "Note: Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors.";
+  "Note: Invite at least 1 Lead Climate Sponsor. Invite more than 5 Local Business Climate Sponsors.";
 
 export function clubDashboardClimateProjectsIntroCopy(): string {
   return `Press the blue ${SELECT_CLIMATE_PROJECTS_LABEL} button to choose only one Featured Global Schools Solar project and ${MATCH_DAY_CHOICE_COUNT} Climate Partner Projects from List provided`;

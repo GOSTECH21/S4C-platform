@@ -5,6 +5,7 @@ import {
   MATCH_DAY_PROJECT_COUNT,
   clubDashboardChosenProjectsCopy,
 } from "../app/lib/partner-projects";
+import { loadPhilanthropistDirectory } from "../app/lib/philanthropist-directory";
 import {
   LOCAL_SPONSOR_HOME_PATH,
   SPONSOR_INVITATIONS_PATH,
@@ -28,6 +29,7 @@ import {
   LOCAL_INVITE_SIGN_LABEL,
   LOCAL_BUSINESS_INVITE_COUNT,
   LOCAL_BUSINESS_TAB_LABEL,
+  PHILANTHROPIST_SPONSOR_TAB_LABEL,
   LOCAL_INVITE_SUBJECT,
   LOCAL_SPONSORSHIP_AMOUNT_RANGES,
   SPONSORS_SECTION_TITLE,
@@ -66,8 +68,27 @@ const locals = listingsOfKind(listings, "local");
 assert(SPONSORS_SECTION_TITLE === "Sponsors", "Standalone section is titled Sponsors");
 assert(
   GLOBAL_BRANDS_TAB_LABEL === "Global Brands" &&
-    LOCAL_BUSINESS_TAB_LABEL === "Local Business Sponsors",
-  "Sponsors splits into Global Brands and Local Business Sponsors"
+    LOCAL_BUSINESS_TAB_LABEL === "Local Business Sponsors" &&
+    PHILANTHROPIST_SPONSOR_TAB_LABEL === "Philanthropist Sponsors" &&
+    loadPhilanthropistDirectory().some(
+      (row) => row.organisation === "The Smith Foundation"
+    ) &&
+    readFileSync("app/data/philanthropist-directory.json", "utf8").includes(
+      "The Smith Foundation"
+    ) &&
+    readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8").includes(
+      "PHILANTHROPIST_SPONSOR_TAB_LABEL"
+    ) &&
+    readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8").includes(
+      'setTab("local")'
+    ) &&
+    readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
+      "Opening Sponsors..."
+    ) &&
+    !readFileSync("app/club/projects/select/page.tsx", "utf8").includes(
+      "disabled:bg-slate-700"
+    ),
+  "Sponsors splits into Global Brands, Local Business Sponsors and Philanthropist Sponsors"
 );
 assert(
   globals.length >= GLOBAL_BRAND_INVITE_COUNT &&
@@ -110,9 +131,8 @@ assert(
     Boolean(
       requireMinInviteCount(globals.slice(0, 0).map((row) => row.id), "global")
     ) &&
-    Boolean(
-      requireMinInviteCount(globals.slice(0, 1).map((row) => row.id), "global")
-    ) &&
+    requireMinInviteCount(globals.slice(0, 1).map((row) => row.id), "global") ===
+      null &&
     requireMinInviteCount(globals.slice(0, 2).map((row) => row.id), "global") ===
       null &&
     Boolean(
@@ -120,7 +140,7 @@ assert(
     ) &&
     requireMinInviteCount(locals.slice(0, 6).map((row) => row.id), "local") ===
       null,
-  "SD invites more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
+  "SD can invite 1 Lead Climate Sponsor and still needs more than 5 Local Business Climate Sponsors"
 );
 
 const sentAt = "2026-10-26T09:00:00.000Z";
@@ -265,7 +285,7 @@ assert(
   clubDashboardChosenProjectsCopy().includes("Address Book") &&
     clubDashboardChosenProjectsCopy().includes('Press "Send Invitations"') &&
     clubDashboardChosenProjectsCopy().includes(
-      "Invite more than 1 Lead Climate Sponsor and more than 5 Local Business Climate Sponsors"
+      "Invite at least 1 Lead Climate Sponsor. Invite more than 5 Local Business Climate Sponsors"
     ) &&
     sponsorsSectionIntroCopy().includes("Address Book 1") &&
     sponsorsSectionIntroCopy().includes("Go to Existing Sponsors") &&
@@ -360,7 +380,9 @@ assert(
 
 const listingsUi = readFileSync("app/components/club/ClubSponsorsListings.tsx", "utf8");
 const clubSponsorsPage = readFileSync("app/club/sponsors/page.tsx", "utf8");
-const sendButtonIndex = listingsUi.indexOf("{sending ? \"Sending...\" : inviteLabel}");
+const sendButtonIndex = listingsUi.indexOf(
+  'data-send-invitations="club-sponsors-invite-counts-v1"'
+);
 const noticeAfterButton = listingsUi.indexOf("{notice &&", sendButtonIndex);
 assert(
   sendButtonIndex >= 0 &&

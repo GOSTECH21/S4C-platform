@@ -7,6 +7,7 @@ import {
   readLocalSponsorRecord,
   type LocalSponsorRecord,
 } from "./local-sponsor";
+import { rememberRegisteredPhilanthropist } from "./philanthropist-directory";
 import { brandsMatch, clubsMatch } from "./sponsor-dashboard";
 
 export const PHILANTHROPIST_STORAGE = "s4p.sponsor.philanthropist";
@@ -213,6 +214,14 @@ export function writePhilanthropistRecord(record: PhilanthropistRecord): void {
     ),
   };
   window.localStorage.setItem(PHILANTHROPIST_STORAGE, JSON.stringify(normalized));
+  rememberRegisteredPhilanthropist({
+    organisation: philanthropistDisplayName(normalized),
+    contactName: normalized.name,
+    email: normalized.email,
+    clubName: normalized.clubName,
+    giftGbp: normalized.giftGbp,
+    createdAt: normalized.createdAt,
+  });
   const clubs = clubsFromRecord(normalized);
   if (clubs.length === 0) {
     upsertPhilanthropistForClub(normalized);

@@ -12,7 +12,7 @@ export type { GlobalSponsorProduct } from "./predict-for-planet";
 
 export const GLOBAL_BRAND_INVITE_COUNT = 1;
 export const LOCAL_BUSINESS_INVITE_COUNT = 4;
-/** Invite more than this many Lead Climate Sponsors before sending. */
+/** At least this many Lead Climate Sponsors before sending. */
 export const MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE = 1;
 /** Invite more than this many Local Business Climate Sponsors before sending. */
 export const MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE = 5;
@@ -257,6 +257,7 @@ export const EXISTING_SPONSORS_HEADING = "Existing Sponsors";
 export const GO_TO_EXISTING_SPONSORS_LABEL = "Go to Existing Sponsors";
 export const GLOBAL_BRANDS_TAB_LABEL = "Global Brands";
 export const LOCAL_BUSINESS_TAB_LABEL = "Local Business Sponsors";
+export const PHILANTHROPIST_SPONSOR_TAB_LABEL = "Philanthropist Sponsors";
 
 export const GLOBAL_INVITE_SUBJECT = "Invitation to Sponsor";
 export const LOCAL_INVITE_SUBJECT = "Invitation to Sponsor";
@@ -272,7 +273,7 @@ export function globalInviteMustChooseProjectsCopy(): string {
 }
 
 export function globalInviteCountCopy(): string {
-  return `Invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor from Address Book 1, then press ${SEND_INVITATIONS_LABEL}. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted within ${GLOBAL_INVITE_WINDOW_HOURS} hours, at the highest committed amount.`;
+  return `Choose the Lead Climate Sponsors you wish to invite, then press ${SEND_INVITATIONS_LABEL}. One sponsor is enough. Only ${GLOBAL_SPONSORS_ACCEPTED_PER_MATCH} Lead Climate Sponsor is accepted within ${GLOBAL_INVITE_WINDOW_HOURS} hours, at the highest committed amount.`;
 }
 
 export function localInviteCountCopy(): string {
@@ -285,7 +286,9 @@ export function inviteSelectionCountCopy(
 ): string {
   const n = Math.max(0, Math.round(Number(selectedCount) || 0));
   if (kind === "global") {
-    return `${n} selected — invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} to continue`;
+    return n >= MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE
+      ? `${n} selected`
+      : `Select at least ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor to continue`;
   }
   return `${n} selected — invite more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} to continue`;
 }
@@ -296,7 +299,7 @@ export function meetsInviteMinimum(
 ): boolean {
   const n = Array.isArray(selectedIds) ? selectedIds.length : 0;
   return kind === "global"
-    ? n > MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE
+    ? n >= MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE
     : n > MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE;
 }
 
@@ -539,7 +542,7 @@ export function requireMinInviteCount(
 ): string | null {
   if (meetsInviteMinimum(selectedIds, kind)) return null;
   if (kind === "global") {
-    return `Invite more than ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor from Address Book 1. You have ${selectedIds.length} selected.`;
+    return `Select at least ${MIN_LEAD_CLIMATE_SPONSOR_INVITES_EXCLUSIVE} Lead Climate Sponsor. You have ${selectedIds.length} selected.`;
   }
   return `Invite more than ${MIN_LOCAL_BUSINESS_INVITES_EXCLUSIVE} Local Business Climate Sponsors from Address Book 2. You have ${selectedIds.length} selected.`;
 }

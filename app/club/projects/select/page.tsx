@@ -319,9 +319,9 @@ export default function SelectMatchDayProjectsPage() {
                 disabled={
                   saving || !featuredId || selected.size !== MATCH_DAY_CHOICE_COUNT
                 }
-                className="mt-6 w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                className="mt-6 w-full rounded-xl border border-s4p-mark bg-s4p-mark py-4 text-lg font-bold text-slate-950 hover:brightness-110 active:bg-s4p-mark disabled:cursor-wait disabled:bg-s4p-mark/50 disabled:text-slate-950 disabled:opacity-100"
               >
-                {saving ? "Saving..." : SEND_INVITATION_LABEL}
+                {saving ? "Opening Sponsors..." : SEND_INVITATION_LABEL}
               </button>
             </div>
           </>
