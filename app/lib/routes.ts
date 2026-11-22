@@ -81,6 +81,8 @@ export const CLUB_ADMIN_ADDRESS_BOOKS_PATH = CLUB_SPONSORS_ADDRESS_BOOKS_PATH;
 export const CLUB_SPONSOR_LEADERBOARD_PATH = "/club/sponsor";
 export const SPONSOR_INVITATIONS_PATH = "/sponsor/invitations";
 export const SPONSOR_LOGIN_PATH = "/sponsor/login";
+/** Local Business Climate Sponsor sign-in. Same form, local heading and introduction. */
+export const LOCAL_SPONSOR_SIGN_IN_PATH = `${SPONSOR_LOGIN_PATH}?as=local`;
 export const SPONSOR_REGISTER_PATH = "/sponsor/register";
 export const LOCAL_SPONSOR_REGISTER_PATH = "/sponsor/local/register";
 export const LOCAL_SPONSOR_HOME_PATH = "/sponsor/local";

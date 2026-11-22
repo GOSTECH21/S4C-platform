@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { loginSponsor } from "@/app/services/sponsor-auth.service";
 import { getCurrentSponsor } from "@/app/services/current-sponsor.service";
 import {
@@ -24,7 +25,11 @@ import { hydrateLocalSponsorRecords } from "@/app/services/local-sponsor.service
 import { inviteCountWaitingForBrand } from "@/app/services/sponsor-listings.service";
 import { roleLoginAccount } from "@/app/lib/role-login";
 
-export default function SponsorLoginPage() {
+const LOCAL_BUSINESS_LOGIN_KICKER = "Local Business Sponsor";
+const LOCAL_BUSINESS_LOGIN_INTRO =
+  "Sign in as Local Business Climate Sponsor to receive a Partner Club's 5 Climate Project.";
+
+function SponsorLoginForm({ asLocal }: { asLocal: boolean }) {
   const account = roleLoginAccount("sponsor");
   const [email, setEmail] = useState(account.email);
   const [password, setPassword] = useState(account.password);
@@ -36,11 +41,33 @@ export default function SponsorLoginPage() {
   const [registerLocalHref, setRegisterLocalHref] = useState(
     LOCAL_SPONSOR_REGISTER_PATH
   );
+  const [signedInLocal, setSignedInLocal] = useState(false);
+  const showLocal = asLocal || signedInLocal;
 
   useEffect(() => {
     const next = continueAfterSponsorAuth();
     setRegisterNationalHref(sponsorRegisterPath(next));
     setRegisterLocalHref(localSponsorRegisterPath(next));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const sponsor = await getCurrentSponsor();
+        if (cancelled) return;
+        setSignedInLocal(
+          isLocalClimateSponsor(String(sponsor.name ?? ""), {
+            jobTitle: String(sponsor.industry ?? ""),
+          })
+        );
+      } catch {
+        if (!cancelled) setSignedInLocal(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleLogin(event: React.FormEvent) {
@@ -82,12 +109,13 @@ export default function SponsorLoginPage() {
   return (
     <div className="mx-auto max-w-lg py-10">
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-        Brand / Sponsor
+        {showLocal ? LOCAL_BUSINESS_LOGIN_KICKER : "Brand / Sponsor"}
       </p>
       <h1 className="mt-3 text-4xl font-black">Sponsor Login</h1>
       <p className="mt-4 text-slate-300">
-        Sign in as Sponsorship Manager to receive a club&apos;s 5 Climate
-        Projects or create your own campaign list.
+        {showLocal
+          ? LOCAL_BUSINESS_LOGIN_INTRO
+          : "Sign in as Sponsorship Manager to receive a club's 5 Climate Projects or create your own campaign list."}
       </p>
       {error && (
         <div className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
@@ -158,5 +186,20 @@ export default function SponsorLoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+function SponsorLoginWithSearch() {
+  const searchParams = useSearchParams();
+  return (
+    <SponsorLoginForm asLocal={searchParams.get("as") === "local"} />
+  );
+}
+
+export default function SponsorLoginPage() {
+  return (
+    <Suspense fallback={<SponsorLoginForm asLocal={false} />}>
+      <SponsorLoginWithSearch />
+    </Suspense>
   );
 }

@@ -4,6 +4,7 @@ import {
   CLUB_LOGIN_PATH,
   FAN_LOGIN_PATH,
   PARTNER_LOGIN_PATH,
+  LOCAL_SPONSOR_SIGN_IN_PATH,
   SPONSOR_LOGIN_PATH,
 } from "../app/lib/routes";
 
@@ -13,6 +14,7 @@ function assert(condition: boolean, message: string) {
 }
 
 const roles = readFileSync("app/components/home/HomeRoleSection.tsx", "utf8");
+const sponsorLogin = readFileSync("app/sponsor/login/page.tsx", "utf8");
 const local = HOME_STAKEHOLDERS.find((card) => card.title === "Local Businesses");
 const club = HOME_STAKEHOLDERS.find((card) => card.title === "Sports Clubs");
 const fan = HOME_STAKEHOLDERS.find((card) => card.title === "Fans");
@@ -36,11 +38,22 @@ assert(
 assert(
   club?.login === CLUB_LOGIN_PATH &&
     fan?.login === FAN_LOGIN_PATH &&
-    local?.login === SPONSOR_LOGIN_PATH &&
+    local?.login === LOCAL_SPONSOR_SIGN_IN_PATH &&
     global?.login === SPONSOR_LOGIN_PATH &&
     philanthropist?.login === SPONSOR_LOGIN_PATH &&
     partner?.login === PARTNER_LOGIN_PATH,
   "Each role login line opens that role's login page"
+);
+
+assert(
+  sponsorLogin.includes("Local Business Sponsor") &&
+    sponsorLogin.includes(
+      "Sign in as Local Business Climate Sponsor to receive a Partner Club's 5 Climate Project."
+    ) &&
+    sponsorLogin.includes('searchParams.get("as") === "local"') &&
+    sponsorLogin.includes("isLocalClimateSponsor") &&
+    sponsorLogin.includes("Brand / Sponsor"),
+  "Local Business sign-in shows its heading and introduction; other sponsors keep Brand / Sponsor"
 );
 
 const firstLoginLine = roles.indexOf("<RoleLoginLine");
